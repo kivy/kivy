@@ -8,4 +8,3 @@ Android
 
 You can copy/paste this directory into /sdcard/kivy/showcase in your
 android device.
-

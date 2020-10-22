@@ -1,20 +1,21 @@
-
-'''
+"""
 Label textsize
 ============
 
 This example shows how the textsize and line_height property are used
 to format label widget
-'''
+"""
 
 import kivy
-kivy.require('1.0.7')
+
+kivy.require("1.0.7")
 
 from kivy.app import App
 from kivy.uix.label import Label
 
 
-_long_text = ("""Lorem ipsum dolor sit amet, consectetur adipiscing elit. """
+_long_text = (
+    """Lorem ipsum dolor sit amet, consectetur adipiscing elit. """
     """Phasellus odio nisi, pellentesque molestie adipiscing vitae, aliquam """
     """at tellus. Fusce quis est ornare erat pulvinar elementum ut sed """
     """felis. Donec vel neque mauris. In sit amet nunc sit amet diam dapibus"""
@@ -32,18 +33,15 @@ _long_text = ("""Lorem ipsum dolor sit amet, consectetur adipiscing elit. """
     """ sagittis dolor. Ut nec dui eget odio pulvinar placerat. Pellentesque"""
     """ mi metus, tristique et placerat ac, pulvinar vel quam. Nam blandit """
     """magna a urna imperdiet molestie. Nullam ut nisi eget enim laoreet """
-    """sodales sit amet a felis.\n""")
+    """sodales sit amet a felis.\n"""
+)
 
 
 class LabelTextSizeTest(App):
     def build(self):
-        z = Label(
-            text=_long_text,
-            text_size=(600, None),
-            line_height=1.5
-        )
+        z = Label(text=_long_text, text_size=(600, None), line_height=1.5)
         return z
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     LabelTextSizeTest().run()

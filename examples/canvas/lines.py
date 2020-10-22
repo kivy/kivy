@@ -1,4 +1,4 @@
-'''
+"""
 Line (SmoothLine) Experiment
 ============================
 
@@ -9,17 +9,22 @@ You can click to add new points to the segment, change the transparency
 and width of the line, or hit 'Animate' to see a set of sine and cosine
 animations. The Cap and Joint buttons don't work: SmoothLine has not
 implemented these features yet.
-'''
+"""
 
 from kivy.app import App
-from kivy.properties import OptionProperty, NumericProperty, ListProperty, \
-        BooleanProperty
+from kivy.properties import (
+    OptionProperty,
+    NumericProperty,
+    ListProperty,
+    BooleanProperty,
+)
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.clock import Clock
 from math import cos, sin
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <LinePlayground>:
     canvas:
         Color:
@@ -221,7 +226,8 @@ Builder.load_string('''
                     text: 'Clear'
                     on_press: root.points = root.points2 = []
 
-''')
+"""
+)
 
 
 class LinePlayground(FloatLayout):
@@ -229,12 +235,12 @@ class LinePlayground(FloatLayout):
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
     close = BooleanProperty(False)
-    points = ListProperty([(500, 500),
-                          [300, 300, 500, 300],
-                          [500, 400, 600, 400]])
+    points = ListProperty(
+        [(500, 500), [300, 300, 500, 300], [500, 400, 600, 400]]
+    )
     points2 = ListProperty([])
-    joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
-    cap = OptionProperty('none', options=('round', 'square', 'none'))
+    joint = OptionProperty("none", options=("round", "miter", "bevel", "none"))
+    cap = OptionProperty("none", options=("round", "square", "none"))
     linewidth = NumericProperty(10.0)
     dt = NumericProperty(0)
     dash_length = NumericProperty(1)
@@ -265,7 +271,8 @@ class LinePlayground(FloatLayout):
     def animate(self, do_animation):
         if do_animation:
             self._update_points_animation_ev = Clock.schedule_interval(
-                self.update_points_animation, 0)
+                self.update_points_animation, 0
+            )
         elif self._update_points_animation_ev is not None:
             self._update_points_animation_ev.cancel()
 
@@ -280,9 +287,9 @@ class LinePlayground(FloatLayout):
         for i in range(int(w / step)):
             x = i * step
             points.append(cx + x)
-            points.append(cy + cos(x / w * 8. + self.dt) * self.height * 0.2)
+            points.append(cy + cos(x / w * 8.0 + self.dt) * self.height * 0.2)
             points2.append(cx + x)
-            points2.append(cy + sin(x / w * 8. + self.dt) * self.height * 0.2)
+            points2.append(cy + sin(x / w * 8.0 + self.dt) * self.height * 0.2)
         self.points = points
         self.points2 = points2
 
@@ -292,5 +299,5 @@ class TestLineApp(App):
         return LinePlayground()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TestLineApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Factory object
 ==============
 
@@ -36,9 +36,9 @@ classname before you re-assign it::
     >>> Factory.unregister('MyWidget')
     >>> Factory.register('MyWidget', cls=CustomWidget)
     >>> customWidget = Factory.MyWidget()
-'''
+"""
 
-__all__ = ('Factory', 'FactoryBase', 'FactoryException')
+__all__ = ("Factory", "FactoryBase", "FactoryException")
 
 import copy
 from kivy.logger import Logger
@@ -50,7 +50,6 @@ class FactoryException(Exception):
 
 
 class FactoryBase(object):
-
     def __init__(self):
         super(FactoryBase, self).__init__()
         self.classes = {}
@@ -68,19 +67,27 @@ class FactoryBase(object):
         return obj
 
     def is_template(self, classname):
-        '''Return True if the classname is a template from the
+        """Return True if the classname is a template from the
         :class:`~kivy.lang.Builder`.
 
         .. versionadded:: 1.0.5
-        '''
+        """
         if classname in self.classes:
-            return self.classes[classname]['is_template']
+            return self.classes[classname]["is_template"]
         else:
             return False
 
-    def register(self, classname, cls=None, module=None, is_template=False,
-                 baseclasses=None, filename=None, warn=False):
-        '''Register a new classname referring to a real class or
+    def register(
+        self,
+        classname,
+        cls=None,
+        module=None,
+        is_template=False,
+        baseclasses=None,
+        filename=None,
+        warn=False,
+    ):
+        """Register a new classname referring to a real class or
         class definition in a module. Warn, if True will emit a warning message
         when a class is re-declared.
 
@@ -92,46 +99,58 @@ class FactoryBase(object):
 
         .. versionchanged:: 1.0.5
             :attr:`is_template` has been added in 1.0.5.
-        '''
+        """
         if cls is None and module is None and baseclasses is None:
             raise ValueError(
-                'You must specify either cls= or module= or baseclasses =')
+                "You must specify either cls= or module= or baseclasses ="
+            )
         if classname in self.classes:
             if warn:
                 info = self.classes[classname]
-                Logger.warning('Factory: Ignored class "{}" re-declaration. '
-                'Current -  module: {}, cls: {}, baseclass: {}, filename: {}. '
-                'Ignored -  module: {}, cls: {}, baseclass: {}, filename: {}.'.
-                format(classname, info['module'], info['cls'],
-                       info['baseclasses'], info['filename'], module, cls,
-                       baseclasses, filename))
+                Logger.warning(
+                    'Factory: Ignored class "{}" re-declaration. '
+                    "Current -  module: {}, cls: {}, baseclass: {}, filename: {}. "
+                    "Ignored -  module: {}, cls: {}, baseclass: {}, filename: {}.".format(
+                        classname,
+                        info["module"],
+                        info["cls"],
+                        info["baseclasses"],
+                        info["filename"],
+                        module,
+                        cls,
+                        baseclasses,
+                        filename,
+                    )
+                )
             return
         self.classes[classname] = {
-            'module': module,
-            'cls': cls,
-            'is_template': is_template,
-            'baseclasses': baseclasses,
-            'filename': filename}
+            "module": module,
+            "cls": cls,
+            "is_template": is_template,
+            "baseclasses": baseclasses,
+            "filename": filename,
+        }
 
     def unregister(self, *classnames):
-        '''Unregisters the classnames previously registered via the
+        """Unregisters the classnames previously registered via the
         register method. This allows the same classnames to be re-used in
         different contexts.
 
         .. versionadded:: 1.7.1
-        '''
+        """
         for classname in classnames:
             if classname in self.classes:
                 self.classes.pop(classname)
 
     def unregister_from_filename(self, filename):
-        '''Unregister all the factory objects related to the filename passed in
+        """Unregister all the factory objects related to the filename passed in
         the parameter.
 
         .. versionadded:: 1.7.0
-        '''
-        to_remove = [x for x in self.classes
-                     if self.classes[x]['filename'] == filename]
+        """
+        to_remove = [
+            x for x in self.classes if self.classes[x]["filename"] == filename
+        ]
         for name in to_remove:
             del self.classes[name]
 
@@ -142,34 +161,34 @@ class FactoryBase(object):
                 # if trying to access attributes like checking for `bind`
                 # then raise AttributeError
                 raise AttributeError(
-                    'First letter of class name <%s> is in lowercase' % name)
-            raise FactoryException('Unknown class <%s>' % name)
+                    "First letter of class name <%s> is in lowercase" % name
+                )
+            raise FactoryException("Unknown class <%s>" % name)
 
         item = classes[name]
-        cls = item['cls']
+        cls = item["cls"]
 
         # No class to return, import the module
         if cls is None:
-            if item['module']:
+            if item["module"]:
                 module = __import__(
-                    name=item['module'],
-                    fromlist='*',
-                    level=0  # force absolute
-                )
+                    name=item["module"], fromlist="*", level=0
+                )  # force absolute
                 if not hasattr(module, name):
                     raise FactoryException(
-                        'No class named <%s> in module <%s>' % (
-                            name, item['module']))
-                cls = item['cls'] = getattr(module, name)
+                        "No class named <%s> in module <%s>"
+                        % (name, item["module"])
+                    )
+                cls = item["cls"] = getattr(module, name)
 
-            elif item['baseclasses']:
+            elif item["baseclasses"]:
                 rootwidgets = []
-                for basecls in item['baseclasses'].split('+'):
+                for basecls in item["baseclasses"].split("+"):
                     rootwidgets.append(Factory.get(basecls))
-                cls = item['cls'] = type(str(name), tuple(rootwidgets), {})
+                cls = item["cls"] = type(str(name), tuple(rootwidgets), {})
 
             else:
-                raise FactoryException('No information to create the class')
+                raise FactoryException("No information to create the class")
 
         return cls
 
@@ -177,13 +196,14 @@ class FactoryBase(object):
 
 
 #: Factory instance to use for getting new classes
-Factory: FactoryBase = register_context('Factory', FactoryBase)
+Factory: FactoryBase = register_context("Factory", FactoryBase)
 
 # Now import the file with all registers
 # automatically generated by build_factory
 import kivy.factory_registers  # NOQA
-Logger.info('Factory: %d symbols loaded' % len(Factory.classes))
 
-if __name__ == '__main__':
-    Factory.register('Vector', module='kivy.vector')
-    Factory.register('Widget', module='kivy.uix.widget')
+Logger.info("Factory: %d symbols loaded" % len(Factory.classes))
+
+if __name__ == "__main__":
+    Factory.register("Vector", module="kivy.vector")
+    Factory.register("Widget", module="kivy.uix.widget")

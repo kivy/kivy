@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -40,11 +40,11 @@ extern "C" {
 // http://www.glprogramming.com/red/chapter11.html
 enum TessWindingRule
 {
-	TESS_WINDING_ODD,
-	TESS_WINDING_NONZERO,
-	TESS_WINDING_POSITIVE,
-	TESS_WINDING_NEGATIVE,
-	TESS_WINDING_ABS_GEQ_TWO,
+    TESS_WINDING_ODD,
+    TESS_WINDING_NONZERO,
+    TESS_WINDING_POSITIVE,
+    TESS_WINDING_NEGATIVE,
+    TESS_WINDING_ABS_GEQ_TWO,
 };
 
 // The contents of the tessGetElements() depends on element type being passed to tessTesselate().
@@ -80,12 +80,12 @@ enum TessWindingRule
 //     visited[startPoly] = 1;
 //     while (nstack > 0) {
 //         TESSindex idx = stack[--nstack];
-//			const TESSindex* poly = &elems[idx * polySize * 2];
-//			const TESSindex* nei = &poly[polySize];
+//            const TESSindex* poly = &elems[idx * polySize * 2];
+//            const TESSindex* nei = &poly[polySize];
 //          for (int i = 0; i < polySize; i++) {
 //              if (poly[i] == TESS_UNDEF) break;
 //              if (nei[i] != TESS_UNDEF && !visited[nei[i]])
-//	                stack[nstack++] = nei[i];
+//                    stack[nstack++] = nei[i];
 //                  visited[nei[i]] = 1;
 //              }
 //          }
@@ -109,9 +109,9 @@ enum TessWindingRule
 //
 enum TessElementType
 {
-	TESS_POLYGONS,
-	TESS_CONNECTED_POLYGONS,
-	TESS_BOUNDARY_CONTOURS,
+    TESS_POLYGONS,
+    TESS_CONNECTED_POLYGONS,
+    TESS_BOUNDARY_CONTOURS,
 };
 
 typedef float TESSreal;
@@ -133,24 +133,24 @@ typedef struct TESSalloc TESSalloc;
 // how often to allocate memory from the system versus how much extra space the system
 // should allocate. Reasonable defaults are shown in comments below, they will be used if
 // the bucket sizes are zero.
-// 
+//
 // The use may left the memrealloc to be null. In that case, the tesselator will not try to
 // dynamically grow int's internal arrays. The tesselator only needs the reallocation when it
 // has found intersecting segments and needs to add new vertex. This deficiency can be cured by
 // allocating some extra vertices beforehand. The 'extraVertices' variable allows to specify
-// number of expected extra vertices.  
+// number of expected extra vertices.
 struct TESSalloc
 {
-	void *(*memalloc)( void *userData, unsigned int size );
-	void *(*memrealloc)( void *userData, void* ptr, unsigned int size );
-	void (*memfree)( void *userData, void *ptr );
-	void* userData;				// User data passed to the allocator functions.
-	int meshEdgeBucketSize;		// 512
-	int meshVertexBucketSize;	// 512
-	int meshFaceBucketSize;		// 256
-	int dictNodeBucketSize;		// 512
-	int regionBucketSize;		// 256
-	int extraVertices;			// Number of extra vertices allocated for the priority queue.
+    void *(*memalloc)( void *userData, unsigned int size );
+    void *(*memrealloc)( void *userData, void* ptr, unsigned int size );
+    void (*memfree)( void *userData, void *ptr );
+    void* userData;                // User data passed to the allocator functions.
+    int meshEdgeBucketSize;        // 512
+    int meshVertexBucketSize;    // 512
+    int meshFaceBucketSize;        // 256
+    int dictNodeBucketSize;        // 512
+    int regionBucketSize;        // 256
+    int extraVertices;            // Number of extra vertices allocated for the priority queue.
 };
 
 
@@ -207,7 +207,7 @@ const TESSreal* tessGetVertices( TESStesselator *tess );
 // Every point added using tessAddContour() will get a new index starting at 0.
 // New vertices generated at the intersections of segments are assigned value TESS_UNDEF.
 const TESSindex* tessGetVertexIndices( TESStesselator *tess );
-	
+
 // tessGetElementCount() - Returns number of elements in the the tesselated output.
 int tessGetElementCount( TESStesselator *tess );
 

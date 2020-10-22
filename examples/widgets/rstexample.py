@@ -1,4 +1,4 @@
-'''
+"""
 QuickReference for Rst
 ======================
 
@@ -113,7 +113,7 @@ Ordered list
 
 .. _bottom:
 
-Go to top_'''
+Go to top_"""
 
 from kivy.uix.rst import RstDocument
 from kivy.app import App
@@ -124,5 +124,5 @@ class RstApp(App):
         return RstDocument(text=__doc__)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     RstApp().run()

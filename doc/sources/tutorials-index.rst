@@ -7,4 +7,3 @@ Tutorials
     tutorials/pong
     tutorials/firstwidget
     tutorials/crashcourse
-

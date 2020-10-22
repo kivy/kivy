@@ -1,17 +1,17 @@
-'''
+"""
 Geometry utilities
 ==================
 
 This module contains some helper functions for geometric calculations.
-'''
+"""
 
-__all__ = ('circumcircle', 'minimum_bounding_circle')
+__all__ = ("circumcircle", "minimum_bounding_circle")
 
 from kivy.vector import Vector
 
 
 def circumcircle(a, b, c):
-    '''
+    """
     Computes the circumcircle of a triangle defined by a, b, c.
     See: http://en.wikipedia.org/wiki/Circumscribed_circle
 
@@ -27,18 +27,27 @@ def circumcircle(a, b, c):
         A tuple that defines the circle :
          * The first element in the returned tuple is the center as (x, y)
          * The second is the radius (float)
-    '''
+    """
     P = Vector(a[0], a[1])
     Q = Vector(b[0], b[1])
     R = Vector(c[0], c[1])
 
-    mPQ = (P + Q) * .5
-    mQR = (Q + R) * .5
+    mPQ = (P + Q) * 0.5
+    mQR = (Q + R) * 0.5
 
-    numer = -(- mPQ.y * R.y + mPQ.y * Q.y + mQR.y * R.y - mQR.y * Q.y -
-              mPQ.x * R.x + mPQ.x * Q.x + mQR.x * R.x - mQR.x * Q.x)
-    denom = (-Q.x * R.y + P.x * R.y - P.x * Q.y +
-             Q.y * R.x - P.y * R.x + P.y * Q.x)
+    numer = -(
+        -mPQ.y * R.y
+        + mPQ.y * Q.y
+        + mQR.y * R.y
+        - mQR.y * Q.y
+        - mPQ.x * R.x
+        + mPQ.x * Q.x
+        + mQR.x * R.x
+        - mQR.x * Q.x
+    )
+    denom = (
+        -Q.x * R.y + P.x * R.y - P.x * Q.y + Q.y * R.x - P.y * R.x + P.y * Q.x
+    )
 
     t = numer / denom
 
@@ -49,7 +58,7 @@ def circumcircle(a, b, c):
 
 
 def minimum_bounding_circle(points):
-    '''
+    """
     Returns the minimum bounding circle for a set of points.
 
     For a description of the problem being solved, see the `Smallest Circle
@@ -69,7 +78,7 @@ def minimum_bounding_circle(points):
             * The first element in the returned tuple is the center (x, y)
             * The second the radius (float)
 
-    '''
+    """
     points = [Vector(p[0], p[1]) for p in points]
 
     if len(points) == 1:
@@ -77,7 +86,7 @@ def minimum_bounding_circle(points):
 
     if len(points) == 2:
         p1, p2 = points
-        return (p1 + p2) * .5, ((p1 - p2) * .5).length()
+        return (p1 + p2) * 0.5, ((p1 - p2) * 0.5).length()
 
     # determine a point P with the smallest y value
     P = min(points, key=lambda p: p.y)
@@ -88,6 +97,7 @@ def minimum_bounding_circle(points):
         if q == P:
             return 1e10  # max val if the same, to skip
         return abs((q - P).angle((1, 0)))
+
     Q = min(points, key=x_axis_angle)
 
     for p in points:
@@ -96,12 +106,13 @@ def minimum_bounding_circle(points):
             if r in (P, Q):
                 return 1e10  # max val if the same, to skip
             return abs((r - P).angle(r - Q))
+
         R = min(points, key=angle_pq)
 
         # check for case 1 (angle PRQ is obtuse), the circle is determined
         # by two points, P and Q. radius = |(P-Q)/2|, center = (P+Q)/2
         if angle_pq(R) > 90.0:
-            return (P + Q) * .5, ((P - Q) * .5).length()
+            return (P + Q) * 0.5, ((P - Q) * 0.5).length()
 
         # if angle RPQ is obtuse, make P = R, and try again
         if abs((R - P).angle(Q - P)) > 90:

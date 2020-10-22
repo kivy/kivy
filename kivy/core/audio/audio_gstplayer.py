@@ -1,4 +1,4 @@
-'''
+"""
 Audio Gstplayer
 ===============
 
@@ -7,7 +7,7 @@ Audio Gstplayer
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
 This player is the preferred player, using Gstreamer 1.0, working on both
 Python 2 and 3.
-'''
+"""
 
 from kivy.lib.gstplayer import GstPlayer, get_gst_version
 from kivy.core.audio import Sound, SoundLoader
@@ -21,24 +21,26 @@ if PY2:
 else:
     from urllib.request import pathname2url
 
-Logger.info('AudioGstplayer: Using Gstreamer {}'.format(
-    '.'.join(map(str, get_gst_version()))))
+Logger.info(
+    "AudioGstplayer: Using Gstreamer {}".format(
+        ".".join(map(str, get_gst_version()))
+    )
+)
 
 
 def _on_gstplayer_message(mtype, message):
-    if mtype == 'error':
-        Logger.error('AudioGstplayer: {}'.format(message))
-    elif mtype == 'warning':
-        Logger.warning('AudioGstplayer: {}'.format(message))
-    elif mtype == 'info':
-        Logger.info('AudioGstplayer: {}'.format(message))
+    if mtype == "error":
+        Logger.error("AudioGstplayer: {}".format(message))
+    elif mtype == "warning":
+        Logger.warning("AudioGstplayer: {}".format(message))
+    elif mtype == "info":
+        Logger.info("AudioGstplayer: {}".format(message))
 
 
 class SoundGstplayer(Sound):
-
     @staticmethod
     def extensions():
-        return ('wav', 'ogg', 'mp3', 'm4a', 'flac', 'mp4')
+        return ("wav", "ogg", "mp3", "m4a", "flac", "mp4")
 
     def __init__(self, **kwargs):
         self.player = None
@@ -57,8 +59,9 @@ class SoundGstplayer(Sound):
     def load(self):
         self.unload()
         uri = self._get_uri()
-        self.player = GstPlayer(uri, None, self._on_gst_eos_sync,
-                                _on_gstplayer_message)
+        self.player = GstPlayer(
+            uri, None, self._on_gst_eos_sync, _on_gstplayer_message
+        )
         self.player.load()
 
     def play(self):
@@ -93,8 +96,8 @@ class SoundGstplayer(Sound):
         uri = self.source
         if not uri:
             return
-        if '://' not in uri:
-            uri = 'file:' + pathname2url(realpath(uri))
+        if "://" not in uri:
+            uri = "file:" + pathname2url(realpath(uri))
         return uri
 
 

@@ -1,9 +1,9 @@
-'''
+"""
 TabbedPanel
 ============
 
 Test of the widget TabbedPanel showing all capabilities.
-'''
+"""
 
 from kivy.app import App
 from kivy.animation import Animation
@@ -20,12 +20,13 @@ class CloseableHeader(TabbedPanelHeader):
     pass
 
 
-Factory.register('StandingHeader', cls=StandingHeader)
-Factory.register('CloseableHeader', cls=CloseableHeader)
+Factory.register("StandingHeader", cls=StandingHeader)
+Factory.register("CloseableHeader", cls=CloseableHeader)
 
 from kivy.lang import Builder
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <TabShowcase>
     but: _but
     Button:
@@ -238,14 +239,15 @@ Builder.load_string('''
                 size: my_header.size
                 allow_stretch: True
                 keep_ratio: False
-''')
+"""
+)
 
 
 class Tp(TabbedPanel):
 
     # override tab switching method to animate on tab switch
     def switch_to(self, header):
-        anim = Animation(opacity=0, d=.24, t='in_out_quad')
+        anim = Animation(opacity=0, d=0.24, t="in_out_quad")
 
         def start_anim(_anim, child, in_complete, *lt):
             _anim.start(child)
@@ -253,7 +255,7 @@ class Tp(TabbedPanel):
         def _on_complete(*lt):
             if header.content:
                 header.content.opacity = 0
-                anim = Animation(opacity=1, d=.43, t='in_out_quad')
+                anim = Animation(opacity=1, d=0.43, t="in_out_quad")
                 start_anim(anim, header.content, True)
             super(Tp, self).switch_to(header)
 
@@ -269,7 +271,6 @@ class PanelLeft(Tp):
 
 
 class PanelRight(Tp):
-
     def add_header(self):
         self.add_widget(CloseableHeader(panel=self))
 
@@ -283,9 +284,8 @@ class PanelbRight(Tp):
 
 
 class TabShowcase(FloatLayout):
-
     def show_tab(self):
-        if not hasattr(self, 'tab'):
+        if not hasattr(self, "tab"):
             self.tab = tab = PanelLeft()
             self.add_widget(tab)
             self.tab1 = tab = PanelRight()
@@ -294,24 +294,40 @@ class TabShowcase(FloatLayout):
             self.add_widget(tab)
             self.tab3 = tab = PanelbLeft()
             self.add_widget(tab)
-            self.but.text = \
-                'Tabs in variable positions, press to change to top_left'
+            self.but.text = (
+                "Tabs in variable positions, press to change to top_left"
+            )
         else:
-            values = ('left_top', 'left_mid', 'left_bottom', 'top_left',
-                'top_mid', 'top_right', 'right_top', 'right_mid',
-                'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
+            values = (
+                "left_top",
+                "left_mid",
+                "left_bottom",
+                "top_left",
+                "top_mid",
+                "top_right",
+                "right_top",
+                "right_mid",
+                "right_bottom",
+                "bottom_left",
+                "bottom_mid",
+                "bottom_right",
+            )
             index = values.index(self.tab.tab_pos)
-            self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
-                = self.tab3.tab_pos = values[(index + 1) % len(values)]
-            self.but.text = 'Tabs in \'%s\' position,' % self.tab.tab_pos\
-                + '\n press to change to next pos'
+            self.tab.tab_pos = (
+                self.tab1.tab_pos
+            ) = self.tab2.tab_pos = self.tab3.tab_pos = values[
+                (index + 1) % len(values)
+            ]
+            self.but.text = (
+                "Tabs in '%s' position," % self.tab.tab_pos
+                + "\n press to change to next pos"
+            )
 
 
 class TestTabApp(App):
-
     def build(self):
         return TabShowcase()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TestTabApp().run()

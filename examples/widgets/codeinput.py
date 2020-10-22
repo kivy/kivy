@@ -12,7 +12,7 @@ from pygments import lexers
 import codecs
 import os
 
-example_text = '''
+example_text = """
 ---------------------Python----------------------------------
 import kivy
 kivy.require('1.0.6') # replace with your current kivy version !
@@ -76,7 +76,7 @@ Alt + d            Delete text right of the cursor to the end of the word
 Alt + w            Copy selection
 Control + w        Cut selection
 Control + y        Paste selection
-'''
+"""
 
 
 class Fnt_SpinnerOption(SpinnerOption):
@@ -84,11 +84,12 @@ class Fnt_SpinnerOption(SpinnerOption):
 
 
 class LoadDialog(Popup):
-
     def load(self, path, selection):
-        self.choosen_file = [None, ]
+        self.choosen_file = [
+            None,
+        ]
         self.choosen_file = selection
-        Window.title = selection[0][selection[0].rfind(os.sep) + 1:]
+        Window.title = selection[0][selection[0].rfind(os.sep) + 1 :]
         self.dismiss()
 
     def cancel(self):
@@ -96,11 +97,10 @@ class LoadDialog(Popup):
 
 
 class SaveDialog(Popup):
-
     def save(self, path, selection):
-        _file = codecs.open(selection, 'w', encoding='utf8')
+        _file = codecs.open(selection, "w", encoding="utf8")
         _file.write(self.text)
-        Window.title = selection[selection.rfind(os.sep) + 1:]
+        Window.title = selection[selection.rfind(os.sep) + 1 :]
         _file.close()
         self.dismiss()
 
@@ -109,49 +109,47 @@ class SaveDialog(Popup):
 
 
 class CodeInputWithBindings(EmacsBehavior, CodeInput):
-    '''CodeInput with keybindings.
+    """CodeInput with keybindings.
     To add more bindings, add the behavior before CodeInput in the class
     definition.
-    '''
+    """
+
     pass
 
 
 class CodeInputTest(App):
 
-    files = ListProperty([None, ])
+    files = ListProperty([None,])
 
     def build(self):
-        b = BoxLayout(orientation='vertical')
+        b = BoxLayout(orientation="vertical")
         languages = Spinner(
-            text='language',
-            values=sorted(['KvLexer', ] + list(lexers.LEXERS.keys())))
+            text="language",
+            values=sorted(["KvLexer",] + list(lexers.LEXERS.keys())),
+        )
 
         languages.bind(text=self.change_lang)
 
-        menu = BoxLayout(
-            size_hint_y=None,
-            height='30pt')
-        fnt_size = Spinner(
-            text='12',
-            values=list(map(str, list(range(5, 40)))))
+        menu = BoxLayout(size_hint_y=None, height="30pt")
+        fnt_size = Spinner(text="12", values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
 
         fonts = [
-            file for file in LabelBase._font_dirs_files
-            if file.endswith('.ttf')]
+            file for file in LabelBase._font_dirs_files if file.endswith(".ttf")
+        ]
 
         fnt_name = Spinner(
-            text='RobotoMono',
-            option_cls=Fnt_SpinnerOption,
-            values=fonts)
+            text="RobotoMono", option_cls=Fnt_SpinnerOption, values=fonts
+        )
         fnt_name.bind(text=self._update_font)
         mnu_file = Spinner(
-            text='File',
-            values=('Open', 'SaveAs', 'Save', 'Close'))
+            text="File", values=("Open", "SaveAs", "Save", "Close")
+        )
         mnu_file.bind(text=self._file_menu_selected)
         key_bindings = Spinner(
-            text='Key bindings',
-            values=('Default key bindings', 'Emacs key bindings'))
+            text="Key bindings",
+            values=("Default key bindings", "Emacs key bindings"),
+        )
         key_bindings.bind(text=self._bindings_selected)
 
         menu.add_widget(mnu_file)
@@ -165,7 +163,7 @@ class CodeInputTest(App):
             lexer=KivyLexer(),
             font_size=12,
             text=example_text,
-            key_bindings='default',
+            key_bindings="default",
         )
 
         b.add_widget(self.codeinput)
@@ -179,47 +177,47 @@ class CodeInputTest(App):
         instance.font_name = self.codeinput.font_name = fnt_name
 
     def _file_menu_selected(self, instance, value):
-        if value == 'File':
+        if value == "File":
             return
-        instance.text = 'File'
-        if value == 'Open':
-            if not hasattr(self, 'load_dialog'):
+        instance.text = "File"
+        if value == "Open":
+            if not hasattr(self, "load_dialog"):
                 self.load_dialog = LoadDialog()
             self.load_dialog.open()
-            self.load_dialog.bind(choosen_file=self.setter('files'))
-        elif value == 'SaveAs':
-            if not hasattr(self, 'saveas_dialog'):
+            self.load_dialog.bind(choosen_file=self.setter("files"))
+        elif value == "SaveAs":
+            if not hasattr(self, "saveas_dialog"):
                 self.saveas_dialog = SaveDialog()
             self.saveas_dialog.text = self.codeinput.text
             self.saveas_dialog.open()
-        elif value == 'Save':
+        elif value == "Save":
             if self.files[0]:
-                _file = codecs.open(self.files[0], 'w', encoding='utf8')
+                _file = codecs.open(self.files[0], "w", encoding="utf8")
                 _file.write(self.codeinput.text)
                 _file.close()
-        elif value == 'Close':
+        elif value == "Close":
             if self.files[0]:
-                self.codeinput.text = ''
-                Window.title = 'untitled'
+                self.codeinput.text = ""
+                Window.title = "untitled"
 
     def _bindings_selected(self, instance, value):
-        value = value.split(' ')[0]
+        value = value.split(" ")[0]
         self.codeinput.key_bindings = value.lower()
 
     def on_files(self, instance, values):
         if not values[0]:
             return
-        _file = codecs.open(values[0], 'r', encoding='utf8')
+        _file = codecs.open(values[0], "r", encoding="utf8")
         self.codeinput.text = _file.read()
         _file.close()
 
     def change_lang(self, instance, z):
-        if z == 'KvLexer':
+        if z == "KvLexer":
             lx = KivyLexer()
         else:
             lx = lexers.get_lexer_by_name(lexers.LEXERS[z][2][0])
         self.codeinput.lexer = lx
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CodeInputTest().run()

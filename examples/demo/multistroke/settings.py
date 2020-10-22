@@ -1,16 +1,25 @@
-__all__ = ('MultistrokeSettingsContainer', 'MultistrokeSettingItem',
-           'MultistrokeSettingBoolean', 'MultistrokeSettingSlider',
-           'MultistrokeSettingString', 'MultistrokeSettingTitle')
+__all__ = (
+    "MultistrokeSettingsContainer",
+    "MultistrokeSettingItem",
+    "MultistrokeSettingBoolean",
+    "MultistrokeSettingSlider",
+    "MultistrokeSettingString",
+    "MultistrokeSettingTitle",
+)
 
 from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.properties import (StringProperty, NumericProperty, OptionProperty,
-                             BooleanProperty)
+from kivy.properties import (
+    StringProperty,
+    NumericProperty,
+    OptionProperty,
+    BooleanProperty,
+)
 from kivy.uix.popup import Popup
 
-Builder.load_file('settings.kv')
+Builder.load_file("settings.kv")
 
 
 class MultistrokeSettingsContainer(GridLayout):
@@ -18,28 +27,28 @@ class MultistrokeSettingsContainer(GridLayout):
 
 
 class MultistrokeSettingItem(GridLayout):
-    title = StringProperty('<No title set>')
-    desc = StringProperty('')
+    title = StringProperty("<No title set>")
+    desc = StringProperty("")
 
 
 class MultistrokeSettingTitle(Label):
-    title = StringProperty('<No title set>')
-    desc = StringProperty('')
+    title = StringProperty("<No title set>")
+    desc = StringProperty("")
 
 
 class MultistrokeSettingBoolean(MultistrokeSettingItem):
-    button_text = StringProperty('')
+    button_text = StringProperty("")
     value = BooleanProperty(False)
 
 
 class MultistrokeSettingString(MultistrokeSettingItem):
-    value = StringProperty('')
+    value = StringProperty("")
 
 
 class EditSettingPopup(Popup):
     def __init__(self, **kwargs):
         super(EditSettingPopup, self).__init__(**kwargs)
-        self.register_event_type('on_validate')
+        self.register_event_type("on_validate")
 
     def on_validate(self, *l):
         pass
@@ -48,7 +57,7 @@ class EditSettingPopup(Popup):
 class MultistrokeSettingSlider(MultistrokeSettingItem):
     min = NumericProperty(0)
     max = NumericProperty(100)
-    type = OptionProperty('int', options=['float', 'int'])
+    type = OptionProperty("int", options=["float", "int"])
     value = NumericProperty(0)
 
     def __init__(self, **kwargs):
@@ -59,7 +68,7 @@ class MultistrokeSettingSlider(MultistrokeSettingItem):
 
     def _to_numtype(self, v):
         try:
-            if self.type == 'float':
+            if self.type == "float":
                 return round(float(v), 1)
             else:
                 return int(v)
@@ -89,9 +98,10 @@ class MultistrokeSettingSlider(MultistrokeSettingItem):
         ids.input.select_all()
 
 
-Factory.register('MultistrokeSettingsContainer',
-                 cls=MultistrokeSettingsContainer)
-Factory.register('MultistrokeSettingTitle', cls=MultistrokeSettingTitle)
-Factory.register('MultistrokeSettingBoolean', cls=MultistrokeSettingBoolean)
-Factory.register('MultistrokeSettingSlider', cls=MultistrokeSettingSlider)
-Factory.register('MultistrokeSettingString', cls=MultistrokeSettingString)
+Factory.register(
+    "MultistrokeSettingsContainer", cls=MultistrokeSettingsContainer
+)
+Factory.register("MultistrokeSettingTitle", cls=MultistrokeSettingTitle)
+Factory.register("MultistrokeSettingBoolean", cls=MultistrokeSettingBoolean)
+Factory.register("MultistrokeSettingSlider", cls=MultistrokeSettingSlider)
+Factory.register("MultistrokeSettingString", cls=MultistrokeSettingString)

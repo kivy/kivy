@@ -11,145 +11,168 @@ from gimpfu import *
 # patterns.: allowed v0 pattern characters (+ force include and exclude)
 # *_IMAGE..: gimp layer types to export for this test, w/target extensions
 TESTSUITE_CONFIG = {
-    'OPAQUE': {
-        'alpha': [255],
-        'patterns': ('wxrgbcyp', None, None),
-        RGB_IMAGE: ['xcf', 'png', 'tga', 'tiff', 'ppm',
-                    'sgi', 'pcx', 'fits', 'ras'],
-        INDEXED_IMAGE: ['xcf', 'png', 'tga', 'tiff', 'ppm', 'gif', 'ras'],
+    "OPAQUE": {
+        "alpha": [255],
+        "patterns": ("wxrgbcyp", None, None),
+        RGB_IMAGE: [
+            "xcf",
+            "png",
+            "tga",
+            "tiff",
+            "ppm",
+            "sgi",
+            "pcx",
+            "fits",
+            "ras",
+        ],
+        INDEXED_IMAGE: ["xcf", "png", "tga", "tiff", "ppm", "gif", "ras"],
     },
-
-    'GRAY-OPAQUE': {
-        'alpha': [255],
-        'patterns': ('0123456789ABCDEF', None, None),
-        GRAY_IMAGE: ['xcf', 'png', 'tga', 'tiff',
-                     'pgm', 'sgi', 'fits', 'ras'],
-        INDEXED_IMAGE: ['xcf', 'png', 'tga', 'tiff', 'pgm', 'fits', 'ras'],
+    "GRAY-OPAQUE": {
+        "alpha": [255],
+        "patterns": ("0123456789ABCDEF", None, None),
+        GRAY_IMAGE: ["xcf", "png", "tga", "tiff", "pgm", "sgi", "fits", "ras"],
+        INDEXED_IMAGE: ["xcf", "png", "tga", "tiff", "pgm", "fits", "ras"],
     },
-
-    'BINARY': {
-        'alpha': [255],
-        'patterns': ('twrgbcyp', 't', None),
-        RGBA_IMAGE: ['xcf', 'png', 'tga', 'ico', 'sgi'],
-        INDEXEDA_IMAGE: ['xcf', 'png', 'tga', 'gif'],
+    "BINARY": {
+        "alpha": [255],
+        "patterns": ("twrgbcyp", "t", None),
+        RGBA_IMAGE: ["xcf", "png", "tga", "ico", "sgi"],
+        INDEXEDA_IMAGE: ["xcf", "png", "tga", "gif"],
     },
-    'GRAY-BINARY': {
-        'alpha': [255],
-        'patterns': ('t123456789ABCDEF', 't', None),
-        GRAYA_IMAGE: ['xcf', 'tga', 'png', 'sgi'],
-        INDEXEDA_IMAGE: ['xcf', 'tga', 'png'],
+    "GRAY-BINARY": {
+        "alpha": [255],
+        "patterns": ("t123456789ABCDEF", "t", None),
+        GRAYA_IMAGE: ["xcf", "tga", "png", "sgi"],
+        INDEXEDA_IMAGE: ["xcf", "tga", "png"],
     },
-
     "ALPHA": {
-        'alpha': [0x7F, 0xF0],
-        'patterns': ('twxrgbcyp', None, None),
-        RGBA_IMAGE: ['xcf', 'png', 'tga', 'sgi'],
+        "alpha": [0x7F, 0xF0],
+        "patterns": ("twxrgbcyp", None, None),
+        RGBA_IMAGE: ["xcf", "png", "tga", "sgi"],
     },
-    'GRAY-ALPHA': {
-        'alpha': [0x7F, 0xF0],
-        'patterns': ('t0123456789ABCDEF', None, None),
-        GRAYA_IMAGE: ['xcf', 'png', 'tga', 'sgi'],
+    "GRAY-ALPHA": {
+        "alpha": [0x7F, 0xF0],
+        "patterns": ("t0123456789ABCDEF", None, None),
+        GRAYA_IMAGE: ["xcf", "png", "tga", "sgi"],
     },
 }
 
 
 # kivy image test protocol v0 data: key is pattern char, value is pixel w/o a
 v0_PIXELS = {
-    'w': [0xFF, 0xFF, 0xFF], 'x': [0x00, 0x00, 0x00], 'r': [0xFF, 0x00, 0x00],
-    'g': [0x00, 0xFF, 0x00], 'b': [0x00, 0x00, 0xFF], 'y': [0xFF, 0xFF, 0x00],
-    'c': [0x00, 0xFF, 0xFF], 'p': [0xFF, 0x00, 0xFF], '0': [0x00, 0x00, 0x00],
-    '1': [0x11, 0x11, 0x11], '2': [0x22, 0x22, 0x22], '3': [0x33, 0x33, 0x33],
-    '4': [0x44, 0x44, 0x44], '5': [0x55, 0x55, 0x55], '6': [0x66, 0x66, 0x66],
-    '7': [0x77, 0x77, 0x77], '8': [0x88, 0x88, 0x88], '9': [0x99, 0x99, 0x99],
-    'A': [0xAA, 0xAA, 0xAA], 'B': [0xBB, 0xBB, 0xBB], 'C': [0xCC, 0xCC, 0xCC],
-    'D': [0xDD, 0xDD, 0xDD], 'E': [0xEE, 0xEE, 0xEE], 'F': [0xFF, 0xFF, 0xFF]}
+    "w": [0xFF, 0xFF, 0xFF],
+    "x": [0x00, 0x00, 0x00],
+    "r": [0xFF, 0x00, 0x00],
+    "g": [0x00, 0xFF, 0x00],
+    "b": [0x00, 0x00, 0xFF],
+    "y": [0xFF, 0xFF, 0x00],
+    "c": [0x00, 0xFF, 0xFF],
+    "p": [0xFF, 0x00, 0xFF],
+    "0": [0x00, 0x00, 0x00],
+    "1": [0x11, 0x11, 0x11],
+    "2": [0x22, 0x22, 0x22],
+    "3": [0x33, 0x33, 0x33],
+    "4": [0x44, 0x44, 0x44],
+    "5": [0x55, 0x55, 0x55],
+    "6": [0x66, 0x66, 0x66],
+    "7": [0x77, 0x77, 0x77],
+    "8": [0x88, 0x88, 0x88],
+    "9": [0x99, 0x99, 0x99],
+    "A": [0xAA, 0xAA, 0xAA],
+    "B": [0xBB, 0xBB, 0xBB],
+    "C": [0xCC, 0xCC, 0xCC],
+    "D": [0xDD, 0xDD, 0xDD],
+    "E": [0xEE, 0xEE, 0xEE],
+    "F": [0xFF, 0xFF, 0xFF],
+}
 
 
 # kivy image test protocol v0: return pixel data for given pattern char
 def v0_pattern_pixel(char, alpha, fmt):
-    if fmt == 'rgba':
-        if char == 't':
+    if fmt == "rgba":
+        if char == "t":
             return [0, 0, 0, 0]
         return v0_PIXELS[char] + [alpha]
-    if fmt == 'rgb':
-        if char == 't':
+    if fmt == "rgb":
+        if char == "t":
             return [0, 0, 0]
         return v0_PIXELS[char]
-    if fmt == 'gray':
-        assert char in '0123456789ABCDEF'
+    if fmt == "gray":
+        assert char in "0123456789ABCDEF"
         return [v0_PIXELS[char][0]]
-    if fmt == 'graya':
-        assert char in 't0123456789ABCDEF'
-        if char == 't':
+    if fmt == "graya":
+        assert char in "t0123456789ABCDEF"
+        if char == "t":
             return [0, 0]
         return [v0_PIXELS[char][0]] + [alpha]
-    raise Exception('v0_pattern_pixel: unknown format {}'.format(fmt))
+    raise Exception("v0_pattern_pixel: unknown format {}".format(fmt))
 
 
 # kivy image test protocol v0: filename
 def v0_filename(w, h, pat, alpha, fmtinfo, testname, ext):
-    return 'v0_{}x{}_{}_{:02X}_{}_{}_gimp.{}'.format(
-            w, h, pat, alpha, fmtinfo, testname, ext)
+    return "v0_{}x{}_{}_{:02X}_{}_{}_gimp.{}".format(
+        w, h, pat, alpha, fmtinfo, testname, ext
+    )
 
 
 # Saves an image to one or more files. We can't specify these details when
 # saving by extension. (This declaration is PEP8 compliant, 's all good)
 def save_image(dirname, img, lyr, w, h, pat, alpha, v0_fmtinfo, testname, ext):
     def filename(fmtinfo_in=None):
-        fmtinfo = fmtinfo_in and v0_fmtinfo + '-' + fmtinfo_in or v0_fmtinfo
+        fmtinfo = fmtinfo_in and v0_fmtinfo + "-" + fmtinfo_in or v0_fmtinfo
         return v0_filename(w, h, pat, alpha, fmtinfo, testname, ext)
 
     def savepath(fn):
         return os.path.join(dirname, fn)
 
-    if ext in ('ppm', 'pgm', 'pbm', 'pnm', 'pam'):
-        fn = filename('ASCII')
+    if ext in ("ppm", "pgm", "pbm", "pnm", "pam"):
+        fn = filename("ASCII")
         pdb.file_pnm_save(img, lyr, savepath(fn), fn, 0)
-        fn = filename('RAW')
+        fn = filename("RAW")
         pdb.file_pnm_save(img, lyr, savepath(fn), fn, 1)
 
-    elif ext == 'tga':
+    elif ext == "tga":
         # FIXME: Last argument to file_tga_save is undocumented, not sure what
-        fn = filename('RAW')
+        fn = filename("RAW")
         pdb.file_tga_save(img, lyr, savepath(fn), fn, 0, 0)
-        fn = filename('RLE')
+        fn = filename("RLE")
         pdb.file_tga_save(img, lyr, savepath(fn), fn, 1, 0)
 
-    elif ext == 'gif':
-        fn = filename('I0')
+    elif ext == "gif":
+        fn = filename("I0")
         pdb.file_gif_save(img, lyr, savepath(fn), fn, 0, 0, 0, 0)
-        fn = filename('I1')
+        fn = filename("I1")
         pdb.file_gif_save(img, lyr, savepath(fn), fn, 1, 0, 0, 0)
 
-    elif ext == 'png':
+    elif ext == "png":
         bits = [0, 1]
         # interlaced, bkgd block, gama block
         for i, b, g in [(i, b, g) for i in bits for b in bits for g in bits]:
-            fn = filename('I{}B{}G{}'.format(i, b, g))
+            fn = filename("I{}B{}G{}".format(i, b, g))
             pdb.file_png_save(img, lyr, savepath(fn), fn, i, 9, b, g, 1, 1, 1)
 
-    elif ext == 'sgi':
-        fn = filename('RAW')
+    elif ext == "sgi":
+        fn = filename("RAW")
         pdb.file_sgi_save(img, lyr, savepath(fn), fn, 0)
-        fn = filename('RLE')
+        fn = filename("RLE")
         pdb.file_sgi_save(img, lyr, savepath(fn), fn, 1)
-        fn = filename('ARLE')
+        fn = filename("ARLE")
         pdb.file_sgi_save(img, lyr, savepath(fn), fn, 2)
 
-    elif ext == 'tiff':
-        fn = filename('RAW')
+    elif ext == "tiff":
+        fn = filename("RAW")
         pdb.file_tiff_save(img, lyr, savepath(fn), fn, 0)
-        fn = filename('LZW')
+        fn = filename("LZW")
         pdb.file_tiff_save(img, lyr, savepath(fn), fn, 1)
-        fn = filename('PACKBITS')
+        fn = filename("PACKBITS")
         pdb.file_tiff_save(img, lyr, savepath(fn), fn, 2)
-        fn = filename('DEFLATE')
+        fn = filename("DEFLATE")
         pdb.file_tiff_save(img, lyr, savepath(fn), fn, 3)
 
-    elif ext == 'ras':
-        fn = filename('RAW')
+    elif ext == "ras":
+        fn = filename("RAW")
         pdb.file_sunras_save(img, lyr, savepath(fn), fn, 0)
-        fn = filename('RLE')
+        fn = filename("RLE")
         pdb.file_sunras_save(img, lyr, savepath(fn), fn, 1)
 
     else:
@@ -160,9 +183,9 @@ def save_image(dirname, img, lyr, w, h, pat, alpha, v0_fmtinfo, testname, ext):
 # Draw pattern on layer, helper for make_images() below
 def draw_pattern(lyr, pat, alpha, direction, pixelgetter):
     assert 0 <= alpha <= 255
-    assert re.match('[twxrgbycp0-9A-F]+$', pat)
-    assert direction in ('x', 'y', 'width', 'height')
-    dirx = direction in ('x', 'width')
+    assert re.match("[twxrgbycp0-9A-F]+$", pat)
+    assert direction in ("x", "y", "width", "height")
+    dirx = direction in ("x", "width")
     for i in range(0, len(pat)):
         pixel = pixelgetter(pat[i], alpha)
         if dirx:
@@ -180,30 +203,30 @@ def make_images(testname, pattern, alpha, layertype_in, extensions, dirname):
     assert len(pattern) > 0
     assert len(extensions) > 0
     assert isinstance(extensions, (list, tuple))
-    assert re.match('[wxtrgbcypA-F0-9]+$', pattern)
+    assert re.match("[wxtrgbcypA-F0-9]+$", pattern)
 
-    test_alpha = 'ALPHA' in testname or 'BINARY' in testname
-    grayscale = 'GRAY' in testname
+    test_alpha = "ALPHA" in testname or "BINARY" in testname
+    grayscale = "GRAY" in testname
 
     # Indexed layer types are drawn in RGB/RGBA, and converted later
     imgtype, v0_fmtinfo = {
-        GRAY_IMAGE: (GRAY, 'BPP1G'),
-        GRAYA_IMAGE: (GRAY, 'BPP2GA'),
-        RGB_IMAGE: (RGB, 'BPP3'),
-        RGBA_IMAGE: (RGB, 'BPP4'),
-        INDEXED_IMAGE: (grayscale and GRAY or RGB, 'IX'),
-        INDEXEDA_IMAGE: (grayscale and GRAY or RGB, 'IXA'),
+        GRAY_IMAGE: (GRAY, "BPP1G"),
+        GRAYA_IMAGE: (GRAY, "BPP2GA"),
+        RGB_IMAGE: (RGB, "BPP3"),
+        RGBA_IMAGE: (RGB, "BPP4"),
+        INDEXED_IMAGE: (grayscale and GRAY or RGB, "IX"),
+        INDEXEDA_IMAGE: (grayscale and GRAY or RGB, "IXA"),
     }[layertype_in]
 
     # We need to supply pixels of the format of the layer
     PP = v0_pattern_pixel
     pixelgetter = {
-        GRAY_IMAGE: lambda c, a: PP(c, a, 'gray'),
-        GRAYA_IMAGE: lambda c, a: PP(c, a, 'graya'),
-        RGB_IMAGE: lambda c, a: PP(c, a, 'rgb'),
-        RGBA_IMAGE: lambda c, a: PP(c, a, 'rgba'),
-        INDEXED_IMAGE: lambda c, a: PP(c, a, grayscale and 'gray' or 'rgb'),
-        INDEXEDA_IMAGE: lambda c, a: PP(c, a, grayscale and 'graya' or 'rgba'),
+        GRAY_IMAGE: lambda c, a: PP(c, a, "gray"),
+        GRAYA_IMAGE: lambda c, a: PP(c, a, "graya"),
+        RGB_IMAGE: lambda c, a: PP(c, a, "rgb"),
+        RGBA_IMAGE: lambda c, a: PP(c, a, "rgba"),
+        INDEXED_IMAGE: lambda c, a: PP(c, a, grayscale and "gray" or "rgb"),
+        INDEXEDA_IMAGE: lambda c, a: PP(c, a, grayscale and "graya" or "rgba"),
     }[layertype_in]
 
     # Pick the correct layer type for indexed formats
@@ -213,11 +236,11 @@ def make_images(testname, pattern, alpha, layertype_in, extensions, dirname):
     }.get(layertype_in, layertype_in)
 
     # Draw pattern Nx1 and 1xN variations
-    for direction in 'xy':
+    for direction in "xy":
         # Create the gimp image, and the layer we will draw on
-        w, h = (direction == 'x') and (len(pattern), 1) or (1, len(pattern))
+        w, h = (direction == "x") and (len(pattern), 1) or (1, len(pattern))
         img = pdb.gimp_image_new(w, h, imgtype)
-        lyr = pdb.gimp_layer_new(img, w, h, layertype, 'P', 100, NORMAL_MODE)
+        lyr = pdb.gimp_layer_new(img, w, h, layertype, "P", 100, NORMAL_MODE)
 
         # Add alpha layer if we are planning on encoding alpha information
         if test_alpha:
@@ -235,8 +258,18 @@ def make_images(testname, pattern, alpha, layertype_in, extensions, dirname):
 
         # Save each individual extension
         for ext in extensions:
-            save_image(dirname, img, lyr,
-                       w, h, pattern, alpha, v0_fmtinfo, testname, ext)
+            save_image(
+                dirname,
+                img,
+                lyr,
+                w,
+                h,
+                pattern,
+                alpha,
+                v0_fmtinfo,
+                testname,
+                ext,
+            )
         # FIXME: this fails?
         # pdb.gimp_image_delete(img)
 
@@ -250,7 +283,7 @@ def makepatterns(allow, include=None, exclude=None):
         pick1, pick2 = random.choice(allow), random.choice(allow)
         src.update([pick1 + pick2])
     for i in range(3, 11) + range(14, 18) + range(31, 34):
-        src.update([''.join([random.choice(allow) for k in range(i)])])
+        src.update(["".join([random.choice(allow) for k in range(i)])])
     out = []
     for srcpat in src:
         if exclude and exclude in srcpat:
@@ -271,31 +304,31 @@ def plugin_main(dirname, do_opaque, do_binary, do_alpha):
         return
 
     tests = []
-    tests.extend({
-        0: ['OPAQUE', 'GRAY-OPAQUE'],
-        2: ['OPAQUE'],
-        3: ['GRAY-OPAQUE'],
-    }.get(do_opaque, []))
-    tests.extend({
-        0: ['BINARY', 'GRAY-BINARY'],
-        2: ['BINARY'],
-        3: ['GRAY-BINARY'],
-    }.get(do_binary, []))
-    tests.extend({
-        0: ['ALPHA', 'GRAY-ALPHA'],
-        2: ['ALPHA'],
-        3: ['GRAY-ALPHA'],
-    }.get(do_alpha, []))
+    tests.extend(
+        {0: ["OPAQUE", "GRAY-OPAQUE"], 2: ["OPAQUE"], 3: ["GRAY-OPAQUE"],}.get(
+            do_opaque, []
+        )
+    )
+    tests.extend(
+        {0: ["BINARY", "GRAY-BINARY"], 2: ["BINARY"], 3: ["GRAY-BINARY"],}.get(
+            do_binary, []
+        )
+    )
+    tests.extend(
+        {0: ["ALPHA", "GRAY-ALPHA"], 2: ["ALPHA"], 3: ["GRAY-ALPHA"],}.get(
+            do_alpha, []
+        )
+    )
 
     suite_cfg = dict(TESTSUITE_CONFIG)
     for testname, cfg in suite_cfg.items():
         if testname not in tests:
             continue
-        pchars, inc, exc = cfg.pop('patterns')
+        pchars, inc, exc = cfg.pop("patterns")
         if not pchars:
             continue
         patterns = makepatterns(pchars, inc, exc)
-        for alpha in cfg.pop('alpha', [255]):
+        for alpha in cfg.pop("alpha", [255]):
             for layertype, exts in cfg.items():
                 if not exts:
                     continue
@@ -306,24 +339,42 @@ def plugin_main(dirname, do_opaque, do_binary, do_alpha):
 register(
     proc_name="kivy_image_testsuite",
     help="Creates image test suite for Kivy ImageLoader",
-    blurb=("Creates image test suite for Kivy ImageLoader. "
-          "Warning: This will create thousands of images"),
+    blurb=(
+        "Creates image test suite for Kivy ImageLoader. "
+        "Warning: This will create thousands of images"
+    ),
     author="For kivy.org, Terje Skjaeveland",
     copyright="Copyright 2017 kivy.org (MIT license)",
     date="2017",
     imagetypes="",
     params=[
         (PF_DIRNAME, "outputdir", "Output directory:", 0),
-        (PF_OPTION, "opaque", "OPAQUE tests?", 0,
-                    ["All", "None", "OPAQUE", "GRAY-OPAQUE"]),
-        (PF_OPTION, "binary", "BINARY tests?", 0,
-                    ["All", "None", "BINARY", "GRAY-BINARY"]),
-        (PF_OPTION, "alpha", "ALPHA tests?", 0,
-                    ["All", "None", "ALPHA", "GRAY-ALPHA"]),
+        (
+            PF_OPTION,
+            "opaque",
+            "OPAQUE tests?",
+            0,
+            ["All", "None", "OPAQUE", "GRAY-OPAQUE"],
+        ),
+        (
+            PF_OPTION,
+            "binary",
+            "BINARY tests?",
+            0,
+            ["All", "None", "BINARY", "GRAY-BINARY"],
+        ),
+        (
+            PF_OPTION,
+            "alpha",
+            "ALPHA tests?",
+            0,
+            ["All", "None", "ALPHA", "GRAY-ALPHA"],
+        ),
     ],
     results=[],
     function=plugin_main,
     menu="<Image>/Tools/_Kivy image testsuite...",
-    label="Generate images...")
+    label="Generate images...",
+)
 
 main()

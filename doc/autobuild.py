@@ -1,21 +1,21 @@
-'''
+"""
 Script to generate Kivy API from source code.
 
 Code is messy, but working.
 Be careful if you change anything in !
 
-'''
+"""
 
 ignore_list = (
-    'kivy._clock',
-    'kivy._event',
-    'kivy.factory_registers',
-    'kivy.graphics.buffer',
-    'kivy.graphics.vbo',
-    'kivy.graphics.vertex',
-    'kivy.uix.recycleview.__init__',
-    'kivy.setupconfig',
-    'kivy.version'
+    "kivy._clock",
+    "kivy._event",
+    "kivy.factory_registers",
+    "kivy.graphics.buffer",
+    "kivy.graphics.vbo",
+    "kivy.graphics.vertex",
+    "kivy.uix.recycleview.__init__",
+    "kivy.setupconfig",
+    "kivy.version",
 )
 
 import os
@@ -59,6 +59,7 @@ import kivy.storage.redisstore
 import kivy.network.urlrequest
 import kivy.modules.webdebugger
 import kivy.support
+
 try:
     import kivy.tools.packaging.pyinstaller_hooks
 except ImportError:
@@ -71,7 +72,7 @@ from kivy.lib import ddsfile, mtdev
 
 # check for silenced build
 BE_QUIET = True
-if os.environ.get('BE_QUIET') == 'False':
+if os.environ.get("BE_QUIET") == "False":
     BE_QUIET = False
 
 # force loading of all classes from factory
@@ -80,13 +81,13 @@ for x in list(Factory.classes.keys())[:]:
 
 # Directory of doc
 base_dir = os.path.dirname(__file__)
-dest_dir = os.path.join(base_dir, 'sources')
-examples_framework_dir = os.path.join(base_dir, '..', 'examples', 'framework')
+dest_dir = os.path.join(base_dir, "sources")
+examples_framework_dir = os.path.join(base_dir, "..", "examples", "framework")
 
 # Check touch file
-base = 'autobuild.py-done'
-with open(os.path.join(base_dir, base), 'w') as f:
-    f.write('')
+base = "autobuild.py-done"
+with open(os.path.join(base_dir, base), "w") as f:
+    f.write("")
 
 
 def writefile(filename, data):
@@ -94,27 +95,33 @@ def writefile(filename, data):
     # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
     if not BE_QUIET:
-        print('write', filename)
+        print("write", filename)
     if os.path.exists(f):
         with open(f) as fd:
             if fd.read() == data:
                 return
-    h = open(f, 'w')
+    h = open(f, "w")
     h.write(data)
     h.close()
 
 
 # Activate Kivy modules
-'''
+"""
 for k in kivy.kivy_modules.list().keys():
     kivy.kivy_modules.import_module(k)
-'''
+"""
 
 
 # Search all kivy module
-l = [(x, sys.modules[x],
-      os.path.basename(sys.modules[x].__file__).rsplit('.', 1)[0])
-      for x in sys.modules if x.startswith('kivy') and sys.modules[x]]
+l = [
+    (
+        x,
+        sys.modules[x],
+        os.path.basename(sys.modules[x].__file__).rsplit(".", 1)[0],
+    )
+    for x in sys.modules
+    if x.startswith("kivy") and sys.modules[x]
+]
 
 
 # Extract packages from modules
@@ -126,18 +133,18 @@ for name, module, filename in l:
         continue
     if not any([name.startswith(x) for x in ignore_list]):
         api_modules.append(name)
-    if filename == '__init__':
+    if filename == "__init__":
         packages.append(name)
     else:
-        if hasattr(module, '__all__'):
+        if hasattr(module, "__all__"):
             modules[name] = module.__all__
         else:
-            modules[name] = [x for x in dir(module) if not x.startswith('__')]
+            modules[name] = [x for x in dir(module) if not x.startswith("__")]
 
 packages.sort()
 
 # Create index
-api_index = '''API Reference
+api_index = """API Reference
 -------------
 
 The API reference is a lexicographic list of all the different classes,
@@ -146,12 +153,12 @@ methods and features that Kivy offers.
 .. toctree::
     :maxdepth: 1
 
-'''
+"""
 api_modules.sort()
 for package in api_modules:
     api_index += "    api-%s.rst\n" % package
 
-writefile('api-index.rst', api_index)
+writefile("api-index.rst", api_index)
 
 
 # Create index for all packages
@@ -160,11 +167,12 @@ writefile('api-index.rst', api_index)
 #     but is not always desired. Please see
 #         https://github.com/kivy/kivy/pull/3870
 
-template = '\n'.join((
-    '=' * 100,
-    '$SUMMARY',
-    '=' * 100,
-    '''
+template = "\n".join(
+    (
+        "=" * 100,
+        "$SUMMARY",
+        "=" * 100,
+        """
 $EXAMPLES_REF
 
 .. automodule:: $PACKAGE
@@ -174,19 +182,22 @@ $EXAMPLES_REF
 .. toctree::
 
 $EXAMPLES
-'''))
+""",
+    )
+)
 
 
-template_examples = '''.. _example-reference%d:
+template_examples = """.. _example-reference%d:
 
 Examples
 --------
 
 %s
-'''
+"""
 
-template_examples_ref = ('# :ref:`Jump directly to Examples'
-                         ' <example-reference%d>`')
+template_examples_ref = (
+    "# :ref:`Jump directly to Examples" " <example-reference%d>`"
+)
 
 
 def extract_summary_line(doc):
@@ -195,30 +206,31 @@ def extract_summary_line(doc):
     :return: a doc string suitable for a header or empty string
     """
     if doc is None:
-        return ''
-    for line in doc.split('\n'):
+        return ""
+    for line in doc.split("\n"):
         line = line.strip()
         # don't take empty line
         if len(line) < 1:
             continue
         # ref mark
-        if line.startswith('.. _'):
+        if line.startswith(".. _"):
             continue
         return line
 
+
 for package in packages:
     summary = extract_summary_line(sys.modules[package].__doc__)
-    if summary is None or summary == '':
-        summary = 'NO DOCUMENTATION (package %s)' % package
-    t = template.replace('$SUMMARY', summary)
-    t = t.replace('$PACKAGE', package)
-    t = t.replace('$EXAMPLES_REF', '')
-    t = t.replace('$EXAMPLES', '')
+    if summary is None or summary == "":
+        summary = "NO DOCUMENTATION (package %s)" % package
+    t = template.replace("$SUMMARY", summary)
+    t = t.replace("$PACKAGE", package)
+    t = t.replace("$EXAMPLES_REF", "")
+    t = t.replace("$EXAMPLES", "")
 
     # search packages
     for subpackage in packages:
-        packagemodule = subpackage.rsplit('.', 1)[0]
-        if packagemodule != package or len(subpackage.split('.')) <= 2:
+        packagemodule = subpackage.rsplit(".", 1)[0]
+        if packagemodule != package or len(subpackage.split(".")) <= 2:
             continue
         t += "    api-%s.rst\n" % subpackage
 
@@ -226,12 +238,12 @@ for package in packages:
     m = list(modules.keys())
     m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__).upper())
     for module in m:
-        packagemodule = module.rsplit('.', 1)[0]
+        packagemodule = module.rsplit(".", 1)[0]
         if packagemodule != package:
             continue
         t += "    api-%s.rst\n" % module
 
-    writefile('api-%s.rst' % package, t)
+    writefile("api-%s.rst" % package, t)
 
 
 # Create index for all module
@@ -240,46 +252,50 @@ m.sort()
 refid = 0
 for module in m:
     summary = extract_summary_line(sys.modules[module].__doc__)
-    if summary is None or summary == '':
-        summary = 'NO DOCUMENTATION (module %s)' % package
+    if summary is None or summary == "":
+        summary = "NO DOCUMENTATION (module %s)" % package
 
     # search examples
     example_output = []
     example_prefix = module
-    if module.startswith('kivy.'):
+    if module.startswith("kivy."):
         example_prefix = module[5:]
-    example_prefix = example_prefix.replace('.', '_')
+    example_prefix = example_prefix.replace(".", "_")
 
     # try to found any example in framework directory
-    list_examples = glob('%s*.py' % os.path.join(
-        examples_framework_dir, example_prefix))
+    list_examples = glob(
+        "%s*.py" % os.path.join(examples_framework_dir, example_prefix)
+    )
     for x in list_examples:
         # extract filename without directory
         xb = os.path.basename(x)
 
         # add a section !
-        example_output.append('File :download:`%s <%s>` ::' % (
-            xb, os.path.join('..', x)))
+        example_output.append(
+            "File :download:`%s <%s>` ::" % (xb, os.path.join("..", x))
+        )
 
         # put the file in
-        with open(x, 'r') as fd:
+        with open(x, "r") as fd:
             d = fd.read().strip()
-            d = '\t' + '\n\t'.join(d.split('\n'))
+            d = "\t" + "\n\t".join(d.split("\n"))
             example_output.append(d)
 
-    t = template.replace('$SUMMARY', summary)
-    t = t.replace('$PACKAGE', module)
+    t = template.replace("$SUMMARY", summary)
+    t = t.replace("$PACKAGE", module)
     if len(example_output):
         refid += 1
         example_output = template_examples % (
-                refid, '\n\n\n'.join(example_output))
-        t = t.replace('$EXAMPLES_REF', template_examples_ref % refid)
-        t = t.replace('$EXAMPLES', example_output)
+            refid,
+            "\n\n\n".join(example_output),
+        )
+        t = t.replace("$EXAMPLES_REF", template_examples_ref % refid)
+        t = t.replace("$EXAMPLES", example_output)
     else:
-        t = t.replace('$EXAMPLES_REF', '')
-        t = t.replace('$EXAMPLES', '')
-    writefile('api-%s.rst' % module, t)
+        t = t.replace("$EXAMPLES_REF", "")
+        t = t.replace("$EXAMPLES", "")
+    writefile("api-%s.rst" % module, t)
 
 
 # Generation finished
-print('Auto-generation finished')
+print("Auto-generation finished")

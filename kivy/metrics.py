@@ -1,4 +1,4 @@
-'''
+"""
 Metrics
 =======
 
@@ -94,10 +94,10 @@ You can also simulate an alternative user preference for fontscale as follows::
 
     KIVY_METRICS_FONTSCALE=1.2 python main.py
 
-'''
+"""
 
 
-__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
+__all__ = ("Metrics", "MetricsBase", "pt", "inch", "cm", "mm", "dp", "sp")
 
 
 from os import environ
@@ -107,81 +107,79 @@ from kivy.setupconfig import USE_SDL2
 
 
 def pt(value):
-    '''Convert from points to pixels
-    '''
-    return dpi2px(value, 'pt')
+    """Convert from points to pixels"""
+    return dpi2px(value, "pt")
 
 
 def inch(value):
-    '''Convert from inches to pixels
-    '''
-    return dpi2px(value, 'in')
+    """Convert from inches to pixels"""
+    return dpi2px(value, "in")
 
 
 def cm(value):
-    '''Convert from centimeters to pixels
-    '''
-    return dpi2px(value, 'cm')
+    """Convert from centimeters to pixels"""
+    return dpi2px(value, "cm")
 
 
 def mm(value):
-    '''Convert from millimeters to pixels
-    '''
-    return dpi2px(value, 'mm')
+    """Convert from millimeters to pixels"""
+    return dpi2px(value, "mm")
 
 
 def dp(value):
-    '''Convert from density-independent pixels to pixels
-    '''
-    return dpi2px(value, 'dp')
+    """Convert from density-independent pixels to pixels"""
+    return dpi2px(value, "dp")
 
 
 def sp(value):
-    '''Convert from scale-independent pixels to pixels
-    '''
-    return dpi2px(value, 'sp')
+    """Convert from scale-independent pixels to pixels"""
+    return dpi2px(value, "sp")
 
 
 class MetricsBase(object):
-    '''Class that contains the default attributes for Metrics. Don't use this
+    """Class that contains the default attributes for Metrics. Don't use this
     class directly, but use the `Metrics` instance.
-    '''
+    """
 
     @reify
     def dpi(self):
-        '''Return the DPI of the screen. Depending on the platform, the DPI can
+        """Return the DPI of the screen. Depending on the platform, the DPI can
         be taken from the Window provider (Desktop mainly) or from a
         platform-specific module (like android/ios).
-        '''
-        if environ.get('KIVY_DOC_INCLUDE', None):
-            return 132.
+        """
+        if environ.get("KIVY_DOC_INCLUDE", None):
+            return 132.0
 
-        custom_dpi = environ.get('KIVY_DPI')
+        custom_dpi = environ.get("KIVY_DPI")
         if custom_dpi:
             return float(custom_dpi)
 
-        if platform == 'android':
+        if platform == "android":
             if USE_SDL2:
                 import jnius
-                Hardware = jnius.autoclass('org.renpy.android.Hardware')
+
+                Hardware = jnius.autoclass("org.renpy.android.Hardware")
                 return Hardware.getDPI()
             else:
                 import android
+
                 return android.get_dpi()
-        elif platform == 'ios':
+        elif platform == "ios":
             import ios
+
             return ios.get_dpi()
 
         # for all other platforms..
         from kivy.base import EventLoop
+
         EventLoop.ensure_window()
         return EventLoop.window.dpi
 
     @reify
     def dpi_rounded(self):
-        '''Return the DPI of the screen, rounded to the nearest of 120, 160,
+        """Return the DPI of the screen, rounded to the nearest of 120, 160,
         240 or 320.
-        '''
+        """
         dpi = self.dpi
         if dpi < 140:
             return 120
@@ -193,45 +191,49 @@ class MetricsBase(object):
 
     @reify
     def density(self):
-        '''Return the density of the screen. This value is 1 by default
+        """Return the density of the screen. This value is 1 by default
         on desktops but varies on android depending on the screen.
-        '''
-        if environ.get('KIVY_DOC_INCLUDE', None):
-            return 1.
+        """
+        if environ.get("KIVY_DOC_INCLUDE", None):
+            return 1.0
 
-        custom_density = environ.get('KIVY_METRICS_DENSITY')
+        custom_density = environ.get("KIVY_METRICS_DENSITY")
         if custom_density:
             return float(custom_density)
 
-        if platform == 'android':
+        if platform == "android":
             import jnius
-            Hardware = jnius.autoclass('org.renpy.android.Hardware')
+
+            Hardware = jnius.autoclass("org.renpy.android.Hardware")
             return Hardware.metrics.scaledDensity
-        elif platform == 'ios':
+        elif platform == "ios":
             import ios
+
             return ios.get_scale()
-        elif platform == 'macosx':
+        elif platform == "macosx":
             from kivy.base import EventLoop
+
             EventLoop.ensure_window()
-            return EventLoop.window.dpi / 96.
+            return EventLoop.window.dpi / 96.0
 
         return 1.0
 
     @reify
     def fontscale(self):
-        '''Return the fontscale user preference. This value is 1 by default but
+        """Return the fontscale user preference. This value is 1 by default but
         can vary between 0.8 and 1.2.
-        '''
-        custom_fontscale = environ.get('KIVY_METRICS_FONTSCALE')
+        """
+        custom_fontscale = environ.get("KIVY_METRICS_FONTSCALE")
         if custom_fontscale:
             return float(custom_fontscale)
 
-        if platform == 'android':
+        if platform == "android":
             from jnius import autoclass
+
             if USE_SDL2:
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                PythonActivity = autoclass("org.kivy.android.PythonActivity")
             else:
-                PythonActivity = autoclass('org.renpy.android.PythonActivity')
+                PythonActivity = autoclass("org.renpy.android.PythonActivity")
             config = PythonActivity.mActivity.getResources().getConfiguration()
             return config.fontScale
 

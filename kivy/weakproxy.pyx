@@ -303,4 +303,3 @@ cdef class WeakProxy(object):
 
     def __repr__(self):
         return '<WeakProxy to {!r}>'.format(self.__ref())
-

@@ -1,4 +1,4 @@
-'''
+"""
 Modules
 =======
 
@@ -90,9 +90,9 @@ manage the module state. Use the `ctx` variable as a dictionary. This
 context is unique for each instance/start() call of the module, and will
 be passed to stop() too.
 
-'''
+"""
 
-__all__ = ('Modules', )
+__all__ = ("Modules",)
 
 from kivy.config import Config
 from kivy.logger import Logger
@@ -102,10 +102,10 @@ import sys
 
 
 class ModuleContext:
-    '''Context of a module
+    """Context of a module
 
     You can access to the config with self.config.
-    '''
+    """
 
     def __init__(self):
         self.config = {}
@@ -115,15 +115,15 @@ class ModuleContext:
 
 
 class ModuleBase:
-    '''Handle Kivy modules. It will automatically load and instantiate the
-    module for the general window.'''
+    """Handle Kivy modules. It will automatically load and instantiate the
+    module for the general window."""
 
     def __init__(self, **kwargs):
         self.mods = {}
         self.wins = []
 
     def add_path(self, path):
-        '''Add a path to search for modules in'''
+        """Add a path to search for modules in"""
         if not os.path.exists(path):
             return
         if path not in sys.path:
@@ -132,20 +132,21 @@ class ModuleBase:
         for module in dirs:
             name, ext = os.path.splitext(module)
             # accept only python extensions
-            if ext not in ('.py', '.pyo', '.pyc') or name == '__init__':
+            if ext not in (".py", ".pyo", ".pyc") or name == "__init__":
                 continue
             self.mods[name] = {
-                'name': name,
-                'activated': False,
-                'context': ModuleContext()}
+                "name": name,
+                "activated": False,
+                "context": ModuleContext(),
+            }
 
     def list(self):
-        '''Return the list of available modules'''
+        """Return the list of available modules"""
         return self.mods
 
     def import_module(self, name):
         try:
-            modname = 'kivy.modules.{0}'.format(name)
+            modname = "kivy.modules.{0}".format(name)
             module = __import__(name=modname)
             module = sys.modules[modname]
         except ImportError:
@@ -153,70 +154,70 @@ class ModuleBase:
                 module = __import__(name=name)
                 module = sys.modules[name]
             except ImportError:
-                Logger.exception('Modules: unable to import <%s>' % name)
+                Logger.exception("Modules: unable to import <%s>" % name)
                 # protect against missing module dependency crash
-                self.mods[name]['module'] = None
+                self.mods[name]["module"] = None
                 return
         # basic check on module
-        if not hasattr(module, 'start'):
-            Logger.warning('Modules: Module <%s> missing start() function' %
-                           name)
+        if not hasattr(module, "start"):
+            Logger.warning(
+                "Modules: Module <%s> missing start() function" % name
+            )
             return
-        if not hasattr(module, 'stop'):
-            err = 'Modules: Module <%s> missing stop() function' % name
+        if not hasattr(module, "stop"):
+            err = "Modules: Module <%s> missing stop() function" % name
             Logger.warning(err)
             return
-        self.mods[name]['module'] = module
+        self.mods[name]["module"] = module
 
     def activate_module(self, name, win):
-        '''Activate a module on a window'''
+        """Activate a module on a window"""
         if name not in self.mods:
-            Logger.warning('Modules: Module <%s> not found' % name)
+            Logger.warning("Modules: Module <%s> not found" % name)
             return
 
         mod = self.mods[name]
 
         # ensure the module has been configured
-        if 'module' not in mod:
+        if "module" not in mod:
             self._configure_module(name)
 
-        pymod = mod['module']
-        if not mod['activated']:
-            context = mod['context']
-            msg = 'Modules: Start <{0}> with config {1}'.format(
-                  name, context)
+        pymod = mod["module"]
+        if not mod["activated"]:
+            context = mod["context"]
+            msg = "Modules: Start <{0}> with config {1}".format(name, context)
             Logger.debug(msg)
             pymod.start(win, context)
-            mod['activated'] = True
+            mod["activated"] = True
 
     def deactivate_module(self, name, win):
-        '''Deactivate a module from a window'''
+        """Deactivate a module from a window"""
         if name not in self.mods:
-            Logger.warning('Modules: Module <%s> not found' % name)
+            Logger.warning("Modules: Module <%s> not found" % name)
             return
-        if 'module' not in self.mods[name]:
+        if "module" not in self.mods[name]:
             return
 
-        module = self.mods[name]['module']
-        if self.mods[name]['activated']:
-            module.stop(win, self.mods[name]['context'])
-            self.mods[name]['activated'] = False
+        module = self.mods[name]["module"]
+        if self.mods[name]["activated"]:
+            module.stop(win, self.mods[name]["context"])
+            self.mods[name]["activated"] = False
 
     def register_window(self, win):
-        '''Add the window to the window list'''
+        """Add the window to the window list"""
         if win not in self.wins:
             self.wins.append(win)
         self.update()
 
     def unregister_window(self, win):
-        '''Remove the window from the window list'''
+        """Remove the window from the window list"""
         if win in self.wins:
             self.wins.remove(win)
         self.update()
 
     def update(self):
-        '''Update the status of the module for each window'''
-        modules_to_activate = [x[0] for x in Config.items('modules')]
+        """Update the status of the module for each window"""
+        modules_to_activate = [x[0] for x in Config.items("modules")]
         for win in self.wins:
             for name in self.mods:
                 if name not in modules_to_activate:
@@ -226,21 +227,21 @@ class ModuleBase:
                     self.activate_module(name, win)
                 except:
                     import traceback
+
                     traceback.print_exc()
                     raise
 
     def configure(self):
-        '''(internal) Configure all the modules before using them.
-        '''
-        modules_to_configure = [x[0] for x in Config.items('modules')]
+        """(internal) Configure all the modules before using them."""
+        modules_to_configure = [x[0] for x in Config.items("modules")]
         for name in modules_to_configure:
             if name not in self.mods:
-                Logger.warning('Modules: Module <%s> not found' % name)
+                Logger.warning("Modules: Module <%s> not found" % name)
                 continue
             self._configure_module(name)
 
     def _configure_module(self, name):
-        if 'module' not in self.mods[name]:
+        if "module" not in self.mods[name]:
             try:
                 self.import_module(name)
             except ImportError:
@@ -251,49 +252,49 @@ class ModuleBase:
         # and pass it in context.config token
         config = dict()
 
-        args = Config.get('modules', name)
-        if args != '':
-            values = Config.get('modules', name).split(',')
+        args = Config.get("modules", name)
+        if args != "":
+            values = Config.get("modules", name).split(",")
             for value in values:
-                x = value.split('=', 1)
+                x = value.split("=", 1)
                 if len(x) == 1:
                     config[x[0]] = True
                 else:
                     config[x[0]] = x[1]
 
-        self.mods[name]['context'].config = config
+        self.mods[name]["context"].config = config
 
         # call configure if module have one
-        if hasattr(self.mods[name]['module'], 'configure'):
-            self.mods[name]['module'].configure(config)
+        if hasattr(self.mods[name]["module"], "configure"):
+            self.mods[name]["module"].configure(config)
 
     def usage_list(self):
-        print('Available modules')
-        print('=================')
+        print("Available modules")
+        print("=================")
         for module in sorted(self.list()):
-            if 'module' not in self.mods[module]:
+            if "module" not in self.mods[module]:
                 self.import_module(module)
 
             # ignore modules without docstring
-            if not self.mods[module]['module'].__doc__:
+            if not self.mods[module]["module"].__doc__:
                 continue
 
-            text = self.mods[module]['module'].__doc__.strip("\n ")
-            text = text.split('\n')
+            text = self.mods[module]["module"].__doc__.strip("\n ")
+            text = text.split("\n")
             # make sure we don't get IndexError along the way
             # then pretty format the header
             if len(text) > 2:
-                if text[1].startswith('='):
+                if text[1].startswith("="):
                     # '\n%-12s: %s' -> 12 spaces + ": "
-                    text[1] = '=' * (14 + len(text[1]))
-            text = '\n'.join(text)
-            print('\n%-12s: %s' % (module, text))
+                    text[1] = "=" * (14 + len(text[1]))
+            text = "\n".join(text)
+            print("\n%-12s: %s" % (module, text))
 
 
 Modules = ModuleBase()
 Modules.add_path(kivy.kivy_modules_dir)
-if 'KIVY_DOC' not in os.environ:
+if "KIVY_DOC" not in os.environ:
     Modules.add_path(kivy.kivy_usermodules_dir)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(Modules.list())

@@ -1,17 +1,17 @@
-'''
+"""
 Scaling Example
 ================
 
 This example scales a button using PushMatrix and PopMatrix. It shows
 a static button with the words 'hello world', stretched about its centre by
 a factor of 1.5 horizontally and 5 vertically.
-'''
+"""
 
 
 from kivy.app import App
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 FloatLayout:
 
     Button:
@@ -26,7 +26,7 @@ FloatLayout:
                 origin: self.center
         canvas.after:
             PopMatrix
-'''
+"""
 
 
 class ScalingApp(App):

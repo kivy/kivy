@@ -1,4 +1,4 @@
-'''
+"""
 Custom shape & collide widget
 =============================
 
@@ -12,18 +12,20 @@ the Widget bounding box. We are using them to draw the triangle shape.
 Then we need to setup a new collision function to collide only on the triangle.
 We are using a external method that will check if a point is inside a polygon
 (we consider our triangle as a polygon).
-'''
+"""
 
 
 import kivy
-kivy.require('1.0.8')
+
+kivy.require("1.0.8")
 
 from kivy.uix.scatter import Scatter
 from kivy.properties import ListProperty
 from kivy.lang import Builder
 
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <Triangle>:
     # example for doing a triangle
     # this will automatically recalculate pX from pos/size
@@ -42,12 +44,12 @@ Builder.load_string('''
             rgb: 1, 0, 0
         Triangle:
             points: self.p1 + self.p2 + self.p3
-''')
+"""
+)
 
 
 def point_inside_polygon(x, y, poly):
-    '''Taken from http://www.ariel.com.au/a/python-point-int-poly.html
-    '''
+    """Taken from http://www.ariel.com.au/a/python-point-int-poly.html"""
     n = len(poly)
     inside = False
     p1x = poly[0]
@@ -73,10 +75,10 @@ class Triangle(Scatter):
 
     def collide_point(self, x, y):
         x, y = self.to_local(x, y)
-        return point_inside_polygon(x, y,
-                self.p1 + self.p2 + self.p3)
+        return point_inside_polygon(x, y, self.p1 + self.p2 + self.p3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.base import runTouchApp
+
     runTouchApp(Triangle(size_hint=(None, None)))

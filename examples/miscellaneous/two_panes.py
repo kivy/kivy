@@ -1,13 +1,14 @@
-'''
+"""
 Demonstrates using kv language to create some simple buttons and a
 label, with each button modifying the label text.
-'''
+"""
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <MainWidget>:
     BoxLayout:
         orientation: 'vertical'
@@ -32,7 +33,8 @@ Builder.load_string('''
         text_size: self.size
         halign: 'center'
         valign: 'middle'
-''')
+"""
+)
 
 
 class MainWidget(BoxLayout):

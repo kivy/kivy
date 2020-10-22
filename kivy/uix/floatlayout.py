@@ -1,4 +1,4 @@
-'''
+"""
 Float Layout
 ============
 
@@ -50,31 +50,30 @@ If you want to create a button that will always be the size of layout minus
     children: if the float layout is moving, you must handle moving the
     children too.
 
-'''
+"""
 
-__all__ = ('FloatLayout', )
+__all__ = ("FloatLayout",)
 
 from kivy.uix.layout import Layout
 
 
 class FloatLayout(Layout):
-    '''Float layout class. See module documentation for more information.
-    '''
+    """Float layout class. See module documentation for more information."""
 
     def __init__(self, **kwargs):
         super(FloatLayout, self).__init__(**kwargs)
         fbind = self.fbind
         update = self._trigger_layout
-        fbind('children', update)
-        fbind('pos', update)
-        fbind('pos_hint', update)
-        fbind('size_hint', update)
-        fbind('size', update)
+        fbind("children", update)
+        fbind("pos", update)
+        fbind("pos_hint", update)
+        fbind("size_hint", update)
+        fbind("size", update)
 
     def do_layout(self, *largs, **kwargs):
         # optimize layout by preventing looking at the same attribute in a loop
-        w, h = kwargs.get('size', self.size)
-        x, y = kwargs.get('pos', self.pos)
+        w, h = kwargs.get("size", self.size)
+        x, y = kwargs.get("pos", self.pos)
         for c in self.children:
             # size
             shw, shh = c.size_hint
@@ -114,21 +113,21 @@ class FloatLayout(Layout):
 
             # pos
             for key, value in c.pos_hint.items():
-                if key == 'x':
+                if key == "x":
                     c.x = x + value * w
-                elif key == 'right':
+                elif key == "right":
                     c.right = x + value * w
-                elif key == 'pos':
+                elif key == "pos":
                     c.pos = x + value[0] * w, y + value[1] * h
-                elif key == 'y':
+                elif key == "y":
                     c.y = y + value * h
-                elif key == 'top':
+                elif key == "top":
                     c.top = y + value * h
-                elif key == 'center':
+                elif key == "center":
                     c.center = x + value[0] * w, y + value[1] * h
-                elif key == 'center_x':
+                elif key == "center_x":
                     c.center_x = x + value * w
-                elif key == 'center_y':
+                elif key == "center_y":
                     c.center_y = y + value * h
 
     def add_widget(self, widget, index=0, canvas=None):
@@ -136,7 +135,8 @@ class FloatLayout(Layout):
             # size=self._trigger_layout,
             # size_hint=self._trigger_layout,
             pos=self._trigger_layout,
-            pos_hint=self._trigger_layout)
+            pos_hint=self._trigger_layout,
+        )
         return super(FloatLayout, self).add_widget(widget, index, canvas)
 
     def remove_widget(self, widget):
@@ -144,5 +144,6 @@ class FloatLayout(Layout):
             # size=self._trigger_layout,
             # size_hint=self._trigger_layout,
             pos=self._trigger_layout,
-            pos_hint=self._trigger_layout)
+            pos_hint=self._trigger_layout,
+        )
         return super(FloatLayout, self).remove_widget(widget)

@@ -1,6 +1,6 @@
-'''
+"""
 This is an example of creating your own effect by writing a glsl string.
-'''
+"""
 
 from kivy.base import runTouchApp
 from kivy.lang import Builder
@@ -8,7 +8,7 @@ from kivy.uix.effectwidget import EffectWidget, EffectBase
 
 
 # The effect string is glsl code defining an effect function.
-effect_string = '''
+effect_string = """
 vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
 {
     // Note that time is a uniform variable that is automatically
@@ -18,7 +18,7 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords)
     float blue = color.z * (1.0 - abs(sin(time*2.0)));
     return vec4(red, green, blue, color.w);
 }
-'''
+"""
 
 
 class DemoEffect(EffectWidget):
@@ -27,7 +27,8 @@ class DemoEffect(EffectWidget):
         super(DemoEffect, self).__init__(*args, **kwargs)
 
 
-widget = Builder.load_string('''
+widget = Builder.load_string(
+    """
 DemoEffect:
     effects: [self.effect_reference] if checkbox.active else []
     orientation: 'vertical'
@@ -41,7 +42,8 @@ DemoEffect:
         CheckBox:
             id: checkbox
             active: True
-''')
+"""
+)
 
 
 runTouchApp(widget)

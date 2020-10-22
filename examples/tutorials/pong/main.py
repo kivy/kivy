@@ -1,10 +1,14 @@
 import kivy
-kivy.require('1.1.1')
+
+kivy.require("1.1.1")
 
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import (
-    NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty
+    NumericProperty,
+    ReferenceListProperty,
+    ObjectProperty,
+    BooleanProperty,
 )
 from kivy.vector import Vector
 from kivy.clock import Clock
@@ -78,5 +82,5 @@ class PongApp(App):
         return game
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     PongApp().run()

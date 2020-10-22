@@ -1,7 +1,7 @@
-'''
+"""
 uix.relativelayout tests
 ========================
-'''
+"""
 
 import unittest
 
@@ -13,24 +13,22 @@ from kivy.uix.relativelayout import RelativeLayout
 # https://gist.github.com/tito/f111b6916aa6a4ed0851
 # subclass for touch event in unit test
 class UTMotionEvent(MotionEvent):
-
     def depack(self, args):
         self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
+        self.sx = args["x"]
+        self.sy = args["y"]
+        self.profile = ["pos"]
         super(UTMotionEvent, self).depack(args)
 
 
 class UixRelativeLayoutTest(unittest.TestCase):
-
     def test_relativelayout_on_touch_move(self):
         EventLoop.ensure_window()
         rl = RelativeLayout()
         EventLoop.window.add_widget(rl)
-        touch = UTMotionEvent("unittest", 1, {"x": .5, "y": .5})
+        touch = UTMotionEvent("unittest", 1, {"x": 0.5, "y": 0.5})
         EventLoop.post_dispatch_input("begin", touch)
-        touch.move({"x": .6, "y": .4})
+        touch.move({"x": 0.6, "y": 0.4})
         EventLoop.post_dispatch_input("update", touch)
         EventLoop.post_dispatch_input("end", touch)
 

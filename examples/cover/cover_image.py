@@ -5,8 +5,7 @@ from kivy.uix.image import Image
 
 
 class CoverImage(CoverBehavior, Image):
-    """Image using cover behavior.
-    """
+    """Image using cover behavior."""
 
     def __init__(self, **kwargs):
         super(CoverImage, self).__init__(**kwargs)
@@ -16,10 +15,9 @@ class CoverImage(CoverBehavior, Image):
 
 
 class MainApp(App):
-
     def build(self):
-        return CoverImage(source='../widgets/cityCC0.png')
+        return CoverImage(source="../widgets/cityCC0.png")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MainApp().run()

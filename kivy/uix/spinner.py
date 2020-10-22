@@ -1,4 +1,4 @@
-'''
+"""
 Spinner
 =======
 
@@ -46,9 +46,9 @@ Kv Example::
             values: 'Home', 'Work', 'Other', 'Custom'
             on_text:
                 print("The spinner {} has text {}".format(self, self.text))
-'''
+"""
 
-__all__ = ('Spinner', 'SpinnerOption')
+__all__ = ("Spinner", "SpinnerOption")
 
 from kivy.compat import string_types
 from kivy.factory import Factory
@@ -58,26 +58,26 @@ from kivy.uix.dropdown import DropDown
 
 
 class SpinnerOption(Button):
-    '''Special button used in the :class:`Spinner` dropdown list. By default,
+    """Special button used in the :class:`Spinner` dropdown list. By default,
     this is just a :class:`~kivy.uix.button.Button` with a size_hint_y of None
     and a height of :meth:`48dp <kivy.metrics.dp>`.
-    '''
+    """
+
     pass
 
 
 class Spinner(Button):
-    '''Spinner class, see module documentation for more information.
-    '''
+    """Spinner class, see module documentation for more information."""
 
     values = ListProperty()
-    '''Values that can be selected by the user. It must be a list of strings.
+    """Values that can be selected by the user. It must be a list of strings.
 
     :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     [].
-    '''
+    """
 
     text_autoupdate = BooleanProperty(False)
-    '''Indicates if the spinner's :attr:`text` should be automatically
+    """Indicates if the spinner's :attr:`text` should be automatically
     updated with the first value of the :attr:`values` property.
     Setting it to True will cause the spinner to update its :attr:`text`
     property every time attr:`values` are changed.
@@ -86,10 +86,10 @@ class Spinner(Button):
 
     :attr:`text_autoupdate` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     option_cls = ObjectProperty(SpinnerOption)
-    '''Class used to display the options within the dropdown list displayed
+    """Class used to display the options within the dropdown list displayed
     under the Spinner. The `text` property of the class will be used to
     represent the value.
 
@@ -107,10 +107,10 @@ class Spinner(Button):
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
-    '''
+    """
 
     dropdown_cls = ObjectProperty(DropDown)
-    '''Class used to display the dropdown list when the Spinner is pressed.
+    """Class used to display the dropdown list when the Spinner is pressed.
 
     :attr:`dropdown_cls` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
@@ -119,19 +119,19 @@ class Spinner(Button):
         If set to a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class name.
 
-    '''
+    """
 
     is_open = BooleanProperty(False)
-    '''By default, the spinner is not open. Set to True to open it.
+    """By default, the spinner is not open. Set to True to open it.
 
     :attr:`is_open` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
 
     .. versionadded:: 1.4.0
-    '''
+    """
 
     sync_height = BooleanProperty(False)
-    '''Each element in a dropdown list uses a default/user-supplied height.
+    """Each element in a dropdown list uses a default/user-supplied height.
     Set to True to propagate the Spinner's height value to each dropdown
     list element.
 
@@ -139,19 +139,19 @@ class Spinner(Button):
 
     :attr:`sync_height` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._dropdown = None
         super(Spinner, self).__init__(**kwargs)
         fbind = self.fbind
         build_dropdown = self._build_dropdown
-        fbind('on_release', self._toggle_dropdown)
-        fbind('dropdown_cls', build_dropdown)
-        fbind('option_cls', build_dropdown)
-        fbind('values', self._update_dropdown)
-        fbind('size', self._update_dropdown_size)
-        fbind('text_autoupdate', self._update_dropdown)
+        fbind("on_release", self._toggle_dropdown)
+        fbind("dropdown_cls", build_dropdown)
+        fbind("option_cls", build_dropdown)
+        fbind("values", self._update_dropdown)
+        fbind("size", self._update_dropdown_size)
+        fbind("text_autoupdate", self._update_dropdown)
         build_dropdown()
 
     def _build_dropdown(self, *largs):
@@ -200,7 +200,7 @@ class Spinner(Button):
                 if not self.text or self.text not in values:
                     self.text = values[0]
             else:
-                self.text = ''
+                self.text = ""
 
     def _toggle_dropdown(self, *largs):
         if self.values:

@@ -1,4 +1,4 @@
-'''
+"""
 Video
 =====
 
@@ -22,24 +22,27 @@ the video is loaded (when the texture is created)::
     video.bind(position=on_position_change,
                duration=on_duration_change)
 
-'''
+"""
 
-__all__ = ('Video', )
+__all__ = ("Video",)
 
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
-from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-                             OptionProperty)
+from kivy.properties import (
+    BooleanProperty,
+    NumericProperty,
+    ObjectProperty,
+    OptionProperty,
+)
 
 
 class Video(Image):
-    '''Video class. See module documentation for more information.
-    '''
+    """Video class. See module documentation for more information."""
 
-    state = OptionProperty('stop', options=('play', 'pause', 'stop'))
-    '''String, indicates whether to play, pause, or stop the video::
+    state = OptionProperty("stop", options=("play", "pause", "stop"))
+    """String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
         video = Video(source='movie.mkv', state='play')
@@ -51,10 +54,10 @@ class Video(Image):
 
     :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
     to 'stop'.
-    '''
+    """
 
     play = BooleanProperty(False, deprecated=True)
-    '''
+    """
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
 
@@ -74,65 +77,65 @@ class Video(Image):
 
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
-    '''
+    """
 
     eos = BooleanProperty(False)
-    '''Boolean, indicates whether the video has finished playing or not
+    """Boolean, indicates whether the video has finished playing or not
     (reached the end of the stream).
 
     :attr:`eos` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     loaded = BooleanProperty(False)
-    '''Boolean, indicates whether the video is loaded and ready for playback
+    """Boolean, indicates whether the video is loaded and ready for playback
     or not.
 
     .. versionadded:: 1.6.0
 
     :attr:`loaded` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
     position = NumericProperty(-1)
-    '''Position of the video between 0 and :attr:`duration`. The position
+    """Position of the video between 0 and :attr:`duration`. The position
     defaults to -1 and is set to a real position when the video is loaded.
 
     :attr:`position` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1.
-    '''
+    """
 
     duration = NumericProperty(-1)
-    '''Duration of the video. The duration defaults to -1, and is set to a real
+    """Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
     :attr:`duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1.
-    '''
+    """
 
-    volume = NumericProperty(1.)
-    '''Volume of the video, in the range 0-1. 1 means full volume, 0
+    volume = NumericProperty(1.0)
+    """Volume of the video, in the range 0-1. 1 means full volume, 0
     means mute.
 
     :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
-    '''
+    """
 
     options = ObjectProperty({})
-    '''Options to pass at Video core object creation.
+    """Options to pass at Video core object creation.
 
     .. versionadded:: 1.0.4
 
     :attr:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
     to {}.
-    '''
+    """
 
     _video_load_event = None
 
     def __init__(self, **kwargs):
         self._video = None
         super(Video, self).__init__(**kwargs)
-        self.fbind('source', self._trigger_video_load)
+        self.fbind("source", self._trigger_video_load)
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
@@ -140,7 +143,7 @@ class Video(Image):
             self._trigger_video_load()
 
     def seek(self, percent, precise=True):
-        '''Change the position to a percentage (strictly, a proportion)
+        """Change the position to a percentage (strictly, a proportion)
            of duration.
 
         :Parameters:
@@ -158,16 +161,17 @@ class Video(Image):
 
         .. versionchanged:: 1.10.1
             The `precise` keyword argument has been added.
-        '''
+        """
         if self._video is None:
-            raise Exception('Video not loaded.')
+            raise Exception("Video not loaded.")
         self._video.seek(percent, precise=precise)
 
     def _trigger_video_load(self, *largs):
         ev = self._video_load_event
         if ev is None:
             ev = self._video_load_event = Clock.schedule_once(
-                self._do_video_load, -1)
+                self._do_video_load, -1
+            )
         ev()
 
     def _do_video_load(self, *largs):
@@ -180,32 +184,34 @@ class Video(Image):
         else:
             filename = self.source
             # Check if filename is not url
-            if '://' not in filename:
+            if "://" not in filename:
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.volume = self.volume
-            self._video.bind(on_load=self._on_load,
-                             on_frame=self._on_video_frame,
-                             on_eos=self._on_eos)
-            if self.state == 'play' or self.play:
+            self._video.bind(
+                on_load=self._on_load,
+                on_frame=self._on_video_frame,
+                on_eos=self._on_eos,
+            )
+            if self.state == "play" or self.play:
                 self._video.play()
-            self.duration = 1.
-            self.position = 0.
+            self.duration = 1.0
+            self.position = 0.0
 
     def on_play(self, instance, value):
-        value = 'play' if value else 'stop'
+        value = "play" if value else "stop"
         return self.on_state(instance, value)
 
     def on_state(self, instance, value):
         if not self._video:
             return
-        if value == 'play':
+        if value == "play":
             if self.eos:
                 self._video.stop()
-                self._video.position = 0.
+                self._video.position = 0.0
             self.eos = False
             self._video.play()
-        elif value == 'pause':
+        elif value == "pause":
             self._video.pause()
         else:
             self._video.stop()
@@ -221,8 +227,8 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
-        if self._video.eos != 'loop':
-            self.state = 'stop'
+        if self._video.eos != "loop":
+            self.state = "stop"
             self.eos = True
 
     def _on_load(self, *largs):
@@ -234,10 +240,10 @@ class Video(Image):
             self._video.volume = value
 
     def unload(self):
-        '''Unload the video. The playback will be stopped.
+        """Unload the video. The playback will be stopped.
 
         .. versionadded:: 1.8.0
-        '''
+        """
         if self._video:
             self._video.stop()
             self._video.unload()
@@ -245,7 +251,7 @@ class Video(Image):
         self.loaded = False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.app import App
     import sys
 
@@ -255,12 +261,12 @@ if __name__ == '__main__':
 
     class VideoApp(App):
         def build(self):
-            self.v = Video(source=sys.argv[1], state='play')
+            self.v = Video(source=sys.argv[1], state="play")
             self.v.bind(state=self.replay)
             return self.v
 
         def replay(self, *args):
-            if self.v.state == 'stop':
-                self.v.state = 'play'
+            if self.v.state == "stop":
+                self.v.state = "play"
 
     VideoApp().run()

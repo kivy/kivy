@@ -15,4 +15,3 @@ introduce elegant, useful concepts that you will use over and over again in app 
 The :doc:`/tutorials/pong` is the most important article in the road map. It
 lays the foundation for the concepts that you will learn more about later. Each
 of the other articles expands on one of those concepts.
-

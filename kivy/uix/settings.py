@@ -1,4 +1,4 @@
-'''
+"""
 Settings
 ========
 
@@ -158,13 +158,26 @@ on_close event.
 For a complete, working example, please see
 :file:`kivy/examples/settings/main.py`.
 
-'''
+"""
 
-__all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
-           'SettingPath', 'SettingBoolean', 'SettingNumeric', 'SettingOptions',
-           'SettingTitle', 'SettingsWithSidebar', 'SettingsWithSpinner',
-           'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
-           'InterfaceWithSidebar', 'ContentPanel', 'MenuSidebar')
+__all__ = (
+    "Settings",
+    "SettingsPanel",
+    "SettingItem",
+    "SettingString",
+    "SettingPath",
+    "SettingBoolean",
+    "SettingNumeric",
+    "SettingOptions",
+    "SettingTitle",
+    "SettingsWithSidebar",
+    "SettingsWithSpinner",
+    "SettingsWithTabbedPanel",
+    "SettingsWithNoMenu",
+    "InterfaceWithSidebar",
+    "ContentPanel",
+    "MenuSidebar",
+)
 
 import json
 import os
@@ -186,8 +199,14 @@ from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
-    BooleanProperty, NumericProperty, DictProperty
+from kivy.properties import (
+    ObjectProperty,
+    StringProperty,
+    ListProperty,
+    BooleanProperty,
+    NumericProperty,
+    DictProperty,
+)
 
 
 class SettingSpacer(Widget):
@@ -196,7 +215,7 @@ class SettingSpacer(Widget):
 
 
 class SettingItem(FloatLayout):
-    '''Base class for individual settings (within a panel). This class cannot
+    """Base class for individual settings (within a panel). This class cannot
     be used directly; it is used for implementing the other setting classes.
     It builds a row with a title/description (left) and a setting control
     (right).
@@ -208,81 +227,81 @@ class SettingItem(FloatLayout):
         `on_release`
             Fired when the item is touched and then released.
 
-    '''
+    """
 
-    title = StringProperty('<No title set>')
-    '''Title of the setting, defaults to '<No title set>'.
+    title = StringProperty("<No title set>")
+    """Title of the setting, defaults to '<No title set>'.
 
     :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     '<No title set>'.
-    '''
+    """
 
     desc = StringProperty(None, allownone=True)
-    '''Description of the setting, rendered on the line below the title.
+    """Description of the setting, rendered on the line below the title.
 
     :attr:`desc` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
-    '''
+    """
 
     disabled = BooleanProperty(False)
-    '''Indicate if this setting is disabled. If True, all touches on the
+    """Indicate if this setting is disabled. If True, all touches on the
     setting item will be discarded.
 
     :attr:`disabled` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     section = StringProperty(None)
-    '''Section of the token inside the :class:`~kivy.config.ConfigParser`
+    """Section of the token inside the :class:`~kivy.config.ConfigParser`
     instance.
 
     :attr:`section` is a :class:`~kivy.properties.StringProperty` and defaults
     to None.
-    '''
+    """
 
     key = StringProperty(None)
-    '''Key of the token inside the :attr:`section` in the
+    """Key of the token inside the :attr:`section` in the
     :class:`~kivy.config.ConfigParser` instance.
 
     :attr:`key` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
-    '''
+    """
 
     value = ObjectProperty(None)
-    '''Value of the token according to the :class:`~kivy.config.ConfigParser`
+    """Value of the token according to the :class:`~kivy.config.ConfigParser`
     instance. Any change to this value will trigger a
     :meth:`Settings.on_config_change` event.
 
     :attr:`value` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     panel = ObjectProperty(None)
-    '''(internal) Reference to the SettingsPanel for this setting. You don't
+    """(internal) Reference to the SettingsPanel for this setting. You don't
     need to use it.
 
     :attr:`panel` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     content = ObjectProperty(None)
-    '''(internal) Reference to the widget that contains the real setting.
+    """(internal) Reference to the widget that contains the real setting.
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
     :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     selected_alpha = NumericProperty(0)
-    '''(internal) Float value from 0 to 1, used to animate the background when
+    """(internal) Float value from 0 to 1, used to animate the background when
     the user touches the item.
 
     :attr:`selected_alpha` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
-    __events__ = ('on_release', )
+    __events__ = ("on_release",)
 
     def __init__(self, **kwargs):
         super(SettingItem, self).__init__(**kwargs)
@@ -305,8 +324,8 @@ class SettingItem(FloatLayout):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
-            self.dispatch('on_release')
-            Animation(selected_alpha=0, d=.25, t='out_quad').start(self)
+            self.dispatch("on_release")
+            Animation(selected_alpha=0, d=0.25, t="out_quad").start(self)
             return True
         return super(SettingItem, self).on_touch_up(touch)
 
@@ -324,13 +343,13 @@ class SettingItem(FloatLayout):
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting on top of a :class:`SettingItem`. It
+    """Implementation of a boolean setting on top of a :class:`SettingItem`. It
     is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
     0 and 1 are used for values: you can change them by setting :attr:`values`.
-    '''
+    """
 
-    values = ListProperty(['0', '1'])
-    '''Values used to represent the state of the setting. If you want to use
+    values = ListProperty(["0", "1"])
+    """Values used to represent the state of the setting. If you want to use
     "yes" and "no" in your ConfigParser instance::
 
         SettingBoolean(..., values=['no', 'yes'])
@@ -342,36 +361,36 @@ class SettingBoolean(SettingItem):
 
     :attr:`values` is a :class:`~kivy.properties.ListProperty` and defaults to
     ['0', '1']
-    '''
+    """
 
 
 class SettingString(SettingItem):
-    '''Implementation of a string setting on top of a :class:`SettingItem`.
+    """Implementation of a string setting on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
     value.
-    '''
+    """
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's shown.
+    """(internal) Used to store the current popup when it's shown.
 
     :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup and
+    """(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
     :attr:`textinput` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fbind('on_release', self._create_popup)
+        self.fbind("on_release", self._create_popup)
 
     def _dismiss(self, *largs):
         if self.textinput:
@@ -387,16 +406,23 @@ class SettingString(SettingItem):
 
     def _create_popup(self, instance):
         # create popup layout
-        content = BoxLayout(orientation='vertical', spacing='5dp')
+        content = BoxLayout(orientation="vertical", spacing="5dp")
         popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(
-            title=self.title, content=content, size_hint=(None, None),
-            size=(popup_width, '250dp'))
+            title=self.title,
+            content=content,
+            size_hint=(None, None),
+            size=(popup_width, "250dp"),
+        )
 
         # create the textinput used for numeric input
         self.textinput = textinput = TextInput(
-            text=self.value, font_size='24sp', multiline=False,
-            size_hint_y=None, height='42sp')
+            text=self.value,
+            font_size="24sp",
+            multiline=False,
+            size_hint_y=None,
+            height="42sp",
+        )
         textinput.bind(on_text_validate=self._validate)
         self.textinput = textinput
 
@@ -407,11 +433,11 @@ class SettingString(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
-        btn = Button(text='Ok')
+        btnlayout = BoxLayout(size_hint_y=None, height="50dp", spacing="5dp")
+        btn = Button(text="Ok")
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
+        btn = Button(text="Cancel")
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
@@ -421,53 +447,53 @@ class SettingString(SettingItem):
 
 
 class SettingPath(SettingItem):
-    '''Implementation of a Path setting on top of a :class:`SettingItem`.
+    """Implementation of a Path setting on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.filechooser.FileChooserListView` so the user can enter
     a custom value.
 
     .. versionadded:: 1.1.0
-    '''
+    """
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it is shown.
+    """(internal) Used to store the current popup when it is shown.
 
     :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     textinput = ObjectProperty(None)
-    '''(internal) Used to store the current textinput from the popup and
+    """(internal) Used to store the current textinput from the popup and
     to listen for changes.
 
     :attr:`textinput` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     show_hidden = BooleanProperty(False)
-    '''Whether to show 'hidden' filenames. What that means is
+    """Whether to show 'hidden' filenames. What that means is
     operating-system-dependent.
 
     :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
 
     .. versionadded:: 1.10.0
-    '''
+    """
 
     dirselect = BooleanProperty(True)
-    '''Whether to allow selection of directories.
+    """Whether to allow selection of directories.
 
     :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
 
     .. versionadded:: 1.10.0
-    '''
+    """
 
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fbind('on_release', self._create_popup)
+        self.fbind("on_release", self._create_popup)
 
     def _dismiss(self, *largs):
         if self.textinput:
@@ -487,17 +513,23 @@ class SettingPath(SettingItem):
 
     def _create_popup(self, instance):
         # create popup layout
-        content = BoxLayout(orientation='vertical', spacing=5)
+        content = BoxLayout(orientation="vertical", spacing=5)
         popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(
-            title=self.title, content=content, size_hint=(None, 0.9),
-            width=popup_width)
+            title=self.title,
+            content=content,
+            size_hint=(None, 0.9),
+            width=popup_width,
+        )
 
         # create the filechooser
         initial_path = self.value or os.getcwd()
         self.textinput = textinput = FileChooserListView(
-            path=initial_path, size_hint=(1, 1),
-            dirselect=self.dirselect, show_hidden=self.show_hidden)
+            path=initial_path,
+            size_hint=(1, 1),
+            dirselect=self.dirselect,
+            show_hidden=self.show_hidden,
+        )
         textinput.bind(on_path=self._validate)
 
         # construct the content
@@ -505,11 +537,11 @@ class SettingPath(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
-        btn = Button(text='Ok')
+        btnlayout = BoxLayout(size_hint_y=None, height="50dp", spacing="5dp")
+        btn = Button(text="Ok")
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
+        btn = Button(text="Cancel")
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
@@ -519,17 +551,17 @@ class SettingPath(SettingItem):
 
 
 class SettingNumeric(SettingString):
-    '''Implementation of a numeric setting on top of a :class:`SettingString`.
+    """Implementation of a numeric setting on top of a :class:`SettingString`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom
     value.
-    '''
+    """
 
     def _validate(self, instance):
         # we know the type just by checking if there is a '.' in the original
         # value
-        is_float = '.' in str(self.value)
+        is_float = "." in str(self.value)
         self._dismiss()
         try:
             if is_float:
@@ -541,31 +573,31 @@ class SettingNumeric(SettingString):
 
 
 class SettingOptions(SettingItem):
-    '''Implementation of an option list on top of a :class:`SettingItem`.
+    """Implementation of an option list on top of a :class:`SettingItem`.
     It is visualized with a :class:`~kivy.uix.label.Label` widget that, when
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     list of options from which the user can select.
-    '''
+    """
 
     options = ListProperty([])
-    '''List of all availables options. This must be a list of "string" items.
+    """List of all availables options. This must be a list of "string" items.
     Otherwise, it will crash. :)
 
     :attr:`options` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
-    '''
+    """
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it is shown.
+    """(internal) Used to store the current popup when it is shown.
 
     :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     def on_panel(self, instance, value):
         if value is None:
             return
-        self.fbind('on_release', self._create_popup)
+        self.fbind("on_release", self._create_popup)
 
     def _set_option(self, instance):
         self.value = instance.text
@@ -573,25 +605,28 @@ class SettingOptions(SettingItem):
 
     def _create_popup(self, instance):
         # create the popup
-        content = BoxLayout(orientation='vertical', spacing='5dp')
+        content = BoxLayout(orientation="vertical", spacing="5dp")
         popup_width = min(0.95 * Window.width, dp(500))
         self.popup = popup = Popup(
-            content=content, title=self.title, size_hint=(None, None),
-            size=(popup_width, '400dp'))
+            content=content,
+            title=self.title,
+            size_hint=(None, None),
+            size=(popup_width, "400dp"),
+        )
         popup.height = len(self.options) * dp(55) + dp(150)
 
         # add all the options
         content.add_widget(Widget(size_hint_y=None, height=1))
         uid = str(self.uid)
         for option in self.options:
-            state = 'down' if option == self.value else 'normal'
+            state = "down" if option == self.value else "normal"
             btn = ToggleButton(text=option, state=state, group=uid)
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
 
         # finally, add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', size_hint_y=None, height=dp(50))
+        btn = Button(text="Cancel", size_hint_y=None, height=dp(50))
         btn.bind(on_release=popup.dismiss)
         content.add_widget(btn)
 
@@ -600,8 +635,7 @@ class SettingOptions(SettingItem):
 
 
 class SettingTitle(Label):
-    '''A simple title label, used to organize the settings in sections.
-    '''
+    """A simple title label, used to organize the settings in sections."""
 
     title = Label.text
 
@@ -609,44 +643,46 @@ class SettingTitle(Label):
 
 
 class SettingsPanel(GridLayout):
-    '''This class is used to contruct panel settings, for use with a
+    """This class is used to contruct panel settings, for use with a
     :class:`Settings` instance or subclass.
-    '''
+    """
 
-    title = StringProperty('Default title')
-    '''Title of the panel. The title will be reused by the :class:`Settings` in
+    title = StringProperty("Default title")
+    """Title of the panel. The title will be reused by the :class:`Settings` in
     the sidebar.
-    '''
+    """
 
     config = ObjectProperty(None, allownone=True)
-    '''A :class:`kivy.config.ConfigParser` instance. See module documentation
+    """A :class:`kivy.config.ConfigParser` instance. See module documentation
     for more information.
-    '''
+    """
 
     settings = ObjectProperty(None)
-    '''A :class:`Settings` instance that will be used to fire the
+    """A :class:`Settings` instance that will be used to fire the
     `on_config_change` event.
-    '''
+    """
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('cols', 1)
+        kwargs.setdefault("cols", 1)
         super(SettingsPanel, self).__init__(**kwargs)
 
     def on_config(self, instance, value):
         if value is None:
             return
         if not isinstance(value, ConfigParser):
-            raise Exception('Invalid config object, you must use a'
-                            'kivy.config.ConfigParser, not another one !')
+            raise Exception(
+                "Invalid config object, you must use a"
+                "kivy.config.ConfigParser, not another one !"
+            )
 
     def get_value(self, section, key):
-        '''Return the value of the section/key from the :attr:`config`
+        """Return the value of the section/key from the :attr:`config`
         ConfigParser instance. This function is used by :class:`SettingItem` to
         get the value for a given section/key.
 
         If you don't want to use a ConfigParser instance, you might want to
         override this function.
-        '''
+        """
         config = self.config
         if not config:
             return
@@ -662,12 +698,11 @@ class SettingsPanel(GridLayout):
             config.write()
         settings = self.settings
         if settings:
-            settings.dispatch('on_config_change',
-                              config, section, key, value)
+            settings.dispatch("on_config_change", config, section, key, value)
 
 
 class InterfaceWithSidebar(BoxLayout):
-    '''The default Settings interface class. It displays a sidebar menu
+    """The default Settings interface class. It displays a sidebar menu
     with names of available settings panels, which may be used to switch
     which one is currently displayed.
 
@@ -680,33 +715,34 @@ class InterfaceWithSidebar(BoxLayout):
     will automatically be caught by :class:`Settings` and used to
     trigger its own 'on_close' event.
 
-    '''
+    """
 
     menu = ObjectProperty()
-    '''(internal) A reference to the sidebar menu widget.
+    """(internal) A reference to the sidebar menu widget.
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     content = ObjectProperty()
-    '''(internal) A reference to the panel display widget (a
+    """(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
     :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    '''
+    """
 
-    __events__ = ('on_close', )
+    __events__ = ("on_close",)
 
     def __init__(self, *args, **kwargs):
         super(InterfaceWithSidebar, self).__init__(*args, **kwargs)
         self.menu.close_button.bind(
-            on_release=lambda j: self.dispatch('on_close'))
+            on_release=lambda j: self.dispatch("on_close")
+        )
 
     def add_panel(self, panel, name, uid):
-        '''This method is used by Settings to add new panels for possible
+        """This method is used by Settings to add new panels for possible
         display. Any replacement for ContentPanel *must* implement
         this method.
 
@@ -721,7 +757,7 @@ class InterfaceWithSidebar(BoxLayout):
                 A unique int identifying the panel. It should be used to
                 identify and switch between panels.
 
-        '''
+        """
         self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
 
@@ -730,40 +766,41 @@ class InterfaceWithSidebar(BoxLayout):
 
 
 class InterfaceWithSpinner(BoxLayout):
-    '''A settings interface that displays a spinner at the top for
+    """A settings interface that displays a spinner at the top for
     switching between panels.
 
     The workings of this class are considered internal and are not
     documented. See :meth:`InterfaceWithSidebar` for
     information on implementing your own interface class.
 
-    '''
+    """
 
-    __events__ = ('on_close', )
+    __events__ = ("on_close",)
 
     menu = ObjectProperty()
-    '''(internal) A reference to the sidebar menu widget.
+    """(internal) A reference to the sidebar menu widget.
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     content = ObjectProperty()
-    '''(internal) A reference to the panel display widget (a
+    """(internal) A reference to the panel display widget (a
     :class:`ContentPanel`).
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super(InterfaceWithSpinner, self).__init__(*args, **kwargs)
         self.menu.close_button.bind(
-            on_release=lambda j: self.dispatch('on_close'))
+            on_release=lambda j: self.dispatch("on_close")
+        )
 
     def add_panel(self, panel, name, uid):
-        '''This method is used by Settings to add new panels for possible
+        """This method is used by Settings to add new panels for possible
         display. Any replacement for ContentPanel *must* implement
         this method.
 
@@ -778,7 +815,7 @@ class InterfaceWithSpinner(BoxLayout):
                 A unique int identifying the panel. It should be used to
                 identify and switch between panels.
 
-        '''
+        """
         self.content.add_panel(panel, name, uid)
         self.menu.add_item(name, uid)
 
@@ -787,48 +824,48 @@ class InterfaceWithSpinner(BoxLayout):
 
 
 class ContentPanel(ScrollView):
-    '''A class for displaying settings panels. It displays a single
+    """A class for displaying settings panels. It displays a single
     settings panel at a time, taking up the full size and shape of the
     ContentPanel. It is used by :class:`InterfaceWithSidebar` and
     :class:`InterfaceWithSpinner` to display settings.
 
-    '''
+    """
 
     panels = DictProperty({})
-    '''(internal) Stores a dictionary mapping settings panels to their uids.
+    """(internal) Stores a dictionary mapping settings panels to their uids.
 
     :attr:`panels` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
 
-    '''
+    """
 
     container = ObjectProperty()
-    '''(internal) A reference to the GridLayout that contains the
+    """(internal) A reference to the GridLayout that contains the
     settings panel.
 
     :attr:`container` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    '''
+    """
 
     current_panel = ObjectProperty(None)
-    '''(internal) A reference to the current settings panel.
+    """(internal) A reference to the current settings panel.
 
     :attr:`current_panel` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    '''
+    """
 
     current_uid = NumericProperty(0)
-    '''(internal) A reference to the uid of the current settings panel.
+    """(internal) A reference to the uid of the current settings panel.
 
     :attr:`current_uid` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
-    '''
+    """
 
     def add_panel(self, panel, name, uid):
-        '''This method is used by Settings to add new panels for possible
+        """This method is used by Settings to add new panels for possible
         display. Any replacement for ContentPanel *must* implement
         this method.
 
@@ -842,13 +879,13 @@ class ContentPanel(ScrollView):
                 A unique int identifying the panel. It should be stored and
                 used to identify panels when switching.
 
-        '''
+        """
         self.panels[uid] = panel
         if not self.current_uid:
             self.current_uid = uid
 
     def on_current_uid(self, *args):
-        '''The uid of the currently displayed panel. Changing this will
+        """The uid of the currently displayed panel. Changing this will
         automatically change the displayed panel.
 
         :Parameters:
@@ -857,7 +894,7 @@ class ContentPanel(ScrollView):
                 a settings panel that has previously been added with
                 :meth:`add_panel`.
 
-        '''
+        """
         uid = self.current_uid
         if uid in self.panels:
             if self.current_panel is not None:
@@ -880,7 +917,7 @@ class ContentPanel(ScrollView):
 
 class Settings(BoxLayout):
 
-    '''Settings UI. Check module documentation for more information on how
+    """Settings UI. Check module documentation for more information on how
     to use this class.
 
     :Events:
@@ -894,19 +931,19 @@ class Settings(BoxLayout):
         `on_close`
             Fired by the default panel when the Close button is pressed.
 
-        '''
+    """
 
     interface = ObjectProperty(None)
-    '''(internal) Reference to the widget that will contain, organise and
+    """(internal) Reference to the widget that will contain, organise and
     display the panel configuration panel widgets.
 
     :attr:`interface` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
 
-    '''
+    """
 
     interface_cls = ObjectProperty(InterfaceWithSidebar)
-    '''The widget class that will be used to display the graphical
+    """The widget class that will be used to display the graphical
     interface for the settings panel. By default, it displays one Settings
     panel at a time with a sidebar to switch between them.
 
@@ -918,20 +955,20 @@ class Settings(BoxLayout):
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
-    '''
+    """
 
-    __events__ = ('on_close', 'on_config_change')
+    __events__ = ("on_close", "on_config_change")
 
     def __init__(self, *args, **kargs):
         self._types = {}
         super(Settings, self).__init__(*args, **kargs)
         self.add_interface()
-        self.register_type('string', SettingString)
-        self.register_type('bool', SettingBoolean)
-        self.register_type('numeric', SettingNumeric)
-        self.register_type('options', SettingOptions)
-        self.register_type('title', SettingTitle)
-        self.register_type('path', SettingPath)
+        self.register_type("string", SettingString)
+        self.register_type("bool", SettingBoolean)
+        self.register_type("numeric", SettingNumeric)
+        self.register_type("options", SettingOptions)
+        self.register_type("title", SettingTitle)
+        self.register_type("path", SettingPath)
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -939,74 +976,74 @@ class Settings(BoxLayout):
             return True
 
     def register_type(self, tp, cls):
-        '''Register a new type that can be used in the JSON definition.
-        '''
+        """Register a new type that can be used in the JSON definition."""
         self._types[tp] = cls
 
     def on_close(self, *args):
         pass
 
     def add_interface(self):
-        '''(Internal) creates an instance of :attr:`Settings.interface_cls`,
+        """(Internal) creates an instance of :attr:`Settings.interface_cls`,
         and sets it to :attr:`~Settings.interface`. When json panels are
         created, they will be added to this interface which will display them
         to the user.
-        '''
+        """
         cls = self.interface_cls
         if isinstance(cls, string_types):
             cls = Factory.get(cls)
         interface = cls()
         self.interface = interface
         self.add_widget(interface)
-        self.interface.bind(on_close=lambda j: self.dispatch('on_close'))
+        self.interface.bind(on_close=lambda j: self.dispatch("on_close"))
 
     def on_config_change(self, config, section, key, value):
         pass
 
     def add_json_panel(self, title, config, filename=None, data=None):
-        '''Create and add a new :class:`SettingsPanel` using the configuration
+        """Create and add a new :class:`SettingsPanel` using the configuration
         `config` with the JSON definition `filename`. If `filename` is not set,
         then the JSON definition is read from the `data` parameter instead.
 
         Check the :ref:`settings_json` section in the documentation for more
         information about JSON format and the usage of this function.
-        '''
+        """
         panel = self.create_json_panel(title, config, filename, data)
         uid = panel.uid
         if self.interface is not None:
             self.interface.add_panel(panel, title, uid)
 
     def create_json_panel(self, title, config, filename=None, data=None):
-        '''Create new :class:`SettingsPanel`.
+        """Create new :class:`SettingsPanel`.
 
         .. versionadded:: 1.5.0
 
         Check the documentation of :meth:`add_json_panel` for more information.
-        '''
+        """
         if filename is None and data is None:
-            raise Exception('You must specify either the filename or data')
+            raise Exception("You must specify either the filename or data")
         if filename is not None:
-            with open(filename, 'r') as fd:
+            with open(filename, "r") as fd:
                 data = json.loads(fd.read())
         else:
             data = json.loads(data)
         if type(data) != list:
-            raise ValueError('The first element must be a list')
+            raise ValueError("The first element must be a list")
         panel = SettingsPanel(title=title, settings=self, config=config)
 
         for setting in data:
             # determine the type and the class to use
-            if 'type' not in setting:
+            if "type" not in setting:
                 raise ValueError('One setting are missing the "type" element')
-            ttype = setting['type']
+            ttype = setting["type"]
             cls = self._types.get(ttype)
             if cls is None:
                 raise ValueError(
-                    'No class registered to handle the <%s> type' %
-                    setting['type'])
+                    "No class registered to handle the <%s> type"
+                    % setting["type"]
+                )
 
             # create a instance of the class, without the type attribute
-            del setting['type']
+            del setting["type"]
             str_settings = {}
             for key, item in setting.items():
                 str_settings[str(key)] = item
@@ -1019,45 +1056,48 @@ class Settings(BoxLayout):
         return panel
 
     def add_kivy_panel(self):
-        '''Add a panel for configuring Kivy. This panel acts directly on the
+        """Add a panel for configuring Kivy. This panel acts directly on the
         kivy configuration. Feel free to include or exclude it in your
         configuration.
 
         See :meth:`~kivy.app.App.use_kivy_settings` for information on
         enabling/disabling the automatic kivy panel.
 
-        '''
+        """
         from kivy import kivy_data_dir
         from kivy.config import Config
         from os.path import join
-        self.add_json_panel('Kivy', Config,
-                            join(kivy_data_dir, 'settings_kivy.json'))
+
+        self.add_json_panel(
+            "Kivy", Config, join(kivy_data_dir, "settings_kivy.json")
+        )
 
 
 class SettingsWithSidebar(Settings):
-    '''A settings widget that displays settings panels with a sidebar to
+    """A settings widget that displays settings panels with a sidebar to
     switch between them. This is the default behaviour of
     :class:`Settings`, and this widget is a trivial wrapper subclass.
 
-    '''
+    """
 
 
 class SettingsWithSpinner(Settings):
-    '''A settings widget that displays one settings panel at a time with a
+    """A settings widget that displays one settings panel at a time with a
     spinner at the top to switch between them.
 
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         self.interface_cls = InterfaceWithSpinner
         super(SettingsWithSpinner, self).__init__(*args, **kwargs)
 
 
 class SettingsWithTabbedPanel(Settings):
-    '''A settings widget that displays settings panels as pages in a
+    """A settings widget that displays settings panels as pages in a
     :class:`~kivy.uix.tabbedpanel.TabbedPanel`.
-    '''
+    """
 
-    __events__ = ('on_close', )
+    __events__ = ("on_close",)
 
     def __init__(self, *args, **kwargs):
         self.interface_cls = InterfaceWithTabbedPanel
@@ -1068,7 +1108,7 @@ class SettingsWithTabbedPanel(Settings):
 
 
 class SettingsWithNoMenu(Settings):
-    '''A settings widget that displays a single settings panel with *no*
+    """A settings widget that displays a single settings panel with *no*
     Close button. It will not accept more than one Settings panel. It
     is intended for use in programs with few enough settings that a
     full panel switcher is not useful.
@@ -1081,45 +1121,49 @@ class SettingsWithNoMenu(Settings):
         :meth:`~kivy.app.App.display_settings` and
         :meth:`~kivy.app.App.close_settings`.
 
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         self.interface_cls = InterfaceWithNoMenu
         super(SettingsWithNoMenu, self).__init__(*args, **kwargs)
 
 
 class InterfaceWithNoMenu(ContentPanel):
-    '''The interface widget used by :class:`SettingsWithNoMenu`. It
+    """The interface widget used by :class:`SettingsWithNoMenu`. It
     stores and displays a single settings panel.
 
     This widget is considered internal and is not documented. See the
     :class:`ContentPanel` for information on defining your own content
     widget.
 
-    '''
+    """
+
     def add_widget(self, widget):
         if self.container is not None and len(self.container.children) > 0:
             raise Exception(
-                'ContentNoMenu cannot accept more than one settings panel')
+                "ContentNoMenu cannot accept more than one settings panel"
+            )
         super(InterfaceWithNoMenu, self).add_widget(widget)
 
 
 class InterfaceWithTabbedPanel(FloatLayout):
-    '''The content widget used by :class:`SettingsWithTabbedPanel`. It
+    """The content widget used by :class:`SettingsWithTabbedPanel`. It
     stores and displays Settings panels in tabs of a TabbedPanel.
 
     This widget is considered internal and is not documented. See
     :class:`InterfaceWithSidebar` for information on defining your own
     interface widget.
 
-    '''
+    """
+
     tabbedpanel = ObjectProperty()
     close_button = ObjectProperty()
 
-    __events__ = ('on_close', )
+    __events__ = ("on_close",)
 
     def __init__(self, *args, **kwargs):
         super(InterfaceWithTabbedPanel, self).__init__(*args, **kwargs)
-        self.close_button.bind(on_release=lambda j: self.dispatch('on_close'))
+        self.close_button.bind(on_release=lambda j: self.dispatch("on_close"))
 
     def add_panel(self, panel, name, uid):
         scrollview = ScrollView()
@@ -1136,14 +1180,15 @@ class InterfaceWithTabbedPanel(FloatLayout):
 
 
 class MenuSpinner(BoxLayout):
-    '''The menu class used by :class:`SettingsWithSpinner`. It provides a
+    """The menu class used by :class:`SettingsWithSpinner`. It provides a
     sidebar with an entry for each settings panel.
 
     This widget is considered internal and is not documented. See
     :class:`MenuSidebar` for information on menus and creating your own menu
     class.
 
-    '''
+    """
+
     selected_uid = NumericProperty(0)
     close_button = ObjectProperty(0)
     spinner = ObjectProperty()
@@ -1155,9 +1200,9 @@ class MenuSpinner(BoxLayout):
         values = self.spinner.values
         if name in values:
             i = 2
-            while name + ' {}'.format(i) in values:
+            while name + " {}".format(i) in values:
                 i += 1
-            name = name + ' {}'.format(i)
+            name = name + " {}".format(i)
         self.panel_names[name] = uid
         self.spinner.values.append(name)
         if not self.spinner.text:
@@ -1169,41 +1214,41 @@ class MenuSpinner(BoxLayout):
 
 
 class MenuSidebar(FloatLayout):
-    '''The menu used by :class:`InterfaceWithSidebar`. It provides a
+    """The menu used by :class:`InterfaceWithSidebar`. It provides a
     sidebar with an entry for each settings panel, which the user may
     click to select.
 
-    '''
+    """
 
     selected_uid = NumericProperty(0)
-    '''The uid of the currently selected panel. This may be used to switch
+    """The uid of the currently selected panel. This may be used to switch
     between displayed panels, e.g. by binding it to the
     :attr:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
     :attr:`selected_uid` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
-    '''
+    """
 
     buttons_layout = ObjectProperty(None)
-    '''(internal) Reference to the GridLayout that contains individual
+    """(internal) Reference to the GridLayout that contains individual
     settings panel menu buttons.
 
     :attr:`buttons_layout` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
-    '''
+    """
 
     close_button = ObjectProperty(None)
-    '''(internal) Reference to the widget's Close button.
+    """(internal) Reference to the widget's Close button.
 
     :attr:`buttons_layout` is an
     :class:`~kivy.properties.ObjectProperty` and defaults to None.
 
-    '''
+    """
 
     def add_item(self, name, uid):
-        '''This method is used to add new panels to the menu.
+        """This method is used to add new panels to the menu.
 
         :Parameters:
             `name`:
@@ -1214,7 +1259,7 @@ class MenuSidebar(FloatLayout):
                 to represent the panel and used to set self.selected_uid when
                 the panel is changed.
 
-        '''
+        """
 
         label = SettingSidebarLabel(text=name, uid=uid, menu=self)
         if len(self.buttons_layout.children) == 0:
@@ -1223,10 +1268,10 @@ class MenuSidebar(FloatLayout):
             self.buttons_layout.add_widget(label)
 
     def on_selected_uid(self, *args):
-        '''(internal) unselects any currently selected menu buttons, unless
+        """(internal) unselects any currently selected menu buttons, unless
         they represent the current panel.
 
-        '''
+        """
         for button in self.buttons_layout.children:
             if button.uid != self.selected_uid:
                 button.selected = False
@@ -1245,11 +1290,10 @@ class SettingSidebarLabel(Label):
         self.menu.selected_uid = self.uid
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.app import App
 
     class SettingsApp(App):
-
         def build(self):
             s = Settings()
             s.add_kivy_panel()

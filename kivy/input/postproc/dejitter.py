@@ -1,4 +1,4 @@
-'''
+"""
 Dejitter
 ========
 
@@ -10,15 +10,15 @@ you can get rid of that jitter. You just define a threshold
 `jitter_distance` in your config, and all touch movements that move
 the touch by less than the jitter distance are considered 'bad'
 movements caused by jitter and will be discarded.
-'''
+"""
 
-__all__ = ('InputPostprocDejitter', )
+__all__ = ("InputPostprocDejitter",)
 
 from kivy.config import Config
 
 
 class InputPostprocDejitter(object):
-    '''
+    """
     Get rid of jitterish BLOBs.
     Example::
 
@@ -33,12 +33,12 @@ class InputPostprocDejitter(object):
             A comma-separated list of device identifiers that
             should not be processed by dejitter (because they're
             very precise already).
-    '''
+    """
 
     def __init__(self):
-        self.jitterdist = Config.getfloat('postproc', 'jitter_distance')
-        ignore_devices = Config.get('postproc', 'jitter_ignore_devices')
-        self.ignore_devices = ignore_devices.split(',')
+        self.jitterdist = Config.getfloat("postproc", "jitter_distance")
+        ignore_devices = Config.get("postproc", "jitter_ignore_devices")
+        self.ignore_devices = ignore_devices.split(",")
         self.last_touches = {}
 
     def taxicab_distance(self, p, q):
@@ -55,12 +55,12 @@ class InputPostprocDejitter(object):
             if touch.device in self.ignore_devices:
                 processed.append((etype, touch))
                 continue
-            if etype == 'begin':
+            if etype == "begin":
                 self.last_touches[touch.id] = touch.spos
-            if etype == 'end':
+            if etype == "end":
                 if touch.id in self.last_touches:
                     del self.last_touches[touch.id]
-            if etype != 'update':
+            if etype != "update":
                 processed.append((etype, touch))
                 continue
             # Check whether the touch moved more than the jitter distance

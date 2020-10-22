@@ -1,12 +1,13 @@
-'''
+"""
 Example to show a Popup usage with the content from kv lang.
-'''
+"""
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.app import App
 from kivy.lang import Builder
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <CustomPopup>:
     size_hint: .5, .5
     auto_dismiss: False
@@ -15,7 +16,8 @@ Builder.load_string('''
         text: 'Click me to dismiss'
         on_press: root.dismiss()
 
-''')
+"""
+)
 
 
 class CustomPopup(Popup):

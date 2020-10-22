@@ -9,7 +9,7 @@ def _build_rst():
     class _TestRstReplace(RstDocument):
         def __init__(self, **kwargs):
             super(_TestRstReplace, self).__init__(**kwargs)
-            self.text = '''
+            self.text = """
     .. |uni| unicode:: 0xe4
     .. |nbsp| unicode:: 0xA0
     .. |text| replace:: is
@@ -17,7 +17,7 @@ def _build_rst():
     .. _hop: https://kivy.org
 
     |uni| |nbsp| |text| |hop|_
-    '''
+    """
 
     return _TestRstReplace()
 
@@ -50,14 +50,15 @@ class RstSubstitutionTestCase(GraphicUnitTest):
 
         # [anchor=] and [ref=] might change in the future
         compare_text = (
-            u'[color=202020ff][anchor=hop]'
-            u'\xe4 \xA0 is '
-            u'[ref=None][color=ce5c00ff]replaced[/color][/ref]'
-            u'[/color]'
+            "[color=202020ff][anchor=hop]"
+            "\xe4 \xA0 is "
+            "[ref=None][color=ce5c00ff]replaced[/color][/ref]"
+            "[/color]"
         )
         self.assertEqual(rendered_text, compare_text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

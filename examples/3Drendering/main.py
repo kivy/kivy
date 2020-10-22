@@ -1,4 +1,4 @@
-'''
+"""
 3D Rotating Monkey Head
 ========================
 
@@ -10,7 +10,7 @@ The monkey.obj file is an OBJ file output from the Blender free 3D creation
 software. The file is text, listing vertices and faces and is loaded
 using a class in the file objloader.py. The file simple.glsl is
 a simple vertex and fragment shader written in GLSL.
-'''
+"""
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -19,15 +19,24 @@ from kivy.uix.widget import Widget
 from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.opengl import glEnable, glDisable, GL_DEPTH_TEST
-from kivy.graphics import RenderContext, Callback, PushMatrix, PopMatrix, \
-    Color, Translate, Rotate, Mesh, UpdateNormalMatrix
+from kivy.graphics import (
+    RenderContext,
+    Callback,
+    PushMatrix,
+    PopMatrix,
+    Color,
+    Translate,
+    Rotate,
+    Mesh,
+    UpdateNormalMatrix,
+)
 from objloader import ObjFile
 
 
 class Renderer(Widget):
     def __init__(self, **kwargs):
         self.canvas = RenderContext(compute_normal_mat=True)
-        self.canvas.shader.source = resource_find('simple.glsl')
+        self.canvas.shader.source = resource_find("simple.glsl")
         self.scene = ObjFile(resource_find("monkey.obj"))
         super(Renderer, self).__init__(**kwargs)
         with self.canvas:
@@ -36,7 +45,7 @@ class Renderer(Widget):
             self.setup_scene()
             PopMatrix()
             self.cb = Callback(self.reset_gl_context)
-        Clock.schedule_interval(self.update_glsl, 1 / 60.)
+        Clock.schedule_interval(self.update_glsl, 1 / 60.0)
 
     def setup_gl_context(self, *args):
         glEnable(GL_DEPTH_TEST)
@@ -47,9 +56,9 @@ class Renderer(Widget):
     def update_glsl(self, delta):
         asp = self.width / float(self.height)
         proj = Matrix().view_clip(-asp, asp, -1, 1, 1, 100, 1)
-        self.canvas['projection_mat'] = proj
-        self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
-        self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
+        self.canvas["projection_mat"] = proj
+        self.canvas["diffuse_light"] = (1.0, 1.0, 0.8)
+        self.canvas["ambient_light"] = (0.1, 0.1, 0.1)
         self.rot.angle += delta * 100
 
     def setup_scene(self):
@@ -63,7 +72,7 @@ class Renderer(Widget):
             vertices=m.vertices,
             indices=m.indices,
             fmt=m.vertex_format,
-            mode='triangles',
+            mode="triangles",
         )
         PopMatrix()
 

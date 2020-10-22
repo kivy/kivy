@@ -1,4 +1,4 @@
-'''
+"""
 Bezier Example
 ==============
 
@@ -8,7 +8,7 @@ and two sliders. You can drag points on the polygon to recompute the curve.
 The two sliders control the dash length of the dashed lines making up the two
 shapes.
 
-'''
+"""
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.slider import Slider
@@ -16,7 +16,6 @@ from kivy.graphics import Color, Bezier, Line
 
 
 class BezierTest(FloatLayout):
-
     def __init__(self, points=[], loop=False, *args, **kwargs):
         super(BezierTest, self).__init__(*args, **kwargs)
         self.d = 10  # pixel tolerance when clicking on a point
@@ -28,23 +27,25 @@ class BezierTest(FloatLayout):
             Color(1.0, 0.0, 0.0)
 
             self.bezier = Bezier(
-                    points=self.points,
-                    segments=150,
-                    loop=self.loop,
-                    dash_length=100,
-                    dash_offset=10)
+                points=self.points,
+                segments=150,
+                loop=self.loop,
+                dash_length=100,
+                dash_offset=10,
+            )
 
             Color(1.0, 0.0, 1.0)
             self.line = Line(
-                    points=self.points + self.points[:2],
-                    dash_offset=10,
-                    dash_length=100)
+                points=self.points + self.points[:2],
+                dash_offset=10,
+                dash_length=100,
+            )
 
-        s = Slider(y=0, pos_hint={'x': .3}, size_hint=(.7, None), height=50)
+        s = Slider(y=0, pos_hint={"x": 0.3}, size_hint=(0.7, None), height=50)
         s.bind(value=self._set_bezier_dash_offset)
         self.add_widget(s)
 
-        s = Slider(y=50, pos_hint={'x': .3}, size_hint=(.7, None), height=50)
+        s = Slider(y=50, pos_hint={"x": 0.3}, size_hint=(0.7, None), height=50)
         s.bind(value=self._set_line_dash_offset)
         self.add_widget(s)
 
@@ -60,10 +61,13 @@ class BezierTest(FloatLayout):
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-            for i, p in enumerate(list(zip(self.points[::2],
-                                           self.points[1::2]))):
-                if (abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
-                        abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
+            for i, p in enumerate(
+                list(zip(self.points[::2], self.points[1::2]))
+            ):
+                if (
+                    abs(touch.pos[0] - self.pos[0] - p[0]) < self.d
+                    and abs(touch.pos[1] - self.pos[1] - p[1]) < self.d
+                ):
                     self.current_point = i + 1
                     return True
             return super(BezierTest, self).on_touch_down(touch)
@@ -88,9 +92,9 @@ class BezierTest(FloatLayout):
 
 
 class Main(App):
-
     def build(self):
         from math import cos, sin, radians
+
         x = y = 150
         z = 100
         # Pacman !
@@ -101,5 +105,5 @@ class Main(App):
         return BezierTest(points=points, loop=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Main().run()

@@ -1,4 +1,4 @@
-'''
+"""
 GstPlayer
 =========
 
@@ -17,11 +17,15 @@ gstreamer-1.0` working.
     This is an external library and Kivy does not provide any support for it.
     It might change in the future and we advise you don't rely on it in your
     code.
-'''
+"""
 
 import os
-if 'KIVY_DOC' in os.environ:
+
+if "KIVY_DOC" in os.environ:
     GstPlayer = get_gst_version = glib_iteration = None
 else:
     from kivy.lib.gstplayer._gstplayer import (
-        GstPlayer, get_gst_version, glib_iteration)
+        GstPlayer,
+        get_gst_version,
+        glib_iteration,
+    )

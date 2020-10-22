@@ -16,7 +16,7 @@ class FboTest(Widget):
             (96.0, 96.0),
             (32.0, 192.0),
             (192.0, 32.0),
-            (32.0, 32.0)
+            (32.0, 32.0),
         ]
 
         self.fbo = Fbo(size=(256, 256))
@@ -25,9 +25,9 @@ class FboTest(Widget):
             Rectangle(size=(256, 64))
             Color(0, 0.56789, 0, 1)
             Rectangle(size=(64, 256))
-            Color(0.56789, 0, 0, .5)
+            Color(0.56789, 0, 0, 0.5)
             Rectangle(pos=(64, 64), size=(192, 64))
-            Color(0, 0.56789, 0, .5)
+            Color(0, 0.56789, 0, 0.5)
             Rectangle(pos=(64, 64), size=(64, 192))
         self.fbo.draw()
 
@@ -64,11 +64,8 @@ class FBOPy2Py3TestCase(GraphicUnitTest):
                 self.assertTrue(isinstance(v, values[i][1]))
             # returned values
             for j, val in enumerate(c):
-                self.assertAlmostEqual(
-                    val, values[i][2][j],
-                    delta=render_error
-                )
+                self.assertAlmostEqual(val, values[i][2][j], delta=render_error)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

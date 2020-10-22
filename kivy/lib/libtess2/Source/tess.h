@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -47,40 +47,40 @@ extern "C" {
 
 struct TESStesselator {
 
-	/*** state needed for collecting the input data ***/
-	TESSmesh	*mesh;		/* stores the input contours, and eventually
-						the tessellation itself */
-	int outOfMemory;
+    /*** state needed for collecting the input data ***/
+    TESSmesh    *mesh;        /* stores the input contours, and eventually
+                        the tessellation itself */
+    int outOfMemory;
 
-	/*** state needed for projecting onto the sweep plane ***/
+    /*** state needed for projecting onto the sweep plane ***/
 
-	TESSreal normal[3];	/* user-specified normal (if provided) */
-	TESSreal sUnit[3];	/* unit vector in s-direction (debugging) */
-	TESSreal tUnit[3];	/* unit vector in t-direction (debugging) */
+    TESSreal normal[3];    /* user-specified normal (if provided) */
+    TESSreal sUnit[3];    /* unit vector in s-direction (debugging) */
+    TESSreal tUnit[3];    /* unit vector in t-direction (debugging) */
 
-	TESSreal bmin[2];
-	TESSreal bmax[2];
+    TESSreal bmin[2];
+    TESSreal bmax[2];
 
-	/*** state needed for the line sweep ***/
-	int	windingRule;	/* rule for determining polygon interior */
+    /*** state needed for the line sweep ***/
+    int    windingRule;    /* rule for determining polygon interior */
 
-	Dict *dict;		/* edge dictionary for sweep line */
-	PriorityQ *pq;		/* priority queue of vertex events */
-	TESSvertex *event;		/* current sweep event being processed */
+    Dict *dict;        /* edge dictionary for sweep line */
+    PriorityQ *pq;        /* priority queue of vertex events */
+    TESSvertex *event;        /* current sweep event being processed */
 
-	struct BucketAlloc* regionPool;
+    struct BucketAlloc* regionPool;
 
-	TESSindex vertexIndexCounter;
-	
-	TESSreal *vertices;
-	TESSindex *vertexIndices;
-	int vertexCount;
-	TESSindex *elements;
-	int elementCount;
+    TESSindex vertexIndexCounter;
 
-	TESSalloc alloc;
-	
-	jmp_buf env;			/* place to jump to when memAllocs fail */
+    TESSreal *vertices;
+    TESSindex *vertexIndices;
+    int vertexCount;
+    TESSindex *elements;
+    int elementCount;
+
+    TESSalloc alloc;
+
+    jmp_buf env;            /* place to jump to when memAllocs fail */
 };
 
 #ifdef __cplusplus

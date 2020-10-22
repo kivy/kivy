@@ -1,4 +1,4 @@
-'''
+"""
 Tesselate Demonstration
 =======================
 
@@ -7,7 +7,7 @@ should see a hollow square with some buttons below it. You can click and
 drag to create additional shapes, watching the number of vertexes and elements
 at the top of the screen. The 'debug' button toggles showing the mesh in
 different colors.
-'''
+"""
 
 
 from kivy.app import App
@@ -17,7 +17,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.logger import Logger
 
-Builder.load_string("""
+Builder.load_string(
+    """
 <ShapeBuilder>:
     BoxLayout:
         size_hint_y: None
@@ -48,7 +49,8 @@ Builder.load_string("""
         Label:
             id: status
             text: "Status"
-""")
+"""
+)
 
 
 class ShapeBuilder(FloatLayout):
@@ -56,7 +58,7 @@ class ShapeBuilder(FloatLayout):
         super(ShapeBuilder, self).__init__(**kwargs)
         self.shapes = [
             [100, 100, 300, 100, 300, 300, 100, 300],
-            [150, 150, 250, 150, 250, 250, 150, 250]
+            [150, 150, 250, 150, 250, 250, 150, 250],
         ]  # the 'hollow square' shape
         self.shape = []
         self.build()
@@ -64,7 +66,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_down(self, touch):
         if super(ShapeBuilder, self).on_touch_down(touch):
             return True
-        Logger.info('tesselate: on_touch_down (%5.2f, %5.2f)' % touch.pos)
+        Logger.info("tesselate: on_touch_down (%5.2f, %5.2f)" % touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -72,7 +74,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_move(self, touch):
         if super(ShapeBuilder, self).on_touch_move(touch):
             return True
-        Logger.info('tesselate: on_touch_move (%5.2f, %5.2f)' % touch.pos)
+        Logger.info("tesselate: on_touch_move (%5.2f, %5.2f)" % touch.pos)
         self.shape.extend(touch.pos)
         self.build()
         return True
@@ -80,7 +82,7 @@ class ShapeBuilder(FloatLayout):
     def on_touch_up(self, touch):
         if super(ShapeBuilder, self).on_touch_up(touch):
             return True
-        Logger.info('tesselate: on_touch_up (%5.2f, %5.2f)' % touch.pos)
+        Logger.info("tesselate: on_touch_up (%5.2f, %5.2f)" % touch.pos)
         self.push_shape()
         self.build()
 
@@ -101,7 +103,7 @@ class ShapeBuilder(FloatLayout):
         if not count:
             return
         ret = tess.tesselate(WINDING_ODD, TYPE_POLYGONS)
-        Logger.info('tesselate: build: tess.tesselate returns {}'.format(ret))
+        Logger.info("tesselate: build: tess.tesselate returns {}".format(ret))
         self.canvas.after.clear()
 
         debug = self.ids.debug.state == "down"
@@ -124,17 +126,20 @@ class ShapeBuilder(FloatLayout):
             with self.canvas.after:
                 Color(1, 1, 1, 1)
                 for vertices, indices in tess.meshes:
-                    Mesh(vertices=vertices, indices=indices,
-                         mode="triangle_fan")
+                    Mesh(
+                        vertices=vertices, indices=indices, mode="triangle_fan"
+                    )
 
         self.ids.status.text = "Shapes: {} - Vertex: {} - Elements: {}".format(
-            count, tess.vertex_count, tess.element_count)
+            count, tess.vertex_count, tess.element_count
+        )
 
     def reset(self):
         self.shapes = []
         self.shape = []
         self.ids.status.text = "Shapes: {} - Vertex: {} - Elements: {}".format(
-            0, 0, 0)
+            0, 0, 0
+        )
         self.canvas.after.clear()
 
 

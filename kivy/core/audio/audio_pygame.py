@@ -1,13 +1,13 @@
-'''
+"""
 AudioPygame: implementation of Sound with Pygame
 
 .. warning::
 
     Pygame has been deprecated and will be removed in the release after Kivy
     1.11.0.
-'''
+"""
 
-__all__ = ('SoundPygame', )
+__all__ = ("SoundPygame",)
 
 from kivy.clock import Clock
 from kivy.utils import platform, deprecated
@@ -15,7 +15,7 @@ from kivy.core.audio import Sound, SoundLoader
 
 _platform = platform
 try:
-    if _platform == 'android':
+    if _platform == "android":
         try:
             import android.mixer as mixer
         except ImportError:
@@ -44,12 +44,13 @@ class SoundPygame(Sound):
 
     @staticmethod
     def extensions():
-        if _platform == 'android':
-            return ('wav', 'ogg', 'mp3', 'm4a')
-        return ('wav', 'ogg')
+        if _platform == "android":
+            return ("wav", "ogg", "mp3", "m4a")
+        return ("wav", "ogg")
 
     @deprecated(
-        msg='Pygame has been deprecated and will be removed after 1.11.0')
+        msg="Pygame has been deprecated and will be removed after 1.11.0"
+    )
     def __init__(self, **kwargs):
         self._data = None
         self._channel = None
@@ -61,8 +62,10 @@ class SoundPygame(Sound):
         if self._channel.get_busy():
             return
         if self.loop:
+
             def do_loop(dt):
                 self.play()
+
             Clock.schedule_once(do_loop)
         else:
             self.stop()
@@ -102,12 +105,12 @@ class SoundPygame(Sound):
     def seek(self, position):
         if not self._data:
             return
-        if _platform == 'android' and self._channel:
+        if _platform == "android" and self._channel:
             self._channel.seek(position)
 
     def get_pos(self):
         if self._data is not None and self._channel:
-            if _platform == 'android':
+            if _platform == "android":
                 return self._channel.get_pos()
             return Clock.time() - self.start_time
         return 0
@@ -117,7 +120,7 @@ class SoundPygame(Sound):
             self._data.set_volume(volume)
 
     def _get_length(self):
-        if _platform == 'android' and self._channel:
+        if _platform == "android" and self._channel:
             return self._channel.get_length()
         if self._data is not None:
             return self._data.get_length()

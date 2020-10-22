@@ -402,7 +402,7 @@ to both case.
 
 '''
 
-__all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
+__all__ = ("App", "runTouchApp", "async_runTouchApp", "stopTouchApp")
 
 import os
 from inspect import getfile
@@ -422,7 +422,7 @@ from kivy.setupconfig import USE_SDL2
 
 
 class App(EventDispatcher):
-    ''' Application class, see module documentation for more information.
+    """Application class, see module documentation for more information.
 
     :Events:
         `on_start`:
@@ -442,10 +442,10 @@ class App(EventDispatcher):
 
     .. versionchanged:: 1.8.0
         Parameters `kv_file` and `kv_directory` are now properties of App.
-    '''
+    """
 
     title = StringProperty(None)
-    '''
+    """
     Title of your application. You can set this as follows::
 
         class MyApp(App):
@@ -470,10 +470,10 @@ class App(EventDispatcher):
             from kivy.base import EventLoop
             EventLoop.window.title = 'New title'
 
-    '''
+    """
 
     icon = StringProperty(None)
-    '''Icon of your application.
+    """Icon of your application.
     The icon can be located in the same directory as your main file. You can
     set this as follows::
 
@@ -498,18 +498,18 @@ class App(EventDispatcher):
         32x32 for Windows7 or less. <= 256x256 for windows 8
         256x256 does work (on Windows 8 at least), but is scaled
         down and doesn't look as good as a 32x32 icon.
-    '''
+    """
 
     use_kivy_settings = True
-    '''.. versionadded:: 1.0.7
+    """.. versionadded:: 1.0.7
 
     If True, the application settings will also include the Kivy settings. If
     you don't want the user to change any kivy settings from your settings UI,
     change this to False.
-    '''
+    """
 
     settings_cls = ObjectProperty(None)
-    '''.. versionadded:: 1.8.0
+    """.. versionadded:: 1.8.0
 
     The class used to construct the settings panel and
     the instance passed to :meth:`build_config`. You should
@@ -528,32 +528,37 @@ class App(EventDispatcher):
     a string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
-    '''
+    """
 
     kv_directory = StringProperty(None)
-    '''Path of the directory where application kv is stored, defaults to None
+    """Path of the directory where application kv is stored, defaults to None
 
     .. versionadded:: 1.8.0
 
     If a kv_directory is set, it will be used to get the initial kv file. By
     default, the file is assumed to be in the same directory as the current App
     definition file.
-    '''
+    """
 
     kv_file = StringProperty(None)
-    '''Filename of the Kv file to load, defaults to None.
+    """Filename of the Kv file to load, defaults to None.
 
     .. versionadded:: 1.8.0
 
     If a kv_file is set, it will be loaded when the application starts. The
     loading of the "default" kv file will be prevented.
-    '''
+    """
 
     # Return the current running App instance
     _running_app = None
 
-    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
-                  'on_config_change', )
+    __events__ = (
+        "on_start",
+        "on_stop",
+        "on_pause",
+        "on_resume",
+        "on_config_change",
+    )
 
     # Stored so that we only need to determine this once
     _user_data_dir = ""
@@ -580,19 +585,19 @@ class App(EventDispatcher):
         self.root = None
 
     def build(self):
-        '''Initializes the application; it will be called only once.
+        """Initializes the application; it will be called only once.
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
         :return:
             None or a root :class:`~kivy.uix.widget.Widget` instance
-            if no self.root exists.'''
+            if no self.root exists."""
 
         if not self.root:
             return Widget()
 
     def build_config(self, config):
-        '''.. versionadded:: 1.0.7
+        """.. versionadded:: 1.0.7
 
         This method is called before the application is initialized to
         construct your :class:`~kivy.config.ConfigParser` object. This
@@ -605,10 +610,10 @@ class App(EventDispatcher):
             `config`: :class:`~kivy.config.ConfigParser`
                 Use this to add default section / key / value items
 
-        '''
+        """
 
     def build_settings(self, settings):
-        '''.. versionadded:: 1.0.7
+        """.. versionadded:: 1.0.7
 
         This method is called when the user (or you) want to show the
         application settings. It is called once when the settings panel
@@ -624,10 +629,10 @@ class App(EventDispatcher):
             `settings`: :class:`~kivy.uix.settings.Settings`
                 Settings instance for adding panels
 
-        '''
+        """
 
     def load_kv(self, filename=None):
-        '''This method is invoked the first time the app is being run if no
+        """This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
         the file that contains the application class.
@@ -662,31 +667,32 @@ class App(EventDispatcher):
             :meth:`run` is called (e.g. in `__init__`), won't have its styling
             applied. Note that :meth:`build` is called after :attr:`load_kv`
             has been called.
-        '''
+        """
         # Detect filename automatically if it was not specified.
         if filename:
             filename = resource_find(filename)
         else:
             try:
                 default_kv_directory = dirname(getfile(self.__class__))
-                if default_kv_directory == '':
-                    default_kv_directory = '.'
+                if default_kv_directory == "":
+                    default_kv_directory = "."
             except TypeError:
                 # if it's a builtin module.. use the current dir.
-                default_kv_directory = '.'
+                default_kv_directory = "."
 
             kv_directory = self.kv_directory or default_kv_directory
             clsname = self.__class__.__name__.lower()
-            if (clsname.endswith('app') and
-                    not isfile(join(kv_directory, '%s.kv' % clsname))):
+            if clsname.endswith("app") and not isfile(
+                join(kv_directory, "%s.kv" % clsname)
+            ):
                 clsname = clsname[:-3]
-            filename = join(kv_directory, '%s.kv' % clsname)
+            filename = join(kv_directory, "%s.kv" % clsname)
 
         # Load KV file
-        Logger.debug('App: Loading kv <{0}>'.format(filename))
+        Logger.debug("App: Loading kv <{0}>".format(filename))
         rfilename = resource_find(filename)
         if rfilename is None or not exists(rfilename):
-            Logger.debug('App: kv <%s> not found' % filename)
+            Logger.debug("App: kv <%s> not found" % filename)
             return False
         root = Builder.load_file(rfilename)
         if root:
@@ -694,25 +700,23 @@ class App(EventDispatcher):
         return True
 
     def get_application_name(self):
-        '''Return the name of the application.
-        '''
+        """Return the name of the application."""
         if self.title is not None:
             return self.title
         clsname = self.__class__.__name__
-        if clsname.endswith('App'):
+        if clsname.endswith("App"):
             clsname = clsname[:-3]
         return clsname
 
     def get_application_icon(self):
-        '''Return the icon of the application.
-        '''
+        """Return the icon of the application."""
         if not resource_find(self.icon):
-            return ''
+            return ""
         else:
             return resource_find(self.icon)
 
-    def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
-        '''
+    def get_application_config(self, defaultpath="%(appdir)s/%(appname)s.ini"):
+        """
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
@@ -750,27 +754,29 @@ class App(EventDispatcher):
             Changed the Android version to make use of the
             :attr:`~App.user_data_dir` and added a missing dot to the iOS
             config file name.
-        '''
+        """
 
-        if platform == 'android':
-            return join(self.user_data_dir, '.{0}.ini'.format(self.name))
-        elif platform == 'ios':
-            defaultpath = '~/Documents/.%(appname)s.ini'
-        elif platform == 'win':
-            defaultpath = defaultpath.replace('/', sep)
+        if platform == "android":
+            return join(self.user_data_dir, ".{0}.ini".format(self.name))
+        elif platform == "ios":
+            defaultpath = "~/Documents/.%(appname)s.ini"
+        elif platform == "win":
+            defaultpath = defaultpath.replace("/", sep)
         return expanduser(defaultpath) % {
-            'appname': self.name, 'appdir': self.directory}
+            "appname": self.name,
+            "appdir": self.directory,
+        }
 
     @property
     def root_window(self):
-        '''.. versionadded:: 1.9.0
+        """.. versionadded:: 1.9.0
 
         Returns the root window instance used by :meth:`run`.
-        '''
+        """
         return self._app_window
 
     def load_config(self):
-        '''(internal) This function is used for returning a ConfigParser with
+        """(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
 
             #. Creating an instance of a ConfigParser
@@ -781,13 +787,13 @@ class App(EventDispatcher):
 
         :return:
             :class:`~kivy.config.ConfigParser` instance
-        '''
+        """
         try:
-            config = ConfigParser.get_configparser('app')
+            config = ConfigParser.get_configparser("app")
         except KeyError:
             config = None
         if config is None:
-            config = ConfigParser(name='app')
+            config = ConfigParser(name="app")
         self.config = config
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
@@ -799,63 +805,65 @@ class App(EventDispatcher):
         filename = self.get_application_config()
         if filename is None:
             return config
-        Logger.debug('App: Loading configuration <{0}>'.format(filename))
+        Logger.debug("App: Loading configuration <{0}>".format(filename))
         if exists(filename):
             try:
                 config.read(filename)
             except:
-                Logger.error('App: Corrupted config file, ignored.')
-                config.name = ''
+                Logger.error("App: Corrupted config file, ignored.")
+                config.name = ""
                 try:
-                    config = ConfigParser.get_configparser('app')
+                    config = ConfigParser.get_configparser("app")
                 except KeyError:
                     config = None
                 if config is None:
-                    config = ConfigParser(name='app')
+                    config = ConfigParser(name="app")
                 self.config = config
                 self.build_config(config)
                 pass
         else:
-            Logger.debug('App: First configuration, create <{0}>'.format(
-                filename))
+            Logger.debug(
+                "App: First configuration, create <{0}>".format(filename)
+            )
             config.filename = filename
             config.write()
         return config
 
     @property
     def directory(self):
-        '''.. versionadded:: 1.0.7
+        """.. versionadded:: 1.0.7
 
         Return the directory where the application lives.
-        '''
+        """
         if self._app_directory is None:
             try:
                 self._app_directory = dirname(getfile(self.__class__))
-                if self._app_directory == '':
-                    self._app_directory = '.'
+                if self._app_directory == "":
+                    self._app_directory = "."
             except TypeError:
                 # if it's a builtin module.. use the current dir.
-                self._app_directory = '.'
+                self._app_directory = "."
         return self._app_directory
 
     def _get_user_data_dir(self):
         # Determine and return the user_data_dir.
         data_dir = ""
-        if platform == 'ios':
-            data_dir = expanduser(join('~/Documents', self.name))
-        elif platform == 'android':
+        if platform == "ios":
+            data_dir = expanduser(join("~/Documents", self.name))
+        elif platform == "android":
             from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getFilesDir())
+
+            PythonActivity = autoclass("org.kivy.android.PythonActivity")
+            context = cast("android.content.Context", PythonActivity.mActivity)
+            file_p = cast("java.io.File", context.getFilesDir())
             data_dir = file_p.getAbsolutePath()
-        elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
-        elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
+        elif platform == "win":
+            data_dir = os.path.join(os.environ["APPDATA"], self.name)
+        elif platform == "macosx":
+            data_dir = "~/Library/Application Support/{}".format(self.name)
             data_dir = expanduser(data_dir)
         else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = os.environ.get("XDG_CONFIG_HOME", "~/.config")
             data_dir = expanduser(join(data_dir, self.name))
         if not exists(data_dir):
             os.mkdir(data_dir)
@@ -863,7 +871,7 @@ class App(EventDispatcher):
 
     @property
     def user_data_dir(self):
-        '''
+        """
         .. versionadded:: 1.7.0
 
         Returns the path to the directory in the users file system which the
@@ -894,20 +902,20 @@ Context.html#getFilesDir()>`_ is returned.
             in Android API 26 and the user_data_dir has therefore been moved
             to a writeable location.
 
-        '''
+        """
         if self._user_data_dir == "":
             self._user_data_dir = self._get_user_data_dir()
         return self._user_data_dir
 
     @property
     def name(self):
-        '''.. versionadded:: 1.0.7
+        """.. versionadded:: 1.0.7
 
         Return the name of the application based on the class name.
-        '''
+        """
         if self._app_name is None:
             clsname = self.__class__.__name__
-            if clsname.endswith('App'):
+            if clsname.endswith("App"):
                 clsname = clsname[:-3]
             self._app_name = clsname.lower()
         return self._app_name
@@ -921,13 +929,15 @@ Context.html#getFilesDir()>`_ is returned.
                 self.root = root
         if self.root:
             if not isinstance(self.root, Widget):
-                Logger.critical('App.root must be an _instance_ of Widget')
-                raise Exception('Invalid instance in App.root')
+                Logger.critical("App.root must be an _instance_ of Widget")
+                raise Exception("Invalid instance in App.root")
             from kivy.core.window import Window
+
             Window.add_widget(self.root)
 
         # Check if the window is already created
         from kivy.base import EventLoop
+
         window = EventLoop.window
         if window:
             self._app_window = window
@@ -937,38 +947,39 @@ Context.html#getFilesDir()>`_ is returned.
                 window.set_icon(icon)
             self._install_settings_keys(window)
         else:
-            Logger.critical("Application: No window is created."
-                            " Terminating application run.")
+            Logger.critical(
+                "Application: No window is created."
+                " Terminating application run."
+            )
             return
 
-        self.dispatch('on_start')
+        self.dispatch("on_start")
 
     def run(self):
-        '''Launches the app in standalone mode.
-        '''
+        """Launches the app in standalone mode."""
         self._run_prepare()
         runTouchApp()
         self.stop()
 
     async def async_run(self, async_lib=None):
-        '''Identical to :meth:`run`, but is a coroutine and can be
+        """Identical to :meth:`run`, but is a coroutine and can be
         scheduled in a running async event loop.
 
         See :mod:`kivy.app` for example usage.
 
         .. versionadded:: 2.0.0
-        '''
+        """
         self._run_prepare()
         await async_runTouchApp(async_lib=async_lib)
         self.stop()
 
     def stop(self, *largs):
-        '''Stop the application.
+        """Stop the application.
 
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
-        '''
-        self.dispatch('on_stop')
+        """
+        self.dispatch("on_stop")
         stopTouchApp()
 
         # Clear the window children
@@ -978,21 +989,21 @@ Context.html#getFilesDir()>`_ is returned.
         App._running_app = None
 
     def on_start(self):
-        '''Event handler for the `on_start` event which is fired after
+        """Event handler for the `on_start` event which is fired after
         initialization (after build() has been called) but before the
         application has started running.
-        '''
+        """
         pass
 
     def on_stop(self):
-        '''Event handler for the `on_stop` event which is fired when the
+        """Event handler for the `on_stop` event which is fired when the
         application has finished running (i.e. the window is about to be
         closed).
-        '''
+        """
         pass
 
     def on_pause(self):
-        '''Event handler called when Pause mode is requested. You should
+        """Event handler called when Pause mode is requested. You should
         return True if your app can go into Pause mode, otherwise
         return False and your application will be stopped.
 
@@ -1005,11 +1016,11 @@ Context.html#getFilesDir()>`_ is returned.
         .. versionadded:: 1.1.0
         .. versionchanged:: 1.10.0
             The default return value is now True.
-        '''
+        """
         return True
 
     def on_resume(self):
-        '''Event handler called when your application is resuming from
+        """Event handler called when your application is resuming from
         the Pause mode.
 
         .. versionadded:: 1.1.0
@@ -1019,28 +1030,28 @@ Context.html#getFilesDir()>`_ is returned.
             When resuming, the OpenGL Context might have been damaged / freed.
             This is where you can reconstruct some of your OpenGL state
             e.g. FBO content.
-        '''
+        """
         pass
 
     @staticmethod
     def get_running_app():
-        '''Return the currently running application instance.
+        """Return the currently running application instance.
 
         .. versionadded:: 1.1.0
-        '''
+        """
         return App._running_app
 
     def on_config_change(self, config, section, key, value):
-        '''Event handler fired when a configuration token has been changed by
+        """Event handler fired when a configuration token has been changed by
         the settings page.
 
         .. versionchanged:: 1.10.1
            Added corresponding ``on_config_change`` event.
-        '''
+        """
         pass
 
     def open_settings(self, *largs):
-        '''Open the application settings panel. It will be created the very
+        """Open the application settings panel. It will be created the very
         first time, or recreated if the previously cached panel has been
         removed by :meth:`destroy_settings`. The settings panel will be
         displayed with the
@@ -1052,7 +1063,7 @@ Context.html#getFilesDir()>`_ is returned.
         :return:
             True if the settings has been opened.
 
-        '''
+        """
         if self._app_settings is None:
             self._app_settings = self.create_settings()
         displayed = self.display_settings(self._app_settings)
@@ -1061,7 +1072,7 @@ Context.html#getFilesDir()>`_ is returned.
         return False
 
     def display_settings(self, settings):
-        '''.. versionadded:: 1.8.0
+        """.. versionadded:: 1.8.0
 
         Display the settings panel. By default, the panel is drawn directly
         on top of the window. You can define other behaviour by overriding
@@ -1074,22 +1085,24 @@ Context.html#getFilesDir()>`_ is returned.
                 You can modify this object in order to modify the settings
                 display.
 
-        '''
+        """
         win = self._app_window
         if not win:
-            raise Exception('No windows are set on the application, you cannot'
-                            ' open settings yet.')
+            raise Exception(
+                "No windows are set on the application, you cannot"
+                " open settings yet."
+            )
         if settings not in win.children:
             win.add_widget(settings)
             return True
         return False
 
     def close_settings(self, *largs):
-        '''Close the previously opened settings panel.
+        """Close the previously opened settings panel.
 
         :return:
             True if the settings has been closed.
-        '''
+        """
         win = self._app_window
         settings = self._app_settings
         if win is None or settings is None:
@@ -1100,7 +1113,7 @@ Context.html#getFilesDir()>`_ is returned.
         return False
 
     def create_settings(self):
-        '''Create the settings panel. This method will normally
+        """Create the settings panel. This method will normally
         be called only one time per
         application life-time and the result is cached internally,
         but it may be called again if the cached panel is removed
@@ -1116,9 +1129,10 @@ Context.html#getFilesDir()>`_ is returned.
         overload.
 
         .. versionadded:: 1.8.0
-        '''
+        """
         if self.settings_cls is None:
             from kivy.uix.settings import SettingsWithSpinner
+
             self.settings_cls = SettingsWithSpinner
         elif isinstance(self.settings_cls, string_types):
             self.settings_cls = Factory.get(self.settings_cls)
@@ -1126,12 +1140,14 @@ Context.html#getFilesDir()>`_ is returned.
         self.build_settings(s)
         if self.use_kivy_settings:
             s.add_kivy_panel()
-        s.bind(on_close=self.close_settings,
-               on_config_change=self._on_config_change)
+        s.bind(
+            on_close=self.close_settings,
+            on_config_change=self._on_config_change,
+        )
         return s
 
     def destroy_settings(self):
-        '''.. versionadded:: 1.8.0
+        """.. versionadded:: 1.8.0
 
         Dereferences the current settings panel if one
         exists. This means that when :meth:`App.open_settings` is next
@@ -1146,7 +1162,7 @@ Context.html#getFilesDir()>`_ is returned.
         correctly detect if the previous settings widget has been
         destroyed.
 
-        '''
+        """
         if self._app_settings is not None:
             self._app_settings = None
 
@@ -1155,7 +1171,7 @@ Context.html#getFilesDir()>`_ is returned.
     #
 
     def _on_config_change(self, *largs):
-        self.dispatch('on_config_change', *largs[1:])
+        self.dispatch("on_config_change", *largs[1:])
 
     def _install_settings_keys(self, window):
         window.bind(on_keyboard=self._on_keyboard_settings)
@@ -1165,8 +1181,9 @@ Context.html#getFilesDir()>`_ is returned.
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform == 'android' and not USE_SDL2:
+        if platform == "android" and not USE_SDL2:
             import pygame
+
             setting_key = pygame.K_MENU
 
         if key == setting_key:

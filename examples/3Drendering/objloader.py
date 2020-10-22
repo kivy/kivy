@@ -2,9 +2,10 @@ class MeshData(object):
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
         self.vertex_format = [
-            (b'v_pos', 3, 'float'),
-            (b'v_normal', 3, 'float'),
-            (b'v_tc0', 2, 'float')]
+            (b"v_pos", 3, "float"),
+            (b"v_normal", 3, "float"),
+            (b"v_tc0", 2, "float"),
+        ]
         self.vertices = []
         self.indices = []
 
@@ -84,38 +85,38 @@ class ObjFile:
 
         material = None
         for line in open(filename, "r"):
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
-            if line.startswith('s'):
+            if line.startswith("s"):
                 continue
             values = line.split()
             if not values:
                 continue
-            if values[0] == 'o':
+            if values[0] == "o":
                 self.finish_object()
                 self._current_object = values[1]
             # elif values[0] == 'mtllib':
             #    self.mtl = MTL(values[1])
             # elif values[0] in ('usemtl', 'usemat'):
             #    material = values[1]
-            if values[0] == 'v':
+            if values[0] == "v":
                 v = list(map(float, values[1:4]))
                 if swapyz:
                     v = v[0], v[2], v[1]
                 self.vertices.append(v)
-            elif values[0] == 'vn':
+            elif values[0] == "vn":
                 v = list(map(float, values[1:4]))
                 if swapyz:
                     v = v[0], v[2], v[1]
                 self.normals.append(v)
-            elif values[0] == 'vt':
+            elif values[0] == "vt":
                 self.texcoords.append(list(map(float, values[1:3])))
-            elif values[0] == 'f':
+            elif values[0] == "f":
                 face = []
                 texcoords = []
                 norms = []
                 for v in values[1:]:
-                    w = v.split('/')
+                    w = v.split("/")
                     face.append(int(w[0]))
                     if len(w) >= 2 and len(w[1]) > 0:
                         texcoords.append(int(w[1]))
@@ -134,12 +135,12 @@ def MTL(filename):
     mtl = None
     return
     for line in open(filename, "r"):
-        if line.startswith('#'):
+        if line.startswith("#"):
             continue
         values = line.split()
         if not values:
             continue
-        if values[0] == 'newmtl':
+        if values[0] == "newmtl":
             mtl = contents[values[1]] = {}
         elif mtl is None:
             raise ValueError("mtl file doesn't start with newmtl stmt")

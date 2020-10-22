@@ -1,18 +1,18 @@
-'''
+"""
 Graphics tests
 ==============
 
 Testing the simple vertex instructions
-'''
+"""
 
 from kivy.tests.common import GraphicUnitTest
 
 
 class VertexInstructionTest(GraphicUnitTest):
-
     def test_circle(self):
         from kivy.uix.widget import Widget
         from kivy.graphics import Ellipse, Color
+
         r = self.render
 
         # basic circle
@@ -40,6 +40,7 @@ class VertexInstructionTest(GraphicUnitTest):
     def test_ellipse(self):
         from kivy.uix.widget import Widget
         from kivy.graphics import Ellipse, Color
+
         r = self.render
 
         # ellipse
@@ -52,6 +53,7 @@ class VertexInstructionTest(GraphicUnitTest):
     def test_point(self):
         from kivy.uix.widget import Widget
         from kivy.graphics import Point, Color
+
         r = self.render
 
         # 1 point
@@ -71,6 +73,7 @@ class VertexInstructionTest(GraphicUnitTest):
     def test_point_add(self):
         from kivy.uix.widget import Widget
         from kivy.graphics import Point, Color
+
         r = self.render
 
         wid = Widget()
@@ -89,7 +92,6 @@ class VertexInstructionTest(GraphicUnitTest):
 
 
 class FBOInstructionTestCase(GraphicUnitTest):
-
     def test_fbo_pixels(self):
         from kivy.graphics import Fbo, ClearColor, ClearBuffers, Ellipse
 
@@ -100,29 +102,32 @@ class FBOInstructionTestCase(GraphicUnitTest):
             Ellipse(pos=(100, 100), size=(100, 100))
         fbo.draw()
         data = fbo.pixels
-        fbo.texture.save('results.png')
+        fbo.texture.save("results.png")
 
 
 class TransformationsTestCase(GraphicUnitTest):
-
     def test_identity_creation(self):
         from kivy.graphics import LoadIdentity
+
         mat = LoadIdentity()
         self.assertTrue(mat.stack)
 
 
 class CallbackInstructionTest(GraphicUnitTest):
-
     def test_from_kv(self):
         from textwrap import dedent
         from kivy.lang import Builder
 
-        root = Builder.load_string(dedent("""\
+        root = Builder.load_string(
+            dedent(
+                """\
         Widget:
             canvas:
                 Callback:
                     callback: lambda __: setattr(self, 'callback_test', 'TEST')
-        """))
+        """
+            )
+        )
         r = self.render
         r(root)
-        self.assertTrue(root.callback_test == 'TEST')
+        self.assertTrue(root.callback_test == "TEST")

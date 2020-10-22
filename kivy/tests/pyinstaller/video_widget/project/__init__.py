@@ -13,15 +13,16 @@ class VideoApp(App):
 
     def build(self):
         self.player = player = VideoPlayer(
-            source=os.environ['__KIVY_VIDEO_TEST_FNAME'], volume=0)
+            source=os.environ["__KIVY_VIDEO_TEST_FNAME"], volume=0
+        )
 
-        self.player.fbind('position', self.check_position)
+        self.player.fbind("position", self.check_position)
         Clock.schedule_once(self.start_player, 0)
         Clock.schedule_interval(self.stop_player, 1)
         return player
 
     def start_player(self, *args):
-        self.player.state = 'play'
+        self.player.state = "play"
         self.start_t = time.perf_counter()
 
     def check_position(self, *args):

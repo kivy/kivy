@@ -1,16 +1,16 @@
-'''
+"""
 Rotation Example
 ================
 
 This example rotates a button using PushMatrix and PopMatrix. You should see
 a static button with the words 'hello world' rotated at a 45 degree angle.
-'''
+"""
 
 
 from kivy.app import App
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 FloatLayout:
 
     Button:
@@ -24,7 +24,7 @@ FloatLayout:
                 origin: self.center
         canvas.after:
             PopMatrix
-'''
+"""
 
 
 class RotationApp(App):

@@ -1,4 +1,4 @@
-'''
+"""
 Scroll effect
 =============
 
@@ -13,10 +13,10 @@ try to return to the value of one of the bounds.
 This is very useful for implementing a scrolling list. We actually use this
 class as a base effect for our :class:`~kivy.uix.scrollview.ScrollView` widget.
 
-'''
+"""
 
 
-__all__ = ('ScrollEffect', )
+__all__ = ("ScrollEffect",)
 
 
 from kivy.effects.kinetic import KineticEffect
@@ -25,68 +25,67 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 
 class ScrollEffect(KineticEffect):
-    '''ScrollEffect class. See the module documentation for more informations.
-    '''
+    """ScrollEffect class. See the module documentation for more informations."""
 
-    drag_threshold = NumericProperty('20sp')
-    '''Minimum distance to travel before the movement is considered as a drag.
+    drag_threshold = NumericProperty("20sp")
+    """Minimum distance to travel before the movement is considered as a drag.
 
     :attr:`velocity` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20sp.
-    '''
+    """
 
     min = NumericProperty(0)
-    '''Minimum boundary to use for scrolling.
+    """Minimum boundary to use for scrolling.
 
     :attr:`min` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
-    '''
+    """
 
     max = NumericProperty(0)
-    '''Maximum boundary to use for scrolling.
+    """Maximum boundary to use for scrolling.
 
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
     0.
-    '''
+    """
 
     scroll = NumericProperty(0)
-    '''Computed value for scrolling. This value is different from
+    """Computed value for scrolling. This value is different from
     :py:attr:`kivy.effects.kinetic.KineticEffect.value`
     in that it will return to one of the min/max bounds.
 
     :attr:`scroll` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
-    '''
+    """
 
     overscroll = NumericProperty(0)
-    '''Computed value when the user over-scrolls i.e. goes out of the bounds.
+    """Computed value when the user over-scrolls i.e. goes out of the bounds.
 
     :attr:`overscroll` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     target_widget = ObjectProperty(None, allownone=True, baseclass=Widget)
-    '''Widget to attach to this effect. Even if this class doesn't make changes
+    """Widget to attach to this effect. Even if this class doesn't make changes
     to the `target_widget` by default, subclasses can use it to change the
     graphics or apply custom transformations.
 
     :attr:`target_widget` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     displacement = NumericProperty(0)
-    '''Cumulative distance of the movement during the interaction. This is used
+    """Cumulative distance of the movement during the interaction. This is used
     to determine if the movement is a drag (more than :attr:`drag_threshold`)
     or not.
 
     :attr:`displacement` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     def reset(self, pos):
-        '''(internal) Reset the value and the velocity to the `pos`.
+        """(internal) Reset the value and the velocity to the `pos`.
         Mostly used when the bounds are checked.
-        '''
+        """
         self.value = pos
         self.velocity = 0
         if self.history:

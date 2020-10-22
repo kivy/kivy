@@ -1,4 +1,4 @@
-'''
+"""
 Gesture Surface
 ===============
 
@@ -12,8 +12,8 @@ Gesture Surface
 
 See :file:`kivy/examples/demo/multistroke/main.py` for a complete application
 example.
-'''
-__all__ = ('GestureSurface', 'GestureContainer')
+"""
+__all__ = ("GestureSurface", "GestureContainer")
 
 from random import random
 from kivy.event import EventDispatcher
@@ -21,8 +21,12 @@ from kivy.clock import Clock
 from kivy.vector import Vector
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
-from kivy.properties import (NumericProperty, BooleanProperty,
-                             DictProperty, ColorProperty)
+from kivy.properties import (
+    NumericProperty,
+    BooleanProperty,
+    DictProperty,
+    ColorProperty,
+)
 from colorsys import hsv_to_rgb
 
 # Clock undershoot margin, FIXME: this is probably too high?
@@ -30,7 +34,7 @@ UNDERSHOOT_MARGIN = 0.1
 
 
 class GestureContainer(EventDispatcher):
-    '''Container object that stores information about a gesture. It has
+    """Container object that stores information about a gesture. It has
     various properties that are updated by `GestureSurface` as drawing
     progresses.
 
@@ -87,19 +91,26 @@ class GestureContainer(EventDispatcher):
 
             :attr:`height` is a
             :class:`~kivy.properties.NumericProperty`
-    '''
+    """
+
     active = BooleanProperty(True)
     active_strokes = NumericProperty(0)
     max_strokes = NumericProperty(0)
     was_merged = BooleanProperty(False)
-    bbox = DictProperty({'minx': float('inf'), 'miny': float('inf'),
-                         'maxx': float('-inf'), 'maxy': float('-inf')})
+    bbox = DictProperty(
+        {
+            "minx": float("inf"),
+            "miny": float("inf"),
+            "maxx": float("-inf"),
+            "maxy": float("-inf"),
+        }
+    )
     width = NumericProperty(0)
     height = NumericProperty(0)
 
     def __init__(self, touch, **kwargs):
         # The color is applied to all canvas items of this gesture
-        self.color = kwargs.pop('color', [1., 1., 1.])
+        self.color = kwargs.pop("color", [1.0, 1.0, 1.0])
 
         super(GestureContainer, self).__init__(**kwargs)
 
@@ -123,14 +134,13 @@ class GestureContainer(EventDispatcher):
         self.update_bbox(touch)
 
     def get_vectors(self, **kwargs):
-        '''Return strokes in a format that is acceptable for
+        """Return strokes in a format that is acceptable for
         `kivy.multistroke.Recognizer` as a gesture candidate or template. The
         result is cached automatically; the cache is invalidated at the start
         and end of a stroke and if `update_bbox` is called. If you are going
         to analyze a gesture mid-stroke, you may need to set the `no_cache`
-        argument to True.'''
-        if self._cache_time == self._update_time and \
-                not kwargs.get('no_cache'):
+        argument to True."""
+        if self._cache_time == self._update_time and not kwargs.get("no_cache"):
             return self._vectors
 
         vecs = []
@@ -144,51 +154,51 @@ class GestureContainer(EventDispatcher):
         return vecs
 
     def handles(self, touch):
-        '''Returns True if this container handles the given touch'''
+        """Returns True if this container handles the given touch"""
         if not self.active:
             return False
         return str(touch.uid) in self._strokes
 
     def accept_stroke(self, count=1):
-        '''Returns True if this container can accept `count` new strokes'''
+        """Returns True if this container can accept `count` new strokes"""
         if not self.max_strokes:
             return True
         return len(self._strokes) + count <= self.max_strokes
 
     def update_bbox(self, touch):
-        '''Update gesture bbox from a touch coordinate'''
+        """Update gesture bbox from a touch coordinate"""
         x, y = touch.x, touch.y
         bb = self.bbox
-        if x < bb['minx']:
-            bb['minx'] = x
-        if y < bb['miny']:
-            bb['miny'] = y
-        if x > bb['maxx']:
-            bb['maxx'] = x
-        if y > bb['maxy']:
-            bb['maxy'] = y
-        self.width = bb['maxx'] - bb['minx']
-        self.height = bb['maxy'] - bb['miny']
+        if x < bb["minx"]:
+            bb["minx"] = x
+        if y < bb["miny"]:
+            bb["miny"] = y
+        if x > bb["maxx"]:
+            bb["maxx"] = x
+        if y > bb["maxy"]:
+            bb["maxy"] = y
+        self.width = bb["maxx"] - bb["minx"]
+        self.height = bb["maxy"] - bb["miny"]
         self._update_time = Clock.get_time()
 
     def add_stroke(self, touch, line):
-        '''Associate a list of points with a touch.uid; the line itself is
+        """Associate a list of points with a touch.uid; the line itself is
         created by the caller, but subsequent move/up events look it
-        up via us. This is done to avoid problems during merge.'''
+        up via us. This is done to avoid problems during merge."""
         self._update_time = Clock.get_time()
         self._strokes[str(touch.uid)] = line
         self.active_strokes += 1
 
     def complete_stroke(self):
-        '''Called on touch up events to keep track of how many strokes
+        """Called on touch up events to keep track of how many strokes
         are active in the gesture (we only want to dispatch event when
-        the *last* stroke in the gesture is released)'''
+        the *last* stroke in the gesture is released)"""
         self._update_time = Clock.get_time()
         self.active_strokes -= 1
 
     def single_points_test(self):
-        '''Returns True if the gesture consists only of single-point strokes,
-        we must discard it in this case, or an exception will be raised'''
+        """Returns True if the gesture consists only of single-point strokes,
+        we must discard it in this case, or an exception will be raised"""
         for tuid, l in self._strokes.items():
             if len(l.points) > 2:
                 return False
@@ -196,7 +206,7 @@ class GestureContainer(EventDispatcher):
 
 
 class GestureSurface(FloatLayout):
-    '''Simple gesture surface to track/draw touch movements. Typically used
+    """Simple gesture surface to track/draw touch movements. Typically used
     to gather user input suitable for :class:`kivy.multistroke.Recognizer`.
 
     :Properties:
@@ -306,7 +316,7 @@ class GestureSurface(FloatLayout):
             Fired when a gesture does not meet the minimum size requirements
             for recognition (width/height < 5, or consists only of single-
             point strokes).
-    '''
+    """
 
     temporal_window = NumericProperty(2.0)
     draw_timeout = NumericProperty(3.0)
@@ -314,7 +324,7 @@ class GestureSurface(FloatLayout):
     bbox_margin = NumericProperty(30)
 
     line_width = NumericProperty(2)
-    color = ColorProperty([1., 1., 1., 1.])
+    color = ColorProperty([1.0, 1.0, 1.0, 1.0])
     use_random_color = BooleanProperty(False)
     draw_bbox = BooleanProperty(False)
     bbox_alpha = NumericProperty(0.1)
@@ -323,21 +333,21 @@ class GestureSurface(FloatLayout):
         super(GestureSurface, self).__init__(**kwargs)
         # A list of GestureContainer objects (all gestures on the surface)
         self._gestures = []
-        self.register_event_type('on_gesture_start')
-        self.register_event_type('on_gesture_extend')
-        self.register_event_type('on_gesture_merge')
-        self.register_event_type('on_gesture_complete')
-        self.register_event_type('on_gesture_cleanup')
-        self.register_event_type('on_gesture_discard')
+        self.register_event_type("on_gesture_start")
+        self.register_event_type("on_gesture_extend")
+        self.register_event_type("on_gesture_merge")
+        self.register_event_type("on_gesture_complete")
+        self.register_event_type("on_gesture_cleanup")
+        self.register_event_type("on_gesture_discard")
 
-# -----------------------------------------------------------------------------
-# Touch Events
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # Touch Events
+    # -----------------------------------------------------------------------------
     def on_touch_down(self, touch):
-        '''When a new touch is registered, the first thing we do is to test if
+        """When a new touch is registered, the first thing we do is to test if
         it collides with the bounding box of another known gesture. If so, it
         is assumed to be part of that gesture.
-        '''
+        """
         # If the touch originates outside the surface, ignore it.
         if not self.collide_point(touch.x, touch.y):
             return
@@ -355,16 +365,16 @@ class GestureSurface(FloatLayout):
         self.init_stroke(g, touch)
 
         if new:
-            self.dispatch('on_gesture_start', g, touch)
+            self.dispatch("on_gesture_start", g, touch)
         else:
-            self.dispatch('on_gesture_extend', g, touch)
+            self.dispatch("on_gesture_extend", g, touch)
 
         return True
 
     def on_touch_move(self, touch):
-        '''When a touch moves, we add a point to the line on the canvas so the
+        """When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
-        bounding box of another gesture - if so, they should be merged.'''
+        bounding box of another gesture - if so, they should be merged."""
         if touch.grab_current is not self:
             return
         if not self.collide_point(touch.x, touch.y):
@@ -377,9 +387,9 @@ class GestureSurface(FloatLayout):
         if collision is not None and g.accept_stroke(len(collision._strokes)):
             merge = self.merge_gestures(g, collision)
             if g.was_merged:
-                self.dispatch('on_gesture_merge', g, collision)
+                self.dispatch("on_gesture_merge", g, collision)
             else:
-                self.dispatch('on_gesture_merge', collision, g)
+                self.dispatch("on_gesture_merge", collision, g)
             g = merge
         else:
             g.update_bbox(touch)
@@ -407,18 +417,17 @@ class GestureSurface(FloatLayout):
 
         # dispatch later only if we have a window
         elif self.temporal_window > 0:
-            Clock.schedule_once(self._complete_dispatcher,
-                                    self.temporal_window)
+            Clock.schedule_once(self._complete_dispatcher, self.temporal_window)
 
-# -----------------------------------------------------------------------------
-# Gesture related methods
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # Gesture related methods
+    # -----------------------------------------------------------------------------
     def init_gesture(self, touch):
-        '''Create a new gesture from touch, i.e. it's the first on
-        surface, or was not close enough to any existing gesture (yet)'''
+        """Create a new gesture from touch, i.e. it's the first on
+        surface, or was not close enough to any existing gesture (yet)"""
         col = self.color
         if self.use_random_color:
-            col = hsv_to_rgb(random(), 1., 1.)
+            col = hsv_to_rgb(random(), 1.0, 1.0)
 
         g = GestureContainer(touch, max_strokes=self.max_strokes, color=col)
 
@@ -426,14 +435,20 @@ class GestureSurface(FloatLayout):
         if self.draw_bbox:
             bb = g.bbox
             with self.canvas:
-                Color(col[0], col[1], col[2], self.bbox_alpha, mode='rgba',
-                      group=g.id)
+                Color(
+                    col[0],
+                    col[1],
+                    col[2],
+                    self.bbox_alpha,
+                    mode="rgba",
+                    group=g.id,
+                )
 
                 g._bbrect = Rectangle(
                     group=g.id,
-                    pos=(bb['minx'], bb['miny']),
-                    size=(bb['maxx'] - bb['minx'],
-                          bb['maxy'] - bb['miny']))
+                    pos=(bb["minx"], bb["miny"]),
+                    size=(bb["maxx"] - bb["minx"], bb["maxy"] - bb["miny"]),
+                )
 
         self._gestures.append(g)
         return g
@@ -442,15 +457,12 @@ class GestureSurface(FloatLayout):
         points = [touch.x, touch.y]
         col = g.color
 
-        new_line = Line(
-            points=points,
-            width=self.line_width,
-            group=g.id)
+        new_line = Line(points=points, width=self.line_width, group=g.id)
         g._strokes[str(touch.uid)] = new_line
 
         if self.line_width:
             canvas_add = self.canvas.add
-            canvas_add(Color(col[0], col[1], col[2], mode='rgb', group=g.id))
+            canvas_add(Color(col[0], col[1], col[2], mode="rgb", group=g.id))
             canvas_add(new_line)
 
         # Update the bbox in case; this will normally be done in on_touch_move,
@@ -463,32 +475,32 @@ class GestureSurface(FloatLayout):
         g.add_stroke(touch, new_line)
 
     def get_gesture(self, touch):
-        '''Returns GestureContainer associated with given touch'''
+        """Returns GestureContainer associated with given touch"""
         for g in self._gestures:
             if g.active and g.handles(touch):
                 return g
-        raise Exception('get_gesture() failed to identify ' + str(touch.uid))
+        raise Exception("get_gesture() failed to identify " + str(touch.uid))
 
     def find_colliding_gesture(self, touch):
-        '''Checks if a touch x/y collides with the bounding box of an existing
+        """Checks if a touch x/y collides with the bounding box of an existing
         gesture. If so, return it (otherwise returns None)
-        '''
+        """
         touch_x, touch_y = touch.pos
         for g in self._gestures:
             if g.active and not g.handles(touch) and g.accept_stroke():
                 bb = g.bbox
                 margin = self.bbox_margin
-                minx = bb['minx'] - margin
-                miny = bb['miny'] - margin
-                maxx = bb['maxx'] + margin
-                maxy = bb['maxy'] + margin
+                minx = bb["minx"] - margin
+                miny = bb["miny"] - margin
+                maxx = bb["maxx"] + margin
+                maxy = bb["maxy"] + margin
                 if minx <= touch_x <= maxx and miny <= touch_y <= maxy:
                     return g
         return None
 
     def merge_gestures(self, g, other):
-        '''Merges two gestures together, the oldest one is retained and the
-        newer one gets the `GestureContainer.was_merged` flag raised.'''
+        """Merges two gestures together, the oldest one is retained and the
+        newer one gets the `GestureContainer.was_merged` flag raised."""
         # Swap order depending on gesture age (the merged gesture gets
         # the color from the oldest one of the two).
         swap = other._create_time < g._create_time
@@ -498,14 +510,14 @@ class GestureSurface(FloatLayout):
         # Apply the outer limits of bbox to the merged gesture
         abbox = a.bbox
         bbbox = b.bbox
-        if bbbox['minx'] < abbox['minx']:
-            abbox['minx'] = bbbox['minx']
-        if bbbox['miny'] < abbox['miny']:
-            abbox['miny'] = bbbox['miny']
-        if bbbox['maxx'] > abbox['maxx']:
-            abbox['maxx'] = bbbox['maxx']
-        if bbbox['maxy'] > abbox['maxy']:
-            abbox['maxy'] = bbbox['maxy']
+        if bbbox["minx"] < abbox["minx"]:
+            abbox["minx"] = bbbox["minx"]
+        if bbbox["miny"] < abbox["miny"]:
+            abbox["miny"] = bbbox["miny"]
+        if bbbox["maxx"] > abbox["maxx"]:
+            abbox["maxx"] = bbbox["maxx"]
+        if bbbox["maxy"] > abbox["maxy"]:
+            abbox["maxy"] = bbbox["maxy"]
 
         # Now transfer the coordinates from old to new gesture;
         # FIXME: This can probably be copied more efficiently?
@@ -518,13 +530,10 @@ class GestureSurface(FloatLayout):
         canv_add = self.canvas.add
         for uid, old in b._strokes.items():
             # FIXME: Can't figure out how to change group= for existing Line()
-            new_line = Line(
-                points=old.points,
-                width=old.width,
-                group=a_id)
+            new_line = Line(points=old.points, width=old.width, group=a_id)
             astrokes[uid] = new_line
             if lw:
-                canv_add(Color(col[0], col[1], col[2], mode='rgb', group=a_id))
+                canv_add(Color(col[0], col[1], col[2], mode="rgb", group=a_id))
                 canv_add(new_line)
 
         b.active = False
@@ -536,21 +545,20 @@ class GestureSurface(FloatLayout):
     def _update_canvas_bbox(self, g):
         # If draw_bbox is changed while two gestures are active,
         # we might not have a bbrect member
-        if not hasattr(g, '_bbrect'):
+        if not hasattr(g, "_bbrect"):
             return
 
         bb = g.bbox
-        g._bbrect.pos = (bb['minx'], bb['miny'])
-        g._bbrect.size = (bb['maxx'] - bb['minx'],
-                          bb['maxy'] - bb['miny'])
+        g._bbrect.pos = (bb["minx"], bb["miny"])
+        g._bbrect.size = (bb["maxx"] - bb["minx"], bb["maxy"] - bb["miny"])
 
-# -----------------------------------------------------------------------------
-# Timeout callbacks
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # Timeout callbacks
+    # -----------------------------------------------------------------------------
     def _complete_dispatcher(self, dt):
-        '''This method is scheduled on all touch up events. It will dispatch
+        """This method is scheduled on all touch up events. It will dispatch
         the `on_gesture_complete` event for all completed gestures, and remove
-        merged gestures from the internal gesture list.'''
+        merged gestures from the internal gesture list."""
         need_cleanup = False
         gest = self._gestures
         timeout = self.draw_timeout
@@ -585,16 +593,16 @@ class GestureSurface(FloatLayout):
                 g._cleanup_time = get_time() + timeout
 
                 if discard:
-                    self.dispatch('on_gesture_discard', g)
+                    self.dispatch("on_gesture_discard", g)
                 else:
-                    self.dispatch('on_gesture_complete', g)
+                    self.dispatch("on_gesture_complete", g)
 
         if need_cleanup:
             Clock.schedule_once(self._cleanup, timeout)
 
     def _cleanup(self, dt):
-        '''This method is scheduled from _complete_dispatcher to clean up the
-        canvas and internal gesture list after a gesture is completed.'''
+        """This method is scheduled from _complete_dispatcher to clean up the
+        canvas and internal gesture list after a gesture is completed."""
         m = UNDERSHOOT_MARGIN
         rg = self.canvas.remove_group
         gestures = self._gestures
@@ -604,7 +612,7 @@ class GestureSurface(FloatLayout):
             if g._cleanup_time <= Clock.get_time() + m:
                 rg(g.id)
                 del gestures[idx]
-                self.dispatch('on_gesture_cleanup', g)
+                self.dispatch("on_gesture_cleanup", g)
 
     def on_gesture_start(self, *l):
         pass

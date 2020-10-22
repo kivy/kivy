@@ -50,14 +50,14 @@ logger.
 If you packaged your app with Buildozer, the `adb` tool may not be in
 your :code:`$PATH` and the above command may not work. You can instead run::
 
-    buildozer android logcat 
+    buildozer android logcat
 
 to run the version installed by Buildozer, or
 find the SDK tools at
 :code:`$HOME/.buildozer/android/platform`.
 
 You can also run and debug your application using the `Kivy Launcher`_.
-If you run your application this way, you will find log files inside the 
+If you run your application this way, you will find log files inside the
 "/.kivy/logs" sub-folder within your application folder.
 
 
@@ -184,4 +184,3 @@ processors (these are currently rare). This should be added soon.
 As Kivy works fine on most devices, the list of supported
 phones/tablets has been retired - all Android devices are likely to
 work if they meet the conditions above.
-

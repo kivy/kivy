@@ -65,17 +65,13 @@ deactivate the module programmatically::
     """))
 '''
 
-__all__ = ('start', 'stop', 'create_joycursor')
+__all__ = ("start", "stop", "create_joycursor")
 
 from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Line
-from kivy.properties import (
-    ObjectProperty,
-    NumericProperty,
-    BooleanProperty
-)
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 
 
 class JoyCursor(Widget):
@@ -99,21 +95,17 @@ class JoyCursor(Widget):
         with self.canvas:
             Color(rgba=(0.19, 0.64, 0.81, 0.5))
             self.cursor_ox = Line(
-                points=self.cursor_pts[:4],
-                width=self.cursor_width + 0.1
+                points=self.cursor_pts[:4], width=self.cursor_width + 0.1
             )
             self.cursor_oy = Line(
-                points=self.cursor_pts[4:],
-                width=self.cursor_width + 0.1
+                points=self.cursor_pts[4:], width=self.cursor_width + 0.1
             )
             Color(rgba=(1, 1, 1, 0.5))
             self.cursor_x = Line(
-                points=self.cursor_pts[:4],
-                width=self.cursor_width
+                points=self.cursor_pts[:4], width=self.cursor_width
             )
             self.cursor_y = Line(
-                points=self.cursor_pts[4:],
-                width=self.cursor_width
+                points=self.cursor_pts[4:], width=self.cursor_width
             )
         self.pos = [-i for i in self.size]
 
@@ -132,33 +124,39 @@ class JoyCursor(Widget):
         if activated:
             self.win.add_widget(self)
             self.move = Clock.schedule_interval(self.move_cursor, 0)
-            self.win.fbind('on_joy_axis', self.check_cursor)
-            self.win.fbind('on_joy_button_down', self.set_intensity)
-            self.win.fbind('on_joy_button_down', self.check_dispatch)
-            self.win.fbind('mouse_pos', self.stop_cursor)
+            self.win.fbind("on_joy_axis", self.check_cursor)
+            self.win.fbind("on_joy_button_down", self.set_intensity)
+            self.win.fbind("on_joy_button_down", self.check_dispatch)
+            self.win.fbind("mouse_pos", self.stop_cursor)
             mouse_pos = self.win.mouse_pos
             self.pos = (
                 mouse_pos[0] - self.size[0] / 2.0,
-                mouse_pos[1] - self.size[1] / 2.0
+                mouse_pos[1] - self.size[1] / 2.0,
             )
-            Logger.info('JoyCursor: joycursor activated')
+            Logger.info("JoyCursor: joycursor activated")
         else:
             self.pos = [-i for i in self.size]
             Clock.unschedule(self.move)
-            self.win.funbind('on_joy_axis', self.check_cursor)
-            self.win.funbind('on_joy_button_down', self.set_intensity)
-            self.win.funbind('on_joy_button_down', self.check_dispatch)
-            self.win.funbind('mouse_pos', self.stop_cursor)
+            self.win.funbind("on_joy_axis", self.check_cursor)
+            self.win.funbind("on_joy_button_down", self.set_intensity)
+            self.win.funbind("on_joy_button_down", self.check_dispatch)
+            self.win.funbind("mouse_pos", self.stop_cursor)
             self.win.remove_widget(self)
-            Logger.info('JoyCursor: joycursor deactivated')
+            Logger.info("JoyCursor: joycursor deactivated")
 
     def set_cursor(self, *args):
         # create cursor points
         px, py = self.pos
         sx, sy = self.size
         self.cursor_pts = [
-            px, py + round(sy / 2.0), px + sx, py + round(sy / 2.0),
-            px + round(sx / 2.0), py, px + round(sx / 2.0), py + sy
+            px,
+            py + round(sy / 2.0),
+            px + sx,
+            py + round(sy / 2.0),
+            px + round(sx / 2.0),
+            py,
+            px + round(sx / 2.0),
+            py + sy,
         ]
 
     def check_cursor(self, win, stickid, axisid, value):
@@ -205,17 +203,17 @@ class JoyCursor(Widget):
         y = self.win.system_size[1] - y
         modifiers = []
         actions = {
-            2: 'left',
-            3: 'right',
-            4: 'scrollup',
-            5: 'scrolldown',
-            6: 'left'
+            2: "left",
+            3: "right",
+            4: "scrollup",
+            5: "scrolldown",
+            6: "left",
         }
         button = actions[buttonid]
 
-        self.win.dispatch('on_mouse_down', x, y, button, modifiers)
+        self.win.dispatch("on_mouse_down", x, y, button, modifiers)
         if not self.cursor_hold:
-            self.win.dispatch('on_mouse_up', x, y, button, modifiers)
+            self.win.dispatch("on_mouse_up", x, y, button, modifiers)
 
     def move_cursor(self, *args):
         # move joycursor as a mouse
@@ -224,10 +222,10 @@ class JoyCursor(Widget):
         modifiers = []
         if self.cursor_hold:
             self.win.dispatch(
-                'on_mouse_move',
+                "on_mouse_move",
                 self.center[0],
                 self.win.system_size[1] - self.center[1],
-                modifiers
+                modifiers,
             )
 
     def stop_cursor(self, instance, mouse_pos):
@@ -236,7 +234,7 @@ class JoyCursor(Widget):
         self.offset_y = 0
         self.pos = (
             mouse_pos[0] - self.size[0] / 2.0,
-            mouse_pos[1] - self.size[1] / 2.0
+            mouse_pos[1] - self.size[1] / 2.0,
         )
 
     def on_pos(self, instance, new_pos):
@@ -248,7 +246,7 @@ class JoyCursor(Widget):
 
     def keyboard_shortcuts(self, win, scancode, *args):
         modifiers = args[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and modifiers == ["ctrl"]:
             self.activated = not self.activated
             return True
         elif scancode == 27:
@@ -264,7 +262,7 @@ class JoyCursor(Widget):
 
 
 def create_joycursor(win, ctx, *args):
-    '''Create a JoyCursor instance attached to the *ctx* and bound to the
+    """Create a JoyCursor instance attached to the *ctx* and bound to the
     Window's :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
     capturing the keyboard shortcuts.
 
@@ -274,13 +272,15 @@ def create_joycursor(win, ctx, *args):
             `ctx`: A :class:`~kivy.uix.widget.Widget` or subclass
                 The Widget for JoyCursor to attach to.
 
-    '''
+    """
     ctx.joycursor = JoyCursor(win=win)
-    win.bind(children=ctx.joycursor.on_window_children,
-             on_keyboard=ctx.joycursor.keyboard_shortcuts)
+    win.bind(
+        children=ctx.joycursor.on_window_children,
+        on_keyboard=ctx.joycursor.keyboard_shortcuts,
+    )
     # always listen for joystick input to open the module
     # (like a keyboard listener)
-    win.fbind('on_joy_button_down', ctx.joycursor.joystick_shortcuts)
+    win.fbind("on_joy_button_down", ctx.joycursor.joystick_shortcuts)
 
 
 def start(win, ctx):
@@ -288,12 +288,13 @@ def start(win, ctx):
 
 
 def stop(win, ctx):
-    '''Stop and unload any active JoyCursors for the given *ctx*.
-    '''
-    if hasattr(ctx, 'joycursor'):
+    """Stop and unload any active JoyCursors for the given *ctx*."""
+    if hasattr(ctx, "joycursor"):
         ctx.joycursor.activated = False
-        win.unbind(children=ctx.joycursor.on_window_children,
-                   on_keyboard=ctx.joycursor.keyboard_shortcuts)
-        win.funbind('on_joy_button_down', ctx.joycursor.joystick_shortcuts)
+        win.unbind(
+            children=ctx.joycursor.on_window_children,
+            on_keyboard=ctx.joycursor.keyboard_shortcuts,
+        )
+        win.funbind("on_joy_button_down", ctx.joycursor.joystick_shortcuts)
         win.remove_widget(ctx.joycursor)
         del ctx.joycursor

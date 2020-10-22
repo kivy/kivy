@@ -5,8 +5,7 @@ from kivy.uix.video import Video
 
 
 class CoverVideo(CoverBehavior, Video):
-    """Video using cover behavior.
-    """
+    """Video using cover behavior."""
 
     def _on_video_frame(self, *largs):
         video = self._video
@@ -22,10 +21,9 @@ class CoverVideo(CoverBehavior, Video):
 
 
 class MainApp(App):
-
     def build(self):
-        return CoverVideo(source='../widgets/cityCC0.mpg', play=True)
+        return CoverVideo(source="../widgets/cityCC0.mpg", play=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MainApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Demonstrate shorten / number of line in label
 =============================================
 
@@ -13,13 +13,13 @@ N               False   Display as much as possible
 N               True    Display as much as possible, shorten long word.
 --------------- ------- -------------------------------------------------------
 
-'''
+"""
 
 
 from kivy.app import App
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 <LabeledSlider@Slider>:
     step: 1
     Label:
@@ -69,7 +69,7 @@ BoxLayout:
                 color: (1, 1, 1, 1)
                 font_size: 22
                 text: 'Michaelangelo Smith'
-'''
+"""
 
 
 class ShortenText(App):

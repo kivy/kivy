@@ -1,8 +1,6 @@
-
-
 from project.widget import MyWidget
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     w = MyWidget()
 
     assert w.x == w.y

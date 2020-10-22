@@ -1,4 +1,4 @@
-'''
+"""
 Repeat Texture on Resize
 ========================
 
@@ -9,7 +9,7 @@ This example includes a label with a colored background.
 
 Note the image mtexture1.png is a white 'K' on a transparent background, which
 makes it hard to see.
-'''
+"""
 
 from kivy.app import App
 from kivy.uix.image import Image
@@ -17,7 +17,7 @@ from kivy.uix.label import Label
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 <LabelOnBackground>:
     canvas.before:
         Color:
@@ -44,7 +44,7 @@ FloatLayout:
         height: 30
         width: 250
 
-'''
+"""
 
 
 class LabelOnBackground(Label):
@@ -56,8 +56,8 @@ class RepeatTexture(App):
     texture = ObjectProperty()
 
     def build(self):
-        self.texture = Image(source='mtexture1.png').texture
-        self.texture.wrap = 'repeat'
+        self.texture = Image(source="mtexture1.png").texture
+        self.texture.wrap = "repeat"
         self.texture.uvsize = (8, 8)
         return Builder.load_string(kv)
 

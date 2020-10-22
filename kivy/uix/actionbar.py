@@ -1,4 +1,4 @@
-'''
+"""
 Action Bar
 ==========
 
@@ -30,13 +30,23 @@ the available area is too small to fit all the widgets. A
 .. versionchanged:: 1.10.1
     :class:`ActionGroup` core rewritten from :class:`Spinner` to pure
     :class:`DropDown`
-'''
+"""
 
-__all__ = ('ActionBarException', 'ActionItem', 'ActionButton',
-           'ActionToggleButton', 'ActionCheck', 'ActionSeparator',
-           'ActionDropDown', 'ActionGroup', 'ActionOverflow',
-           'ActionView', 'ContextualActionView', 'ActionPrevious',
-           'ActionBar')
+__all__ = (
+    "ActionBarException",
+    "ActionItem",
+    "ActionButton",
+    "ActionToggleButton",
+    "ActionCheck",
+    "ActionSeparator",
+    "ActionDropDown",
+    "ActionGroup",
+    "ActionOverflow",
+    "ActionView",
+    "ContextualActionView",
+    "ActionPrevious",
+    "ActionBar",
+)
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
@@ -47,103 +57,114 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.spinner import Spinner
 from kivy.uix.label import Label
 from kivy.config import Config
-from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
-    StringProperty, ListProperty, OptionProperty, AliasProperty, ColorProperty
+from kivy.properties import (
+    ObjectProperty,
+    NumericProperty,
+    BooleanProperty,
+    StringProperty,
+    ListProperty,
+    OptionProperty,
+    AliasProperty,
+    ColorProperty,
+)
 from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
 
 
-window_icon = ''
+window_icon = ""
 if Config:
-    window_icon = Config.get('kivy', 'window_icon')
+    window_icon = Config.get("kivy", "window_icon")
 
 
 class ActionBarException(Exception):
-    '''
+    """
     ActionBarException class
-    '''
+    """
+
     pass
 
 
 class ActionItem(object):
-    '''
+    """
     ActionItem class, an abstract class for all ActionBar widgets. To create a
     custom widget for an ActionBar, inherit from this class. See module
     documentation for more information.
-    '''
+    """
 
-    minimum_width = NumericProperty('90sp')
-    '''
+    minimum_width = NumericProperty("90sp")
+    """
     Minimum Width required by an ActionItem.
 
     :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to '90sp'.
-    '''
+    """
 
     def get_pack_width(self):
         return max(self.minimum_width, self.width)
 
-    pack_width = AliasProperty(get_pack_width,
-                               bind=('minimum_width', 'width'),
-                               cache=True)
-    '''
+    pack_width = AliasProperty(
+        get_pack_width, bind=("minimum_width", "width"), cache=True
+    )
+    """
     (read-only) The actual width to use when packing the items. Equal to the
     greater of minimum_width and width.
 
     :attr:`pack_width` is an :class:`~kivy.properties.AliasProperty`.
-    '''
+    """
 
     important = BooleanProperty(False)
-    '''
+    """
     Determines if an ActionItem is important or not. If an item is important
     and space is limited, this item will be displayed in preference to others.
 
     :attr:`important` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     inside_group = BooleanProperty(False)
-    '''
+    """
     (internal) Determines if an ActionItem is displayed inside an
     ActionGroup or not.
 
     :attr:`inside_group` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     background_normal = StringProperty(
-        'atlas://data/images/defaulttheme/action_item')
-    '''
+        "atlas://data/images/defaulttheme/action_item"
+    )
+    """
     Background image of the ActionItem used for the default graphical
     representation when the ActionItem is not pressed.
 
     :attr:`background_normal` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/action_item'.
-    '''
+    """
 
     background_down = StringProperty(
-        'atlas://data/images/defaulttheme/action_item_down')
-    '''
+        "atlas://data/images/defaulttheme/action_item_down"
+    )
+    """
     Background image of the ActionItem used for the default graphical
     representation when an ActionItem is pressed.
 
     :attr:`background_down` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/action_item_down'.
-    '''
+    """
 
     mipmap = BooleanProperty(True)
-    '''
+    """
     Defines whether the image/icon dispayed on top of the button uses a
     mipmap or not.
 
     :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `True`.
-    '''
+    """
 
 
 class ActionButton(Button, ActionItem):
-    '''
+    """
     ActionButton class, see module documentation for more information.
 
     The text color, width and size_hint_x are set manually via the Kv language
@@ -159,60 +180,60 @@ class ActionButton(Button, ActionItem):
             pass
 
     You can then create your own style using the Kv language.
-    '''
+    """
 
     icon = StringProperty(None, allownone=True)
-    '''
+    """
     Source image to use when the Button is part of the ActionBar. If the
     Button is in a group, the text will be preferred.
 
     :attr:`icon` is a :class:`~kivy.properties.StringProperty` and defaults
     to None.
-    '''
+    """
 
 
 class ActionPrevious(BoxLayout, ActionItem):
-    '''
+    """
     ActionPrevious class, see module documentation for more information.
-    '''
+    """
 
     with_previous = BooleanProperty(True)
-    '''
+    """
     Specifies whether the previous_icon will be shown or not. Note that it is
     up to the user to implement the desired behavior using the *on_press* or
     similar events.
 
     :attr:`with_previous` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
-    '''
+    """
 
     app_icon = StringProperty(window_icon)
-    '''
+    """
     Application icon for the ActionView.
 
     :attr:`app_icon` is a :class:`~kivy.properties.StringProperty`
     and defaults to the window icon if set, otherwise
     'data/logo/kivy-icon-32.png'.
-    '''
+    """
 
     app_icon_width = NumericProperty(0)
-    '''
+    """
     Width of app_icon image.
 
     :attr:`app_icon_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     app_icon_height = NumericProperty(0)
-    '''
+    """
     Height of app_icon image.
 
     :attr:`app_icon_height` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
-    '''
+    """
 
     color = ColorProperty([1, 1, 1, 1])
-    '''
+    """
     Text color, in the format (r, g, b, a)
 
     :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults
@@ -221,43 +242,44 @@ class ActionPrevious(BoxLayout, ActionItem):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     previous_image = StringProperty(
-        'atlas://data/images/defaulttheme/previous_normal')
-    '''
+        "atlas://data/images/defaulttheme/previous_normal"
+    )
+    """
     Image for the 'previous' ActionButtons default graphical representation.
 
     :attr:`previous_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/previous_normal'.
-    '''
+    """
 
     previous_image_width = NumericProperty(0)
-    '''
+    """
     Width of previous_image image.
 
     :attr:`width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     previous_image_height = NumericProperty(0)
-    '''
+    """
     Height of previous_image image.
 
     :attr:`app_icon_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
-    title = StringProperty('')
-    '''
+    title = StringProperty("")
+    """
     Title for ActionView.
 
     :attr:`title` is a :class:`~kivy.properties.StringProperty` and
     defaults to ''.
-    '''
+    """
 
     markup = BooleanProperty(False)
-    '''
+    """
     If True, the text will be rendered using the
     :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of
     the text using tags. Check the :doc:`api-kivy.core.text.markup`
@@ -265,14 +287,14 @@ class ActionPrevious(BoxLayout, ActionItem):
 
     :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
+        self.register_event_type("on_press")
+        self.register_event_type("on_release")
         super(ActionPrevious, self).__init__(**kwargs)
         if not self.app_icon:
-            self.app_icon = 'data/logo/kivy-icon-32.png'
+            self.app_icon = "data/logo/kivy-icon-32.png"
 
     def on_press(self):
         pass
@@ -282,84 +304,88 @@ class ActionPrevious(BoxLayout, ActionItem):
 
 
 class ActionToggleButton(ActionItem, ToggleButton):
-    '''
+    """
     ActionToggleButton class, see module documentation for more information.
-    '''
+    """
 
     icon = StringProperty(None, allownone=True)
-    '''
+    """
     Source image to use when the Button is part of the ActionBar. If the
     Button is in a group, the text will be preferred.
-    '''
+    """
 
 
 class ActionLabel(ActionItem, Label):
-    '''
+    """
     ActionLabel class, see module documentation for more information.
-    '''
+    """
+
     pass
 
 
 class ActionCheck(ActionItem, CheckBox):
-    '''
+    """
     ActionCheck class, see module documentation for more information.
-    '''
+    """
+
     pass
 
 
 class ActionSeparator(ActionItem, Widget):
-    '''
+    """
     ActionSeparator class, see module documentation for more information.
-    '''
+    """
 
     background_image = StringProperty(
-        'atlas://data/images/defaulttheme/separator')
-    '''
+        "atlas://data/images/defaulttheme/separator"
+    )
+    """
     Background image for the separators default graphical representation.
 
     :attr:`background_image` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/separator'.
-    '''
+    """
 
 
 class ActionDropDown(DropDown):
-    '''
+    """
     ActionDropDown class, see module documentation for more information.
-    '''
+    """
 
 
 class ActionGroup(ActionItem, Button):
-    '''
+    """
     ActionGroup class, see module documentation for more information.
-    '''
+    """
 
     use_separator = BooleanProperty(False)
-    '''
+    """
     Specifies whether to use a separator after/before this group or not.
 
     :attr:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     separator_image = StringProperty(
-        'atlas://data/images/defaulttheme/separator')
-    '''
+        "atlas://data/images/defaulttheme/separator"
+    )
+    """
     Background Image for an ActionSeparator in an ActionView.
 
     :attr:`separator_image` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/separator'.
-    '''
+    """
 
     separator_width = NumericProperty(0)
-    '''
+    """
     Width of the ActionSeparator in an ActionView.
 
     :attr:`separator_width` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
-    '''
+    """
 
-    mode = OptionProperty('normal', options=('normal', 'spinner'))
-    '''
+    mode = OptionProperty("normal", options=("normal", "spinner"))
+    """
     Sets the current mode of an ActionGroup. If mode is 'normal', the
     ActionGroups children will be displayed normally if there is enough
     space, otherwise they will be displayed in a spinner. If mode is
@@ -367,10 +393,10 @@ class ActionGroup(ActionItem, Button):
 
     :attr:`mode` is an :class:`~kivy.properties.OptionProperty` and defaults
     to 'normal'.
-    '''
+    """
 
     dropdown_width = NumericProperty(0)
-    '''
+    """
     If non zero, provides the width for the associated DropDown. This is
     useful when some items in the ActionGroup's DropDown are wider than usual
     and you don't want to make the ActionGroup widget itself wider.
@@ -379,14 +405,14 @@ class ActionGroup(ActionItem, Button):
     and defaults to 0.
 
     .. versionadded:: 1.10.0
-    '''
+    """
 
     is_open = BooleanProperty(False)
-    '''By default, the DropDown is not open. Set to True to open it.
+    """By default, the DropDown is not open. Set to True to open it.
 
     :attr:`is_open` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self.list_action_item = []
@@ -398,21 +424,21 @@ class ActionGroup(ActionItem, Button):
 
         # create DropDown for the group and save its state to _is_open
         self._dropdown = ActionDropDown()
-        self._dropdown.bind(attach_to=lambda ins, value: setattr(
-            self, '_is_open', True if value else False
-        ))
+        self._dropdown.bind(
+            attach_to=lambda ins, value: setattr(
+                self, "_is_open", True if value else False
+            )
+        )
 
         # put open/close responsibility to the event
         # - trigger dropdown opening when clicked
-        self.bind(on_release=lambda *args: setattr(
-            self, 'is_open', True
-        ))
+        self.bind(on_release=lambda *args: setattr(self, "is_open", True))
 
         # - trigger dropdown closing when an item
         #   in the dropdown is clicked
-        self._dropdown.bind(on_dismiss=lambda *args: setattr(
-            self, 'is_open', False
-        ))
+        self._dropdown.bind(
+            on_dismiss=lambda *args: setattr(self, "is_open", False)
+        )
 
     def on_is_open(self, instance, value):
         # opening only if the DropDown is closed
@@ -460,7 +486,7 @@ class ActionGroup(ActionItem, Button):
             return
 
         if not isinstance(item, ActionItem):
-            raise ActionBarException('ActionGroup only accepts ActionItem')
+            raise ActionBarException("ActionGroup only accepts ActionItem")
 
         self.list_action_item.append(item)
 
@@ -476,18 +502,17 @@ class ActionGroup(ActionItem, Button):
 
 
 class ActionOverflow(ActionGroup):
-    '''
+    """
     ActionOverflow class, see module documentation for more information.
-    '''
+    """
 
-    overflow_image = StringProperty(
-        'atlas://data/images/defaulttheme/overflow')
-    '''
+    overflow_image = StringProperty("atlas://data/images/defaulttheme/overflow")
+    """
     Image to be used as an Overflow Image.
 
     :attr:`overflow_image` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/overflow'.
-    '''
+    """
 
     def add_widget(self, action_item, index=0):
         if action_item is None:
@@ -497,8 +522,10 @@ class ActionOverflow(ActionGroup):
             return
 
         if not isinstance(action_item, ActionItem):
-            raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+            raise ActionBarException(
+                "ActionView only accepts ActionItem"
+                " (got {!r}".format(action_item)
+            )
 
         else:
             if index == 0:
@@ -514,20 +541,20 @@ class ActionOverflow(ActionGroup):
 
 
 class ActionView(BoxLayout):
-    '''
+    """
     ActionView class, see module documentation for more information.
-    '''
+    """
 
     action_previous = ObjectProperty(None)
-    '''
+    """
     Previous button for an ActionView.
 
     :attr:`action_previous` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to None.
-    '''
+    """
 
     background_color = ColorProperty([1, 1, 1, 1])
-    '''
+    """
     Background color in the format (r, g, b, a).
 
     :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
@@ -536,41 +563,43 @@ class ActionView(BoxLayout):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     background_image = StringProperty(
-        'atlas://data/images/defaulttheme/action_view')
-    '''
+        "atlas://data/images/defaulttheme/action_view"
+    )
+    """
     Background image of an ActionViews default graphical representation.
 
     :attr:`background_image` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/action_view'.
-    '''
+    """
 
     use_separator = BooleanProperty(False)
-    '''
+    """
     Specify whether to use a separator before every ActionGroup or not.
 
     :attr:`use_separator` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     overflow_group = ObjectProperty(None)
-    '''
+    """
     Widget to be used for the overflow.
 
     :attr:`overflow_group` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to an instance of :class:`ActionOverflow`.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._list_action_items = []
         self._list_action_group = []
         super(ActionView, self).__init__(**kwargs)
-        self._state = ''
+        self._state = ""
         if not self.overflow_group:
             self.overflow_group = ActionOverflow(
-                use_separator=self.use_separator)
+                use_separator=self.use_separator
+            )
 
     def on_action_previous(self, instance, value):
         self._list_action_items.insert(0, value)
@@ -580,8 +609,10 @@ class ActionView(BoxLayout):
             return
 
         if not isinstance(action_item, ActionItem):
-            raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+            raise ActionBarException(
+                "ActionView only accepts ActionItem"
+                " (got {!r}".format(action_item)
+            )
 
         elif isinstance(action_item, ActionOverflow):
             self.overflow_group = action_item
@@ -629,7 +660,7 @@ class ActionView(BoxLayout):
     def _layout_all(self):
         # all the items can fit to the view, so expand everything
         super_add = super(ActionView, self).add_widget
-        self._state = 'all'
+        self._state = "all"
         self._clear_all()
         if not self.action_previous.parent:
             super_add(self.action_previous)
@@ -639,7 +670,7 @@ class ActionView(BoxLayout):
                 super_add(child)
 
         for group in self._list_action_group:
-            if group.mode == 'spinner':
+            if group.mode == "spinner":
                 super_add(group)
                 group.show_group()
             else:
@@ -654,7 +685,7 @@ class ActionView(BoxLayout):
     def _layout_group(self):
         # layout all the items in order to pack them per group
         super_add = super(ActionView, self).add_widget
-        self._state = 'group'
+        self._state = "group"
         self._clear_all()
         if not self.action_previous.parent:
             super_add(self.action_previous)
@@ -673,7 +704,7 @@ class ActionView(BoxLayout):
         # layout the items in order to pack all of them grouped, and display
         # only the action items having 'important'
         super_add = super(ActionView, self).add_widget
-        self._state = 'random'
+        self._state = "random"
         self._clear_all()
         hidden_items = []
         hidden_groups = []
@@ -681,8 +712,11 @@ class ActionView(BoxLayout):
         if not self.action_previous.parent:
             super_add(self.action_previous)
 
-        width = (self.width - self.overflow_group.pack_width -
-                 self.action_previous.minimum_width)
+        width = (
+            self.width
+            - self.overflow_group.pack_width
+            - self.action_previous.minimum_width
+        )
 
         if len(self._list_action_items):
             for child in self._list_action_items[1:]:
@@ -700,12 +734,13 @@ class ActionView(BoxLayout):
         # ActionGroup
         if total_width < self.width:
             for group in self._list_action_group:
-                if group.pack_width + total_width +\
-                        group.separator_width < width:
+                if (
+                    group.pack_width + total_width + group.separator_width
+                    < width
+                ):
                     super_add(group)
                     group.show_group()
-                    total_width += (group.pack_width +
-                                    group.separator_width)
+                    total_width += group.pack_width + group.separator_width
 
                 else:
                     hidden_groups.append(group)
@@ -728,8 +763,9 @@ class ActionView(BoxLayout):
         overflow_group = self.overflow_group
 
         if hidden_items != []:
-            over_add = super(overflow_group.__class__,
-                             overflow_group).add_widget
+            over_add = super(
+                overflow_group.__class__, overflow_group
+            ).add_widget
             for child in hidden_items:
                 over_add(child)
 
@@ -748,7 +784,7 @@ class ActionView(BoxLayout):
             for child in group.list_action_item:
                 total_width += child.pack_width
         if total_width <= self.width:
-            if self._state != 'all':
+            if self._state != "all":
                 self._layout_all()
             return
 
@@ -760,7 +796,7 @@ class ActionView(BoxLayout):
             total_width += group.pack_width
         if total_width < self.width:
             # ok, we can display all the items grouped
-            if self._state != 'group':
+            if self._state != "group":
                 self._layout_group()
             return
 
@@ -769,15 +805,16 @@ class ActionView(BoxLayout):
 
 
 class ContextualActionView(ActionView):
-    '''
+    """
     ContextualActionView class, see the module documentation for more
     information.
-    '''
+    """
+
     pass
 
 
 class ActionBar(BoxLayout):
-    '''
+    """
     ActionBar class, which acts as the main container for an
     :class:`ActionView` instance. The ActionBar determines the overall
     styling aspects of the bar. :class:`ActionItem`\\s are not added to
@@ -788,18 +825,18 @@ class ActionBar(BoxLayout):
             Fired when action_previous of action_view is pressed.
 
     Please see the module documentation for more information.
-    '''
+    """
 
     action_view = ObjectProperty(None)
-    '''
+    """
     action_view of the ActionBar.
 
     :attr:`action_view` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None or the last ActionView instance added to the ActionBar.
-    '''
+    """
 
     background_color = ColorProperty([1, 1, 1, 1])
-    '''
+    """
     Background color, in the format (r, g, b, a).
 
     :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
@@ -808,32 +845,33 @@ class ActionBar(BoxLayout):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     background_image = StringProperty(
-        'atlas://data/images/defaulttheme/action_bar')
+        "atlas://data/images/defaulttheme/action_bar"
+    )
 
-    '''
+    """
     Background image of the ActionBars default graphical representation.
 
     :attr:`background_image` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/action_bar'.
-    '''
+    """
 
     border = ListProperty([2, 2, 2, 2])
-    '''
+    """
     The border to be applied to the :attr:`background_image`.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     [2, 2, 2, 2]
-    '''
+    """
 
-    __events__ = ('on_previous',)
+    __events__ = ("on_previous",)
 
     def __init__(self, **kwargs):
         super(ActionBar, self).__init__(**kwargs)
         self._stack_cont_action_view = []
-        self._emit_previous = partial(self.dispatch, 'on_previous')
+        self._emit_previous = partial(self.dispatch, "on_previous")
 
     def add_widget(self, view):
         if isinstance(view, ContextualActionView):
@@ -850,15 +888,16 @@ class ActionBar(BoxLayout):
 
         else:
             raise ActionBarException(
-                'ActionBar can only add ContextualActionView or ActionView')
+                "ActionBar can only add ContextualActionView or ActionView"
+            )
 
     def on_previous(self, *args):
         self._pop_contextual_action_view()
 
     def _pop_contextual_action_view(self):
-        '''Remove the current ContextualActionView and display either the
-           previous one or the ActionView.
-        '''
+        """Remove the current ContextualActionView and display either the
+        previous one or the ActionView.
+        """
         self._stack_cont_action_view.pop()
         self.clear_widgets()
         if self._stack_cont_action_view == []:
@@ -874,9 +913,10 @@ if __name__ == "__main__":
 
     # XXX clean the first registration done from '__main__' here.
     # otherwise kivy.uix.actionbar.ActionPrevious != __main__.ActionPrevious
-    Factory.unregister('ActionPrevious')
+    Factory.unregister("ActionPrevious")
 
-    Builder.load_string('''
+    Builder.load_string(
+        """
 <MainWindow>:
     ActionBar:
         pos_hint: {'top':1}
@@ -908,7 +948,8 @@ if __name__ == "__main__":
                     text: 'Btn6'
                 ActionButton:
                     text: 'Btn7'
-''')
+"""
+    )
 
     class MainWindow(FloatLayout):
         pass

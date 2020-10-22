@@ -1,4 +1,4 @@
-'''
+"""
 Toggle button
 =============
 
@@ -22,16 +22,15 @@ Only one of the buttons can be 'down'/checked at the same time.
 To configure the ToggleButton, you can use the same properties that you can use
 for a :class:`~kivy.uix.button.Button` class.
 
-'''
+"""
 
-__all__ = ('ToggleButton', )
+__all__ = ("ToggleButton",)
 
 from kivy.uix.button import Button
 from kivy.uix.behaviors import ToggleButtonBehavior
 
 
 class ToggleButton(ToggleButtonBehavior, Button):
-    '''Toggle button class, see module documentation for more information.
-    '''
+    """Toggle button class, see module documentation for more information."""
 
     pass

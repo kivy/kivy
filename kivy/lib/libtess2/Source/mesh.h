@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -34,7 +34,7 @@
 
 #include "../Include/tesselator.h"
 
-typedef struct TESSmesh TESSmesh; 
+typedef struct TESSmesh TESSmesh;
 typedef struct TESSvertex TESSvertex;
 typedef struct TESSface TESSface;
 typedef struct TESShalfEdge TESShalfEdge;
@@ -107,42 +107,42 @@ typedef struct ActiveRegion ActiveRegion;
 */
 
 struct TESSvertex {
-	TESSvertex *next;      /* next vertex (never NULL) */
-	TESSvertex *prev;      /* previous vertex (never NULL) */
-	TESShalfEdge *anEdge;    /* a half-edge with this origin */
+    TESSvertex *next;      /* next vertex (never NULL) */
+    TESSvertex *prev;      /* previous vertex (never NULL) */
+    TESShalfEdge *anEdge;    /* a half-edge with this origin */
 
-	/* Internal data (keep hidden) */
-	TESSreal coords[3];  /* vertex location in 3D */
-	TESSreal s, t;       /* projection onto the sweep plane */
-	int pqHandle;   /* to allow deletion from priority queue */
-	TESSindex n;			/* to allow identify unique vertices */
-	TESSindex idx;			/* to allow map result to original verts */
+    /* Internal data (keep hidden) */
+    TESSreal coords[3];  /* vertex location in 3D */
+    TESSreal s, t;       /* projection onto the sweep plane */
+    int pqHandle;   /* to allow deletion from priority queue */
+    TESSindex n;            /* to allow identify unique vertices */
+    TESSindex idx;            /* to allow map result to original verts */
 };
 
 struct TESSface {
-	TESSface *next;      /* next face (never NULL) */
-	TESSface *prev;      /* previous face (never NULL) */
-	TESShalfEdge *anEdge;    /* a half edge with this left face */
+    TESSface *next;      /* next face (never NULL) */
+    TESSface *prev;      /* previous face (never NULL) */
+    TESShalfEdge *anEdge;    /* a half edge with this left face */
 
-	/* Internal data (keep hidden) */
-	TESSface *trail;     /* "stack" for conversion to strips */
-	TESSindex n;		/* to allow identify unique faces */
-	char marked;     /* flag for conversion to strips */
-	char inside;     /* this face is in the polygon interior */
+    /* Internal data (keep hidden) */
+    TESSface *trail;     /* "stack" for conversion to strips */
+    TESSindex n;        /* to allow identify unique faces */
+    char marked;     /* flag for conversion to strips */
+    char inside;     /* this face is in the polygon interior */
 };
 
 struct TESShalfEdge {
-	TESShalfEdge *next;      /* doubly-linked list (prev==Sym->next) */
-	TESShalfEdge *Sym;       /* same edge, opposite direction */
-	TESShalfEdge *Onext;     /* next edge CCW around origin */
-	TESShalfEdge *Lnext;     /* next edge CCW around left face */
-	TESSvertex *Org;       /* origin vertex (Overtex too long) */
-	TESSface *Lface;     /* left face */
+    TESShalfEdge *next;      /* doubly-linked list (prev==Sym->next) */
+    TESShalfEdge *Sym;       /* same edge, opposite direction */
+    TESShalfEdge *Onext;     /* next edge CCW around origin */
+    TESShalfEdge *Lnext;     /* next edge CCW around left face */
+    TESSvertex *Org;       /* origin vertex (Overtex too long) */
+    TESSface *Lface;     /* left face */
 
-	/* Internal data (keep hidden) */
-	ActiveRegion *activeRegion;  /* a region with this upper edge (sweep.c) */
-	int winding;    /* change in winding number when crossing
-						  from the right face to the left face */
+    /* Internal data (keep hidden) */
+    ActiveRegion *activeRegion;  /* a region with this upper edge (sweep.c) */
+    int winding;    /* change in winding number when crossing
+                          from the right face to the left face */
 };
 
 #define Rface   Sym->Lface
@@ -157,14 +157,14 @@ struct TESShalfEdge {
 
 
 struct TESSmesh {
-	TESSvertex vHead;      /* dummy header for vertex list */
-	TESSface fHead;      /* dummy header for face list */
-	TESShalfEdge eHead;      /* dummy header for edge list */
-	TESShalfEdge eHeadSym;   /* and its symmetric counterpart */
+    TESSvertex vHead;      /* dummy header for vertex list */
+    TESSface fHead;      /* dummy header for face list */
+    TESShalfEdge eHead;      /* dummy header for edge list */
+    TESShalfEdge eHeadSym;   /* and its symmetric counterpart */
 
-	struct BucketAlloc* edgeBucket;
-	struct BucketAlloc* vertexBucket;
-	struct BucketAlloc* faceBucket;
+    struct BucketAlloc* edgeBucket;
+    struct BucketAlloc* vertexBucket;
+    struct BucketAlloc* faceBucket;
 };
 
 /* The mesh operations below have three motivations: completeness,

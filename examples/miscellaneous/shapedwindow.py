@@ -1,9 +1,11 @@
 from kivy.config import Config
-Config.set('graphics', 'shaped', 1)
+
+Config.set("graphics", "shaped", 1)
 
 from kivy.resources import resource_find
-default_shape = Config.get('kivy', 'window_shape')
-alpha_shape = resource_find('data/logo/kivy-icon-512.png')
+
+default_shape = Config.get("kivy", "window_shape")
+alpha_shape = resource_find("data/logo/kivy-icon-512.png")
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -16,7 +18,8 @@ from kivy.properties import (
 )
 
 
-Builder.load_string('''
+Builder.load_string(
+    """
 #:import win kivy.core.window.Window
 
 <Root>:
@@ -69,7 +72,8 @@ Builder.load_string('''
             group: 'colorkey'
             text: '0, 0, 0, 1'
             on_release: win.shape_color_key = [0, 0, 0, 1]
-''')
+"""
+)
 
 
 class Root(BoxLayout):
@@ -77,10 +81,10 @@ class Root(BoxLayout):
 
 
 class ShapedWindow(App):
-    shape_image = StringProperty('', force_dispatch=True)
+    shape_image = StringProperty("", force_dispatch=True)
 
     def on_shape_image(self, instance, value):
-        if 'kivy-icon' in value:
+        if "kivy-icon" in value:
             Window.size = (512, 512)
             Window.shape_image = self.alpha_shape
         else:
@@ -94,5 +98,5 @@ class ShapedWindow(App):
         return Root()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ShapedWindow().run()

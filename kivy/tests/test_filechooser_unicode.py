@@ -3,13 +3,13 @@
 import unittest
 import pytest
 from kivy import platform
+
 unicode_char = chr
 
 
 class FileChooserUnicodeTestCase(unittest.TestCase):
-
     def setUp(self):
-        self.skip_test = platform == 'macosx' or platform == 'ios'
+        self.skip_test = platform == "macosx" or platform == "ios"
         # on mac, files ending in \uffff etc. simply are changed so don't
         # do any tests because we cannot predict the real filenames that will
         # be created. If it works on win and linux it also works on mac.
@@ -20,42 +20,51 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         import os
         from os.path import join
         from zipfile import ZipFile
-        basepath = os.path.dirname(__file__) + u''
-        basepathu = join(basepath, u'filechooser_files')
+
+        basepath = os.path.dirname(__file__) + ""
+        basepathu = join(basepath, "filechooser_files")
         self.basepathu = basepathu
         basepathb = os.path.dirname(__file__.encode())
-        basepathb = join(basepathb, b'filechooser_files')
+        basepathb = join(basepathb, b"filechooser_files")
         self.assertIsInstance(basepathb, bytes)
         self.basepathb = basepathb
 
         # this will test creating unicode and bytes filesnames
-        ufiles = [u'कीवीtestu',
-                  u'कीवीtestu' + unicode_char(0xEEEE),
-                  u'कीवीtestu' + unicode_char(0xEEEE - 1),
-                  u'कीवीtestu' + unicode_char(0xEE)]
+        ufiles = [
+            "कीवीtestu",
+            "कीवीtestu" + unicode_char(0xEEEE),
+            "कीवीtestu" + unicode_char(0xEEEE - 1),
+            "कीवीtestu" + unicode_char(0xEE),
+        ]
         # don't use non-ascii directly because that will test source file
         # text conversion, not path issues :)
-        bfiles = [b'\xc3\xa0\xc2\xa4\xe2\x80\xa2\xc3\xa0\xc2\xa5\xe2\x82\xac\
-        \xc3\xa0\xc2\xa4\xc2\xb5\xc3\xa0\xc2\xa5\xe2\x82\xactestb',
-        b'oor\xff\xff\xff\xff\xee\xfe\xef\x81\x8D\x99testb']
+        bfiles = [
+            b"\xc3\xa0\xc2\xa4\xe2\x80\xa2\xc3\xa0\xc2\xa5\xe2\x82\xac\
+        \xc3\xa0\xc2\xa4\xc2\xb5\xc3\xa0\xc2\xa5\xe2\x82\xactestb",
+            b"oor\xff\xff\xff\xff\xee\xfe\xef\x81\x8D\x99testb",
+        ]
         self.ufiles = [join(basepathu, f) for f in ufiles]
         self.bfiles = []
         if not os.path.isdir(basepathu):
             os.mkdir(basepathu)
         for f in self.ufiles:
-            open(f, 'wb').close()
+            open(f, "wb").close()
         for f in self.bfiles:
-            open(f, 'wb').close()
+            open(f, "wb").close()
 
         # existing files
-        existfiles = [u'à¤•à¥€à¤µà¥€test', u'à¤•à¥€à¤’µà¥€test',
-                      u'Ã Â¤â€¢Ã Â¥â‚¬Ã Â¤ÂµÃ Â¥â‚¬test', u'testl\ufffe',
-                      u'testl\uffff']
+        existfiles = [
+            "à¤•à¥€à¤µà¥€test",
+            "à¤•à¥€à¤’µà¥€test",
+            "Ã Â¤â€¢Ã Â¥â‚¬Ã Â¤ÂµÃ Â¥â‚¬test",
+            "testl\ufffe",
+            "testl\uffff",
+        ]
         self.exitsfiles = [join(basepathu, f) for f in existfiles]
-        with ZipFile(join(basepath, u'unicode_files.zip'), 'r') as myzip:
+        with ZipFile(join(basepath, "unicode_files.zip"), "r") as myzip:
             myzip.extractall(path=basepathu)
         for f in self.exitsfiles:
-            open(f, 'rb').close()
+            open(f, "rb").close()
 
     @pytest.fixture(autouse=True)
     def set_clock(self, kivy_clock):
@@ -83,6 +92,7 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         if self.skip_test:
             return
         from os import remove, rmdir
+
         try:
             for f in self.ufiles:
                 remove(f)

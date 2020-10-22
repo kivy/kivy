@@ -1,4 +1,4 @@
-'''
+"""
 Text
 ====
 
@@ -69,10 +69,14 @@ Usage example::
     # You could also refer to a system font by family, since this is a
     # system:// font context
     lbl3 = Label(font_context='system://myapp', family_name='Arial')
-'''
+"""
 
-__all__ = ('LabelBase', 'Label',
-           'FontContextManagerBase', 'FontContextManager')
+__all__ = (
+    "LabelBase",
+    "Label",
+    "FontContextManagerBase",
+    "FontContextManager",
+)
 
 import re
 import os
@@ -90,8 +94,8 @@ from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
 
 
-if 'KIVY_DOC' not in os.environ:
-    _default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
+if "KIVY_DOC" not in os.environ:
+    _default_font_paths = literal_eval(Config.get("kivy", "default_font"))
     DEFAULT_FONT = _default_font_paths.pop(0)
 else:
     DEFAULT_FONT = None
@@ -101,11 +105,11 @@ FONT_ITALIC = 1
 FONT_BOLD = 2
 FONT_BOLDITALIC = 3
 
-whitespace_pat = re.compile('( +)')
+whitespace_pat = re.compile("( +)")
 
 
 class LabelBase(object):
-    '''Core text label.
+    """Core text label.
     This is the abstract class used by different backends to render text.
 
     .. warning::
@@ -208,9 +212,9 @@ class LabelBase(object):
         so you might have an issue in your application if you have not
         considered this.
 
-    '''
+    """
 
-    __slots__ = ('options', 'texture', '_label', '_text_size')
+    __slots__ = ("options", "texture", "_label", "_text_size")
 
     _cached_lines = []
 
@@ -227,58 +231,91 @@ class LabelBase(object):
     _font_family_support = False
 
     def __init__(
-        self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, underline=False, strikethrough=False, font_family=None,
-        halign='left', valign='bottom', shorten=False,
-        text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
-        strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace',
-        font_hinting='normal', font_kerning=True, font_blended=True,
-        outline_width=None, outline_color=None, font_context=None,
-        font_features=None, base_direction=None, text_language=None,
-        **kwargs):
+        self,
+        text="",
+        font_size=12,
+        font_name=DEFAULT_FONT,
+        bold=False,
+        italic=False,
+        underline=False,
+        strikethrough=False,
+        font_family=None,
+        halign="left",
+        valign="bottom",
+        shorten=False,
+        text_size=None,
+        mipmap=False,
+        color=None,
+        line_height=1.0,
+        strip=False,
+        strip_reflow=True,
+        shorten_from="center",
+        split_str=" ",
+        unicode_errors="replace",
+        font_hinting="normal",
+        font_kerning=True,
+        font_blended=True,
+        outline_width=None,
+        outline_color=None,
+        font_context=None,
+        font_features=None,
+        base_direction=None,
+        text_language=None,
+        **kwargs,
+    ):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
         LabelBase.get_system_fonts_dir()
 
-        options = {'text': text, 'font_size': font_size,
-                   'font_name': font_name, 'bold': bold, 'italic': italic,
-                   'underline': underline, 'strikethrough': strikethrough,
-                   'font_family': font_family,
-                   'halign': halign, 'valign': valign, 'shorten': shorten,
-                   'mipmap': mipmap, 'line_height': line_height,
-                   'strip': strip, 'strip_reflow': strip_reflow,
-                   'shorten_from': shorten_from, 'split_str': split_str,
-                   'unicode_errors': unicode_errors,
-                   'font_hinting': font_hinting,
-                   'font_kerning': font_kerning,
-                   'font_blended': font_blended,
-                   'outline_width': outline_width,
-                   'font_context': font_context,
-                   'font_features': font_features,
-                   'base_direction': base_direction,
-                   'text_language': text_language}
+        options = {
+            "text": text,
+            "font_size": font_size,
+            "font_name": font_name,
+            "bold": bold,
+            "italic": italic,
+            "underline": underline,
+            "strikethrough": strikethrough,
+            "font_family": font_family,
+            "halign": halign,
+            "valign": valign,
+            "shorten": shorten,
+            "mipmap": mipmap,
+            "line_height": line_height,
+            "strip": strip,
+            "strip_reflow": strip_reflow,
+            "shorten_from": shorten_from,
+            "split_str": split_str,
+            "unicode_errors": unicode_errors,
+            "font_hinting": font_hinting,
+            "font_kerning": font_kerning,
+            "font_blended": font_blended,
+            "outline_width": outline_width,
+            "font_context": font_context,
+            "font_features": font_features,
+            "base_direction": base_direction,
+            "text_language": text_language,
+        }
 
         kwargs_get = kwargs.get
-        options['color'] = color or (1, 1, 1, 1)
-        options['outline_color'] = outline_color or (0, 0, 0, 1)
-        options['padding'] = kwargs_get('padding', (0, 0))
-        if not isinstance(options['padding'], (list, tuple)):
-            options['padding'] = (options['padding'], options['padding'])
-        options['padding_x'] = kwargs_get('padding_x', options['padding'][0])
-        options['padding_y'] = kwargs_get('padding_y', options['padding'][1])
+        options["color"] = color or (1, 1, 1, 1)
+        options["outline_color"] = outline_color or (0, 0, 0, 1)
+        options["padding"] = kwargs_get("padding", (0, 0))
+        if not isinstance(options["padding"], (list, tuple)):
+            options["padding"] = (options["padding"], options["padding"])
+        options["padding_x"] = kwargs_get("padding_x", options["padding"][0])
+        options["padding_y"] = kwargs_get("padding_y", options["padding"][1])
 
-        if 'size' in kwargs:
-            options['text_size'] = kwargs['size']
+        if "size" in kwargs:
+            options["text_size"] = kwargs["size"]
         else:
             if text_size is None:
-                options['text_size'] = (None, None)
+                options["text_size"] = (None, None)
             else:
-                options['text_size'] = text_size
+                options["text_size"] = text_size
 
-        self._text_size = options['text_size']
-        self._text = options['text']
+        self._text_size = options["text_size"]
+        self._text = options["text"]
         self._internal_size = 0, 0  # the real computed text size (inclds pad)
         self._cached_lines = []
 
@@ -288,9 +325,10 @@ class LabelBase(object):
         self.resolve_font_name()
 
     @staticmethod
-    def register(name, fn_regular, fn_italic=None, fn_bold=None,
-                 fn_bolditalic=None):
-        '''Register an alias for a Font.
+    def register(
+        name, fn_regular, fn_italic=None, fn_bold=None, fn_bolditalic=None
+    ):
+        """Register an alias for a Font.
 
         .. versionadded:: 1.1.0
 
@@ -303,7 +341,7 @@ class LabelBase(object):
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
-        '''
+        """
 
         fonts = []
 
@@ -312,7 +350,7 @@ class LabelBase(object):
                 font = resource_find(font_type)
 
                 if font is None:
-                    raise IOError('File {0} not found'.format(font_type))
+                    raise IOError("File {0} not found".format(font_type))
                 else:
                     fonts.append(font)
             else:
@@ -322,67 +360,71 @@ class LabelBase(object):
 
     def resolve_font_name(self):
         options = self.options
-        fontname = options['font_name']
+        fontname = options["font_name"]
         fonts = self._fonts
         fontscache = self._fonts_cache
 
-        if self._font_family_support and options['font_family']:
-            options['font_name_r'] = None
+        if self._font_family_support and options["font_family"]:
+            options["font_name_r"] = None
             return
 
         # is the font registered?
         if fontname in fonts:
             # return the preferred font for the current bold/italic combination
-            italic = int(options['italic'])
-            if options['bold']:
+            italic = int(options["italic"])
+            if options["bold"]:
                 bold = FONT_BOLD
             else:
                 bold = FONT_REGULAR
 
-            options['font_name_r'] = fonts[fontname][italic | bold]
+            options["font_name_r"] = fonts[fontname][italic | bold]
 
         elif fontname in fontscache:
-            options['font_name_r'] = fontscache[fontname]
+            options["font_name_r"] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
-            if not filename and not fontname.endswith('.ttf'):
-                fontname = '{}.ttf'.format(fontname)
+            if not filename and not fontname.endswith(".ttf"):
+                fontname = "{}.ttf".format(fontname)
                 filename = resource_find(fontname)
 
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = pep8_fn = os.path.join(kivy_data_dir, fontname)
                 if not os.path.exists(pep8_fn) or not os.path.isfile(pep8_fn):
-                    raise IOError('Label: File %r not found' % fontname)
+                    raise IOError("Label: File %r not found" % fontname)
             fontscache[fontname] = filename
-            options['font_name_r'] = filename
+            options["font_name_r"] = filename
 
     @staticmethod
     def get_system_fonts_dir():
-        '''Return the directories used by the system for fonts.
-        '''
+        """Return the directories used by the system for fonts."""
         if LabelBase._fonts_dirs:
             return LabelBase._fonts_dirs
 
         fdirs = []
-        if platform == 'linux':
+        if platform == "linux":
             fdirs = [
-                '/usr/share/fonts', '/usr/local/share/fonts',
-                os.path.expanduser('~/.fonts'),
-                os.path.expanduser('~/.local/share/fonts')]
-        elif platform == 'macosx':
-            fdirs = ['/Library/Fonts', '/System/Library/Fonts',
-                     os.path.expanduser('~/Library/Fonts')]
-        elif platform == 'win':
-            fdirs = [os.path.join(os.environ['SYSTEMROOT'], 'Fonts')]
-        elif platform == 'ios':
-            fdirs = ['/System/Library/Fonts']
-        elif platform == 'android':
-            fdirs = ['/system/fonts']
+                "/usr/share/fonts",
+                "/usr/local/share/fonts",
+                os.path.expanduser("~/.fonts"),
+                os.path.expanduser("~/.local/share/fonts"),
+            ]
+        elif platform == "macosx":
+            fdirs = [
+                "/Library/Fonts",
+                "/System/Library/Fonts",
+                os.path.expanduser("~/Library/Fonts"),
+            ]
+        elif platform == "win":
+            fdirs = [os.path.join(os.environ["SYSTEMROOT"], "Fonts")]
+        elif platform == "ios":
+            fdirs = ["/System/Library/Fonts"]
+        elif platform == "android":
+            fdirs = ["/system/fonts"]
         else:
             raise Exception("Unknown platform: {}".format(platform))
 
-        fdirs.append(os.path.join(kivy_data_dir, 'fonts'))
+        fdirs.append(os.path.join(kivy_data_dir, "fonts"))
         # register the font dirs
         rdirs = []
         _font_dir_files = []
@@ -397,12 +439,12 @@ class LabelBase(object):
         return rdirs
 
     def get_extents(self, text):
-        '''Return a tuple (width, height) indicating the size of the specified
-        text'''
+        """Return a tuple (width, height) indicating the size of the specified
+        text"""
         return (0, 0)
 
     def get_cached_extents(self):
-        '''Returns a cached version of the :meth:`get_extents` function.
+        """Returns a cached version of the :meth:`get_extents` function.
 
         ::
 
@@ -421,7 +463,7 @@ class LabelBase(object):
             what you're doing.
 
         .. versionadded:: 1.9.0
-        '''
+        """
         return self.get_extents
 
     def _render_begin(self):
@@ -434,7 +476,7 @@ class LabelBase(object):
         pass
 
     def shorten(self, text, margin=2):
-        ''' Shortens the text to fit into a single line by the width specified
+        """Shortens the text to fit into a single line by the width specified
         by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
         text text unchanged.
 
@@ -449,29 +491,29 @@ class LabelBase(object):
 
         :returns:
             the text shortened to fit into a single line.
-        '''
+        """
         textwidth = self.get_cached_extents()
         uw = self.text_size[0]
         if uw is None or not text:
             return text
 
         opts = self.options
-        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
+        uw = max(0, int(uw - opts["padding_x"] * 2 - margin))
         # if larger, it won't fit so don't even try extents
         chr = type(text)
-        text = text.replace(chr('\n'), chr(' '))
+        text = text.replace(chr("\n"), chr(" "))
         if len(text) <= uw and textwidth(text)[0] <= uw:
             return text
-        c = opts['split_str']
+        c = opts["split_str"]
         offset = 0 if len(c) else 1
-        dir = opts['shorten_from'][0]
-        elps = textwidth('...')[0]
+        dir = opts["shorten_from"][0]
+        elps = textwidth("...")[0]
         if elps > uw:
             self.is_shortened = True
-            if textwidth('..')[0] <= uw:
-                return '..'
+            if textwidth("..")[0] <= uw:
+                return ".."
             else:
-                return '.'
+                return "."
         uw -= elps
 
         f = partial(text.find, c)
@@ -479,30 +521,30 @@ class LabelBase(object):
         # now find the first and last word
         e1, s2 = f(), f_rev()
 
-        if dir != 'l':  # center or right
+        if dir != "l":  # center or right
             # no split, or the first word doesn't even fit
             if e1 != -1:
                 l1 = textwidth(text[:e1])[0]
-                l2 = textwidth(text[s2 + 1:])[0]
+                l2 = textwidth(text[s2 + 1 :])[0]
             if e1 == -1 or l1 + l2 > uw:
                 self.is_shortened = True
                 if len(c):
-                    opts['split_str'] = ''
+                    opts["split_str"] = ""
                     res = self.shorten(text, margin)
-                    opts['split_str'] = c
+                    opts["split_str"] = c
                     return res
                 # at this point we do char by char so e1 must be zero
                 if l1 <= uw:
-                    return chr('{0}...').format(text[:e1])
-                return chr('...')
+                    return chr("{0}...").format(text[:e1])
+                return chr("...")
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
                 self.is_shortened = True
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+                return chr("{0}...{1}").format(text[:e1], text[s2 + 1 :])
 
             # both the first and last word fits, and they start/end at diff pos
-            if dir == 'r':
+            if dir == "r":
                 ee1 = f(e1 + 1)
                 while l2 + textwidth(text[:ee1])[0] <= uw:
                     e1 = ee1
@@ -521,7 +563,7 @@ class LabelBase(object):
                             break
                     else:
                         ss2 = f_rev(0, s2 - offset)
-                        l2 = textwidth(text[ss2 + 1:])[0]
+                        l2 = textwidth(text[ss2 + 1 :])[0]
                         if l2 + l1 > uw:
                             break
                         s2 = ss2
@@ -530,34 +572,34 @@ class LabelBase(object):
         else:  # left
             # no split, or the last word doesn't even fit
             if s2 != -1:
-                l2 = textwidth(text[s2 + (1 if len(c) else -1):])[0]
-                l1 = textwidth(text[:max(0, e1)])[0]
+                l2 = textwidth(text[s2 + (1 if len(c) else -1) :])[0]
+                l1 = textwidth(text[: max(0, e1)])[0]
             # if split_str
             if s2 == -1 or l2 + l1 > uw:
                 self.is_shortened = True
                 if len(c):
-                    opts['split_str'] = ''
+                    opts["split_str"] = ""
                     res = self.shorten(text, margin)
-                    opts['split_str'] = c
+                    opts["split_str"] = c
                     return res
 
-                return chr('...')
+                return chr("...")
 
             # both word fits, and there's at least on split_str
             if s2 == e1:  # there's only on split_str
                 self.is_shortened = True
-                return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+                return chr("{0}...{1}").format(text[:e1], text[s2 + 1 :])
 
             # both the first and last word fits, and they start/end at diff pos
             ss2 = f_rev(0, s2 - offset)
-            while l1 + textwidth(text[ss2 + 1:])[0] <= uw:
+            while l1 + textwidth(text[ss2 + 1 :])[0] <= uw:
                 s2 = ss2
                 if s2 == e1:
                     break
                 ss2 = f_rev(0, s2 - offset)
 
         self.is_shortened = True
-        return chr('{0}...{1}').format(text[:e1], text[s2 + 1:])
+        return chr("{0}...{1}").format(text[:e1], text[s2 + 1 :])
 
     def _default_line_options(self, lines):
         for line in lines:
@@ -568,7 +610,7 @@ class LabelBase(object):
     def clear_texture(self):
         self._render_begin()
         data = self._render_end()
-        assert(data)
+        assert data
         if data is not None and data.width > 1:
             self.texture.blit_data(data)
         return
@@ -577,32 +619,32 @@ class LabelBase(object):
     #        expose pango_unichar_direction() / pango_bidi_type_for_unichar()
     @staticmethod
     def find_base_direction(text):
-        '''Searches a string the first character that has a strong direction,
+        """Searches a string the first character that has a strong direction,
         according to the Unicode bidirectional algorithm. Returns `None` if
         the base direction cannot be determined, or one of `'ltr'` or `'rtl'`.
 
         .. versionadded: 1.10.1
 
         .. note:: This feature requires the Pango text provider.
-        '''
-        return 'ltr'
+        """
+        return "ltr"
 
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
-        uw, uh = options['text_size']
-        xpad = options['padding_x']
+        uw, uh = options["text_size"]
+        xpad = options["padding_x"]
         if uw is not None:
             uww = uw - 2 * xpad  # real width of just text
         w = size[0]
-        sw = options['space_width']
-        halign = options['halign']
+        sw = options["space_width"]
+        halign = options["halign"]
         split = re.split
         find_base_dir = self.find_base_direction
-        cur_base_dir = options['base_direction']
+        cur_base_dir = options["base_direction"]
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
-            line = ''
+            line = ""
             assert len(layout_line.words) < 2
             if len(layout_line.words):
                 last_word = layout_line.words[0]
@@ -610,19 +652,23 @@ class LabelBase(object):
                 if not cur_base_dir:
                     cur_base_dir = find_base_dir(line)
             x = xpad
-            if halign == 'auto':
-                if cur_base_dir and 'rtl' in cur_base_dir:
+            if halign == "auto":
+                if cur_base_dir and "rtl" in cur_base_dir:
                     x = max(0, int(w - lw - xpad))  # right-align RTL text
-            elif halign == 'center':
-                x = int((w - lw) / 2.)
-            elif halign == 'right':
+            elif halign == "center":
+                x = int((w - lw) / 2.0)
+            elif halign == "right":
                 x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
-            if (uw is not None and halign == 'justify' and line and not
-                    layout_line.is_last_line):
+            if (
+                uw is not None
+                and halign == "justify"
+                and line
+                and not layout_line.is_last_line
+            ):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)
@@ -631,7 +677,7 @@ class LabelBase(object):
                     # there's no trailing space when justify is selected
                     words = split(whitespace_pat, line)
                 if words is not None and len(words) > 1:
-                    space = type(line)(' ')
+                    space = type(line)(" ")
                     # words: every even index is spaces, just add ltr n spaces
                     for i in range(n):
                         idx = (2 * i + 1) % (len(words) - 1)
@@ -639,15 +685,16 @@ class LabelBase(object):
                     if rem:
                         # render the last word at the edge, also add it to line
                         ext = get_extents(words[-1])
-                        word = LayoutWord(last_word.options, ext[0], ext[1],
-                                          words[-1])
+                        word = LayoutWord(
+                            last_word.options, ext[0], ext[1], words[-1]
+                        )
                         layout_line.words.append(word)
                         last_word.lw = uww - ext[0]  # word was stretched
                         render_text(words[-1], x + last_word.lw, y)
-                        last_word.text = line = ''.join(words[:-2])
+                        last_word.text = line = "".join(words[:-2])
                     else:
                         last_word.lw = uww  # word was stretched
-                        last_word.text = line = ''.join(words)
+                        last_word.text = line = "".join(words)
                     layout_line.w = uww  # the line occupies full width
 
             if len(line):
@@ -666,12 +713,12 @@ class LabelBase(object):
         old_opts = self.options
         ih = self._internal_size[1]  # the real size of text, not texture
         size = self.size
-        valign = options['valign']
+        valign = options["valign"]
 
-        y = ypad = options['padding_y']  # pos in the texture
-        if valign == 'bottom':
+        y = ypad = options["padding_y"]  # pos in the texture
+        if valign == "bottom":
             y = size[1] - ih + ypad
-        elif valign == 'middle' or valign == 'center':
+        elif valign == "middle" or valign == "center":
             y = int((size[1] - ih) / 2 + ypad)
 
         self._render_begin()
@@ -679,7 +726,7 @@ class LabelBase(object):
 
         # get data from provider
         data = self._render_end()
-        assert(data)
+        assert data
         self.options = old_opts
 
         # If the text is 1px width, usually, the data is black.
@@ -688,35 +735,37 @@ class LabelBase(object):
             self.texture.blit_data(data)
 
     def render(self, real=False):
-        '''Return a tuple (width, height) to create the image
+        """Return a tuple (width, height) to create the image
         with the user constraints. (width, height) includes the padding.
-        '''
+        """
         if real:
             return self._render_real()
 
         options = copy(self.options)
-        options['space_width'] = self.get_extents(' ')[0]
-        options['strip'] = strip = (options['strip'] or
-                                    options['halign'] == 'justify')
-        uw, uh = options['text_size'] = self._text_size
+        options["space_width"] = self.get_extents(" ")[0]
+        options["strip"] = strip = (
+            options["strip"] or options["halign"] == "justify"
+        )
+        uw, uh = options["text_size"] = self._text_size
         text = self.text
         if strip:
             text = text.strip()
 
         self.is_shortened = False
-        if uw is not None and options['shorten']:
+        if uw is not None and options["shorten"]:
             text = self.shorten(text)
 
         self._cached_lines = lines = []
         if not text:
             return 0, 0
 
-        if uh is not None and (options['valign'] == 'middle' or
-                               options['valign'] == 'center'):
+        if uh is not None and (
+            options["valign"] == "middle" or options["valign"] == "center"
+        ):
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
-                l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
+                l, r = text.rfind("\n", 0, middle), text.find("\n", middle)
                 if l != -1 and r != -1:
                     center = l if center - l <= r - center else r
                 elif l != -1:
@@ -726,17 +775,49 @@ class LabelBase(object):
             # if a newline split text, render from center down and up til uh
             if center != -1:
                 # layout from center down until half uh
-                w, h, clipped = layout_text(text[center + 1:], lines, (0, 0),
-                (uw, uh / 2), options, self.get_cached_extents(), True, True)
+                w, h, clipped = layout_text(
+                    text[center + 1 :],
+                    lines,
+                    (0, 0),
+                    (uw, uh / 2),
+                    options,
+                    self.get_cached_extents(),
+                    True,
+                    True,
+                )
                 # now layout from center upwards until uh is reached
-                w, h, clipped = layout_text(text[:center + 1], lines, (w, h),
-                (uw, uh), options, self.get_cached_extents(), False, True)
+                w, h, clipped = layout_text(
+                    text[: center + 1],
+                    lines,
+                    (w, h),
+                    (uw, uh),
+                    options,
+                    self.get_cached_extents(),
+                    False,
+                    True,
+                )
             else:  # if there's no new line, layout everything
-                w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
-                options, self.get_cached_extents(), True, True)
+                w, h, clipped = layout_text(
+                    text,
+                    lines,
+                    (0, 0),
+                    (uw, None),
+                    options,
+                    self.get_cached_extents(),
+                    True,
+                    True,
+                )
         else:  # top or bottom
-            w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
-                self.get_cached_extents(), options['valign'] == 'top', True)
+            w, h, clipped = layout_text(
+                text,
+                lines,
+                (0, 0),
+                (uw, uh),
+                options,
+                self.get_cached_extents(),
+                options["valign"] == "top",
+                True,
+            )
         self._internal_size = w, h
         if uw:
             w = uw
@@ -754,8 +835,7 @@ class LabelBase(object):
         self.render(real=True)
 
     def refresh(self):
-        '''Force re-rendering of the text
-        '''
+        """Force re-rendering of the text"""
         self.resolve_font_name()
 
         # first pass, calculating width/height
@@ -771,12 +851,16 @@ class LabelBase(object):
 
         # create a delayed texture
         texture = self.texture
-        if texture is None or \
-                width != texture.width or \
-                height != texture.height:
-            texture = Texture.create(size=(width, height),
-                                     mipmap=self.options['mipmap'],
-                                     callback=self._texture_fill)
+        if (
+            texture is None
+            or width != texture.width
+            or height != texture.height
+        ):
+            texture = Texture.create(
+                size=(width, height),
+                mipmap=self.options["mipmap"],
+                callback=self._texture_fill,
+            )
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
             self.texture = texture
@@ -790,14 +874,14 @@ class LabelBase(object):
         if text != self._text:
             self._text = text
 
-    text = property(_get_text, _set_text, doc='Get/Set the text')
-    label = property(_get_text, _set_text, doc='Get/Set the text')
+    text = property(_get_text, _set_text, doc="Get/Set the text")
+    label = property(_get_text, _set_text, doc="Get/Set the text")
 
     @property
     def texture_1px(self):
         if LabelBase._texture_1px is None:
-            tex = Texture.create(size=(1, 1), colorfmt='rgba')
-            tex.blit_buffer(b'\x00\x00\x00\x00', colorfmt='rgba')
+            tex = Texture.create(size=(1, 1), colorfmt="rgba")
+            tex.blit_buffer(b"\x00\x00\x00\x00", colorfmt="rgba")
             LabelBase._texture_1px = tex
         return LabelBase._texture_1px
 
@@ -815,33 +899,43 @@ class LabelBase(object):
 
     @property
     def content_width(self):
-        '''Return the content width; i.e. the width of the text without
-        any padding.'''
+        """Return the content width; i.e. the width of the text without
+        any padding."""
         if self.texture is None:
             return 0
-        return self.texture.width - 2 * self.options['padding_x']
+        return self.texture.width - 2 * self.options["padding_x"]
 
     @property
     def content_height(self):
-        '''Return the content height; i.e. the height of the text without
-        any padding.'''
+        """Return the content height; i.e. the height of the text without
+        any padding."""
         if self.texture is None:
             return 0
-        return self.texture.height - 2 * self.options['padding_y']
+        return self.texture.height - 2 * self.options["padding_y"]
 
     @property
     def content_size(self):
-        '''Return the content size (width, height)'''
+        """Return the content size (width, height)"""
         if self.texture is None:
             return (0, 0)
         return (self.content_width, self.content_height)
 
     @property
     def fontid(self):
-        '''Return a unique id for all font parameters'''
-        return str([self.options[x] for x in (
-            'font_size', 'font_name_r', 'bold',
-            'italic', 'underline', 'strikethrough')])
+        """Return a unique id for all font parameters"""
+        return str(
+            [
+                self.options[x]
+                for x in (
+                    "font_size",
+                    "font_name_r",
+                    "bold",
+                    "italic",
+                    "underline",
+                    "strikethrough",
+                )
+            ]
+        )
 
     def _get_text_size(self):
         return self._text_size
@@ -849,18 +943,24 @@ class LabelBase(object):
     def _set_text_size(self, x):
         self._text_size = x
 
-    text_size = property(_get_text_size, _set_text_size,
-                         doc='''Get/set the (width, height) of the '
-                         'contrained rendering box''')
+    text_size = property(
+        _get_text_size,
+        _set_text_size,
+        doc="""Get/set the (width, height) of the '
+                         'contrained rendering box""",
+    )
 
-    usersize = property(_get_text_size, _set_text_size,
-                        doc='''(deprecated) Use text_size instead.''')
+    usersize = property(
+        _get_text_size,
+        _set_text_size,
+        doc="""(deprecated) Use text_size instead.""",
+    )
 
 
 class FontContextManagerBase(object):
     @staticmethod
     def create(font_context):
-        '''Create a font context, you must specify a unique name (string).
+        """Create a font context, you must specify a unique name (string).
         Returns `True` on success and `False` on failure.
 
         If `font_context` starts with one of the reserved words `'system://'`,
@@ -893,44 +993,44 @@ class FontContextManagerBase(object):
             call this directly.
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def exists(font_context):
-        '''Returns True if a font context with the given name exists.
+        """Returns True if a font context with the given name exists.
 
         .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def destroy(font_context):
-        '''Destroy a named font context (if it exists)
+        """Destroy a named font context (if it exists)
 
         .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def list():
-        '''Returns a list of `bytes` objects, each representing a cached font
+        """Returns a list of `bytes` objects, each representing a cached font
         context name. Note that entries that start with `isolated://` were
         autocreated by loading a font file with no font_context specified.
 
         .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def list_families(font_context):
-        '''Returns a list of `bytes` objects, each representing a font family
+        """Returns a list of `bytes` objects, each representing a font family
         name that is available in the given `font_context`.
 
         .. versionadded:: 1.11.0
@@ -941,12 +1041,12 @@ class FontContextManagerBase(object):
             to the context.
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def list_custom(font_context):
-        '''Returns a dictionary representing all the custom-loaded fonts in
+        """Returns a dictionary representing all the custom-loaded fonts in
         the context. The key is a `bytes` object representing the full path
         to the font file, the value is a `bytes` object representing the font
         family name used to request drawing with the font.
@@ -954,12 +1054,12 @@ class FontContextManagerBase(object):
         .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
     @staticmethod
     def add_font(font_context, filename, autocreate=True, family=None):
-        '''Add a font file to a named font context. If `autocreate` is true,
+        """Add a font file to a named font context. If `autocreate` is true,
         the context will be created if it does not exist (this is the
         default). You can specify the `family` argument (string) to skip
         auto-detecting the font family name.
@@ -977,37 +1077,37 @@ class FontContextManagerBase(object):
         .. versionadded:: 1.11.0
 
         .. note:: This feature requires the Pango text provider.
-        '''
+        """
         raise NotImplementedError("No font_context support in text provider")
 
 
 # Load the appropriate provider
 label_libs = []
 if USE_PANGOFT2:
-    label_libs += [('pango', 'text_pango', 'LabelPango')]
+    label_libs += [("pango", "text_pango", "LabelPango")]
 
 if USE_SDL2:
-    label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
+    label_libs += [("sdl2", "text_sdl2", "LabelSDL2")]
 else:
-    label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
-label_libs += [
-    ('pil', 'text_pil', 'LabelPIL')]
-Text = Label = core_select_lib('text', label_libs)
+    label_libs += [("pygame", "text_pygame", "LabelPygame")]
+label_libs += [("pil", "text_pil", "LabelPIL")]
+Text = Label = core_select_lib("text", label_libs)
 
-if 'KIVY_DOC' not in os.environ:
+if "KIVY_DOC" not in os.environ:
     if not Label:
         from kivy.logger import Logger
         import sys
-        Logger.critical('App: Unable to get a Text provider, abort.')
+
+        Logger.critical("App: Unable to get a Text provider, abort.")
         sys.exit(1)
 
     # FIXME: Better way to do this
-    if Label.__name__ == 'LabelPango':
+    if Label.__name__ == "LabelPango":
         from kivy.core.text.text_pango import PangoFontContextManager
+
         FontContextManager = PangoFontContextManager()
     else:
         FontContextManager = FontContextManagerBase()
 
-
-# For the first initialization, register the default font
+    # For the first initialization, register the default font
     Label.register(DEFAULT_FONT, *_default_font_paths)

@@ -36,7 +36,7 @@ consist of a single :mod:`~kivy.uix.layout` widget that contains the remaining
 widgets on that page.
 """
 
-__all__ = ('PageLayout', )
+__all__ = ("PageLayout",)
 
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, DictProperty
@@ -44,52 +44,51 @@ from kivy.animation import Animation
 
 
 class PageLayout(Layout):
-    '''PageLayout class. See module documentation for more information.
-    '''
+    """PageLayout class. See module documentation for more information."""
 
     page = NumericProperty(0)
-    '''The currently displayed page.
+    """The currently displayed page.
 
     :data:`page` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
-    '''
+    """
 
-    border = NumericProperty('50dp')
-    '''The width of the border around the current page used to display
+    border = NumericProperty("50dp")
+    """The width of the border around the current page used to display
     the previous/next page swipe areas when needed.
 
     :data:`border` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 50dp.
-    '''
+    """
 
-    swipe_threshold = NumericProperty(.5)
-    '''The threshold used to trigger swipes as ratio of the widget
+    swipe_threshold = NumericProperty(0.5)
+    """The threshold used to trigger swipes as ratio of the widget
     size.
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`
     and defaults to .5.
-    '''
+    """
 
-    anim_kwargs = DictProperty({'d': .5, 't': 'in_quad'})
-    '''The animation kwargs used to construct the animation
+    anim_kwargs = DictProperty({"d": 0.5, "t": "in_quad"})
+    """The animation kwargs used to construct the animation
 
     :data:`anim_kwargs` is a :class:`~kivy.properties.DictProperty`
     and defaults to {'d': .5, 't': 'in_quad'}.
 
     .. versionadded:: 1.11.0
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(PageLayout, self).__init__(**kwargs)
 
         trigger = self._trigger_layout
         fbind = self.fbind
-        fbind('border', trigger)
-        fbind('page', trigger)
-        fbind('parent', trigger)
-        fbind('children', trigger)
-        fbind('size', trigger)
-        fbind('pos', trigger)
+        fbind("border", trigger)
+        fbind("page", trigger)
+        fbind("parent", trigger)
+        fbind("children", trigger)
+        fbind("size", trigger)
+        fbind("pos", trigger)
 
     def do_layout(self, *largs):
         l_children = len(self.children) - 1
@@ -97,7 +96,7 @@ class PageLayout(Layout):
         x_parent, y_parent = self.pos
         p = self.page
         border = self.border
-        half_border = border / 2.
+        half_border = border / 2.0
         right = self.right
         width = self.width - border
         for i, c in enumerate(reversed(self.children)):
@@ -122,26 +121,23 @@ class PageLayout(Layout):
             c.height = h
             c.width = width
 
-            Animation(
-                x=x,
-                y=y_parent,
-                **self.anim_kwargs).start(c)
+            Animation(x=x, y=y_parent, **self.anim_kwargs).start(c)
 
     def on_touch_down(self, touch):
         if (
-            self.disabled or
-            not self.collide_point(*touch.pos) or
-            not self.children
+            self.disabled
+            or not self.collide_point(*touch.pos)
+            or not self.children
         ):
             return
 
         page = self.children[-self.page - 1]
         if self.x <= touch.x < page.x:
-            touch.ud['page'] = 'previous'
+            touch.ud["page"] = "previous"
             touch.grab(self)
             return True
         elif page.right <= touch.x < self.right:
-            touch.ud['page'] = 'next'
+            touch.ud["page"] = "next"
             touch.grab(self)
             return True
         return page.on_touch_down(touch)
@@ -152,64 +148,73 @@ class PageLayout(Layout):
 
         p = self.page
         border = self.border
-        half_border = border / 2.
+        half_border = border / 2.0
         page = self.children[-p - 1]
-        if touch.ud['page'] == 'previous':
+        if touch.ud["page"] == "previous":
             # move next page upto right edge
             if p < len(self.children) - 1:
                 self.children[-p - 2].x = min(
                     self.right - self.border * (1 - (touch.sx - touch.osx)),
-                    self.right)
+                    self.right,
+                )
 
             # move current page until edge hits the right border
             if p >= 1:
                 b_right = half_border if p > 1 else border
                 b_left = half_border if p < len(self.children) - 1 else border
-                self.children[-p - 1].x = max(min(
-                    self.x + b_left + (touch.x - touch.ox),
-                    self.right - b_right),
-                    self.x + b_left)
+                self.children[-p - 1].x = max(
+                    min(
+                        self.x + b_left + (touch.x - touch.ox),
+                        self.right - b_right,
+                    ),
+                    self.x + b_left,
+                )
 
             # move previous page left edge upto left border
             if p > 1:
                 self.children[-p].x = min(
                     self.x + half_border * (touch.sx - touch.osx),
-                    self.x + half_border)
+                    self.x + half_border,
+                )
 
-        elif touch.ud['page'] == 'next':
+        elif touch.ud["page"] == "next":
             # move current page upto left edge
             if p >= 1:
                 self.children[-p - 1].x = max(
-                    self.x + half_border * (1 - (touch.osx - touch.sx)),
-                    self.x)
+                    self.x + half_border * (1 - (touch.osx - touch.sx)), self.x
+                )
 
             # move next page until its edge hit the left border
             if p < len(self.children) - 1:
                 b_right = half_border if p >= 1 else border
                 b_left = half_border if p < len(self.children) - 2 else border
-                self.children[-p - 2].x = min(max(
-                    self.right - b_right + (touch.x - touch.ox),
-                    self.x + b_left),
-                    self.right - b_right)
+                self.children[-p - 2].x = min(
+                    max(
+                        self.right - b_right + (touch.x - touch.ox),
+                        self.x + b_left,
+                    ),
+                    self.right - b_right,
+                )
 
             # move second next page upto right border
             if p < len(self.children) - 2:
                 self.children[-p - 3].x = max(
                     self.right + half_border * (touch.sx - touch.osx),
-                    self.right - half_border)
+                    self.right - half_border,
+                )
 
         return page.on_touch_move(touch)
 
     def on_touch_up(self, touch):
         if touch.grab_current == self:
             if (
-                touch.ud['page'] == 'previous' and
-                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
+                touch.ud["page"] == "previous"
+                and abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page -= 1
             elif (
-                touch.ud['page'] == 'next' and
-                abs(touch.x - touch.ox) / self.width > self.swipe_threshold
+                touch.ud["page"] == "next"
+                and abs(touch.x - touch.ox) / self.width > self.swipe_threshold
             ):
                 self.page += 1
             else:
@@ -221,13 +226,13 @@ class PageLayout(Layout):
             return self.children[-self.page + 1].on_touch_up(touch)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
 
     pl = PageLayout()
     for i in range(1, 4):
-        b = Button(text='page%s' % i)
+        b = Button(text="page%s" % i)
         pl.add_widget(b)
 
     runTouchApp(pl)

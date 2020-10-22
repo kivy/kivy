@@ -1,7 +1,7 @@
-'''
+"""
 Clock tests
 ===========
-'''
+"""
 import gc
 import weakref
 import pytest
@@ -64,7 +64,7 @@ def test_unschedule_event(kivy_clock, clock_counter):
 
 
 def test_unschedule_after_tick(kivy_clock, clock_counter):
-    kivy_clock.schedule_once(clock_counter, 5.)
+    kivy_clock.schedule_once(clock_counter, 5.0)
     kivy_clock.tick()
     kivy_clock.unschedule(clock_counter)
     kivy_clock.tick()
@@ -89,7 +89,7 @@ def test_trigger_create(kivy_clock, clock_counter):
 
 
 def test_trigger_cancel(kivy_clock, clock_counter):
-    trigger = kivy_clock.create_trigger(clock_counter, 5.)
+    trigger = kivy_clock.create_trigger(clock_counter, 5.0)
     trigger()
     trigger.cancel()
     kivy_clock.tick()
@@ -142,19 +142,19 @@ def test_exception_caught(kivy_clock, clock_counter):
     kivy_clock.handle_exception = handle_test_exception
 
     def raise_exception(*args):
-        raise ValueError('Stooooop')
+        raise ValueError("Stooooop")
 
     kivy_clock.schedule_once(raise_exception)
     kivy_clock.schedule_once(clock_counter)
     kivy_clock.tick()
 
     assert clock_counter.counter == 1
-    assert exception == 'Stooooop'
+    assert exception == "Stooooop"
 
 
 def test_exception_ignored(kivy_clock, clock_counter):
     def raise_exception(*args):
-        raise ValueError('Stooooop')
+        raise ValueError("Stooooop")
 
     kivy_clock.schedule_once(raise_exception)
     kivy_clock.schedule_once(clock_counter)
@@ -166,27 +166,29 @@ def test_exception_ignored(kivy_clock, clock_counter):
 
 
 def test_exception_caught_handler(
-        kivy_clock, clock_counter, kivy_exception_manager):
+    kivy_clock, clock_counter, kivy_exception_manager
+):
     from kivy.base import ExceptionHandler
+
     exception = None
 
     class KivyHandler(ExceptionHandler):
-
         def handle_exception(self, e):
             nonlocal exception
             exception = str(e)
             return kivy_exception_manager.PASS
+
     kivy_exception_manager.add_handler(KivyHandler())
 
     def raise_exception(*args):
-        raise ValueError('Stooooop')
+        raise ValueError("Stooooop")
 
     kivy_clock.schedule_once(raise_exception)
     kivy_clock.schedule_once(clock_counter)
     kivy_clock.tick()
 
     assert clock_counter.counter == 1
-    assert exception == 'Stooooop'
+    assert exception == "Stooooop"
 
 
 def test_clock_ended_callback(kivy_clock, clock_counter):
@@ -214,8 +216,10 @@ def test_clock_ended_del_safe(kivy_clock, clock_counter):
 
 def test_clock_ended_raises(kivy_clock, clock_counter):
     from kivy.clock import ClockNotRunningError
+
     event = kivy_clock.create_lifecycle_aware_trigger(
-        clock_counter, clock_counter)
+        clock_counter, clock_counter
+    )
 
     kivy_clock.stop_clock()
     with pytest.raises(ClockNotRunningError):
@@ -224,7 +228,8 @@ def test_clock_ended_raises(kivy_clock, clock_counter):
 
     # we should be able to create the event
     event = kivy_clock.create_lifecycle_aware_trigger(
-        clock_counter, clock_counter)
+        clock_counter, clock_counter
+    )
     with pytest.raises(ClockNotRunningError):
         event()
     assert clock_counter.counter == 0
@@ -235,6 +240,7 @@ def test_clock_ended_raises(kivy_clock, clock_counter):
 
 def test_clock_ended_del_safe_raises(kivy_clock, clock_counter):
     from kivy.clock import ClockNotRunningError
+
     counter2 = ClockCounter()
 
     kivy_clock.stop_clock()
@@ -245,8 +251,7 @@ def test_clock_ended_del_safe_raises(kivy_clock, clock_counter):
 
 def test_clock_stop_twice(kivy_clock, clock_counter):
     counter2 = ClockCounter()
-    event = kivy_clock.create_lifecycle_aware_trigger(
-        clock_counter, counter2)
+    event = kivy_clock.create_lifecycle_aware_trigger(clock_counter, counter2)
     event()
 
     kivy_clock.stop_clock()

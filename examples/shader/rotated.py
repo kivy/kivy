@@ -1,10 +1,10 @@
-'''
+"""
 Rotated Shader
 =============
 
 This shader example is a modified version of plasma.py that shows how to
 rotate areas of fragment shaders bounded by vertex_instructions.
-'''
+"""
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -16,7 +16,7 @@ from kivy.uix.widget import Widget
 import kivy.core.window
 
 
-shared_code = '''
+shared_code = """
 $HEADER$
 
 uniform float time;
@@ -35,27 +35,33 @@ float plasmaFunc(float n1, float n2, float n3, float n4)
                   n4 * sin((fPos.x + fPos.y) / n3)));
 }
 
-'''
+"""
 
 
-plasma_shader = shared_code + '''
+plasma_shader = (
+    shared_code
+    + """
 void main(void)
 {
    float green = plasmaFunc(40., 30., 100., 3.5);
    gl_FragColor = vec4(1.0, green, 1.0, 1.0) * tex();
 }
 
-'''
+"""
+)
 
 
-plasma_shader2 = shared_code + '''
+plasma_shader2 = (
+    shared_code
+    + """
 void main(void)
 {
    float red = plasmaFunc(30., 20., 10., .5);
    gl_FragColor = vec4(red, 1.0, 1.0, 1.0) * tex();
 }
 
-'''
+"""
+)
 
 
 class ShaderWidget(Widget):
@@ -66,19 +72,21 @@ class ShaderWidget(Widget):
     def __init__(self, **kwargs):
         # Instead of using Canvas, we will use a RenderContext,
         # and change the default fragment shader used.
-        self.canvas = RenderContext(use_parent_projection=True,
-                                    use_parent_modelview=True,
-                                    use_parent_frag_modelview=True)
+        self.canvas = RenderContext(
+            use_parent_projection=True,
+            use_parent_modelview=True,
+            use_parent_frag_modelview=True,
+        )
 
         # call the constructor of parent
         # if they are any graphics object, they will be added on our new canvas
         super(ShaderWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
-        Clock.schedule_interval(self.update_glsl, 1 / 60.)
+        Clock.schedule_interval(self.update_glsl, 1 / 60.0)
 
     def update_glsl(self, *largs):
-        self.canvas['time'] = Clock.get_boottime()
+        self.canvas["time"] = Clock.get_boottime()
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -87,7 +95,7 @@ class ShaderWidget(Widget):
         shader.fs = value
         if not shader.success:
             shader.fs = old_value
-            raise Exception('failed')
+            raise Exception("failed")
 
 
 class RotatedApp(App):
@@ -98,5 +106,5 @@ class RotatedApp(App):
         return main_widget
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     RotatedApp().run()

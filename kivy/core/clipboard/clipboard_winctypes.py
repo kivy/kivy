@@ -1,17 +1,18 @@
-'''
+"""
 Clipboard windows: an implementation of the Clipboard using ctypes.
-'''
+"""
 
-__all__ = ('ClipboardWindows', )
+__all__ = ("ClipboardWindows",)
 
 from kivy.utils import platform
 from kivy.core.clipboard import ClipboardBase
 
-if platform != 'win':
-    raise SystemError('unsupported platform for Windows clipboard')
+if platform != "win":
+    raise SystemError("unsupported platform for Windows clipboard")
 
 import ctypes
 from ctypes import wintypes
+
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 msvcrt = ctypes.cdll.msvcrt
@@ -20,8 +21,7 @@ c_wchar_p = ctypes.c_wchar_p
 
 
 class ClipboardWindows(ClipboardBase):
-
-    def get(self, mimetype='text/plain'):
+    def get(self, mimetype="text/plain"):
         GetClipboardData = user32.GetClipboardData
         GetClipboardData.argtypes = [wintypes.UINT]
         GetClipboardData.restype = wintypes.HANDLE
@@ -34,14 +34,14 @@ class ClipboardWindows(ClipboardBase):
         # and the clipboard is locked if not closed properly
         if not pcontents:
             user32.CloseClipboard()
-            return ''
+            return ""
         data = c_wchar_p(pcontents).value.encode(self._encoding)
         user32.CloseClipboard()
         return data
 
-    def put(self, text, mimetype='text/plain'):
+    def put(self, text, mimetype="text/plain"):
         text = text.decode(self._encoding)  # auto converted later
-        text += u'\x00'
+        text += "\x00"
 
         SetClipboardData = user32.SetClipboardData
         SetClipboardData.argtypes = [wintypes.UINT, wintypes.HANDLE]
@@ -63,4 +63,4 @@ class ClipboardWindows(ClipboardBase):
         user32.CloseClipboard()
 
     def get_types(self):
-        return ['text/plain']
+        return ["text/plain"]

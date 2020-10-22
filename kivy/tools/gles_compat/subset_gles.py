@@ -1,4 +1,4 @@
-'''
+"""
     Common GLES Subset Extraction Script
     ====================================
 
@@ -21,15 +21,21 @@
     name. In that case, we take the symbol from the original header and add
     a #define directive to redirect to that symbol from the symbol name without
     extension.
-'''
+"""
 
 from __future__ import print_function
 
-gl = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" +
-          "OpenGL.framework/Versions/A/Headers/gl.h", 'r')
-glext = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" +
-             "OpenGL.framework/Versions/A/Headers/glext.h", 'r')
-gles = open("gl2.h", 'r')
+gl = open(
+    "/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/"
+    + "OpenGL.framework/Versions/A/Headers/gl.h",
+    "r",
+)
+glext = open(
+    "/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/"
+    + "OpenGL.framework/Versions/A/Headers/glext.h",
+    "r",
+)
+gles = open("gl2.h", "r")
 
 
 def add_defines_to_set(header):
@@ -56,7 +62,7 @@ def add_defines_to_set(header):
             if symbol:
                 symbols.append((symbol, lineno, line, hexcode))
         except Exception as e:
-            print('error:', lineno, ':', line)
+            print("error:", lineno, ":", line)
             print(e)
 
     return symbols
@@ -67,7 +73,7 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
         for symbol2, lineno2, line2, hexcode2 in symbols2:
             if symbol1 in already_extracted or symbol2 in already_extracted:
                 continue
-            if symbol1 == symbol2 + 'f':
+            if symbol1 == symbol2 + "f":
                 # There is no `double` type in GLES; Functions that were using
                 # a double were renamed with the suffix 'f'.
                 print("// Different Name; Redefine")
@@ -76,9 +82,9 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
             elif symbol1 == symbol2:
                 already_extracted.append(symbol1)
                 print(line1)
-                if symbol1 == 'GLclampf;':
+                if symbol1 == "GLclampf;":
                     # See explanation about doubles on GLES above.
-                    print('typedef GLclampf GLclampd;')
+                    print("typedef GLclampf GLclampd;")
             elif hexcode1 and hexcode2 and hexcode1 == hexcode2:
                 already_extracted.append(symbol1)
                 already_extracted.append(symbol2)
@@ -94,32 +100,34 @@ gl_symbols = add_defines_to_set(gl)
 glext_symbols = add_defines_to_set(glext)
 gles_symbols = add_defines_to_set(gles)
 
-print('// GLES 2.0 Header file, generated for Kivy')
-print('// Check kivy/kivy/tools/gles_compat/subset_gles.py')
-print('#pragma once')
+print("// GLES 2.0 Header file, generated for Kivy")
+print("// Check kivy/kivy/tools/gles_compat/subset_gles.py")
+print("#pragma once")
 print('#include "gl2platform.h"')
-print('#ifdef __cplusplus')
+print("#ifdef __cplusplus")
 print('extern "C" {')
-print('#endif')
+print("#endif")
 
 # Don't add the same symbol more than once
 already_extracted = []
 
-print('\n// Subset common to GLES and GL: ===================================')
+print("\n// Subset common to GLES and GL: ===================================")
 extract_common_symbols(gles_symbols, gl_symbols, already_extracted)
 
-print('\n// Subset common to GLES and GLEXT: ================================')
+print("\n// Subset common to GLES and GLEXT: ================================")
 extract_common_symbols(gles_symbols, glext_symbols, already_extracted)
 
 print()
-print('// What follows was manually extracted from the GLES2 headers because')
-print('// it was not present in any other header.', end=' ')
-print('''
+print("// What follows was manually extracted from the GLES2 headers because")
+print("// it was not present in any other header.", end=" ")
+print(
+    """
 #define GL_SHADER_BINARY_FORMATS          0x8DF8
 #define GL_RGB565                         0x8D62
-''')
+"""
+)
 
-print('#ifdef __cplusplus')
-print('}')
-print('#endif')
-print('\n')
+print("#ifdef __cplusplus")
+print("}")
+print("#endif")
+print("\n")

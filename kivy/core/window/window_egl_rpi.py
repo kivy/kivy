@@ -1,10 +1,10 @@
-'''
+"""
 EGL Rpi Window: EGL Window provider, specialized for the Pi
 
 Inspired by: rpi_vid_core + JF002 rpi kivy  repo
-'''
+"""
 
-__all__ = ('WindowEglRpi', )
+__all__ = ("WindowEglRpi",)
 
 from kivy.logger import Logger
 from kivy.core.window import WindowBase
@@ -13,13 +13,15 @@ from kivy.lib.vidcore_lite import bcm, egl
 from os import environ
 
 # Default display IDs.
-(DISPMANX_ID_MAIN_LCD,
- DISPMANX_ID_AUX_LCD,
- DISPMANX_ID_HDMI,
- DISPMANX_ID_SDTV,
- DISPMANX_ID_FORCE_LCD,
- DISPMANX_ID_FORCE_TV,
- DISPMANX_ID_FORCE_OTHER) = range(7)
+(
+    DISPMANX_ID_MAIN_LCD,
+    DISPMANX_ID_AUX_LCD,
+    DISPMANX_ID_HDMI,
+    DISPMANX_ID_SDTV,
+    DISPMANX_ID_FORCE_LCD,
+    DISPMANX_ID_FORCE_TV,
+    DISPMANX_ID_FORCE_OTHER,
+) = range(7)
 
 
 class WindowEglRpi(WindowBase):
@@ -27,14 +29,13 @@ class WindowEglRpi(WindowBase):
     _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
     _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
 
-    gl_backends_ignored = ['sdl2']
+    gl_backends_ignored = ["sdl2"]
 
     def create_window(self):
         bcm.host_init()
 
         w, h = bcm.graphics_get_display_size(self._rpi_dispmanx_id)
-        Logger.debug('Window: Actual display size: {}x{}'.format(
-            w, h))
+        Logger.debug("Window: Actual display size: {}x{}".format(w, h))
         self._size = w, h
         self._create_window(w, h)
         self._create_egl_context(self.win, 0)
@@ -46,7 +47,8 @@ class WindowEglRpi(WindowBase):
         display = egl.bcm_display_open(self._rpi_dispmanx_id)
         update = egl.bcm_update_start(0)
         element = egl.bcm_element_add(
-            update, display, self._rpi_dispmanx_layer, dst, src)
+            update, display, self._rpi_dispmanx_layer, dst, src
+        )
         self.win = egl.NativeWindow(element, w, h)
         egl.bcm_update_submit_sync(update)
 
@@ -55,14 +57,22 @@ class WindowEglRpi(WindowBase):
         c = egl._constants
 
         attribs = [
-            c.EGL_RED_SIZE, 8,
-            c.EGL_GREEN_SIZE, 8,
-            c.EGL_BLUE_SIZE, 8,
-            c.EGL_ALPHA_SIZE, 8,
-            c.EGL_DEPTH_SIZE, 16,
-            c.EGL_STENCIL_SIZE, 8,
-            c.EGL_SURFACE_TYPE, c.EGL_WINDOW_BIT,
-            c.EGL_NONE]
+            c.EGL_RED_SIZE,
+            8,
+            c.EGL_GREEN_SIZE,
+            8,
+            c.EGL_BLUE_SIZE,
+            8,
+            c.EGL_ALPHA_SIZE,
+            8,
+            c.EGL_DEPTH_SIZE,
+            16,
+            c.EGL_STENCIL_SIZE,
+            8,
+            c.EGL_SURFACE_TYPE,
+            c.EGL_WINDOW_BIT,
+            c.EGL_NONE,
+        ]
 
         attribs_context = [c.EGL_CONTEXT_CLIENT_VERSION, 2, c.EGL_NONE]
 

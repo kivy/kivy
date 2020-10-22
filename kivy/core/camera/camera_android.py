@@ -6,24 +6,26 @@ from kivy.core.camera import CameraBase
 import threading
 
 
-Camera = autoclass('android.hardware.Camera')
-SurfaceTexture = autoclass('android.graphics.SurfaceTexture')
+Camera = autoclass("android.hardware.Camera")
+SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
 GL_TEXTURE_EXTERNAL_OES = autoclass(
-    'android.opengl.GLES11Ext').GL_TEXTURE_EXTERNAL_OES
-ImageFormat = autoclass('android.graphics.ImageFormat')
+    "android.opengl.GLES11Ext"
+).GL_TEXTURE_EXTERNAL_OES
+ImageFormat = autoclass("android.graphics.ImageFormat")
 
 
 class PreviewCallback(PythonJavaClass):
     """
     Interface used to get back the preview frame of the Android Camera
     """
-    __javainterfaces__ = ('android.hardware.Camera$PreviewCallback', )
+
+    __javainterfaces__ = ("android.hardware.Camera$PreviewCallback",)
 
     def __init__(self, callback):
         super(PreviewCallback, self).__init__()
         self._callback = callback
 
-    @java_method('([BLandroid/hardware/Camera;)V')
+    @java_method("([BLandroid/hardware/Camera;)V")
     def onPreviewFrame(self, data, camera):
         self._callback(data, camera)
 
@@ -50,25 +52,29 @@ class CameraAndroid(CameraBase):
         params = self._android_camera.getParameters()
         width, height = self._resolution
         params.setPreviewSize(width, height)
-        params.setFocusMode('continuous-picture')
+        params.setFocusMode("continuous-picture")
         self._android_camera.setParameters(params)
         # self._android_camera.setDisplayOrientation()
-        self.fps = 30.
+        self.fps = 30.0
 
         pf = params.getPreviewFormat()
-        assert(pf == ImageFormat.NV21)  # default format is NV21
-        self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. *
-                            width * height)
+        assert pf == ImageFormat.NV21  # default format is NV21
+        self._bufsize = int(
+            ImageFormat.getBitsPerPixel(pf) / 8.0 * width * height
+        )
 
-        self._camera_texture = Texture(width=width, height=height,
-                                       target=GL_TEXTURE_EXTERNAL_OES,
-                                       colorfmt='rgba')
+        self._camera_texture = Texture(
+            width=width,
+            height=height,
+            target=GL_TEXTURE_EXTERNAL_OES,
+            colorfmt="rgba",
+        )
         self._surface_texture = SurfaceTexture(int(self._camera_texture.id))
         self._android_camera.setPreviewTexture(self._surface_texture)
 
         self._fbo = Fbo(size=self._resolution)
-        self._fbo['resolution'] = (float(width), float(height))
-        self._fbo.shader.fs = '''
+        self._fbo["resolution"] = (float(width), float(height))
+        self._fbo.shader.fs = """
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
                 precision highp float;
@@ -89,10 +95,9 @@ class CameraAndroid(CameraBase):
                     resolution.y / resolution.x), 1. -tex_coord0.x);
                 gl_FragColor = texture2D(texture1, tex_coord0);
             }
-        '''
+        """
         with self._fbo:
-            self._texture_cb = Callback(lambda instr:
-                                        self._camera_texture.bind)
+            self._texture_cb = Callback(lambda instr: self._camera_texture.bind)
             Rectangle(size=self._resolution)
 
     def _release_camera(self):
@@ -126,7 +131,7 @@ class CameraAndroid(CameraBase):
         with self._buflock:
             self._buffer = None
         for k in range(2):  # double buffer
-            buf = b'\x00' * self._bufsize
+            buf = b"\x00" * self._bufsize
             self._android_camera.addCallbackBuffer(buf)
         self._android_camera.setPreviewCallbackWithBuffer(self._preview_cb)
 
@@ -152,7 +157,7 @@ class CameraAndroid(CameraBase):
         self._refresh_fbo()
         if self._texture is None:
             self._texture = self._fbo.texture
-            self.dispatch('on_load')
+            self.dispatch("on_load")
         self._copy_to_gpu()
 
     def _copy_to_gpu(self):
@@ -160,7 +165,7 @@ class CameraAndroid(CameraBase):
         A dummy placeholder (the image is already in GPU) to be consistent
         with other providers.
         """
-        self.dispatch('on_texture')
+        self.dispatch("on_texture")
 
     def grab_frame(self):
         """
@@ -185,7 +190,7 @@ class CameraAndroid(CameraBase):
         from cv2 import cvtColor
 
         w, h = self._resolution
-        arr = np.fromstring(buf, 'uint8').reshape((h + h / 2, w))
+        arr = np.fromstring(buf, "uint8").reshape((h + h / 2, w))
         arr = cvtColor(arr, 93)  # NV21 -> BGR
         return arr
 

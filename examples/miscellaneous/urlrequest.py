@@ -6,7 +6,7 @@ from kivy.properties import NumericProperty, StringProperty, DictProperty
 import json
 
 
-KV = '''
+KV = """
 #:import json json
 #:import C kivy.utils.get_color_from_hex
 
@@ -69,7 +69,7 @@ BoxLayout:
     TextInput
         readonly: True
         text: json.dumps(app.headers, indent=2)
-'''
+"""
 
 
 class UrlExample(App):
@@ -87,22 +87,22 @@ class UrlExample(App):
             url,
             on_success=self.on_success,
             on_failure=self.on_failure,
-            on_error=self.on_error
+            on_error=self.on_error,
         )
 
     def cleanup(self):
-        self.result_text = ''
-        self.result_image = ''
+        self.result_text = ""
+        self.result_image = ""
         self.status = 0
         self.headers = {}
 
     def on_success(self, req, result):
         self.cleanup()
         headers = req.resp_headers
-        content_type = headers.get('content-type', headers.get('Content-Type'))
-        if content_type.startswith('image/'):
-            fn = 'tmpfile.{}'.format(content_type.split('/')[1])
-            with open(fn, 'wb') as f:
+        content_type = headers.get("content-type", headers.get("Content-Type"))
+        if content_type.startswith("image/"):
+            fn = "tmpfile.{}".format(content_type.split("/")[1])
+            with open(fn, "wb") as f:
                 f.write(result)
             self.result_image = fn
         else:
@@ -124,5 +124,5 @@ class UrlExample(App):
         self.result_text = str(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UrlExample().run()

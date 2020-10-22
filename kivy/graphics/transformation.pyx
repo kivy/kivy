@@ -443,7 +443,7 @@ cdef class Matrix:
         '''Transforms the point by the matrix and returns the transformed point
         as a ``(x, y, z)`` tuple. If the point is a vector ``v``, the returned
         values is ``v2 = matrix * v``.
-        
+
         If ``t`` is provided, it multiplies it with the last column of the matrix
         and returns the transformed ``(x, y, z, t)``.
         '''

@@ -1,9 +1,9 @@
-'''
+"""
 Leap Motion - finger only
 =========================
-'''
+"""
 
-__all__ = ('LeapFingerEventProvider', 'LeapFingerEvent')
+__all__ = ("LeapFingerEventProvider", "LeapFingerEvent")
 
 from collections import deque
 from kivy.logger import Logger
@@ -21,12 +21,14 @@ def normalize(value, a, b):
 
 
 class LeapFingerEvent(MotionEvent):
-
     def depack(self, args):
         super(LeapFingerEvent, self).depack(args)
         if args[0] is None:
             return
-        self.profile = ('pos', 'pos3d', )
+        self.profile = (
+            "pos",
+            "pos3d",
+        )
         x, y, z = args
         self.sx = normalize(x, -150, 150)
         self.sy = normalize(y, 40, 460)
@@ -47,15 +49,14 @@ class LeapFingerEventProvider(MotionEventProvider):
         from Leap import InteractionBox
 
         class LeapMotionListener(Leap.Listener):
-
             def on_init(self, controller):
-                Logger.info('leapmotion: Initialized')
+                Logger.info("leapmotion: Initialized")
 
             def on_connect(self, controller):
-                Logger.info('leapmotion: Connected')
+                Logger.info("leapmotion: Connected")
 
             def on_disconnect(self, controller):
-                Logger.info('leapmotion: Disconnected')
+                Logger.info("leapmotion: Disconnected")
 
             def on_frame(self, controller):
                 frame = controller.frame()
@@ -86,24 +87,24 @@ class LeapFingerEventProvider(MotionEventProvider):
         for hand in frame.hands:
             for finger in hand.fingers:
                 # print hand.id(), finger.id(), finger.tip()
-                uid = '{0}:{1}'.format(hand.id, finger.id)
+                uid = "{0}:{1}".format(hand.id, finger.id)
                 available_uid.append(uid)
                 position = finger.tip_position
                 args = (position.x, position.y, position.z)
                 if uid not in touches:
                     touch = LeapFingerEvent(self.device, uid, args)
-                    events.append(('begin', touch))
+                    events.append(("begin", touch))
                     touches[uid] = touch
                 else:
                     touch = touches[uid]
                     touch.move(args)
-                    events.append(('update', touch))
+                    events.append(("update", touch))
         for key in list(touches.keys())[:]:
             if key not in available_uid:
-                events.append(('end', touches[key]))
+                events.append(("end", touches[key]))
                 del touches[key]
         return events
 
 
 # registers
-MotionEventFactory.register('leapfinger', LeapFingerEventProvider)
+MotionEventFactory.register("leapfinger", LeapFingerEventProvider)

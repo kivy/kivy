@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 KViewer
 =======
 
@@ -21,7 +21,7 @@ file changes.
 
    pip install watchdog
 
-'''
+"""
 
 from sys import argv
 from kivy.lang import Builder
@@ -36,7 +36,7 @@ from os.path import dirname, basename, join
 
 
 if len(argv) != 2:
-    print('usage: %s filename.kv' % argv[0])
+    print("usage: %s filename.kv" % argv[0])
     exit(1)
 
 
@@ -71,10 +71,12 @@ class KvViewerApp(App):
         try:
             Window.add_widget(Builder.load_file(join(PATH, TARGET)))
         except Exception as e:
-            Window.add_widget(Label(text=(
-                e.message if getattr(e, r'message', None) else str(e)
-            )))
+            Window.add_widget(
+                Label(
+                    text=(e.message if getattr(e, r"message", None) else str(e))
+                )
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KvViewerApp().run()

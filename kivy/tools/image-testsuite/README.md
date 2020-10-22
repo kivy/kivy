@@ -94,7 +94,7 @@ Test names
 
 Patterns must conform to the specific test. For example, the pattern "rgb" has
 undefined behavior for a grayscale test, since r/g/b can't be represented
-in grayscale. So all grayscale formats must use 0-9A-F only, and optionally 
+in grayscale. So all grayscale formats must use 0-9A-F only, and optionally
 't' for transparent pixels in GRAY-BINARY/GRAY-ALPHA.
 
 
@@ -145,4 +145,3 @@ alpha = 0x00 regardless of the test's alpha setting.
     "C" #CCC     "D" #DDD     "E" #EEE     "F" #FFF
 
     !!! See warnings above regarding BINARY tests
-

@@ -1,4 +1,4 @@
-'''
+"""
 FFmpeg based audio player
 =========================
 
@@ -41,9 +41,9 @@ Finally, before running you need to ensure that ffpyplayer is in python's path.
     MediaPlayer object, those threads will remain alive hanging kivy. What this
     means is that you have to be sure to delete the MediaPlayer object before
     kivy exits by setting it to None.
-'''
+"""
 
-__all__ = ('SoundFFPy', )
+__all__ = ("SoundFFPy",)
 
 try:
     import ffpyplayer
@@ -60,26 +60,30 @@ from kivy.weakmethod import WeakMethod
 import time
 
 try:
-    Logger.info(
-        'SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
+    Logger.info("SoundFFPy: Using ffpyplayer {}".format(ffpyplayer.__version__))
 except:
-    Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
+    Logger.info("SoundFFPy: Using ffpyplayer {}".format(ffpyplayer.version))
 
 
-logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
-               'fatal': Logger.critical, 'error': Logger.error,
-               'warning': Logger.warning, 'info': Logger.info,
-               'verbose': Logger.debug, 'debug': Logger.debug}
+logger_func = {
+    "quiet": Logger.critical,
+    "panic": Logger.critical,
+    "fatal": Logger.critical,
+    "error": Logger.error,
+    "warning": Logger.warning,
+    "info": Logger.info,
+    "verbose": Logger.debug,
+    "debug": Logger.debug,
+}
 
 
 def _log_callback(message, level):
     message = message.strip()
     if message:
-        logger_func[level]('ffpyplayer: {}'.format(message))
+        logger_func[level]("ffpyplayer: {}".format(message))
 
 
 class SoundFFPy(Sound):
-
     @staticmethod
     def extensions():
         return formats_in
@@ -88,8 +92,8 @@ class SoundFFPy(Sound):
         self._ffplayer = None
         self.quitted = False
         self._log_callback_set = False
-        self._state = ''
-        self.state = 'stop'
+        self._state = ""
+        self.state = "stop"
 
         if not get_log_callback():
             set_log_callback(_log_callback)
@@ -105,54 +109,62 @@ class SoundFFPy(Sound):
     def _player_callback(self, selector, value):
         if self._ffplayer is None:
             return
-        if selector == 'quit':
+        if selector == "quit":
+
             def close(*args):
                 self.quitted = True
                 self.unload()
+
             Clock.schedule_once(close, 0)
-        elif selector == 'eof':
+        elif selector == "eof":
             Clock.schedule_once(self._do_eos, 0)
 
     def load(self):
         self.unload()
-        ff_opts = {'vn': True, 'sn': True}  # only audio
-        self._ffplayer = MediaPlayer(self.source,
-                                     callback=self._player_callback,
-                                     loglevel='info', ff_opts=ff_opts)
+        ff_opts = {"vn": True, "sn": True}  # only audio
+        self._ffplayer = MediaPlayer(
+            self.source,
+            callback=self._player_callback,
+            loglevel="info",
+            ff_opts=ff_opts,
+        )
         player = self._ffplayer
         player.set_volume(self.volume)
         player.toggle_pause()
-        self._state = 'paused'
+        self._state = "paused"
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         s = time.perf_counter()
-        while (player.get_metadata()['duration'] is None and
-               not self.quitted and time.perf_counter() - s < 10.):
+        while (
+            player.get_metadata()["duration"] is None
+            and not self.quitted
+            and time.perf_counter() - s < 10.0
+        ):
             time.sleep(0.005)
 
     def unload(self):
         if self._ffplayer:
             self._ffplayer = None
-        self._state = ''
-        self.state = 'stop'
+        self._state = ""
+        self.state = "stop"
         self.quitted = False
 
     def play(self):
-        if self._state == 'playing':
+        if self._state == "playing":
             super(SoundFFPy, self).play()
             return
         if not self._ffplayer:
             self.load()
         self._ffplayer.toggle_pause()
-        self._state = 'playing'
-        self.state = 'play'
+        self._state = "playing"
+        self.state = "play"
         super(SoundFFPy, self).play()
 
     def stop(self):
-        if self._ffplayer and self._state == 'playing':
+        if self._ffplayer and self._state == "playing":
             self._ffplayer.toggle_pause()
-            self._state = 'paused'
-            self.state = 'stop'
+            self._state = "paused"
+            self.state = "stop"
         super(SoundFFPy, self).stop()
 
     def seek(self, position):
@@ -172,13 +184,13 @@ class SoundFFPy(Sound):
     def _get_length(self):
         if self._ffplayer is None:
             return super(SoundFFPy, self)._get_length()
-        return self._ffplayer.get_metadata()['duration']
+        return self._ffplayer.get_metadata()["duration"]
 
     def _do_eos(self, *args):
         if not self.loop:
             self.stop()
         else:
-            self.seek(0.)
+            self.seek(0.0)
 
 
 SoundLoader.register(SoundFFPy)

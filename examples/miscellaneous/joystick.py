@@ -52,26 +52,30 @@ class Listener(Widget):
             Clock.unschedule(self.HOLD)
 
         # schedule if over OFFSET (to prevent accidental event with low value)
-        if (axis in self.FIRE and value > self.STOP_FIRE or
-                axis not in self.FIRE and abs(value) >= self.OFFSET):
+        if (
+            axis in self.FIRE
+            and value > self.STOP_FIRE
+            or axis not in self.FIRE
+            and abs(value) >= self.OFFSET
+        ):
             self.VALUES = [event, id, axis, value]
             self.HOLD = Clock.schedule_interval(self.print_values, 0)
 
     # replace window instance with identifier
     def on_joy_axis(self, win, stickid, axisid, value):
-        self.joy_motion('axis', stickid, axisid, value)
+        self.joy_motion("axis", stickid, axisid, value)
 
     def on_joy_ball(self, win, stickid, ballid, xvalue, yvalue):
-        self.joy_motion('ball', stickid, ballid, (xvalue, yvalue))
+        self.joy_motion("ball", stickid, ballid, (xvalue, yvalue))
 
     def on_joy_hat(self, win, stickid, hatid, value):
-        self.joy_motion('hat', stickid, hatid, value)
+        self.joy_motion("hat", stickid, hatid, value)
 
     def on_joy_button_down(self, win, stickid, buttonid):
-        print('button_down', stickid, buttonid)
+        print("button_down", stickid, buttonid)
 
     def on_joy_button_up(self, win, stickid, buttonid):
-        print('button_up', stickid, buttonid)
+        print("button_up", stickid, buttonid)
 
 
 class JoystickApp(App):
@@ -79,5 +83,5 @@ class JoystickApp(App):
         return Listener()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     JoystickApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Circle Example
 ==============
 
@@ -8,12 +8,12 @@ angle start and stop and the height and width scales. There is a button
 to reset the sliders. The logo used for the circle's background image is
 from the kivy/data directory. The entire example is coded in the
 kv language description.
-'''
+"""
 
 from kivy.app import App
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 BoxLayout:
     orientation: 'vertical'
     BoxLayout:
@@ -73,7 +73,7 @@ BoxLayout:
                 angle_start: e1.value
                 angle_end: e2.value
 
-'''
+"""
 
 
 class CircleApp(App):

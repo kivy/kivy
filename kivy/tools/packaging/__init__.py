@@ -1,4 +1,4 @@
-'''
+"""
 Packaging
 =========
 
@@ -9,4 +9,4 @@ Windows, Linux and Mac.
 
 For more information, please see the `PyInstaller website
 <http://www.pyinstaller.org/>`_
-'''
+"""

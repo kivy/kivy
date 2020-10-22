@@ -33,7 +33,7 @@ Start a new :ref:`console window <windows-run-app>` that has Python available.
 
    Optional **(but strongly recommended)**: Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
    for your Kivy project. A virtual environment will prevent possible installation conflicts with other Python versions and with other packages.
-   
+
    #. Create the virtual environment named `kivy_venv` in your current directory::
 
         python -m virtualenv kivy_venv
@@ -164,9 +164,9 @@ We offer the wheels for Kivy and the wheels for its dependencies separately, so 
 
 .. note::
     depending on the keyword you used in the installation of Kivy itself you may already have some of the below dependencies installed. For example the keyword *full* (``python -m pip install kivy[full]``) installs the dependencies ``sdl2``, ``glew``, ``angle`` and ``gstreamer``.
-    
+
     The following table lists which keyword installs what:
-    
+
     +---------------------+------+------+------+
     |                     | none | base | full |
     +=====================+======+======+======+
@@ -193,7 +193,7 @@ So, the following are the dependency wheels which we provide for Windows:
 
 * `glew <http://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_
-  
+
   These are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_. They can be installed with ``python -m pip install kivy_deps.glew`` and/or ``python -m pip install kivy_deps.angle``. You can install both, that is no problem.
 
   One can select which of these to use for OpenGL using the
@@ -227,9 +227,9 @@ However, to compile and install from `the kivy source code <https://github.com/k
 
 #. Get the compiler.
    The *Visual Studio Build Tools* are required, they are available for free.
-  
+
    You can either download and install the complete *Visual Studio IDE*, which contains the build tools, or alternatively just the build tools.
-  
+
    The IDE can be downloaded from `here <https://www.visualstudio.com/downloads/>`_.
 
    The IDE is very big, so you can also download just the smaller build tools, which are used from the command line.
@@ -243,7 +243,7 @@ However, to compile and install from `the kivy source code <https://github.com/k
      python -m pip install |cython_install| docutils pygments pypiwin32 kivy_deps.sdl2 \
      kivy_deps.glew kivy_deps.angle kivy_deps.gstreamer kivy_deps.glew_dev kivy_deps.sdl2_dev \
      kivy_deps.gstreamer_dev
-   
+
    Notice, we don't pin the versions of the dependencies like we do for the stable Kivy, because we want the
    latest.
 

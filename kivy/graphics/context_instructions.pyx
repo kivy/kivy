@@ -963,5 +963,3 @@ cdef class Translate(Transform):
     @xyz.setter
     def xyz(self, c):
         self.set_translate(c[0], c[1], c[2])
-
-

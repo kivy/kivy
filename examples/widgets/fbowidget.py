@@ -1,4 +1,4 @@
-'''
+"""
 FBO example
 ===========
 
@@ -27,7 +27,7 @@ overloaded too.
     in Framebuffer. We will work to add the support of it if the hardware is
     capable of, but it could be not the same.
 
-'''
+"""
 
 
 # needed to create Fbo, must be resolved in future kivy version
@@ -80,7 +80,7 @@ class FboFloatLayout(FloatLayout):
         self.fbo_rect.texture = value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.uix.button import Button
     from kivy.app import App
 
@@ -98,13 +98,13 @@ if __name__ == '__main__':
             size = (s, s)
             sh = (None, None)
             add = root.add_widget
-            print('Creating 5000 widgets...')
+            print("Creating 5000 widgets...")
             for i in range(5000):
                 x = (i % 40) * s
                 y = int(i / 40) * s
                 add(Button(text=str(i), pos=(x, y), size_hint=sh, size=size))
                 if i % 1000 == 1000 - 1:
-                    print(5000 - i - 1, 'left...')
+                    print(5000 - i - 1, "left...")
 
             return root
 

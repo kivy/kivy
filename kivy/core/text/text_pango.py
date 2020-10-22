@@ -1,4 +1,4 @@
-'''
+"""
 Pango text provider
 ===================
 
@@ -70,27 +70,28 @@ Known limitations
   due to missing abstractions in Kivy core (in the current implementation,
   we have a dedicated PangoLayout *per font context,* which is rendered
   once for each LayoutWord)
-'''
+"""
 
-__all__ = ('LabelPango', )
+__all__ = ("LabelPango",)
 
 from types import MethodType
 from os.path import isfile
 from kivy.resources import resource_find
 from kivy.core.text import LabelBase, FontContextManagerBase
 from kivy.core.text._text_pango import (
-        KivyPangoRenderer,
-        kpango_get_extents,
-        kpango_get_ascent,
-        kpango_get_descent,
-        kpango_find_base_dir,
-        kpango_font_context_exists,
-        kpango_font_context_create,
-        kpango_font_context_destroy,
-        kpango_font_context_add_font,
-        kpango_font_context_list,
-        kpango_font_context_list_custom,
-        kpango_font_context_list_families)
+    KivyPangoRenderer,
+    kpango_get_extents,
+    kpango_get_ascent,
+    kpango_get_descent,
+    kpango_find_base_dir,
+    kpango_font_context_exists,
+    kpango_font_context_create,
+    kpango_font_context_destroy,
+    kpango_font_context_add_font,
+    kpango_font_context_list,
+    kpango_font_context_list_custom,
+    kpango_font_context_list_families,
+)
 
 
 class LabelPango(LabelBase):
@@ -128,18 +129,21 @@ class PangoFontContextManager(FontContextManagerBase):
     @staticmethod
     def add_font(font_context, filename, autocreate=True, family=None):
         if not autocreate and not PangoFontContextManager.exists(font_context):
-            raise Exception("FontContextManager: Attempt to add font file "
-                            "'{}' to non-existing context '{}' without "
-                            "autocreate.".format(filename, font_context))
+            raise Exception(
+                "FontContextManager: Attempt to add font file "
+                "'{}' to non-existing context '{}' without "
+                "autocreate.".format(filename, font_context)
+            )
         if not filename:
             raise Exception("FontContextManager: Cannot add empty font file")
         if not isfile(filename):
             filename = resource_find(filename)
         if not isfile(filename):
-            if not filename.endswith('.ttf'):
-                filename = resource_find('{}.ttf'.format(filename))
+            if not filename.endswith(".ttf"):
+                filename = resource_find("{}.ttf".format(filename))
         if filename and isfile(filename):
             return kpango_font_context_add_font(font_context, filename)
-        raise Exception("FontContextManager: Attempt to add non-existant "
-                        "font file: '{}' to context '{}'"
-                        .format(filename, font_context))
+        raise Exception(
+            "FontContextManager: Attempt to add non-existant "
+            "font file: '{}' to context '{}'".format(filename, font_context)
+        )

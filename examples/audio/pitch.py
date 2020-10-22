@@ -9,21 +9,22 @@ from sys import version_info
 
 
 NOTES = (
-    ('Do', 1),
-    ('Ré', 9 / 8.),
-    ('Mi', 5 / 4.),
-    ('Fa', 4 / 3.),
-    ('Sol', 3 / 2.),
-    ('La', 5 / 3.),
-    ('Si', 15 / 8.),
+    ("Do", 1),
+    ("Ré", 9 / 8.0),
+    ("Mi", 5 / 4.0),
+    ("Fa", 4 / 3.0),
+    ("Sol", 3 / 2.0),
+    ("La", 5 / 3.0),
+    ("Si", 15 / 8.0),
 )
 
 
 class Test(App):
     def build(self):
         self.sound = SoundLoader.load(
-            '/usr/lib64/python{}.{}/test/audiodata/pluck-pcm32.wav'
-            .format(*version_info[0:2])
+            "/usr/lib64/python{}.{}/test/audiodata/pluck-pcm32.wav".format(
+                *version_info[0:2]
+            )
         )
         root = BoxLayout()
         for octave in range(-2, 3):

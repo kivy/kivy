@@ -1,5 +1,10 @@
-from kivy.tests.common import GraphicUnitTest, UnitTestTouch, UTMotionEvent, \
-    async_run
+from kivy.tests.common import (
+    GraphicUnitTest,
+    UnitTestTouch,
+    UTMotionEvent,
+    async_run,
+)
+
 try:
     from kivy.tests.async_common import UnitKivyApp
 except SyntaxError:
@@ -7,5 +12,10 @@ except SyntaxError:
     # it's ok to be None as it won't be used anyway
     UnitKivyApp = None
 
-__all__ = ('GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
-           'UnitKivyApp')
+__all__ = (
+    "GraphicUnitTest",
+    "UnitTestTouch",
+    "UTMotionEvent",
+    "async_run",
+    "UnitKivyApp",
+)

@@ -386,7 +386,7 @@ cdef class Svg(RenderContext):
         :param color the default color to use for Svg elements that specify "currentColor"
 
         .. note:: if you want to use SVGs from string, you can parse the source yourself
-            using `from xml.etree.cElementTree import fromstring` and pass the result to 
+            using `from xml.etree.cElementTree import fromstring` and pass the result to
             Svg().set_tree(). This will trigger the rendering of the Svg - as an alternative
             to assigning a filepath to Svg.source. This is also viable to trigger reloading.
 
@@ -526,7 +526,7 @@ cdef class Svg(RenderContext):
     def set_tree(self, tree):
         '''
         sets the tree used to render the Svg and triggers reloading.
-	
+
         :param xml.etree.cElementTree tree: the tree parsed from the SVG source
 
         .. versionadded:: 2.0.0
@@ -937,7 +937,7 @@ cdef class Svg(RenderContext):
         x_ = cp * dx + sp * dy
         y_ = -sp * dx + cp * dy
         r2 = (((rx * ry)**2 - (rx * y_)**2 - (ry * x_)**2)/
-	      ((rx * y_)**2 + (ry * x_)**2))
+          ((rx * y_)**2 + (ry * x_)**2))
         if r2 < 0: r2 = 0
         r = sqrt(r2)
         if large_arc == sweep:

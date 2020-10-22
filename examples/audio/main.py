@@ -1,4 +1,4 @@
-'''
+"""
 Audio example
 =============
 
@@ -9,10 +9,11 @@ restart, each sound. Not all sound formats will play on all platforms.
 All the sounds are from the http://woolyss.com/chipmusic-samples.php
 "THE FREESOUND PROJECT", Under Creative Commons Sampling Plus 1.0 License.
 
-'''
+"""
 
 import kivy
-kivy.require('1.0.8')
+
+kivy.require("1.0.8")
 
 from kivy.app import App
 from kivy.uix.button import Button
@@ -33,7 +34,7 @@ class AudioButton(Button):
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
         # stop the sound if it's currently playing
-        if self.sound.status != 'stop':
+        if self.sound.status != "stop":
             self.sound.stop()
         self.sound.volume = self.volume
         self.sound.play()
@@ -55,15 +56,18 @@ class AudioBackground(BoxLayout):
 
 
 class AudioApp(App):
-
     def build(self):
 
         root = AudioBackground(spacing=5)
-        for fn in glob(join(dirname(__file__), '*.wav')):
+        for fn in glob(join(dirname(__file__), "*.wav")):
             btn = AudioButton(
-                text=basename(fn[:-4]).replace('_', ' '), filename=fn,
-                size_hint=(None, None), halign='center',
-                size=(128, 128), text_size=(118, None))
+                text=basename(fn[:-4]).replace("_", " "),
+                filename=fn,
+                size_hint=(None, None),
+                halign="center",
+                size=(128, 128),
+                text_size=(118, None),
+            )
             root.ids.sl.add_widget(btn)
 
         return root
@@ -77,5 +81,5 @@ class AudioApp(App):
             audiobutton.set_volume(value)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AudioApp().run()

@@ -58,15 +58,22 @@ document.
 
 '''
 
-__all__ = ('RstDocument', )
+__all__ = ("RstDocument",)
 
 import os
 from os.path import dirname, join, exists, abspath
 from kivy.clock import Clock
 from kivy.compat import PY2
-from kivy.properties import ObjectProperty, NumericProperty, \
-    DictProperty, ListProperty, StringProperty, \
-    BooleanProperty, OptionProperty, AliasProperty
+from kivy.properties import (
+    ObjectProperty,
+    NumericProperty,
+    DictProperty,
+    ListProperty,
+    StringProperty,
+    BooleanProperty,
+    OptionProperty,
+    AliasProperty,
+)
 from kivy.lang import Builder
 from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.widget import Widget
@@ -88,7 +95,7 @@ from docutils.parsers.rst.roles import set_classes
 #
 # Handle some additional roles
 #
-if 'KIVY_DOC' not in os.environ:
+if "KIVY_DOC" not in os.environ:
 
     class role_doc(nodes.Inline, nodes.TextElement):
         pass
@@ -101,25 +108,27 @@ if 'KIVY_DOC' not in os.environ:
         required_arguments = 1
         optional_arguments = 0
         final_argument_whitespace = True
-        option_spec = {'width': directives.nonnegative_int,
-                       'height': directives.nonnegative_int}
+        option_spec = {
+            "width": directives.nonnegative_int,
+            "height": directives.nonnegative_int,
+        }
 
         def run(self):
             set_classes(self.options)
             node = role_video(source=self.arguments[0], **self.options)
             return [node]
 
-    generic_docroles = {
-        'doc': role_doc}
+    generic_docroles = {"doc": role_doc}
 
     for rolename, nodeclass in generic_docroles.items():
         generic = roles.GenericRole(rolename, nodeclass)
-        role = roles.CustomRole(rolename, generic, {'classes': [rolename]})
+        role = roles.CustomRole(rolename, generic, {"classes": [rolename]})
         roles.register_local_role(rolename, role)
 
-    directives.register_directive('video', VideoDirective)
+    directives.register_directive("video", VideoDirective)
 
-Builder.load_string('''
+Builder.load_string(
+    """
 #:import parse_color kivy.parser.parse_color
 
 
@@ -402,7 +411,8 @@ Builder.load_string('''
             pos: self.x - 25, self.y - 25
             size: self.width + 50, self.height + 50
             border: (25, 25, 25, 25)
-''')
+"""
+)
 
 
 class RstVideoPlayer(VideoPlayer):
@@ -410,18 +420,19 @@ class RstVideoPlayer(VideoPlayer):
 
 
 class RstDocument(ScrollView):
-    '''Base widget used to store an Rst document. See module documentation for
+    """Base widget used to store an Rst document. See module documentation for
     more information.
-    '''
+    """
+
     source = StringProperty(None)
-    '''Filename of the RST document.
+    """Filename of the RST document.
 
     :attr:`source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
-    '''
+    """
 
-    source_encoding = StringProperty('utf-8')
-    '''Encoding to be used for the :attr:`source` file.
+    source_encoding = StringProperty("utf-8")
+    """Encoding to be used for the :attr:`source` file.
 
     :attr:`source_encoding` is a :class:`~kivy.properties.StringProperty` and
     defaults to `utf-8`.
@@ -429,48 +440,54 @@ class RstDocument(ScrollView):
     .. Note::
         It is your responsibility to ensure that the value provided is a
         valid codec supported by python.
-    '''
+    """
 
-    source_error = OptionProperty('strict',
-                                  options=('strict', 'ignore', 'replace',
-                                           'xmlcharrefreplace',
-                                           'backslashreplac'))
-    '''Error handling to be used while encoding the :attr:`source` file.
+    source_error = OptionProperty(
+        "strict",
+        options=(
+            "strict",
+            "ignore",
+            "replace",
+            "xmlcharrefreplace",
+            "backslashreplac",
+        ),
+    )
+    """Error handling to be used while encoding the :attr:`source` file.
 
     :attr:`source_error` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `strict`. Can be one of 'strict', 'ignore', 'replace',
     'xmlcharrefreplace' or 'backslashreplac'.
-    '''
+    """
 
     text = StringProperty(None)
-    '''RST markup text of the document.
+    """RST markup text of the document.
 
     :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.
-    '''
+    """
 
     document_root = StringProperty(None)
-    '''Root path where :doc: will search for rst documents. If no path is
+    """Root path where :doc: will search for rst documents. If no path is
     given, it will use the directory of the first loaded source file.
 
     :attr:`document_root` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
-    '''
+    """
 
     base_font_size = NumericProperty(31)
-    '''Font size for the biggest title, 31 by default. All other font sizes are
+    """Font size for the biggest title, 31 by default. All other font sizes are
     derived from this.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     show_errors = BooleanProperty(False)
-    '''Indicate whether RST parsers errors should be shown on the screen
+    """Indicate whether RST parsers errors should be shown on the screen
     or not.
 
     :attr:`show_errors` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     def _get_bgc(self):
         return get_color_from_hex(self.colors.background)
@@ -478,24 +495,27 @@ class RstDocument(ScrollView):
     def _set_bgc(self, value):
         self.colors.background = get_hex_from_color(value)[1:]
 
-    background_color = AliasProperty(_get_bgc, _set_bgc,
-                                     bind=('colors',),
-                                     cache=True)
-    '''Specifies the background_color to be used for the RstDocument.
+    background_color = AliasProperty(
+        _get_bgc, _set_bgc, bind=("colors",), cache=True
+    )
+    """Specifies the background_color to be used for the RstDocument.
 
     .. versionadded:: 1.8.0
 
     :attr:`background_color` is an :class:`~kivy.properties.AliasProperty`
     for colors['background'].
-    '''
+    """
 
-    colors = DictProperty({
-        'background': 'e5e6e9ff',
-        'link': 'ce5c00ff',
-        'paragraph': '202020ff',
-        'title': '204a87ff',
-        'bullet': '000000ff'})
-    '''Dictionary of all the colors used in the RST rendering.
+    colors = DictProperty(
+        {
+            "background": "e5e6e9ff",
+            "link": "ce5c00ff",
+            "paragraph": "202020ff",
+            "title": "204a87ff",
+            "bullet": "000000ff",
+        }
+    )
+    """Dictionary of all the colors used in the RST rendering.
 
     .. warning::
 
@@ -503,17 +523,17 @@ class RstDocument(ScrollView):
         :meth:`RstDocument.render` if you change them after loading.
 
     :attr:`colors` is a :class:`~kivy.properties.DictProperty`.
-    '''
+    """
 
-    title = StringProperty('')
-    '''Title of the current document.
+    title = StringProperty("")
+    """Title of the current document.
 
     :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''. It is read-only.
-    '''
+    """
 
     toctrees = DictProperty({})
-    '''Toctree of all loaded or preloaded documents. This dictionary is filled
+    """Toctree of all loaded or preloaded documents. This dictionary is filled
     when a rst document is explicitly loaded or where :meth:`preload` has been
     called.
 
@@ -522,16 +542,16 @@ class RstDocument(ScrollView):
 
     :attr:`toctrees` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
-    '''
+    """
 
-    underline_color = StringProperty('204a9699')
-    '''underline color of the titles, expressed in html color notation
+    underline_color = StringProperty("204a9699")
+    """underline color of the titles, expressed in html color notation
 
     :attr:`underline_color` is a
     :class:`~kivy.properties.StringProperty` and defaults to '204a9699'.
 
     .. versionadded: 1.9.0
-    '''
+    """
 
     # internals.
     content = ObjectProperty(None)
@@ -543,7 +563,8 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-            components=(rst.Parser, )).get_default_values()
+            components=(rst.Parser,)
+        ).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
@@ -559,29 +580,28 @@ class RstDocument(ScrollView):
         self._trigger_load()
 
     def render(self):
-        '''Force document rendering.
-        '''
+        """Force document rendering."""
         self._load_from_text()
 
     def resolve_path(self, filename):
-        '''Get the path for this filename. If the filename doesn't exist,
+        """Get the path for this filename. If the filename doesn't exist,
         it returns the document_root + filename.
-        '''
+        """
         if exists(filename):
             return filename
         return join(self.document_root, filename)
 
-    def preload(self, filename, encoding='utf-8', errors='strict'):
-        '''Preload a rst file to get its toctree and its title.
+    def preload(self, filename, encoding="utf-8", errors="strict"):
+        """Preload a rst file to get its toctree and its title.
 
         The result will be stored in :attr:`toctrees` with the ``filename`` as
         key.
-        '''
+        """
 
-        with open(filename, 'rb') as fd:
+        with open(filename, "rb") as fd:
             text = fd.read().decode(encoding, errors)
         # parse the source
-        document = utils.new_document('Document', self._settings)
+        document = utils.new_document("Document", self._settings)
         self._parser.parse(text, document)
         # fill the current document node
         visitor = _ToctreeVisitor(document)
@@ -591,9 +611,9 @@ class RstDocument(ScrollView):
 
     def _load_from_source(self):
         filename = self.resolve_path(self.source)
-        self.text = self.preload(filename,
-                                 self.source_encoding,
-                                 self.source_error)
+        self.text = self.preload(
+            filename, self.source_encoding, self.source_error
+        )
 
     def _load_from_text(self, *largs):
         try:
@@ -603,25 +623,25 @@ class RstDocument(ScrollView):
             self.refs_assoc = {}
 
             # parse the source
-            document = utils.new_document('Document', self._settings)
+            document = utils.new_document("Document", self._settings)
             text = self.text
             if PY2 and type(text) is str:
-                text = text.decode('utf-8')
+                text = text.decode("utf-8")
             self._parser.parse(text, document)
 
             # fill the current document node
             visitor = _Visitor(self, document)
             document.walkabout(visitor)
 
-            self.title = visitor.title or 'No title'
+            self.title = visitor.title or "No title"
         except:
-            Logger.exception('Rst: error while loading text')
+            Logger.exception("Rst: error while loading text")
 
     def on_ref_press(self, node, ref):
         self.goto(ref)
 
     def goto(self, ref, *largs):
-        '''Scroll to the reference. If it's not found, nothing will be done.
+        """Scroll to the reference. If it's not found, nothing will be done.
 
         For this text::
 
@@ -649,9 +669,9 @@ class RstDocument(ScrollView):
             loaded.
 
         .. versionadded:: 1.3.0
-        '''
+        """
         # check if it's a file ?
-        if ref.endswith('.rst'):
+        if ref.endswith(".rst"):
             # whether it's a valid or invalid file, let source deal with it
             self.source = ref
             return
@@ -685,7 +705,7 @@ class RstDocument(ScrollView):
 
         dx, dy = self.convert_distance_to_scroll(0, ay)
         dy = max(0, min(1, dy))
-        Animation(scroll_y=dy, d=.25, t='in_out_expo').start(self)
+        Animation(scroll_y=dy, d=0.25, t="in_out_expo").start(self)
 
     def add_anchors(self, node):
         self.anchors_widgets.append(node)
@@ -709,7 +729,7 @@ class RstParagraph(Label):
 
 class RstTerm(AnchorLayout):
 
-    text = StringProperty('')
+    text = StringProperty("")
 
     document = ObjectProperty(None)
 
@@ -813,11 +833,10 @@ class RstDefinitionSpace(Widget):
 
 
 class _ToctreeVisitor(nodes.NodeVisitor):
-
     def __init__(self, *largs):
         self.toctree = self.current = []
         self.queue = []
-        self.text = ''
+        self.text = ""
         nodes.NodeVisitor.__init__(self, *largs)
 
     def push(self, tree):
@@ -831,17 +850,18 @@ class _ToctreeVisitor(nodes.NodeVisitor):
         cls = node.__class__
         if cls is nodes.section:
             section = {
-                'ids': node['ids'],
-                'names': node['names'],
-                'title': '',
-                'children': []}
+                "ids": node["ids"],
+                "names": node["names"],
+                "title": "",
+                "children": [],
+            }
             if isinstance(self.current, dict):
-                self.current['children'].append(section)
+                self.current["children"].append(section)
             else:
                 self.current.append(section)
             self.push(section)
         elif cls is nodes.title:
-            self.text = ''
+            self.text = ""
         elif cls is nodes.Text:
             self.text += node
 
@@ -850,18 +870,17 @@ class _ToctreeVisitor(nodes.NodeVisitor):
         if cls is nodes.section:
             self.pop()
         elif cls is nodes.title:
-            self.current['title'] = self.text
+            self.current["title"] = self.text
 
 
 class _Visitor(nodes.NodeVisitor):
-
     def __init__(self, root, *largs):
         self.root = root
         self.title = None
         self.current_list = []
         self.current = None
         self.idx_list = None
-        self.text = ''
+        self.text = ""
         self.text_have_anchor = False
         self.section = 0
         self.do_strip_text = False
@@ -872,25 +891,25 @@ class _Visitor(nodes.NodeVisitor):
 
         # store order for autonum/sym footnotes+refs
         self.footnotes = {
-            'autonum': 0,
-            'autosym': 0,
-            'autonum_ref': 0,
-            'autosym_ref': 0,
+            "autonum": 0,
+            "autosym": 0,
+            "autonum_ref": 0,
+            "autosym_ref": 0,
         }
 
         # last four default chars aren't in our Roboto font,
         # those were replaced with something else
         self.footlist = [
-            '\u002A',  # asterisk
-            '\u2020',  # dagger
-            '\u2021',  # doubledagger
-            '\u00A7',  # section
-            '\u00B6',  # pilcrow
-            '\u0023',  # number
-            '\u2206',  # cap delta
-            '\u220F',  # cap pi
-            '\u0470',  # cap psi
-            '\u0466',  # cap yus
+            "\u002A",  # asterisk
+            "\u2020",  # dagger
+            "\u2021",  # doubledagger
+            "\u00A7",  # section
+            "\u00B6",  # pilcrow
+            "\u0023",  # number
+            "\u2206",  # cap delta
+            "\u220F",  # cap pi
+            "\u0470",  # cap psi
+            "\u0466",  # cap yus
         ]
         nodes.NodeVisitor.__init__(self, *largs)
 
@@ -912,36 +931,36 @@ class _Visitor(nodes.NodeVisitor):
             _nodes = node.traverse(condition=condition, ascend=False)
 
             for f in _nodes:
-                id = f['ids'][0]
-                auto = ''
-                if 'auto' in f:
-                    auto = f['auto']
+                id = f["ids"][0]
+                auto = ""
+                if "auto" in f:
+                    auto = f["auto"]
 
                 # auto is either 1(int) or '*'
                 if auto == 1:
                     autonum += 1
-                    key = 'backref' + str(autonum) if backref else str(autonum)
+                    key = "backref" + str(autonum) if backref else str(autonum)
                     self.root.refs_assoc[key] = id
-                elif auto == '*':
-                    sym = self.footlist[
-                        autosym % 10
-                    ] * (int(autosym / 10) + 1)
-                    key = 'backref' + sym if backref else sym
+                elif auto == "*":
+                    sym = self.footlist[autosym % 10] * (int(autosym / 10) + 1)
+                    key = "backref" + sym if backref else sym
                     self.root.refs_assoc[key] = id
                     autosym += 1
                 else:
                     if not backref:
-                        key = f['names'][0]
+                        key = f["names"][0]
                         if key:
                             self.root.refs_assoc[key] = id
                         continue
 
-                    key = 'backref' + f['refname'][0]
+                    key = "backref" + f["refname"][0]
 
                     if key in self.root.refs_assoc:
                         self.root.refs_assoc[key].append(id)
                     else:
-                        self.root.refs_assoc[key] = [id, ]
+                        self.root.refs_assoc[key] = [
+                            id,
+                        ]
 
         # these are unique and need to go FIRST
         get_refs(nodes.footnote, backref=False)
@@ -962,134 +981,126 @@ class _Visitor(nodes.NodeVisitor):
             self.section += 1
 
         elif cls is nodes.substitution_definition:
-            name = node.attributes['names'][0]
+            name = node.attributes["names"][0]
             self.substitution[name] = node.children[0]
 
         elif cls is nodes.substitution_reference:
-            node = self.substitution[node.attributes['refname']]
+            node = self.substitution[node.attributes["refname"]]
             # it can be e.g. image or something else too!
             if isinstance(node, nodes.Text):
                 self.text += node
 
         elif cls is nodes.footnote:
             # .. [x] footnote
-            text = ''
+            text = ""
             foot = RstFootnote()
-            ids = node.attributes['ids']
+            ids = node.attributes["ids"]
             self.current.add_widget(foot)
             self.push(foot)
 
             # check if its autonumbered
-            auto = ''
-            if 'auto' in node.attributes:
-                auto = node.attributes['auto']
+            auto = ""
+            if "auto" in node.attributes:
+                auto = node.attributes["auto"]
 
             # auto is either 1(int) or '*'
             if auto == 1:
-                self.footnotes['autonum'] += 1
-                name = str(self.footnotes['autonum'])
-                node_id = node.attributes['ids'][0]
-            elif auto == '*':
-                autosym = self.footnotes['autosym']
-                name = self.footlist[
-                    autosym % 10
-                ] * (int(autosym / 10) + 1)
-                self.footnotes['autosym'] += 1
-                node_id = node.attributes['ids'][0]
+                self.footnotes["autonum"] += 1
+                name = str(self.footnotes["autonum"])
+                node_id = node.attributes["ids"][0]
+            elif auto == "*":
+                autosym = self.footnotes["autosym"]
+                name = self.footlist[autosym % 10] * (int(autosym / 10) + 1)
+                self.footnotes["autosym"] += 1
+                node_id = node.attributes["ids"][0]
             else:
                 # can have multiple refs:
                 # [8] (1, 2) Footnote ref
-                name = node.attributes['names'][0]
-                node_id = node['ids'][0]
+                name = node.attributes["names"][0]
+                node_id = node["ids"][0]
 
             # we can have a footnote without any link or ref
             # .. [1] Empty footnote
-            link = self.root.refs_assoc.get(name, '')
+            link = self.root.refs_assoc.get(name, "")
 
             # handle no refs
-            ref = self.root.refs_assoc.get('backref' + name, '')
+            ref = self.root.refs_assoc.get("backref" + name, "")
 
             # colorize only with refs
-            colorized = self.colorize(name, 'link') if ref else name
+            colorized = self.colorize(name, "link") if ref else name
 
             # has no refs
             if not ref:
-                text = '&bl;%s&br;' % (colorized)
+                text = "&bl;%s&br;" % (colorized)
             # list of refs
             elif ref and isinstance(ref, list):
                 ref_block = [
-                    '[ref=%s][u]%s[/u][/ref]' % (r, i + 1)
+                    "[ref=%s][u]%s[/u][/ref]" % (r, i + 1)
                     for i, r in enumerate(ref)
                 ]
                 # [1] ( 1, 2, ...) Footnote
-                self.foot_refblock = ''.join([
-                    '[i]( ', ', '.join(ref_block), ' )[/i]'
-                ])
-
-                text = '[anchor=%s]&bl;%s&br;' % (
-                    node['ids'][0], colorized
+                self.foot_refblock = "".join(
+                    ["[i]( ", ", ".join(ref_block), " )[/i]"]
                 )
+
+                text = "[anchor=%s]&bl;%s&br;" % (node["ids"][0], colorized)
             # single ref
             else:
-                text = '[anchor=%s][ref=%s]&bl;%s&br;[/ref]' % (
-                    node['ids'][0], ref, colorized
+                text = "[anchor=%s][ref=%s]&bl;%s&br;[/ref]" % (
+                    node["ids"][0],
+                    ref,
+                    colorized,
                 )
 
-            name = RstFootName(
-                document=self.root,
-                text=text,
-            )
+            name = RstFootName(document=self.root, text=text,)
             self.current.add_widget(name)
             # give it anchor + event manually
             self.root.add_anchors(name)
             name.bind(on_ref_press=self.root.on_ref_press)
 
         elif cls is nodes.footnote_reference:
-            self.text += '&bl;'
-            text = ''
-            name = ''
+            self.text += "&bl;"
+            text = ""
+            name = ""
 
             # check if its autonumbered
-            auto = ''
-            if 'auto' in node.attributes:
-                auto = node.attributes['auto']
+            auto = ""
+            if "auto" in node.attributes:
+                auto = node.attributes["auto"]
 
             # auto is either 1(int) or '*'
             if auto == 1:
-                self.footnotes['autonum_ref'] += 1
-                name = str(self.footnotes['autonum_ref'])
-                node_id = node.attributes['ids'][0]
-            elif auto == '*':
-                autosym = self.footnotes['autosym_ref']
-                name = self.footlist[
-                    autosym % 10
-                ] * (int(autosym / 10) + 1)
-                self.footnotes['autosym_ref'] += 1
-                node_id = node.attributes['ids'][0]
+                self.footnotes["autonum_ref"] += 1
+                name = str(self.footnotes["autonum_ref"])
+                node_id = node.attributes["ids"][0]
+            elif auto == "*":
+                autosym = self.footnotes["autosym_ref"]
+                name = self.footlist[autosym % 10] * (int(autosym / 10) + 1)
+                self.footnotes["autosym_ref"] += 1
+                node_id = node.attributes["ids"][0]
             else:
                 # can have multiple refs:
                 # [8] (1, 2) Footnote ref
                 name = node.children[0]
-                node_id = node['ids'][0]
+                node_id = node["ids"][0]
             text += name
 
-            refs = self.root.refs_assoc.get(name, '')
-            if not refs and auto in (1, '*'):
+            refs = self.root.refs_assoc.get(name, "")
+            if not refs and auto in (1, "*"):
                 # parser should trigger it when checking
                 # for backlinks, but we don't have **any** refs
                 # to work with, so we have to trigger it manually
                 raise Exception(
-                    'Too many autonumbered or autosymboled '
-                    'footnote references!'
+                    "Too many autonumbered or autosymboled "
+                    "footnote references!"
                 )
 
             # has a single or no refs ( '' )
-            text = '[anchor=%s][ref=%s][color=%s]%s' % (
-                node_id, refs,
-                self.root.colors.get(
-                    'link', self.root.colors.get('paragraph')
-                ),
-                text
+            text = "[anchor=%s][ref=%s][color=%s]%s" % (
+                node_id,
+                refs,
+                self.root.colors.get("link", self.root.colors.get("paragraph")),
+                text,
             )
             self.text += text
             self.text_have_anchor = True
@@ -1102,17 +1113,17 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.Text:
             # check if parent isn't a special directive
-            if hasattr(node, 'parent'):
-                if node.parent.tagname == 'substitution_definition':
+            if hasattr(node, "parent"):
+                if node.parent.tagname == "substitution_definition":
                     # .. |ref| replace:: something
                     return
-                elif node.parent.tagname == 'substitution_reference':
+                elif node.parent.tagname == "substitution_reference":
                     # |ref|
                     return
-                elif node.parent.tagname == 'comment':
+                elif node.parent.tagname == "comment":
                     # .. COMMENT
                     return
-                elif node.parent.tagname == 'footnote_reference':
+                elif node.parent.tagname == "footnote_reference":
                     # .. [#]_
                     # .. [*]_
                     # rewrite it to handle autonum/sym here
@@ -1120,15 +1131,15 @@ class _Visitor(nodes.NodeVisitor):
                     return
 
             if self.do_strip_text:
-                node = node.replace('\n', ' ')
-                node = node.replace('  ', ' ')
-                node = node.replace('\t', ' ')
-                node = node.replace('  ', ' ')
-                if node.startswith(' '):
-                    node = ' ' + node.lstrip(' ')
-                if node.endswith(' '):
-                    node = node.rstrip(' ') + ' '
-                if self.text.endswith(' ') and node.startswith(' '):
+                node = node.replace("\n", " ")
+                node = node.replace("  ", " ")
+                node = node.replace("\t", " ")
+                node = node.replace("  ", " ")
+                if node.startswith(" "):
+                    node = " " + node.lstrip(" ")
+                if node.endswith(" "):
+                    node = node.rstrip(" ") + " "
+                if self.text.endswith(" ") and node.startswith(" "):
                     node = node[1:]
             self.text += node
 
@@ -1137,7 +1148,7 @@ class _Visitor(nodes.NodeVisitor):
 
             if isinstance(node.parent, nodes.footnote):
                 if self.foot_refblock:
-                    self.text = self.foot_refblock + ' '
+                    self.text = self.foot_refblock + " "
                 self.foot_refblock = None
                 # self.do_strip_text = False
 
@@ -1153,19 +1164,19 @@ class _Visitor(nodes.NodeVisitor):
             self.push(box)
 
         elif cls is nodes.emphasis:
-            self.text += '[i]'
+            self.text += "[i]"
 
         elif cls is nodes.strong:
-            self.text += '[b]'
+            self.text += "[b]"
 
         elif cls is nodes.literal:
-            self.text += '[font=fonts/RobotoMono-Regular.ttf]'
+            self.text += "[font=fonts/RobotoMono-Regular.ttf]"
 
         elif cls is nodes.block_quote:
             box = RstBlockQuote()
             self.current.add_widget(box)
             self.push(box.content)
-            assert(self.text == '')
+            assert self.text == ""
 
         elif cls is nodes.enumerated_list:
             box = RstList()
@@ -1180,14 +1191,15 @@ class _Visitor(nodes.NodeVisitor):
             self.idx_list = None
 
         elif cls is nodes.list_item:
-            bullet = '-'
+            bullet = "-"
             if self.idx_list is not None:
                 self.idx_list += 1
-                bullet = '%d.' % self.idx_list
-            bullet = self.colorize(bullet, 'bullet')
+                bullet = "%d." % self.idx_list
+            bullet = self.colorize(bullet, "bullet")
             item = RstListItem()
-            self.current.add_widget(RstListBullet(
-                text=bullet, document=self.root))
+            self.current.add_widget(
+                RstListBullet(text=bullet, document=self.root)
+            )
             self.current.add_widget(item)
             self.push(item)
 
@@ -1201,35 +1213,29 @@ class _Visitor(nodes.NodeVisitor):
             label = RstWarning()
             self.current.add_widget(label)
             self.push(label.content)
-            assert(self.text == '')
+            assert self.text == ""
 
         elif cls is nodes.note:
             label = RstNote()
             self.current.add_widget(label)
             self.push(label.content)
-            assert(self.text == '')
+            assert self.text == ""
 
         elif cls is nodes.image:
             # docutils parser breaks path with spaces
             # e.g. "C:/my path" -> "C:/mypath"
-            uri = node['uri']
-            align = node.get('align', 'center')
-            image_size = [
-                node.get('width'),
-                node.get('height')
-            ]
+            uri = node["uri"]
+            align = node.get("align", "center")
+            image_size = [node.get("width"), node.get("height")]
 
             # use user's size if defined
             def set_size(img, size):
-                img.size = [
-                    size[0] or img.width,
-                    size[1] or img.height
-                ]
+                img.size = [size[0] or img.width, size[1] or img.height]
 
-            if uri.startswith('/') and self.root.document_root:
+            if uri.startswith("/") and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
 
-            if uri.startswith('http://') or uri.startswith('https://'):
+            if uri.startswith("http://") or uri.startswith("https://"):
                 image = RstAsyncImage(source=uri)
                 image.bind(on_load=lambda *a: set_size(image, image_size))
             else:
@@ -1237,12 +1243,10 @@ class _Visitor(nodes.NodeVisitor):
                 set_size(image, image_size)
 
             root = AnchorLayout(
-                size_hint_y=None,
-                anchor_x=align,
-                height=image.height
+                size_hint_y=None, anchor_x=align, height=image.height
             )
 
-            image.bind(height=root.setter('height'))
+            image.bind(height=root.setter("height"))
             root.add_widget(image)
             self.current.add_widget(root)
             # TODO:
@@ -1256,13 +1260,13 @@ class _Visitor(nodes.NodeVisitor):
             self.push(lst)
 
         elif cls is nodes.term:
-            assert(isinstance(self.current, RstDefinitionList))
+            assert isinstance(self.current, RstDefinitionList)
             term = RstTerm(document=self.root)
             self.current.add_widget(term)
             self.push(term)
 
         elif cls is nodes.definition:
-            assert(isinstance(self.current, RstDefinitionList))
+            assert isinstance(self.current, RstDefinitionList)
             definition = RstDefinition(document=self.root)
             definition.add_widget(RstDefinitionSpace(document=self.root))
             self.current.add_widget(definition)
@@ -1300,20 +1304,21 @@ class _Visitor(nodes.NodeVisitor):
             self.current.add_widget(RstTransition())
 
         elif cls is nodes.reference:
-            name = node.get('name', node.get('refuri'))
-            self.text += '[ref=%s][color=%s]' % (
-                name, self.root.colors.get(
-                    'link', self.root.colors.get('paragraph')))
-            if 'refname' in node and 'name' in node:
-                self.root.refs_assoc[node['name']] = node['refname']
+            name = node.get("name", node.get("refuri"))
+            self.text += "[ref=%s][color=%s]" % (
+                name,
+                self.root.colors.get("link", self.root.colors.get("paragraph")),
+            )
+            if "refname" in node and "name" in node:
+                self.root.refs_assoc[node["name"]] = node["refname"]
 
         elif cls is nodes.target:
             name = None
-            if 'ids' in node:
-                name = node['ids'][0]
-            elif 'names' in node:
-                name = node['names'][0]
-            self.text += '[anchor=%s]' % name
+            if "ids" in node:
+                name = node["ids"][0]
+            elif "names" in node:
+                name = node["names"][0]
+            self.text += "[anchor=%s]" % name
             self.text_have_anchor = True
 
         elif cls is role_doc:
@@ -1331,10 +1336,10 @@ class _Visitor(nodes.NodeVisitor):
             self.section -= 1
 
         elif cls is nodes.title:
-            assert(isinstance(self.current, RstTitle))
+            assert isinstance(self.current, RstTitle)
             if not self.title:
                 self.title = self.text
-            self.set_text(self.current, 'title')
+            self.set_text(self.current, "title")
             self.pop()
 
         elif cls is nodes.Text:
@@ -1342,23 +1347,23 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.paragraph:
             self.do_strip_text = False
-            assert(isinstance(self.current, RstParagraph))
-            self.set_text(self.current, 'paragraph')
+            assert isinstance(self.current, RstParagraph)
+            self.set_text(self.current, "paragraph")
             self.pop()
 
         elif cls is nodes.literal_block:
-            assert(isinstance(self.current, RstLiteralBlock))
-            self.set_text(self.current.content, 'literal_block')
+            assert isinstance(self.current, RstLiteralBlock)
+            self.set_text(self.current.content, "literal_block")
             self.pop()
 
         elif cls is nodes.emphasis:
-            self.text += '[/i]'
+            self.text += "[/i]"
 
         elif cls is nodes.strong:
-            self.text += '[/b]'
+            self.text += "[/b]"
 
         elif cls is nodes.literal:
-            self.text += '[/font]'
+            self.text += "[/font]"
 
         elif cls is nodes.block_quote:
             self.pop()
@@ -1386,8 +1391,8 @@ class _Visitor(nodes.NodeVisitor):
             self.pop()
 
         elif cls is nodes.term:
-            assert(isinstance(self.current, RstTerm))
-            self.set_text(self.current, 'term')
+            assert isinstance(self.current, RstTerm)
+            self.set_text(self.current, "term")
             self.pop()
 
         elif cls is nodes.definition:
@@ -1397,8 +1402,8 @@ class _Visitor(nodes.NodeVisitor):
             self.pop()
 
         elif cls is nodes.field_name:
-            assert(isinstance(self.current, RstFieldName))
-            self.set_text(self.current, 'field_name')
+            assert isinstance(self.current, RstFieldName)
+            self.set_text(self.current, "field_name")
             self.pop()
 
         elif cls is nodes.field_body:
@@ -1414,27 +1419,27 @@ class _Visitor(nodes.NodeVisitor):
             self.pop()
 
         elif cls is nodes.reference:
-            self.text += '[/color][/ref]'
+            self.text += "[/color][/ref]"
 
         elif cls is nodes.footnote:
             self.pop()
-            self.set_text(self.current, 'link')
+            self.set_text(self.current, "link")
 
         elif cls is nodes.footnote_reference:
             # close opened footnote [x]
             # self.text += '[/ref]'
             # self.set_text(self.current, 'link')
-            self.text += '[/color][/ref]'
+            self.text += "[/color][/ref]"
             # self.text += '[/color][/ref]'
-            self.text += '&br;'
+            self.text += "&br;"
 
         elif cls is role_doc:
-            docname = self.text[self.doc_index:]
+            docname = self.text[self.doc_index :]
             rst_docname = docname
-            if rst_docname.endswith('.rst'):
+            if rst_docname.endswith(".rst"):
                 docname = docname[:-4]
             else:
-                rst_docname += '.rst'
+                rst_docname += ".rst"
 
             # try to preload it
             filename = self.root.resolve_path(rst_docname)
@@ -1446,47 +1451,49 @@ class _Visitor(nodes.NodeVisitor):
             if filename in self.root.toctrees:
                 toctree = self.root.toctrees[filename]
                 if len(toctree):
-                    title = toctree[0]['title']
+                    title = toctree[0]["title"]
 
             # replace the text with a good reference
-            text = '[ref=%s]%s[/ref]' % (
+            text = "[ref=%s]%s[/ref]" % (
                 rst_docname,
-                self.colorize(title, 'link'))
-            self.text = self.text[:self.doc_index] + text
+                self.colorize(title, "link"),
+            )
+            self.text = self.text[: self.doc_index] + text
 
         elif cls is role_video:
-            width = node['width'] if 'width' in node.attlist() else 400
-            height = node['height'] if 'height' in node.attlist() else 300
-            uri = node['source']
-            if uri.startswith('/') and self.root.document_root:
+            width = node["width"] if "width" in node.attlist() else 400
+            height = node["height"] if "height" in node.attlist() else 300
+            uri = node["source"]
+            if uri.startswith("/") and self.root.document_root:
                 uri = join(self.root.document_root, uri[1:])
             video = RstVideoPlayer(
-                source=uri,
-                size_hint=(None, None),
-                size=(width, height))
+                source=uri, size_hint=(None, None), size=(width, height)
+            )
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)
             self.current.add_widget(anchor)
 
     def set_text(self, node, parent):
         text = self.text
-        if parent == 'term' or parent == 'field_name':
-            text = '[b]%s[/b]' % text
+        if parent == "term" or parent == "field_name":
+            text = "[b]%s[/b]" % text
         # search anchors
         node.text = self.colorize(text, parent)
         node.bind(on_ref_press=self.root.on_ref_press)
         if self.text_have_anchor:
             self.root.add_anchors(node)
-        self.text = ''
+        self.text = ""
         self.text_have_anchor = False
 
     def colorize(self, text, name):
-        return '[color=%s]%s[/color]' % (
-            self.root.colors.get(name, self.root.colors['paragraph']),
-            text)
+        return "[color=%s]%s[/color]" % (
+            self.root.colors.get(name, self.root.colors["paragraph"]),
+            text,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.base import runTouchApp
     import sys
+
     runTouchApp(RstDocument(source=sys.argv[1]))

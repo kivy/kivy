@@ -1,4 +1,4 @@
-'''
+"""
 Multistroke Recognition Database Demonstration
 ==============================================
 
@@ -19,7 +19,7 @@ The general logic of the sliders and buttons are in the file
 settings.py and described in settings.kv. but the actual settings pane is
 described in the file multistroke.kv and managed from this file.
 
-'''
+"""
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.gesturesurface import GestureSurface
@@ -42,13 +42,12 @@ class MultistrokeAppSettings(MultistrokeSettingsContainer):
 
 
 class MultistrokeApp(App):
-
     def goto_database_screen(self, *l):
         self.database.import_gdb()
-        self.manager.current = 'database'
+        self.manager.current = "database"
 
     def handle_gesture_cleanup(self, surface, g, *l):
-        if hasattr(g, '_result_label'):
+        if hasattr(g, "_result_label"):
             surface.remove_widget(g._result_label)
 
     def handle_gesture_discard(self, surface, g, *l):
@@ -56,9 +55,13 @@ class MultistrokeApp(App):
         if surface.draw_timeout == 0:
             return
 
-        text = '[b]Discarded:[/b] Not enough input'
-        g._result_label = Label(text=text, markup=True, size_hint=(None, None),
-                                center=(g.bbox['minx'], g.bbox['miny']))
+        text = "[b]Discarded:[/b] Not enough input"
+        g._result_label = Label(
+            text=text,
+            markup=True,
+            size_hint=(None, None),
+            center=(g.bbox["minx"], g.bbox["miny"]),
+        )
         self.surface.add_widget(g._result_label)
 
     def handle_gesture_complete(self, surface, g, *l):
@@ -74,28 +77,35 @@ class MultistrokeApp(App):
             return
 
         best = result.best
-        if best['name'] is None:
-            text = '[b]No match[/b]'
+        if best["name"] is None:
+            text = "[b]No match[/b]"
         else:
-            text = 'Name: [b]%s[/b]\nScore: [b]%f[/b]\nDistance: [b]%f[/b]' % (
-                   best['name'], best['score'], best['dist'])
+            text = "Name: [b]%s[/b]\nScore: [b]%f[/b]\nDistance: [b]%f[/b]" % (
+                best["name"],
+                best["score"],
+                best["dist"],
+            )
 
         g = result._gesture_obj
-        g._result_label = Label(text=text, markup=True, size_hint=(None, None),
-                                center=(g.bbox['minx'], g.bbox['miny']))
+        g._result_label = Label(
+            text=text,
+            markup=True,
+            size_hint=(None, None),
+            center=(g.bbox["minx"], g.bbox["miny"]),
+        )
         self.surface.add_widget(g._result_label)
 
     def build(self):
         # Setting NoTransition breaks the "history" screen! Possibly related
         # to some inexplicable rendering bugs on my particular system
-        self.manager = ScreenManager(transition=SlideTransition(
-                                     duration=.15))
+        self.manager = ScreenManager(transition=SlideTransition(duration=0.15))
         self.recognizer = Recognizer()
 
         # Setup the GestureSurface and bindings to our Recognizer
-        surface = GestureSurface(line_width=2, draw_bbox=True,
-                                 use_random_color=True)
-        surface_screen = Screen(name='surface')
+        surface = GestureSurface(
+            line_width=2, draw_bbox=True, use_random_color=True
+        )
+        surface_screen = Screen(name="surface")
         surface_screen.add_widget(surface)
         self.manager.add_widget(surface_screen)
 
@@ -106,14 +116,14 @@ class MultistrokeApp(App):
 
         # History is the list of gestures drawn on the surface
         history = GestureHistoryManager()
-        history_screen = Screen(name='history')
+        history_screen = Screen(name="history")
         history_screen.add_widget(history)
         self.history = history
         self.manager.add_widget(history_screen)
 
         # Database is the list of gesture templates in Recognizer
         database = GestureDatabase(recognizer=self.recognizer)
-        database_screen = Screen(name='database')
+        database_screen = Screen(name="database")
         database_screen.add_widget(database)
         self.database = database
         self.manager.add_widget(database_screen)
@@ -122,14 +132,14 @@ class MultistrokeApp(App):
         app_settings = MultistrokeAppSettings()
         ids = app_settings.ids
 
-        ids.max_strokes.bind(value=surface.setter('max_strokes'))
-        ids.temporal_win.bind(value=surface.setter('temporal_window'))
-        ids.timeout.bind(value=surface.setter('draw_timeout'))
-        ids.line_width.bind(value=surface.setter('line_width'))
-        ids.draw_bbox.bind(value=surface.setter('draw_bbox'))
-        ids.use_random_color.bind(value=surface.setter('use_random_color'))
+        ids.max_strokes.bind(value=surface.setter("max_strokes"))
+        ids.temporal_win.bind(value=surface.setter("temporal_window"))
+        ids.timeout.bind(value=surface.setter("draw_timeout"))
+        ids.line_width.bind(value=surface.setter("line_width"))
+        ids.draw_bbox.bind(value=surface.setter("draw_bbox"))
+        ids.use_random_color.bind(value=surface.setter("use_random_color"))
 
-        settings_screen = Screen(name='settings')
+        settings_screen = Screen(name="settings")
         settings_screen.add_widget(app_settings)
         self.manager.add_widget(settings_screen)
 
@@ -140,5 +150,5 @@ class MultistrokeApp(App):
         return layout
 
 
-if __name__ in ('__main__', '__android__'):
+if __name__ in ("__main__", "__android__"):
     MultistrokeApp().run()

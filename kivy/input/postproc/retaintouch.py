@@ -1,11 +1,11 @@
-'''
+"""
 Retain Touch
 ============
 
 Reuse touch to counter lost finger behavior
-'''
+"""
 
-__all__ = ('InputPostprocRetainTouch', )
+__all__ = ("InputPostprocRetainTouch",)
 
 from kivy.config import Config
 from kivy.vector import Vector
@@ -13,7 +13,7 @@ import time
 
 
 class InputPostprocRetainTouch(object):
-    '''
+    """
     InputPostprocRetainTouch is a post-processor to delay the 'up' event of a
     touch, to reuse it under certains conditions. This module is designed to
     prevent lost finger touches on some hardware/setups.
@@ -25,11 +25,11 @@ class InputPostprocRetainTouch(object):
             retain_distance = 50
 
     The distance parameter is in the range 0-1000 and time is in milliseconds.
-    '''
+    """
 
     def __init__(self):
-        self.timeout = Config.getint('postproc', 'retain_time') / 1000.0
-        self.distance = Config.getint('postproc', 'retain_distance') / 1000.0
+        self.timeout = Config.getint("postproc", "retain_time") / 1000.0
+        self.distance = Config.getint("postproc", "retain_distance") / 1000.0
         self._available = []
         self._links = {}
 
@@ -42,7 +42,7 @@ class InputPostprocRetainTouch(object):
         for etype, touch in events[:]:
             if not touch.is_touch:
                 continue
-            if etype == 'end':
+            if etype == "end":
                 events.remove((etype, touch))
                 if touch.uid in self._links:
                     selection = self._links[touch.uid]
@@ -52,7 +52,7 @@ class InputPostprocRetainTouch(object):
                 else:
                     touch.ud.__pp_retain_time__ = d
                     self._available.append(touch)
-            elif etype == 'update':
+            elif etype == "update":
                 if touch.uid in self._links:
                     selection = self._links[touch.uid]
                     selection.x = touch.x
@@ -63,7 +63,7 @@ class InputPostprocRetainTouch(object):
                     events.append((etype, selection))
                 else:
                     pass
-            elif etype == 'begin':
+            elif etype == "begin":
                 # new touch, found the nearest one
                 selection = None
                 selection_distance = 99999
@@ -88,6 +88,6 @@ class InputPostprocRetainTouch(object):
             t = touch.ud.__pp_retain_time__
             if d - t > self.timeout:
                 self._available.remove(touch)
-                events.append(('end', touch))
+                events.append(("end", touch))
 
         return events

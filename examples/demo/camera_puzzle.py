@@ -1,4 +1,4 @@
-'''
+"""
 Shuffled Camera Feed Puzzle
 ===========================
 
@@ -7,7 +7,7 @@ You should see a shuffled grid of rectangles that make up the
 camera feed. You can drag the squares around to see the
 unscrambled camera feed or double click to scramble the grid
 again.
-'''
+"""
 
 
 from kivy.app import App
@@ -66,8 +66,9 @@ class Puzzle(Camera):
             x = bs * (index % int(tw / bs))
             y = bs * int(index / int(tw / bs))
             child = self.children[childindex]
-            a = Animation(d=random() / 4.) + Animation(pos=(x, y),
-                                                       t='out_quad', d=.4)
+            a = Animation(d=random() / 4.0) + Animation(
+                pos=(x, y), t="out_quad", d=0.4
+            )
             a.start(child)
             childindex += 1
 

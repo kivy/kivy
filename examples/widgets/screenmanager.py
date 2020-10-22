@@ -3,7 +3,8 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import NumericProperty
 from kivy.lang import Builder
 
-Builder.load_string('''
+Builder.load_string(
+    """
 #:import random random.random
 #:import SlideTransition kivy.uix.screenmanager.SlideTransition
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
@@ -86,7 +87,8 @@ Builder.load_string('''
         Button:
             text: 'Use NoTransition'
             on_release: root.manager.transition = NoTransition(duration=0)
-''')
+"""
+)
 
 
 class CustomScreen(Screen):
@@ -94,13 +96,12 @@ class CustomScreen(Screen):
 
 
 class ScreenManagerApp(App):
-
     def build(self):
         root = ScreenManager()
         for x in range(4):
-            root.add_widget(CustomScreen(name='Screen %d' % x))
+            root.add_widget(CustomScreen(name="Screen %d" % x))
         return root
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ScreenManagerApp().run()

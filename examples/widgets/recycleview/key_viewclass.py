@@ -1,9 +1,9 @@
-'''
+"""
 A form generator, using random data, but can be data driven (json or whatever)
 
 Shows that you can use the key_viewclass attribute of RecycleView to select a
 different Widget for each item.
-'''
+"""
 
 from random import choice, choices
 from string import ascii_lowercase
@@ -13,7 +13,7 @@ from kivy.lang import Builder
 from kivy import properties as P
 
 
-KV = r'''
+KV = r"""
 <RVTextInput,RVCheckBox,RVSpinner>:
     size_hint_y: None
     height: self.minimum_height
@@ -75,49 +75,42 @@ FloatLayout:
             height: self.minimum_height
             default_size_hint: 1, None
 
-'''
+"""
 
 
 class Application(App):
-    '''A form manager demonstrating the power of RecycleView's key_viewclass
+    """A form manager demonstrating the power of RecycleView's key_viewclass
     property.
-    '''
+    """
+
     data = P.ListProperty()
 
     def build(self):
         root = Builder.load_string(KV)
         rv = root.ids.rv
-        self.data = [
-            self.create_random_input(rv, index)
-            for index in range(20)
-        ]
+        self.data = [self.create_random_input(rv, index) for index in range(20)]
 
         return root
 
     def handle_update(self, value, index):
         if None not in (index, value):
-            self.data[index]['value'] = value
+            self.data[index]["value"] = value
 
     def create_random_input(self, rv, index):
-        return choice((
-            self.create_textinput,
-            self.create_checkbox,
-            self.create_spinner
-        ))(rv, index)
+        return choice(
+            (self.create_textinput, self.create_checkbox, self.create_spinner)
+        )(rv, index)
 
     def create_spinner(self, rv, index):
         """
         create a dict of data for a spinner
         """
         return {
-            'index': index,
-            'widget': 'RVSpinner',
-            'value': '',
-            'values': [
-                letter * 5
-                for letter in ascii_lowercase[:5]
-            ],
-            'ready': True,
+            "index": index,
+            "widget": "RVSpinner",
+            "value": "",
+            "values": [letter * 5 for letter in ascii_lowercase[:5]],
+            "ready": True,
         }
 
     def create_checkbox(self, rv, index):
@@ -125,11 +118,11 @@ class Application(App):
         create a dict of data for a checkbox
         """
         return {
-            'index': index,
-            'widget': 'RVCheckBox',
-            'value': choice((True, False)),
-            'title': ''.join(choices(ascii_lowercase, k=10)),
-            'ready': True,
+            "index": index,
+            "widget": "RVCheckBox",
+            "value": choice((True, False)),
+            "title": "".join(choices(ascii_lowercase, k=10)),
+            "ready": True,
         }
 
     def create_textinput(self, rv, index):
@@ -137,11 +130,11 @@ class Application(App):
         create a dict of data for a textinput
         """
         return {
-            'index': index,
-            'widget': 'RVTextInput',
-            'value': ''.join(choices(ascii_lowercase, k=10)),
-            'title': ''.join(choices(ascii_lowercase, k=10)),
-            'ready': True,
+            "index": index,
+            "widget": "RVTextInput",
+            "value": "".join(choices(ascii_lowercase, k=10)),
+            "title": "".join(choices(ascii_lowercase, k=10)),
+            "ready": True,
         }
 
 

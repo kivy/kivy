@@ -37,7 +37,6 @@ from kivy.lang.parser import Parser
 
 
 class CoverageKVParser(Parser):
-
     def execute_directives(self):
         # don't actually execute anything
         pass
@@ -46,8 +45,8 @@ class CoverageKVParser(Parser):
         lines = set()
         for parser_prop in walk_parser(self):
             for line_num, line in enumerate(
-                    parser_prop.value.splitlines(),
-                    start=parser_prop.line + 1):
+                parser_prop.value.splitlines(), start=parser_prop.line + 1
+            ):
                 if line.strip():
                     lines.add(line_num)
 
@@ -93,9 +92,8 @@ def walk_parser(parser):
 
 
 class KivyCoveragePlugin(coverage.plugin.CoveragePlugin):
-
     def file_tracer(self, filename):
-        if filename.endswith('.kv'):
+        if filename.endswith(".kv"):
             return KivyFileTracer(filename=filename)
         return None
 
@@ -105,13 +103,13 @@ class KivyCoveragePlugin(coverage.plugin.CoveragePlugin):
     def find_executable_files(self, src_dir):
         for (dirpath, dirnames, filenames) in os.walk(src_dir):
             for filename in filenames:
-                if filename.endswith('.kv'):
+                if filename.endswith(".kv"):
                     yield os.path.join(dirpath, filename)
 
 
 class KivyFileTracer(coverage.plugin.FileTracer):
 
-    filename = ''
+    filename = ""
 
     def __init__(self, filename, **kwargs):
         super(KivyFileTracer, self).__init__(**kwargs)
@@ -122,7 +120,6 @@ class KivyFileTracer(coverage.plugin.FileTracer):
 
 
 class KivyFileReporter(coverage.plugin.FileReporter):
-
     def lines(self):
         with open(self.filename) as fh:
             source = fh.read()

@@ -11,7 +11,8 @@ from os.path import dirname, join
 
 from kivy.lang import Builder
 
-Builder.load_string('''
+Builder.load_string(
+    """
 #:import os os
 <Picture>:
     # each time a picture is created, the image can delay the loading
@@ -112,7 +113,8 @@ Builder.load_string('''
         width: '99dp'
         LeftPanel:
 
-''')
+"""
+)
 
 
 def calculate_points(x1, y1, x2, y2, steps=5):
@@ -138,8 +140,8 @@ class ColorSelector(Popup):
 class Picture(Scatter):
 
     source = StringProperty(None)
-    '''path to the Image to be loaded
-    '''
+    """path to the Image to be loaded
+    """
 
     def __init__(self, **kwargs):
         super(Picture, self).__init__(**kwargs)
@@ -147,18 +149,20 @@ class Picture(Scatter):
 
     def on_touch_down(self, touch):
         _app = self._app
-        if (_app.color_mode[0] == 'c' or
-                not self.collide_point(*touch.pos)):
+        if _app.color_mode[0] == "c" or not self.collide_point(*touch.pos):
             return super(Picture, self).on_touch_down(touch)
         ud = touch.ud
-        ud['group'] = g = str(touch.uid)
+        ud["group"] = g = str(touch.uid)
         _pos = list(self.ids.img.to_widget(*touch.pos))
         _pos[0] += self.parent.x
         with self.ids.img.canvas.after:
-            ud['color'] = Color(*_app.color_selector.color, group=g)
-            ud['lines'] = Point(points=(_pos),
-                            source='../demo/touchtracer/particle.png',
-                            pointsize=5, group=g)
+            ud["color"] = Color(*_app.color_selector.color, group=g)
+            ud["lines"] = Point(
+                points=(_pos),
+                source="../demo/touchtracer/particle.png",
+                pointsize=5,
+                group=g,
+            )
         touch.grab(self)
         return True
 
@@ -166,17 +170,17 @@ class Picture(Scatter):
         if touch.grab_current is not self:
             return
         _app = self._app
-        if _app.color_mode[0] == 'c' or not self.collide_point(*touch.pos):
+        if _app.color_mode[0] == "c" or not self.collide_point(*touch.pos):
             return super(Picture, self).on_touch_move(touch)
         ud = touch.ud
         _pos = list(self.ids.img.to_widget(*touch.pos))
         _pos[0] += self.parent.x
-        points = ud['lines'].points
+        points = ud["lines"].points
         oldx, oldy = points[-2], points[-1]
         points = calculate_points(oldx, oldy, _pos[0], _pos[1])
         if points:
             try:
-                lp = ud['lines'].add_point
+                lp = ud["lines"].add_point
                 for idx in range(0, len(points), 2):
                     lp(points[idx], points[idx + 1])
             except GraphicException:
@@ -186,11 +190,11 @@ class Picture(Scatter):
         if touch.grab_current is not self:
             return
         _app = self._app
-        if _app.color_mode[0] == 'c':
+        if _app.color_mode[0] == "c":
             return super(Picture, self).on_touch_up(touch)
         touch.ungrab(self)
         ud = touch.ud
-        self.canvas.remove_group(ud['group'])
+        self.canvas.remove_group(ud["group"])
 
 
 class MainRootWidget(BoxLayout):
@@ -200,9 +204,9 @@ class MainRootWidget(BoxLayout):
 
     def on_parent(self, instance, parent):
         if parent:
-            _dir = join(dirname(__file__), '../demo/pictures/images/')
+            _dir = join(dirname(__file__), "../demo/pictures/images/")
             for image in list(walk(_dir))[0][2]:
-                if image.find('jpg') > -1:
+                if image.find("jpg") > -1:
                     self.client_area.add_widget(Picture(source=_dir + image))
 
 
@@ -212,13 +216,13 @@ class MainApp(App):
     # we will be accessing this later as App.main_root_widget
 
     current_image = ObjectProperty(None)
-    '''This is a handle to the currently selected image on which the effects
-    would be applied.'''
+    """This is a handle to the currently selected image on which the effects
+    would be applied."""
 
-    color_mode = StringProperty('cursor')
-    '''This defines the current mode `brush` or `cursor`. `brush` mode allows
+    color_mode = StringProperty("cursor")
+    """This defines the current mode `brush` or `cursor`. `brush` mode allows
     adding brush strokes to the currently selected Image.
-    '''
+    """
 
     def build(self):
         self.color_selector = ColorSelector()
@@ -230,5 +234,5 @@ class MainApp(App):
             self.current_image.canvas.after.clear()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MainApp().run()

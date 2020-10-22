@@ -32,7 +32,7 @@ cdef inline _ensure_float_view(data, float **f):
             f[0] = &memview[0]
             return data, None
         except Exception as e:
-            import traceback; traceback.print_exc() 
+            import traceback; traceback.print_exc()
             src = list(data)
             arr = clone(array('f'), len(src), False)
             f[0] = arr.data.as_floats
@@ -71,4 +71,3 @@ cdef inline _ensure_ushort_view(data, unsigned short **f):
         for i in range(len(src)):
             f[0][i] = src[i]
     return src, arr
-

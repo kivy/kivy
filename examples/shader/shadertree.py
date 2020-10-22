@@ -1,4 +1,4 @@
-'''
+"""
 Tree shader
 ===========
 
@@ -10,28 +10,36 @@ The ShaderTree widget create a Frambuffer, render his children on it, and
 render the Framebuffer with a specific Shader.
 With this way, you can apply cool effect on your widgets :)
 
-'''
+"""
 
 from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window  # side effects needed by Shader
 from kivy.properties import StringProperty, ObjectProperty
-from kivy.graphics import (RenderContext, Fbo, Color, ClearColor, ClearBuffers,
-        Rectangle)
+from kivy.graphics import (
+    RenderContext,
+    Fbo,
+    Color,
+    ClearColor,
+    ClearBuffers,
+    Rectangle,
+)
 
 import itertools
 
 
-header = '''
+header = """
 $HEADER$
 
 uniform vec2 resolution;
 uniform float time;
-'''
+"""
 
 # pulse (Danguafer/Silexars, 2010)
-shader_pulse = header + '''
+shader_pulse = (
+    header
+    + """
 void main(void)
 {
     vec2 halfres = resolution.xy/2.0;
@@ -46,10 +54,13 @@ void main(void)
 
     gl_FragColor = vec4(col,1.0);
 }
-'''
+"""
+)
 
 # post processing (by iq, 2009)
-shader_postprocessing = header + '''
+shader_postprocessing = (
+    header
+    + """
 uniform vec2 uvsize;
 uniform vec2 uvpos;
 void main(void)
@@ -79,15 +90,19 @@ void main(void)
 
     gl_FragColor = vec4(col,1.0);
 }
-'''
+"""
+)
 
-shader_monochrome = header + '''
+shader_monochrome = (
+    header
+    + """
 void main() {
     vec4 rgb = texture2D(texture0, tex_coord0);
     float c = (rgb.x + rgb.y + rgb.z) * 0.3333;
     gl_FragColor = vec4(c, c, c, 1.0);
 }
-'''
+"""
+)
 
 
 class ShaderWidget(FloatLayout):
@@ -101,9 +116,11 @@ class ShaderWidget(FloatLayout):
     def __init__(self, **kwargs):
         # Instead of using canvas, we will use a RenderContext,
         # and change the default shader used.
-        self.canvas = RenderContext(use_parent_projection=True,
-                                    use_parent_modelview=True,
-                                    use_parent_frag_modelview=True)
+        self.canvas = RenderContext(
+            use_parent_projection=True,
+            use_parent_modelview=True,
+            use_parent_frag_modelview=True,
+        )
 
         with self.canvas:
             self.fbo = Fbo(size=self.size)
@@ -122,8 +139,8 @@ class ShaderWidget(FloatLayout):
         Clock.schedule_interval(self.update_glsl, 0)
 
     def update_glsl(self, *largs):
-        self.canvas['time'] = Clock.get_boottime()
-        self.canvas['resolution'] = [float(v) for v in self.size]
+        self.canvas["time"] = Clock.get_boottime()
+        self.canvas["resolution"] = [float(v) for v in self.size]
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -132,7 +149,7 @@ class ShaderWidget(FloatLayout):
         shader.fs = value
         if not shader.success:
             shader.fs = old_value
-            raise Exception('failed')
+            raise Exception("failed")
 
     #
     # now, if we have new widget to add,
@@ -172,9 +189,9 @@ class RootWidget(FloatLayout):
 
         # prepare shader list
         available_shaders = [
-                shader_pulse,
-                shader_postprocessing,
-                shader_monochrome,
+            shader_pulse,
+            shader_postprocessing,
+            shader_monochrome,
         ]
         self.shaders = itertools.cycle(available_shaders)
 
@@ -189,5 +206,5 @@ class ShaderTreeApp(App):
         return RootWidget()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ShaderTreeApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 AppKit Spelling: Implements spelling backend based on OSX's spellchecking
                  features provided by the ApplicationKit.
 
@@ -10,7 +10,7 @@ AppKit Spelling: Implements spelling backend based on OSX's spellchecking
                     http://developer.apple.com/mac/library/documentation/
                         Cocoa/Conceptual/SpellCheck/SpellCheck.html
                     http://developer.apple.com/cocoa/pyobjc.html
-'''
+"""
 
 
 from AppKit import NSSpellChecker, NSMakeRange
@@ -19,9 +19,9 @@ from kivy.core.spelling import SpellingBase, NoSuchLangError
 
 
 class SpellingOSXAppKit(SpellingBase):
-    '''
+    """
     Spelling backend based on OSX's spelling features provided by AppKit.
-    '''
+    """
 
     def __init__(self, language=None):
         self._language = NSSpellChecker.alloc().init()
@@ -30,7 +30,7 @@ class SpellingOSXAppKit(SpellingBase):
     def select_language(self, language):
         success = self._language.setLanguage_(language)
         if not success:
-            err = 'AppKit Backend: No language "%s" ' % (language, )
+            err = 'AppKit Backend: No language "%s" ' % (language,)
             raise NoSuchLangError(err)
 
     def list_languages(self):
@@ -44,7 +44,7 @@ class SpellingOSXAppKit(SpellingBase):
         #      See: http://paste.pocoo.org/show/217968/
         if not word:
             return None
-        err = 'check() not currently supported by the OSX AppKit backend'
+        err = "check() not currently supported by the OSX AppKit backend"
         raise NotImplementedError(err)
 
     def suggest(self, fragment):
@@ -57,8 +57,8 @@ class SpellingOSXAppKit(SpellingBase):
         except AttributeError:
             # From 10.6 onwards you're supposed to do it like this:
             checkrange = NSMakeRange(0, len(fragment))
-            g = l.\
-                guessesForWordRange_inString_language_inSpellDocumentWithTag_(
-                    checkrange, fragment, l.language(), 0)
+            g = l.guessesForWordRange_inString_language_inSpellDocumentWithTag_(
+                checkrange, fragment, l.language(), 0
+            )
             # Right, this was much easier, Apple! :-)
             return list(g)

@@ -1,4 +1,5 @@
 from kivy.support import install_twisted_reactor
+
 install_twisted_reactor()
 
 import os
@@ -12,11 +13,10 @@ from kivy.lang import Builder
 from twisted.scripts._twistd_unix import UnixApplicationRunner, ServerOptions
 from twisted.application.service import IServiceCollection
 
-TWISTD = 'twistd web --listen=tcp:8087'
+TWISTD = "twistd web --listen=tcp:8087"
 
 
 class AndroidApplicationRunner(UnixApplicationRunner):
-
     def run(self):
 
         self.preApplication()
@@ -29,13 +29,15 @@ class AndroidApplicationRunner(UnixApplicationRunner):
         return self.application
 
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <TwistedTwistd>:
     cols: 1
     Button:
         text: root.running and 'STOP' or 'START'
         on_release: root.cb_twistd()
-''')
+"""
+)
 
 
 class TwistedTwistd(GridLayout):
@@ -49,7 +51,7 @@ class TwistedTwistd(GridLayout):
             self.running = False
         else:
             sys.path.insert(0, os.path.abspath(os.getcwd()))
-            sys.argv = TWISTD.split(' ')
+            sys.argv = TWISTD.split(" ")
             config = ServerOptions()
             config.parseOptions()
             self.app = AndroidApplicationRunner(config).run()
@@ -57,10 +59,9 @@ class TwistedTwistd(GridLayout):
 
 
 class TwistedTwistdApp(App):
-
     def build(self):
         return TwistedTwistd()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TwistedTwistdApp().run()

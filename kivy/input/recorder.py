@@ -1,4 +1,4 @@
-'''
+"""
 Input recorder
 ==============
 
@@ -86,15 +86,20 @@ Known limitations
     this could lead to ghost touches.
   - Stopping the replay before the end can lead to ghost touches.
 
-'''
+"""
 
-__all__ = ('Recorder', )
+__all__ = ("Recorder",)
 
 from os.path import exists
 from time import time
 from kivy.event import EventDispatcher
-from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, \
-    NumericProperty, ListProperty
+from kivy.properties import (
+    ObjectProperty,
+    BooleanProperty,
+    StringProperty,
+    NumericProperty,
+    ListProperty,
+)
 from kivy.input.motionevent import MotionEvent
 from kivy.base import EventLoop
 from kivy.logger import Logger
@@ -103,7 +108,6 @@ from functools import partial
 
 
 class RecorderMotionEvent(MotionEvent):
-
     def depack(self, args):
         for key, value in list(args.items()):
             setattr(self, key, value)
@@ -111,7 +115,7 @@ class RecorderMotionEvent(MotionEvent):
 
 
 class Recorder(EventDispatcher):
-    '''Recorder class. Please check module documentation for more information.
+    """Recorder class. Please check module documentation for more information.
 
     :Events:
         `on_stop`:
@@ -119,119 +123,142 @@ class Recorder(EventDispatcher):
 
     .. versionchanged:: 1.10.0
         Event `on_stop` added.
-    '''
+    """
 
     window = ObjectProperty(None)
-    '''Window instance to attach the recorder. If None, it will use the
+    """Window instance to attach the recorder. If None, it will use the
     default instance.
 
     :attr:`window` is a :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     counter = NumericProperty(0)
-    '''Number of events recorded in the last session.
+    """Number of events recorded in the last session.
 
     :attr:`counter` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0, read-only.
-    '''
+    """
 
     play = BooleanProperty(False)
-    '''Boolean to start/stop the replay of the current file (if it exists).
+    """Boolean to start/stop the replay of the current file (if it exists).
 
     :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     record = BooleanProperty(False)
-    '''Boolean to start/stop the recording of input events.
+    """Boolean to start/stop the recording of input events.
 
     :attr:`record` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
-    filename = StringProperty('recorder.kvi')
-    '''Filename to save the output of the recorder.
+    filename = StringProperty("recorder.kvi")
+    """Filename to save the output of the recorder.
 
     :attr:`filename` is a :class:`~kivy.properties.StringProperty` and defaults
     to 'recorder.kvi'.
-    '''
+    """
 
-    record_attrs = ListProperty(['is_touch', 'sx', 'sy'])
-    '''Attributes to record from the motion event.
+    record_attrs = ListProperty(["is_touch", "sx", "sy"])
+    """Attributes to record from the motion event.
 
     :attr:`record_attrs` is a :class:`~kivy.properties.ListProperty` and
     defaults to ['is_touch', 'sx', 'sy'].
-    '''
+    """
 
-    record_profile_mask = ListProperty(['pos'])
-    '''Profile to save in the fake motion event when replayed.
+    record_profile_mask = ListProperty(["pos"])
+    """Profile to save in the fake motion event when replayed.
 
     :attr:`record_profile_mask` is a :class:`~kivy.properties.ListProperty` and
     defaults to ['pos'].
-    '''
+    """
 
     # internals
     record_fd = ObjectProperty(None)
-    record_time = NumericProperty(0.)
+    record_time = NumericProperty(0.0)
 
-    __events__ = ('on_stop',)
+    __events__ = ("on_stop",)
 
     def __init__(self, **kwargs):
         super(Recorder, self).__init__(**kwargs)
         if self.window is None:
             # manually set the current window
             from kivy.core.window import Window
+
             self.window = Window
         self.window.bind(
             on_motion=self.on_motion,
-            on_key_up=partial(self.on_keyboard, 'keyup'),
-            on_key_down=partial(self.on_keyboard, 'keydown'),
-            on_keyboard=partial(self.on_keyboard, 'keyboard'))
+            on_key_up=partial(self.on_keyboard, "keyup"),
+            on_key_down=partial(self.on_keyboard, "keydown"),
+            on_keyboard=partial(self.on_keyboard, "keyboard"),
+        )
 
     def on_motion(self, window, etype, motionevent):
         if not self.record:
             return
 
-        args = dict((arg, getattr(motionevent, arg))
-                    for arg in self.record_attrs if hasattr(motionevent, arg))
+        args = dict(
+            (arg, getattr(motionevent, arg))
+            for arg in self.record_attrs
+            if hasattr(motionevent, arg)
+        )
 
-        args['profile'] = [x for x in motionevent.profile if x in
-                           self.record_profile_mask]
-        self.record_fd.write('%r\n' % (
-            (time() - self.record_time, etype, motionevent.uid, args), ))
+        args["profile"] = [
+            x for x in motionevent.profile if x in self.record_profile_mask
+        ]
+        self.record_fd.write(
+            "%r\n"
+            % ((time() - self.record_time, etype, motionevent.uid, args),)
+        )
         self.counter += 1
 
     def on_keyboard(self, etype, window, key, *args, **kwargs):
         if not self.record:
             return
-        self.record_fd.write('%r\n' % (
-            (time() - self.record_time, etype, 0, {
-                'key': key,
-                'scancode': kwargs.get('scancode'),
-                'codepoint': kwargs.get('codepoint', kwargs.get('unicode')),
-                'modifier': kwargs.get('modifier'),
-                'is_touch': False}), ))
+        self.record_fd.write(
+            "%r\n"
+            % (
+                (
+                    time() - self.record_time,
+                    etype,
+                    0,
+                    {
+                        "key": key,
+                        "scancode": kwargs.get("scancode"),
+                        "codepoint": kwargs.get(
+                            "codepoint", kwargs.get("unicode")
+                        ),
+                        "modifier": kwargs.get("modifier"),
+                        "is_touch": False,
+                    },
+                ),
+            )
+        )
         self.counter += 1
 
     def release(self):
         self.window.unbind(
             on_motion=self.on_motion,
             on_key_up=self.on_keyboard,
-            on_key_down=self.on_keyboard)
+            on_key_down=self.on_keyboard,
+        )
 
     def on_record(self, instance, value):
         if value:
             # generate a record filename
             self.counter = 0
             self.record_time = time()
-            self.record_fd = open(self.filename, 'w')
-            self.record_fd.write('#RECORDER1.0\n')
-            Logger.info('Recorder: Recording inputs to %r' % self.filename)
+            self.record_fd = open(self.filename, "w")
+            self.record_fd.write("#RECORDER1.0\n")
+            Logger.info("Recorder: Recording inputs to %r" % self.filename)
         else:
             self.record_fd.close()
-            Logger.info('Recorder: Recorded %d events in %r' % (self.counter,
-                                                                self.filename))
+            Logger.info(
+                "Recorder: Recorded %d events in %r"
+                % (self.counter, self.filename)
+            )
 
     # needed for acting as an input provider
     def stop(self):
@@ -242,33 +269,39 @@ class Recorder(EventDispatcher):
 
     def on_play(self, instance, value):
         if not value:
-            Logger.info('Recorder: Stop playing %r' % self.filename)
+            Logger.info("Recorder: Stop playing %r" % self.filename)
             EventLoop.remove_input_provider(self)
             return
         if not exists(self.filename):
-            Logger.error('Recorder: Unable to found %r file, play aborted.' % (
-                self.filename))
+            Logger.error(
+                "Recorder: Unable to found %r file, play aborted."
+                % (self.filename)
+            )
             return
 
-        with open(self.filename, 'r') as fd:
+        with open(self.filename, "r") as fd:
             data = fd.read().splitlines()
 
         if len(data) < 2:
-            Logger.error('Recorder: Unable to play %r, file truncated.' % (
-                self.filename))
+            Logger.error(
+                "Recorder: Unable to play %r, file truncated." % (self.filename)
+            )
             return
 
-        if data[0] != '#RECORDER1.0':
-            Logger.error('Recorder: Unable to play %r, invalid header.' % (
-                self.filename))
+        if data[0] != "#RECORDER1.0":
+            Logger.error(
+                "Recorder: Unable to play %r, invalid header." % (self.filename)
+            )
             return
 
         # decompile data
         self.play_data = [literal_eval(x) for x in data[1:]]
         self.play_time = time()
         self.play_me = {}
-        Logger.info('Recorder: Start playing %d events from %r' %
-                    (len(self.play_data), self.filename))
+        Logger.info(
+            "Recorder: Start playing %d events from %r"
+            % (len(self.play_data), self.filename)
+        )
         EventLoop.add_input_provider(self)
 
     def on_stop(self):
@@ -276,49 +309,52 @@ class Recorder(EventDispatcher):
 
     def update(self, dispatch_fn):
         if not self.play_data:
-            Logger.info('Recorder: Playing finished.')
+            Logger.info("Recorder: Playing finished.")
             self.play = False
-            self.dispatch('on_stop')
+            self.dispatch("on_stop")
 
         dt = time() - self.play_time
         while self.play_data:
             event = self.play_data[0]
-            assert(len(event) == 4)
+            assert len(event) == 4
             if event[0] > dt:
                 return
 
             me = None
             etype, uid, args = event[1:]
-            if etype == 'begin':
-                me = RecorderMotionEvent('recorder', uid, args)
+            if etype == "begin":
+                me = RecorderMotionEvent("recorder", uid, args)
                 self.play_me[uid] = me
-            elif etype == 'update':
+            elif etype == "update":
                 me = self.play_me[uid]
                 me.depack(args)
-            elif etype == 'end':
+            elif etype == "end":
                 me = self.play_me.pop(uid)
                 me.depack(args)
-            elif etype == 'keydown':
+            elif etype == "keydown":
                 self.window.dispatch(
-                    'on_key_down',
-                    args['key'],
-                    args['scancode'],
-                    args['codepoint'],
-                    args['modifier'])
-            elif etype == 'keyup':
+                    "on_key_down",
+                    args["key"],
+                    args["scancode"],
+                    args["codepoint"],
+                    args["modifier"],
+                )
+            elif etype == "keyup":
                 self.window.dispatch(
-                    'on_key_up',
-                    args['key'],
-                    args['scancode'],
-                    args['codepoint'],
-                    args['modifier'])
-            elif etype == 'keyboard':
+                    "on_key_up",
+                    args["key"],
+                    args["scancode"],
+                    args["codepoint"],
+                    args["modifier"],
+                )
+            elif etype == "keyboard":
                 self.window.dispatch(
-                    'on_keyboard',
-                    args['key'],
-                    args['scancode'],
-                    args['codepoint'],
-                    args['modifier'])
+                    "on_keyboard",
+                    args["key"],
+                    args["scancode"],
+                    args["codepoint"],
+                    args["modifier"],
+                )
 
             if me:
                 dispatch_fn(etype, me)
@@ -331,5 +367,5 @@ def start(win, ctx):
 
 
 def stop(win, ctx):
-    if hasattr(ctx, 'recorder'):
+    if hasattr(ctx, "recorder"):
         ctx.recorder.release()

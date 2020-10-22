@@ -1,19 +1,24 @@
-'''
+"""
 Notes
 =====
 
 Simple application for reading/writing notes.
 
-'''
+"""
 
-__version__ = '1.0'
+__version__ = "1.0"
 
 import json
 from os.path import join, exists
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-from kivy.properties import ListProperty, StringProperty, \
-        NumericProperty, BooleanProperty, AliasProperty
+from kivy.properties import (
+    ListProperty,
+    StringProperty,
+    NumericProperty,
+    BooleanProperty,
+    AliasProperty,
+)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
@@ -73,22 +78,24 @@ class Notes(Screen):
     data = ListProperty()
 
     def _get_data_for_widgets(self):
-        return [{
-            'note_index': index,
-            'note_content': item['content'],
-            'note_title': item['title']}
-            for index, item in enumerate(self.data)]
+        return [
+            {
+                "note_index": index,
+                "note_content": item["content"],
+                "note_title": item["title"],
+            }
+            for index, item in enumerate(self.data)
+        ]
 
-    data_for_widgets = AliasProperty(_get_data_for_widgets, bind=['data'])
+    data_for_widgets = AliasProperty(_get_data_for_widgets, bind=["data"])
 
 
 class NoteApp(App):
-
     def build(self):
-        self.notes = Notes(name='notes')
+        self.notes = Notes(name="notes")
         self.load_notes()
 
-        self.transition = SlideTransition(duration=.35)
+        self.transition = SlideTransition(duration=0.35)
         root = ScreenManager(transition=self.transition)
         root.add_widget(self.notes)
         return root
@@ -101,7 +108,7 @@ class NoteApp(App):
         self.notes.data = data
 
     def save_notes(self):
-        with open(self.notes_fn, 'w') as fd:
+        with open(self.notes_fn, "w") as fd:
             json.dump(self.notes.data, fd)
 
     def del_note(self, note_index):
@@ -112,7 +119,7 @@ class NoteApp(App):
 
     def edit_note(self, note_index):
         note = self.notes.data[note_index]
-        name = 'note{}'.format(note_index)
+        name = "note{}".format(note_index)
 
         if self.root.has_screen(name):
             self.root.remove_widget(self.root.get_screen(name))
@@ -120,20 +127,21 @@ class NoteApp(App):
         view = NoteView(
             name=name,
             note_index=note_index,
-            note_title=note.get('title'),
-            note_content=note.get('content'))
+            note_title=note.get("title"),
+            note_content=note.get("content"),
+        )
 
         self.root.add_widget(view)
-        self.transition.direction = 'left'
+        self.transition.direction = "left"
         self.root.current = view.name
 
     def add_note(self):
-        self.notes.data.append({'title': 'New note', 'content': ''})
+        self.notes.data.append({"title": "New note", "content": ""})
         note_index = len(self.notes.data) - 1
         self.edit_note(note_index)
 
     def set_note_content(self, note_index, note_content):
-        self.notes.data[note_index]['content'] = note_content
+        self.notes.data[note_index]["content"] = note_content
         data = self.notes.data
         self.notes.data = []
         self.notes.data = data
@@ -141,7 +149,7 @@ class NoteApp(App):
         self.refresh_notes()
 
     def set_note_title(self, note_index, note_title):
-        self.notes.data[note_index]['title'] = note_title
+        self.notes.data[note_index]["title"] = note_title
         self.save_notes()
         self.refresh_notes()
 
@@ -151,13 +159,13 @@ class NoteApp(App):
         self.notes.data = data
 
     def go_notes(self):
-        self.transition.direction = 'right'
-        self.root.current = 'notes'
+        self.transition.direction = "right"
+        self.root.current = "notes"
 
     @property
     def notes_fn(self):
-        return join(self.user_data_dir, 'notes.json')
+        return join(self.user_data_dir, "notes.json")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NoteApp().run()

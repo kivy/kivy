@@ -253,4 +253,3 @@ class WindowX11(WindowBase):
                 return True
         super(WindowX11, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
-

@@ -74,4 +74,3 @@ cdef class Translate(Transform):
     cdef double _x, _y, _z
     cdef int apply(self) except -1
     cdef set_translate(self, double x, double y, double z)
-

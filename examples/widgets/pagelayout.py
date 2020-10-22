@@ -1,7 +1,7 @@
 from kivy.base import runTouchApp
 from kivy.lang import Builder
 
-kv = '''
+kv = """
 PageLayout:
     BoxLayout:
         canvas:
@@ -57,8 +57,8 @@ PageLayout:
         Widget
         AsyncImage:
             source: 'http://kivy.org/slides/particlepanda-thumb.jpg'
-'''
+"""
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     runTouchApp(Builder.load_string(kv))

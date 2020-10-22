@@ -63,4 +63,3 @@ easiest way to do this is to call `super()`::
         return True
 
 Get more familiar with events by reading the :doc:`/guide/events` documentation.
-

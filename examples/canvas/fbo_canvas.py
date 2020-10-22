@@ -1,4 +1,4 @@
-'''
+"""
 FBO Canvas
 ==========
 
@@ -6,9 +6,9 @@ This demonstrates a layout using an FBO (Frame Buffer Off-screen)
 instead of a plain canvas. You should see a black canvas with a
 button labelled 'FBO' in the bottom left corner. Clicking it
 animates the button moving right to left.
-'''
+"""
 
-__all__ = ('FboFloatLayout', )
+__all__ = ("FboFloatLayout",)
 
 from kivy.graphics import Color, Rectangle, Canvas, ClearBuffers, ClearColor
 from kivy.graphics.fbo import Fbo
@@ -82,6 +82,7 @@ class ScreenLayerApp(App):
                 Animation(x=f.width - b.width).start(b)
             else:
                 Animation(x=0).start(b)
+
         b.bind(on_press=anim_btn)
 
         return f

@@ -6,7 +6,7 @@
         size_hint_x: None
         width: 150
         canvas:
-            Color: 
+            Color:
                 rgba: 1, 1, 1, .1
             Rectangle:
                 size: self.size
@@ -46,7 +46,7 @@
             canvas:
                 Color:
                     rgba: 47 / 255., 167 / 255., 212 / 255., .4
-                Rectangle:   
+                Rectangle:
                     pos: self.x, self.y + 1
                     size: self.size
                 Color:
@@ -62,7 +62,7 @@
 
 <GestureVisualizer>:
     canvas:
-        Color: 
+        Color:
             rgba: 1, 1, 1, self.selected and .3 or .1
         Rectangle:
             pos: self.pos
@@ -71,7 +71,7 @@
 
 <RecognizerResultDetails>:
     canvas:
-        Color: 
+        Color:
             rgba: 1, 0, 0, .1
         Rectangle:
             size: self.size
@@ -118,20 +118,20 @@
             'the number of templates will be huge)')
         button_text: 'Heap Permute?'
         value: True
-        
+
     MultistrokeSettingBoolean:
         id: stroke_sens
         title: 'Require same number of strokes?'
-        desc: 
+        desc:
             ('When enabled, the new gesture will only match candidates ' +
             'with exactly the same stroke count. Enable if possible.')
         button_text: 'Stroke sensitive?'
         value: True
-        
+
     MultistrokeSettingBoolean:
         id: orientation_sens
         title: 'Is gesture orientation sensitive?'
-        desc: 
+        desc:
             ('Enable to differentiate gestures that differ only by ' +
             'orientation (d/p, b/q, w/m), disable for gestures that ' +
             'look the same in any orientation (like a circle)')
@@ -142,7 +142,7 @@
         id: angle_sim
         title: 'Angle similarity threshold'
         type: 'float'
-        desc: 
+        desc:
             ('Use a low number to distinguish similar gestures, higher ' +
             'number to match similar gestures (with differing angle)')
         value: 30.

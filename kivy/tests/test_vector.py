@@ -108,14 +108,14 @@ class VectorTestCase(unittest.TestCase):
         self.assertEqual(finalVector.y, 3)
 
     def test_truediv_twovectors(self):
-        finalVector = truediv(Vector(6, 6), Vector(2., 2.))
-        self.assertAlmostEqual(finalVector.x, 3.)
-        self.assertAlmostEqual(finalVector.y, 3.)
+        finalVector = truediv(Vector(6, 6), Vector(2.0, 2.0))
+        self.assertAlmostEqual(finalVector.x, 3.0)
+        self.assertAlmostEqual(finalVector.y, 3.0)
 
     def test_truediv_scalar(self):
-        finalVector = truediv(Vector(6, 6), 2.)
-        self.assertAlmostEqual(finalVector.x, 3.)
-        self.assertAlmostEqual(finalVector.y, 3.)
+        finalVector = truediv(Vector(6, 6), 2.0)
+        self.assertAlmostEqual(finalVector.x, 3.0)
+        self.assertAlmostEqual(finalVector.y, 3.0)
 
     def test_div_inplace(self):
         finalVector = Vector(6, 6)
@@ -148,7 +148,7 @@ class VectorTestCase(unittest.TestCase):
         Vector(6, 6) + (1, 2)
 
     def test_negation(self):
-        vector = - Vector(1, 1)
+        vector = -Vector(1, 1)
         self.assertEqual(vector.x, -1)
         self.assertEqual(vector.y, -1)
 
@@ -252,5 +252,5 @@ class VectorTestCase(unittest.TestCase):
             almost(result, Vector.segment_intersection(v1, v2, v3, v))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Web Debugger
 ============
 
@@ -19,12 +19,13 @@ Run with::
 
 Then open your webbrowser on http://localhost:5000/
 
-'''
+"""
 
-__all__ = ('start', 'stop')
+__all__ = ("start", "stop")
 
 import os
-if 'KIVY_DOC' not in os.environ:
+
+if "KIVY_DOC" not in os.environ:
     from kivy.modules._webdebugger import start, stop
 else:
     start = stop = lambda *x: True

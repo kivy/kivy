@@ -56,25 +56,25 @@
 
 #else
 
-#	if __USE_OPENGL_ES2
-#		if __APPLE__
-#			include "common_subset.h"
-#		else
-#			include <GLES2/gl2.h>
-#			include <GLES2/gl2ext.h>
-#		endif
-#	else
-#		ifdef __APPLE__
-#			include <OpenGL/gl.h>
-#			include <OpenGL/glext.h>
-#		else
-#			define GL_GLEXT_PROTOTYPES
-#			include <GL/gl.h>
-#			include <GL/glext.h>
-#		endif
-#		define GL_SHADER_BINARY_FORMATS					0x8DF8
-#		define GL_RGB565								0x8D62
-#		define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
+#    if __USE_OPENGL_ES2
+#        if __APPLE__
+#            include "common_subset.h"
+#        else
+#            include <GLES2/gl2.h>
+#            include <GLES2/gl2ext.h>
+#        endif
+#    else
+#        ifdef __APPLE__
+#            include <OpenGL/gl.h>
+#            include <OpenGL/glext.h>
+#        else
+#            define GL_GLEXT_PROTOTYPES
+#            include <GL/gl.h>
+#            include <GL/glext.h>
+#        endif
+#        define GL_SHADER_BINARY_FORMATS                    0x8DF8
+#        define GL_RGB565                                0x8D62
+#        define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS     0x8CD9
 #   endif
 
 
@@ -89,9 +89,9 @@
 // kivy in an headless env, without proper GL support.
 // This is a hack to prevent to link with wrong symbol. :(
 #if __USE_MESAGL == 1
-#	define glBlendEquationSeparate(x, y)
-#	define glDepthRangef glDepthRange
-#	define glClearDepthf glClearDepth
+#    define glBlendEquationSeparate(x, y)
+#    define glDepthRangef glDepthRange
+#    define glClearDepthf glClearDepth
 
 // C redirection to prevent warning of undeclared symbol
 // (these functions are not existing in GLES2, but if we are using GLES2

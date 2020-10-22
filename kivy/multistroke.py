@@ -1,4 +1,4 @@
-'''
+"""
 Multistroke gesture recognizer
 ==============================
 
@@ -114,10 +114,15 @@ For more information about the matching algorithm, see:
 
 Some of the code is derived from the JavaScript implementation here:
   http://depts.washington.edu/aimgroup/proj/dollar/ndollar.html
-'''
+"""
 
-__all__ = ('Recognizer', 'ProgressTracker', 'MultistrokeGesture',
-           'UnistrokeTemplate', 'Candidate')
+__all__ = (
+    "Recognizer",
+    "ProgressTracker",
+    "MultistrokeGesture",
+    "UnistrokeTemplate",
+    "Candidate",
+)
 
 import pickle
 import base64
@@ -154,8 +159,9 @@ class MultistrokeError(Exception):
 # Recognizer
 # -----------------------------------------------------------------------------
 
+
 class Recognizer(EventDispatcher):
-    ''':class:`Recognizer` provides a gesture database with matching
+    """:class:`Recognizer` provides a gesture database with matching
     facilities.
 
     :Events:
@@ -173,17 +179,17 @@ class Recognizer(EventDispatcher):
 
             :attr:`db` is a
             :class:`~kivy.properties.ListProperty` and defaults to []
-    '''
+    """
 
     db = ListProperty([])
 
     def __init__(self, **kwargs):
         super(Recognizer, self).__init__(**kwargs)
-        self.register_event_type('on_search_start')
-        self.register_event_type('on_search_complete')
+        self.register_event_type("on_search_start")
+        self.register_event_type("on_search_complete")
 
     def filter(self, **kwargs):
-        ''':meth:`filter` returns a subset of objects in :attr:`self.db`,
+        """:meth:`filter` returns a subset of objects in :attr:`self.db`,
         according to given criteria. This is used by many other methods of
         the :class:`Recognizer`; the arguments below can for example be
         used when calling :meth:`Recognizer.recognize` or
@@ -266,18 +272,18 @@ class Recognizer(EventDispatcher):
                 Can be set if you want to filter a different list of objects
                 than :attr:`Recognizer.db`. You probably don't want to do this;
                 it is used internally by :meth:`import_gesture`.
-        '''
+        """
         have_filters = False
 
         kwargs_get = kwargs.get
 
-        name = kwargs_get('name', None)
+        name = kwargs_get("name", None)
         if name is not None:
             have_filters = True
             if not isinstance(name, list):
                 name = [name]
 
-        priority = kwargs_get('priority', None)
+        priority = kwargs_get("priority", None)
         min_p, max_p = None, None
         if priority is not None:
             have_filters = True
@@ -286,28 +292,28 @@ class Recognizer(EventDispatcher):
             elif isinstance(priority, int):
                 min_p, max_p = None, priority
 
-        numstrokes = kwargs_get('numstrokes', None)
+        numstrokes = kwargs_get("numstrokes", None)
         if numstrokes is not None:
             have_filters = True
             if not isinstance(numstrokes, list):
                 numstrokes = [numstrokes]
 
-        numpoints = kwargs_get('numpoints', None)
+        numpoints = kwargs_get("numpoints", None)
         if numpoints is not None:
             have_filters = True
             if not isinstance(numpoints, list):
                 numpoints = [numpoints]
 
-        orientation_sens = kwargs_get('orientation_sensitive', None)
+        orientation_sens = kwargs_get("orientation_sensitive", None)
         if orientation_sens is not None:
             have_filters = True
 
         # Prepare a correctly sorted tasklist
-        force_priority_sort = kwargs.get('force_priority_sort', None)
+        force_priority_sort = kwargs.get("force_priority_sort", None)
         force_sort_on = force_priority_sort and True
         force_sort_off = (force_priority_sort is False) and True
 
-        db = kwargs.get('db', None) or self.db
+        db = kwargs.get("db", None) or self.db
         if (force_sort_on or priority) and not force_sort_off:
             tasklist = sorted(db, key=lambda n: n.priority)
         else:
@@ -322,8 +328,10 @@ class Recognizer(EventDispatcher):
         out_append = out.append
         for gesture in tasklist:
 
-            if (orientation_sens is not None and
-                    orientation_sens != gesture.orientation_sens):
+            if (
+                orientation_sens is not None
+                and orientation_sens != gesture.orientation_sens
+            ):
                 continue
 
             if numpoints and gesture.numpoints not in numpoints:
@@ -349,41 +357,40 @@ class Recognizer(EventDispatcher):
         return out
 
     def add_gesture(self, name, strokes, **kwargs):
-        '''Add a new gesture to the database. This will instantiate a new
+        """Add a new gesture to the database. This will instantiate a new
         :class:`MultistrokeGesture` with `strokes` and append it to self.db.
 
         .. Note ::
             If you already have instantiated a :class:`MultistrokeGesture`
             object and wish to add it, append it to :attr:`Recognizer.db`
             manually.
-        '''
+        """
         if not strokes:
             return False
-        self.db.append(
-            MultistrokeGesture(name=name, strokes=strokes, **kwargs)
-        )
+        self.db.append(MultistrokeGesture(name=name, strokes=strokes, **kwargs))
         return True
 
     def parse_gesture(self, data):
-        '''Parse data formatted by export_gesture(). Returns a list of
+        """Parse data formatted by export_gesture(). Returns a list of
         :class:`MultistrokeGesture` objects. This is used internally by
         :meth:`import_gesture`, you normally don't need to call this
-        directly.'''
+        directly."""
         io = BytesIO(zlib.decompress(base64.b64decode(data)))
 
         p = pickle.Unpickler(io)
         multistrokes = []
         ms_append = multistrokes.append
         for multistroke in p.load():
-            strokes = multistroke['strokes']
-            multistroke['strokes'] = [[Vector(
-                x, y) for x, y in line] for line in strokes]
+            strokes = multistroke["strokes"]
+            multistroke["strokes"] = [
+                [Vector(x, y) for x, y in line] for line in strokes
+            ]
             ms_append(MultistrokeGesture(**multistroke))
         return multistrokes
 
     # FIXME: use a try block, maybe shelve or something
     def export_gesture(self, filename=None, **kwargs):
-        '''Export a list of :class:`MultistrokeGesture` objects. Outputs a
+        """Export a list of :class:`MultistrokeGesture` objects. Outputs a
         base64-encoded string that can be decoded to a Python list with
         the :meth:`parse_gesture` function or imported directly to
         :attr:`self.db` using :meth:`Recognizer.import_gesture`. If
@@ -391,26 +398,32 @@ class Recognizer(EventDispatcher):
         returned.
 
         This method accepts optional :meth:`Recognizer.filter` arguments.
-        '''
+        """
         io = BytesIO()
         p = pickle.Pickler(io, protocol=0)
         multistrokes = []
-        defaults = {'priority': 100, 'numpoints': 16, 'stroke_sens': True,
-                    'orientation_sens': False, 'angle_similarity': 30.0}
+        defaults = {
+            "priority": 100,
+            "numpoints": 16,
+            "stroke_sens": True,
+            "orientation_sens": False,
+            "angle_similarity": 30.0,
+        }
         dkeys = defaults.keys()
 
         for multistroke in self.filter(**kwargs):
             m = dict(defaults)
-            m = {'name': multistroke.name}
+            m = {"name": multistroke.name}
             for attr in dkeys:
                 m[attr] = getattr(multistroke, attr)
-            m['strokes'] = tuple([(p.x, p.y) for p in line]
-                                 for line in multistroke.strokes)
+            m["strokes"] = tuple(
+                [(p.x, p.y) for p in line] for line in multistroke.strokes
+            )
             multistrokes.append(m)
         p.dump(multistrokes)
 
         if filename:
-            f = open(filename, 'wb')
+            f = open(filename, "wb")
             f.write(base64.b64encode(zlib.compress(io.getvalue(), 9)))
             f.close()
         else:
@@ -421,29 +434,29 @@ class Recognizer(EventDispatcher):
     # than on every subsequent call to recognize(). And fix it in general,
     # too.
     def import_gesture(self, data=None, filename=None, **kwargs):
-        '''Import a list of gestures as formatted by :meth:`export_gesture`.
+        """Import a list of gestures as formatted by :meth:`export_gesture`.
         One of `data` or `filename` must be specified.
 
         This method accepts optional :meth:`Recognizer.filter` arguments,
         if none are specified then all gestures in specified data are
-        imported.'''
+        imported."""
         if filename is not None:
             with open(filename, "rb") as infile:
                 data = infile.read()
         elif data is None:
-            raise MultistrokeError('import_gesture needs data= or filename=')
+            raise MultistrokeError("import_gesture needs data= or filename=")
 
         new = self.filter(db=self.parse_gesture(data), **kwargs)
         if new:
             self.db.extend(new)
 
     def transfer_gesture(self, tgt, **kwargs):
-        '''Transfers :class:`MultistrokeGesture` objects from
+        """Transfers :class:`MultistrokeGesture` objects from
         :attr:`Recognizer.db` to another :class:`Recognizer` instance `tgt`.
 
         This method accepts optional :meth:`Recognizer.filter` arguments.
-        '''
-        if hasattr(tgt, 'db') and isinstance(tgt.db, list):
+        """
+        if hasattr(tgt, "db") and isinstance(tgt.db, list):
             send = self.filter(**kwargs)
             if send:
                 tgt.db.append(None)
@@ -451,7 +464,7 @@ class Recognizer(EventDispatcher):
                 return True
 
     def prepare_templates(self, **kwargs):
-        '''This method is used to prepare :class:`UnistrokeTemplate` objects
+        """This method is used to prepare :class:`UnistrokeTemplate` objects
         within the gestures in self.db. This is useful if you want to minimize
         punishment of lazy resampling by preparing all vectors in advance. If
         you do this before a call to :meth:`Recognizer.export_gesture`, you
@@ -462,14 +475,14 @@ class Recognizer(EventDispatcher):
         `force_numpoints`, if specified, will prepare all templates to the
         given number of points (instead of each template's preferred n; ie
         :data:`UnistrokeTemplate.numpoints`). You normally don't want to
-        do this.'''
+        do this."""
         for gesture in self.filter(**kwargs):
             for tpl in gesture:
-                n = kwargs.get('force_numpoints', tpl.numpoints)
+                n = kwargs.get("force_numpoints", tpl.numpoints)
                 tpl.prepare(n)
 
     def recognize(self, strokes, goodscore=None, timeout=0, delay=0, **kwargs):
-        '''Search for gestures matching `strokes`. Returns a
+        """Search for gestures matching `strokes`. Returns a
         :class:`ProgressTracker` instance.
 
         This method accepts optional :meth:`Recognizer.filter` arguments.
@@ -533,8 +546,8 @@ class Recognizer(EventDispatcher):
                 certain number of points. This can be useful for example if
                 you are evaluating templates for optimal n (do not use this
                 unless you understand what it does).
-        '''
-        GPF = kwargs.get('max_gpf', DEFAULT_GPF)
+        """
+        GPF = kwargs.get("max_gpf", DEFAULT_GPF)
 
         # Obtain a list of MultistrokeGesture objects matching filter arguments
         tasklist = self.filter(**kwargs)
@@ -546,11 +559,12 @@ class Recognizer(EventDispatcher):
         # This is done to inform caller if they bind to on_complete and there
         # is nothing to do; perhaps should just return None?
         if not tasklist:
-            result.status = 'complete'
-            self.dispatch('on_search_complete', result)
+            result.status = "complete"
+            self.dispatch("on_search_complete", result)
 
             def result_hack(dt):
-                result.dispatch('on_complete')
+                result.dispatch("on_complete")
+
             Clock.schedule_once(result_hack)
             return result
 
@@ -559,51 +573,53 @@ class Recognizer(EventDispatcher):
             start_gc = result._completed
             stop_now = False
 
-            while not stop_now and (tasklist and not result._break_flag) and \
-                    (not GPF or (result._completed - start_gc < GPF)):
+            while (
+                not stop_now
+                and (tasklist and not result._break_flag)
+                and (not GPF or (result._completed - start_gc < GPF))
+            ):
 
-                if (timeout and
-                        Clock.get_time() - result._start_time >= timeout):
-                    result.status = 'timeout'
+                if timeout and Clock.get_time() - result._start_time >= timeout:
+                    result.status = "timeout"
                     stop_now = True
                     break
 
                 # Get the best distance and number of matching operations done
                 gesture = tasklist.popleft()
-                tpl, d, res, mos = gesture.match_candidate(
-                    cand, **kwargs)
+                tpl, d, res, mos = gesture.match_candidate(cand, **kwargs)
 
                 if tpl is not None:
                     score = result._add_result(gesture, d, tpl, res)
                     if goodscore is not None and score >= goodscore:
-                        result.status = 'goodscore'
+                        result.status = "goodscore"
                         stop_now = True
 
                 result._match_ops += mos
                 result._completed += 1
-                result.dispatch('on_progress')
+                result.dispatch("on_progress")
 
             # The loop has ended. Prepare to dispatch 'complete'
             def _dispatch():
-                result.dispatch('on_complete')
-                self.dispatch('on_search_complete', result)
+                result.dispatch("on_complete")
+                self.dispatch("on_search_complete", result)
                 return False
 
             # Dispatch or reschedule another run
             if not tasklist:
-                result.status = 'complete'
+                result.status = "complete"
                 return _dispatch()
             elif result._break_flag:
-                result.status = 'stop'
+                result.status = "stop"
                 return _dispatch()
             elif stop_now:
                 return _dispatch()
             else:
                 Clock.schedule_once(_recognize_tick, delay)
                 return True
+
         # End _recognize_tick()
 
-        self.dispatch('on_search_start', result)
+        self.dispatch("on_search_start", result)
         if not GPF:
             _recognize_tick(0)
         else:
@@ -619,13 +635,17 @@ class Recognizer(EventDispatcher):
         if isinstance(strokes, Candidate):
             return strokes
 
-        if (not isinstance(strokes, list) or not len(strokes) or not
-                isinstance(strokes[0], list)):
-            raise MultistrokeError('recognize() needs strokes= '
-                                   'list or Candidate')
+        if (
+            not isinstance(strokes, list)
+            or not len(strokes)
+            or not isinstance(strokes[0], list)
+        ):
+            raise MultistrokeError(
+                "recognize() needs strokes= " "list or Candidate"
+            )
 
         cand = Candidate(strokes)
-        o_filter = kwargs.get('orientation_sensitive', None)
+        o_filter = kwargs.get("orientation_sensitive", None)
         if o_filter is False:
             cand.skip_bounded = True
         elif o_filter is True:
@@ -645,8 +665,9 @@ class Recognizer(EventDispatcher):
 # ProgressTracker
 # -----------------------------------------------------------------------------
 
+
 class ProgressTracker(EventDispatcher):
-    '''Represents an ongoing (or completed) search operation. Instantiated and
+    """Represents an ongoing (or completed) search operation. Instantiated and
     returned by the :meth:`Recognizer.recognize` method when it is called. The
     `results` attribute is a dictionary that is  updated as the recognition
     operation progresses.
@@ -707,9 +728,10 @@ class ProgressTracker(EventDispatcher):
             `complete`
                 The search is complete (all gestures matching filters were
                 tested)
-    '''
+    """
+
     def __init__(self, candidate, tasks, **kwargs):
-        self.status = 'search'
+        self.status = "search"
         self.candidate = candidate
         self.results = {}
         self.tasks = tasks
@@ -719,40 +741,40 @@ class ProgressTracker(EventDispatcher):
         self._break_flag = False
 
         # fired by recognize()
-        self.register_event_type('on_complete')
-        self.register_event_type('on_progress')
+        self.register_event_type("on_complete")
+        self.register_event_type("on_progress")
 
         # fired locally
-        self.register_event_type('on_result')
+        self.register_event_type("on_result")
         super(ProgressTracker, self).__init__(**kwargs)
 
     @property
     def progress(self):
-        '''Returns the progress as a float, 0 is 0% done, 1 is 100%. This
-        is a Python property.'''
+        """Returns the progress as a float, 0 is 0% done, 1 is 100%. This
+        is a Python property."""
         if not self.tasks:
             return 1
         return self._completed / float(self.tasks)
 
     @property
     def best(self):
-        '''Return the best match found by recognize() so far. It returns a
+        """Return the best match found by recognize() so far. It returns a
         dictionary with three keys, 'name', 'dist' and 'score' representing
         the template's name, distance (from candidate path) and the
-        computed score value. This is a Python property.'''
+        computed score value. This is a Python property."""
         results = self.results  # to avoid too many self. lookups
         if not results:
-            return {'name': None, 'dist': None, 'score': 0}
-        b = max(results, key=lambda r: results[r]['score'])
+            return {"name": None, "dist": None, "score": 0}
+        b = max(results, key=lambda r: results[r]["score"])
         return {
-            'name': results[b]['name'],
-            'dist': results[b]['dist'],
-            'score': results[b]['score']
+            "name": results[b]["name"],
+            "dist": results[b]["dist"],
+            "score": results[b]["score"],
         }
 
     def stop(self):
-        '''Raises a stop flag that is checked by the search process. It will
-        be stopped on the next clock tick (if it is still running).'''
+        """Raises a stop flag that is checked by the search process. It will
+        be stopped on the next clock tick (if it is still running)."""
         self._break_flag = True
 
     def _add_result(self, gesture, dist, tpl, res):
@@ -760,26 +782,26 @@ class ProgressTracker(EventDispatcher):
         if tpl <= len(res):
             n = gesture.templates[tpl].name
         else:
-            return 0.
+            return 0.0
 
-        if n not in self.results or dist < self.results[n]['dist']:
+        if n not in self.results or dist < self.results[n]["dist"]:
             self.results[n] = {
-                'name': n,
-                'dist': dist,
-                'gesture': gesture,
-                'best_template': tpl,
-                'template_results': res
+                "name": n,
+                "dist": dist,
+                "gesture": gesture,
+                "best_template": tpl,
+                "template_results": res,
             }
 
             if not dist:
-                self.results[n]['score'] = 1.0
+                self.results[n]["score"] = 1.0
             else:
-                self.results[n]['score'] = 1.0 - (dist / pi)
+                self.results[n]["score"] = 1.0 - (dist / pi)
 
-            self.dispatch('on_result', self.results[n])
-            return self.results[n]['score']
+            self.dispatch("on_result", self.results[n])
+            return self.results[n]["score"]
         else:
-            return 0.
+            return 0.0
 
     def on_complete(self):
         pass
@@ -795,8 +817,9 @@ class ProgressTracker(EventDispatcher):
 # MultistrokeGesture
 # -----------------------------------------------------------------------------
 
+
 class MultistrokeGesture(object):
-    ''':class:`MultistrokeGesture` represents a gesture. It maintains a set of
+    """:class:`MultistrokeGesture` represents a gesture. It maintains a set of
     `strokes` and generates unistroke (ie :class:`UnistrokeTemplate`)
     permutations that are used for evaluating candidates against this gesture
     later.
@@ -852,43 +875,48 @@ class MultistrokeGesture(object):
             If False, do not use Heap Permute algorithm to generate different
             stroke orders when instantiated. If you set this to False, a
             single UnistrokeTemplate built from `strokes` is used.
-    '''
+    """
+
     def __init__(self, name, strokes=None, **kwargs):
         self.name = name
-        self.priority = kwargs.get('priority', 100)
-        self.numpoints = kwargs.get('numpoints', 16)
-        self.stroke_sens = kwargs.get('stroke_sensitive', True)
-        self.orientation_sens = kwargs.get('orientation_sensitive', True)
-        self.angle_similarity = kwargs.get('angle_similarity', 30.0)
+        self.priority = kwargs.get("priority", 100)
+        self.numpoints = kwargs.get("numpoints", 16)
+        self.stroke_sens = kwargs.get("stroke_sensitive", True)
+        self.orientation_sens = kwargs.get("orientation_sensitive", True)
+        self.angle_similarity = kwargs.get("angle_similarity", 30.0)
         self.strokes = []
 
         if strokes is not None:
             self.strokes = strokes
-            if kwargs.get('permute', True):
+            if kwargs.get("permute", True):
                 self.permute()
             else:
-                self.templates = [UnistrokeTemplate(name,
-                                  points=[i for sub in strokes for i in sub],
-                                  numpoints=self.numpoints,
-                                  orientation_sensitive=self.orientation_sens)]
+                self.templates = [
+                    UnistrokeTemplate(
+                        name,
+                        points=[i for sub in strokes for i in sub],
+                        numpoints=self.numpoints,
+                        orientation_sensitive=self.orientation_sens,
+                    )
+                ]
 
     def angle_similarity_threshold(self):
         return radians(self.angle_similarity)
 
     def add_stroke(self, stroke, permute=False):
-        '''Add a stroke to the self.strokes list. If `permute` is True, the
-        :meth:`permute` method is called to generate new unistroke templates'''
+        """Add a stroke to the self.strokes list. If `permute` is True, the
+        :meth:`permute` method is called to generate new unistroke templates"""
         self.strokes.append(stroke)
         if permute:
             self.permute()
 
     def get_distance(self, cand, tpl, numpoints=None):
-        '''Compute the distance from this Candiate to a UnistrokeTemplate.
+        """Compute the distance from this Candiate to a UnistrokeTemplate.
         Returns the Cosine distance between the stroke paths.
 
         `numpoints` will prepare both the UnistrokeTemplate and Candidate path
         to n points (when necessary), you probably don't want to do this.
-        '''
+        """
         n = numpoints
         if n is None or n < 2:
             n = self.numpoints
@@ -922,7 +950,7 @@ class MultistrokeGesture(object):
         return acos(result)
 
     def match_candidate(self, cand, **kwargs):
-        '''Match a given candidate against this MultistrokeGesture object. Will
+        """Match a given candidate against this MultistrokeGesture object. Will
         test against all templates and report results as a list of four
         items:
 
@@ -937,13 +965,13 @@ class MultistrokeGesture(object):
             `index 3`
                 Counter for the number of performed matching operations, ie
                 templates matched against the candidate
-        '''
-        best_d = float('infinity')
+        """
+        best_d = float("infinity")
         best_tpl = None
         mos = 0
         out = []
 
-        if (self.stroke_sens and len(self.strokes) != len(cand.strokes)):
+        if self.stroke_sens and len(self.strokes) != len(cand.strokes):
             return (best_tpl, best_d, out, mos)
 
         skip_bounded = cand.skip_bounded
@@ -971,7 +999,7 @@ class MultistrokeGesture(object):
             # to *any* encountered UnistrokeTemplate numpoints here, the filter
             # is only applied to MultistrokeGesture. See theoretical case
             # above; should not matter normally.
-            n = kwargs.get('force_numpoints', tpl.numpoints)
+            n = kwargs.get("force_numpoints", tpl.numpoints)
 
             # Skip if candidate/gesture angles are too far off
             ang_sim = cand.get_angle_similarity(tpl, numpoints=n)
@@ -989,7 +1017,7 @@ class MultistrokeGesture(object):
         return (best_tpl, best_d, out, mos)
 
     def permute(self):
-        '''Generate all possible unistroke permutations from self.strokes and
+        """Generate all possible unistroke permutations from self.strokes and
         save the resulting list of UnistrokeTemplate objects in self.templates.
 
         Quote from http://faculty.washington.edu/wobbrock/pubs/gi-10.2.pdf ::
@@ -1012,7 +1040,7 @@ class MultistrokeGesture(object):
             gesture = 38 million templates). If you are dealing with
             these types of gestures, you should manually compose
             all the desired stroke orders.
-        '''
+        """
         # Seed with index of each stroke
         self._order = [i for i in xrange(0, len(self.strokes))]
 
@@ -1022,12 +1050,15 @@ class MultistrokeGesture(object):
         del self._order
 
         # Generate unistroke permutations
-        self.templates = [UnistrokeTemplate(
-            self.name,
-            points=permutation,
-            numpoints=self.numpoints,
-            orientation_sensitive=self.orientation_sens
-        ) for permutation in self._make_unistrokes()]
+        self.templates = [
+            UnistrokeTemplate(
+                self.name,
+                points=permutation,
+                numpoints=self.numpoints,
+                orientation_sensitive=self.orientation_sens,
+            )
+            for permutation in self._make_unistrokes()
+        ]
         del self._orders
 
     def _heap_permute(self, n):
@@ -1074,8 +1105,9 @@ class MultistrokeGesture(object):
 # UnistrokeTemplate
 # -----------------------------------------------------------------------------
 
+
 class UnistrokeTemplate(object):
-    '''Represents a (uni)stroke path as a list of Vectors. Normally, this class
+    """Represents a (uni)stroke path as a list of Vectors. Normally, this class
     is instantiated by MultistrokeGesture and not by the programmer directly.
     However, it is possible to manually compose UnistrokeTemplate objects.
 
@@ -1098,11 +1130,12 @@ class UnistrokeTemplate(object):
     .. Note::
         You will get an exception if you set a skip-flag and then attempt to
         retrieve those vectors.
-    '''
+    """
+
     def __init__(self, name, points=None, **kwargs):
         self.name = name
-        self.numpoints = kwargs.get('numpoints', 16)
-        self.orientation_sens = kwargs.get('orientation_sensitive', True)
+        self.numpoints = kwargs.get("numpoints", 16)
+        self.orientation_sens = kwargs.get("orientation_sensitive", True)
 
         self.db = {}
         self.points = []
@@ -1111,8 +1144,8 @@ class UnistrokeTemplate(object):
             self.points = points
 
     def add_point(self, p):
-        '''Add a point to the unistroke/path. This invalidates all previously
-        computed vectors.'''
+        """Add a point to the unistroke/path. This invalidates all previously
+        computed vectors."""
         self.points.append(p)
         # All previously computed data is now void.
         self.db = {}
@@ -1125,25 +1158,25 @@ class UnistrokeTemplate(object):
         return self.db[n][key]
 
     def get_start_unit_vector(self, numpoints=None):
-        return self._get_db_key('startvector', numpoints)
+        return self._get_db_key("startvector", numpoints)
 
     def get_vector(self, numpoints=None):
-        return self._get_db_key('vector', numpoints)
+        return self._get_db_key("vector", numpoints)
 
     def get_points(self, numpoints=None):
-        return self._get_db_key('points', numpoints)
+        return self._get_db_key("points", numpoints)
 
     def prepare(self, numpoints=None):
-        '''This function prepares the UnistrokeTemplate for matching given a
-        target number of points (for resample). 16 is optimal.'''
+        """This function prepares the UnistrokeTemplate for matching given a
+        target number of points (for resample). 16 is optimal."""
 
         if not self.points:
-            raise MultistrokeError('prepare() called without self.points')
+            raise MultistrokeError("prepare() called without self.points")
 
         # How many points are we resampling to?
         n = numpoints or self.numpoints
         if not n or n < 2:
-            raise MultistrokeError('prepare() called with invalid numpoints')
+            raise MultistrokeError("prepare() called with invalid numpoints")
 
         p = resample(self.points, n)
         radians = indicative_angle(p)
@@ -1161,8 +1194,8 @@ class UnistrokeTemplate(object):
         # all the keys once you manipulate self.points.
         self.db[n] = {
             # Compute STARTANGLEINDEX as n/8:
-            'startvector': start_unit_vector(p, (n / 8)),
-            'vector': vectorize(p, self.orientation_sens)
+            "startvector": start_unit_vector(p, (n / 8)),
+            "vector": vectorize(p, self.orientation_sens),
         }
 
 
@@ -1170,8 +1203,9 @@ class UnistrokeTemplate(object):
 # Candidate
 # -----------------------------------------------------------------------------
 
+
 class Candidate(object):
-    '''Represents a set of unistroke paths of user input, ie data to be matched
+    """Represents a set of unistroke paths of user input, ie data to be matched
     against a :class:`UnistrokeTemplate` object using the Protractor algorithm.
     By default, data is precomputed to match both rotation bounded and fully
     invariant :class:`UnistrokeTemplate` objects.
@@ -1192,10 +1226,11 @@ class Candidate(object):
             If True, do not generate/store rotation invariant vectors
 
     Note that you WILL get errors if you set a skip-flag and then attempt to
-    retrieve the data.'''
+    retrieve the data."""
+
     def __init__(self, strokes=None, numpoints=16, **kwargs):
-        self.skip_invariant = kwargs.get('skip_invariant', False)
-        self.skip_bounded = kwargs.get('skip_bounded', False)
+        self.skip_invariant = kwargs.get("skip_invariant", False)
+        self.skip_bounded = kwargs.get("skip_bounded", False)
 
         self.numpoints = numpoints
         self.db = {}
@@ -1205,8 +1240,8 @@ class Candidate(object):
             self.strokes = strokes
 
     def add_stroke(self, stroke):
-        '''Add a stroke to the candidate; this will invalidate all
-        previously computed vectors'''
+        """Add a stroke to the candidate; this will invalidate all
+        previously computed vectors"""
         self.points.append(stroke)
         self.db = {}
 
@@ -1216,33 +1251,33 @@ class Candidate(object):
         if n not in self.db:
             self.prepare(n)
 
-        prefix = orientation_sens and 'bound_' or 'inv_'
+        prefix = orientation_sens and "bound_" or "inv_"
         return self.db[n][prefix + key]
 
     def get_start_unit_vector(self, numpoints, orientation_sens):
-        '''(Internal use only) Get the start vector for this Candidate,
+        """(Internal use only) Get the start vector for this Candidate,
         with the path resampled to `numpoints` points. This is the first
         step in the matching process. It is compared to a
         UnistrokeTemplate object's start vector to determine angle
-        similarity.'''
-        return self._get_db_key('startvector', numpoints, orientation_sens)
+        similarity."""
+        return self._get_db_key("startvector", numpoints, orientation_sens)
 
     def get_protractor_vector(self, numpoints, orientation_sens):
-        '''(Internal use only) Return vector for comparing to a
-        UnistrokeTemplate with Protractor'''
-        return self._get_db_key('vector', numpoints, orientation_sens)
+        """(Internal use only) Return vector for comparing to a
+        UnistrokeTemplate with Protractor"""
+        return self._get_db_key("vector", numpoints, orientation_sens)
 
     def get_angle_similarity(self, tpl, **kwargs):
-        '''(Internal use only) Compute the angle similarity between this
+        """(Internal use only) Compute the angle similarity between this
         Candidate and a UnistrokeTemplate object. Returns a number that
-        represents the angle similarity (lower is more similar).'''
-        n = kwargs.get('numpoints', self.numpoints)
+        represents the angle similarity (lower is more similar)."""
+        n = kwargs.get("numpoints", self.numpoints)
 
         # angle_between_unit_vectors() inlined here for performance
         v1x, v1y = self.get_start_unit_vector(n, tpl.orientation_sens)
         v2x, v2y = tpl.get_start_unit_vector(n)
 
-        n = (v1x * v2x + v1y * v2y)
+        n = v1x * v2x + v1y * v2y
         # FIXME: Domain error on float representation of 1.0 (exact match)
         # (see comments in MultistrokeGesture.get_distance())
         if n >= 1:
@@ -1252,10 +1287,10 @@ class Candidate(object):
         return acos(n)
 
     def prepare(self, numpoints=None):
-        '''Prepare the Candidate vectors. self.strokes is combined to a single
+        """Prepare the Candidate vectors. self.strokes is combined to a single
         unistroke (connected end-to-end), resampled to :attr:`numpoints`
         points, and then the vectors are calculated and stored in self.db (for
-        use by `get_distance` and `get_angle_similarity`)'''
+        use by `get_distance` and `get_angle_similarity`)"""
         n = numpoints and numpoints or self.numpoints
 
         # Inlined combine_strokes() for performance
@@ -1272,15 +1307,15 @@ class Candidate(object):
         # full rotation invariance
         if not self.skip_invariant:
             inv_points = translate_to(points, ORIGIN)
-            cand['inv_startvector'] = start_unit_vector(inv_points, angidx)
-            cand['inv_vector'] = vectorize(inv_points, False)
+            cand["inv_startvector"] = start_unit_vector(inv_points, angidx)
+            cand["inv_vector"] = vectorize(inv_points, False)
 
         # rotation bounded invariance
         if not self.skip_bounded:
             bound_points = rotate_by(points, +radians)  # restore
             bound_points = translate_to(bound_points, ORIGIN)
-            cand['bound_startvector'] = start_unit_vector(bound_points, angidx)
-            cand['bound_vector'] = vectorize(bound_points, True)
+            cand["bound_startvector"] = start_unit_vector(bound_points, angidx)
+            cand["bound_vector"] = vectorize(bound_points, True)
 
         self.db[n] = cand
 
@@ -1292,7 +1327,7 @@ class Candidate(object):
 def resample(points, n):
     # Resample a path to `n` points
     if not len(points) or not n or n < 2:
-        raise MultistrokeError('resample() called with invalid arguments')
+        raise MultistrokeError("resample() called with invalid arguments")
 
     interval = path_length(points) / (n - 1)
     D = 0.0
@@ -1356,8 +1391,10 @@ def scale_dim(points, size, oneDratio):
 
     if bbox_h == 0 or bbox_w == 0:
         raise MultistrokeError(
-            'scale_dim() called with invalid points: h:{}, w:{}'
-            .format(bbox_h, bbox_w))
+            "scale_dim() called with invalid points: h:{}, w:{}".format(
+                bbox_h, bbox_w
+            )
+        )
 
     # 1D or 2D gesture test
     uniformly = min(bbox_w / bbox_h, bbox_h / bbox_w) <= oneDratio
@@ -1399,7 +1436,7 @@ def vectorize(points, use_bounded_rotation_invariance):
 
     if use_bounded_rotation_invariance:
         ang = atan2(points[0][1], points[0][0])
-        bo = (pi / 4.) * floor((ang + pi / 8.) / (pi / 4.))
+        bo = (pi / 4.0) * floor((ang + pi / 8.0) / (pi / 4.0))
         cos = math_cos(bo - ang)
         sin = math_sin(bo - ang)
 
@@ -1439,10 +1476,10 @@ def centroid(points):
 
 
 def bounding_box(points):
-    minx = float('infinity')
-    miny = float('infinity')
-    maxx = float('-infinity')
-    maxy = float('-infinity')
+    minx = float("infinity")
+    miny = float("infinity")
+    maxx = float("-infinity")
+    maxy = float("-infinity")
 
     for px, py in points:
         if px < minx:

@@ -34,7 +34,7 @@ class TwistedServerApp(App):
         return self.label
 
     def handle_message(self, msg):
-        msg = msg.decode('utf-8')
+        msg = msg.decode("utf-8")
         self.label.text = "received:  {}\n".format(msg)
 
         if msg == "ping":
@@ -42,8 +42,8 @@ class TwistedServerApp(App):
         if msg == "plop":
             msg = "Kivy Rocks!!!"
         self.label.text += "responded: {}\n".format(msg)
-        return msg.encode('utf-8')
+        return msg.encode("utf-8")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TwistedServerApp().run()

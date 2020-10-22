@@ -1558,4 +1558,3 @@ cdef class SmoothLine(Line):
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
             self.flag_update()
-

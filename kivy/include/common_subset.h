@@ -494,4 +494,3 @@ GL_APICALL void         GL_APIENTRY glRenderbufferStorage (GLenum target, GLenum
 #ifdef __cplusplus
 }
 #endif
-

@@ -2,14 +2,16 @@ from kivy.uix.spinner import Spinner
 from kivy.base import runTouchApp
 
 spinner = Spinner(
-    text='Home',
-    values=('Home', 'Work', 'Other', 'Custom'),
-    size_hint=(None, None), size=(100, 44),
-    pos_hint={'center_x': .5, 'center_y': .5})
+    text="Home",
+    values=("Home", "Work", "Other", "Custom"),
+    size_hint=(None, None),
+    size=(100, 44),
+    pos_hint={"center_x": 0.5, "center_y": 0.5},
+)
 
 
 def show_selected_value(spinner, text):
-    print('The spinner', spinner, 'has text', text)
+    print("The spinner", spinner, "has text", text)
 
 
 spinner.bind(text=show_selected_value)

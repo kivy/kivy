@@ -1,4 +1,4 @@
-'''How to use Animation with RecycleView items?
+"""How to use Animation with RecycleView items?
 
 In case you really want to use the Animation class with RecycleView, you'll
 likely encounter an issue, as widgets are moved around, they are used to
@@ -10,7 +10,7 @@ and, by putting it in the data, allowing the displayed widget to mimic the
 animation. As the item always refers to its proxy, whichever widget is used to
 display the item will keep in sync with the animation.
 
-'''
+"""
 from copy import copy
 
 from kivy.app import App
@@ -19,12 +19,10 @@ from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
 from kivy.uix.button import Button
-from kivy.properties import (
-    ObjectProperty, ListProperty
-)
+from kivy.properties import ObjectProperty, ListProperty
 
 
-KV = '''
+KV = """
 <Item>:
     index: None
     animation_proxy: None
@@ -40,7 +38,7 @@ RecycleView:
         height: self.minimum_height
         default_size_hint: 1, None
         default_size: 0, dp(40)
-'''
+"""
 
 
 class Item(Button):
@@ -75,7 +73,7 @@ class Application(App):
 
     def build(self):
         self.data = [
-            {'index': i, 'text': 'hello {}'.format(i), 'animation_proxy': None}
+            {"index": i, "text": "hello {}".format(i), "animation_proxy": None}
             for i in range(1000)
         ]
         return Builder.load_string(KV)
@@ -91,18 +89,17 @@ class Application(App):
         # animation)
         proxy = Widget(opacity=1)
         item = copy(self.data[index])
-        animation = (
-            Animation(opacity=0, d=.1, t='out_quad')
-            + Animation(opacity=1, d=5, t='out_quad')
+        animation = Animation(opacity=0, d=0.1, t="out_quad") + Animation(
+            opacity=1, d=5, t="out_quad"
         )
         animation.bind(on_complete=lambda *x: self.reset_animation(item))
-        item['animation_proxy'] = proxy
+        item["animation_proxy"] = proxy
         self.data[index] = item
         animation.start(proxy)
 
     def reset_animation(self, item):
         # animation is complete, widget should be garbage collected
-        item['animation_proxy'] = None
+        item["animation_proxy"] = None
 
 
 if __name__ == "__main__":

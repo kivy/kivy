@@ -1,4 +1,4 @@
-'''
+"""
 FFmpeg video abstraction
 ========================
 
@@ -13,7 +13,7 @@ platforms. The project is available at::
 The extension is designed for implementing a video player.
 Refer to the documentation of the ffmpeg-android project for more information
 about the requirements.
-'''
+"""
 
 try:
     import ffmpeg
@@ -25,7 +25,6 @@ from kivy.graphics.texture import Texture
 
 
 class VideoFFMpeg(VideoBase):
-
     def __init__(self, **kwargs):
         self._do_load = False
         self._player = None
@@ -35,7 +34,7 @@ class VideoFFMpeg(VideoBase):
         if self._player:
             self._player.stop()
             self._player = None
-        self._state = ''
+        self._state = ""
         self._do_load = False
 
     def load(self):
@@ -58,7 +57,7 @@ class VideoFFMpeg(VideoBase):
 
     def _do_eos(self):
         self.unload()
-        self.dispatch('on_eos')
+        self.dispatch("on_eos")
         super(VideoFFMpeg, self)._do_eos()
 
     def _update(self, dt):
@@ -80,15 +79,15 @@ class VideoFFMpeg(VideoBase):
 
         # first time we got a frame, we know that video is readed now.
         if self._texture is None:
-            self._texture = Texture.create(size=(
-                player.get_width(), player.get_height()),
-                colorfmt='rgb')
+            self._texture = Texture.create(
+                size=(player.get_width(), player.get_height()), colorfmt="rgb"
+            )
             self._texture.flip_vertical()
-            self.dispatch('on_load')
+            self.dispatch("on_load")
 
         if self._texture:
             self._texture.blit_buffer(frame)
-            self.dispatch('on_frame')
+            self.dispatch("on_frame")
 
     def _get_duration(self):
         if self._player is None:

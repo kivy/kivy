@@ -1,13 +1,13 @@
-'''
+"""
 Triple Tap
 ==========
 
 .. versionadded:: 1.7.0
 
 Search touch for a triple tap
-'''
+"""
 
-__all__ = ('InputPostprocTripleTap', )
+__all__ = ("InputPostprocTripleTap",)
 
 from time import time
 from kivy.config import Config
@@ -15,7 +15,7 @@ from kivy.vector import Vector
 
 
 class InputPostprocTripleTap(object):
-    '''
+    """
     InputPostProcTripleTap is a post-processor to check if
     a touch is a triple tap or not.
     Triple tap can be configured in the Kivy config file::
@@ -25,23 +25,23 @@ class InputPostprocTripleTap(object):
         triple_tap_distance = 20
 
     The distance parameter is in the range 0-1000 and time is in milliseconds.
-    '''
+    """
 
     def __init__(self):
-        dist = Config.getint('postproc', 'triple_tap_distance')
+        dist = Config.getint("postproc", "triple_tap_distance")
         self.triple_tap_distance = dist / 1000.0
-        time = Config.getint('postproc', 'triple_tap_time')
+        time = Config.getint("postproc", "triple_tap_time")
         self.triple_tap_time = time / 1000.0
         self.touches = {}
 
     def find_triple_tap(self, ref):
-        '''Find a triple tap touch within *self.touches*.
+        """Find a triple tap touch within *self.touches*.
         The touch must be not be a previous triple tap and the distance
         must be be within the bounds specified. Additionally, the touch profile
         must be the same kind of touch.
-        '''
+        """
         ref_button = None
-        if 'button' in ref.profile:
+        if "button" in ref.profile:
             ref_button = ref.button
 
         for touchid in self.touches:
@@ -50,19 +50,19 @@ class InputPostprocTripleTap(object):
             etype, touch = self.touches[touchid]
             if not touch.is_double_tap:
                 continue
-            if etype != 'end':
+            if etype != "end":
                 continue
             if touch.is_triple_tap:
                 continue
             distance = Vector.distance(
-                Vector(ref.sx, ref.sy),
-                Vector(touch.osx, touch.osy))
+                Vector(ref.sx, ref.sy), Vector(touch.osx, touch.osy)
+            )
             if distance > self.triple_tap_distance:
                 continue
             if touch.is_mouse_scrolling or ref.is_mouse_scrolling:
                 continue
             touch_button = None
-            if 'button' in touch.profile:
+            if "button" in touch.profile:
                 touch_button = touch.button
             if touch_button != ref_button:
                 continue
@@ -76,7 +76,7 @@ class InputPostprocTripleTap(object):
         for etype, touch in events:
             if not touch.is_touch:
                 continue
-            if etype == 'begin':
+            if etype == "begin":
                 triple_tap = self.find_triple_tap(touch)
                 if triple_tap:
                     touch.is_double_tap = False
@@ -94,7 +94,7 @@ class InputPostprocTripleTap(object):
         to_delete = []
         for touchid in self.touches.keys():
             etype, touch = self.touches[touchid]
-            if etype != 'end':
+            if etype != "end":
                 continue
             if time_current - touch.time_start < self.triple_tap_time:
                 continue

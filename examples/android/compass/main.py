@@ -1,4 +1,4 @@
-'''
+"""
 Compass example
 ===============
 
@@ -16,11 +16,12 @@ You can compile it with::
     ./build.py --package org.test.compass --name compass \
         --private ~/code/kivy/examples/android/compass \
         --window --version 1.0 debug installd
-'''
+"""
 
 
 import kivy
-kivy.require('1.7.0')
+
+kivy.require("1.7.0")
 
 from jnius import autoclass
 from math import floor
@@ -30,7 +31,7 @@ from kivy.clock import Clock
 from kivy.vector import Vector
 from kivy.animation import Animation
 
-Hardware = autoclass('org.renpy.android.Hardware')
+Hardware = autoclass("org.renpy.android.Hardware")
 
 
 class CompassApp(App):
@@ -40,14 +41,14 @@ class CompassApp(App):
     def build(self):
         self._anim = None
         Hardware.magneticFieldSensorEnable(True)
-        Clock.schedule_interval(self.update_compass, 1 / 10.)
+        Clock.schedule_interval(self.update_compass, 1 / 10.0)
 
     def update_compass(self, *args):
         # read the magnetic sensor from the Hardware class
         (x, y, z) = Hardware.magneticFieldSensorReading()
 
         # calculate the angle
-        needle_angle = Vector(x, y).angle((0, 1)) + 90.
+        needle_angle = Vector(x, y).angle((0, 1)) + 90.0
 
         # fix animation transition around the unit circle
         if (self.needle_angle % 360) - needle_angle > 180:
@@ -55,12 +56,12 @@ class CompassApp(App):
         elif (self.needle_angle % 360) - needle_angle < -180:
             needle_angle -= 360
         # add the number of revolutions to the result
-        needle_angle += 360 * floor(self.needle_angle / 360.)
+        needle_angle += 360 * floor(self.needle_angle / 360.0)
 
         # animate the needle
         if self._anim:
             self._anim.stop(self)
-        self._anim = Animation(needle_angle=needle_angle, d=.2, t='out_quad')
+        self._anim = Animation(needle_angle=needle_angle, d=0.2, t="out_quad")
         self._anim.start(self)
 
     def on_pause(self):
@@ -73,5 +74,5 @@ class CompassApp(App):
         Hardware.magneticFieldSensorEnable(True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CompassApp().run()

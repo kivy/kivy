@@ -1,4 +1,4 @@
-'''
+"""
 Camera
 ======
 
@@ -23,22 +23,20 @@ You can also select the camera resolution::
     The camera texture is not updated as soon as you have created the object.
     The camera initialization is asynchronous, so there may be a delay before
     the requested texture is created.
-'''
+"""
 
-__all__ = ('Camera', )
+__all__ = ("Camera",)
 
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
-from kivy.properties import NumericProperty, ListProperty, \
-    BooleanProperty
+from kivy.properties import NumericProperty, ListProperty, BooleanProperty
 
 
 class Camera(Image):
-    '''Camera class. See module documentation for more information.
-    '''
+    """Camera class. See module documentation for more information."""
 
     play = BooleanProperty(True)
-    '''Boolean indicating whether the camera is playing or not.
+    """Boolean indicating whether the camera is playing or not.
     You can start/stop the camera by setting this property::
 
         # start the camera playing at creation (default)
@@ -51,17 +49,17 @@ class Camera(Image):
 
     :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     True.
-    '''
+    """
 
     index = NumericProperty(-1)
-    '''Index of the used camera, starting from 0.
+    """Index of the used camera, starting from 0.
 
     :attr:`index` is a :class:`~kivy.properties.NumericProperty` and defaults
     to -1 to allow auto selection.
-    '''
+    """
 
     resolution = ListProperty([-1, -1])
-    '''Preferred resolution to use when invoking the camera. If you are using
+    """Preferred resolution to use when invoking the camera. If you are using
     [-1, -1], the resolution will be the default one::
 
         # create a camera object with the best image available
@@ -77,7 +75,7 @@ class Camera(Image):
 
     :attr:`resolution` is a :class:`~kivy.properties.ListProperty` and defaults
     to [-1, -1].
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._camera = None
@@ -86,8 +84,8 @@ class Camera(Image):
             self.index = 0
         on_index = self._on_index
         fbind = self.fbind
-        fbind('index', on_index)
-        fbind('resolution', on_index)
+        fbind("index", on_index)
+        fbind("resolution", on_index)
         on_index()
 
     def on_tex(self, *l):
@@ -100,8 +98,9 @@ class Camera(Image):
         if self.resolution[0] < 0 or self.resolution[1] < 0:
             self._camera = CoreCamera(index=self.index, stopped=True)
         else:
-            self._camera = CoreCamera(index=self.index,
-                                  resolution=self.resolution, stopped=True)
+            self._camera = CoreCamera(
+                index=self.index, resolution=self.resolution, stopped=True
+            )
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()

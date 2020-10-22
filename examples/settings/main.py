@@ -16,7 +16,7 @@ from kivy.logger import Logger
 from kivy.lang import Builder
 
 # We first define our GUI
-kv = '''
+kv = """
 BoxLayout:
     orientation: 'vertical'
     Button:
@@ -25,10 +25,10 @@ BoxLayout:
     Label:
         id: label
         text: 'Hello'
-'''
+"""
 
 # This JSON defines entries we want to appear in our App configuration screen
-json = '''
+json = """
 [
     {
         "type": "string",
@@ -45,7 +45,7 @@ json = '''
         "key": "font_size"
     }
 ]
-'''
+"""
 
 
 class MyApp(App):
@@ -61,15 +61,15 @@ class MyApp(App):
         # We apply the saved configuration settings or the defaults
         root = Builder.load_string(kv)
         label = root.ids.label
-        label.text = self.config.get('My Label', 'text')
-        label.font_size = float(self.config.get('My Label', 'font_size'))
+        label.text = self.config.get("My Label", "text")
+        label.font_size = float(self.config.get("My Label", "font_size"))
         return root
 
     def build_config(self, config):
         """
         Set the default values for the configs sections.
         """
-        config.setdefaults('My Label', {'text': 'Hello', 'font_size': 20})
+        config.setdefaults("My Label", {"text": "Hello", "font_size": 20})
 
     def build_settings(self, settings):
         """
@@ -78,19 +78,22 @@ class MyApp(App):
         # We use the string defined above for our JSON, but it could also be
         # loaded from a file as follows:
         #     settings.add_json_panel('My Label', self.config, 'settings.json')
-        settings.add_json_panel('My Label', self.config, data=json)
+        settings.add_json_panel("My Label", self.config, data=json)
 
     def on_config_change(self, config, section, key, value):
         """
         Respond to changes in the configuration.
         """
-        Logger.info("main.py: App.on_config_change: {0}, {1}, {2}, {3}".format(
-            config, section, key, value))
+        Logger.info(
+            "main.py: App.on_config_change: {0}, {1}, {2}, {3}".format(
+                config, section, key, value
+            )
+        )
 
         if section == "My Label":
             if key == "text":
                 self.root.ids.label.text = value
-            elif key == 'font_size':
+            elif key == "font_size":
                 self.root.ids.label.font_size = float(value)
 
     def close_settings(self, settings=None):
@@ -110,13 +113,15 @@ class MySettingsWithTabbedPanel(SettingsWithTabbedPanel):
     You would only want to create a Settings subclass like this if you want to
     change the behavior or appearance of an existing Settings class.
     """
+
     def on_close(self):
         Logger.info("main.py: MySettingsWithTabbedPanel.on_close")
 
     def on_config_change(self, config, section, key, value):
         Logger.info(
             "main.py: MySettingsWithTabbedPanel.on_config_change: "
-            "{0}, {1}, {2}, {3}".format(config, section, key, value))
+            "{0}, {1}, {2}, {3}".format(config, section, key, value)
+        )
 
 
 MyApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Asynchronous data loader
 ========================
 
@@ -31,9 +31,9 @@ parameters:
 - :attr:`Loader.max_upload_per_frame` - define the maximum image uploads in
   GPU to do per frame.
 
-'''
+"""
 
-__all__ = ('Loader', 'LoaderBase', 'ProxyImage')
+__all__ = ("Loader", "LoaderBase", "ProxyImage")
 
 from kivy import kivy_data_dir
 from kivy.logger import Logger
@@ -53,11 +53,11 @@ import mimetypes
 
 
 # Register a cache for loader
-Cache.register('kv.loader', limit=500, timeout=60)
+Cache.register("kv.loader", limit=500, timeout=60)
 
 
 class ProxyImage(Image):
-    '''Image returned by the Loader.image() function.
+    """Image returned by the Loader.image() function.
 
     :Properties:
         `loaded`: bool, defaults to False
@@ -69,12 +69,12 @@ class ProxyImage(Image):
         `on_error`
             Fired when the image cannot be loaded.
             `error`: Exception data that ocurred
-    '''
+    """
 
-    __events__ = ('on_load', 'on_error')
+    __events__ = ("on_load", "on_error")
 
     def __init__(self, arg, **kwargs):
-        loaded = kwargs.pop('loaded', False)
+        loaded = kwargs.pop("loaded", False)
         super(ProxyImage, self).__init__(arg, **kwargs)
         self.loaded = loaded
 
@@ -86,15 +86,16 @@ class ProxyImage(Image):
 
 
 class LoaderBase(object):
-    '''Common base for the Loader and specific implementations.
+    """Common base for the Loader and specific implementations.
     By default, the Loader will be the best available loader implementation.
 
     The _update() function is called every 1 / 25.s or each frame if we have
     less than 25 FPS.
-    '''
+    """
+
     _trigger_update = None
 
-    '''Alias for mimetype extensions.
+    """Alias for mimetype extensions.
 
     If you have trouble to have the right extension to be detected,
     you can either add #.EXT at the end of the url, or use this array
@@ -104,10 +105,8 @@ class LoaderBase(object):
     By default, '.pyz' is translated to '.zip'
 
     .. versionadded:: 1.11.0
-    '''
-    EXT_ALIAS = {
-        '.pyz': '.zip'
-    }
+    """
+    EXT_ALIAS = {".pyz": ".zip"}
 
     def __init__(self):
         self._loading_image = None
@@ -124,9 +123,10 @@ class LoaderBase(object):
         self._start_wanted = False
         self._trigger_update = Clock.create_trigger(self._update)
 
-        if platform in ['android', 'ios']:
+        if platform in ["android", "ios"]:
             import certifi
-            environ.setdefault('SSL_CERT_FILE', certifi.where())
+
+            environ.setdefault("SSL_CERT_FILE", certifi.where())
 
     def __del__(self):
         if self._trigger_update is not None:
@@ -134,14 +134,14 @@ class LoaderBase(object):
 
     def _set_num_workers(self, num):
         if num < 2:
-            raise Exception('Must have at least 2 workers')
+            raise Exception("Must have at least 2 workers")
         self._num_workers = num
 
     def _get_num_workers(self):
         return self._num_workers
 
     num_workers = property(_get_num_workers, _set_num_workers)
-    '''Number of workers to use while loading (used only if the loader
+    """Number of workers to use while loading (used only if the loader
     implementation supports it). This setting impacts the loader only on
     initialization. Once the loader is started, the setting has no impact::
 
@@ -155,19 +155,20 @@ class LoaderBase(object):
     was completly blocking the application.
 
     .. versionadded:: 1.6.0
-    '''
+    """
 
     def _set_max_upload_per_frame(self, num):
         if num is not None and num < 1:
-            raise Exception('Must have at least 1 image processing per image')
+            raise Exception("Must have at least 1 image processing per image")
         self._max_upload_per_frame = num
 
     def _get_max_upload_per_frame(self):
         return self._max_upload_per_frame
 
-    max_upload_per_frame = property(_get_max_upload_per_frame,
-                                    _set_max_upload_per_frame)
-    '''The number of images to upload per frame. By default, we'll
+    max_upload_per_frame = property(
+        _get_max_upload_per_frame, _set_max_upload_per_frame
+    )
+    """The number of images to upload per frame. By default, we'll
     upload only 2 images to the GPU per frame. If you are uploading many
     small images, you can easily increase this parameter to 10 or more.
     If you are loading multiple full HD images, the upload time may have
@@ -182,11 +183,11 @@ class LoaderBase(object):
     look at the DDS format.
 
     .. versionadded:: 1.6.0
-    '''
+    """
 
     def _get_loading_image(self):
         if not self._loading_image:
-            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.zip')
+            loading_png_fn = join(kivy_data_dir, "images", "image-loading.zip")
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -197,19 +198,20 @@ class LoaderBase(object):
             self._loading_image = image
 
     loading_image = property(_get_loading_image, _set_loading_image)
-    '''Image used for loading.
+    """Image used for loading.
     You can change it by doing::
 
         Loader.loading_image = 'loading.png'
 
     .. versionchanged:: 1.6.0
         Not readonly anymore.
-    '''
+    """
 
     def _get_error_image(self):
         if not self._error_image:
             error_png_fn = join(
-                'atlas://data/images/defaulttheme/image-missing')
+                "atlas://data/images/defaulttheme/image-missing"
+            )
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
@@ -220,39 +222,39 @@ class LoaderBase(object):
             self._error_image = image
 
     error_image = property(_get_error_image, _set_error_image)
-    '''Image used for error.
+    """Image used for error.
     You can change it by doing::
 
         Loader.error_image = 'error.png'
 
     .. versionchanged:: 1.6.0
         Not readonly anymore.
-    '''
+    """
 
     def start(self):
-        '''Start the loader thread/process.'''
+        """Start the loader thread/process."""
         self._running = True
 
     def run(self, *largs):
-        '''Main loop for the loader.'''
+        """Main loop for the loader."""
         pass
 
     def stop(self):
-        '''Stop the loader thread/process.'''
+        """Stop the loader thread/process."""
         self._running = False
 
     def pause(self):
-        '''Pause the loader, can be useful during interactions.
+        """Pause the loader, can be useful during interactions.
 
         .. versionadded:: 1.6.0
-        '''
+        """
         self._paused = True
 
     def resume(self):
-        '''Resume the loader, after a :meth:`pause`.
+        """Resume the loader, after a :meth:`pause`.
 
         .. versionadded:: 1.6.0
-        '''
+        """
         self._paused = False
         self._resume_cond.acquire()
         self._resume_cond.notify_all()
@@ -265,31 +267,32 @@ class LoaderBase(object):
             self._resume_cond.release()
 
     def _load(self, kwargs):
-        '''(internal) Loading function, called by the thread.
+        """(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
         or _load_urllib() if the file is on Internet.
-        '''
+        """
 
         while len(self._q_done) >= (
-                self.max_upload_per_frame * self._num_workers):
+            self.max_upload_per_frame * self._num_workers
+        ):
             sleep(0.1)
 
         self._wait_for_resume()
 
-        filename = kwargs['filename']
-        load_callback = kwargs['load_callback']
-        post_callback = kwargs['post_callback']
+        filename = kwargs["filename"]
+        load_callback = kwargs["load_callback"]
+        post_callback = kwargs["post_callback"]
         try:
-            proto = filename.split(':', 1)[0]
+            proto = filename.split(":", 1)[0]
         except:
             # if blank filename then return
             return
         if load_callback is not None:
             data = load_callback(filename)
-        elif proto in ('http', 'https', 'ftp', 'smb'):
-            data = self._load_urllib(filename, kwargs['kwargs'])
+        elif proto in ("http", "https", "ftp", "smb"):
+            data = self._load_urllib(filename, kwargs["kwargs"])
         else:
-            data = self._load_local(filename, kwargs['kwargs'])
+            data = self._load_local(filename, kwargs["kwargs"])
 
         if post_callback:
             data = post_callback(data)
@@ -298,70 +301,75 @@ class LoaderBase(object):
         self._trigger_update()
 
     def _load_local(self, filename, kwargs):
-        '''(internal) Loading a local file'''
+        """(internal) Loading a local file"""
         # With recent changes to CoreImage, we must keep data otherwise,
         # we might be unable to recreate the texture afterwise.
         return ImageLoader.load(filename, keep_data=True, **kwargs)
 
     def _load_urllib(self, filename, kwargs):
-        '''(internal) Loading a network file. First download it, save it to a
-        temporary file, and pass it to _load_local().'''
+        """(internal) Loading a network file. First download it, save it to a
+        temporary file, and pass it to _load_local()."""
         if PY2:
             import urllib2 as urllib_request
 
             def gettype(info):
                 return info.gettype()
+
         else:
             import urllib.request as urllib_request
 
             def gettype(info):
                 return info.get_content_type()
-        proto = filename.split(':', 1)[0]
-        if proto == 'smb':
+
+        proto = filename.split(":", 1)[0]
+        if proto == "smb":
             try:
                 # note: it's important to load SMBHandler every time
                 # otherwise the data is occasionally not loaded
                 from smb.SMBHandler import SMBHandler
             except ImportError:
                 Logger.warning(
-                    'Loader: can not load PySMB: make sure it is installed')
+                    "Loader: can not load PySMB: make sure it is installed"
+                )
                 return
         import tempfile
+
         data = fd = _out_osfd = None
         try:
-            _out_filename = ''
+            _out_filename = ""
 
-            if proto == 'smb':
+            if proto == "smb":
                 # read from samba shares
                 fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
                 request = urllib_request.Request(filename)
-                if Config.has_option('network', 'useragent'):
-                    useragent = Config.get('network', 'useragent')
+                if Config.has_option("network", "useragent"):
+                    useragent = Config.get("network", "useragent")
                     if useragent:
-                        request.add_header('User-Agent', useragent)
+                        request.add_header("User-Agent", useragent)
                 opener = urllib_request.build_opener()
                 fd = opener.open(request)
 
-            if '#.' in filename:
+            if "#." in filename:
                 # allow extension override from URL fragment
-                suffix = '.' + filename.split('#.')[-1]
+                suffix = "." + filename.split("#.")[-1]
             else:
                 ctype = gettype(fd.info())
                 suffix = mimetypes.guess_extension(ctype)
                 suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
                 if not suffix:
                     # strip query string and split on path
-                    parts = filename.split('?')[0].split('/')[1:]
+                    parts = filename.split("?")[0].split("/")[1:]
                     while len(parts) > 1 and not parts[0]:
                         # strip out blanks from '//'
                         parts = parts[1:]
-                    if len(parts) > 1 and '.' in parts[-1]:
+                    if len(parts) > 1 and "." in parts[-1]:
                         # we don't want '.com', '.net', etc. as the extension
-                        suffix = '.' + parts[-1].split('.')[-1]
+                        suffix = "." + parts[-1].split(".")[-1]
             _out_osfd, _out_filename = tempfile.mkstemp(
-                prefix='kivyloader', suffix=suffix)
+                prefix="kivyloader", suffix=suffix
+            )
 
             idata = fd.read()
             fd.close()
@@ -379,7 +387,7 @@ class LoaderBase(object):
             for imdata in data._data:
                 imdata.source = filename
         except Exception as ex:
-            Logger.exception('Loader: Failed to load image <%s>' % filename)
+            Logger.exception("Loader: Failed to load image <%s>" % filename)
             # close file when remote file not found or download error
             try:
                 if _out_osfd:
@@ -393,7 +401,7 @@ class LoaderBase(object):
                     continue
                 # got one client to update
                 client.image = self.error_image
-                client.dispatch('on_error', error=ex)
+                client.dispatch("on_error", error=ex)
                 self._client.remove((c_filename, client))
 
             return self.error_image
@@ -402,13 +410,13 @@ class LoaderBase(object):
                 fd.close()
             if _out_osfd:
                 close(_out_osfd)
-            if _out_filename != '':
+            if _out_filename != "":
                 unlink(_out_filename)
 
         return data
 
     def _update(self, *largs):
-        '''(internal) Check if a data is loaded, and pass to the client.'''
+        """(internal) Check if a data is loaded, and pass to the client."""
         # want to start it ?
         if self._start_wanted:
             if not self._running:
@@ -429,7 +437,7 @@ class LoaderBase(object):
             # create the image
             image = data  # ProxyImage(data)
             if not image.nocache:
-                Cache.append('kv.loader', filename, image)
+                Cache.append("kv.loader", filename, image)
 
             # update client
             for c_filename, client in self._client[:]:
@@ -438,14 +446,13 @@ class LoaderBase(object):
                 # got one client to update
                 client.image = image
                 client.loaded = True
-                client.dispatch('on_load')
+                client.dispatch("on_load")
                 self._client.remove((c_filename, client))
 
         self._trigger_update()
 
-    def image(self, filename, load_callback=None, post_callback=None,
-              **kwargs):
-        '''Load a image using the Loader. A ProxyImage is returned with a
+    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
+        """Load a image using the Loader. A ProxyImage is returned with a
         loading image. You can use it as follows::
 
             from kivy.app import App
@@ -466,27 +473,31 @@ class LoaderBase(object):
             TestApp().run()
 
         In order to cancel all background loading, call *Loader.stop()*.
-        '''
-        data = Cache.get('kv.loader', filename)
+        """
+        data = Cache.get("kv.loader", filename)
         if data not in (None, False):
             # found image, if data is not here, need to reload.
-            return ProxyImage(data,
-                              loading_image=self.loading_image,
-                              loaded=True, **kwargs)
+            return ProxyImage(
+                data, loading_image=self.loading_image, loaded=True, **kwargs
+            )
 
-        client = ProxyImage(self.loading_image,
-                            loading_image=self.loading_image, **kwargs)
+        client = ProxyImage(
+            self.loading_image, loading_image=self.loading_image, **kwargs
+        )
         self._client.append((filename, client))
 
         if data is None:
             # if data is None, this is really the first time
-            self._q_load.appendleft({
-                'filename': filename,
-                'load_callback': load_callback,
-                'post_callback': post_callback,
-                'kwargs': kwargs})
-            if not kwargs.get('nocache', False):
-                Cache.append('kv.loader', filename, False)
+            self._q_load.appendleft(
+                {
+                    "filename": filename,
+                    "load_callback": load_callback,
+                    "post_callback": post_callback,
+                    "kwargs": kwargs,
+                }
+            )
+            if not kwargs.get("nocache", False):
+                Cache.append("kv.loader", filename, False)
             self._start_wanted = True
             self._trigger_update()
         else:
@@ -496,14 +507,15 @@ class LoaderBase(object):
         return client
 
     def remove_from_cache(self, filename):
-        Cache.remove('kv.loader', filename)
+        Cache.remove("kv.loader", filename)
+
 
 #
 # Loader implementation
 #
 
 
-if 'KIVY_DOC' in environ:
+if "KIVY_DOC" in environ:
 
     Loader = None
 
@@ -517,8 +529,8 @@ else:
     from threading import Thread
 
     class _Worker(Thread):
-        '''Thread executing tasks from a given tasks queue
-        '''
+        """Thread executing tasks from a given tasks queue"""
+
         def __init__(self, pool, tasks):
             Thread.__init__(self)
             self.tasks = tasks
@@ -536,8 +548,8 @@ else:
                 self.tasks.task_done()
 
     class _ThreadPool(object):
-        '''Pool of threads consuming tasks from a queue
-        '''
+        """Pool of threads consuming tasks from a queue"""
+
         def __init__(self, num_threads):
             super(_ThreadPool, self).__init__()
             self.running = True
@@ -546,8 +558,7 @@ else:
                 _Worker(self, self.tasks)
 
         def add_task(self, func, *args, **kargs):
-            '''Add a task to the queue
-            '''
+            """Add a task to the queue"""
             self.tasks.put((func, args, kargs))
 
         def stop(self):
@@ -578,5 +589,6 @@ else:
                 self.pool.add_task(self._load, parameters)
 
     Loader = LoaderThreadPool()
-    Logger.info('Loader: using a thread pool of {} workers'.format(
-        Loader.num_workers))
+    Logger.info(
+        "Loader: using a thread pool of {} workers".format(Loader.num_workers)
+    )

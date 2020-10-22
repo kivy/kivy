@@ -216,4 +216,3 @@ True if the touch is within the 'watched area' or False otherwise. By
 default, this checks the rectangular region on the screen that's described
 by the widget's pos (for position; x & y) and size (width & height), but
 you can override this behaviour in your own class.
-

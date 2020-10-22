@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -39,16 +39,16 @@
 * conditions -- more efficient than branching, IF you can get the
 * compiler to generate the right instructions (SGI compiler doesn't)
 */
-#define VertEq(u,v)	(((u)->s == (v)->s) & ((u)->t == (v)->t))
-#define VertLeq(u,v)	(((u)->s < (v)->s) | \
-	((u)->s == (v)->s & (u)->t <= (v)->t))
+#define VertEq(u,v)    (((u)->s == (v)->s) & ((u)->t == (v)->t))
+#define VertLeq(u,v)    (((u)->s < (v)->s) | \
+    ((u)->s == (v)->s & (u)->t <= (v)->t))
 #else
 #define VertEq(u,v) ((u)->s == (v)->s && (u)->t == (v)->t)
 #define VertLeq(u,v) (((u)->s < (v)->s) || ((u)->s == (v)->s && (u)->t <= (v)->t))
 #endif
 
-#define EdgeEval(u,v,w)	tesedgeEval(u,v,w)
-#define EdgeSign(u,v,w)	tesedgeSign(u,v,w)
+#define EdgeEval(u,v,w)    tesedgeEval(u,v,w)
+#define EdgeSign(u,v,w)    tesedgeSign(u,v,w)
 
 /* Versions of VertLeq, EdgeSign, EdgeEval with s and t transposed. */
 
@@ -66,10 +66,10 @@
 #define VertCCW(u,v,w) tesvertCCW(u,v,w)
 
 int tesvertLeq( TESSvertex *u, TESSvertex *v );
-TESSreal	tesedgeEval( TESSvertex *u, TESSvertex *v, TESSvertex *w );
-TESSreal	tesedgeSign( TESSvertex *u, TESSvertex *v, TESSvertex *w );
-TESSreal	testransEval( TESSvertex *u, TESSvertex *v, TESSvertex *w );
-TESSreal	testransSign( TESSvertex *u, TESSvertex *v, TESSvertex *w );
+TESSreal    tesedgeEval( TESSvertex *u, TESSvertex *v, TESSvertex *w );
+TESSreal    tesedgeSign( TESSvertex *u, TESSvertex *v, TESSvertex *w );
+TESSreal    testransEval( TESSvertex *u, TESSvertex *v, TESSvertex *w );
+TESSreal    testransSign( TESSvertex *u, TESSvertex *v, TESSvertex *w );
 int tesvertCCW( TESSvertex *u, TESSvertex *v, TESSvertex *w );
 void tesedgeIntersect( TESSvertex *o1, TESSvertex *d1, TESSvertex *o2, TESSvertex *d2, TESSvertex *v );
 

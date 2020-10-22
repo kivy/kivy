@@ -279,39 +279,74 @@ The following example marks the anchors and references contained in a label::
 
 '''
 
-__all__ = ('Label', )
+__all__ = ("Label",)
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
-from kivy.properties import StringProperty, OptionProperty, \
-    NumericProperty, BooleanProperty, ReferenceListProperty, \
-    ListProperty, ObjectProperty, DictProperty, ColorProperty
+from kivy.properties import (
+    StringProperty,
+    OptionProperty,
+    NumericProperty,
+    BooleanProperty,
+    ReferenceListProperty,
+    ListProperty,
+    ObjectProperty,
+    DictProperty,
+    ColorProperty,
+)
 from kivy.utils import get_hex_from_color
 
 
 class Label(Widget):
-    '''Label class, see module documentation for more information.
+    """Label class, see module documentation for more information.
 
     :Events:
         `on_ref_press`
             Fired when the user clicks on a word referenced with a
             ``[ref]`` tag in a text markup.
-    '''
+    """
 
-    __events__ = ['on_ref_press']
+    __events__ = ["on_ref_press"]
 
-    _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
-                        'underline', 'strikethrough', 'font_family', 'color',
-                        'disabled_color', 'halign', 'valign', 'padding_x',
-                        'padding_y', 'outline_width', 'disabled_outline_color',
-                        'outline_color', 'text_size', 'shorten', 'mipmap',
-                        'line_height', 'max_lines', 'strip', 'shorten_from',
-                        'split_str', 'ellipsis_options', 'unicode_errors',
-                        'markup', 'font_hinting', 'font_kerning',
-                        'font_blended', 'font_context', 'font_features',
-                        'base_direction', 'text_language')
+    _font_properties = (
+        "text",
+        "font_size",
+        "font_name",
+        "bold",
+        "italic",
+        "underline",
+        "strikethrough",
+        "font_family",
+        "color",
+        "disabled_color",
+        "halign",
+        "valign",
+        "padding_x",
+        "padding_y",
+        "outline_width",
+        "disabled_outline_color",
+        "outline_color",
+        "text_size",
+        "shorten",
+        "mipmap",
+        "line_height",
+        "max_lines",
+        "strip",
+        "shorten_from",
+        "split_str",
+        "ellipsis_options",
+        "unicode_errors",
+        "markup",
+        "font_hinting",
+        "font_kerning",
+        "font_blended",
+        "font_context",
+        "font_features",
+        "base_direction",
+        "text_language",
+    )
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -321,7 +356,7 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
-        fbind('disabled', update, 'disabled')
+        fbind("disabled", update, "disabled")
         for x in d:
             fbind(x, update, x)
 
@@ -338,8 +373,9 @@ class Label(Widget):
         else:
             cls = None
         markup = self.markup
-        if (markup and cls is not CoreMarkupLabel) or \
-           (not markup and cls is not CoreLabel):
+        if (markup and cls is not CoreMarkupLabel) or (
+            not markup and cls is not CoreLabel
+        ):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
             dkw = dict(list(zip(d, [getattr(self, x) for x in d])))
@@ -350,41 +386,44 @@ class Label(Widget):
 
     def _trigger_texture_update(self, name=None, source=None, value=None):
         # check if the label core class need to be switch to a new one
-        if name == 'markup':
+        if name == "markup":
             self._create_label()
         if source:
-            if name == 'text':
+            if name == "text":
                 self._label.text = value
-            elif name == 'text_size':
+            elif name == "text_size":
                 self._label.usersize = value
-            elif name == 'font_size':
+            elif name == "font_size":
                 self._label.options[name] = value
-            elif name == 'disabled_color' and self.disabled:
-                self._label.options['color'] = value
-            elif name == 'disabled_outline_color' and self.disabled:
-                self._label.options['outline_color'] = value
-            elif name == 'disabled':
-                self._label.options['color'] = self.disabled_color if value \
-                    else self.color
-                self._label.options['outline_color'] = (
-                    self.disabled_outline_color if value else
-                    self.outline_color)
+            elif name == "disabled_color" and self.disabled:
+                self._label.options["color"] = value
+            elif name == "disabled_outline_color" and self.disabled:
+                self._label.options["outline_color"] = value
+            elif name == "disabled":
+                self._label.options["color"] = (
+                    self.disabled_color if value else self.color
+                )
+                self._label.options["outline_color"] = (
+                    self.disabled_outline_color if value else self.outline_color
+                )
             else:
                 self._label.options[name] = value
         self._trigger_texture()
 
     def texture_update(self, *largs):
-        '''Force texture recreation with the current Label properties.
+        """Force texture recreation with the current Label properties.
 
         After this function call, the :attr:`texture` and :attr:`texture_size`
         will be updated in this order.
-        '''
+        """
         mrkup = self._label.__class__ is CoreMarkupLabel
         self.texture = None
 
-        if (not self._label.text or
-                (self.halign == 'justify' or self.strip) and
-                not self._label.text.strip()):
+        if (
+            not self._label.text
+            or (self.halign == "justify" or self.strip)
+            and not self._label.text.strip()
+        ):
             self.texture_size = (0, 0)
             self.is_shortened = False
             if mrkup:
@@ -396,13 +435,19 @@ class Label(Widget):
                 # we must strip here, otherwise, if the last line is empty,
                 # markup will retain the last empty line since it only strips
                 # line by line within markup
-                if self.halign == 'justify' or self.strip:
+                if self.halign == "justify" or self.strip:
                     text = text.strip()
-                self._label.text = ''.join(('[color=',
-                                            get_hex_from_color(
-                                                self.disabled_color if
-                                                self.disabled else self.color),
-                                            ']', text, '[/color]'))
+                self._label.text = "".join(
+                    (
+                        "[color=",
+                        get_hex_from_color(
+                            self.disabled_color if self.disabled else self.color
+                        ),
+                        "]",
+                        text,
+                        "[/color]",
+                    )
+                )
                 self._label.refresh()
                 # force the rendering to get the references
                 if self._label.texture:
@@ -423,14 +468,14 @@ class Label(Widget):
         if not len(self.refs):
             return False
         tx, ty = touch.pos
-        tx -= self.center_x - self.texture_size[0] / 2.
-        ty -= self.center_y - self.texture_size[1] / 2.
+        tx -= self.center_x - self.texture_size[0] / 2.0
+        ty -= self.center_y - self.texture_size[1] / 2.0
         ty = self.texture_size[1] - ty
         for uid, zones in self.refs.items():
             for zone in zones:
                 x, y, w, h = zone
                 if x <= tx <= w and y <= ty <= h:
-                    self.dispatch('on_ref_press', uid)
+                    self.dispatch("on_ref_press", uid)
                     return True
         return False
 
@@ -441,8 +486,8 @@ class Label(Widget):
     # Properties
     #
 
-    disabled_color = ColorProperty([1, 1, 1, .3])
-    '''The color of the text when the widget is disabled, in the (r, g, b, a)
+    disabled_color = ColorProperty([1, 1, 1, 0.3])
+    """The color of the text when the widget is disabled, in the (r, g, b, a)
     format.
 
     .. versionadded:: 1.8.0
@@ -453,10 +498,10 @@ class Label(Widget):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
-    text = StringProperty('')
-    '''Text of the label.
+    text = StringProperty("")
+    """Text of the label.
 
     Creation of a simple hello world::
 
@@ -468,10 +513,10 @@ class Label(Widget):
 
     :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
-    '''
+    """
 
     text_size = ListProperty([None, None])
-    '''By default, the label is not constrained to any bounding box.
+    """By default, the label is not constrained to any bounding box.
     You can set the size constraint of the label with this property.
     The text will autoflow into the constraints. So although the font size
     will not be reduced, the text will be arranged to fit into the box as best
@@ -495,12 +540,14 @@ class Label(Widget):
 
     :attr:`text_size` is a :class:`~kivy.properties.ListProperty` and
     defaults to (None, None), meaning no size restriction by default.
-    '''
+    """
 
-    base_direction = OptionProperty(None,
-                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
-                     allownone=True)
-    '''Base direction of text, this impacts horizontal alignment when
+    base_direction = OptionProperty(
+        None,
+        options=["ltr", "rtl", "weak_rtl", "weak_ltr", None],
+        allownone=True,
+    )
+    """Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,
     "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
     "weak_rtl".
@@ -516,10 +563,10 @@ class Label(Widget):
 
     :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to None (autodetect RTL if possible, otherwise LTR).
-    '''
+    """
 
     text_language = StringProperty(None, allownone=True)
-    '''Language of the text, if None Pango will determine it from locale.
+    """Language of the text, if None Pango will determine it from locale.
     This is an RFC-3066 format language tag (as a string), for example
     "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
     and rendering. For example, the same bytes of text can look different
@@ -532,10 +579,10 @@ class Label(Widget):
 
     :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
-    '''
+    """
 
     font_context = StringProperty(None, allownone=True)
-    '''Font context. `None` means the font is used in isolation, so you are
+    """Font context. `None` means the font is used in isolation, so you are
     guaranteed to be drawing with the TTF file resolved by :attr:`font_name`.
     Specifying a value here will load the font file into a named context,
     enabling fallback between all fonts in the same context. If a font
@@ -557,10 +604,10 @@ class Label(Widget):
 
     :attr:`font_context` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
-    '''
+    """
 
     font_family = StringProperty(None, allownone=True)
-    '''Font family, this is only applicable when using :attr:`font_context`
+    """Font family, this is only applicable when using :attr:`font_context`
     option. The specified font family will be requested, but note that it may
     not be available, or there could be multiple fonts registered with the
     same family. The value can be a family name (string) available in the
@@ -581,10 +628,10 @@ class Label(Widget):
 
     :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
-    '''
+    """
 
     font_name = StringProperty(DEFAULT_FONT)
-    '''Filename of the font to use. The path can be absolute or relative.
+    """Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
 
@@ -604,17 +651,17 @@ class Label(Widget):
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'Roboto'. This value is taken
     from :class:`~kivy.config.Config`.
-    '''
+    """
 
-    font_size = NumericProperty('15sp')
-    '''Font size of the text, in pixels.
+    font_size = NumericProperty("15sp")
+    """Font size of the text, in pixels.
 
     :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 15sp.
-    '''
+    """
 
     font_features = StringProperty()
-    '''OpenType font features, in CSS format, this is passed straight
+    """OpenType font features, in CSS format, this is passed straight
     through to Pango. The effects of requesting a feature depends on loaded
     fonts, library versions, etc. For a complete list of features, see:
 
@@ -628,20 +675,20 @@ class Label(Widget):
 
     :attr:`font_features` is a :class:`~kivy.properties.StringProperty` and
     defaults to an empty string.
-    '''
+    """
 
     line_height = NumericProperty(1.0)
-    '''Line Height for the text. e.g. line_height = 2 will cause the spacing
+    """Line Height for the text. e.g. line_height = 2 will cause the spacing
     between lines to be twice the size.
 
     :attr:`line_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.0.
 
     .. versionadded:: 1.5.0
-    '''
+    """
 
     bold = BooleanProperty(False)
-    '''Indicates use of the bold version of your font.
+    """Indicates use of the bold version of your font.
 
     .. note::
 
@@ -650,10 +697,10 @@ class Label(Widget):
 
     :attr:`bold` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     italic = BooleanProperty(False)
-    '''Indicates use of the italic version of your font.
+    """Indicates use of the italic version of your font.
 
     .. note::
 
@@ -662,10 +709,10 @@ class Label(Widget):
 
     :attr:`italic` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
     underline = BooleanProperty(False)
-    '''Adds an underline to the text.
+    """Adds an underline to the text.
 
     .. note::
         This feature requires the SDL2 text provider.
@@ -674,10 +721,10 @@ class Label(Widget):
 
     :attr:`underline` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     strikethrough = BooleanProperty(False)
-    '''Adds a strikethrough line to the text.
+    """Adds a strikethrough line to the text.
 
     .. note::
         This feature requires the SDL2 text provider.
@@ -686,10 +733,10 @@ class Label(Widget):
 
     :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     padding_x = NumericProperty(0)
-    '''Horizontal padding of the text inside the widget box.
+    """Horizontal padding of the text inside the widget box.
 
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
@@ -697,10 +744,10 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_x` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
-    '''
+    """
 
     padding_y = NumericProperty(0)
-    '''Vertical padding of the text inside the widget box.
+    """Vertical padding of the text inside the widget box.
 
     :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
@@ -708,18 +755,19 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
-    '''
+    """
 
     padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text in the format (padding_x, padding_y)
+    """Padding of the text in the format (padding_x, padding_y)
 
     :attr:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`padding_x`, :attr:`padding_y`) properties.
-    '''
+    """
 
-    halign = OptionProperty('auto', options=['left', 'center', 'right',
-                            'justify', 'auto'])
-    '''Horizontal alignment of the text.
+    halign = OptionProperty(
+        "auto", options=["left", "center", "right", "justify", "auto"]
+    )
+    """Horizontal alignment of the text.
 
     :attr:`halign` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'auto'. Available options are : auto, left, center, right and
@@ -738,11 +786,12 @@ class Label(Widget):
 
     .. versionchanged:: 1.6.0
         A new option was added to :attr:`halign`, namely `justify`.
-    '''
+    """
 
-    valign = OptionProperty('bottom',
-                            options=['bottom', 'middle', 'center', 'top'])
-    '''Vertical alignment of the text.
+    valign = OptionProperty(
+        "bottom", options=["bottom", "middle", "center", "top"]
+    )
+    """Vertical alignment of the text.
 
     :attr:`valign` is an :class:`~kivy.properties.OptionProperty` and defaults
     to 'bottom'. Available options are : `'bottom'`,
@@ -757,10 +806,10 @@ class Label(Widget):
         (centered), only the position of the text within this texture. You
         probably want to bind the size of the Label to the :attr:`texture_size`
         or set a :attr:`text_size` to change this behavior.
-    '''
+    """
 
     color = ColorProperty([1, 1, 1, 1])
-    '''Text color, in the format (r, g, b, a).
+    """Text color, in the format (r, g, b, a).
 
     :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults to
     [1, 1, 1, 1].
@@ -768,10 +817,10 @@ class Label(Widget):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     outline_width = NumericProperty(None, allownone=True)
-    '''Width in pixels for the outline around the text. No outline will be
+    """Width in pixels for the outline around the text. No outline will be
     rendered if the value is None.
 
     .. note::
@@ -781,10 +830,10 @@ class Label(Widget):
 
     :attr:`outline_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to None.
-    '''
+    """
 
     outline_color = ColorProperty([0, 0, 0, 1])
-    '''The color of the text outline, in the (r, g, b) format.
+    """The color of the text outline, in the (r, g, b) format.
 
     .. note::
         This feature requires the SDL2 text provider.
@@ -798,10 +847,10 @@ class Label(Widget):
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`. Alpha component is ignored
         and assigning value to it has no effect.
-    '''
+    """
 
     disabled_outline_color = ColorProperty([0, 0, 0, 1])
-    '''The color of the text outline when the widget is disabled, in the
+    """The color of the text outline when the widget is disabled, in the
     (r, g, b) format.
 
     .. note::
@@ -816,10 +865,10 @@ class Label(Widget):
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`. Alpha component is ignored
         and assigning value to it has no effect.
-    '''
+    """
 
     texture = ObjectProperty(None, allownone=True)
-    '''Texture object of the text.
+    """Texture object of the text.
     The text is rendered automatically when a property changes. The OpenGL
     texture created in this operation is stored in this property. You can use
     this :attr:`texture` for any graphics elements.
@@ -843,10 +892,10 @@ class Label(Widget):
 
     :attr:`texture` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-    '''
+    """
 
     texture_size = ListProperty([0, 0])
-    '''Texture size of the text. The size is determined by the font size and
+    """Texture size of the text. The size is determined by the font size and
     text. If :attr:`text_size` is [None, None], the texture will be the size
     required to fit the text, otherwise it's clipped to fit :attr:`text_size`.
 
@@ -860,20 +909,20 @@ class Label(Widget):
         property. If you listen for changes to :attr:`texture`,
         :attr:`texture_size` will not be up-to-date in your callback.
         Bind to :attr:`texture_size` instead.
-    '''
+    """
 
     mipmap = BooleanProperty(False)
-    '''Indicates whether OpenGL mipmapping is applied to the texture or not.
+    """Indicates whether OpenGL mipmapping is applied to the texture or not.
     Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
 
     :attr:`mipmap` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
     shorten = BooleanProperty(False)
-    '''
+    """
     Indicates whether the label should attempt to shorten its textual contents
     as much as possible if a :attr:`text_size` is given. Setting this to True
     without an appropriately set :attr:`text_size` will lead to unexpected
@@ -885,11 +934,10 @@ class Label(Widget):
 
     :attr:`shorten` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
-    shorten_from = OptionProperty('center', options=['left', 'center',
-                                                     'right'])
-    '''The side from which we should shorten the text from, can be left,
+    shorten_from = OptionProperty("center", options=["left", "center", "right"])
+    """The side from which we should shorten the text from, can be left,
     right, or center.
 
     For example, if left, the ellipsis will appear towards the left side and we
@@ -902,20 +950,20 @@ class Label(Widget):
 
     :attr:`shorten_from` is a :class:`~kivy.properties.OptionProperty` and
     defaults to `center`.
-    '''
+    """
 
     is_shortened = BooleanProperty(False)
-    '''This property indicates if :attr:`text` was rendered with or without
+    """This property indicates if :attr:`text` was rendered with or without
     shortening when :attr:`shorten` is True.
 
     .. versionadded:: 1.10.0
 
     :attr:`is_shortened` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
-    split_str = StringProperty('')
-    '''The string used to split the :attr:`text` while shortening the string
+    split_str = StringProperty("")
+    """The string used to split the :attr:`text` while shortening the string
     when :attr:`shorten` is True.
 
     For example, if it's a space, the string will be broken into words and as
@@ -927,10 +975,10 @@ class Label(Widget):
 
     :attr:`split_str` is a :class:`~kivy.properties.StringProperty` and
     defaults to `''` (the empty string).
-    '''
+    """
 
     ellipsis_options = DictProperty({})
-    '''Font options for the ellipsis string('...') used to split the text.
+    """Font options for the ellipsis string('...') used to split the text.
 
     Accepts a dict as option name with the value. Only applied when
     :attr:`markup` is true and text is shortened. All font options which work
@@ -949,21 +997,22 @@ class Label(Widget):
 
     :attr:`ellipsis_options` is a :class:`~kivy.properties.DictProperty` and
     defaults to `{}` (the empty dict).
-    '''
+    """
 
     unicode_errors = OptionProperty(
-        'replace', options=('strict', 'replace', 'ignore'))
-    '''How to handle unicode decode errors. Can be `'strict'`, `'replace'` or
+        "replace", options=("strict", "replace", "ignore")
+    )
+    """How to handle unicode decode errors. Can be `'strict'`, `'replace'` or
     `'ignore'`.
 
     .. versionadded:: 1.9.0
 
     :attr:`unicode_errors` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'replace'`.
-    '''
+    """
 
     markup = BooleanProperty(False)
-    '''
+    """
     .. versionadded:: 1.1.0
 
     If True, the text will be rendered using the
@@ -973,10 +1022,10 @@ class Label(Widget):
 
     :attr:`markup` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
     refs = DictProperty({})
-    '''
+    """
     .. versionadded:: 1.1.0
 
     List of ``[ref=xxx]`` markup items in the text with the bounding box of
@@ -1011,7 +1060,7 @@ class Label(Widget):
 
         This works only with markup text. You need :attr:`markup` set to
         True.
-    '''
+    """
 
     anchors = DictProperty({})
     '''
@@ -1046,7 +1095,7 @@ class Label(Widget):
     '''
 
     max_lines = NumericProperty(0)
-    '''Maximum number of lines to use, defaults to 0, which means unlimited.
+    """Maximum number of lines to use, defaults to 0, which means unlimited.
     Please note that :attr:`shorten` take over this property. (with
     shorten, the text is always one line.)
 
@@ -1054,10 +1103,10 @@ class Label(Widget):
 
     :attr:`max_lines` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     strip = BooleanProperty(False)
-    '''Whether leading and trailing spaces and newlines should be stripped from
+    """Whether leading and trailing spaces and newlines should be stripped from
     each displayed line. If True, every line will start at the right or left
     edge, depending on :attr:`halign`. If :attr:`halign` is `justify` it is
     implicitly True.
@@ -1066,11 +1115,12 @@ class Label(Widget):
 
     :attr:`strip` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
+    """
 
     font_hinting = OptionProperty(
-        'normal', options=[None, 'normal', 'light', 'mono'], allownone=True)
-    '''What hinting option to use for font rendering.
+        "normal", options=[None, "normal", "light", "mono"], allownone=True
+    )
+    """What hinting option to use for font rendering.
     Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
@@ -1080,10 +1130,10 @@ class Label(Widget):
 
     :attr:`font_hinting` is an :class:`~kivy.properties.OptionProperty` and
     defaults to `'normal'`.
-    '''
+    """
 
     font_kerning = BooleanProperty(True)
-    '''Whether kerning is enabled for font rendering. You should normally
+    """Whether kerning is enabled for font rendering. You should normally
     only disable this if rendering is broken with a particular font file.
 
     .. note::
@@ -1093,10 +1143,10 @@ class Label(Widget):
 
     :attr:`font_kerning` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
-    '''
+    """
 
     font_blended = BooleanProperty(True)
-    '''Whether blended or solid font rendering should be used.
+    """Whether blended or solid font rendering should be used.
 
     .. note::
         This feature requires the SDL2 text provider.
@@ -1105,4 +1155,4 @@ class Label(Widget):
 
     :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
-    '''
+    """

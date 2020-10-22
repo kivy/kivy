@@ -1,4 +1,4 @@
-'''
+"""
 Mesh Manipulation Example
 =========================
 
@@ -9,7 +9,7 @@ The sliders change the mesh points' x and y offsets, radius, and a
 
 This example is developed in gabriel's blog post at
 http://kivy.org/planet/2014/01/kivy-image-manipulations-with-mesh-and-textures/
-'''
+"""
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -20,7 +20,7 @@ from kivy.core.window import Window
 from math import sin, cos, pi
 
 
-kv = '''
+kv = """
 BoxLayout:
     Widget:
         canvas:
@@ -61,41 +61,52 @@ BoxLayout:
             min: 0
             max: 50
             step: 1
-'''
+"""
 
 
 class MeshBallApp(App):
     mesh_points = ListProperty([])
     mesh_texture = ObjectProperty(None)
     radius = NumericProperty(500)
-    offset_x = NumericProperty(.5)
-    offset_y = NumericProperty(.5)
+    offset_x = NumericProperty(0.5)
+    offset_y = NumericProperty(0.5)
     sin_wobble = NumericProperty(0)
     sin_wobble_speed = NumericProperty(0)
 
     def build(self):
-        self.mesh_texture = CoreImage('data/logo/kivy-icon-512.png').texture
+        self.mesh_texture = CoreImage("data/logo/kivy-icon-512.png").texture
         Clock.schedule_interval(self.update_points, 0)
         return Builder.load_string(kv)
 
     def update_points(self, *args):
-        """ replace self.mesh_points based on current slider positions.
+        """replace self.mesh_points based on current slider positions.
         Called continuously by a timer because this only sample code.
         """
-        points = [Window.width / 2, Window.height / 2, .5, .5]
+        points = [Window.width / 2, Window.height / 2, 0.5, 0.5]
         i = 0
         while i < 2 * pi:
             i += 0.01 * pi
-            points.extend([
-                Window.width / 2 + cos(i) * (self.radius + self.sin_wobble *
-                                             sin(i * self.sin_wobble_speed)),
-                Window.height / 2 + sin(i) * (self.radius + self.sin_wobble *
-                                              sin(i * self.sin_wobble_speed)),
-                self.offset_x + sin(i),
-                self.offset_y + cos(i)])
+            points.extend(
+                [
+                    Window.width / 2
+                    + cos(i)
+                    * (
+                        self.radius
+                        + self.sin_wobble * sin(i * self.sin_wobble_speed)
+                    ),
+                    Window.height / 2
+                    + sin(i)
+                    * (
+                        self.radius
+                        + self.sin_wobble * sin(i * self.sin_wobble_speed)
+                    ),
+                    self.offset_x + sin(i),
+                    self.offset_y + cos(i),
+                ]
+            )
 
         self.mesh_points = points
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MeshBallApp().run()

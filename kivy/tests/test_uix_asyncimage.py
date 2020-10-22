@@ -20,8 +20,8 @@ class AsyncImageTestCase(GraphicUnitTest):
         ensure_web_server(kivy_examples_dir)
 
     def setUp(self):
-        self.maxfps = Config.getint('graphics', 'maxfps')
-        assert(self.maxfps > 0)
+        self.maxfps = Config.getint("graphics", "maxfps")
+        assert self.maxfps > 0
         super(AsyncImageTestCase, self).setUp()
 
     def zip_frames(self, path):
@@ -34,19 +34,14 @@ class AsyncImageTestCase(GraphicUnitTest):
         timeout = 30 * maxfps
 
         # load ZIP with images named: 000.png, 001.png, ...
-        image = AsyncImage(
-            source=source,
-            anim_delay=0.0333333333333333
-        )
+        image = AsyncImage(source=source, anim_delay=0.0333333333333333)
         image.test_loaded = False
         self.render(image)
 
         # bind to 'on_load' because there are various
         # steps where the image is (re)loaded, but
         # the event is triggered only at the end
-        image.bind(on_load=lambda *_, **__: setattr(
-            image, 'test_loaded', True
-        ))
+        image.bind(on_load=lambda *_, **__: setattr(image, "test_loaded", True))
 
         while timeout and not image.test_loaded:
             self.advance_frames(1)
@@ -60,8 +55,8 @@ class AsyncImageTestCase(GraphicUnitTest):
     def test_remote_zipsequence(self):
         # cube ZIP has 63 PNGs used for animation
         ZIP = (
-            'http://localhost:8000/widgets/'
-            'sequenced_images/data/images/cube.zip'
+            "http://localhost:8000/widgets/"
+            "sequenced_images/data/images/cube.zip"
         )
 
         # ref Loader._load_urllib
@@ -72,26 +67,34 @@ class AsyncImageTestCase(GraphicUnitTest):
         image = self.load_zipimage(ZIP, ZIP_pngs)
         # pure delay * fps isn't enough and
         # just +1 isn't either (index collisions)
-        self.assertTrue(self.check_sequence_frames(
-            image._coreimage,
-            int(image._coreimage.anim_delay * self.maxfps + 3)
-        ))
+        self.assertTrue(
+            self.check_sequence_frames(
+                image._coreimage,
+                int(image._coreimage.anim_delay * self.maxfps + 3),
+            )
+        )
 
     def test_local_zipsequence(self):
         # cube ZIP has 63 PNGs used for animation
         ZIP = join(
-            kivy_examples_dir, 'widgets', 'sequenced_images',
-            'data', 'images', 'cube.zip'
+            kivy_examples_dir,
+            "widgets",
+            "sequenced_images",
+            "data",
+            "images",
+            "cube.zip",
         )
         ZIP_pngs = self.zip_frames(ZIP)
 
         image = self.load_zipimage(ZIP, ZIP_pngs)
         # pure delay * fps isn't enough and
         # just +1 isn't either (index collisions)
-        self.assertTrue(self.check_sequence_frames(
-            image._coreimage,
-            int(image._coreimage.anim_delay * self.maxfps + 3)
-        ))
+        self.assertTrue(
+            self.check_sequence_frames(
+                image._coreimage,
+                int(image._coreimage.anim_delay * self.maxfps + 3),
+            )
+        )
 
     def check_sequence_frames(self, img, frames, slides=5):
         # check whether it really changes the images
@@ -103,9 +106,7 @@ class AsyncImageTestCase(GraphicUnitTest):
             self.assertNotEqual(img.anim_index, old)
 
             old = img.anim_index
-            self.advance_frames(
-                frames
-            )
+            self.advance_frames(frames)
             slides -= 1
 
         return True
@@ -116,16 +117,16 @@ class AsyncImageTestCase(GraphicUnitTest):
         from os import remove
         from shutil import copyfile, rmtree
 
-        fn = resource_find('data/logo/kivy-icon-16.png')
+        fn = resource_find("data/logo/kivy-icon-16.png")
         t = mkdtemp()
-        source = join(t, 'source.png')
+        source = join(t, "source.png")
         copyfile(fn, source)
         image = AsyncImage(source=source)
         self.render(image, framecount=2)
         self.assertEqual(image.texture_size, [16, 16])
         remove(source)
 
-        fn = resource_find('data/logo/kivy-icon-32.png')
+        fn = resource_find("data/logo/kivy-icon-32.png")
         copyfile(fn, source)
         image.reload()
         self.render(image, framecount=2)
@@ -134,6 +135,7 @@ class AsyncImageTestCase(GraphicUnitTest):
         rmtree(t)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

@@ -1,9 +1,7 @@
-
 import unittest
 
 
 class VideoTestCase(unittest.TestCase):
-
     def test_video_unload(self):
         # fix issue https://github.com/kivy/kivy/issues/2275
         # AttributeError: 'NoneType' object has no attribute 'texture'
@@ -12,6 +10,7 @@ class VideoTestCase(unittest.TestCase):
         from kivy.base import runTouchApp, stopTouchApp
         from kivy import kivy_examples_dir
         from os.path import join, dirname, abspath
+
         source = abspath(join(kivy_examples_dir, "widgets", "cityCC0.mpg"))
         video = Video(source=source, play=True)
         Clock.schedule_once(lambda x: stopTouchApp(), 1)

@@ -19,7 +19,7 @@ import sys
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-sys.path.insert(0, os.path.abspath('sphinxext'))
+sys.path.insert(0, os.path.abspath("sphinxext"))
 base_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(base_dir))
 
@@ -29,8 +29,13 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax']
+    "autodoc",
+    "sphinx.ext.todo",
+    "preprocess",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.mathjax",
+]
 
 # Todo configuration
 todo_include_todos = True
@@ -38,47 +43,50 @@ todo_include_todos = True
 # XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
 # for ClassDocumenter, or the cython class will be documented as AttributeClass
 import sphinx.ext.autodoc
+
 sphinx.ext.autodoc.ClassDocumenter.priority = 10
 
 # Add any paths that contain templates here, relative to this directory.
-if os.environ.get('READTHEDOCS') == 'True':
-    templates_path = ['_templates']
+if os.environ.get("READTHEDOCS") == "True":
+    templates_path = ["_templates"]
 else:
-    templates_path = ['.templates']
+    templates_path = [".templates"]
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General substitutions.
-project = 'Kivy'
-copyright = '2010, The Kivy Authors'
+project = "Kivy"
+copyright = "2010, The Kivy Authors"
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-os.environ['KIVY_DOC_INCLUDE'] = '1'
+os.environ["KIVY_DOC_INCLUDE"] = "1"
 import kivy
+
 print(kivy.__file__)
 
 version = kivy.__version__
 release = kivy.__version__
-base = 'autobuild.py-done'
+base = "autobuild.py-done"
 if not os.path.exists(os.path.join(os.path.dirname(base_dir), base)):
     import autobuild
 from kivy.tools import gallery
+
 gallery.write_all_rst_pages()
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 # today = ''
 # Else, today_fmt is used as the format for a strftime call.
-today_fmt = '%B %d, %Y'
+today_fmt = "%B %d, %Y"
 
 # suppress exclusion warnings
-exclude_patterns = ['gsoc201*']
+exclude_patterns = ["gsoc201*"]
 
 # The reST default role (used for this markup: `text`) to use for all documents
 # default_role = None
@@ -95,7 +103,7 @@ exclude_patterns = ['gsoc201*']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'kivy_pygments_theme.KivyStyle'
+pygments_style = "kivy_pygments_theme.KivyStyle"
 
 
 # Options for HTML output
@@ -104,12 +112,13 @@ pygments_style = 'kivy_pygments_theme.KivyStyle'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'fresh.css'
+html_style = "fresh.css"
 
 # Check for theme (remove 'if' when switched to RTD)
-if os.environ.get('READTHEDOCS') == 'True':
+if os.environ.get("READTHEDOCS") == "True":
     import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
+
+    html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -121,7 +130,7 @@ if os.environ.get('READTHEDOCS') == 'True':
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = '.static/logo-kivy.png'
+html_logo = ".static/logo-kivy.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -131,11 +140,11 @@ html_logo = '.static/logo-kivy.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['.static']
+html_static_path = [".static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = "%b %d, %Y"
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -169,7 +178,7 @@ html_last_updated_fmt = '%b %d, %Y'
 # html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Kivydoc'
+htmlhelp_basename = "Kivydoc"
 
 
 # Options for LaTeX output
@@ -184,8 +193,13 @@ htmlhelp_basename = 'Kivydoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [manual]).
 latex_documents = [
-  ('index', 'Kivy.tex', 'Kivy Documentation',
-   'The Kivy Developers', 'manual'),
+    (
+        "index",
+        "Kivy.tex",
+        "Kivy Documentation",
+        "The Kivy Developers",
+        "manual",
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -193,19 +207,21 @@ latex_documents = [
 # latex_logo = None
 
 latex_elements = {
-    'fontpkg':      r'\usepackage{mathpazo}',
-    'papersize':    'a4paper',
-    'pointsize':    '10pt',
-    'preamble':     r'\usepackage{kivystyle}'
+    "fontpkg": r"\usepackage{mathpazo}",
+    "papersize": "a4paper",
+    "pointsize": "10pt",
+    "preamble": r"\usepackage{kivystyle}",
 }
-latex_additional_files = ['kivystyle.sty',
-                          '../../kivy/data/logo/kivy-icon-512.png']
+latex_additional_files = [
+    "kivystyle.sty",
+    "../../kivy/data/logo/kivy-icon-512.png",
+]
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 # DEPRECATED! later_use_parts = True
 # see sphinx.builder.latex.validate_config_values
-latex_toplevel_sectioning = 'part'
+latex_toplevel_sectioning = "part"
 
 # Additional stuff for the LaTeX preamble.
 # latex_preamble = ''
@@ -222,23 +238,25 @@ from kivy import setupconfig
 # .. parse-literal::, otherwise it won't be replaced
 # !!! doesn't work for "::", ".. code::" or ".. code-block::"
 replacements = {
-    'cython_install': 'Cython==' + setupconfig.CYTHON_MAX,
-    'cython_note': (
-        'Kivy {0} **requires at least Cython version {1}**, '
-        'and has been tested through {2}. Later versions may work, '
-        'but as they have not been tested there is no guarantee.'
-    ).format(version, setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX)
+    "cython_install": "Cython==" + setupconfig.CYTHON_MAX,
+    "cython_note": (
+        "Kivy {0} **requires at least Cython version {1}**, "
+        "and has been tested through {2}. Later versions may work, "
+        "but as they have not been tested there is no guarantee."
+    ).format(version, setupconfig.CYTHON_MIN, setupconfig.CYTHON_MAX),
 }
 
 if setupconfig.CYTHON_BAD:
-    replacements['cython_note'] += (' **The following versions of Cython have '
-                                    'known issues and cannot be used with Kivy'
-                                    ': {0}**').format(setupconfig.CYTHON_BAD)
+    replacements["cython_note"] += (
+        " **The following versions of Cython have "
+        "known issues and cannot be used with Kivy"
+        ": {0}**"
+    ).format(setupconfig.CYTHON_BAD)
 
 epilog = []
 
 for key, value in replacements.items():
-    rep = '.. |{0}| replace:: {1}'.format(key, value)
+    rep = ".. |{0}| replace:: {1}".format(key, value)
     epilog.append(rep)
 
-rst_epilog = '\n'.join(epilog)
+rst_epilog = "\n".join(epilog)

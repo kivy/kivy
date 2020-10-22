@@ -1,4 +1,4 @@
-'''
+"""
 Auto Create Input Provider Config Entry for Available MT Hardware (linux only).
 ===============================================================================
 
@@ -35,14 +35,14 @@ device, and configure hardware with ABS_MT_POSITION_X capability. But for
 example, the wacom screen doesn't support this capability. You can prevent this
 behavior by putting select_all=1 in your config line. Add use_mouse=1 to also
 include touchscreen hardware that offers core pointer functionality.
-'''
+"""
 
-__all__ = ('ProbeSysfsHardwareProbe', )
+__all__ = ("ProbeSysfsHardwareProbe",)
 
 import os
 from os.path import sep
 
-if 'KIVY_DOC' in os.environ:
+if "KIVY_DOC" in os.environ:
 
     ProbeSysfsHardwareProbe = None
 
@@ -66,7 +66,6 @@ else:
     _cache_xinput = None
 
     class Input(object):
-
         def __init__(self, path):
             query_xinput()
             self.path = path
@@ -93,8 +92,7 @@ else:
             long_bit = ctypes.sizeof(ctypes.c_long) * 8
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
-                subcapabilities = [bool(word & 1 << i)
-                                   for i in range(long_bit)]
+                subcapabilities = [bool(word & 1 << i) for i in range(long_bit)]
                 capabilities[:0] = subcapabilities
 
             return capabilities
@@ -111,23 +109,24 @@ else:
         try:
             return Popen(args, stdout=PIPE).communicate()[0]
         except OSError:
-            return ''
+            return ""
 
     def query_xinput():
         global _cache_xinput
         if _cache_xinput is None:
             _cache_xinput = []
-            devids = getout('xinput', '--list', '--id-only')
+            devids = getout("xinput", "--list", "--id-only")
             for did in devids.splitlines():
-                devprops = getout('xinput', '--list-props', did)
+                devprops = getout("xinput", "--list-props", did)
                 evpath = None
                 for prop in devprops.splitlines():
                     prop = prop.strip()
-                    if (prop.startswith(b'Device Enabled') and
-                            prop.endswith(b'0')):
+                    if prop.startswith(b"Device Enabled") and prop.endswith(
+                        b"0"
+                    ):
                         evpath = None
                         break
-                    if prop.startswith(b'Device Node'):
+                    if prop.startswith(b"Device Node"):
                         try:
                             evpath = prop.split('"')[1]
                         except Exception:
@@ -150,7 +149,6 @@ else:
             f.close()
 
     class ProbeSysfsHardwareProbe(MotionEventProvider):
-
         def __new__(self, device, args):
             # hack to not return an instance of this provider.
             # :)
@@ -159,96 +157,112 @@ else:
 
         def __init__(self, device, args):
             super(ProbeSysfsHardwareProbe, self).__init__(device, args)
-            self.provider = 'mtdev'
+            self.provider = "mtdev"
             self.match = None
-            self.input_path = '/sys/class/input'
+            self.input_path = "/sys/class/input"
             self.select_all = True if _is_rpi else False
             self.use_mouse = False
             self.use_regex = False
             self.args = []
 
-            args = args.split(',')
+            args = args.split(",")
             for arg in args:
-                if arg == '':
+                if arg == "":
                     continue
-                arg = arg.split('=', 1)
+                arg = arg.split("=", 1)
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('ProbeSysfs: invalid parameters %s, not'
-                                 ' key=value format' % arg)
+                    Logger.error(
+                        "ProbeSysfs: invalid parameters %s, not"
+                        " key=value format" % arg
+                    )
                     continue
 
                 key, value = arg
-                if key == 'match':
+                if key == "match":
                     self.match = value
-                elif key == 'provider':
+                elif key == "provider":
                     self.provider = value
-                elif key == 'use_regex':
+                elif key == "use_regex":
                     self.use_regex = bool(int(value))
-                elif key == 'select_all':
+                elif key == "select_all":
                     self.select_all = bool(int(value))
-                elif key == 'use_mouse':
+                elif key == "use_mouse":
                     self.use_mouse = bool(int(value))
-                elif key == 'param':
+                elif key == "param":
                     self.args.append(value)
                 else:
-                    Logger.error('ProbeSysfs: unknown %s option' % key)
+                    Logger.error("ProbeSysfs: unknown %s option" % key)
                     continue
 
             self.probe()
 
         def should_use_mouse(self):
-            return (self.use_mouse or
-                    not any(p for p in EventLoop.input_providers
-                            if isinstance(p, MouseMotionEventProvider)))
+            return self.use_mouse or not any(
+                p
+                for p in EventLoop.input_providers
+                if isinstance(p, MouseMotionEventProvider)
+            )
 
         def probe(self):
             global EventLoop
             from kivy.base import EventLoop
 
             inputs = get_inputs(self.input_path)
-            Logger.debug('ProbeSysfs: using probesysfs!')
+            Logger.debug("ProbeSysfs: using probesysfs!")
 
             use_mouse = self.should_use_mouse()
 
             if not self.select_all:
-                inputs = [x for x in inputs if
-                          x.has_capability(ABS_MT_POSITION_X) and
-                          (use_mouse or not x.is_mouse)]
+                inputs = [
+                    x
+                    for x in inputs
+                    if x.has_capability(ABS_MT_POSITION_X)
+                    and (use_mouse or not x.is_mouse)
+                ]
             for device in inputs:
-                Logger.debug('ProbeSysfs: found device: %s at %s' % (
-                    device.name, device.device))
+                Logger.debug(
+                    "ProbeSysfs: found device: %s at %s"
+                    % (device.name, device.device)
+                )
 
                 # must ignore ?
                 if self.match:
                     if self.use_regex:
                         if not match(self.match, device.name, IGNORECASE):
-                            Logger.debug('ProbeSysfs: device not match the'
-                                         ' rule in config, ignoring.')
+                            Logger.debug(
+                                "ProbeSysfs: device not match the"
+                                " rule in config, ignoring."
+                            )
                             continue
                     else:
                         if self.match not in device.name:
                             continue
 
-                Logger.info('ProbeSysfs: device match: %s' % device.device)
+                Logger.info("ProbeSysfs: device match: %s" % device.device)
 
                 d = device.device
                 devicename = self.device % dict(name=d.split(sep)[-1])
 
                 provider = MotionEventFactory.get(self.provider)
                 if provider is None:
-                    Logger.info('ProbeSysfs: unable to found provider %s' %
-                                self.provider)
-                    Logger.info('ProbeSysfs: fallback on hidinput')
-                    provider = MotionEventFactory.get('hidinput')
+                    Logger.info(
+                        "ProbeSysfs: unable to found provider %s"
+                        % self.provider
+                    )
+                    Logger.info("ProbeSysfs: fallback on hidinput")
+                    provider = MotionEventFactory.get("hidinput")
                 if provider is None:
-                    Logger.critical('ProbeSysfs: no input provider found'
-                                    ' to handle this device !')
+                    Logger.critical(
+                        "ProbeSysfs: no input provider found"
+                        " to handle this device !"
+                    )
                     continue
 
-                instance = provider(devicename, '%s,%s' % (
-                    device.device, ','.join(self.args)))
+                instance = provider(
+                    devicename, "%s,%s" % (device.device, ",".join(self.args))
+                )
                 if instance:
                     EventLoop.add_input_provider(instance)
 
-    MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)
+    MotionEventFactory.register("probesysfs", ProbeSysfsHardwareProbe)

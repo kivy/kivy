@@ -1,4 +1,4 @@
-'''
+"""
 Touchring
 =========
 
@@ -25,9 +25,9 @@ this::
     [modules]
     touchring = image=mypointer.png,scale=.3,alpha=.7
 
-'''
+"""
 
-__all__ = ('start', 'stop')
+__all__ = ("start", "stop")
 
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
@@ -42,56 +42,64 @@ pointer_alpha = 0.7
 def _touch_down(win, touch):
     ud = touch.ud
     with win.canvas.after:
-        ud['tr.color'] = Color(1, 1, 1, pointer_alpha)
+        ud["tr.color"] = Color(1, 1, 1, pointer_alpha)
         iw, ih = pointer_image.size
-        ud['tr.rect'] = Rectangle(
+        ud["tr.rect"] = Rectangle(
             pos=(
-                touch.x - (pointer_image.width / 2. * pointer_scale),
-                touch.y - (pointer_image.height / 2. * pointer_scale)),
+                touch.x - (pointer_image.width / 2.0 * pointer_scale),
+                touch.y - (pointer_image.height / 2.0 * pointer_scale),
+            ),
             size=(iw * pointer_scale, ih * pointer_scale),
-            texture=pointer_image.texture)
+            texture=pointer_image.texture,
+        )
 
-    if not ud.get('tr.grab', False):
-        ud['tr.grab'] = True
+    if not ud.get("tr.grab", False):
+        ud["tr.grab"] = True
         touch.grab(win)
 
 
 def _touch_move(win, touch):
     ud = touch.ud
-    if not ud.get('tr.rect', False):
+    if not ud.get("tr.rect", False):
         _touch_down(win, touch)
-    ud['tr.rect'].pos = (
-        touch.x - (pointer_image.width / 2. * pointer_scale),
-        touch.y - (pointer_image.height / 2. * pointer_scale))
+    ud["tr.rect"].pos = (
+        touch.x - (pointer_image.width / 2.0 * pointer_scale),
+        touch.y - (pointer_image.height / 2.0 * pointer_scale),
+    )
 
 
 def _touch_up(win, touch):
     if touch.grab_current is win:
         ud = touch.ud
-        win.canvas.after.remove(ud['tr.color'])
-        win.canvas.after.remove(ud['tr.rect'])
+        win.canvas.after.remove(ud["tr.color"])
+        win.canvas.after.remove(ud["tr.rect"])
 
-        if ud.get('tr.grab') is True:
+        if ud.get("tr.grab") is True:
             touch.ungrab(win)
-            ud['tr.grab'] = False
+            ud["tr.grab"] = False
 
 
 def start(win, ctx):
     # XXX use ctx !
     global pointer_image, pointer_scale, pointer_alpha
 
-    pointer_fn = ctx.config.get('image',
-                                'atlas://data/images/defaulttheme/ring')
-    pointer_scale = float(ctx.config.get('scale', 1.0))
-    pointer_alpha = float(ctx.config.get('alpha', 1.0))
+    pointer_fn = ctx.config.get(
+        "image", "atlas://data/images/defaulttheme/ring"
+    )
+    pointer_scale = float(ctx.config.get("scale", 1.0))
+    pointer_alpha = float(ctx.config.get("alpha", 1.0))
     pointer_image = Image(pointer_fn)
 
-    win.bind(on_touch_down=_touch_down,
-             on_touch_move=_touch_move,
-             on_touch_up=_touch_up)
+    win.bind(
+        on_touch_down=_touch_down,
+        on_touch_move=_touch_move,
+        on_touch_up=_touch_up,
+    )
 
 
 def stop(win, ctx):
-    win.unbind(on_touch_down=_touch_down,
-               on_touch_move=_touch_move,
-               on_touch_up=_touch_up)
+    win.unbind(
+        on_touch_down=_touch_down,
+        on_touch_move=_touch_move,
+        on_touch_up=_touch_up,
+    )

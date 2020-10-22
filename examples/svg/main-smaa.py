@@ -11,7 +11,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 
 
-smaa_ui = '''
+smaa_ui = """
 #:kivy 1.8.0
 
 BoxLayout:
@@ -61,11 +61,10 @@ BoxLayout:
         group: 'smaa-debug'
         on_release: app.smaa.debug = 'blend'
 
-'''
+"""
 
 
 class SvgWidget(Scatter):
-
     def __init__(self, filename):
         super(SvgWidget, self).__init__()
         with self.canvas:
@@ -75,7 +74,6 @@ class SvgWidget(Scatter):
 
 
 class SvgApp(App):
-
     def build(self):
         from kivy.garden.smaa import SMAA
 
@@ -84,13 +82,14 @@ class SvgApp(App):
         self.smaa = SMAA()
         self.effects = [self.smaa, Widget()]
         self.effect_index = 0
-        self.label = Label(text='SMAA', top=Window.height)
+        self.label = Label(text="SMAA", top=Window.height)
         self.effect = effect = self.effects[0]
         self.root = FloatLayout()
         self.root.add_widget(effect)
 
         if 0:
             from kivy.graphics import Color, Rectangle
+
             wid = Widget(size=Window.size)
             with wid.canvas:
                 Color(1, 1, 1, 1)
@@ -104,34 +103,43 @@ class SvgApp(App):
 
             filenames = sys.argv[1:]
             if not filenames:
-                filenames = glob(join(dirname(__file__), '*.svg'))
+                filenames = glob(join(dirname(__file__), "*.svg"))
 
             for filename in filenames:
                 svg = SvgWidget(filename)
                 effect.add_widget(svg)
 
             effect.add_widget(self.label)
-            svg.scale = 5.
+            svg.scale = 5.0
             svg.center = Window.center
 
         if 0:
             wid = Scatter(size=Window.size)
             from kivy.graphics import Color, Triangle, Rectangle
+
             with wid.canvas:
                 Color(0, 0, 0, 1)
                 Rectangle(size=Window.size)
                 Color(1, 1, 1, 1)
                 w, h = Window.size
-                cx, cy = w / 2., h / 2.
-                Triangle(points=[cx - w * 0.25, cy - h * 0.25,
-                                 cx, cy + h * 0.25,
-                                 cx + w * 0.25, cy - h * 0.25])
+                cx, cy = w / 2.0, h / 2.0
+                Triangle(
+                    points=[
+                        cx - w * 0.25,
+                        cy - h * 0.25,
+                        cx,
+                        cy + h * 0.25,
+                        cx + w * 0.25,
+                        cy - h * 0.25,
+                    ]
+                )
             effect.add_widget(wid)
 
         if 0:
             from kivy.uix.button import Button
             from kivy.uix.slider import Slider
-            effect.add_widget(Button(text='Hello World'))
+
+            effect.add_widget(Button(text="Hello World"))
             effect.add_widget(Slider(pos=(200, 200)))
 
         control_ui = Builder.load_string(smaa_ui)
@@ -151,5 +159,5 @@ class SvgApp(App):
             Window.title = self.label.text
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SvgApp().run()

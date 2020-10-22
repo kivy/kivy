@@ -1,11 +1,11 @@
-'''
+"""
 Dictionary store
 =================
 
 Use a Python dictionary as a store.
-'''
+"""
 
-__all__ = ('DictStore', )
+__all__ = ("DictStore",)
 
 try:
     import cPickle as pickle
@@ -19,9 +19,10 @@ from kivy.storage import AbstractStore
 
 
 class DictStore(AbstractStore):
-    '''Store implementation using a pickled `dict`.
+    """Store implementation using a pickled `dict`.
     See the :mod:`kivy.storage` module documentation for more information.
-    '''
+    """
+
     def __init__(self, filename, data=None, **kwargs):
         if isinstance(filename, dict):
             # backward compatibility, first argument was a dict.
@@ -40,13 +41,12 @@ class DictStore(AbstractStore):
             folder = abspath(dirname(self.filename))
             if not exists(folder):
                 not_found = IOError(
-                    "The folder '{}' doesn't exist!"
-                    "".format(folder)
+                    "The folder '{}' doesn't exist!" "".format(folder)
                 )
                 not_found.errno = errno.ENOENT
                 raise not_found
             return
-        with open(self.filename, 'rb') as fd:
+        with open(self.filename, "rb") as fd:
             data = fd.read()
             if data:
                 self._data = pickle.loads(data)
@@ -57,7 +57,7 @@ class DictStore(AbstractStore):
         if not self._is_changed:
             return
 
-        with open(self.filename, 'wb') as fd:
+        with open(self.filename, "wb") as fd:
             pickle.dump(self._data, fd)
 
         self._is_changed = False

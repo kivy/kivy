@@ -16,7 +16,7 @@ from kivy.metrics import dp
 from kivy.clock import mainthread
 
 
-KV = r'''
+KV = r"""
 FloatLayout:
     Label:
         opacity: 1 if app.refreshing or rv.scroll_y > 1 else 0
@@ -48,7 +48,7 @@ FloatLayout:
         Line:
             rectangle: self.pos + self.size
             width: 0.6
-'''
+"""
 
 
 class Application(App):
@@ -80,10 +80,12 @@ class Application(App):
         sleep(2)
         update_time = datetime.now().strftime("%H:%M:%S")
 
-        self.prepend_data([
-            {'_id': i, 'text': '[{}] hello {}'.format(update_time, i)}
-            for i in range(len(self.data) + 10, len(self.data), -1)
-        ])
+        self.prepend_data(
+            [
+                {"_id": i, "text": "[{}] hello {}".format(update_time, i)}
+                for i in range(len(self.data) + 10, len(self.data), -1)
+            ]
+        )
 
     @mainthread
     def prepend_data(self, data):

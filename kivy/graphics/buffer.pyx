@@ -128,4 +128,3 @@ cdef class Buffer:
 
     cdef void *offset_pointer(self, int offset):
         return <char *>(self.data) + (offset * self.block_size)
-

@@ -1,4 +1,4 @@
-'''
+"""
 Garden
 ======
 
@@ -132,9 +132,9 @@ For example::
     garden install --app graph
 
 
-'''
+"""
 
-__path__ = 'kivy.garden'
+__path__ = "kivy.garden"
 
 import sys
 import imp
@@ -144,44 +144,45 @@ from kivy.utils import platform
 import kivy
 
 #: system path where garden modules can be installed
-garden_system_dir = join(kivy_home_dir, 'garden')
-garden_kivy_dir = abspath(join(dirname(kivy.__file__), 'garden'))
+garden_system_dir = join(kivy_home_dir, "garden")
+garden_kivy_dir = abspath(join(dirname(kivy.__file__), "garden"))
 
 #: application path where garden modules can be installed
-if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
-    garden_app_dir = join(realpath(sys._MEIPASS), 'libs', 'garden')
+if getattr(sys, "frozen", False) and getattr(sys, "_MEIPASS", False):
+    garden_app_dir = join(realpath(sys._MEIPASS), "libs", "garden")
 else:
-    garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
+    garden_app_dir = join(realpath(dirname(sys.argv[0])), "libs", "garden")
 #: Fixes issue #4030 in kivy where garden path is incorrect on iOS
 if platform == "ios":
     from os.path import join, dirname
     import __main__
+
     main_py_file = __main__.__file__
-    garden_app_dir = join(dirname(main_py_file), 'libs', 'garden')
+    garden_app_dir = join(dirname(main_py_file), "libs", "garden")
 
 
 class GardenImporter(object):
-
     def find_module(self, fullname, path):
-        if path == 'kivy.garden':
+        if path == "kivy.garden":
             return self
 
     def load_module(self, fullname):
-        assert(fullname.startswith('kivy.garden'))
+        assert fullname.startswith("kivy.garden")
 
-        moddir = join(garden_kivy_dir, fullname.split('.', 2)[-1])
+        moddir = join(garden_kivy_dir, fullname.split(".", 2)[-1])
         if exists(moddir):
             return self._load_module(fullname, moddir)
 
-        modname = fullname.split('.', 1)[-1]
+        modname = fullname.split(".", 1)[-1]
         for directory in (garden_app_dir, garden_system_dir):
             moddir = join(directory, modname)
             if exists(moddir):
                 return self._load_module(fullname, moddir)
 
     def _load_module(self, fullname, moddir):
-        mod = imp.load_module(fullname, None, moddir,
-                              ('', '', imp.PKG_DIRECTORY))
+        mod = imp.load_module(
+            fullname, None, moddir, ("", "", imp.PKG_DIRECTORY)
+        )
         return mod
 
 

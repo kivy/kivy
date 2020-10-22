@@ -1,4 +1,4 @@
-'''
+"""
 Take picture
 ============
 
@@ -16,9 +16,9 @@ If you want to compile it, don't forget to add the CAMERA permission::
             --private ~/code/kivy/examples/android/takepicture \
             debug installd
 
-'''
+"""
 
-__version__ = '0.1'
+__version__ = "0.1"
 
 from kivy.app import App
 from os.path import exists
@@ -31,10 +31,10 @@ from kivy.properties import StringProperty
 
 from PIL import Image
 
-Intent = autoclass('android.content.Intent')
-MediaStore = autoclass('android.provider.MediaStore')
-Uri = autoclass('android.net.Uri')
-Environment = autoclass('android.os.Environment')
+Intent = autoclass("android.content.Intent")
+MediaStore = autoclass("android.provider.MediaStore")
+Uri = autoclass("android.net.Uri")
+Environment = autoclass("android.os.Environment")
 
 
 class Picture(Scatter):
@@ -49,16 +49,17 @@ class TakePictureApp(App):
     def get_filename(self):
         while True:
             self.index += 1
-            fn = (Environment.getExternalStorageDirectory().getPath() +
-                  '/takepicture{}.jpg'.format(self.index))
+            fn = Environment.getExternalStorageDirectory().getPath() + "/takepicture{}.jpg".format(
+                self.index
+            )
             if not exists(fn):
                 return fn
 
     def take_picture(self):
         intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         self.last_fn = self.get_filename()
-        self.uri = Uri.parse('file://' + self.last_fn)
-        self.uri = cast('android.os.Parcelable', self.uri)
+        self.uri = Uri.parse("file://" + self.last_fn)
+        self.uri = cast("android.os.Parcelable", self.uri)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, self.uri)
         mActivity.startActivityForResult(intent, 0x123)
 

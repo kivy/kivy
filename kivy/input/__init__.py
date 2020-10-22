@@ -1,5 +1,5 @@
 # pylint: disable=W0611
-'''
+"""
 Input management
 ================
 
@@ -23,7 +23,7 @@ several default modules for :
 * Decreasing jittering
 * Decreasing the inaccuracy of touch on "bad" DIY hardware
 * Ignoring regions
-'''
+"""
 
 
 from kivy.input.motionevent import MotionEvent
@@ -36,4 +36,5 @@ __all__ = (
     MotionEvent.__name__,
     MotionEventProvider.__name__,
     MotionEventFactory.__name__,
-    'kivy_postproc_modules')
+    "kivy_postproc_modules",
+)

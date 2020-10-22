@@ -6,11 +6,10 @@ from collections import deque
 
 from kivy.tests import UnitTestTouch
 
-__all__ = ('UnitKivyApp', )
+__all__ = ("UnitKivyApp",)
 
 
 class AsyncUnitTestTouch(UnitTestTouch):
-
     def __init__(self, *largs, **kwargs):
         self.grab_exclusive_class = None
         self.is_touch = True
@@ -21,10 +20,7 @@ class AsyncUnitTestTouch(UnitTestTouch):
 
     def touch_move(self, x, y):
         win = self.eventloop.window
-        self.move({
-            "x": x / float(win.width),
-            "y": y / float(win.height)
-        })
+        self.move({"x": x / float(win.width), "y": y / float(win.height)})
         self.eventloop._dispatch_input("update", self)
 
     def touch_up(self, *args):
@@ -35,8 +31,7 @@ _unique_value = object
 
 
 class WidgetResolver(object):
-    """It assumes that the widget tree strictly forms a DAG.
-    """
+    """It assumes that the widget tree strictly forms a DAG."""
 
     base_widget = None
 
@@ -78,9 +73,11 @@ class WidgetResolver(object):
 
     def not_found(self, op):
         raise ValueError(
-            'Cannot find widget matching <{}, {}> starting from base '
+            "Cannot find widget matching <{}, {}> starting from base "
             'widget "{}" doing "{}" traversal'.format(
-                self._kwargs_filter, self._funcs_filter, self.base_widget, op))
+                self._kwargs_filter, self._funcs_filter, self.base_widget, op
+            )
+        )
 
     def down(self, **kwargs_filter):
         self.match(**kwargs_filter)
@@ -94,7 +91,7 @@ class WidgetResolver(object):
 
             fifo.extend(widget.children)
 
-        self.not_found('down')
+        self.not_found("down")
 
     def up(self, **kwargs_filter):
         self.match(**kwargs_filter)
@@ -111,7 +108,7 @@ class WidgetResolver(object):
                 break
             parent = new_parent
 
-        self.not_found('up')
+        self.not_found("up")
 
     def family_up(self, **kwargs_filter):
         self.match(**kwargs_filter)
@@ -139,12 +136,11 @@ class WidgetResolver(object):
                 break
             base_widget = new_base_widget
 
-        self.not_found('family_up')
+        self.not_found("family_up")
 
 
 class UnitKivyApp(object):
-    """Base class to use with async test apps.
-    """
+    """Base class to use with async test apps."""
 
     app_has_started = False
 
@@ -157,14 +153,17 @@ class UnitKivyApp(object):
 
         def started_app(*largs):
             self.app_has_started = True
-        self.fbind('on_start', started_app)
+
+        self.fbind("on_start", started_app)
 
         def stopped_app(*largs):
             self.app_has_stopped = True
-        self.fbind('on_stop', stopped_app)
+
+        self.fbind("on_stop", stopped_app)
 
     def set_async_lib(self, async_lib):
         from kivy.clock import Clock
+
         if async_lib is not None:
             Clock.init_async_lib(async_lib)
         self.async_sleep = Clock._async_lib.sleep
@@ -176,11 +175,13 @@ class UnitKivyApp(object):
     def resolve_widget(self, base_widget=None):
         if base_widget is None:
             from kivy.core.window import Window
+
             base_widget = Window
         return WidgetResolver(base_widget=base_widget)
 
-    async def wait_clock_frames(self, n, sleep_time=1 / 60.):
+    async def wait_clock_frames(self, n, sleep_time=1 / 60.0):
         from kivy.clock import Clock
+
         frames_start = Clock.frames
         while Clock.frames < frames_start + n:
             await self.async_sleep(sleep_time)
@@ -214,13 +215,20 @@ class UnitKivyApp(object):
             x = int(x)
             y = int(y)
             i = y * w * 4 + x * 4
-            values.append(tuple(pixels[i:i + 4]))
+            values.append(tuple(pixels[i : i + 4]))
 
         return values
 
     async def do_touch_down_up(
-            self, pos=None, widget=None, duration=.2, pos_jitter=None,
-            widget_jitter=False, jitter_dt=1 / 15., end_on_pos=False):
+        self,
+        pos=None,
+        widget=None,
+        duration=0.2,
+        pos_jitter=None,
+        widget_jitter=False,
+        jitter_dt=1 / 15.0,
+        end_on_pos=False,
+    ):
         if widget is None:
             x, y = pos
         else:
@@ -233,13 +241,13 @@ class UnitKivyApp(object):
         ts = time.perf_counter()
         touch.touch_down()
         await self.wait_clock_frames(1)
-        yield 'down', touch.pos
+        yield "down", touch.pos
 
         if not pos_jitter and not widget_jitter:
             await self.async_sleep(duration)
             touch.touch_up()
             await self.wait_clock_frames(1)
-            yield 'up', touch.pos
+            yield "up", touch.pos
 
             return
 
@@ -247,8 +255,8 @@ class UnitKivyApp(object):
         if pos_jitter:
             dx, dy = pos_jitter
         else:
-            dx = widget.width / 2.
-            dy = widget.height / 2.
+            dx = widget.width / 2.0
+            dy = widget.height / 2.0
 
         while time.perf_counter() - ts < duration:
             moved = True
@@ -256,26 +264,35 @@ class UnitKivyApp(object):
 
             touch.touch_move(
                 x + (random.random() * 2 - 1) * dx,
-                y + (random.random() * 2 - 1) * dy
+                y + (random.random() * 2 - 1) * dy,
             )
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
 
         if end_on_pos and moved:
             touch.touch_move(x, y)
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
 
         touch.touch_up()
         await self.wait_clock_frames(1)
-        yield 'up', touch.pos
+        yield "up", touch.pos
 
     async def do_touch_drag(
-            self, pos=None, widget=None,
-            widget_loc=('center_x', 'center_y'), dx=0, dy=0,
-            target_pos=None, target_widget=None, target_widget_offset=(0, 0),
-            target_widget_loc=('center_x', 'center_y'), long_press=0,
-            duration=.2, drag_n=5):
+        self,
+        pos=None,
+        widget=None,
+        widget_loc=("center_x", "center_y"),
+        dx=0,
+        dy=0,
+        target_pos=None,
+        target_widget=None,
+        target_widget_offset=(0, 0),
+        target_widget_loc=("center_x", "center_y"),
+        long_press=0,
+        duration=0.2,
+        drag_n=5,
+    ):
         """Initiates a touch down, followed by some dragging to a target
         location, ending with a touch up.
 
@@ -321,14 +338,16 @@ class UnitKivyApp(object):
             else:
                 x, y = widget.to_window(*pos, initial=False)
                 tx, ty = widget.to_window(
-                    pos[0] + dx, pos[1] + dy, initial=False)
+                    pos[0] + dx, pos[1] + dy, initial=False
+                )
 
         if target_pos is not None:
             if target_widget is None:
                 tx, ty = target_pos
             else:
                 tx, ty = target_pos = target_widget.to_window(
-                    *target_pos, initial=False)
+                    *target_pos, initial=False
+                )
         elif target_widget is not None:
             x_off, y_off = target_widget_offset
             w_x = getattr(target_widget, target_widget_loc[0]) + x_off
@@ -343,7 +362,7 @@ class UnitKivyApp(object):
         await self.wait_clock_frames(1)
         if long_press:
             await self.async_sleep(long_press)
-        yield 'down', touch.pos
+        yield "down", touch.pos
 
         dx = (tx - x) / drag_n
         dy = (ty - y) / drag_n
@@ -351,27 +370,36 @@ class UnitKivyApp(object):
         ts0 = time.perf_counter()
         for i in range(drag_n):
             await self.async_sleep(
-                max(0., duration - (time.perf_counter() - ts0)) / (drag_n - i))
+                max(0.0, duration - (time.perf_counter() - ts0)) / (drag_n - i)
+            )
 
             touch.touch_move(x + (i + 1) * dx, y + (i + 1) * dy)
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
 
         if touch.pos != target_pos:
             touch.touch_move(*target_pos)
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
 
         touch.touch_up()
         await self.wait_clock_frames(1)
-        yield 'up', touch.pos
+        yield "up", touch.pos
 
     async def do_touch_drag_follow(
-            self, pos=None, widget=None,
-            widget_loc=('center_x', 'center_y'),
-            target_pos=None, target_widget=None, target_widget_offset=(0, 0),
-            target_widget_loc=('center_x', 'center_y'), long_press=0,
-            duration=.2, drag_n=5, max_n=25):
+        self,
+        pos=None,
+        widget=None,
+        widget_loc=("center_x", "center_y"),
+        target_pos=None,
+        target_widget=None,
+        target_widget_offset=(0, 0),
+        target_widget_loc=("center_x", "center_y"),
+        long_press=0,
+        duration=0.2,
+        drag_n=5,
+        max_n=25,
+    ):
         """Very similar to :meth:`do_touch_drag`, except it follows the target
         widget, even if the target widget moves as a result of the drag, the
         drag will follow it until it's on the target widget.
@@ -410,7 +438,7 @@ class UnitKivyApp(object):
                 x, y = widget.to_window(*pos, initial=False)
 
         if target_widget is None:
-            raise ValueError('target_widget must be specified')
+            raise ValueError("target_widget must be specified")
 
         def get_target():
             if target_pos is not None:
@@ -427,7 +455,7 @@ class UnitKivyApp(object):
         await self.wait_clock_frames(1)
         if long_press:
             await self.async_sleep(long_press)
-        yield 'down', touch.pos
+        yield "down", touch.pos
 
         ts0 = time.perf_counter()
         tx, ty = get_target()
@@ -435,26 +463,28 @@ class UnitKivyApp(object):
         while not (math.isclose(touch.x, tx) and math.isclose(touch.y, ty)):
             if i >= max_n:
                 raise Exception(
-                    'Exceeded the maximum number of iterations, '
-                    'but {} != {}'.format(touch.pos, (tx, ty)))
+                    "Exceeded the maximum number of iterations, "
+                    "but {} != {}".format(touch.pos, (tx, ty))
+                )
 
             rem_i = max(1, drag_n - i)
-            rem_t = max(0., duration - (time.perf_counter() - ts0)) / rem_i
+            rem_t = max(0.0, duration - (time.perf_counter() - ts0)) / rem_i
             i += 1
             await self.async_sleep(rem_t)
 
             x, y = touch.pos
             touch.touch_move(x + (tx - x) / rem_i, y + (ty - y) / rem_i)
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
             tx, ty = get_target()
 
         touch.touch_up()
         await self.wait_clock_frames(1)
-        yield 'up', touch.pos
+        yield "up", touch.pos
 
     async def do_touch_drag_path(
-            self, path, axis_widget=None, long_press=0, duration=.2):
+        self, path, axis_widget=None, long_press=0, duration=0.2
+    ):
         """Drags the touch along the specified path.
 
         :parameters:
@@ -480,53 +510,59 @@ class UnitKivyApp(object):
         await self.wait_clock_frames(1)
         if long_press:
             await self.async_sleep(long_press)
-        yield 'down', touch.pos
+        yield "down", touch.pos
 
         ts0 = time.perf_counter()
         n = len(path)
         for i, (x2, y2) in enumerate(path):
             await self.async_sleep(
-                max(0., duration - (time.perf_counter() - ts0)) / (n - i))
+                max(0.0, duration - (time.perf_counter() - ts0)) / (n - i)
+            )
 
             touch.touch_move(x2, y2)
             await self.wait_clock_frames(1)
-            yield 'move', touch.pos
+            yield "move", touch.pos
 
         touch.touch_up()
         await self.wait_clock_frames(1)
-        yield 'up', touch.pos
+        yield "up", touch.pos
 
     async def do_keyboard_key(
-            self, key, modifiers=(), duration=.05, num_press=1):
+        self, key, modifiers=(), duration=0.05, num_press=1
+    ):
         from kivy.core.window import Window
-        if key == ' ':
-            key = 'spacebar'
+
+        if key == " ":
+            key = "spacebar"
         key_lower = key.lower()
         key_code = Window._system_keyboard.string_to_keycode(key_lower)
 
-        known_modifiers = {'shift', 'alt', 'ctrl', 'meta'}
+        known_modifiers = {"shift", "alt", "ctrl", "meta"}
         if set(modifiers) - known_modifiers:
-            raise ValueError('Unknown modifiers "{}"'.
-                             format(set(modifiers) - known_modifiers))
+            raise ValueError(
+                'Unknown modifiers "{}"'.format(
+                    set(modifiers) - known_modifiers
+                )
+            )
 
         special_keys = {
-            27: 'escape',
-            9: 'tab',
-            8: 'backspace',
-            13: 'enter',
-            127: 'del',
-            271: 'enter',
-            273: 'up',
-            274: 'down',
-            275: 'right',
-            276: 'left',
-            278: 'home',
-            279: 'end',
-            280: 'pgup',
-            281: 'pgdown',
-            300: 'numlock',
-            301: 'capslock',
-            145: 'screenlock',
+            27: "escape",
+            9: "tab",
+            8: "backspace",
+            13: "enter",
+            127: "del",
+            271: "enter",
+            273: "up",
+            274: "down",
+            275: "right",
+            276: "left",
+            278: "home",
+            279: "end",
+            280: "pgup",
+            281: "pgdown",
+            300: "numlock",
+            301: "capslock",
+            145: "screenlock",
         }
 
         text = None
@@ -541,15 +577,17 @@ class UnitKivyApp(object):
         for i in range(num_press):
             await self.async_sleep(dt)
 
-            Window.dispatch('on_key_down', key_code, 0, text, modifiers)
-            if (key not in known_modifiers and
-                    key_code not in special_keys and
-                    not (known_modifiers & set(modifiers))):
-                Window.dispatch('on_textinput', text)
+            Window.dispatch("on_key_down", key_code, 0, text, modifiers)
+            if (
+                key not in known_modifiers
+                and key_code not in special_keys
+                and not (known_modifiers & set(modifiers))
+            ):
+                Window.dispatch("on_textinput", text)
 
             await self.wait_clock_frames(1)
-            yield 'down', (key, key_code, 0, text, modifiers)
+            yield "down", (key, key_code, 0, text, modifiers)
 
-        Window.dispatch('on_key_up', key_code, 0)
+        Window.dispatch("on_key_up", key_code, 0)
         await self.wait_clock_frames(1)
-        yield 'up', (key, key_code, 0, text, modifiers)
+        yield "up", (key, key_code, 0, text, modifiers)

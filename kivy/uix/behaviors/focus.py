@@ -1,4 +1,4 @@
-'''
+"""
 Focus Behavior
 ==============
 
@@ -76,25 +76,29 @@ documentation.
 
     This code is still experimental, and its API is subject to change in a
     future version.
-'''
+"""
 
-__all__ = ('FocusBehavior', )
+__all__ = ("FocusBehavior",)
 
-from kivy.properties import OptionProperty, ObjectProperty, BooleanProperty, \
-    AliasProperty
+from kivy.properties import (
+    OptionProperty,
+    ObjectProperty,
+    BooleanProperty,
+    AliasProperty,
+)
 from kivy.config import Config
 from kivy.base import EventLoop
 
 # When we are generating documentation, Config doesn't exist
 _is_desktop = False
-_keyboard_mode = 'system'
+_keyboard_mode = "system"
 if Config:
-    _is_desktop = Config.getboolean('kivy', 'desktop')
-    _keyboard_mode = Config.get('kivy', 'keyboard_mode')
+    _is_desktop = Config.getboolean("kivy", "desktop")
+    _keyboard_mode = Config.get("kivy", "keyboard_mode")
 
 
 class FocusBehavior(object):
-    '''Provides keyboard focus behavior. When combined with other
+    """Provides keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. Please see the
     :mod:`focus behavior module documentation <kivy.uix.behaviors.focus>`
@@ -102,14 +106,14 @@ class FocusBehavior(object):
 
     .. versionadded:: 1.9.0
 
-    '''
+    """
 
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
     _keyboards = {}
 
     ignored_touch = []
-    '''A list of touches that should not be used to defocus. After on_touch_up,
+    """A list of touches that should not be used to defocus. After on_touch_up,
     every touch that is not in :attr:`ignored_touch` will defocus all the
     focused widgets if the config keyboard mode is not multi. Touches on
     focusable widgets that were used to focus are automatically added here.
@@ -123,14 +127,14 @@ class FocusBehavior(object):
                     FocusBehavior.ignored_touch.append(touch)
 
     Notice that you need to access this as a class, not an instance variable.
-    '''
+    """
 
     def _set_keyboard(self, value):
         focus = self.focus
         keyboard = self._keyboard
         keyboards = FocusBehavior._keyboards
         if keyboard:
-            self.focus = False    # this'll unbind
+            self.focus = False  # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
         if value and value not in keyboards:
@@ -140,9 +144,9 @@ class FocusBehavior(object):
 
     def _get_keyboard(self):
         return self._keyboard
-    keyboard = AliasProperty(_get_keyboard, _set_keyboard,
-                             bind=('_keyboard', ))
-    '''The keyboard to bind to (or bound to the widget) when focused.
+
+    keyboard = AliasProperty(_get_keyboard, _set_keyboard, bind=("_keyboard",))
+    """The keyboard to bind to (or bound to the widget) when focused.
 
     When None, a keyboard is requested and released whenever the widget comes
     into and out of focus. If not None, it must be a keyboard, which gets
@@ -198,19 +202,19 @@ class FocusBehavior(object):
         will be released by the instance when the instance loses focus.
         Therefore, it is not safe to assign this keyboard to another instance's
         :attr:`keyboard`.
-    '''
+    """
 
     is_focusable = BooleanProperty(_is_desktop)
-    '''Whether the instance can become focused. If focused, it'll lose focus
+    """Whether the instance can become focused. If focused, it'll lose focus
     when set to False.
 
     :attr:`is_focusable` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True on a desktop (i.e. `desktop` is True in
     :mod:`~kivy.config`), False otherwise.
-    '''
+    """
 
     focus = BooleanProperty(False)
-    '''Whether the instance currently has focus.
+    """Whether the instance currently has focus.
 
     Setting it to True will bind to and/or request the keyboard, and input
     will be forwarded to the instance. Setting it to False will unbind
@@ -224,10 +228,10 @@ class FocusBehavior(object):
 
     :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
+    """
 
     focused = focus
-    '''An alias of :attr:`focus`.
+    """An alias of :attr:`focus`.
 
     :attr:`focused` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
@@ -235,16 +239,16 @@ class FocusBehavior(object):
     .. warning::
         :attr:`focused` is an alias of :attr:`focus` and will be removed in
         2.0.0.
-    '''
+    """
 
     def _set_on_focus_next(self, instance, value):
-        ''' If changing code, ensure following code is not infinite loop:
+        """If changing code, ensure following code is not infinite loop:
         widget.focus_next = widget
         widget.focus_previous = widget
         widget.focus_previous = widget2
-        '''
+        """
         next = self._old_focus_next
-        if next is value:   # prevent infinite loop
+        if next is value:  # prevent infinite loop
             return
 
         if isinstance(next, FocusBehavior):
@@ -253,12 +257,14 @@ class FocusBehavior(object):
         if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
-            raise ValueError('focus_next accepts only objects based on'
-                             ' FocusBehavior, or the `StopIteration` class.')
+            raise ValueError(
+                "focus_next accepts only objects based on"
+                " FocusBehavior, or the `StopIteration` class."
+            )
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
-    '''The :class:`FocusBehavior` instance to acquire focus when
+    """The :class:`FocusBehavior` instance to acquire focus when
     tab is pressed and this instance has focus, if not `None` or
     `StopIteration`.
 
@@ -281,7 +287,7 @@ class FocusBehavior(object):
 
     :attr:`focus_next` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `None`.
-    '''
+    """
 
     def _set_on_focus_previous(self, instance, value):
         prev = self._old_focus_previous
@@ -294,12 +300,14 @@ class FocusBehavior(object):
         if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
-            raise ValueError('focus_previous accepts only objects based'
-                             'on FocusBehavior, or the `StopIteration` class.')
+            raise ValueError(
+                "focus_previous accepts only objects based"
+                "on FocusBehavior, or the `StopIteration` class."
+            )
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)
-    '''The :class:`FocusBehavior` instance to acquire focus when
+    """The :class:`FocusBehavior` instance to acquire focus when
     shift+tab is pressed on this instance, if not None or `StopIteration`.
 
     When shift+tab is pressed, focus cycles through all the
@@ -321,33 +329,43 @@ class FocusBehavior(object):
 
     :attr:`focus_previous` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to `None`.
-    '''
+    """
 
-    keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
-    '''Determines how the keyboard visibility should be managed. 'auto' will
+    keyboard_mode = OptionProperty("auto", options=("auto", "managed"))
+    """Determines how the keyboard visibility should be managed. 'auto' will
     result in the standard behaviour of showing/hiding on focus. 'managed'
     requires setting the keyboard visibility manually, or calling the helper
     functions :meth:`show_keyboard` and :meth:`hide_keyboard`.
 
     :attr:`keyboard_mode` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
-    '''
+    """
 
-    input_type = OptionProperty('text', options=('text', 'number', 'url',
-                                                 'mail', 'datetime', 'tel',
-                                                 'address'))
-    '''The kind of input keyboard to request.
+    input_type = OptionProperty(
+        "text",
+        options=(
+            "text",
+            "number",
+            "url",
+            "mail",
+            "datetime",
+            "tel",
+            "address",
+        ),
+    )
+    """The kind of input keyboard to request.
 
     .. versionadded:: 1.8.0
 
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
     'datetime', 'tel' or 'address'.
-    '''
+    """
 
-    unfocus_on_touch = BooleanProperty(_keyboard_mode not in
-                                       ('multi', 'systemandmulti'))
-    '''Whether a instance should lose focus when clicked outside the instance.
+    unfocus_on_touch = BooleanProperty(
+        _keyboard_mode not in ("multi", "systemandmulti")
+    )
+    """Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
     keyboard as this widget (which in the case of only one keyboard, are
@@ -359,7 +377,7 @@ class FocusBehavior(object):
     :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
     is `'multi'` or `'systemandmulti'`, otherwise it defaults to `True`.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._old_focus_next = None
@@ -368,18 +386,18 @@ class FocusBehavior(object):
 
         self._keyboard_mode = _keyboard_mode
         fbind = self.fbind
-        fbind('focus', self._on_focus)
-        fbind('disabled', self._on_focusable)
-        fbind('is_focusable', self._on_focusable)
-        fbind('focus_next', self._set_on_focus_next)
-        fbind('focus_previous', self._set_on_focus_previous)
+        fbind("focus", self._on_focus)
+        fbind("disabled", self._on_focusable)
+        fbind("is_focusable", self._on_focusable)
+        fbind("focus_next", self._set_on_focus_next)
+        fbind("focus_previous", self._set_on_focus_previous)
 
     def _on_focusable(self, instance, value):
         if self.disabled or not self.is_focusable:
             self.focus = False
 
     def _on_focus(self, instance, value, *largs):
-        if self.keyboard_mode == 'auto':
+        if self.keyboard_mode == "auto":
             if value:
                 self._bind_keyboard()
             else:
@@ -388,9 +406,9 @@ class FocusBehavior(object):
     def _ensure_keyboard(self):
         if self._keyboard is None:
             self._requested_keyboard = True
-            keyboard = self._keyboard =\
-                EventLoop.window.request_keyboard(
-                    self._keyboard_released, self, input_type=self.input_type)
+            keyboard = self._keyboard = EventLoop.window.request_keyboard(
+                self._keyboard_released, self, input_type=self.input_type
+            )
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
@@ -408,16 +426,20 @@ class FocusBehavior(object):
             old_focus.focus = False
             # keyboard shouldn't have been released here, see keyboard warning
         keyboards[keyboard] = self
-        keyboard.bind(on_key_down=self.keyboard_on_key_down,
-                      on_key_up=self.keyboard_on_key_up,
-                      on_textinput=self.keyboard_on_textinput)
+        keyboard.bind(
+            on_key_down=self.keyboard_on_key_down,
+            on_key_up=self.keyboard_on_key_up,
+            on_textinput=self.keyboard_on_textinput,
+        )
 
     def _unbind_keyboard(self):
         keyboard = self._keyboard
         if keyboard:
-            keyboard.unbind(on_key_down=self.keyboard_on_key_down,
-                            on_key_up=self.keyboard_on_key_up,
-                            on_textinput=self.keyboard_on_textinput)
+            keyboard.unbind(
+                on_key_down=self.keyboard_on_key_down,
+                on_key_up=self.keyboard_on_key_up,
+                on_textinput=self.keyboard_on_textinput,
+            )
             if self._requested_keyboard:
                 keyboard.release()
                 self._keyboard = None
@@ -435,23 +457,31 @@ class FocusBehavior(object):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        if (not self.disabled and self.is_focusable and
-            ('button' not in touch.profile or
-             not touch.button.startswith('scroll'))):
+        if (
+            not self.disabled
+            and self.is_focusable
+            and (
+                "button" not in touch.profile
+                or not touch.button.startswith("scroll")
+            )
+        ):
             self.focus = True
             FocusBehavior.ignored_touch.append(touch)
         return super(FocusBehavior, self).on_touch_down(touch)
 
     @staticmethod
     def _handle_post_on_touch_up(touch):
-        ''' Called by window after each touch has finished.
-        '''
+        """Called by window after each touch has finished."""
         touches = FocusBehavior.ignored_touch
         if touch in touches:
             touches.remove(touch)
             return
-        if 'button' in touch.profile and touch.button in\
-                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
+        if "button" in touch.profile and touch.button in (
+            "scrollup",
+            "scrolldown",
+            "scrollleft",
+            "scrollright",
+        ):
             return
         for focusable in list(FocusBehavior._keyboards.values()):
             if focusable is None or not focusable.unfocus_on_touch:
@@ -460,7 +490,7 @@ class FocusBehavior(object):
 
     def _get_focus_next(self, focus_dir):
         current = self
-        walk_tree = 'walk' if focus_dir == 'focus_next' else 'walk_reverse'
+        walk_tree = "walk" if focus_dir == "focus_next" else "walk_reverse"
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
@@ -473,7 +503,7 @@ class FocusBehavior(object):
 
             # hit unfocusable, walk widget tree
             itr = getattr(current, walk_tree)(loopback=True)
-            if focus_dir == 'focus_next':
+            if focus_dir == "focus_next":
                 next(itr)  # current is returned first  when walking forward
             for current in itr:
                 if isinstance(current, FocusBehavior):
@@ -488,21 +518,21 @@ class FocusBehavior(object):
                 return None
 
     def get_focus_next(self):
-        '''Returns the next focusable widget using either :attr:`focus_next`
-           or the :attr:`children` similar to the order when tabbing forwards
-           with the ``tab`` key.
-        '''
-        return self._get_focus_next('focus_next')
+        """Returns the next focusable widget using either :attr:`focus_next`
+        or the :attr:`children` similar to the order when tabbing forwards
+        with the ``tab`` key.
+        """
+        return self._get_focus_next("focus_next")
 
     def get_focus_previous(self):
-        '''Returns the previous focusable widget using either
-           :attr:`focus_previous` or the :attr:`children` similar to the
-           order when ``tab`` + ``shift`` key are triggered together.
-        '''
-        return self._get_focus_next('focus_previous')
+        """Returns the previous focusable widget using either
+        :attr:`focus_previous` or the :attr:`children` similar to the
+        order when ``tab`` + ``shift`` key are triggered together.
+        """
+        return self._get_focus_next("focus_previous")
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        '''The method bound to the keyboard when the instance has focus.
+        """The method bound to the keyboard when the instance has focus.
 
         When the instance becomes focused, this method is bound to the
         keyboard and will be called for every input press. The parameters are
@@ -515,9 +545,9 @@ class FocusBehavior(object):
 
         Similar to other keyboard functions, it should return True if the
         key was consumed.
-        '''
-        if keycode[1] == 'tab':  # deal with cycle
-            if ['shift'] == modifiers:
+        """
+        if keycode[1] == "tab":  # deal with cycle
+            if ["shift"] == modifiers:
                 next = self.get_focus_previous()
             else:
                 next = self.get_focus_next()
@@ -530,7 +560,7 @@ class FocusBehavior(object):
         return False
 
     def keyboard_on_key_up(self, window, keycode):
-        '''The method bound to the keyboard when the instance has focus.
+        """The method bound to the keyboard when the instance has focus.
 
         When the instance becomes focused, this method is bound to the
         keyboard and will be called for every input release. The parameters are
@@ -542,22 +572,22 @@ class FocusBehavior(object):
         processed the character (if it does not wish to consume the escape).
 
         See :meth:`keyboard_on_key_down`
-        '''
-        if keycode[1] == 'escape':
+        """
+        if keycode[1] == "escape":
             self.focus = False
             return True
         return False
 
     def show_keyboard(self):
-        '''
+        """
         Convenience function to show the keyboard in managed mode.
-        '''
-        if self.keyboard_mode == 'managed':
+        """
+        if self.keyboard_mode == "managed":
             self._bind_keyboard()
 
     def hide_keyboard(self):
-        '''
+        """
         Convenience function to hide the keyboard in managed mode.
-        '''
-        if self.keyboard_mode == 'managed':
+        """
+        if self.keyboard_mode == "managed":
             self._unbind_keyboard()

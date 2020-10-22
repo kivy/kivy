@@ -37,7 +37,7 @@ Examples
                          :class:`Shader <kivy.graphics.shader.Shader>`
 .. |can_file5| replace:: stencil_canvas.py
 .. |can_desc5| replace:: How to use the
-                         :mod:`Stencil <kivy.graphics.stencil_instructions>` 
+                         :mod:`Stencil <kivy.graphics.stencil_instructions>`
                          on the widget canvas
 .. |dem_dir| replace:: ./examples/demo:
 .. |dem_file| replace:: camera_puzzle.py
@@ -59,7 +59,7 @@ Examples
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
 .. |sho_desc| replace:: Showcase of the
-                        :class:`widgets <kivy.uix.widget.Widget>` and 
+                        :class:`widgets <kivy.uix.widget.Widget>` and
                         :mod:`layouts <kivy.uix.layout>` available in kivy
 
 .. |tch_dir| replace:: ./examples/demo/touchtracer
@@ -106,7 +106,7 @@ Examples
 .. |kin_desc| replace:: How to use the `kinect`_ for input
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
-.. |kvd_desc| replace:: Load kv files, use 
+.. |kvd_desc| replace:: Load kv files, use
                         :mod:`kv lang <kivy.lang>`
                         to load different
                         :class:`widgets <kivy.uix.widget.Widget>`.
@@ -146,7 +146,7 @@ Examples
 .. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`
                          Widget
 .. |wdg_file4| replace:: customcollide.py
-.. |wdg_desc4| replace:: Test for 
+.. |wdg_desc4| replace:: Test for
                          :attr:`collision <kivy.uix.widget.Widget.collide_point>`
                          with custom shaped widget
 .. |wdg_file5| replace:: fbowidget.py
@@ -201,7 +201,7 @@ Examples
                           :class:`VideoPlayer <kivy.uix.videoplayer>` Widget
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
-.. _gifs: http://en.wikipedia.org/wiki/Graphics_Interchange_Format 
+.. _gifs: http://en.wikipedia.org/wiki/Graphics_Interchange_Format
 .. |seq_desc| replace:: Showcase usage of sequenced images using
                         `gifs`_ and images in .zip file
 

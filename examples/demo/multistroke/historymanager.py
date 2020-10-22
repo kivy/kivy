@@ -1,4 +1,4 @@
-__all__ = ('GestureHistoryManager', 'GestureVisualizer')
+__all__ = ("GestureHistoryManager", "GestureVisualizer")
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -20,7 +20,7 @@ from settings import MultistrokeSettingsContainer
 # (you can increase it, but 4 strokes = 384 templates, 5 = 3840)
 MAX_PERMUTE_STROKES = 3
 
-Builder.load_file('historymanager.kv')
+Builder.load_file("historymanager.kv")
 
 
 class GestureHistoryManager(GridLayout):
@@ -36,7 +36,7 @@ class GestureHistoryManager(GridLayout):
 
     def reanalyze_selected(self, *l):
         # recognize() can block the UI with max_gpf=100, show a message
-        self.infopopup.text = 'Please wait, analyzing ..'
+        self.infopopup.text = "Please wait, analyzing .."
         self.infopopup.auto_dismiss = False
         self.infopopup.open()
 
@@ -44,8 +44,7 @@ class GestureHistoryManager(GridLayout):
         gesture_obj = self.selected._result_obj._gesture_obj
 
         # Reanalyze the candidate strokes using current database
-        res = self.recognizer.recognize(gesture_obj.get_vectors(),
-                                        max_gpf=100)
+        res = self.recognizer.recognize(gesture_obj.get_vectors(), max_gpf=100)
 
         # Tag the result with the gesture object (it didn't change)
         res._gesture_obj = gesture_obj
@@ -60,17 +59,17 @@ class GestureHistoryManager(GridLayout):
 
     def add_selected_to_database(self, *l):
         if self.selected is None:
-            raise Exception('add_gesture_to_database before load_visualizer?')
+            raise Exception("add_gesture_to_database before load_visualizer?")
 
         if self.gesturesettingsform.addsettings is None:
-            raise Exception('add_gesture_to_database missing addsetings?')
+            raise Exception("add_gesture_to_database missing addsetings?")
 
         ids = self.gesturesettingsform.addsettings.ids
 
         name = ids.name.value.strip()
-        if name == '':
+        if name == "":
             self.infopopup.auto_dismiss = True
-            self.infopopup.text = 'You must specify a name for the gesture'
+            self.infopopup.text = "You must specify a name for the gesture"
             self.infopopup.open()
             return
 
@@ -94,9 +93,10 @@ class GestureHistoryManager(GridLayout):
             use_strokelen=strokelen,
             orientation_sensitive=sensitive,
             angle_similarity=angle_sim,
-            permute=permute)
+            permute=permute,
+        )
 
-        self.infopopup.text = 'Gesture added to database'
+        self.infopopup.text = "Gesture added to database"
         self.infopopup.auto_dismiss = True
         self.infopopup.open()
 
@@ -119,13 +119,14 @@ class GestureHistoryManager(GridLayout):
         self.remove_widget(self.gesturesettingsform)
 
     def add_recognizer_result(self, result, *l):
-        '''The result object is a ProgressTracker with additional
+        """The result object is a ProgressTracker with additional
         data; in main.py it is tagged with the original GestureContainer
-        that was analyzed (._gesture_obj)'''
+        that was analyzed (._gesture_obj)"""
 
         # Create a GestureVisualizer that draws the gesture on canvas
-        visualizer = GestureVisualizer(result._gesture_obj,
-                                       size_hint=(None, None), size=(150, 150))
+        visualizer = GestureVisualizer(
+            result._gesture_obj, size_hint=(None, None), size=(150, 150)
+        )
 
         # Tag it with the result object so AddGestureForm.load_visualizer
         # has the results to build labels in the scrollview
@@ -141,18 +142,20 @@ class GestureHistoryManager(GridLayout):
 
 
 class RecognizerResultLabel(Label):
-    '''This Label subclass is used to show a single result from the
-    gesture matching process (is a child of GestureHistoryManager)'''
+    """This Label subclass is used to show a single result from the
+    gesture matching process (is a child of GestureHistoryManager)"""
+
     pass
 
 
 class RecognizerResultDetails(BoxLayout):
-    '''Contains a ScrollView of RecognizerResultLabels, ie the list of
+    """Contains a ScrollView of RecognizerResultLabels, ie the list of
     matched gestures and their score/distance (is a child of
-    GestureHistoryManager)'''
+    GestureHistoryManager)"""
+
     def __init__(self, **kwargs):
         super(RecognizerResultDetails, self).__init__(**kwargs)
-        self.register_event_type('on_reanalyze_selected')
+        self.register_event_type("on_reanalyze_selected")
 
     def on_reanalyze_selected(self, *l):
         pass
@@ -163,9 +166,9 @@ class AddGestureSettings(MultistrokeSettingsContainer):
 
 
 class GestureSettingsForm(BoxLayout):
-    '''This is the main content of the GestureHistoryManager, the form for
+    """This is the main content of the GestureHistoryManager, the form for
     adding a new gesture to the recognizer. It is added to the widget tree
-    when a GestureVisualizer is selected.'''
+    when a GestureVisualizer is selected."""
 
     def __init__(self, **kwargs):
         super(GestureSettingsForm, self).__init__(**kwargs)
@@ -191,7 +194,7 @@ class GestureSettingsForm(BoxLayout):
         r = visualizer._result_obj.results
 
         if not len(r):
-            lbl = RecognizerResultLabel(text='[b]No match[/b]')
+            lbl = RecognizerResultLabel(text="[b]No match[/b]")
             resultlist.add_widget(lbl)
             scrollv.scroll_y = 1
             return
@@ -201,13 +204,17 @@ class GestureSettingsForm(BoxLayout):
         else:
             d = r.items
 
-        for one in sorted(d(), key=lambda x: x[1]['score'],
-                          reverse=True):
+        for one in sorted(d(), key=lambda x: x[1]["score"], reverse=True):
             data = one[1]
             lbl = RecognizerResultLabel(
-                text='Name: [b]' + data['name'] + '[/b]' +
-                     '\n      Score: ' + str(data['score']) +
-                     '\n      Distance: ' + str(data['dist']))
+                text="Name: [b]"
+                + data["name"]
+                + "[/b]"
+                + "\n      Score: "
+                + str(data["score"])
+                + "\n      Distance: "
+                + str(data["dist"])
+            )
             resultlist.add_widget(lbl)
 
         # Make sure the top is visible
@@ -226,20 +233,20 @@ class GestureVisualizer(Widget):
         self.bind(pos=self._trigger_draw, size=self._trigger_draw)
         self._trigger_draw()
 
-        self.register_event_type('on_select')
-        self.register_event_type('on_deselect')
+        self.register_event_type("on_select")
+        self.register_event_type("on_deselect")
 
     def on_touch_down(self, touch):
         if not self.collide_point(touch.x, touch.y):
             return
         self.selected = not self.selected
-        self.dispatch(self.selected and 'on_select' or 'on_deselect')
+        self.dispatch(self.selected and "on_select" or "on_deselect")
 
     # FIXME: This seems inefficient, is there a better way??
     def _draw_item(self, dt):
         g = self._gesture_container
         bb = g.bbox
-        minx, miny, maxx, maxy = bb['minx'], bb['miny'], bb['maxx'], bb['maxy']
+        minx, miny, maxx, maxy = bb["minx"], bb["miny"], bb["maxx"], bb["maxy"]
         width, height = self.size
         xpos, ypos = self.pos
 
@@ -248,7 +255,7 @@ class GestureVisualizer(Widget):
         else:
             to_self = (width * 0.85) / g.width
 
-        self.canvas.remove_group('gesture')
+        self.canvas.remove_group("gesture")
 
         cand = g.get_vectors()
         col = g.color
@@ -259,15 +266,15 @@ class GestureVisualizer(Widget):
                 x, y = vec
                 x = (x - minx) * to_self
                 w = (maxx - minx) * to_self
-                append(x + xpos + (width - w) * .85 / 2)
+                append(x + xpos + (width - w) * 0.85 / 2)
 
                 y = (y - miny) * to_self
                 h = (maxy - miny) * to_self
-                append(y + ypos + (height - h) * .85 / 2)
+                append(y + ypos + (height - h) * 0.85 / 2)
 
             with self.canvas:
-                Color(col[0], col[1], col[2], mode='rgb')
-                Line(points=out, group='gesture', width=2)
+                Color(col[0], col[1], col[2], mode="rgb")
+                Line(points=out, group="gesture", width=2)
 
     def on_select(self, *l):
         pass

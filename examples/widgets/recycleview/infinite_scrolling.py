@@ -101,13 +101,11 @@ class FixedRecycleView(RecycleView):
         """
         if self.scroll_y > 0:
             self.scroll_y = (
-                (self.scrollable_distance - self.distance_to_top)
-                / self.scrollable_distance
-            )
+                self.scrollable_distance - self.distance_to_top
+            ) / self.scrollable_distance
 
     def on_scroll_y(self, *args):
-        """Save the distance_to_top everytime we scroll.
-        """
+        """Save the distance_to_top everytime we scroll."""
         self.distance_to_top = (1 - self.scroll_y) * self.scrollable_distance
 
 
@@ -115,18 +113,20 @@ class Application(App):
     data = ListProperty()
 
     def build(self):
-        Clock.schedule_interval(self.add_log, .1)
+        Clock.schedule_interval(self.add_log, 0.1)
         return Builder.load_string(KV)
 
     def add_log(self, dt):
         """Produce random text to append in the log, with the date, we don't
         want to forget when we babbled incoherently.
         """
-        self.data.append({
-            'index': len(self.data),
-            'text': f"[{asctime()}]: {''.join(sample(printable, 50))}",
-            'cached_size': (0, 0)
-        })
+        self.data.append(
+            {
+                "index": len(self.data),
+                "text": f"[{asctime()}]: {''.join(sample(printable, 50))}",
+                "cached_size": (0, 0),
+            }
+        )
 
     def update_size(self, index, size):
         """Maintain the size data for a log entry, so recycleview can adjust
@@ -136,8 +136,8 @@ class Application(App):
         for such a small widget, but you might want do give a better default
         value if that doesn't fit your needs.
         """
-        self.data[index]['cached_size'] = size
+        self.data[index]["cached_size"] = size
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Application().run()

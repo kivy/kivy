@@ -24,6 +24,7 @@ class GestureBoard(FloatLayout):
     constructed from touches to match symboles loaded from my_gestures.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(GestureBoard, self).__init__()
         self.gdb = GestureDatabase()
@@ -40,15 +41,15 @@ class GestureBoard(FloatLayout):
         userdata = touch.ud
         with self.canvas:
             Color(1, 1, 0)
-            d = 30.
+            d = 30.0
             Ellipse(pos=(touch.x - d / 2, touch.y - d / 2), size=(d, d))
-            userdata['line'] = Line(points=(touch.x, touch.y))
+            userdata["line"] = Line(points=(touch.x, touch.y))
         return True
 
     def on_touch_move(self, touch):
         # store points of the touch movement
         try:
-            touch.ud['line'].points += [touch.x, touch.y]
+            touch.ud["line"].points += [touch.x, touch.y]
             return True
         except (KeyError) as e:
             pass
@@ -56,8 +57,12 @@ class GestureBoard(FloatLayout):
     def on_touch_up(self, touch):
         # touch is over, display informations, and check if it matches some
         # known gesture.
-        g = simplegesture('', list(zip(touch.ud['line'].points[::2],
-                                       touch.ud['line'].points[1::2])))
+        g = simplegesture(
+            "",
+            list(
+                zip(touch.ud["line"].points[::2], touch.ud["line"].points[1::2])
+            ),
+        )
         # gestures to my_gestures.py
         print("gesture representation:", self.gdb.gesture_to_str(g))
 
@@ -91,5 +96,5 @@ class DemoGesture(App):
         return GestureBoard()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     DemoGesture().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Video Gstplayer
 ===============
 
@@ -7,14 +7,16 @@ Video Gstplayer
 Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
 This player is the preferred player, using Gstreamer 1.0, working on both
 Python 2 and 3.
-'''
+"""
 
 try:
     from kivy.lib.gstplayer import GstPlayer, get_gst_version
 except ImportError:
     from kivy.core import handle_win_lib_import_error
+
     handle_win_lib_import_error(
-        'VideoGstplayer', 'gst', 'kivy.lib.gstplayer._gstplayer')
+        "VideoGstplayer", "gst", "kivy.lib.gstplayer._gstplayer"
+    )
     raise
 from kivy.graphics.texture import Texture
 from kivy.core.video import VideoBase
@@ -31,8 +33,11 @@ if PY2:
 else:
     from urllib.request import pathname2url
 
-Logger.info('VideoGstplayer: Using Gstreamer {}'.format(
-    '.'.join(map(str, get_gst_version()))))
+Logger.info(
+    "VideoGstplayer: Using Gstreamer {}".format(
+        ".".join(map(str, get_gst_version()))
+    )
+)
 
 
 def _on_gstplayer_buffer(video, width, height, data):
@@ -45,16 +50,15 @@ def _on_gstplayer_buffer(video, width, height, data):
 
 
 def _on_gstplayer_message(mtype, message):
-    if mtype == 'error':
-        Logger.error('VideoGstplayer: {}'.format(message))
-    elif mtype == 'warning':
-        Logger.warning('VideoGstplayer: {}'.format(message))
-    elif mtype == 'info':
-        Logger.info('VideoGstplayer: {}'.format(message))
+    if mtype == "error":
+        Logger.error("VideoGstplayer: {}".format(message))
+    elif mtype == "warning":
+        Logger.warning("VideoGstplayer: {}".format(message))
+    elif mtype == "info":
+        Logger.info("VideoGstplayer: {}".format(message))
 
 
 class VideoGstplayer(VideoBase):
-
     def __init__(self, **kwargs):
         self.player = None
         self._buffer = None
@@ -65,12 +69,16 @@ class VideoGstplayer(VideoBase):
         Clock.schedule_once(self._do_eos, 0)
 
     def load(self):
-        Logger.debug('VideoGstplayer: Load <{}>'.format(self._filename))
+        Logger.debug("VideoGstplayer: Load <{}>".format(self._filename))
         uri = self._get_uri()
         wk_self = ref(self)
         self.player_callback = partial(_on_gstplayer_buffer, wk_self)
-        self.player = GstPlayer(uri, self.player_callback,
-                                self._on_gst_eos_sync, _on_gstplayer_message)
+        self.player = GstPlayer(
+            uri,
+            self.player_callback,
+            self._on_gst_eos_sync,
+            _on_gstplayer_message,
+        )
         self.player.load()
 
     def unload(self):
@@ -115,26 +123,26 @@ class VideoGstplayer(VideoBase):
             self._buffer = None
         if buf is not None:
             self._update_texture(buf)
-            self.dispatch('on_frame')
+            self.dispatch("on_frame")
 
     def _update_texture(self, buf):
         width, height, data = buf
 
         # texture is not allocated yet, create it first
         if not self._texture:
-            self._texture = Texture.create(size=(width, height),
-                                           colorfmt='rgb')
+            self._texture = Texture.create(size=(width, height), colorfmt="rgb")
             self._texture.flip_vertical()
-            self.dispatch('on_load')
+            self.dispatch("on_load")
 
         if self._texture:
             self._texture.blit_buffer(
-                data, size=(width, height), colorfmt='rgb')
+                data, size=(width, height), colorfmt="rgb"
+            )
 
     def _get_uri(self):
         uri = self.filename
         if not uri:
             return
-        if '://' not in uri:
-            uri = 'file:' + pathname2url(realpath(uri))
+        if "://" not in uri:
+            uri = "file:" + pathname2url(realpath(uri))
         return uri

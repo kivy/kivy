@@ -1,8 +1,8 @@
-'''
+"""
 DDS: DDS image loader
-'''
+"""
 
-__all__ = ('ImageLoaderDDS', )
+__all__ = ("ImageLoaderDDS",)
 
 from kivy.lib.ddsfile import DDSFile
 from kivy.logger import Logger
@@ -10,22 +10,27 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderDDS(ImageLoaderBase):
-
     @staticmethod
     def extensions():
-        return ('dds', )
+        return ("dds",)
 
     def load(self, filename):
         try:
             dds = DDSFile(filename=filename)
         except:
-            Logger.warning('Image: Unable to load image <%s>' % filename)
+            Logger.warning("Image: Unable to load image <%s>" % filename)
             raise
 
         self.filename = filename
         width, height = dds.size
-        im = ImageData(width, height, dds.dxt, dds.images[0], source=filename,
-                       flip_vertical=False)
+        im = ImageData(
+            width,
+            height,
+            dds.dxt,
+            dds.images[0],
+            source=filename,
+            flip_vertical=False,
+        )
         if len(dds.images) > 1:
             images = dds.images
             images_size = dds.images_size

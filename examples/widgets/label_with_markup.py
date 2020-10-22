@@ -1,7 +1,8 @@
 from kivy.app import App
 from kivy.lang import Builder
 
-root = Builder.load_string('''
+root = Builder.load_string(
+    """
 Label:
     text:
         ('[b]Hello[/b] [color=ff0099]World[/color]\\n'
@@ -9,7 +10,8 @@ Label:
         '[b]Hello[/b] [color=ff0099]World[/color]')
     markup: True
     font_size: '64pt'
-''')
+"""
+)
 
 
 class LabelWithMarkup(App):
@@ -17,5 +19,5 @@ class LabelWithMarkup(App):
         return root
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     LabelWithMarkup().run()

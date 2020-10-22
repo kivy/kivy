@@ -1,4 +1,4 @@
-'''
+"""
 Textinput tests
 ===============
 
@@ -15,10 +15,11 @@ Run this test as::
     # use automatic detection from current platform
     python textinput.py -c kivy:keyboard_mode:
 
-'''
+"""
 
 import kivy
-kivy.require('1.0.8')
+
+kivy.require("1.0.8")
 
 from kivy.core.window import Window
 from kivy.uix.textinput import TextInput
@@ -29,23 +30,26 @@ from kivy.uix.label import Label
 from kivy.config import Config
 from kivy.base import runTouchApp
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     root = FloatLayout()
 
     # create a button to release everything
     def release_all_keyboard(*l):
         Window.release_all_keyboards()
-    btn = Button(text='Release\nall\nkeyboards', size_hint=(None, None),
-            halign='center')
+
+    btn = Button(
+        text="Release\nall\nkeyboards", size_hint=(None, None), halign="center"
+    )
     btn.bind(on_release=release_all_keyboard)
     root.add_widget(btn)
 
     # show current configuration
-    lbl = 'Configuration keyboard_mode is %r, keyboard_layout is %r' % (
-        Config.get('kivy', 'keyboard_mode'),
-        Config.get('kivy', 'keyboard_layout'))
-    label = Label(text=lbl, size_hint_y=None, height=50, pos_hint={'top': 1})
+    lbl = "Configuration keyboard_mode is %r, keyboard_layout is %r" % (
+        Config.get("kivy", "keyboard_mode"),
+        Config.get("kivy", "keyboard_layout"),
+    )
+    label = Label(text=lbl, size_hint_y=None, height=50, pos_hint={"top": 1})
     root.add_widget(label)
 
     s = Scatter(size_hint=(None, None), pos=(300, 300))

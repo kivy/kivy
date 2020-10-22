@@ -14,7 +14,7 @@ class EchoClient(protocol.Protocol):
         self.factory.app.on_connection(self.transport)
 
     def dataReceived(self, data):
-        self.factory.app.print_message(data.decode('utf-8'))
+        self.factory.app.print_message(data.decode("utf-8"))
 
 
 class EchoClientFactory(protocol.ClientFactory):
@@ -24,13 +24,13 @@ class EchoClientFactory(protocol.ClientFactory):
         self.app = app
 
     def startedConnecting(self, connector):
-        self.app.print_message('Started to connect.')
+        self.app.print_message("Started to connect.")
 
     def clientConnectionLost(self, connector, reason):
-        self.app.print_message('Lost connection.')
+        self.app.print_message("Lost connection.")
 
     def clientConnectionFailed(self, connector, reason):
-        self.app.print_message('Connection failed.')
+        self.app.print_message("Connection failed.")
 
 
 from kivy.app import App
@@ -53,16 +53,16 @@ class TwistedClientApp(App):
         return root
 
     def setup_gui(self):
-        self.textbox = TextInput(size_hint_y=.1, multiline=False)
+        self.textbox = TextInput(size_hint_y=0.1, multiline=False)
         self.textbox.bind(on_text_validate=self.send_message)
-        self.label = Label(text='connecting...\n')
-        layout = BoxLayout(orientation='vertical')
+        self.label = Label(text="connecting...\n")
+        layout = BoxLayout(orientation="vertical")
         layout.add_widget(self.label)
         layout.add_widget(self.textbox)
         return layout
 
     def connect_to_server(self):
-        reactor.connectTCP('localhost', 8000, EchoClientFactory(self))
+        reactor.connectTCP("localhost", 8000, EchoClientFactory(self))
 
     def on_connection(self, connection):
         self.print_message("Connected successfully!")
@@ -71,12 +71,12 @@ class TwistedClientApp(App):
     def send_message(self, *args):
         msg = self.textbox.text
         if msg and self.connection:
-            self.connection.write(msg.encode('utf-8'))
+            self.connection.write(msg.encode("utf-8"))
             self.textbox.text = ""
 
     def print_message(self, msg):
         self.label.text += "{}\n".format(msg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TwistedClientApp().run()

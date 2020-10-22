@@ -223,43 +223,43 @@ class _constants:
 
 
     EGL_OPENGL_ES_API = 0x30A0
-    EGL_OPENVG_API	=	0x30A1
-    EGL_OPENGL_API	=	0x30A2
+    EGL_OPENVG_API    =    0x30A1
+    EGL_OPENGL_API    =    0x30A2
 
-    EGL_BUFFER_SIZE	=		0x3020
-    EGL_ALPHA_SIZE	=		0x3021
-    EGL_BLUE_SIZE	=		0x3022
-    EGL_GREEN_SIZE	=		0x3023
-    EGL_RED_SIZE	=		0x3024
-    EGL_DEPTH_SIZE	=		0x3025
-    EGL_STENCIL_SIZE=		0x3026
-    EGL_CONFIG_CAVEAT	=	0x3027
-    EGL_CONFIG_ID		=	0x3028
-    EGL_LEVEL	=		0x3029
-    EGL_MAX_PBUFFER_HEIGHT	=	0x302A
-    EGL_MAX_PBUFFER_PIXELS	=	0x302B
-    EGL_MAX_PBUFFER_WIDTH	=	0x302C
-    EGL_NATIVE_RENDERABLE	=	0x302D
-    EGL_NATIVE_VISUAL_ID	=	0x302E
-    EGL_NATIVE_VISUAL_TYPE	=	0x302F
-    EGL_SAMPLES		=	0x3031
-    EGL_SAMPLE_BUFFERS	=	0x3032
-    EGL_SURFACE_TYPE	=	0x3033
-    EGL_TRANSPARENT_TYPE	=	0x3034
-    EGL_TRANSPARENT_BLUE_VALUE=	0x3035
-    EGL_TRANSPARENT_GREEN_VALUE=	0x3036
-    EGL_TRANSPARENT_RED_VALUE=	0x3037
-    EGL_NONE	=		0x3038	#/* Attrib list terminator */
-    EGL_BIND_TO_TEXTURE_RGB	=	0x3039
-    EGL_BIND_TO_TEXTURE_RGBA=	0x303A
-    EGL_MIN_SWAP_INTERVAL	=	0x303B
-    EGL_MAX_SWAP_INTERVAL	=	0x303C
-    EGL_LUMINANCE_SIZE	=	0x303D
-    EGL_ALPHA_MASK_SIZE	=	0x303E
-    EGL_COLOR_BUFFER_TYPE	=	0x303F
-    EGL_RENDERABLE_TYPE	=	0x3040
-    EGL_MATCH_NATIVE_PIXMAP	=	0x3041	#/* Pseudo-attribute (not queryable) */
-    EGL_CONFORMANT	=		0x3042
+    EGL_BUFFER_SIZE    =        0x3020
+    EGL_ALPHA_SIZE    =        0x3021
+    EGL_BLUE_SIZE    =        0x3022
+    EGL_GREEN_SIZE    =        0x3023
+    EGL_RED_SIZE    =        0x3024
+    EGL_DEPTH_SIZE    =        0x3025
+    EGL_STENCIL_SIZE=        0x3026
+    EGL_CONFIG_CAVEAT    =    0x3027
+    EGL_CONFIG_ID        =    0x3028
+    EGL_LEVEL    =        0x3029
+    EGL_MAX_PBUFFER_HEIGHT    =    0x302A
+    EGL_MAX_PBUFFER_PIXELS    =    0x302B
+    EGL_MAX_PBUFFER_WIDTH    =    0x302C
+    EGL_NATIVE_RENDERABLE    =    0x302D
+    EGL_NATIVE_VISUAL_ID    =    0x302E
+    EGL_NATIVE_VISUAL_TYPE    =    0x302F
+    EGL_SAMPLES        =    0x3031
+    EGL_SAMPLE_BUFFERS    =    0x3032
+    EGL_SURFACE_TYPE    =    0x3033
+    EGL_TRANSPARENT_TYPE    =    0x3034
+    EGL_TRANSPARENT_BLUE_VALUE=    0x3035
+    EGL_TRANSPARENT_GREEN_VALUE=    0x3036
+    EGL_TRANSPARENT_RED_VALUE=    0x3037
+    EGL_NONE    =        0x3038    #/* Attrib list terminator */
+    EGL_BIND_TO_TEXTURE_RGB    =    0x3039
+    EGL_BIND_TO_TEXTURE_RGBA=    0x303A
+    EGL_MIN_SWAP_INTERVAL    =    0x303B
+    EGL_MAX_SWAP_INTERVAL    =    0x303C
+    EGL_LUMINANCE_SIZE    =    0x303D
+    EGL_ALPHA_MASK_SIZE    =    0x303E
+    EGL_COLOR_BUFFER_TYPE    =    0x303F
+    EGL_RENDERABLE_TYPE    =    0x3040
+    EGL_MATCH_NATIVE_PIXMAP    =    0x3041    #/* Pseudo-attribute (not queryable) */
+    EGL_CONFORMANT    =        0x3042
 
 EGL_FALSE = _constants.EGL_FALSE
 
@@ -290,21 +290,21 @@ cdef class Config:
 
 class EGLError(Exception):
     codes = {
-        0x3000 : 'EGL_SUCCESS'			,
+        0x3000 : 'EGL_SUCCESS'            ,
         0x3001 : 'EGL_NOT_INITIALIZED',
-        0x3002 : 'EGL_BAD_ACCESS'		,
-        0x3003 : 'EGL_BAD_ALLOC'		,
-        0x3004 : 'EGL_BAD_ATTRIBUTE'	,
-        0x3005 : 'EGL_BAD_CONFIG'		,
-        0x3006 : 'EGL_BAD_CONTEXT'		,
+        0x3002 : 'EGL_BAD_ACCESS'        ,
+        0x3003 : 'EGL_BAD_ALLOC'        ,
+        0x3004 : 'EGL_BAD_ATTRIBUTE'    ,
+        0x3005 : 'EGL_BAD_CONFIG'        ,
+        0x3006 : 'EGL_BAD_CONTEXT'        ,
         0x3007 : 'EGL_BAD_CURRENT_SURFACE',
-        0x3008 : 'EGL_BAD_DISPLAY'		,
-        0x3009 : 'EGL_BAD_MATCH'			,
+        0x3008 : 'EGL_BAD_DISPLAY'        ,
+        0x3009 : 'EGL_BAD_MATCH'            ,
         0x300A : 'EGL_BAD_NATIVE_PIXMAP',
         0x300B : 'EGL_BAD_NATIVE_WINDOW',
-        0x300C : 'EGL_BAD_PARAMETER'	,
-        0x300D : 'EGL_BAD_SURFACE'		,
-        0x300E : 'EGL_CONTEXT_LOST'		,
+        0x300C : 'EGL_BAD_PARAMETER'    ,
+        0x300D : 'EGL_BAD_SURFACE'        ,
+        0x300E : 'EGL_CONTEXT_LOST'        ,
         }
 
 
@@ -370,7 +370,7 @@ def GetConfigs(Display dpy):
 
 ### Not implemented the other calling method for this ###
 #    EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig *configs,
-#			 EGLint config_size, EGLint *num_config)
+#             EGLint config_size, EGLint *num_config)
 
 def ChooseConfig(Display dpy, list attrib_list, EGLint config_size):
     cdef:
@@ -501,8 +501,8 @@ def ReleaseThread():
 #                    Config config, list attrib_list):
 #    FIXME
 #    EGLSurface eglCreatePbufferFromClientBuffer(
-#	      EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
-#	      EGLConfig config, EGLint *attrib_list)
+#          EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
+#          EGLConfig config, EGLint *attrib_list)
 
 
 def SurfaceAttrib(Display dpy, Surface surf, EGLint attrib, EGLint value):
@@ -599,7 +599,7 @@ def SwapBuffers(Display dpy, Surface surf):
 #### Don't know what a NativePixmapType is or how to make one ###
 #def CopyBuffers(Display dpy, Surface surf, target):
 #    EGLBoolean eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
-#			  EGLNativePixmapType target)
+#              EGLNativePixmapType target)
 def bcm_display_open(bcm.uint32_t device):
     cdef:
         bcm.DISPMANX_DISPLAY_HANDLE_T disp

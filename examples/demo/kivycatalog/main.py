@@ -1,4 +1,4 @@
-'''
+"""
 Kivy Catalog
 ============
 
@@ -18,9 +18,10 @@ directory and reference that file in the ScreenManager section of
 kivycatalog.kv.
 
 Known bugs include some issue with the drop
-'''
+"""
 import kivy
-kivy.require('1.4.2')
+
+kivy.require("1.4.2")
 import os
 import sys
 from kivy.app import App
@@ -37,22 +38,23 @@ CATALOG_ROOT = os.path.dirname(__file__)
 # Config.set('graphics', 'width', '1024')
 # Config.set('graphics', 'height', '768')
 
-'''List of classes that need to be instantiated in the factory from .kv files.
-'''
-CONTAINER_KVS = os.path.join(CATALOG_ROOT, 'container_kvs')
-CONTAINER_CLASSES = [c[:-3] for c in os.listdir(CONTAINER_KVS)
-    if c.endswith('.kv')]
+"""List of classes that need to be instantiated in the factory from .kv files.
+"""
+CONTAINER_KVS = os.path.join(CATALOG_ROOT, "container_kvs")
+CONTAINER_CLASSES = [
+    c[:-3] for c in os.listdir(CONTAINER_KVS) if c.endswith(".kv")
+]
 
 
 class Container(BoxLayout):
-    '''A container is essentially a class that loads its root from a known
+    """A container is essentially a class that loads its root from a known
     .kv file.
 
     The name of the .kv file is taken from the Container's class.
     We can't just use kv rules because the class may be edited
     in the interface and reloaded by the user.
     See :meth: change_kv where this happens.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
@@ -64,10 +66,10 @@ class Container(BoxLayout):
 
     @property
     def kv_file(self):
-        '''Get the name of the kv file, a lowercase version of the class
+        """Get the name of the kv file, a lowercase version of the class
         name.
-        '''
-        return os.path.join(CONTAINER_KVS, self.__class__.__name__ + '.kv')
+        """
+        return os.path.join(CONTAINER_KVS, self.__class__.__name__ + ".kv")
 
 
 for class_name in CONTAINER_CLASSES:
@@ -76,24 +78,25 @@ for class_name in CONTAINER_CLASSES:
 
 class KivyRenderTextInput(CodeInput):
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        is_osx = sys.platform == 'darwin'
+        is_osx = sys.platform == "darwin"
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
         if text and key not in (list(self.interesting_keys.keys()) + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
-            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
-                if key == ord('s'):
+            if modifiers == ["ctrl"] or (is_osx and modifiers == ["meta"]):
+                if key == ord("s"):
                     self.catalog.change_kv(True)
                     return
 
         return super(KivyRenderTextInput, self).keyboard_on_key_down(
-            window, keycode, text, modifiers)
+            window, keycode, text, modifiers
+        )
 
 
 class Catalog(BoxLayout):
-    '''Catalog of widgets. This is the root widget of the app. It contains
+    """Catalog of widgets. This is the root widget of the app. It contains
     a tabbed pain of widgets that can be displayed and a textbox where .kv
     language files for widgets being demoed can be edited.
 
@@ -111,26 +114,27 @@ class Catalog(BoxLayout):
     has an appropriate id and the class has been referenced.
 
     You do not need to edit any python code, just .kv language files!
-    '''
+    """
+
     language_box = ObjectProperty()
     screen_manager = ObjectProperty()
     _change_kv_ev = None
 
     def __init__(self, **kwargs):
-        self._previously_parsed_text = ''
+        self._previously_parsed_text = ""
         super(Catalog, self).__init__(**kwargs)
-        self.show_kv(None, 'Welcome')
+        self.show_kv(None, "Welcome")
         self.carousel = None
 
     def show_kv(self, instance, value):
-        '''Called when an a item is selected, we need to show the .kv language
-        file associated with the newly revealed container.'''
+        """Called when an a item is selected, we need to show the .kv language
+        file associated with the newly revealed container."""
 
         self.screen_manager.current = value
 
         child = self.screen_manager.current_screen.children[0]
-        with open(child.kv_file, 'rb') as file:
-            self.language_box.text = file.read().decode('utf8')
+        with open(child.kv_file, "rb") as file:
+            self.language_box.text = file.read().decode("utf8")
         if self._change_kv_ev is not None:
             self._change_kv_ev.cancel()
         self.change_kv()
@@ -151,10 +155,10 @@ class Catalog(BoxLayout):
             self._change_kv_ev()
 
     def change_kv(self, *largs):
-        '''Called when the update button is clicked. Needs to update the
+        """Called when the update button is clicked. Needs to update the
         interface for the currently active kv widget, if there is one based
         on the kv file the user entered. If there is an error in their kv
-        syntax, show a nice popup.'''
+        syntax, show a nice popup."""
 
         txt = self.language_box.text
         kv_container = self.screen_manager.current_screen.children[0]
@@ -170,16 +174,18 @@ class Catalog(BoxLayout):
             self.show_error(e)
 
     def show_error(self, e):
-        self.info_label.text = str(e).encode('utf-8')
-        self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
-            Animation(top=190.0, d=3) +\
-            Animation(top=0, opacity=0, d=2)
+        self.info_label.text = str(e).encode("utf-8")
+        self.anim = (
+            Animation(top=190.0, opacity=1, d=2, t="in_back")
+            + Animation(top=190.0, d=3)
+            + Animation(top=0, opacity=0, d=2)
+        )
         self.anim.start(self.info_label)
 
 
 class KivyCatalogApp(App):
-    '''The kivy App that runs the main root. All we do is build a catalog
-    widget into the root.'''
+    """The kivy App that runs the main root. All we do is build a catalog
+    widget into the root."""
 
     def build(self):
         return Catalog()

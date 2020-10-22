@@ -188,8 +188,8 @@ KIVY_GLES_LIMITS
     Following is a list of the potential incompatibilities that result
     when set to true.
 
-==============	====================================================
-Mesh indices	If true, the number of indices in a mesh is limited
+==============    ====================================================
+Mesh indices    If true, the number of indices in a mesh is limited
                 to 65535
 Texture blit    When blitting to a texture, the data (color and
                 buffer) format must be the same format as the one
@@ -198,7 +198,7 @@ Texture blit    When blitting to a texture, the data (color and
                 by the driver, while on Android, most of devices
                 fail to do it.
                 Ref: https://github.com/kivy/kivy/issues/1600
-==============	====================================================
+==============    ====================================================
 
     .. versionadded:: 1.8.1
 

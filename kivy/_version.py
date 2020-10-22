@@ -5,13 +5,13 @@ MINOR = 0
 MICRO = 0
 RELEASE = False
 
-__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
+__version__ = "%d.%d.%d" % (MAJOR, MINOR, MICRO)
 
 if not RELEASE:
     # if it's a rcx release, it's not proceeded by a period. If it is a
     # devx release, it must start with a period
-    __version__ += 'rc4'
+    __version__ += "rc4"
 
 
-_kivy_git_hash = ''
-_kivy_build_date = ''
+_kivy_git_hash = ""
+_kivy_build_date = ""

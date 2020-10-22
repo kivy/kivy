@@ -1,9 +1,9 @@
-'''
+"""
 Common definitions for a Windows provider
 =========================================
 
 This file provides common definitions for constants used by WM_Touch / WM_Pen.
-'''
+"""
 import os
 
 WM_MOUSEFIRST = 512
@@ -47,21 +47,41 @@ GWL_WNDPROC = -4
 
 
 QUERYSYSTEMGESTURE_WNDPROC = (
-    TABLET_DISABLE_PRESSANDHOLD |
-    TABLET_DISABLE_PENTAPFEEDBACK |
-    TABLET_DISABLE_PENBARRELFEEDBACK |
-    TABLET_DISABLE_SMOOTHSCROLLING |
-    TABLET_DISABLE_FLICKFALLBACKKEYS |
-    TABLET_DISABLE_TOUCHSWITCH |
-    TABLET_DISABLE_FLICKS)
+    TABLET_DISABLE_PRESSANDHOLD
+    | TABLET_DISABLE_PENTAPFEEDBACK
+    | TABLET_DISABLE_PENBARRELFEEDBACK
+    | TABLET_DISABLE_SMOOTHSCROLLING
+    | TABLET_DISABLE_FLICKFALLBACKKEYS
+    | TABLET_DISABLE_TOUCHSWITCH
+    | TABLET_DISABLE_FLICKS
+)
 
-if 'KIVY_DOC' not in os.environ:
-    from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
-                                 WPARAM, LPARAM, BOOL, HWND, POINT,
-                                 RECT as RECT_BASE)
-    from ctypes import (windll, WINFUNCTYPE, POINTER,
-                        c_int, c_longlong, c_void_p, Structure,
-                        sizeof, byref, cast)
+if "KIVY_DOC" not in os.environ:
+    from ctypes.wintypes import (
+        ULONG,
+        HANDLE,
+        DWORD,
+        LONG,
+        UINT,
+        WPARAM,
+        LPARAM,
+        BOOL,
+        HWND,
+        POINT,
+        RECT as RECT_BASE,
+    )
+    from ctypes import (
+        windll,
+        WINFUNCTYPE,
+        POINTER,
+        c_int,
+        c_longlong,
+        c_void_p,
+        Structure,
+        sizeof,
+        byref,
+        cast,
+    )
 
     class RECT(RECT_BASE):
         x = property(lambda self: self.left)
@@ -70,24 +90,25 @@ if 'KIVY_DOC' not in os.environ:
         h = property(lambda self: self.bottom - self.top)
 
     # check availability of RegisterTouchWindow
-    if not hasattr(windll.user32, 'RegisterTouchWindow'):
-        raise Exception('Unsupported Window version')
+    if not hasattr(windll.user32, "RegisterTouchWindow"):
+        raise Exception("Unsupported Window version")
 
     LRESULT = LPARAM
     WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 
     class TOUCHINPUT(Structure):
         _fields_ = [
-            ('x', LONG),
-            ('y', LONG),
-            ('pSource', HANDLE),
-            ('id', DWORD),
-            ('flags', DWORD),
-            ('mask', DWORD),
-            ('time', DWORD),
-            ('extraInfo', POINTER(ULONG)),
-            ('size_x', DWORD),
-            ('size_y', DWORD)]
+            ("x", LONG),
+            ("y", LONG),
+            ("pSource", HANDLE),
+            ("id", DWORD),
+            ("flags", DWORD),
+            ("mask", DWORD),
+            ("time", DWORD),
+            ("extraInfo", POINTER(ULONG)),
+            ("size_x", DWORD),
+            ("size_y", DWORD),
+        ]
 
         def size(self):
             return (self.size_x, self.size_y)
@@ -100,11 +121,12 @@ if 'KIVY_DOC' not in os.environ:
 
         def _event_type(self):
             if self.flags & TOUCHEVENTF_MOVE:
-                return 'update'
+                return "update"
             if self.flags & TOUCHEVENTF_DOWN:
-                return 'begin'
+                return "begin"
             if self.flags & TOUCHEVENTF_UP:
-                return 'end'
+                return "end"
+
         event_type = property(_event_type)
 
     def SetWindowLong_WndProc_wrapper_generator(func):
@@ -118,15 +140,15 @@ if 'KIVY_DOC' not in os.environ:
         LONG_PTR = c_longlong
         windll.user32.SetWindowLongPtrW.restype = LONG_PTR
         windll.user32.SetWindowLongPtrW.argtypes = [HWND, c_int, LONG_PTR]
-        SetWindowLong_WndProc_wrapper = \
-            SetWindowLong_WndProc_wrapper_generator(
-                windll.user32.SetWindowLongPtrW)
+        SetWindowLong_WndProc_wrapper = SetWindowLong_WndProc_wrapper_generator(
+            windll.user32.SetWindowLongPtrW
+        )
     except AttributeError:
         windll.user32.SetWindowLongW.restype = LONG
         windll.user32.SetWindowLongW.argtypes = [HWND, c_int, LONG]
-        SetWindowLong_WndProc_wrapper = \
-            SetWindowLong_WndProc_wrapper_generator(
-                windll.user32.SetWindowLongW)
+        SetWindowLong_WndProc_wrapper = SetWindowLong_WndProc_wrapper_generator(
+            windll.user32.SetWindowLongW
+        )
 
     windll.user32.GetMessageExtraInfo.restype = LPARAM
     windll.user32.GetMessageExtraInfo.argtypes = []
@@ -135,8 +157,13 @@ if 'KIVY_DOC' not in os.environ:
     windll.user32.GetWindowRect.restype = BOOL
     windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT_BASE)]
     windll.user32.CallWindowProcW.restype = LRESULT
-    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HWND, UINT, WPARAM,
-                                              LPARAM]
+    windll.user32.CallWindowProcW.argtypes = [
+        WNDPROC,
+        HWND,
+        UINT,
+        WPARAM,
+        LPARAM,
+    ]
     windll.user32.GetActiveWindow.restype = HWND
     windll.user32.GetActiveWindow.argtypes = []
     windll.user32.RegisterTouchWindow.restype = BOOL
@@ -144,8 +171,12 @@ if 'KIVY_DOC' not in os.environ:
     windll.user32.UnregisterTouchWindow.restype = BOOL
     windll.user32.UnregisterTouchWindow.argtypes = [HWND]
     windll.user32.GetTouchInputInfo.restype = BOOL
-    windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
-                                                POINTER(TOUCHINPUT), c_int]
+    windll.user32.GetTouchInputInfo.argtypes = [
+        HANDLE,
+        UINT,
+        POINTER(TOUCHINPUT),
+        c_int,
+    ]
     windll.user32.GetSystemMetrics.restype = c_int
     windll.user32.GetSystemMetrics.argtypes = [c_int]
 

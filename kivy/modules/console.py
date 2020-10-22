@@ -125,11 +125,20 @@ same callback for deactivating the addon and the panel. Here is a simple
 
 """
 
-__all__ = ("start", "stop", "create_console", "Console", "ConsoleAddon",
-           "ConsoleButton", "ConsoleToggleButton", "ConsoleLabel")
+__all__ = (
+    "start",
+    "stop",
+    "create_console",
+    "Console",
+    "ConsoleAddon",
+    "ConsoleButton",
+    "ConsoleToggleButton",
+    "ConsoleLabel",
+)
 
 import kivy
-kivy.require('1.9.0')
+
+kivy.require("1.9.0")
 
 import weakref
 from functools import partial
@@ -149,15 +158,23 @@ from kivy.uix.modalview import ModalView
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix
 from kivy.graphics.context_instructions import Transform
 from kivy.graphics.transformation import Matrix
-from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty,
-                             NumericProperty, StringProperty, OptionProperty,
-                             ReferenceListProperty, AliasProperty,
-                             VariableListProperty)
+from kivy.properties import (
+    ObjectProperty,
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    StringProperty,
+    OptionProperty,
+    ReferenceListProperty,
+    AliasProperty,
+    VariableListProperty,
+)
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.lang import Builder
 
-Builder.load_string("""
+Builder.load_string(
+    """
 <Console>:
     size_hint: (1, None) if self.mode == "docked" else (None, None)
     height: dp(250)
@@ -278,7 +295,8 @@ Builder.load_string("""
                 (int(self.center_x - self.texture_size[0] / 2.),
                 int(self.center_y - self.texture_size[1] / 2.))
 
-""")
+"""
+)
 
 
 def ignore_exception(f):
@@ -306,21 +324,24 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
             return None
         return wr
 
-    widget = AliasProperty(_get_widget, None, bind=('widget_ref', ))
+    widget = AliasProperty(_get_widget, None, bind=("widget_ref",))
 
 
 class ConsoleButton(Button):
     """Button specialized for the Console"""
+
     pass
 
 
 class ConsoleToggleButton(ToggleButton):
     """ToggleButton specialized for the Console"""
+
     pass
 
 
 class ConsoleLabel(Label):
     """LabelButton specialized for the Console"""
+
     pass
 
 
@@ -340,8 +361,7 @@ class ConsoleAddon(object):
         self.init()
 
     def init(self):
-        """Method called when the addon is instantiated by the Console
-        """
+        """Method called when the addon is instantiated by the Console"""
         pass
 
     def activate(self):
@@ -358,13 +378,13 @@ class ConsoleAddon(object):
 
 class ConsoleAddonMode(ConsoleAddon):
     def init(self):
-        btn = ConsoleToggleButton(text=u"Docked")
+        btn = ConsoleToggleButton(text="Docked")
         self.console.add_toolbar_widget(btn)
 
 
 class ConsoleAddonSelect(ConsoleAddon):
     def init(self):
-        self.btn = ConsoleToggleButton(text=u"Select")
+        self.btn = ConsoleToggleButton(text="Select")
         self.btn.bind(state=self.on_button_state)
         self.console.add_toolbar_widget(self.btn)
         self.console.bind(inspect_enabled=self.on_inspect_enabled)
@@ -373,7 +393,7 @@ class ConsoleAddonSelect(ConsoleAddon):
         self.btn.state = "down" if value else "normal"
 
     def on_button_state(self, instance, value):
-        self.console.inspect_enabled = (value == "down")
+        self.console.inspect_enabled = value == "down"
 
 
 class ConsoleAddonFps(ConsoleAddon):
@@ -387,7 +407,7 @@ class ConsoleAddonFps(ConsoleAddon):
     def activate(self):
         ev = self._update_ev
         if ev is None:
-            self._update_ev = Clock.schedule_interval(self.update_fps, 1 / 2.)
+            self._update_ev = Clock.schedule_interval(self.update_fps, 1 / 2.0)
         else:
             ev()
 
@@ -461,8 +481,9 @@ class ConsoleAddonBreadcrumb(ConsoleAddon):
 
 class ConsoleAddonWidgetPanel(ConsoleAddon):
     def init(self):
-        self.console.add_panel("Properties", self.panel_activate,
-                               self.deactivate)
+        self.console.add_panel(
+            "Properties", self.panel_activate, self.deactivate
+        )
 
     def panel_activate(self):
         self.console.bind(widget=self.update_content)
@@ -477,9 +498,11 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             return
 
         from kivy.uix.scrollview import ScrollView
+
         self.root = root = BoxLayout()
-        self.sv = sv = ScrollView(scroll_type=["bars", "content"],
-                                  bar_width='10dp')
+        self.sv = sv = ScrollView(
+            scroll_type=["bars", "content"], bar_width="10dp"
+        )
         treeview = TreeView(hide_root=True, size_hint_y=None)
         treeview.bind(minimum_height=treeview.setter("height"))
         keys = list(widget.properties().keys())
@@ -490,9 +513,13 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
             try:
-                widget.bind(**{
-                    key: partial(self.update_node_content, weakref.ref(node))
-                })
+                widget.bind(
+                    **{
+                        key: partial(
+                            self.update_node_content, weakref.ref(node)
+                        )
+                    }
+                )
             except:
                 pass
             treeview.add_node(node)
@@ -527,66 +554,83 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
         if isinstance(prop, AliasProperty) or nested:
             # trying to resolve type dynamically
             if type(value) in (str, str):
-                dtype = 'string'
+                dtype = "string"
             elif type(value) in (int, float):
-                dtype = 'numeric'
+                dtype = "numeric"
             elif type(value) in (tuple, list):
-                dtype = 'list'
+                dtype = "list"
 
-        if isinstance(prop, NumericProperty) or dtype == 'numeric':
-            content = TextInput(text=str(value) or '', multiline=False)
+        if isinstance(prop, NumericProperty) or dtype == "numeric":
+            content = TextInput(text=str(value) or "", multiline=False)
             content.bind(
-                text=partial(self.save_property_numeric, widget, key, index))
+                text=partial(self.save_property_numeric, widget, key, index)
+            )
 
-        elif isinstance(prop, StringProperty) or dtype == 'string':
-            content = TextInput(text=value or '', multiline=True)
+        elif isinstance(prop, StringProperty) or dtype == "string":
+            content = TextInput(text=value or "", multiline=True)
             content.bind(
-                text=partial(self.save_property_text, widget, key, index))
+                text=partial(self.save_property_text, widget, key, index)
+            )
 
-        elif (isinstance(prop, ListProperty) or
-              isinstance(prop, ReferenceListProperty) or
-              isinstance(prop, VariableListProperty) or dtype == 'list'):
+        elif (
+            isinstance(prop, ListProperty)
+            or isinstance(prop, ReferenceListProperty)
+            or isinstance(prop, VariableListProperty)
+            or dtype == "list"
+        ):
             content = GridLayout(cols=1, size_hint_y=None)
-            content.bind(minimum_height=content.setter('height'))
+            content.bind(minimum_height=content.setter("height"))
             for i, item in enumerate(value):
                 button = Button(text=repr(item), size_hint_y=None, height=44)
                 if isinstance(item, Widget):
-                    button.bind(on_release=partial(console.highlight_widget,
-                                                   item, False))
+                    button.bind(
+                        on_release=partial(
+                            console.highlight_widget, item, False
+                        )
+                    )
                 else:
-                    button.bind(on_release=partial(self.show_property, widget,
-                                                   item, key, i))
+                    button.bind(
+                        on_release=partial(
+                            self.show_property, widget, item, key, i
+                        )
+                    )
                 content.add_widget(button)
 
         elif isinstance(prop, OptionProperty):
             content = GridLayout(cols=1, size_hint_y=None)
-            content.bind(minimum_height=content.setter('height'))
+            content.bind(minimum_height=content.setter("height"))
             for option in prop.options:
                 button = ToggleButton(
                     text=option,
-                    state='down' if option == value else 'normal',
+                    state="down" if option == value else "normal",
                     group=repr(content.uid),
                     size_hint_y=None,
-                    height=44)
+                    height=44,
+                )
                 button.bind(
-                    on_press=partial(self.save_property_option, widget, key))
+                    on_press=partial(self.save_property_option, widget, key)
+                )
                 content.add_widget(button)
 
         elif isinstance(prop, ObjectProperty):
             if isinstance(value, Widget):
                 content = Button(text=repr(value))
                 content.bind(
-                    on_release=partial(console.highlight_widget, value))
+                    on_release=partial(console.highlight_widget, value)
+                )
             elif isinstance(value, Texture):
                 content = Image(texture=value)
             else:
                 content = Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
-            state = 'down' if value else 'normal'
+            state = "down" if value else "normal"
             content = ToggleButton(text=key, state=state)
-            content.bind(on_release=partial(self.save_property_boolean, widget,
-                                            key, index))
+            content.bind(
+                on_release=partial(
+                    self.save_property_boolean, widget, key, index
+                )
+            )
 
         self.root.clear_widgets()
         self.root.add_widget(self.sv)
@@ -608,8 +652,10 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             setattr(widget, key, instance.text)
 
     @ignore_exception
-    def save_property_boolean(self, widget, key, index, instance, ):
-        value = instance.state == 'down'
+    def save_property_boolean(
+        self, widget, key, index, instance,
+    ):
+        value = instance.state == "down"
         if index >= 0:
             getattr(widget, key)[index] = value
         else:
@@ -627,7 +673,7 @@ class TreeViewWidget(Label, TreeViewNode):
 class ConsoleAddonWidgetTreeImpl(TreeView):
     selected_widget = ObjectProperty(None, allownone=True)
 
-    __events__ = ('on_select_widget', )
+    __events__ = ("on_select_widget",)
 
     def __init__(self, **kwargs):
         super(ConsoleAddonWidgetTreeImpl, self).__init__(**kwargs)
@@ -700,9 +746,13 @@ class ConsoleAddonWidgetTreeView(RelativeLayout):
                 cnode = tree.add_node(nodes[child], node)
             else:
                 cnode = tree.add_node(
-                    TreeViewWidget(text=child.__class__.__name__,
-                                   widget=child.proxy_ref,
-                                   is_open=is_open), node)
+                    TreeViewWidget(
+                        text=child.__class__.__name__,
+                        widget=child.proxy_ref,
+                        is_open=is_open,
+                    ),
+                    node,
+                )
             update_nodes.append((cnode, child))
         return update_nodes
 
@@ -710,12 +760,12 @@ class ConsoleAddonWidgetTreeView(RelativeLayout):
         win = self.console.win
         if not self._window_node:
             self._window_node = self.ids.widgettree.add_node(
-                TreeViewWidget(text="Window",
-                               widget=win,
-                               is_open=True))
+                TreeViewWidget(text="Window", widget=win, is_open=True)
+            )
 
-        nodes = self._update_widget_tree_node(self._window_node, win,
-                                              is_open=True)
+        nodes = self._update_widget_tree_node(
+            self._window_node, win, is_open=True
+        )
         while nodes:
             ntmp = nodes[:]
             nodes = []
@@ -728,8 +778,9 @@ class ConsoleAddonWidgetTreeView(RelativeLayout):
 class ConsoleAddonWidgetTree(ConsoleAddon):
     def init(self):
         self.content = None
-        self.console.add_panel("Tree", self.panel_activate, self.deactivate,
-                               self.panel_refresh)
+        self.console.add_panel(
+            "Tree", self.panel_activate, self.deactivate, self.panel_refresh
+        )
 
     def panel_activate(self):
         self.console.bind(widget=self.update_content)
@@ -765,8 +816,12 @@ class Console(RelativeLayout):
 
     #: Array of addons that will be created at Console creation
     addons = [  # ConsoleAddonMode,
-        ConsoleAddonSelect, ConsoleAddonFps, ConsoleAddonWidgetPanel,
-        ConsoleAddonWidgetTree, ConsoleAddonBreadcrumb]
+        ConsoleAddonSelect,
+        ConsoleAddonFps,
+        ConsoleAddonWidgetPanel,
+        ConsoleAddonWidgetTree,
+        ConsoleAddonBreadcrumb,
+    ]
 
     #: Display mode of the Console, either docked at the bottom, or as a
     #: floating window.
@@ -783,11 +838,11 @@ class Console(RelativeLayout):
     activated = BooleanProperty(False)
 
     def __init__(self, **kwargs):
-        self.win = kwargs.pop('win', None)
+        self.win = kwargs.pop("win", None)
         super(Console, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
         with self.canvas.before:
-            self.gcolor = Color(1, 0, 0, .25)
+            self.gcolor = Color(1, 0, 0, 0.25)
             PushMatrix()
             self.gtransform = Transform(Matrix())
             self.grect = Rectangle(size=(0, 0))
@@ -829,8 +884,7 @@ class Console(RelativeLayout):
         self._toolbar[key].append(widget)
 
     def remove_toolbar_widget(self, widget):
-        """Remove a widget from the toolbar
-        """
+        """Remove a widget from the toolbar"""
         self.ids.toolbar.remove_widget(widget)
 
     def add_panel(self, name, cb_activate, cb_deactivate, cb_refresh=None):
@@ -869,15 +923,17 @@ class Console(RelativeLayout):
                 self._panel.cb_refresh()
 
     def set_content(self, content):
-        """Replace the Console content with a new one.
-        """
+        """Replace the Console content with a new one."""
         self.ids.content.clear_widgets()
         self.ids.content.add_widget(content)
 
     def on_touch_down(self, touch):
         ret = super(Console, self).on_touch_down(touch)
-        if (('button' not in touch.profile or touch.button == 'left') and
-                not ret and self.inspect_enabled):
+        if (
+            ("button" not in touch.profile or touch.button == "left")
+            and not ret
+            and self.inspect_enabled
+        ):
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False
@@ -915,10 +971,10 @@ class Console(RelativeLayout):
         # reverse the loop - look at children on top first and
         # modalviews before others
         win_children = self.win.children
-        children = chain((c for c in reversed(win_children)
-                          if isinstance(c, ModalView)),
-                         (c for c in reversed(win_children)
-                          if not isinstance(c, ModalView)))
+        children = chain(
+            (c for c in reversed(win_children) if isinstance(c, ModalView)),
+            (c for c in reversed(win_children) if not isinstance(c, ModalView)),
+        )
         for child in children:
             if child is self:
                 continue
@@ -945,11 +1001,10 @@ class Console(RelativeLayout):
             self.gtransform.matrix = matrix
 
     def pick(self, widget, x, y):
-        """Pick a widget at x/y, given a root `widget`
-        """
+        """Pick a widget at x/y, given a root `widget`"""
         ret = None
         # try to filter widgets that are not visible (invalid inspect target)
-        if (hasattr(widget, 'visible') and not widget.visible):
+        if hasattr(widget, "visible") and not widget.visible:
             return ret
         if widget.collide_point(x, y):
             ret = widget
@@ -971,7 +1026,7 @@ class Console(RelativeLayout):
         self.y = 0
         for addon in self._addons:
             addon.activate()
-        Logger.info('Console: console activated')
+        Logger.info("Console: console activated")
 
     def _deactivate_console(self):
         for addon in self._addons:
@@ -982,11 +1037,11 @@ class Console(RelativeLayout):
         self.inspect_enabled = False
         # self.win.remove_widget(self)
         self._window_node = None
-        Logger.info('Console: console deactivated')
+        Logger.info("Console: console deactivated")
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and modifiers == ["ctrl"]:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
@@ -1007,23 +1062,26 @@ class Console(RelativeLayout):
             self.widget = self.widget.parent
 
         elif scancode == 274:  # down
-            filtered_children = [c for c in self.widget.children
-                                 if not isinstance(c, Console)]
+            filtered_children = [
+                c for c in self.widget.children if not isinstance(c, Console)
+            ]
             if filtered_children:
                 self.widget = filtered_children[0]
 
         elif scancode == 276:  # left
             parent = self.widget.parent
-            filtered_children = [c for c in parent.children
-                                 if not isinstance(c, Console)]
+            filtered_children = [
+                c for c in parent.children if not isinstance(c, Console)
+            ]
             index = filtered_children.index(self.widget)
             index = max(0, index - 1)
             self.widget = filtered_children[index]
 
         elif scancode == 275:  # right
             parent = self.widget.parent
-            filtered_children = [c for c in parent.children
-                                 if not isinstance(c, Console)]
+            filtered_children = [
+                c for c in parent.children if not isinstance(c, Console)
+            ]
             index = filtered_children.index(self.widget)
             index = min(len(filtered_children) - 1, index + 1)
             self.widget = filtered_children[index]
@@ -1031,8 +1089,10 @@ class Console(RelativeLayout):
 
 def create_console(win, ctx, *l):
     ctx.console = Console(win=win)
-    win.bind(children=ctx.console.on_window_children,
-             on_keyboard=ctx.console.keyboard_shortcut)
+    win.bind(
+        children=ctx.console.on_window_children,
+        on_keyboard=ctx.console.keyboard_shortcut,
+    )
 
 
 def start(win, ctx):
@@ -1053,7 +1113,9 @@ def start(win, ctx):
 def stop(win, ctx):
     """Stop and unload any active Inspectors for the given *ctx*."""
     if hasattr(ctx, "console"):
-        win.unbind(children=ctx.console.on_window_children,
-                   on_keyboard=ctx.console.keyboard_shortcut)
+        win.unbind(
+            children=ctx.console.on_window_children,
+            on_keyboard=ctx.console.keyboard_shortcut,
+        )
         win.remove_widget(ctx.console)
         del ctx.console

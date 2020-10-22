@@ -5,7 +5,6 @@ def test_weak_method_on_obj():
     from kivy.weakmethod import WeakMethod
 
     class SomeClass:
-
         def do_something(self):
             pass
 

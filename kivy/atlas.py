@@ -1,4 +1,4 @@
-'''
+"""
 Atlas
 =====
 
@@ -136,9 +136,9 @@ Manual usage of the Atlas
     ['bubble', 'bubble-red', 'button', 'button-down']
     >>> print(atlas['button'])
     <kivy.graphics.texture.TextureRegion object at 0x2404d10>
-'''
+"""
 
-__all__ = ('Atlas', )
+__all__ = ("Atlas",)
 
 import json
 from os.path import basename, dirname, join, splitext
@@ -153,34 +153,33 @@ CoreImage = None
 
 
 class Atlas(EventDispatcher):
-    '''Manage texture atlas. See module documentation for more information.
-    '''
+    """Manage texture atlas. See module documentation for more information."""
 
     original_textures = ListProperty([])
-    '''List of original atlas textures (which contain the :attr:`textures`).
+    """List of original atlas textures (which contain the :attr:`textures`).
 
     :attr:`original_textures` is a :class:`~kivy.properties.ListProperty` and
     defaults to [].
 
     .. versionadded:: 1.9.1
-    '''
+    """
 
     textures = DictProperty({})
-    '''List of available textures within the atlas.
+    """List of available textures within the atlas.
 
     :attr:`textures` is a :class:`~kivy.properties.DictProperty` and defaults
     to {}.
-    '''
+    """
 
     def _get_filename(self):
         return self._filename
 
     filename = AliasProperty(_get_filename, None)
-    '''Filename of the current Atlas.
+    """Filename of the current Atlas.
 
     :attr:`filename` is an :class:`~kivy.properties.AliasProperty` and defaults
     to None.
-    '''
+    """
 
     def __init__(self, filename):
         self._filename = filename
@@ -198,19 +197,19 @@ class Atlas(EventDispatcher):
 
         # must be a name finished by .atlas ?
         filename = self._filename
-        assert(filename.endswith('.atlas'))
-        filename = filename.replace('/', os.sep)
+        assert filename.endswith(".atlas")
+        filename = filename.replace("/", os.sep)
 
-        Logger.debug('Atlas: Load <%s>' % filename)
-        with open(filename, 'r') as fd:
+        Logger.debug("Atlas: Load <%s>" % filename)
+        with open(filename, "r") as fd:
             meta = json.load(fd)
 
-        Logger.debug('Atlas: Need to load %d images' % len(meta))
+        Logger.debug("Atlas: Need to load %d images" % len(meta))
         d = dirname(filename)
         textures = {}
         for subfilename, ids in meta.items():
             subfilename = join(d, subfilename)
-            Logger.debug('Atlas: Load <%s>' % subfilename)
+            Logger.debug("Atlas: Load <%s>" % subfilename)
 
             # load the image
             ci = CoreImage(subfilename)
@@ -227,7 +226,7 @@ class Atlas(EventDispatcher):
 
     @staticmethod
     def create(outname, filenames, size, padding=2, use_path=False):
-        '''This method can be used to create an atlas manually from a set of
+        """This method can be used to create an atlas manually from a set of
         images.
 
         :Parameters:
@@ -265,14 +264,14 @@ class Atlas(EventDispatcher):
 
             .. versionchanged:: 1.8.0
                 Parameter use_path added
-        '''
+        """
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
         # for its initial implementation.
         try:
             from PIL import Image
         except ImportError:
-            Logger.critical('Atlas: Imaging/PIL are missing')
+            Logger.critical("Atlas: Imaging/PIL are missing")
             raise
 
         if isinstance(size, (tuple, list)):
@@ -283,15 +282,16 @@ class Atlas(EventDispatcher):
         # open all of the images
         ims = list()
         for f in filenames:
-            fp = open(f, 'rb')
+            fp = open(f, "rb")
             im = Image.open(fp)
             im.load()
             fp.close()
             ims.append((f, im))
 
         # sort by image area
-        ims = sorted(ims, key=lambda im: im[1].size[0] * im[1].size[1],
-                     reverse=True)
+        ims = sorted(
+            ims, key=lambda im: im[1].size[0] * im[1].size[1], reverse=True
+        )
 
         # free boxes are empty space in our output image set
         # the freebox tuple format is: outidx, x, y, w, h
@@ -311,8 +311,9 @@ class Atlas(EventDispatcher):
             imh += padding
             if imw > size_w or imh > size_h:
                 Logger.error(
-                    'Atlas: image %s (%d by %d) is larger than the atlas size!'
-                    % (imageinfo[0], imw, imh))
+                    "Atlas: image %s (%d by %d) is larger than the atlas size!"
+                    % (imageinfo[0], imw, imh)
+                )
                 return
 
             inserted = False
@@ -325,22 +326,30 @@ class Atlas(EventDispatcher):
                         # two new freeboxes
                         del freeboxes[idx]
                         if fb[3] > imw:
-                            freeboxes.append((
-                                fb[0], fb[1] + imw, fb[2],
-                                fb[3] - imw, imh))
+                            freeboxes.append(
+                                (fb[0], fb[1] + imw, fb[2], fb[3] - imw, imh)
+                            )
 
                         if fb[4] > imh:
-                            freeboxes.append((
-                                fb[0], fb[1], fb[2] + imh,
-                                fb[3], fb[4] - imh))
+                            freeboxes.append(
+                                (fb[0], fb[1], fb[2] + imh, fb[3], fb[4] - imh)
+                            )
 
                         # keep this sorted!
-                        freeboxes = sorted(freeboxes,
-                                           key=lambda fb: fb[3] * fb[4])
-                        fullboxes.append((im,
-                                          fb[0], fb[1] + padding,
-                                          fb[2] + padding, imw - padding,
-                                          imh - padding, imageinfo[0]))
+                        freeboxes = sorted(
+                            freeboxes, key=lambda fb: fb[3] * fb[4]
+                        )
+                        fullboxes.append(
+                            (
+                                im,
+                                fb[0],
+                                fb[1] + padding,
+                                fb[2] + padding,
+                                imw - padding,
+                                imh - padding,
+                                imageinfo[0],
+                            )
+                        )
                         inserted = True
                         break
 
@@ -352,10 +361,13 @@ class Atlas(EventDispatcher):
 
         # now that we've figured out where everything goes, make the output
         # images and blit the source images to the appropriate locations
-        Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
-                                                                 size_h))
-        outimages = [Image.new('RGBA', (size_w, size_h))
-                     for i in range(0, int(numoutimages))]
+        Logger.info(
+            "Atlas: create an {0}x{1} rgba image".format(size_w, size_h)
+        )
+        outimages = [
+            Image.new("RGBA", (size_w, size_h))
+            for i in range(0, int(numoutimages))
+        ]
         for fb in fullboxes:
             x, y = fb[2], fb[3]
             out = outimages[fb[1]]
@@ -369,12 +381,12 @@ class Atlas(EventDispatcher):
 
         # save the output images
         for idx, outimage in enumerate(outimages):
-            outimage.save('%s-%d.png' % (outname, idx))
+            outimage.save("%s-%d.png" % (outname, idx))
 
         # write out an json file that says where everything ended up
         meta = {}
         for fb in fullboxes:
-            fn = '%s-%d.png' % (basename(outname), fb[1])
+            fn = "%s-%d.png" % (basename(outname), fb[1])
             if fn not in meta:
                 d = meta[fn] = {}
             else:
@@ -387,9 +399,9 @@ class Atlas(EventDispatcher):
                 # 'data_tiles_green_grass'
                 uid = splitext(fb[6])[0]
                 # remove leading dots and slashes
-                uid = uid.lstrip('./\\')
+                uid = uid.lstrip("./\\")
                 # replace remaining slashes with _
-                uid = uid.replace('/', '_').replace('\\', '_')
+                uid = uid.replace("/", "_").replace("\\", "_")
             else:
                 # for example, '../data/tiles/green_grass.png'
                 # just get only 'green_grass' as the uniq id.
@@ -398,37 +410,40 @@ class Atlas(EventDispatcher):
             x, y, w, h = fb[2:6]
             d[uid] = x, size_h - y - h, w, h
 
-        outfn = '%s.atlas' % outname
-        with open(outfn, 'w') as fd:
+        outfn = "%s.atlas" % outname
+        with open(outfn, "w") as fd:
             json.dump(meta, fd)
 
         return outfn, meta
 
 
-if __name__ == '__main__':
-    """ Main line program. Process command line arguments
-    to make a new atlas. """
+if __name__ == "__main__":
+    """Main line program. Process command line arguments
+    to make a new atlas."""
 
     import sys
     from glob import glob
+
     argv = sys.argv[1:]
     # earlier import of kivy has already called getopt to remove kivy system
     # arguments from this line. That is all arguments up to the first '--'
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [-- [--use-path] '
-              '[--padding=2]] <outname> '
-              '<size|512x256> <img1.png> [<img2.png>, ...]')
+        print(
+            "Usage: python -m kivy.atlas [-- [--use-path] "
+            "[--padding=2]] <outname> "
+            "<size|512x256> <img1.png> [<img2.png>, ...]"
+        )
         sys.exit(1)
 
-    options = {'use_path': False}
+    options = {"use_path": False}
     while True:
         option = argv[0]
-        if option == '--use-path':
-            options['use_path'] = True
-        elif option.startswith('--padding='):
-            options['padding'] = int(option.split('=', 1)[-1])
-        elif option[:2] == '--':
-            print('Unknown option {}'.format(option))
+        if option == "--use-path":
+            options["use_path"] = True
+        elif option.startswith("--padding="):
+            options["padding"] = int(option.split("=", 1)[-1])
+        elif option[:2] == "--":
+            print("Unknown option {}".format(option))
             sys.exit(1)
         else:
             break
@@ -436,21 +451,23 @@ if __name__ == '__main__':
 
     outname = argv[0]
     try:
-        if 'x' in argv[1]:
-            size = list(map(int, argv[1].split('x', 1)))
+        if "x" in argv[1]:
+            size = list(map(int, argv[1].split("x", 1)))
         else:
             size = int(argv[1])
     except ValueError:
-        print('Error: size must be an integer or <integer>x<integer>')
+        print("Error: size must be an integer or <integer>x<integer>")
         sys.exit(1)
 
     filenames = [fname for fnames in argv[2:] for fname in glob(fnames)]
     ret = Atlas.create(outname, filenames, size, **options)
     if not ret:
-        print('Error while creating atlas!')
+        print("Error while creating atlas!")
         sys.exit(1)
 
     fn, meta = ret
-    print('Atlas created at', fn)
-    print('%d image%s been created' % (len(meta),
-          's have' if len(meta) > 1 else ' has'))
+    print("Atlas created at", fn)
+    print(
+        "%d image%s been created"
+        % (len(meta), "s have" if len(meta) > 1 else " has")
+    )

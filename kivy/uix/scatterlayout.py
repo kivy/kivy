@@ -1,4 +1,4 @@
-'''
+"""
 Scatter Layout
 ===============
 
@@ -44,9 +44,9 @@ size_hint, size_hint_x, size_hint_y and pos_hint.
     implementation that uses only a positional transform to avoid some of the
     heavier calculation involved for :class:`~kivy.uix.scatter.Scatter`.
 
-'''
+"""
 
-__all__ = ('ScatterLayout', 'ScatterPlaneLayout')
+__all__ = ("ScatterLayout", "ScatterPlaneLayout")
 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter, ScatterPlane
@@ -54,8 +54,7 @@ from kivy.properties import ObjectProperty
 
 
 class ScatterLayout(Scatter):
-    '''ScatterLayout class, see module documentation for more information.
-    '''
+    """ScatterLayout class, see module documentation for more information."""
 
     content = ObjectProperty()
 
@@ -65,7 +64,7 @@ class ScatterLayout(Scatter):
         if self.content.size != self.size:
             self.content.size = self.size
         super(ScatterLayout, self).add_widget(self.content)
-        self.fbind('size', self.update_size)
+        self.fbind("size", self.update_size)
 
     def update_size(self, instance, size):
         self.content.size = size
@@ -81,13 +80,13 @@ class ScatterLayout(Scatter):
 
 
 class ScatterPlaneLayout(ScatterPlane):
-    '''ScatterPlaneLayout class, see module documentation for more information.
+    """ScatterPlaneLayout class, see module documentation for more information.
 
     Similar to ScatterLayout, but based on ScatterPlane - so the input is not
     bounded.
 
     .. versionadded:: 1.9.0
-    '''
+    """
 
     def collide_point(self, x, y):
         return True

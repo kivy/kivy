@@ -1,4 +1,4 @@
-'''
+"""
 Code Navigation Behavior
 ========================
 
@@ -9,22 +9,22 @@ IDE instead of a word processor.
 Using this mixin gives the TextInput the ability to recognize whitespace,
 punctuation and case variations (e.g. CamelCase) when moving over text. It
 is currently used by the :class:`~kivy.uix.codeinput.CodeInput` widget.
-'''
+"""
 
-__all__ = ('CodeNavigationBehavior', )
+__all__ = ("CodeNavigationBehavior",)
 
 from kivy.event import EventDispatcher
 import string
 
 
 class CodeNavigationBehavior(EventDispatcher):
-    '''Code navigation behavior. Modifies the navigation behavior in TextInput
+    """Code navigation behavior. Modifies the navigation behavior in TextInput
     to work like an IDE instead of a word processor. Please see the
     :mod:`code navigation behaviors module <kivy.uix.behaviors.codenavigation>`
     documentation for more information.
 
     .. versionadded:: 1.9.1
-    '''
+    """
 
     def _move_cursor_word_left(self, index=None):
         pos = index or self.cursor_index()
@@ -41,18 +41,18 @@ class CodeNavigationBehavior(EventDispatcher):
         ws = string.whitespace
         punct = string.punctuation
 
-        mode = 'normal'
+        mode = "normal"
 
         rline = lines[row]
-        c = rline[col] if len(rline) > col else '\n'
+        c = rline[col] if len(rline) > col else "\n"
         if c in ws:
-            mode = 'ws'
-        elif c == '_':
-            mode = 'us'
+            mode = "ws"
+        elif c == "_":
+            mode = "us"
         elif c in punct:
-            mode = 'punct'
+            mode = "punct"
         elif c not in ucase:
-            mode = 'camel'
+            mode = "camel"
 
         while True:
             if col == -1:
@@ -62,35 +62,38 @@ class CodeNavigationBehavior(EventDispatcher):
                 rline = lines[row]
                 col = len(rline)
             lc = c
-            c = rline[col] if len(rline) > col else '\n'
-            if c == '\n':
+            c = rline[col] if len(rline) > col else "\n"
+            if c == "\n":
                 if lc not in ws:
                     col += 1
                 break
-            if mode in ('normal', 'camel') and c in ws:
+            if mode in ("normal", "camel") and c in ws:
                 col += 1
                 break
-            if mode in ('normal', 'camel') and c in punct:
+            if mode in ("normal", "camel") and c in punct:
                 col += 1
                 break
-            if mode == 'camel' and c in ucase:
+            if mode == "camel" and c in ucase:
                 break
-            if mode == 'punct' and (c == '_' or c not in punct):
+            if mode == "punct" and (c == "_" or c not in punct):
                 col += 1
                 break
-            if mode == 'us' and c != '_' and (c in punct or c in ws):
+            if mode == "us" and c != "_" and (c in punct or c in ws):
                 col += 1
                 break
 
-            if mode == 'us' and c != '_':
-                mode = ('normal' if c in ucase
-                        else 'ws' if c in ws
-                else 'camel')
-            elif mode == 'ws' and c not in ws:
-                mode = ('normal' if c in ucase
-                        else 'us' if c == '_'
-                else 'punct' if c in punct
-                else 'camel')
+            if mode == "us" and c != "_":
+                mode = "normal" if c in ucase else "ws" if c in ws else "camel"
+            elif mode == "ws" and c not in ws:
+                mode = (
+                    "normal"
+                    if c in ucase
+                    else "us"
+                    if c == "_"
+                    else "punct"
+                    if c in punct
+                    else "camel"
+                )
 
             col -= 1
 
@@ -116,39 +119,39 @@ class CodeNavigationBehavior(EventDispatcher):
         ws = string.whitespace
         punct = string.punctuation
 
-        mode = 'normal'
+        mode = "normal"
 
         rline = lines[row]
-        c = rline[col] if len(rline) > col else '\n'
+        c = rline[col] if len(rline) > col else "\n"
         if c in ws:
-            mode = 'ws'
-        elif c == '_':
-            mode = 'us'
+            mode = "ws"
+        elif c == "_":
+            mode = "us"
         elif c in punct:
-            mode = 'punct'
+            mode = "punct"
         elif c in lcase:
-            mode = 'camel'
+            mode = "camel"
 
         while True:
-            if mode in ('normal', 'camel', 'punct') and c in ws:
-                mode = 'ws'
-            elif mode in ('normal', 'camel') and c == '_':
-                mode = 'us'
-            elif mode == 'normal' and c not in ucase:
-                mode = 'camel'
+            if mode in ("normal", "camel", "punct") and c in ws:
+                mode = "ws"
+            elif mode in ("normal", "camel") and c == "_":
+                mode = "us"
+            elif mode == "normal" and c not in ucase:
+                mode = "camel"
 
-            if mode == 'us':
+            if mode == "us":
                 if c in ws:
-                    mode = 'ws'
-                elif c != '_':
+                    mode = "ws"
+                elif c != "_":
                     break
-            if mode == 'ws' and c not in ws:
+            if mode == "ws" and c not in ws:
                 break
-            if mode == 'camel' and c in ucase:
+            if mode == "camel" and c in ucase:
                 break
-            if mode == 'punct' and (c == '_' or c not in punct):
+            if mode == "punct" and (c == "_" or c not in punct):
                 break
-            if mode != 'punct' and c != '_' and c in punct:
+            if mode != "punct" and c != "_" and c in punct:
                 break
 
             col += 1
@@ -160,8 +163,8 @@ class CodeNavigationBehavior(EventDispatcher):
                 rline = lines[row]
                 col = 0
 
-            c = rline[col] if len(rline) > col else '\n'
-            if c == '\n':
+            c = rline[col] if len(rline) > col else "\n"
+            if c == "\n":
                 break
 
         return col, row

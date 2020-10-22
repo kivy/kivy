@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
     Kivy Git Pre-Commit Hook to Enforce Styleguide
     ==============================================
 
@@ -15,7 +15,7 @@
 
         cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
         chmod +x .git/hooks/pre-commit
-'''
+"""
 
 import os
 import sys
@@ -24,17 +24,18 @@ from subprocess import call, Popen, PIPE
 
 curdir = dirname(abspath(__file__))
 kivydir = sep.join(curdir.split(sep)[:-2])
-srcdir = join(kivydir, 'kivy')
-script = join(srcdir, 'tools', 'pep8checker', 'pep8kivy.py')
+srcdir = join(kivydir, "kivy")
+script = join(srcdir, "tools", "pep8checker", "pep8kivy.py")
 try:
     with open(script):
         pass
 except IOError:
     # if this not the kivy project, find the script file in the kivy project
-    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+    os.environ["KIVY_NO_CONSOLELOG"] = "1"
     import kivy
-    script = join(dirname(kivy.__file__), 'tools', 'pep8checker', 'pep8kivy.py')
-    srcdir = ''
+
+    script = join(dirname(kivy.__file__), "tools", "pep8checker", "pep8kivy.py")
+    srcdir = ""
 
 # Only check the files that were staged
 # proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
@@ -42,7 +43,7 @@ except IOError:
 
 # Correction: only check the files that were staged, but do not include
 # deleted files.
-proc = Popen(['git', 'diff', '--cached', '--name-status', 'HEAD'], stdout=PIPE)
+proc = Popen(["git", "diff", "--cached", "--name-status", "HEAD"], stdout=PIPE)
 proc.wait()
 
 # This gives output like the following:
@@ -56,8 +57,8 @@ proc.wait()
 targets = []
 for target in proc.stdout:
     parts = [p.strip() for p in target.split()]
-    if parts[0] != 'D':
-        targets.append(join(kivydir, target.decode(encoding='UTF-8')))
+    if parts[0] != "D":
+        targets.append(join(kivydir, target.decode(encoding="UTF-8")))
 
 # Untested possibility: After making the changes above for removing deleted
 # files from targets, saw also where the git diff call could be:
@@ -67,9 +68,9 @@ for target in proc.stdout:
 #
 # and we could then remove the special handling in python for targets above.
 
-call(['git', 'stash', 'save', '--keep-index', '--quiet'])
+call(["git", "stash", "save", "--keep-index", "--quiet"])
 retval = call([sys.executable, script, srcdir] + targets)
-call(['git', 'stash', 'pop', '--quiet'])
+call(["git", "stash", "pop", "--quiet"])
 
 if retval:
     # There are style guide violations

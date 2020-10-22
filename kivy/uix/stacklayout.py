@@ -1,4 +1,4 @@
-'''
+"""
 Stack Layout
 ============
 
@@ -27,13 +27,17 @@ For example, to display widgets that get progressively larger in width::
 
 .. image:: images/stacklayout_sizing.png
     :align: left
-'''
+"""
 
-__all__ = ('StackLayout', )
+__all__ = ("StackLayout",)
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty, \
-    ReferenceListProperty, VariableListProperty
+from kivy.properties import (
+    NumericProperty,
+    OptionProperty,
+    ReferenceListProperty,
+    VariableListProperty,
+)
 
 
 def _compute_size(c, available_size, idx):
@@ -51,21 +55,20 @@ def _compute_size(c, available_size, idx):
 
 
 class StackLayout(Layout):
-    '''Stack layout class. See module documentation for more information.
-    '''
+    """Stack layout class. See module documentation for more information."""
 
     spacing = VariableListProperty([0, 0], length=2)
-    '''Spacing between children: [spacing_horizontal, spacing_vertical].
+    """Spacing between children: [spacing_horizontal, spacing_vertical].
 
     spacing also accepts a single argument form [spacing].
 
     :attr:`spacing` is a
     :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
 
-    '''
+    """
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the layout box and it's children: [padding_left,
+    """Padding between the layout box and it's children: [padding_left,
     padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
@@ -78,12 +81,22 @@ class StackLayout(Layout):
     :class:`~kivy.properties.VariableListProperty` and defaults to
     [0, 0, 0, 0].
 
-    '''
+    """
 
-    orientation = OptionProperty('lr-tb', options=(
-        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
-        'bt-rl'))
-    '''Orientation of the layout.
+    orientation = OptionProperty(
+        "lr-tb",
+        options=(
+            "lr-tb",
+            "tb-lr",
+            "rl-tb",
+            "tb-rl",
+            "lr-bt",
+            "bt-lr",
+            "rl-bt",
+            "bt-rl",
+        ),
+    )
+    """Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'lr-tb'.
@@ -104,30 +117,30 @@ class StackLayout(Layout):
         'rl' means Right to Left.
         'tb' means Top to Bottom.
         'bt' means Bottom to Top.
-    '''
+    """
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all children. It is automatically set
+    """Minimum width needed to contain all children. It is automatically set
     by the layout.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_width` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all children. It is automatically set
+    """Minimum height needed to contain all children. It is automatically set
     by the layout.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_height` is a :class:`kivy.properties.NumericProperty` and
     defaults to 0.
-    '''
+    """
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all children. It is automatically set
+    """Minimum size needed to contain all children. It is automatically set
     by the layout.
 
     .. versionadded:: 1.0.8
@@ -135,28 +148,28 @@ class StackLayout(Layout):
     :attr:`minimum_size` is a
     :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`minimum_width`, :attr:`minimum_height`) properties.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(StackLayout, self).__init__(**kwargs)
         trigger = self._trigger_layout
         fbind = self.fbind
-        fbind('padding', trigger)
-        fbind('spacing', trigger)
-        fbind('children', trigger)
-        fbind('orientation', trigger)
-        fbind('size', trigger)
-        fbind('pos', trigger)
+        fbind("padding", trigger)
+        fbind("spacing", trigger)
+        fbind("children", trigger)
+        fbind("orientation", trigger)
+        fbind("size", trigger)
+        fbind("pos", trigger)
 
     def do_layout(self, *largs):
         if not self.children:
-            self.minimum_size = (0., 0.)
+            self.minimum_size = (0.0, 0.0)
             return
 
         # optimize layout by preventing looking at the same attribute in a loop
         selfpos = self.pos
         selfsize = self.size
-        orientation = self.orientation.split('-')
+        orientation = self.orientation.split("-")
         padding_left = self.padding[0]
         padding_top = self.padding[1]
         padding_right = self.padding[2]
@@ -171,17 +184,17 @@ class StackLayout(Layout):
         posdelta = [0] * 2
         posstart = [0] * 2
         for i in (0, 1):
-            posattr[i] = 1 * (orientation[i] in ('tb', 'bt'))
+            posattr[i] = 1 * (orientation[i] in ("tb", "bt"))
             k = posattr[i]
-            if orientation[i] == 'lr':
+            if orientation[i] == "lr":
                 # left to right
                 posdelta[i] = 1
                 posstart[i] = selfpos[k] + padding_left
-            elif orientation[i] == 'bt':
+            elif orientation[i] == "bt":
                 # bottom to top
                 posdelta[i] = 1
                 posstart[i] = selfpos[k] + padding_bottom
-            elif orientation[i] == 'rl':
+            elif orientation[i] == "rl":
                 # right to left
                 posdelta[i] = -1
                 posstart[i] = selfpos[k] + selfsize[k] - padding_right
@@ -200,7 +213,7 @@ class StackLayout(Layout):
 
         # space calculation, used for determining when a row or column is full
 
-        if orientation[0] in ('lr', 'rl'):
+        if orientation[0] in ("lr", "rl"):
             sv = padding_y  # size in v-direction, for minimum_size property
             su = padding_x  # size in h-direction
             spacing_u = spacing_x
@@ -218,21 +231,25 @@ class StackLayout(Layout):
         # space calculation, row height or column width, for arranging widgets
         lv = 0
 
-        urev = (deltau < 0)
-        vrev = (deltav < 0)
+        urev = deltau < 0
+        vrev = deltav < 0
         firstchild = self.children[0]
         sizes = []
         lc = []
         for c in reversed(self.children):
             if c.size_hint[outerattr] is not None:
                 c.size[outerattr] = max(
-                    1, _compute_size(c, selfsize[outerattr] - padding_v,
-                                     outerattr))
+                    1,
+                    _compute_size(
+                        c, selfsize[outerattr] - padding_v, outerattr
+                    ),
+                )
 
             # does the widget fit in the row/column?
             ccount = len(lc)
             totalsize = availsize = max(
-                0, selfsize[innerattr] - padding_u - spacing_u * ccount)
+                0, selfsize[innerattr] - padding_u - spacing_u * ccount
+            )
             if not lc:
                 if c.size_hint[innerattr] is not None:
                     childsize = max(1, _compute_size(c, totalsize, innerattr))
@@ -249,14 +266,16 @@ class StackLayout(Layout):
                         break
                     if child.size_hint[innerattr] is not None:
                         testsizes[i] = childsize = max(
-                            1, _compute_size(child, totalsize, innerattr))
+                            1, _compute_size(child, totalsize, innerattr)
+                        )
                     else:
                         childsize = max(0, child.size[innerattr])
                         testsizes[i] = childsize
                     availsize -= childsize
                 if c.size_hint[innerattr] is not None:
                     testsizes[-1] = max(
-                        1, _compute_size(c, totalsize, innerattr))
+                        1, _compute_size(c, totalsize, innerattr)
+                    )
                 else:
                     testsizes[-1] = max(0, c.size[innerattr])
                 availsize -= testsizes[-1]
@@ -301,8 +320,13 @@ class StackLayout(Layout):
             lv = c.size[outerattr]
             if c.size_hint[innerattr] is not None:
                 sizes = [
-                    max(1, _compute_size(c, selfsize[innerattr] - padding_u,
-                                         innerattr))]
+                    max(
+                        1,
+                        _compute_size(
+                            c, selfsize[innerattr] - padding_u, innerattr
+                        ),
+                    )
+                ]
             else:
                 sizes = [max(0, c.size[innerattr])]
             u = ustart

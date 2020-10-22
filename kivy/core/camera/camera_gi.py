@@ -1,11 +1,11 @@
-'''
+"""
 Gi Camera
 =========
 
 Implement CameraBase with Gi / Gstreamer, working on both Python 2 and 3
-'''
+"""
 
-__all__ = ('CameraGi', )
+__all__ = ("CameraGi",)
 
 from gi.repository import Gst
 from kivy.clock import Clock
@@ -21,17 +21,17 @@ import atexit
 Gst.init(None)
 version = Gst.version()
 if version < (1, 0, 0, 0):
-    raise Exception('Cannot use camera_gi, Gstreamer < 1.0 is not supported.')
-Logger.info('CameraGi: Using Gstreamer {}'.format(
-    '.'.join(['{}'.format(x) for x in Gst.version()])))
+    raise Exception("Cannot use camera_gi, Gstreamer < 1.0 is not supported.")
+Logger.info(
+    "CameraGi: Using Gstreamer {}".format(
+        ".".join(["{}".format(x) for x in Gst.version()])
+    )
+)
 install_gobject_iteration()
 
 
 class _MapInfo(Structure):
-    _fields_ = [
-        ('memory', c_void_p),
-        ('flags', c_int),
-        ('data', c_void_p)]
+    _fields_ = [("memory", c_void_p), ("flags", c_int), ("data", c_void_p)]
     # we don't care about the rest
 
 
@@ -41,7 +41,7 @@ def _on_cameragi_unref(obj):
 
 
 class CameraGi(CameraBase):
-    '''Implementation of CameraBase using GStreamer
+    """Implementation of CameraBase using GStreamer
 
     :Parameters:
         `video_src`: str, default is 'v4l2src'
@@ -50,7 +50,7 @@ class CameraGi(CameraBase):
             should potentially work.
             Theoretically a longer string using "!" can be used
             describing the first part of a gstreamer pipeline.
-    '''
+    """
 
     _instances = []
 
@@ -59,7 +59,7 @@ class CameraGi(CameraBase):
         self._camerasink = None
         self._decodebin = None
         self._texturesize = None
-        self._video_src = kwargs.get('video_src', 'v4l2src')
+        self._video_src = kwargs.get("video_src", "v4l2src")
         wk = ref(self, _on_cameragi_unref)
         CameraGi._instances.append(wk)
         super(CameraGi, self).__init__(**kwargs)
@@ -71,31 +71,37 @@ class CameraGi(CameraBase):
             self._pipeline = None
 
         video_src = self._video_src
-        if video_src == 'v4l2src':
-            video_src += ' device=/dev/video%d' % self._index
-        elif video_src == 'dc1394src':
-            video_src += ' camera-number=%d' % self._index
+        if video_src == "v4l2src":
+            video_src += " device=/dev/video%d" % self._index
+        elif video_src == "dc1394src":
+            video_src += " camera-number=%d" % self._index
 
         if Gst.version() < (1, 0, 0, 0):
-            caps = ('video/x-raw-rgb,red_mask=(int)0xff0000,'
-                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff')
-            pl = ('{} ! decodebin name=decoder ! ffmpegcolorspace ! '
-                  'appsink name=camerasink emit-signals=True caps={}')
+            caps = (
+                "video/x-raw-rgb,red_mask=(int)0xff0000,"
+                "green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff"
+            )
+            pl = (
+                "{} ! decodebin name=decoder ! ffmpegcolorspace ! "
+                "appsink name=camerasink emit-signals=True caps={}"
+            )
         else:
-            caps = 'video/x-raw,format=RGB'
-            pl = '{} ! decodebin name=decoder ! videoconvert ! appsink ' + \
-                 'name=camerasink emit-signals=True caps={}'
+            caps = "video/x-raw,format=RGB"
+            pl = (
+                "{} ! decodebin name=decoder ! videoconvert ! appsink "
+                + "name=camerasink emit-signals=True caps={}"
+            )
 
         self._pipeline = Gst.parse_launch(pl.format(video_src, caps))
-        self._camerasink = self._pipeline.get_by_name('camerasink')
-        self._camerasink.connect('new-sample', self._gst_new_sample)
-        self._decodebin = self._pipeline.get_by_name('decoder')
+        self._camerasink = self._pipeline.get_by_name("camerasink")
+        self._camerasink.connect("new-sample", self._gst_new_sample)
+        self._decodebin = self._pipeline.get_by_name("decoder")
 
         if self._camerasink and not self.stopped:
             self.start()
 
     def _gst_new_sample(self, *largs):
-        sample = self._camerasink.emit('pull-sample')
+        sample = self._camerasink.emit("pull-sample")
         if sample is None:
             return False
 
@@ -106,8 +112,9 @@ class CameraGi(CameraBase):
             for pad in self._decodebin.srcpads:
                 s = pad.get_current_caps().get_structure(0)
                 self._texturesize = (
-                    s.get_value('width'),
-                    s.get_value('height'))
+                    s.get_value("width"),
+                    s.get_value("height"),
+                )
                 Clock.schedule_once(self._update)
                 return False
 
@@ -132,9 +139,10 @@ class CameraGi(CameraBase):
 
         if self._texture is None and self._texturesize is not None:
             self._texture = Texture.create(
-                size=self._texturesize, colorfmt='rgb')
+                size=self._texturesize, colorfmt="rgb"
+            )
             self._texture.flip_vertical()
-            self.dispatch('on_load')
+            self.dispatch("on_load")
 
         # decode sample
         # read the data from the buffer memory

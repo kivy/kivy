@@ -14,16 +14,18 @@ class Selector(FloatLayout):
 
 
 class TextAlignApp(App):
-
     def select(self, case):
         for _child in self.selector.grid.children[:]:
             self.selector.grid.remove_widget(_child)
-        for valign in ('bottom', 'middle', 'top'):
-            for halign in ('left', 'center', 'right'):
-                label = BoundedLabel(text='V: %s\nH: %s' % (valign, halign),
-                               size_hint=(None, None),
-                               size=(150, 150),
-                               halign=halign, valign=valign)
+        for valign in ("bottom", "middle", "top"):
+            for halign in ("left", "center", "right"):
+                label = BoundedLabel(
+                    text="V: %s\nH: %s" % (valign, halign),
+                    size_hint=(None, None),
+                    size=(150, 150),
+                    halign=halign,
+                    valign=valign,
+                )
                 if case == 0:
                     label.text_size = (None, None)
                 elif case == 1:
@@ -34,7 +36,7 @@ class TextAlignApp(App):
                     label.text_size = label.size
                 self.selector.grid.add_widget(label)
 
-        self.selector.grid.bind(minimum_size=self.selector.grid.setter('size'))
+        self.selector.grid.bind(minimum_size=self.selector.grid.setter("size"))
 
     def build(self):
         self.root = FloatLayout()

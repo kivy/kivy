@@ -27,7 +27,8 @@ def modal_app():
         def build(self):
             root = ModalButton()
             root.modal = self.modal_view = ModalView(
-                size_hint=(.2, .5), auto_dismiss=True)
+                size_hint=(0.2, 0.5), auto_dismiss=True
+            )
             return root
 
     return TestApp()
@@ -51,8 +52,8 @@ async def test_modal_app(kivy_app):
     modal.open()
     await kivy_app.wait_clock_frames(2)
     assert modal._window is not None
-    assert isclose(modal.center_x, button.center_x, abs_tol=.1)
-    assert isclose(modal.center_y, button.center_y, abs_tol=.1)
+    assert isclose(modal.center_x, button.center_x, abs_tol=0.1)
+    assert isclose(modal.center_y, button.center_y, abs_tol=0.1)
 
     # press within modal area - should stay open
     async for _ in kivy_app.do_touch_down_up(widget=button):
@@ -65,8 +66,9 @@ async def test_modal_app(kivy_app):
 
     # start outside but release in modal - should close
     async for _ in kivy_app.do_touch_drag(
-            pos=(button.center_x + button.width / 4, button.center_y),
-            target_widget=button):
+        pos=(button.center_x + button.width / 4, button.center_y),
+        target_widget=button,
+    ):
         pass
     assert modal._window is None
 
@@ -77,6 +79,7 @@ async def test_modal_app(kivy_app):
 
     # press outside modal area - should close
     async for _ in kivy_app.do_touch_down_up(
-            pos=(button.center_x + button.width / 4, button.center_y)):
+        pos=(button.center_x + button.width / 4, button.center_y)
+    ):
         pass
     assert modal._window is None

@@ -13,7 +13,7 @@ from kivy.uix.slider import Slider
 from kivy.uix.boxlayout import BoxLayout
 
 
-fragment_header = '''
+fragment_header = """
 #ifdef GL_ES
     precision highp float;
 #endif
@@ -28,9 +28,9 @@ uniform sampler2D texture0;
 /* custom input */
 uniform float depth_range;
 uniform vec2 size;
-'''
+"""
 
-hsv_func = '''
+hsv_func = """
 vec3 HSVtoRGB(vec3 color) {
     float f,p,q,t, hueRound;
     int hueIndex;
@@ -71,9 +71,11 @@ vec3 HSVtoRGB(vec3 color) {
     }
     return result;
 }
-'''
+"""
 
-rgb_kinect = fragment_header + '''
+rgb_kinect = (
+    fragment_header
+    + """
 void main (void) {
     float value = texture2D(texture0, tex_coord0).r;
     value = mod(value * depth_range, 1.);
@@ -85,9 +87,13 @@ void main (void) {
     col.b = clamp(value - 0.66, 0., 0.33) * 3.;
     gl_FragColor = vec4(col, 1.);
 }
-'''
+"""
+)
 
-points_kinect = fragment_header + hsv_func + '''
+points_kinect = (
+    fragment_header
+    + hsv_func
+    + """
 void main (void) {
     // threshold used to reduce the depth (better result)
     const int th = 5;
@@ -132,19 +138,23 @@ void main (void) {
         gl_FragColor = vec4(col, 1);
     }
 }
-'''
-hsv_kinect = fragment_header + hsv_func + '''
+"""
+)
+hsv_kinect = (
+    fragment_header
+    + hsv_func
+    + """
 void main (void) {
     float value = texture2D(texture0, tex_coord0).r;
     value = mod(value * depth_range, 1.);
     vec3 col = HSVtoRGB(vec3(value, 1., 1.));
     gl_FragColor = vec4(col, 1.);
 }
-'''
+"""
+)
 
 
 class KinectDepth(Thread):
-
     def __init__(self, *largs, **kwargs):
         super(KinectDepth, self).__init__(*largs, **kwargs)
         self.daemon = True
@@ -187,7 +197,8 @@ class KinectViewer(Widget):
 
         # allocate texture for pushing depth
         self.texture = Texture.create(
-            size=(640, 480), colorfmt='luminance', bufferfmt='ushort')
+            size=(640, 480), colorfmt="luminance", bufferfmt="ushort"
+        )
         self.texture.flip_vertical()
 
         # create default canvas element
@@ -202,42 +213,43 @@ class KinectViewer(Widget):
         self.kinect.index = value
 
     def on_shader(self, instance, value):
-        if value == 'rgb':
+        if value == "rgb":
             self.canvas.shader.fs = rgb_kinect
-        elif value == 'hsv':
+        elif value == "hsv":
             self.canvas.shader.fs = hsv_kinect
-        elif value == 'points':
+        elif value == "points":
             self.canvas.shader.fs = points_kinect
 
     def update_transformation(self, *largs):
         # update projection mat and uvsize
-        self.canvas['projection_mat'] = Window.render_context['projection_mat']
-        self.canvas['depth_range'] = self.depth_range
-        self.canvas['size'] = list(map(float, self.size))
+        self.canvas["projection_mat"] = Window.render_context["projection_mat"]
+        self.canvas["depth_range"] = self.depth_range
+        self.canvas["size"] = list(map(float, self.size))
         try:
             value = self.kinect.pop()
         except:
             return
-        f = value[0].astype('ushort') * 32
+        f = value[0].astype("ushort") * 32
         self.texture.blit_buffer(
-            f.tostring(), colorfmt='luminance', bufferfmt='ushort')
+            f.tostring(), colorfmt="luminance", bufferfmt="ushort"
+        )
         self.canvas.ask_update()
 
 
 class KinectViewerApp(App):
-
     def build(self):
-        root = BoxLayout(orientation='vertical')
+        root = BoxLayout(orientation="vertical")
 
         self.viewer = viewer = KinectViewer(
-            index=self.config.getint('kinect', 'index'),
-            shader=self.config.get('shader', 'theme'))
+            index=self.config.getint("kinect", "index"),
+            shader=self.config.get("shader", "theme"),
+        )
         root.add_widget(viewer)
 
         toolbar = BoxLayout(size_hint=(1, None), height=50)
         root.add_widget(toolbar)
 
-        slider = Slider(min=1., max=32., value=1.)
+        slider = Slider(min=1.0, max=32.0, value=1.0)
 
         def update_depth_range(instance, value):
             viewer.depth_range = value
@@ -248,13 +260,16 @@ class KinectViewerApp(App):
         return root
 
     def build_config(self, config):
-        config.add_section('kinect')
-        config.set('kinect', 'index', '0')
-        config.add_section('shader')
-        config.set('shader', 'theme', 'rgb')
+        config.add_section("kinect")
+        config.set("kinect", "index", "0")
+        config.add_section("shader")
+        config.set("shader", "theme", "rgb")
 
     def build_settings(self, settings):
-        settings.add_json_panel('Kinect Viewer', self.config, data='''[
+        settings.add_json_panel(
+            "Kinect Viewer",
+            self.config,
+            data="""[
             { "type": "title", "title": "Kinect" },
             { "type": "numeric", "title": "Index",
               "desc": "Kinect index, from 0 to X",
@@ -264,20 +279,21 @@ class KinectViewerApp(App):
               "desc": "Shader to use for a specific visualization",
               "section": "shader", "key": "theme",
               "options": ["rgb", "hsv", "points"]}
-        ]''')
+        ]""",
+        )
 
     def on_config_change(self, config, section, key, value):
         if config is not self.config:
             return
         token = (section, key)
-        if token == ('kinect', 'index'):
+        if token == ("kinect", "index"):
             self.viewer.index = int(value)
-        elif token == ('shader', 'theme'):
-            if value == 'rgb':
+        elif token == ("shader", "theme"):
+            if value == "rgb":
                 self.viewer.canvas.shader.fs = rgb_kinect
-            elif value == 'hsv':
+            elif value == "hsv":
                 self.viewer.shader = value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KinectViewerApp().run()

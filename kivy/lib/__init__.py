@@ -1,4 +1,4 @@
-'''
+"""
 External libraries
 ==================
 
@@ -18,4 +18,4 @@ Kivy comes with other python/C libraries:
     support for them and they might change in the future.
     Don't rely on them in your code.
 
-'''
+"""

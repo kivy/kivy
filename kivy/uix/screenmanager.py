@@ -184,36 +184,63 @@ You can easily switch transitions by changing the
 
 '''
 
-__all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
-           'TransitionBase', 'ShaderTransition', 'SlideTransition',
-           'SwapTransition', 'FadeTransition', 'WipeTransition',
-           'FallOutTransition', 'RiseInTransition', 'NoTransition',
-           'CardTransition')
+__all__ = (
+    "Screen",
+    "ScreenManager",
+    "ScreenManagerException",
+    "TransitionBase",
+    "ShaderTransition",
+    "SlideTransition",
+    "SwapTransition",
+    "FadeTransition",
+    "WipeTransition",
+    "FallOutTransition",
+    "RiseInTransition",
+    "NoTransition",
+    "CardTransition",
+)
 
 from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
-                             NumericProperty, ListProperty, OptionProperty,
-                             BooleanProperty, ColorProperty)
+from kivy.properties import (
+    StringProperty,
+    ObjectProperty,
+    AliasProperty,
+    NumericProperty,
+    ListProperty,
+    OptionProperty,
+    BooleanProperty,
+    ColorProperty,
+)
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
-from kivy.graphics import (RenderContext, Rectangle, Fbo,
-                           ClearColor, ClearBuffers, BindTexture, PushMatrix,
-                           PopMatrix, Translate, Callback, Scale)
+from kivy.graphics import (
+    RenderContext,
+    Rectangle,
+    Fbo,
+    ClearColor,
+    ClearBuffers,
+    BindTexture,
+    PushMatrix,
+    PopMatrix,
+    Translate,
+    Callback,
+    Scale,
+)
 
 
 class ScreenManagerException(Exception):
-    '''Exception for the :class:`ScreenManager`.
-    '''
+    """Exception for the :class:`ScreenManager`."""
+
     pass
 
 
 class Screen(RelativeLayout):
-    '''Screen is an element intended to be used with a :class:`ScreenManager`.
+    """Screen is an element intended to be used with a :class:`ScreenManager`.
     Check module documentation for more information.
 
     :Events:
@@ -233,28 +260,28 @@ class Screen(RelativeLayout):
     .. versionchanged:: 1.6.0
         Events `on_pre_enter`, `on_enter`, `on_pre_leave` and `on_leave` were
         added.
-    '''
+    """
 
-    name = StringProperty('')
-    '''
+    name = StringProperty("")
+    """
     Name of the screen which must be unique within a :class:`ScreenManager`.
     This is the name used for :attr:`ScreenManager.current`.
 
     :attr:`name` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
-    '''
+    """
 
     manager = ObjectProperty(None, allownone=True)
-    ''':class:`ScreenManager` object, set when the screen is added to a
+    """:class:`ScreenManager` object, set when the screen is added to a
     manager.
 
     :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
 
-    '''
+    """
 
-    transition_progress = NumericProperty(0.)
-    '''Value that represents the completion of the current transition, if any
+    transition_progress = NumericProperty(0.0)
+    """Value that represents the completion of the current transition, if any
     is occurring.
 
     If a transition is in progress, whatever the mode, the value will change
@@ -263,10 +290,10 @@ class Screen(RelativeLayout):
 
     :attr:`transition_progress` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
-    '''
+    """
 
-    transition_state = OptionProperty('out', options=('in', 'out'))
-    '''Value that represents the state of the transition:
+    transition_state = OptionProperty("out", options=("in", "out"))
+    """Value that represents the state of the transition:
 
     - 'in' if the transition is going to show your screen
     - 'out' if the transition is going to hide your screen
@@ -276,9 +303,9 @@ class Screen(RelativeLayout):
 
     :attr:`transition_state` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'out'.
-    '''
+    """
 
-    __events__ = ('on_pre_enter', 'on_enter', 'on_pre_leave', 'on_leave')
+    __events__ = ("on_pre_enter", "on_enter", "on_pre_leave", "on_leave")
 
     def on_pre_enter(self, *args):
         pass
@@ -293,11 +320,11 @@ class Screen(RelativeLayout):
         pass
 
     def __repr__(self):
-        return '<Screen name=%r>' % self.name
+        return "<Screen name=%r>" % self.name
 
 
 class TransitionBase(EventDispatcher):
-    '''TransitionBase is used to animate 2 screens within the
+    """TransitionBase is used to animate 2 screens within the
     :class:`ScreenManager`. This class acts as a base for other
     implementations like the :class:`SlideTransition` and
     :class:`SwapTransition`.
@@ -307,26 +334,26 @@ class TransitionBase(EventDispatcher):
             Fired during the animation of the transition.
         `on_complete`: Transition object
             Fired when the transition is finished.
-    '''
+    """
 
     screen_out = ObjectProperty()
-    '''Property that contains the screen to hide.
+    """Property that contains the screen to hide.
     Automatically set by the :class:`ScreenManager`.
 
     :class:`screen_out` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     screen_in = ObjectProperty()
-    '''Property that contains the screen to show.
+    """Property that contains the screen to show.
     Automatically set by the :class:`ScreenManager`.
 
     :class:`screen_in` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
-    duration = NumericProperty(.4)
-    '''Duration in seconds of the transition.
+    duration = NumericProperty(0.4)
+    """Duration in seconds of the transition.
 
     :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .4 (= 400ms).
@@ -334,71 +361,70 @@ class TransitionBase(EventDispatcher):
     .. versionchanged:: 1.8.0
 
         Default duration has been changed from 700ms to 400ms.
-    '''
+    """
 
     manager = ObjectProperty()
-    ''':class:`ScreenManager` object, set when the screen is added to a
+    """:class:`ScreenManager` object, set when the screen is added to a
     manager.
 
     :attr:`manager` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
 
-    '''
+    """
 
     is_active = BooleanProperty(False)
-    '''Indicate whether the transition is currently active or not.
+    """Indicate whether the transition is currently active or not.
 
     :attr:`is_active` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False, read-only.
-    '''
+    """
 
     # privates
 
     _anim = ObjectProperty(allownone=True)
 
-    __events__ = ('on_progress', 'on_complete')
+    __events__ = ("on_progress", "on_complete")
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically
+        """(internal) Starts the transition. This is automatically
         called by the :class:`ScreenManager`.
-        '''
+        """
         if self.is_active:
-            raise ScreenManagerException('start() is called twice!')
+            raise ScreenManagerException("start() is called twice!")
         self.manager = manager
         self._anim = Animation(d=self.duration, s=0)
-        self._anim.bind(on_progress=self._on_progress,
-                        on_complete=self._on_complete)
+        self._anim.bind(
+            on_progress=self._on_progress, on_complete=self._on_complete
+        )
 
         self.add_screen(self.screen_in)
-        self.screen_in.transition_progress = 0.
-        self.screen_in.transition_state = 'in'
-        self.screen_out.transition_progress = 0.
-        self.screen_out.transition_state = 'out'
-        self.screen_in.dispatch('on_pre_enter')
-        self.screen_out.dispatch('on_pre_leave')
+        self.screen_in.transition_progress = 0.0
+        self.screen_in.transition_state = "in"
+        self.screen_out.transition_progress = 0.0
+        self.screen_out.transition_state = "out"
+        self.screen_in.dispatch("on_pre_enter")
+        self.screen_out.dispatch("on_pre_leave")
 
         self.is_active = True
         self._anim.start(self)
-        self.dispatch('on_progress', 0)
+        self.dispatch("on_progress", 0)
 
     def stop(self):
-        '''(internal) Stops the transition. This is automatically called by the
+        """(internal) Stops the transition. This is automatically called by the
         :class:`ScreenManager`.
-        '''
+        """
         if self._anim:
             self._anim.cancel(self)
-            self.dispatch('on_complete')
+            self.dispatch("on_complete")
             self._anim = None
         self.is_active = False
 
     def add_screen(self, screen):
-        '''(internal) Used to add a screen to the :class:`ScreenManager`.
-        '''
+        """(internal) Used to add a screen to the :class:`ScreenManager`."""
         self.manager.real_add_widget(screen)
 
     def remove_screen(self, screen):
-        '''(internal) Used to remove a screen from the :class:`ScreenManager`.
-        '''
+        """(internal) Used to remove a screen from the :class:`ScreenManager`."""
         self.manager.real_remove_widget(screen)
 
     def on_complete(self):
@@ -410,14 +436,14 @@ class TransitionBase(EventDispatcher):
     def _on_progress(self, *l):
         progress = l[-1]
         self.screen_in.transition_progress = progress
-        self.screen_out.transition_progress = 1. - progress
-        self.dispatch('on_progress', progress)
+        self.screen_out.transition_progress = 1.0 - progress
+        self.dispatch("on_progress", progress)
 
     def _on_complete(self, *l):
         self.is_active = False
-        self.dispatch('on_complete')
-        self.screen_in.dispatch('on_enter')
-        self.screen_out.dispatch('on_leave')
+        self.dispatch("on_complete")
+        self.screen_in.dispatch("on_enter")
+        self.screen_out.dispatch("on_leave")
         self._anim = None
 
 
@@ -449,19 +475,19 @@ class ShaderTransition(TransitionBase):
     '''
 
     fs = StringProperty(None)
-    '''Fragment shader to use.
+    """Fragment shader to use.
 
     :attr:`fs` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.'''
+    None."""
 
     vs = StringProperty(None)
-    '''Vertex shader to use.
+    """Vertex shader to use.
 
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.'''
+    None."""
 
     clearcolor = ColorProperty([0, 0, 0, 1])
-    '''Sets the color of Fbo ClearColor.
+    """Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
@@ -471,7 +497,7 @@ class ShaderTransition(TransitionBase):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size, with_stencilbuffer=True)
@@ -487,16 +513,18 @@ class ShaderTransition(TransitionBase):
         return fbo
 
     def on_progress(self, progress):
-        self.render_ctx['t'] = progress
+        self.render_ctx["t"] = progress
 
     def on_complete(self):
-        self.render_ctx['t'] = 1.
+        self.render_ctx["t"] = 1.0
         super(ShaderTransition, self).on_complete()
 
     def _remove_out_canvas(self, *args):
-        if (self.screen_out and
-                self.screen_out.canvas in self.manager.canvas.children and
-                self.screen_out not in self.manager.children):
+        if (
+            self.screen_out
+            and self.screen_out.canvas in self.manager.canvas.children
+            and self.screen_out not in self.manager.children
+        ):
             self.manager.canvas.remove(self.screen_out.canvas)
 
     def add_screen(self, screen):
@@ -514,19 +542,25 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
 
-        self.render_ctx = RenderContext(fs=self.fs, vs=self.vs,
-                                        use_parent_modelview=True,
-                                        use_parent_projection=True)
+        self.render_ctx = RenderContext(
+            fs=self.fs,
+            vs=self.vs,
+            use_parent_modelview=True,
+            use_parent_projection=True,
+        )
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
             x, y = self.screen_in.pos
             w, h = self.fbo_in.texture.size
-            Rectangle(size=(w, h), pos=(x, y),
-                      tex_coords=self.fbo_in.texture.tex_coords)
+            Rectangle(
+                size=(w, h),
+                pos=(x, y),
+                tex_coords=self.fbo_in.texture.tex_coords,
+            )
             Callback(remove_screen_out)
-        self.render_ctx['tex_out'] = 1
-        self.render_ctx['tex_in'] = 2
+        self.render_ctx["tex_out"] = 1
+        self.render_ctx["tex_in"] = 2
         self.manager.canvas.add(self.render_ctx)
 
     def remove_screen(self, screen):
@@ -542,11 +576,11 @@ class ShaderTransition(TransitionBase):
 
 
 class NoTransition(TransitionBase):
-    '''No transition, instantly switches to the next screen with no delay or
+    """No transition, instantly switches to the next screen with no delay or
     animation.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     duration = NumericProperty(0.0)
 
@@ -557,16 +591,16 @@ class NoTransition(TransitionBase):
 
 
 class SlideTransition(TransitionBase):
-    '''Slide Transition, can be used to show a new screen from any direction:
+    """Slide Transition, can be used to show a new screen from any direction:
     left, right, up or down.
-    '''
+    """
 
-    direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
-    '''Direction of the transition.
+    direction = OptionProperty("left", options=("left", "right", "up", "down"))
+    """Direction of the transition.
 
     :attr:`direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'left'. Can be one of 'left', 'right', 'up' or 'down'.
-    '''
+    """
 
     def on_progress(self, progression):
         a = self.screen_in
@@ -577,19 +611,19 @@ class SlideTransition(TransitionBase):
         direction = self.direction
         al = AnimationTransition.out_quad
         progression = al(progression)
-        if direction == 'left':
+        if direction == "left":
             a.y = b.y = y
             a.x = x + width * (1 - progression)
             b.x = x - width * progression
-        elif direction == 'right':
+        elif direction == "right":
             a.y = b.y = y
             b.x = x + width * progression
             a.x = x - width * (1 - progression)
-        elif direction == 'down':
+        elif direction == "down":
             a.x = b.x = x
             a.y = y + height * (1 - progression)
             b.y = y - height * progression
-        elif direction == 'up':
+        elif direction == "up":
             a.x = b.x = x
             b.y = y + height * progression
             a.y = y - height * (1 - progression)
@@ -601,7 +635,7 @@ class SlideTransition(TransitionBase):
 
 
 class CardTransition(SlideTransition):
-    '''Card transition that looks similar to Android 4.x application drawer
+    """Card transition that looks similar to Android 4.x application drawer
     interface animation.
 
     It supports 4 directions like SlideTransition: left, right, up and down,
@@ -611,10 +645,10 @@ class CardTransition(SlideTransition):
     screen is already on the position of the ScreenManager.
 
     .. versionadded:: 1.10
-    '''
+    """
 
-    mode = OptionProperty('push', options=['pop', 'push'])
-    '''Indicates if the transition should push or pop
+    mode = OptionProperty("push", options=["pop", "push"])
+    """Indicates if the transition should push or pop
     the screen on/off the ScreenManager.
 
     - 'push' means the screen slides in in the given direction
@@ -622,21 +656,21 @@ class CardTransition(SlideTransition):
 
     :attr:`mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'push'.
-    '''
+    """
 
     def start(self, manager):
-        '''(internal) Starts the transition. This is automatically
+        """(internal) Starts the transition. This is automatically
         called by the :class:`ScreenManager`.
-        '''
+        """
         super(CardTransition, self).start(manager)
         mode = self.mode
         a = self.screen_in
         b = self.screen_out
         # ensure that the correct widget is "on top"
-        if mode == 'push':
+        if mode == "push":
             manager.canvas.remove(a.canvas)
             manager.canvas.add(a.canvas)
-        elif mode == 'pop':
+        elif mode == "pop":
             manager.canvas.remove(b.canvas)
             manager.canvas.add(b.canvas)
 
@@ -650,32 +684,33 @@ class CardTransition(SlideTransition):
         mode = self.mode
         al = AnimationTransition.out_quad
         progression = al(progression)
-        if mode == 'push':
+        if mode == "push":
             b.pos = x, y
-            if direction == 'left':
+            if direction == "left":
                 a.pos = x + width * (1 - progression), y
-            elif direction == 'right':
+            elif direction == "right":
                 a.pos = x - width * (1 - progression), y
-            elif direction == 'down':
+            elif direction == "down":
                 a.pos = x, y + height * (1 - progression)
-            elif direction == 'up':
+            elif direction == "up":
                 a.pos = x, y - height * (1 - progression)
-        elif mode == 'pop':
+        elif mode == "pop":
             a.pos = x, y
-            if direction == 'left':
+            if direction == "left":
                 b.pos = x - width * progression, y
-            elif direction == 'right':
+            elif direction == "right":
                 b.pos = x + width * progression, y
-            elif direction == 'down':
+            elif direction == "down":
                 b.pos = x, y - height * progression
-            elif direction == 'up':
+            elif direction == "up":
                 b.pos = x, y + height * progression
 
 
 class SwapTransition(TransitionBase):
-    '''Swap transition that looks like iOS transition when a new window
+    """Swap transition that looks like iOS transition when a new window
     appears on the screen.
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(SwapTransition, self).__init__(**kwargs)
         self.scales = {}
@@ -683,10 +718,10 @@ class SwapTransition(TransitionBase):
     def start(self, manager):
         for screen in self.screen_in, self.screen_out:
             with screen.canvas.before:
-                PushMatrix(group='swaptransition_scale')
-                scale = Scale(group='swaptransition_scale')
+                PushMatrix(group="swaptransition_scale")
+                scale = Scale(group="swaptransition_scale")
             with screen.canvas.after:
-                PopMatrix(group='swaptransition_scale')
+                PopMatrix(group="swaptransition_scale")
 
             screen.bind(center=self.update_scale)
             self.scales[screen] = scale
@@ -703,7 +738,7 @@ class SwapTransition(TransitionBase):
         self.screen_out.pos = self.manager.pos
         for screen in self.screen_in, self.screen_out:
             for canvas in screen.canvas.before, screen.canvas.after:
-                canvas.remove_group('swaptransition_scale')
+                canvas.remove_group("swaptransition_scale")
         super(SwapTransition, self).on_complete()
 
     def on_progress(self, progression):
@@ -711,8 +746,8 @@ class SwapTransition(TransitionBase):
         b = self.screen_out
         manager = self.manager
 
-        self.scales[b].xyz = [1. - progression * 0.7 for xyz in 'xyz']
-        self.scales[a].xyz = [0.5 + progression * 0.5 for xyz in 'xyz']
+        self.scales[b].xyz = [1.0 - progression * 0.7 for xyz in "xyz"]
+        self.scales[a].xyz = [0.5 + progression * 0.5 for xyz in "xyz"]
         a.center_y = b.center_y = manager.center_y
 
         al = AnimationTransition.in_out_sine
@@ -721,8 +756,8 @@ class SwapTransition(TransitionBase):
             p2 = al(progression * 2)
             width = manager.width * 0.7
             widthb = manager.width * 0.2
-            a.x = manager.center_x + p2 * width / 2.
-            b.center_x = manager.center_x - p2 * widthb / 2.
+            a.x = manager.center_x + p2 * width / 2.0
+            b.center_x = manager.center_x - p2 * widthb / 2.0
         else:
             if self.screen_in is self.manager.children[-1]:
                 self.manager.real_remove_widget(self.screen_in)
@@ -731,14 +766,13 @@ class SwapTransition(TransitionBase):
             width = manager.width * 0.85
             widthb = manager.width * 0.2
             a.x = manager.x + width * (1 - p2)
-            b.center_x = manager.center_x - (1 - p2) * widthb / 2.
+            b.center_x = manager.center_x - (1 - p2) * widthb / 2.0
 
 
 class WipeTransition(ShaderTransition):
-    '''Wipe transition, based on a fragment Shader.
-    '''
+    """Wipe transition, based on a fragment Shader."""
 
-    WIPE_TRANSITION_FS = '''$HEADER$
+    WIPE_TRANSITION_FS = """$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
@@ -749,15 +783,14 @@ class WipeTransition(ShaderTransition):
         gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t),
             0.0, 1.0));
     }
-    '''
+    """
     fs = StringProperty(WIPE_TRANSITION_FS)
 
 
 class FadeTransition(ShaderTransition):
-    '''Fade transition, based on a fragment Shader.
-    '''
+    """Fade transition, based on a fragment Shader."""
 
-    FADE_TRANSITION_FS = '''$HEADER$
+    FADE_TRANSITION_FS = """$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
@@ -768,29 +801,29 @@ class FadeTransition(ShaderTransition):
         vec4 frag_col = vec4(t * cin) + vec4((1.0 - t) * cout);
         gl_FragColor = frag_col;
     }
-    '''
+    """
     fs = StringProperty(FADE_TRANSITION_FS)
 
 
 class FallOutTransition(ShaderTransition):
-    '''Transition where the new screen 'falls' from the screen centre,
+    """Transition where the new screen 'falls' from the screen centre,
     becoming smaller and more transparent until it disappears, and
     revealing the new screen behind it. Mimics the popular/standard
     Android transition.
 
     .. versionadded:: 1.8.0
 
-    '''
+    """
 
     duration = NumericProperty(0.15)
-    '''Duration in seconds of the transition, replacing the default of
+    """Duration in seconds of the transition, replacing the default of
     :class:`TransitionBase`.
 
     :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .15 (= 150ms).
-    '''
+    """
 
-    FALLOUT_TRANSITION_FS = '''$HEADER$
+    FALLOUT_TRANSITION_FS = """$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
@@ -824,28 +857,28 @@ class FallOutTransition(ShaderTransition):
 
         gl_FragColor = frag_col;
     }
-    '''
+    """
 
     fs = StringProperty(FALLOUT_TRANSITION_FS)
 
 
 class RiseInTransition(ShaderTransition):
-    '''Transition where the new screen rises from the screen centre,
+    """Transition where the new screen rises from the screen centre,
     becoming larger and changing from transparent to opaque until it
     fills the screen. Mimics the popular/standard Android transition.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     duration = NumericProperty(0.2)
-    '''Duration in seconds of the transition, replacing the default of
+    """Duration in seconds of the transition, replacing the default of
     :class:`TransitionBase`.
 
     :class:`duration` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .2 (= 200ms).
-    '''
+    """
 
-    RISEIN_TRANSITION_FS = '''$HEADER$
+    RISEIN_TRANSITION_FS = """$HEADER$
     uniform float t;
     uniform sampler2D tex_in;
     uniform sampler2D tex_out;
@@ -879,20 +912,20 @@ class RiseInTransition(ShaderTransition):
 
         gl_FragColor = frag_col;
     }
-    '''
+    """
 
     fs = StringProperty(RISEIN_TRANSITION_FS)
 
 
 class ScreenManager(FloatLayout):
-    '''Screen manager. This is the main class that will control your
+    """Screen manager. This is the main class that will control your
     :class:`Screen` stack and memory.
 
     By default, the manager will show only one screen at a time.
-    '''
+    """
 
     current = StringProperty(None, allownone=True)
-    '''
+    """
     Name of the screen currently shown, or the screen to show.
 
     ::
@@ -909,10 +942,10 @@ class ScreenManager(FloatLayout):
 
     :attr:`current` is a :class:`~kivy.properties.StringProperty` and defaults
     to None.
-    '''
+    """
 
     transition = ObjectProperty(baseclass=TransitionBase)
-    '''Transition object to use for animating the transition from the current
+    """Transition object to use for animating the transition from the current
     screen to the next one being shown.
 
     For example, if you want to use a :class:`WipeTransition` between
@@ -936,60 +969,63 @@ class ScreenManager(FloatLayout):
 
         Default transition has been changed from :class:`SwapTransition` to
         :class:`SlideTransition`.
-    '''
+    """
 
     screens = ListProperty()
-    '''List of all the :class:`Screen` widgets added. You should not change
+    """List of all the :class:`Screen` widgets added. You should not change
     this list manually. Use the
     :meth:`add_widget <kivy.uix.widget.Widget.add_widget>` method instead.
 
     :attr:`screens` is a :class:`~kivy.properties.ListProperty` and defaults to
     [], read-only.
-    '''
+    """
 
     current_screen = ObjectProperty(None, allownone=True)
-    '''Contains the currently displayed screen. You must not change this
+    """Contains the currently displayed screen. You must not change this
     property manually, use :attr:`current` instead.
 
     :attr:`current_screen` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
-    '''
+    """
 
     def _get_screen_names(self):
         return [s.name for s in self.screens]
 
-    screen_names = AliasProperty(_get_screen_names, bind=('screens',))
-    '''List of the names of all the :class:`Screen` widgets added. The list
+    screen_names = AliasProperty(_get_screen_names, bind=("screens",))
+    """List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
     :attr:`screens_names` is an :class:`~kivy.properties.AliasProperty` and
     is read-only. It is updated if the screen list changes or the name
     of a screen changes.
-    '''
+    """
 
     def __init__(self, **kwargs):
-        if 'transition' not in kwargs:
+        if "transition" not in kwargs:
             self.transition = SlideTransition()
         super(ScreenManager, self).__init__(**kwargs)
-        self.fbind('pos', self._update_pos)
+        self.fbind("pos", self._update_pos)
 
     def _screen_name_changed(self, screen, name):
-        self.property('screen_names').dispatch(self)
+        self.property("screen_names").dispatch(self)
         if screen == self.current_screen:
             self.current = name
 
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager accepts only Screen widget.')
+                "ScreenManager accepts only Screen widget."
+            )
         if screen.manager:
             if screen.manager is self:
                 raise ScreenManagerException(
-                    'Screen already managed by this ScreenManager (are you '
-                    'calling `switch_to` when you should be setting '
-                    '`current`?)')
+                    "Screen already managed by this ScreenManager (are you "
+                    "calling `switch_to` when you should be setting "
+                    "`current`?)"
+                )
             raise ScreenManagerException(
-                'Screen already managed by another ScreenManager.')
+                "Screen already managed by another ScreenManager."
+            )
         screen.manager = self
         screen.bind(name=self._screen_name_changed)
         self.screens.append(screen)
@@ -1000,7 +1036,8 @@ class ScreenManager(FloatLayout):
         screen = l[0]
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager uses remove_widget only for removing Screens.')
+                "ScreenManager uses remove_widget only for removing Screens."
+            )
 
         if screen not in self.screens:
             return
@@ -1058,13 +1095,13 @@ class ScreenManager(FloatLayout):
             self.real_add_widget(screen)
             screen.pos = self.pos
             self.do_layout()
-            screen.dispatch('on_pre_enter')
-            screen.dispatch('on_enter')
+            screen.dispatch("on_pre_enter")
+            screen.dispatch("on_enter")
 
     def get_screen(self, name):
-        '''Return the screen widget associated with the name or raise a
+        """Return the screen widget associated with the name or raise a
         :class:`ScreenManagerException` if not found.
-        '''
+        """
         matches = [s for s in self.screens if s.name == name]
         num_matches = len(matches)
         if num_matches == 0:
@@ -1074,15 +1111,14 @@ class ScreenManager(FloatLayout):
         return matches[0]
 
     def has_screen(self, name):
-        '''Return True if a screen with the `name` has been found.
+        """Return True if a screen with the `name` has been found.
 
         .. versionadded:: 1.6.0
-        '''
+        """
         return bool([s for s in self.screens if s.name == name])
 
     def __next__(self):
-        '''Py2K backwards compatibility without six or other lib.
-        '''
+        """Py2K backwards compatibility without six or other lib."""
         screens = self.screens
         if not screens:
             return
@@ -1094,12 +1130,11 @@ class ScreenManager(FloatLayout):
             return
 
     def next(self):
-        '''Return the name of the next screen from the screen list.'''
+        """Return the name of the next screen from the screen list."""
         return self.__next__()
 
     def previous(self):
-        '''Return the name of the previous screen from the screen list.
-        '''
+        """Return the name of the previous screen from the screen list."""
         screens = self.screens
         if not screens:
             return
@@ -1111,7 +1146,7 @@ class ScreenManager(FloatLayout):
             return
 
     def switch_to(self, screen, **options):
-        '''Add a new or existing screen to the ScreenManager and switch to it.
+        """Add a new or existing screen to the ScreenManager and switch to it.
         The previous screen will be "switched away" from. `options` are the
         :attr:`transition` options that will be changed before the animation
         happens.
@@ -1134,12 +1169,13 @@ class ScreenManager(FloatLayout):
         current screen.
 
         .. versionadded: 1.8.0
-        '''
-        assert(screen is not None)
+        """
+        assert screen is not None
 
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
-                'ScreenManager accepts only Screen widget.')
+                "ScreenManager accepts only Screen widget."
+            )
 
         # stop any transition that might be happening already
         self.transition.stop()
@@ -1172,6 +1208,7 @@ class ScreenManager(FloatLayout):
                 self.remove_widget(old_current)
                 self.transition = old_transition
             transition.unbind(on_complete=remove_old_screen)
+
         self.transition.bind(on_complete=remove_old_screen)
 
         self.current = screen.name
@@ -1179,16 +1216,17 @@ class ScreenManager(FloatLayout):
     def _generate_screen_name(self):
         i = 0
         while True:
-            name = '_screen{}'.format(i)
+            name = "_screen{}".format(i)
             if not self.has_screen(name):
                 return name
             i += 1
 
     def _update_pos(self, instance, value):
         for child in self.children:
-            if self.transition.is_active and \
-                (child == self.transition.screen_in or
-                 child == self.transition.screen_out):
+            if self.transition.is_active and (
+                child == self.transition.screen_in
+                or child == self.transition.screen_out
+            ):
                 continue
             child.pos = value
 
@@ -1208,10 +1246,12 @@ class ScreenManager(FloatLayout):
         return super(ScreenManager, self).on_touch_up(touch)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.app import App
     from kivy.uix.button import Button
-    Builder.load_string('''
+
+    Builder.load_string(
+        """
 <Screen>:
     canvas:
         Color:
@@ -1229,10 +1269,10 @@ if __name__ == '__main__':
             text: 'Hello world'
         Button:
             text: 'Hello world'
-''')
+"""
+    )
 
     class TestApp(App):
-
         def change_view(self, *l):
             # d = ('left', 'up', 'down', 'right')
             # di = d.index(self.sm.transition.direction)
@@ -1240,14 +1280,14 @@ if __name__ == '__main__':
             self.sm.current = next(self.sm)
 
         def remove_screen(self, *l):
-            self.sm.remove_widget(self.sm.get_screen('test1'))
+            self.sm.remove_widget(self.sm.get_screen("test1"))
 
         def build(self):
             root = FloatLayout()
             self.sm = sm = ScreenManager(transition=SwapTransition())
 
-            sm.add_widget(Screen(name='test1'))
-            sm.add_widget(Screen(name='test2'))
+            sm.add_widget(Screen(name="test1"))
+            sm.add_widget(Screen(name="test2"))
 
             btn = Button(size_hint=(None, None))
             btn.bind(on_release=self.change_view)

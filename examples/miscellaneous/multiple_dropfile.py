@@ -19,7 +19,7 @@ class DropFile(Button):
         # if it's dropped in the widget's area
         if self.collide_point(*Window.mouse_pos):
             # on_dropfile's filename is bytes (py3)
-            self.text = filename.decode('utf-8')
+            self.text = filename.decode("utf-8")
 
 
 class DropApp(App):
@@ -32,9 +32,9 @@ class DropApp(App):
         Window.bind(on_dropfile=self.handledrops)
 
         box = BoxLayout()
-        dropleft = DropFile(text='left')
+        dropleft = DropFile(text="left")
         box.add_widget(dropleft)
-        dropright = DropFile(text='right')
+        dropright = DropFile(text="right")
         box.add_widget(dropright)
         return box
 

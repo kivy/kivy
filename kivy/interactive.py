@@ -1,4 +1,4 @@
-'''
+"""
 Interactive launcher
 ====================
 
@@ -155,9 +155,9 @@ Could be re-written with a context-manager style i.e. ::
 
 Any use cases besides compacting code?
 
-'''
+"""
 
-__all__ = ('SafeMembrane', 'InteractiveLauncher')
+__all__ = ("SafeMembrane", "InteractiveLauncher")
 
 import inspect
 from threading import Thread, Event
@@ -181,7 +181,7 @@ def unwrap(ob):
 
 
 class SafeMembrane(object):
-    '''
+    """
     This help is for a proxy object. Did you want help on the proxy's referent
     instead? Try using help(<instance>._ref)
 
@@ -189,9 +189,9 @@ class SafeMembrane(object):
     thread-safe objects
     and makes thread-safe method calls, preventing thread-unsafe objects
     from leaking into the user's environment.
-    '''
+    """
 
-    __slots__ = ('_ref', 'safe', 'confirmed')
+    __slots__ = ("_ref", "safe", "confirmed")
 
     def __init__(self, ob, *args, **kwargs):
         self.confirmed = EventLoop.confirmed
@@ -230,20 +230,23 @@ class SafeMembrane(object):
             return SafeMembrane(r)
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
-        if attr.startswith('__') or attr == '_ref':
-            subject = oga(self, '_ref')
-            if attr == '_ref':
+        if attr.startswith("__") or attr == "_ref":
+            subject = oga(self, "_ref")
+            if attr == "_ref":
                 return subject
             return getattr(subject, attr)
         return oga(self, attr)
 
     def __getattr__(self, attr, oga=object.__getattribute__):
-        r = getattr(oga(self, '_ref'), attr)
+        r = getattr(oga(self, "_ref"), attr)
         return SafeMembrane(r)
 
     def __setattr__(self, attr, val, osa=object.__setattr__):
-        if (attr == '_ref' or
-                hasattr(type(self), attr) and not attr.startswith('__')):
+        if (
+            attr == "_ref"
+            or hasattr(type(self), attr)
+            and not attr.startswith("__")
+        ):
             osa(self, attr, val)
         else:
             self.safeIn()
@@ -297,12 +300,12 @@ class SafeMembrane(object):
 
 
 class InteractiveLauncher(SafeMembrane):
-    '''
+    """
     Proxy to an application instance that launches it in a thread and
     then returns and acts as a proxy to the application in the thread.
-    '''
+    """
 
-    __slots__ = ('_ref', 'safe', 'confirmed', 'thread', 'app')
+    __slots__ = ("_ref", "safe", "confirmed", "thread", "app")
 
     @deprecated
     def __init__(self, app=None, *args, **kwargs):

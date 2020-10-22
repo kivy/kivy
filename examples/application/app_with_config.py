@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import ConfigParserProperty
 
-KV = '''
+KV = """
 FloatLayout:
     BoxLayout:
         size_hint: .5, .5
@@ -19,31 +19,19 @@ FloatLayout:
             max: 100
             value: app.number
             on_value: app.number = self.value
-'''
+"""
 
 
 class ConfigApp(App):
-    number = ConfigParserProperty(
-        0, 'general', 'number',
-        'app', val_type=float
-    )
-    text = ConfigParserProperty(
-        '', 'general', 'text',
-        'app', val_type=str
-    )
+    number = ConfigParserProperty(0, "general", "number", "app", val_type=float)
+    text = ConfigParserProperty("", "general", "text", "app", val_type=str)
 
     def build_config(self, config):
-        config.setdefaults(
-            'general',
-            {
-                'number': 0,
-                'text': 'test'
-            }
-        )
+        config.setdefaults("general", {"number": 0, "text": "test"})
 
     def build(self):
         return Builder.load_string(KV)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ConfigApp().run()

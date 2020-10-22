@@ -1,4 +1,4 @@
-'''
+"""
 Video
 =====
 
@@ -16,9 +16,9 @@ Core class for reading video files and managing the video
 .. note::
 
     Recording is not supported.
-'''
+"""
 
-__all__ = ('VideoBase', 'Video')
+__all__ = ("VideoBase", "Video")
 
 from kivy.clock import Clock
 from kivy.core import core_select_lib
@@ -28,7 +28,7 @@ from kivy.compat import PY2
 
 
 class VideoBase(EventDispatcher):
-    '''VideoBase, a class used to implement a video reader.
+    """VideoBase, a class used to implement a video reader.
 
     :Parameters:
         `filename`: str
@@ -53,18 +53,27 @@ class VideoBase(EventDispatcher):
             Fired when the video is loaded and the texture is available.
         `on_frame`
             Fired when a new frame is written to the texture.
-    '''
+    """
 
-    __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
-                 '_volume', 'eos', '_state', '_async', '_autoplay')
+    __slots__ = (
+        "_wantplay",
+        "_buffer",
+        "_filename",
+        "_texture",
+        "_volume",
+        "eos",
+        "_state",
+        "_async",
+        "_autoplay",
+    )
 
-    __events__ = ('on_eos', 'on_load', 'on_frame')
+    __events__ = ("on_eos", "on_load", "on_frame")
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('filename', None)
-        kwargs.setdefault('eos', 'stop')
-        kwargs.setdefault('async', True)
-        kwargs.setdefault('autoplay', False)
+        kwargs.setdefault("filename", None)
+        kwargs.setdefault("eos", "stop")
+        kwargs.setdefault("async", True)
+        kwargs.setdefault("autoplay", False)
 
         super(VideoBase, self).__init__()
 
@@ -72,18 +81,18 @@ class VideoBase(EventDispatcher):
         self._buffer = None
         self._filename = None
         self._texture = None
-        self._volume = 1.
-        self._state = ''
+        self._volume = 1.0
+        self._state = ""
 
-        self._autoplay = kwargs.get('autoplay')
-        self._async = kwargs.get('async')
-        self.eos = kwargs.get('eos')
-        if self.eos == 'pause':
+        self._autoplay = kwargs.get("autoplay")
+        self._async = kwargs.get("async")
+        self.eos = kwargs.get("eos")
+        if self.eos == "pause":
             Logger.warning("'pause' is deprecated. Use 'stop' instead.")
-            self.eos = 'stop'
-        self.filename = kwargs.get('filename')
+            self.eos = "stop"
+        self.filename = kwargs.get("filename")
 
-        Clock.schedule_interval(self._update, 1 / 30.)
+        Clock.schedule_interval(self._update, 1 / 30.0)
 
         if self._autoplay:
             self.play()
@@ -112,9 +121,11 @@ class VideoBase(EventDispatcher):
             return
         self.load()
 
-    filename = property(lambda self: self._get_filename(),
-                        lambda self, x: self._set_filename(x),
-                        doc='Get/set the filename/uri of the current video')
+    filename = property(
+        lambda self: self._get_filename(),
+        lambda self, x: self._set_filename(x),
+        doc="Get/set the filename/uri of the current video",
+    )
 
     def _get_position(self):
         return 0
@@ -122,9 +133,11 @@ class VideoBase(EventDispatcher):
     def _set_position(self, pos):
         self.seek(pos)
 
-    position = property(lambda self: self._get_position(),
-                        lambda self, x: self._set_position(x),
-                        doc='Get/set the position in the video (in seconds)')
+    position = property(
+        lambda self: self._get_position(),
+        lambda self, x: self._set_position(x),
+        doc="Get/set the position in the video (in seconds)",
+    )
 
     def _get_volume(self):
         return self._volume
@@ -132,88 +145,95 @@ class VideoBase(EventDispatcher):
     def _set_volume(self, volume):
         self._volume = volume
 
-    volume = property(lambda self: self._get_volume(),
-                      lambda self, x: self._set_volume(x),
-                      doc='Get/set the volume in the video (1.0 = 100%)')
+    volume = property(
+        lambda self: self._get_volume(),
+        lambda self, x: self._set_volume(x),
+        doc="Get/set the volume in the video (1.0 = 100%)",
+    )
 
     def _get_duration(self):
         return 0
 
-    duration = property(lambda self: self._get_duration(),
-                        doc='Get the video duration (in seconds)')
+    duration = property(
+        lambda self: self._get_duration(),
+        doc="Get the video duration (in seconds)",
+    )
 
     def _get_texture(self):
         return self._texture
 
-    texture = property(lambda self: self._get_texture(),
-                       doc='Get the video texture')
+    texture = property(
+        lambda self: self._get_texture(), doc="Get the video texture"
+    )
 
     def _get_state(self):
         return self._state
 
-    state = property(lambda self: self._get_state(),
-                     doc='Get the video playing status')
+    state = property(
+        lambda self: self._get_state(), doc="Get the video playing status"
+    )
 
     def _do_eos(self, *args):
-        '''
+        """
         .. versionchanged:: 1.4.0
             Now dispatches the `on_eos` event.
-        '''
-        if self.eos == 'pause':
+        """
+        if self.eos == "pause":
             self.pause()
-        elif self.eos == 'stop':
+        elif self.eos == "stop":
             self.stop()
-        elif self.eos == 'loop':
+        elif self.eos == "loop":
             self.position = 0
             self.play()
 
-        self.dispatch('on_eos')
+        self.dispatch("on_eos")
 
     def _update(self, dt):
-        '''Update the video content to texture.
-        '''
+        """Update the video content to texture."""
         pass
 
     def seek(self, percent, precise=True):
-        '''Move to position as percentage (strictly, a proportion from
-            0 - 1) of the duration'''
+        """Move to position as percentage (strictly, a proportion from
+        0 - 1) of the duration"""
         pass
 
     def stop(self):
-        '''Stop the video playing'''
-        self._state = ''
+        """Stop the video playing"""
+        self._state = ""
 
     def pause(self):
-        '''Pause the video
+        """Pause the video
 
         .. versionadded:: 1.4.0
-        '''
-        self._state = 'paused'
+        """
+        self._state = "paused"
 
     def play(self):
-        '''Play the video'''
-        self._state = 'playing'
+        """Play the video"""
+        self._state = "playing"
 
     def load(self):
-        '''Load the video from the current filename'''
+        """Load the video from the current filename"""
         pass
 
     def unload(self):
-        '''Unload the actual video'''
-        self._state = ''
+        """Unload the actual video"""
+        self._state = ""
 
 
 # Load the appropriate provider
 video_providers = []
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
-    video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
+
+    video_providers += [("gstplayer", "video_gstplayer", "VideoGstplayer")]
 except ImportError:
     pass
 video_providers += [
-    ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
-    ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
-    ('null', 'video_null', 'VideoNull')]
+    ("ffmpeg", "video_ffmpeg", "VideoFFMpeg"),
+    ("ffpyplayer", "video_ffpyplayer", "VideoFFPy"),
+    ("null", "video_null", "VideoNull"),
+]
 
 
-Video = core_select_lib('video', video_providers)
+Video = core_select_lib("video", video_providers)

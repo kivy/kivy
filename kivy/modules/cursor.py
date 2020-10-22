@@ -1,4 +1,4 @@
-'''
+"""
 Cursor
 ======
 
@@ -29,9 +29,9 @@ this::
     cursor = texture=mypointer.png,size=20x20,offset=20x20
 
 .. versionadded:: 1.10.0
-'''
+"""
 
-__all__ = ('start', 'stop')
+__all__ = ("start", "stop")
 
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
@@ -42,11 +42,11 @@ from functools import partial
 
 
 def _mouse_move(texture, size, offset, win, pos, *args):
-    if hasattr(win, '_cursor'):
+    if hasattr(win, "_cursor"):
         c = win._cursor
     else:
         with win.canvas.after:
-            Color(1, 1, 1, 1, mode='rgba')
+            Color(1, 1, 1, 1, mode="rgba")
             win._cursor = c = Rectangle(texture=texture, size=size)
 
     c.pos = pos[0] + offset[0], pos[1] - size[1] + offset[1]
@@ -54,21 +54,23 @@ def _mouse_move(texture, size, offset, win, pos, *args):
 
 def start(win, ctx):
     cursor_texture = Image(
-        ctx.config.get('texture', join(kivy_data_dir, 'images', 'cursor.png'))
+        ctx.config.get("texture", join(kivy_data_dir, "images", "cursor.png"))
     ).texture
-    cursor_size = ctx.config.get('size')
+    cursor_size = ctx.config.get("size")
     if isinstance(cursor_size, string_types):
-        cursor_size = [int(x) for x in cursor_size.split('x')]
+        cursor_size = [int(x) for x in cursor_size.split("x")]
     elif not cursor_size:
         cursor_size = cursor_texture.size
 
-    cursor_offset = ctx.config.get('offset', (0, 0))
+    cursor_offset = ctx.config.get("offset", (0, 0))
     if isinstance(cursor_offset, string_types):
-        cursor_offset = [int(x) for x in cursor_offset.split('x')]
+        cursor_offset = [int(x) for x in cursor_offset.split("x")]
 
     win.bind(
         mouse_pos=partial(
-            _mouse_move, cursor_texture, cursor_size, cursor_offset))
+            _mouse_move, cursor_texture, cursor_size, cursor_offset
+        )
+    )
 
 
 def stop(win, ctx):

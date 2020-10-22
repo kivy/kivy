@@ -516,4 +516,3 @@ void avf_camera_get_image(camera_t camera, int *width, int *height, int *rowsize
     *rowsize = frame->rowsize;
     *data = frame->data;
 }
-

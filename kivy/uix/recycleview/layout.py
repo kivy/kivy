@@ -1,4 +1,4 @@
-'''
+"""
 RecycleView Layouts
 ===================
 
@@ -10,13 +10,15 @@ The Layouts handle the presentation of views for the
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
-'''
+"""
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.behaviors import CompoundSelectionBehavior
-from kivy.uix.recycleview.views import RecycleDataViewBehavior, \
-    _view_base_cache
+from kivy.uix.recycleview.views import (
+    RecycleDataViewBehavior,
+    _view_base_cache,
+)
 
 
 class LayoutChangeException(Exception):
@@ -24,7 +26,7 @@ class LayoutChangeException(Exception):
 
 
 class LayoutSelectionBehavior(CompoundSelectionBehavior):
-    '''The :class:`LayoutSelectionBehavior` can be combined with
+    """The :class:`LayoutSelectionBehavior` can be combined with
     :class:`RecycleLayoutManagerBehavior` to allow its derived classes
     selection behaviors similarly to how
     :class:`~kivy.uix.behaviors.compoundselection.CompoundSelectionBehavior`
@@ -43,10 +45,10 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
     :meth:`apply_selection`.
 
 
-    '''
+    """
 
     key_selection = StringProperty(None, allownone=True)
-    '''The key used to check whether a view of a data item can be selected
+    """The key used to check whether a view of a data item can be selected
     with touch or the keyboard.
 
     :attr:`key_selection` is the key in data, which if present and ``True``
@@ -58,7 +60,7 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
     .. note::
         All data items can be selected directly using :meth:`select_node` or
         :meth:`deselect_node`, even if :attr:`key_selection` is False.
-    '''
+    """
 
     _selectable_nodes = []
     _nodes_map = {}
@@ -75,11 +77,13 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
             nodes = self._selectable_nodes = []
         else:
             nodes = self._selectable_nodes = [
-                i for i, d in enumerate(data) if d.get(key)]
+                i for i, d in enumerate(data) if d.get(key)
+            ]
 
         self._nodes_map = {v: k for k, v in enumerate(nodes)}
         return super(LayoutSelectionBehavior, self).compute_sizes_from_data(
-            data, flags)
+            data, flags
+        )
 
     def get_selectable_nodes(self):
         # the indices of the data is used as the nodes
@@ -91,7 +95,8 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
 
     def goto_node(self, key, last_node, last_node_idx):
         node, idx = super(LayoutSelectionBehavior, self).goto_node(
-            key, last_node, last_node_idx)
+            key, last_node, last_node_idx
+        )
         if node is not last_node:
             self.goto_view(node)
         return node, idx
@@ -109,7 +114,7 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
                 self.apply_selection(node, view, False)
 
     def apply_selection(self, index, view, is_selected):
-        '''Applies the selection to the view. This is called internally when
+        """Applies the selection to the view. This is called internally when
         a view is displayed and it needs to be shown as selected or as not
         selected.
 
@@ -133,18 +138,20 @@ apply_selection` method will be called every time the view needs to refresh
                 The widget that is the view of this data item.
             `is_selected`: bool
                 Whether the item is selected.
-        '''
+        """
         viewclass = view.__class__
         if viewclass not in _view_base_cache:
-            _view_base_cache[viewclass] = isinstance(view,
-                                                     RecycleDataViewBehavior)
+            _view_base_cache[viewclass] = isinstance(
+                view, RecycleDataViewBehavior
+            )
 
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)
 
     def refresh_view_layout(self, index, layout, view, viewport):
         super(LayoutSelectionBehavior, self).refresh_view_layout(
-            index, layout, view, viewport)
+            index, layout, view, viewport
+        )
         self.apply_selection(index, view, index in self.selected_nodes)
 
 
@@ -156,11 +163,11 @@ class RecycleLayoutManagerBehavior(object):
     """
 
     viewclass = ObjectProperty(None)
-    '''See :attr:`RecyclerView.viewclass`.
-    '''
+    """See :attr:`RecyclerView.viewclass`.
+    """
     key_viewclass = StringProperty(None)
-    '''See :attr:`RecyclerView.key_viewclass`.
-    '''
+    """See :attr:`RecyclerView.key_viewclass`.
+    """
 
     recycleview = ObjectProperty(None, allownone=True)
 
@@ -172,22 +179,22 @@ class RecycleLayoutManagerBehavior(object):
             fbind = self.fbind
             # can be made more selective update than refresh_from_data which
             # causes a full update. But this likely affects most of the data.
-            fbind('viewclass', rv.refresh_from_data)
-            fbind('key_viewclass', rv.refresh_from_data)
-            fbind('viewclass', rv._dispatch_prop_on_source, 'viewclass')
-            fbind('key_viewclass', rv._dispatch_prop_on_source,
-                  'key_viewclass')
+            fbind("viewclass", rv.refresh_from_data)
+            fbind("key_viewclass", rv.refresh_from_data)
+            fbind("viewclass", rv._dispatch_prop_on_source, "viewclass")
+            fbind("key_viewclass", rv._dispatch_prop_on_source, "key_viewclass")
 
     def detach_recycleview(self):
         self.clear_layout()
         rv = self.recycleview
         if rv:
             funbind = self.funbind
-            funbind('viewclass', rv.refresh_from_data)
-            funbind('key_viewclass', rv.refresh_from_data)
-            funbind('viewclass', rv._dispatch_prop_on_source, 'viewclass')
-            funbind('key_viewclass', rv._dispatch_prop_on_source,
-                  'key_viewclass')
+            funbind("viewclass", rv.refresh_from_data)
+            funbind("key_viewclass", rv.refresh_from_data)
+            funbind("viewclass", rv._dispatch_prop_on_source, "viewclass")
+            funbind(
+                "key_viewclass", rv._dispatch_prop_on_source, "key_viewclass"
+            )
         self.recycleview = None
 
     def compute_sizes_from_data(self, data, flags):
@@ -197,21 +204,20 @@ class RecycleLayoutManagerBehavior(object):
         pass
 
     def compute_visible_views(self, data, viewport):
-        '''`viewport` is in coordinates of the layout manager.
-        '''
+        """`viewport` is in coordinates of the layout manager."""
         pass
 
     def set_visible_views(self, indices, data, viewport):
-        '''`viewport` is in coordinates of the layout manager.
-        '''
+        """`viewport` is in coordinates of the layout manager."""
         pass
 
     def refresh_view_layout(self, index, layout, view, viewport):
-        '''`See :meth:`~kivy.uix.recycleview.views.RecycleDataAdapter.\
+        """`See :meth:`~kivy.uix.recycleview.views.RecycleDataAdapter.\
 refresh_view_layout`.
-        '''
+        """
         self.recycleview.view_adapter.refresh_view_layout(
-            index, layout, view, viewport)
+            index, layout, view, viewport
+        )
 
     def get_view_index_at(self, pos):
         """Return the view `index` on which position, `pos`, falls.
@@ -242,9 +248,9 @@ refresh_view_layout`.
                 adapter.invalidate()
 
     def goto_view(self, index):
-        '''Moves the views so that the view corresponding to `index` is
+        """Moves the views so that the view corresponding to `index` is
         visible.
-        '''
+        """
         pass
 
     def on_viewclass(self, instance, value):

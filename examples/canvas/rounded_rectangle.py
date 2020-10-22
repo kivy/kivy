@@ -4,9 +4,9 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, Ellipse, Rectangle, RoundedRectangle
 from kivy.lang import Builder
 
-TEXTURE = 'kiwi.jpg'
-YELLOW = (1, .7, 0)
-ORANGE = (1, .45, 0)
+TEXTURE = "kiwi.jpg"
+YELLOW = (1, 0.7, 0)
+ORANGE = (1, 0.45, 0)
 RED = (1, 0, 0)
 WHITE = (1, 1, 1)
 
@@ -23,7 +23,8 @@ class RoundedRectangleWidget(Widget):
 
             # Textured:
             RoundedRectangle(
-                pos=(175, 400), radius=[0, 50, 0, 50], source=TEXTURE)
+                pos=(175, 400), radius=[0, 50, 0, 50], source=TEXTURE
+            )
 
             # Colored:
             Color(*YELLOW)
@@ -32,7 +33,8 @@ class RoundedRectangleWidget(Widget):
             # Textured + Colored
             # Color(.3,.3,.3, 1)
             RoundedRectangle(
-                pos=(425, 400), radius=[0, 50, 0, 50], source=TEXTURE)
+                pos=(425, 400), radius=[0, 50, 0, 50], source=TEXTURE
+            )
 
             # Possible radius arguments:
             # 1) Same value for each corner
@@ -52,8 +54,8 @@ class RoundedRectangleWidget(Widget):
 
             # With different radiuses:
             RoundedRectangle(
-                pos=(425, 275),
-                radius=[(10, 20), (20, 30), (30, 40), (40, 50)])
+                pos=(425, 275), radius=[(10, 20), (20, 30), (30, 40), (40, 50)]
+            )
 
             # Default ellipses
             Color(*WHITE)
@@ -87,7 +89,8 @@ class RoundedRectangleWidget(Widget):
                 pos=(50, 25),
                 radius=[40],
                 segments=[1, 1, 10, 10],
-                size=(125, 100))
+                size=(125, 100),
+            )
 
             # If radius dimension is 0, then the corner will be sharp
             # (90 degrees). It is also possible to mix tuple values
@@ -95,21 +98,23 @@ class RoundedRectangleWidget(Widget):
             Color(*ORANGE)
             RoundedRectangle(
                 pos=(200, 25),
-                radius=[(40, 20),
-                45.5, 45.5, 0],
-                segments=[2, 3, 3, 1], size=(125, 100))
+                radius=[(40, 20), 45.5, 45.5, 0],
+                segments=[2, 3, 3, 1],
+                size=(125, 100),
+            )
 
             Color(*RED)
             RoundedRectangle(
                 pos=(350, 25),
                 radius=[(40, 40), (40, 40), (20, 20), (20, 20)],
                 segments=[2, 3, 3, 2],
-                size=(150, 100))
+                size=(150, 100),
+            )
 
 
 class DrawRoundedRectanglesApp(App):
     def build(self):
-        kv = '''
+        kv = """
 Widget:
     canvas:
         Color:
@@ -141,7 +146,7 @@ Widget:
             segments: [1, 2, 1, 3]
             radius: [30, 40, 30, 40]
 
-'''
+"""
         widget = RoundedRectangleWidget()
         widget.prepare()
         kvrect = Builder.load_string(kv)
@@ -149,5 +154,5 @@ Widget:
         return widget
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     DrawRoundedRectanglesApp().run()

@@ -1,4 +1,4 @@
-'''
+"""
 Grid Layout
 ===========
 
@@ -85,15 +85,23 @@ Next, let's fix the row height to a specific size::
 
 .. image:: images/gridlayout_3.jpg
 
-'''
+"""
 
-__all__ = ('GridLayout', 'GridLayoutException')
+__all__ = ("GridLayout", "GridLayoutException")
 
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-    BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
-    ObjectProperty, StringProperty, OptionProperty
+from kivy.properties import (
+    NumericProperty,
+    BooleanProperty,
+    DictProperty,
+    BoundedNumericProperty,
+    ReferenceListProperty,
+    VariableListProperty,
+    ObjectProperty,
+    StringProperty,
+    OptionProperty,
+)
 from math import ceil
 from itertools import accumulate, product, chain, islice
 from operator import sub
@@ -112,26 +120,25 @@ def nmin(*args):
 
 
 class GridLayoutException(Exception):
-    '''Exception for errors if the grid layout manipulation fails.
-    '''
+    """Exception for errors if the grid layout manipulation fails."""
+
     pass
 
 
 class GridLayout(Layout):
-    '''Grid layout class. See module documentation for more information.
-    '''
+    """Grid layout class. See module documentation for more information."""
 
     spacing = VariableListProperty([0, 0], length=2)
-    '''Spacing between children: [spacing_horizontal, spacing_vertical].
+    """Spacing between children: [spacing_horizontal, spacing_vertical].
 
     spacing also accepts a one argument form [spacing].
 
     :attr:`spacing` is a
     :class:`~kivy.properties.VariableListProperty` and defaults to [0, 0].
-    '''
+    """
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the layout box and its children: [padding_left,
+    """Padding between the layout box and its children: [padding_left,
     padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
@@ -142,10 +149,10 @@ class GridLayout(Layout):
 
     :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
     defaults to [0, 0, 0, 0].
-    '''
+    """
 
     cols = BoundedNumericProperty(None, min=0, allownone=True)
-    '''Number of columns in the grid.
+    """Number of columns in the grid.
 
     .. versionchanged:: 1.0.8
         Changed from a NumericProperty to BoundedNumericProperty. You can no
@@ -153,10 +160,10 @@ class GridLayout(Layout):
 
     :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
     None.
-    '''
+    """
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
-    '''Number of rows in the grid.
+    """Number of rows in the grid.
 
     .. versionchanged:: 1.0.8
         Changed from a NumericProperty to a BoundedNumericProperty. You can no
@@ -164,86 +171,86 @@ class GridLayout(Layout):
 
     :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
     None.
-    '''
+    """
 
     col_default_width = NumericProperty(0)
-    '''Default minimum size to use for a column.
+    """Default minimum size to use for a column.
 
     .. versionadded:: 1.0.7
 
     :attr:`col_default_width` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
-    '''
+    """
 
     row_default_height = NumericProperty(0)
-    '''Default minimum size to use for row.
+    """Default minimum size to use for row.
 
     .. versionadded:: 1.0.7
 
     :attr:`row_default_height` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
-    '''
+    """
 
     col_force_default = BooleanProperty(False)
-    '''If True, ignore the width and size_hint_x of the child and use the
+    """If True, ignore the width and size_hint_x of the child and use the
     default column width.
 
     .. versionadded:: 1.0.7
 
     :attr:`col_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
-    '''
+    """
 
     row_force_default = BooleanProperty(False)
-    '''If True, ignore the height and size_hint_y of the child and use the
+    """If True, ignore the height and size_hint_y of the child and use the
     default row height.
 
     .. versionadded:: 1.0.7
 
     :attr:`row_force_default` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
-    '''
+    """
 
     cols_minimum = DictProperty({})
-    '''Dict of minimum width for each column. The dictionary keys are the
+    """Dict of minimum width for each column. The dictionary keys are the
     column numbers, e.g. 0, 1, 2...
 
     .. versionadded:: 1.0.7
 
     :attr:`cols_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
-    '''
+    """
 
     rows_minimum = DictProperty({})
-    '''Dict of minimum height for each row. The dictionary keys are the
+    """Dict of minimum height for each row. The dictionary keys are the
     row numbers, e.g. 0, 1, 2...
 
     .. versionadded:: 1.0.7
 
     :attr:`rows_minimum` is a :class:`~kivy.properties.DictProperty` and
     defaults to {}.
-    '''
+    """
 
     minimum_width = NumericProperty(0)
-    '''Automatically computed minimum width needed to contain all children.
+    """Automatically computed minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
-    '''
+    """
 
     minimum_height = NumericProperty(0)
-    '''Automatically computed minimum height needed to contain all children.
+    """Automatically computed minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
-    '''
+    """
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Automatically computed minimum size needed to contain all children.
+    """Automatically computed minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -251,12 +258,22 @@ class GridLayout(Layout):
     :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`minimum_width`, :attr:`minimum_height`) properties. It is read
     only.
-    '''
+    """
 
-    orientation = OptionProperty('lr-tb', options=(
-        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
-        'bt-rl'))
-    '''Orientation of the layout.
+    orientation = OptionProperty(
+        "lr-tb",
+        options=(
+            "lr-tb",
+            "tb-lr",
+            "rl-tb",
+            "tb-rl",
+            "lr-bt",
+            "bt-lr",
+            "rl-bt",
+            "bt-rl",
+        ),
+    )
+    """Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'lr-tb'.
@@ -272,26 +289,26 @@ class GridLayout(Layout):
         'rl' means Right to Left.
         'tb' means Top to Bottom.
         'bt' means Bottom to Top.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
         fbind = self.fbind
         update = self._trigger_layout
-        fbind('col_default_width', update)
-        fbind('row_default_height', update)
-        fbind('col_force_default', update)
-        fbind('row_force_default', update)
-        fbind('cols', update)
-        fbind('rows', update)
-        fbind('parent', update)
-        fbind('spacing', update)
-        fbind('padding', update)
-        fbind('children', update)
-        fbind('size', update)
-        fbind('pos', update)
-        fbind('orientation', update)
+        fbind("col_default_width", update)
+        fbind("row_default_height", update)
+        fbind("col_force_default", update)
+        fbind("row_force_default", update)
+        fbind("cols", update)
+        fbind("rows", update)
+        fbind("parent", update)
+        fbind("spacing", update)
+        fbind("padding", update)
+        fbind("children", update)
+        fbind("size", update)
+        fbind("pos", update)
+        fbind("orientation", update)
 
     def get_max_widgets(self):
         if self.cols and self.rows:
@@ -305,19 +322,20 @@ class GridLayout(Layout):
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
             raise GridLayoutException(
-                'Too many children in GridLayout. Increase rows/cols!')
+                "Too many children in GridLayout. Increase rows/cols!"
+            )
 
     @property
     def _fills_row_first(self):
-        return self.orientation[0] in 'lr'
+        return self.orientation[0] in "lr"
 
     @property
     def _fills_from_left_to_right(self):
-        return 'lr' in self.orientation
+        return "lr" in self.orientation
 
     @property
     def _fills_from_top_to_bottom(self):
-        return 'tb' in self.orientation
+        return "tb" in self.orientation
 
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
@@ -328,8 +346,10 @@ class GridLayout(Layout):
         # if no cols or rows are set, we can't calculate minimum size.
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
-            Logger.warning('%r have no cols or rows set, '
-                           'layout is not triggered.' % self)
+            Logger.warning(
+                "%r have no cols or rows set, "
+                "layout is not triggered." % self
+            )
             return
 
         if current_cols is None:
@@ -342,8 +362,8 @@ class GridLayout(Layout):
 
         self._has_hint_bound_x = False
         self._has_hint_bound_y = False
-        self._cols_min_size_none = 0.  # min size from all the None hint
-        self._rows_min_size_none = 0.  # min size from all the None hint
+        self._cols_min_size_none = 0.0  # min size from all the None hint
+        self._rows_min_size_none = 0.0  # min size from all the None hint
         self._cols = cols = [self.col_default_width] * current_cols
         self._cols_sh = [None] * current_cols
         self._cols_sh_min = [None] * current_cols
@@ -421,15 +441,16 @@ class GridLayout(Layout):
             cols_sh_max = self._cols_sh_max
 
             for i, (c, sh_min, sh_max) in enumerate(
-                    zip(cols, cols_sh_min, cols_sh_max)):
+                zip(cols, cols_sh_min, cols_sh_max)
+            ):
                 if sh_min is not None:
                     width += max(c, sh_min)
-                    cols_sh_min[i] = max(0., sh_min - c)
+                    cols_sh_min[i] = max(0.0, sh_min - c)
                 else:
                     width += c
 
                 if sh_max is not None:
-                    cols_sh_max[i] = max(0., sh_max - c)
+                    cols_sh_max[i] = max(0.0, sh_max - c)
         else:
             width = self._cols_min_size_none
 
@@ -440,15 +461,16 @@ class GridLayout(Layout):
             rows_sh_max = self._rows_sh_max
 
             for i, (r, sh_min, sh_max) in enumerate(
-                    zip(rows, rows_sh_min, rows_sh_max)):
+                zip(rows, rows_sh_min, rows_sh_max)
+            ):
                 if sh_min is not None:
                     height += max(r, sh_min)
-                    rows_sh_min[i] = max(0., sh_min - r)
+                    rows_sh_min[i] = max(0.0, sh_min - r)
                 else:
                     height += r
 
                 if sh_max is not None:
-                    rows_sh_max[i] = max(0., sh_max - r)
+                    rows_sh_max[i] = max(0.0, sh_max - r)
         else:
             height = self._rows_min_size_none
 
@@ -470,15 +492,19 @@ class GridLayout(Layout):
             cols_sh = self._cols_sh
             cols_sh_min = self._cols_sh_min
             cols_weight = float(sum((x for x in cols_sh if x is not None)))
-            stretch_w = max(0., selfw - self._cols_min_size_none)
+            stretch_w = max(0.0, selfw - self._cols_min_size_none)
 
             if stretch_w > 1e-9:
                 if self._has_hint_bound_x:
                     # fix the hints to be within bounds
                     self.layout_hint_with_bounds(
-                        cols_weight, stretch_w,
+                        cols_weight,
+                        stretch_w,
                         sum((c for c in cols_sh_min if c is not None)),
-                        cols_sh_min, self._cols_sh_max, cols_sh)
+                        cols_sh_min,
+                        self._cols_sh_max,
+                        cols_sh,
+                    )
 
                 for index, col_stretch in enumerate(cols_sh):
                     # if the col don't have stretch information, nothing to do
@@ -498,15 +524,19 @@ class GridLayout(Layout):
             rows_sh = self._rows_sh
             rows_sh_min = self._rows_sh_min
             rows_weight = float(sum((x for x in rows_sh if x is not None)))
-            stretch_h = max(0., selfh - self._rows_min_size_none)
+            stretch_h = max(0.0, selfh - self._rows_min_size_none)
 
             if stretch_h > 1e-9:
                 if self._has_hint_bound_y:
                     # fix the hints to be within bounds
                     self.layout_hint_with_bounds(
-                        rows_weight, stretch_h,
+                        rows_weight,
+                        stretch_h,
                         sum((r for r in rows_sh_min if r is not None)),
-                        rows_sh_min, self._rows_sh_max, rows_sh)
+                        rows_sh_min,
+                        self._rows_sh_max,
+                        rows_sh,
+                    )
 
                 for index, row_stretch in enumerate(rows_sh):
                     # if the row don't have stretch information, nothing to do
@@ -522,53 +552,65 @@ class GridLayout(Layout):
 
         cols = self._cols
         if self._fills_from_left_to_right:
-            x_iter = accumulate(chain(
-                (self.x + padding[0], ),
-                (
-                    col_width + spacing_x
-                    for col_width in islice(cols, len(cols) - 1)
-                ),
-            ))
+            x_iter = accumulate(
+                chain(
+                    (self.x + padding[0],),
+                    (
+                        col_width + spacing_x
+                        for col_width in islice(cols, len(cols) - 1)
+                    ),
+                )
+            )
         else:
-            x_iter = accumulate(chain(
-                (self.right - padding[2] - cols[-1], ),
-                (
-                    col_width + spacing_x
-                    for col_width in islice(reversed(cols), 1, None)
+            x_iter = accumulate(
+                chain(
+                    (self.right - padding[2] - cols[-1],),
+                    (
+                        col_width + spacing_x
+                        for col_width in islice(reversed(cols), 1, None)
+                    ),
                 ),
-            ), sub)
+                sub,
+            )
             cols = reversed(cols)
 
         rows = self._rows
         if self._fills_from_top_to_bottom:
-            y_iter = accumulate(chain(
-                (self.top - padding[1] - rows[0], ),
-                (
-                    row_height + spacing_y
-                    for row_height in islice(rows, 1, None)
+            y_iter = accumulate(
+                chain(
+                    (self.top - padding[1] - rows[0],),
+                    (
+                        row_height + spacing_y
+                        for row_height in islice(rows, 1, None)
+                    ),
                 ),
-            ), sub)
+                sub,
+            )
         else:
-            y_iter = accumulate(chain(
-                (self.y + padding[3], ),
-                (
-                    row_height + spacing_y
-                    for row_height in islice(reversed(rows), len(rows) - 1)
-                ),
-            ))
+            y_iter = accumulate(
+                chain(
+                    (self.y + padding[3],),
+                    (
+                        row_height + spacing_y
+                        for row_height in islice(reversed(rows), len(rows) - 1)
+                    ),
+                )
+            )
             rows = reversed(rows)
 
         if self._fills_row_first:
             for i, (y, x), (row_height, col_width) in zip(
-                    reversed(range(count)),
-                    product(y_iter, x_iter),
-                    product(rows, cols)):
+                reversed(range(count)),
+                product(y_iter, x_iter),
+                product(rows, cols),
+            ):
                 yield i, x, y, col_width, row_height
         else:
             for i, (x, y), (col_width, row_height) in zip(
-                    reversed(range(count)),
-                    product(x_iter, y_iter),
-                    product(cols, rows)):
+                reversed(range(count)),
+                product(x_iter, y_iter),
+                product(cols, rows),
+            ):
                 yield i, x, y, col_width, row_height
 
     def do_layout(self, *largs):
@@ -616,14 +658,21 @@ class GridLayout(Layout):
                     c.size = (w, h)
 
     def _create_idx_iter(self, n_cols, n_rows):
-        col_indices = range(n_cols) if self._fills_from_left_to_right \
+        col_indices = (
+            range(n_cols)
+            if self._fills_from_left_to_right
             else range(n_cols - 1, -1, -1)
-        row_indices = range(n_rows) if self._fills_from_top_to_bottom \
+        )
+        row_indices = (
+            range(n_rows)
+            if self._fills_from_top_to_bottom
             else range(n_rows - 1, -1, -1)
+        )
 
         if self._fills_row_first:
             return (
                 (col_index, row_index)
-                for row_index, col_index in product(row_indices, col_indices))
+                for row_index, col_index in product(row_indices, col_indices)
+            )
         else:
             return product(col_indices, row_indices)

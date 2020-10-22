@@ -11,5 +11,5 @@ class PongApp(App):
         return PongGame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     PongApp().run()

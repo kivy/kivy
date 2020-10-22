@@ -1,4 +1,4 @@
-'''
+"""
 FileChooser
 ===========
 
@@ -77,13 +77,19 @@ editor.kv
     but a weak-reference. If you are upgrading, you should change the notation
     `root.controller.xxx` to `root.controller().xxx`.
 
-'''
+"""
 
-__all__ = ('FileChooserListView', 'FileChooserIconView',
-           'FileChooserListLayout', 'FileChooserIconLayout',
-           'FileChooser', 'FileChooserController',
-           'FileChooserProgressBase', 'FileSystemAbstract',
-           'FileSystemLocal')
+__all__ = (
+    "FileChooserListView",
+    "FileChooserIconView",
+    "FileChooserListLayout",
+    "FileChooserIconLayout",
+    "FileChooser",
+    "FileChooserController",
+    "FileChooserProgressBase",
+    "FileSystemAbstract",
+    "FileSystemLocal",
+)
 
 from weakref import ref
 from time import time
@@ -99,72 +105,90 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
-    StringProperty, ListProperty, BooleanProperty, ObjectProperty,
-    NumericProperty, AliasProperty)
+    StringProperty,
+    ListProperty,
+    BooleanProperty,
+    ObjectProperty,
+    NumericProperty,
+    AliasProperty,
+)
 from os import listdir
 from os.path import (
-    basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
+    basename,
+    join,
+    sep,
+    normpath,
+    expanduser,
+    altsep,
+    splitdrive,
+    realpath,
+    getsize,
+    isdir,
+    abspath,
+    isfile,
+    dirname,
+)
 from fnmatch import fnmatch
 import collections
 
 platform = core_platform
-filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
+filesize_units = ("B", "KB", "MB", "GB", "TB")
 
 _have_win32file = False
-if platform == 'win':
+if platform == "win":
     # Import that module here as it's not available on non-windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, \
-                              error
+        from win32file import (
+            FILE_ATTRIBUTE_HIDDEN,
+            GetFileAttributesExW,
+            error,
+        )
+
         _have_win32file = True
     except ImportError:
-        Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cant check if a file is hidden or not')
+        Logger.error("filechooser: win32file module is missing")
+        Logger.error("filechooser: we cant check if a file is hidden or not")
 
 
 def alphanumeric_folders_first(files, filesystem):
-    return (sorted(f for f in files if filesystem.is_dir(f)) +
-            sorted(f for f in files if not filesystem.is_dir(f)))
+    return sorted(f for f in files if filesystem.is_dir(f)) + sorted(
+        f for f in files if not filesystem.is_dir(f)
+    )
 
 
 class FileSystemAbstract(object):
-    '''Class for implementing a File System view that can be used with the
+    """Class for implementing a File System view that can be used with the
     :class:`FileChooser <FileChooser>`.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     def listdir(self, fn):
-        '''Return the list of files in the directory `fn`
-        '''
+        """Return the list of files in the directory `fn`"""
         pass
 
     def getsize(self, fn):
-        '''Return the size in bytes of a file
-        '''
+        """Return the size in bytes of a file"""
         pass
 
     def is_hidden(self, fn):
-        '''Return True if the file is hidden
-        '''
+        """Return True if the file is hidden"""
         pass
 
     def is_dir(self, fn):
-        '''Return True if the argument passed to this method is a directory
-        '''
+        """Return True if the argument passed to this method is a directory"""
         pass
 
 
 class FileSystemLocal(FileSystemAbstract):
-    '''Implementation of :class:`FileSystemAbstract` for local files.
+    """Implementation of :class:`FileSystemAbstract` for local files.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     def listdir(self, fn):
         return listdir(fn)
@@ -173,7 +197,7 @@ class FileSystemLocal(FileSystemAbstract):
         return getsize(fn)
 
     def is_hidden(self, fn):
-        if platform == 'win':
+        if platform == "win":
             if not _have_win32file:
                 return False
             try:
@@ -182,37 +206,36 @@ class FileSystemLocal(FileSystemAbstract):
                 # This error can occurred when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
                 # of chances to not being able to do anything with it.
-                Logger.exception('unable to access to <%s>' % fn)
+                Logger.exception("unable to access to <%s>" % fn)
                 return True
 
-        return basename(fn).startswith('.')
+        return basename(fn).startswith(".")
 
     def is_dir(self, fn):
         return isdir(fn)
 
 
 class FileChooserProgressBase(FloatLayout):
-    '''Base for implementing a progress view. This view is used when too many
+    """Base for implementing a progress view. This view is used when too many
     entries need to be created and are delayed over multiple frames.
 
     .. versionadded:: 1.2.0
-    '''
+    """
 
-    path = StringProperty('')
-    '''Current path of the FileChooser, read-only.
-    '''
+    path = StringProperty("")
+    """Current path of the FileChooser, read-only.
+    """
 
     index = NumericProperty(0)
-    '''Current index of :attr:`total` entries to be loaded.
-    '''
+    """Current index of :attr:`total` entries to be loaded.
+    """
 
     total = NumericProperty(1)
-    '''Total number of entries to load.
-    '''
+    """Total number of entries to load.
+    """
 
     def cancel(self, *largs):
-        '''Cancel any action from the FileChooserController.
-        '''
+        """Cancel any action from the FileChooserController."""
         if self.parent:
             self.parent.cancel()
 
@@ -237,22 +260,27 @@ class FileChooserProgress(FileChooserProgressBase):
 
 
 class FileChooserLayout(FloatLayout):
-    '''Base class for file chooser layouts.
+    """Base class for file chooser layouts.
 
     .. versionadded:: 1.9.0
-    '''
+    """
 
-    VIEWNAME = 'undefined'
+    VIEWNAME = "undefined"
 
-    __events__ = ('on_entry_added', 'on_entries_cleared',
-                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+    __events__ = (
+        "on_entry_added",
+        "on_entries_cleared",
+        "on_subentry_to_entry",
+        "on_remove_subentry",
+        "on_submit",
+    )
 
     controller = ObjectProperty()
-    '''
+    """
     Reference to the controller handling this layout.
 
     :class:`~kivy.properties.ObjectProperty`
-    '''
+    """
 
     def on_entry_added(self, node, parent=None):
         pass
@@ -271,40 +299,41 @@ class FileChooserLayout(FloatLayout):
 
 
 class FileChooserListLayout(FileChooserLayout):
-    '''File chooser layout using a list view.
+    """File chooser layout using a list view.
 
     .. versionadded:: 1.9.0
-    '''
-    VIEWNAME = 'list'
-    _ENTRY_TEMPLATE = 'FileListEntry'
+    """
+
+    VIEWNAME = "list"
+    _ENTRY_TEMPLATE = "FileListEntry"
 
     def __init__(self, **kwargs):
         super(FileChooserListLayout, self).__init__(**kwargs)
-        self.fbind('on_entries_cleared', self.scroll_to_top)
+        self.fbind("on_entries_cleared", self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
 
 
 class FileChooserIconLayout(FileChooserLayout):
-    '''File chooser layout using an icon view.
+    """File chooser layout using an icon view.
 
     .. versionadded:: 1.9.0
-    '''
+    """
 
-    VIEWNAME = 'icon'
-    _ENTRY_TEMPLATE = 'FileIconEntry'
+    VIEWNAME = "icon"
+    _ENTRY_TEMPLATE = "FileIconEntry"
 
     def __init__(self, **kwargs):
         super(FileChooserIconLayout, self).__init__(**kwargs)
-        self.fbind('on_entries_cleared', self.scroll_to_top)
+        self.fbind("on_entries_cleared", self.scroll_to_top)
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
 
 
 class FileChooserController(RelativeLayout):
-    '''Base for implementing a FileChooser. Don't use this class directly, but
+    """Base for implementing a FileChooser. Don't use this class directly, but
     prefer using an implementation such as the :class:`FileChooser`,
     :class:`FileChooserListView` or :class:`FileChooserIconView`.
 
@@ -321,20 +350,21 @@ class FileChooserController(RelativeLayout):
             a node is closed.
         `on_submit`: selection, touch
             Fired when a file has been selected with a double-tap.
-    '''
+    """
+
     _ENTRY_TEMPLATE = None
 
     layout = ObjectProperty(baseclass=FileChooserLayout)
-    '''
+    """
     Reference to the layout widget instance.
 
     layout is an :class:`~kivy.properties.ObjectProperty`.
 
     .. versionadded:: 1.9.0
-    '''
+    """
 
-    path = StringProperty(u'/')
-    '''
+    path = StringProperty("/")
+    """
     path is a :class:`~kivy.properties.StringProperty` and defaults to the
     current working directory as a unicode string. It specifies the path on the
     filesystem that this controller should refer to.
@@ -346,10 +376,10 @@ class FileChooserController(RelativeLayout):
         path is specified, only files and paths with ascii names will be
         displayed properly: non-ascii filenames will be displayed and listed
         with questions marks (?) instead of their unicode characters.
-    '''
+    """
 
     filters = ListProperty([])
-    '''
+    """
     filters specifies the filters to be applied to the files in the directory.
     filters is a :class:`~kivy.properties.ListProperty` and defaults to [].
     This is equivalent to '\\*' i.e. nothing is filtered.
@@ -382,17 +412,17 @@ class FileChooserController(RelativeLayout):
 
     .. versionchanged:: 1.4.0
         Added the option to specify the filter as a callback.
-    '''
+    """
 
     filter_dirs = BooleanProperty(False)
-    '''
+    """
     Indicates whether filters should also apply to directories.
     filter_dirs is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     sort_func = ObjectProperty(alphanumeric_folders_first)
-    '''
+    """
     Provides a function to be called with a list of filenames as the first
     argument and the filesystem implementation as the second argument. It
     returns a list of filenames sorted for display in the view.
@@ -404,52 +434,52 @@ class FileChooserController(RelativeLayout):
 
         The signature needs now 2 arguments: first the list of files,
         second the filesystem class to use.
-    '''
+    """
 
     files = ListProperty([])
-    '''
+    """
     The list of files in the directory specified by path after applying the
     filters.
 
     files is a read-only :class:`~kivy.properties.ListProperty`.
-    '''
+    """
 
     show_hidden = BooleanProperty(False)
-    '''
+    """
     Determines whether hidden files and folders should be shown.
 
     show_hidden is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     selection = ListProperty([])
-    '''
+    """
     Contains the list of files that are currently selected.
 
     selection is a read-only :class:`~kivy.properties.ListProperty` and
     defaults to [].
-    '''
+    """
 
     multiselect = BooleanProperty(False)
-    '''
+    """
     Determines whether the user is able to select multiple files or not.
 
     multiselect is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
-    '''
+    """
 
     dirselect = BooleanProperty(False)
-    '''
+    """
     Determines whether directories are valid selections or not.
 
     dirselect is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.
 
     .. versionadded:: 1.1.0
-    '''
+    """
 
     rootpath = StringProperty(None, allownone=True)
-    '''
+    """
     Root path to use instead of the system root path. If set, it will not show
     a ".." directory to go up to the root path. For example, if you set
     rootpath to /users/foo, the user will be unable to go to /users or to any
@@ -465,10 +495,10 @@ class FileChooserController(RelativeLayout):
         Similarly to :attr:`path`, whether `rootpath` is specified as
         bytes or a unicode string determines the type of the filenames and
         paths read.
-    '''
+    """
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser
+    """Class to use for displaying a progress indicator for filechooser
     loading.
 
     progress_cls is an :class:`~kivy.properties.ObjectProperty` and defaults to
@@ -481,11 +511,12 @@ class FileChooserController(RelativeLayout):
         If set to a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class name.
 
-    '''
+    """
 
     file_encodings = ListProperty(
-        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
-    '''Possible encodings for decoding a filename to unicode. In the case that
+        ["utf-8", "latin1", "cp1252"], deprecated=True
+    )
+    """Possible encodings for decoding a filename to unicode. In the case that
     the user has a non-ascii filename, undecodable without knowing its
     initial encoding, we have no other choice than to guess it.
 
@@ -501,34 +532,40 @@ class FileChooserController(RelativeLayout):
        This property is no longer used as the filechooser no longer decodes
        the file names.
 
-    '''
+    """
 
-    file_system = ObjectProperty(FileSystemLocal(),
-                                 baseclass=FileSystemAbstract)
-    '''The file system object used to access the file system. This should be a
+    file_system = ObjectProperty(
+        FileSystemLocal(), baseclass=FileSystemAbstract
+    )
+    """The file system object used to access the file system. This should be a
     subclass of :class:`FileSystemAbstract`.
 
     file_system is an :class:`~kivy.properties.ObjectProperty` and defaults to
     :class:`FileSystemLocal()`
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     font_name = StringProperty(DEFAULT_FONT)
-    '''Filename of the font to use in UI components. The path can be
+    """Filename of the font to use in UI components. The path can be
     absolute or relative.  Relative paths are resolved by the
     :func:`~kivy.resources.resource_find` function.
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'Roboto'. This value is taken
     from :class:`~kivy.config.Config`.
-    '''
+    """
 
     _update_files_ev = None
     _create_files_entries_ev = None
 
-    __events__ = ('on_entry_added', 'on_entries_cleared',
-                  'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+    __events__ = (
+        "on_entry_added",
+        "on_entries_cleared",
+        "on_subentry_to_entry",
+        "on_remove_subentry",
+        "on_submit",
+    )
 
     def __init__(self, **kwargs):
         self._progress = None
@@ -536,14 +573,14 @@ class FileChooserController(RelativeLayout):
 
         self._items = []
         fbind = self.fbind
-        fbind('selection', self._update_item_selection)
+        fbind("selection", self._update_item_selection)
 
         self._previous_path = [self.path]
-        fbind('path', self._save_previous_path)
+        fbind("path", self._save_previous_path)
         update = self._trigger_update
-        fbind('path', update)
-        fbind('filters', update)
-        fbind('rootpath', update)
+        fbind("path", update)
+        fbind("filters", update)
+        fbind("rootpath", update)
         update()
 
     def on_touch_down(self, touch):
@@ -574,36 +611,40 @@ class FileChooserController(RelativeLayout):
         ev = self._update_files_ev
         if ev is None:
             ev = self._update_files_ev = Clock.create_trigger(
-                self._update_files)
+                self._update_files
+            )
         ev()
 
     def on_entry_added(self, node, parent=None):
         if self.layout:
-            self.layout.dispatch('on_entry_added', node, parent)
+            self.layout.dispatch("on_entry_added", node, parent)
 
     def on_entries_cleared(self):
         if self.layout:
-            self.layout.dispatch('on_entries_cleared')
+            self.layout.dispatch("on_entries_cleared")
 
     def on_subentry_to_entry(self, subentry, entry):
         if self.layout:
-            self.layout.dispatch('on_subentry_to_entry', subentry, entry)
+            self.layout.dispatch("on_subentry_to_entry", subentry, entry)
 
     def on_remove_subentry(self, subentry, entry):
         if self.layout:
-            self.layout.dispatch('on_remove_subentry', subentry, entry)
+            self.layout.dispatch("on_remove_subentry", subentry, entry)
 
     def on_submit(self, selected, touch=None):
         if self.layout:
-            self.layout.dispatch('on_submit', selected, touch)
+            self.layout.dispatch("on_submit", selected, touch)
 
     def entry_touched(self, entry, touch):
-        '''(internal) This method must be called by the template when an entry
+        """(internal) This method must be called by the template when an entry
         is touched by the user.
-        '''
-        if (
-            'button' in touch.profile and touch.button in (
-                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
+        """
+        if "button" in touch.profile and touch.button in (
+            "scrollup",
+            "scrolldown",
+            "scrollleft",
+            "scrollright",
+        ):
             return False
 
         _dir = self.file_system.is_dir(entry.path)
@@ -624,17 +665,22 @@ class FileChooserController(RelativeLayout):
         else:
             if _dir and not self.dirselect:
                 return
-            self.selection = [abspath(join(self.path, entry.path)), ]
+            self.selection = [
+                abspath(join(self.path, entry.path)),
+            ]
 
     def entry_released(self, entry, touch):
-        '''(internal) This method must be called by the template when an entry
+        """(internal) This method must be called by the template when an entry
         is touched by the user.
 
         .. versionadded:: 1.1.0
-        '''
-        if (
-            'button' in touch.profile and touch.button in (
-                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
+        """
+        if "button" in touch.profile and touch.button in (
+            "scrollup",
+            "scrolldown",
+            "scrollleft",
+            "scrollright",
+        ):
             return False
         if not self.multiselect:
             if self.file_system.is_dir(entry.path) and not self.dirselect:
@@ -643,7 +689,7 @@ class FileChooserController(RelativeLayout):
                 if self.dirselect and self.file_system.is_dir(entry.path):
                     return
                 else:
-                    self.dispatch('on_submit', self.selection, touch)
+                    self.dispatch("on_submit", self.selection, touch)
 
     def open_entry(self, entry):
         try:
@@ -658,7 +704,7 @@ class FileChooserController(RelativeLayout):
             # If entry.path is to jump to previous directory, update path with
             # parent directory
             self.path = abspath(join(self.path, entry.path))
-            self.selection = [self.path, ] if self.dirselect else []
+            self.selection = [self.path,] if self.dirselect else []
 
     def _apply_filters(self, files):
         if not self.filters:
@@ -675,19 +721,19 @@ class FileChooserController(RelativeLayout):
         return list(set(filtered))
 
     def get_nice_size(self, fn):
-        '''Pass the filepath. Returns the size in the best human readable
+        """Pass the filepath. Returns the size in the best human readable
         format or '' if it is a directory (Don't recursively calculate size).
-        '''
+        """
         if self.file_system.is_dir(fn):
-            return ''
+            return ""
         try:
             size = self.file_system.getsize(fn)
         except OSError:
-            return '--'
+            return "--"
 
         for unit in filesize_units:
             if size < 1024.0:
-                return '%1.0f %s' % (size, unit)
+                return "%1.0f %s" % (size, unit)
             size /= 1024.0
 
     def _update_files(self, *args, **kwargs):
@@ -695,10 +741,10 @@ class FileChooserController(RelativeLayout):
         # we'll start a timer that will do the job, 10 times per frames
         # (default)
         self._gitems = []
-        self._gitems_parent = kwargs.get('parent', None)
+        self._gitems_parent = kwargs.get("parent", None)
         self._gitems_gen = self._generate_file_entries(
-            path=kwargs.get('path', self.path),
-            parent=self._gitems_parent)
+            path=kwargs.get("path", self.path), parent=self._gitems_parent
+        )
         self.path = abspath(self.path)
 
         # cancel any previous clock if exist
@@ -713,7 +759,8 @@ class FileChooserController(RelativeLayout):
             # start a timer for the next 100 ms
             if ev is None:
                 ev = self._create_files_entries_ev = Clock.schedule_interval(
-                    self._create_files_entries, .1)
+                    self._create_files_entries, 0.1
+                )
             ev()
 
     def _get_file_paths(self, items):
@@ -750,13 +797,13 @@ class FileChooserController(RelativeLayout):
         self._items = items = self._gitems
         parent = self._gitems_parent
         if parent is None:
-            self.dispatch('on_entries_cleared')
+            self.dispatch("on_entries_cleared")
             for entry in items:
-                self.dispatch('on_entry_added', entry, parent)
+                self.dispatch("on_entry_added", entry, parent)
         else:
             parent.entries[:] = items
             for entry in items:
-                self.dispatch('on_subentry_to_entry', entry, parent)
+                self.dispatch("on_subentry_to_entry", entry, parent)
         self.files[:] = self._get_file_paths(items)
 
         # stop the progression / creation
@@ -769,11 +816,11 @@ class FileChooserController(RelativeLayout):
         return False
 
     def cancel(self, *largs):
-        '''Cancel any background action started by filechooser, such as loading
+        """Cancel any background action started by filechooser, such as loading
         a new directory.
 
         .. versionadded:: 1.2.0
-        '''
+        """
         ev = self._create_files_entries_ev
         if ev is not None:
             ev.cancel()
@@ -809,8 +856,8 @@ class FileChooserController(RelativeLayout):
         # the generator is used via _update_files() and _create_files_entries()
         # don't use it directly.
         is_root = False
-        path = kwargs.get('path', self.path)
-        have_parent = kwargs.get('parent', None) is not None
+        path = kwargs.get("path", self.path)
+        have_parent = kwargs.get("parent", None) is not None
 
         # Add the components that are always needed
         if self.rootpath:
@@ -822,29 +869,45 @@ class FileChooserController(RelativeLayout):
             elif path == rootpath:
                 is_root = True
         else:
-            if platform == 'win':
+            if platform == "win":
                 is_root = splitdrive(path)[1] in (sep, altsep)
-            elif platform in ('macosx', 'linux', 'android', 'ios'):
+            elif platform in ("macosx", "linux", "android", "ios"):
                 is_root = normpath(expanduser(path)) == sep
             else:
                 # Unknown fs, just always add the .. entry but also log
-                Logger.warning('Filechooser: Unsupported OS: %r' % platform)
+                Logger.warning("Filechooser: Unsupported OS: %r" % platform)
         # generate an entries to go back to previous
         if not is_root and not have_parent:
-            back = '..' + sep
-            if platform == 'win':
-                new_path = path[:path.rfind(sep)]
+            back = ".." + sep
+            if platform == "win":
+                new_path = path[: path.rfind(sep)]
                 if sep not in new_path:
                     new_path += sep
-                pardir = self._create_entry_widget(dict(
-                    name=back, size='', path=new_path, controller=ref(self),
-                    isdir=True, parent=None, sep=sep,
-                    get_nice_size=lambda: ''))
+                pardir = self._create_entry_widget(
+                    dict(
+                        name=back,
+                        size="",
+                        path=new_path,
+                        controller=ref(self),
+                        isdir=True,
+                        parent=None,
+                        sep=sep,
+                        get_nice_size=lambda: "",
+                    )
+                )
             else:
-                pardir = self._create_entry_widget(dict(
-                    name=back, size='', path=back, controller=ref(self),
-                    isdir=True, parent=None, sep=sep,
-                    get_nice_size=lambda: ''))
+                pardir = self._create_entry_widget(
+                    dict(
+                        name=back,
+                        size="",
+                        path=back,
+                        controller=ref(self),
+                        isdir=True,
+                        parent=None,
+                        sep=sep,
+                        get_nice_size=lambda: "",
+                    )
+                )
             yield 0, 1, pardir
 
         # generate all the entries for files
@@ -852,12 +915,13 @@ class FileChooserController(RelativeLayout):
             for index, total, item in self._add_files(path):
                 yield index, total, item
         except OSError:
-            Logger.exception('Unable to open directory <%s>' % self.path)
+            Logger.exception("Unable to open directory <%s>" % self.path)
             self.files[:] = []
 
     def _create_entry_widget(self, ctx):
-        template = self.layout._ENTRY_TEMPLATE\
-            if self.layout else self._ENTRY_TEMPLATE
+        template = (
+            self.layout._ENTRY_TEMPLATE if self.layout else self._ENTRY_TEMPLATE
+        )
         return Builder.template(template, **ctx)
 
     def _add_files(self, path, parent=None):
@@ -872,9 +936,9 @@ class FileChooserController(RelativeLayout):
                 # In the following, use fully qualified filenames
                 fappend(normpath(join(path, f)))
             except UnicodeDecodeError:
-                Logger.exception('unable to decode <{}>'.format(f))
+                Logger.exception("unable to decode <{}>".format(f))
             except UnicodeEncodeError:
-                Logger.exception('unable to encode <{}>'.format(f))
+                Logger.exception("unable to encode <{}>".format(f))
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
@@ -891,13 +955,15 @@ class FileChooserController(RelativeLayout):
                 # Use a closure for lazy-loading here
                 return self.get_nice_size(fn)
 
-            ctx = {'name': basename(fn),
-                   'get_nice_size': get_nice_size,
-                   'path': fn,
-                   'controller': wself,
-                   'isdir': self.file_system.is_dir(fn),
-                   'parent': parent,
-                   'sep': sep}
+            ctx = {
+                "name": basename(fn),
+                "get_nice_size": get_nice_size,
+                "path": fn,
+                "controller": wself,
+                "isdir": self.file_system.is_dir(fn),
+                "parent": parent,
+                "sep": sep,
+            }
             entry = self._create_entry_widget(ctx)
             yield index, total, entry
 
@@ -908,27 +974,29 @@ class FileChooserController(RelativeLayout):
 
     def close_subselection(self, entry):
         for subentry in entry.entries:
-            self.dispatch('on_remove_subentry', subentry, entry)
+            self.dispatch("on_remove_subentry", subentry, entry)
 
 
 class FileChooserListView(FileChooserController):
-    '''Implementation of a :class:`FileChooserController` using a list view.
+    """Implementation of a :class:`FileChooserController` using a list view.
 
     .. versionadded:: 1.9.0
-    '''
-    _ENTRY_TEMPLATE = 'FileListEntry'
+    """
+
+    _ENTRY_TEMPLATE = "FileListEntry"
 
 
 class FileChooserIconView(FileChooserController):
-    '''Implementation of a :class:`FileChooserController` using an icon view.
+    """Implementation of a :class:`FileChooserController` using an icon view.
 
     .. versionadded:: 1.9.0
-    '''
-    _ENTRY_TEMPLATE = 'FileIconEntry'
+    """
+
+    _ENTRY_TEMPLATE = "FileIconEntry"
 
 
 class FileChooser(FileChooserController):
-    '''Implementation of a :class:`FileChooserController` which supports
+    """Implementation of a :class:`FileChooserController` which supports
     switching between multiple, synced layout views.
 
     The FileChooser can be used as follows:
@@ -955,27 +1023,27 @@ class FileChooser(FileChooserController):
                 FileChooserListLayout
 
     .. versionadded:: 1.9.0
-    '''
+    """
 
     manager = ObjectProperty()
-    '''
+    """
     Reference to the :class:`~kivy.uix.screenmanager.ScreenManager` instance.
 
     manager is an :class:`~kivy.properties.ObjectProperty`.
-    '''
+    """
 
     _view_list = ListProperty()
 
     def get_view_list(self):
         return self._view_list
 
-    view_list = AliasProperty(get_view_list, bind=('_view_list',))
-    '''
+    view_list = AliasProperty(get_view_list, bind=("_view_list",))
+    """
     List of views added to this FileChooser.
 
     view_list is an :class:`~kivy.properties.AliasProperty` of type
     :class:`list`.
-    '''
+    """
 
     _view_mode = StringProperty()
 
@@ -984,17 +1052,18 @@ class FileChooser(FileChooserController):
 
     def set_view_mode(self, mode):
         if mode not in self._view_list:
-            raise ValueError('unknown view mode %r' % mode)
+            raise ValueError("unknown view mode %r" % mode)
         self._view_mode = mode
 
     view_mode = AliasProperty(
-        get_view_mode, set_view_mode, bind=('_view_mode',))
-    '''
+        get_view_mode, set_view_mode, bind=("_view_mode",)
+    )
+    """
     Current layout view mode.
 
     view_mode is an :class:`~kivy.properties.AliasProperty` of type
     :class:`str`.
-    '''
+    """
 
     @property
     def _views(self):
@@ -1008,13 +1077,13 @@ class FileChooser(FileChooserController):
 
         self.trigger_update_view = Clock.create_trigger(self.update_view)
 
-        self.fbind('view_mode', self.trigger_update_view)
+        self.fbind("view_mode", self.trigger_update_view)
 
     def add_widget(self, widget, **kwargs):
         if widget is self._progress:
             super(FileChooser, self).add_widget(widget, **kwargs)
-        elif hasattr(widget, 'VIEWNAME'):
-            name = widget.VIEWNAME + 'view'
+        elif hasattr(widget, "VIEWNAME"):
+            name = widget.VIEWNAME + "view"
             screen = Screen(name=name)
             widget.controller = self
             screen.add_widget(widget)
@@ -1023,8 +1092,9 @@ class FileChooser(FileChooserController):
             self.trigger_update_view()
         else:
             raise ValueError(
-                'widget must be a FileChooserLayout,'
-                ' not %s' % type(widget).__name__)
+                "widget must be a FileChooserLayout,"
+                " not %s" % type(widget).__name__
+            )
 
     def rebuild_views(self):
         views = [view.VIEWNAME for view in self._views]
@@ -1045,14 +1115,16 @@ class FileChooser(FileChooserController):
         viewindex = viewlist.index(view) if view in viewlist else 0
         currentindex = viewlist.index(current) if current in viewlist else 0
 
-        direction = 'left' if currentindex < viewindex else 'right'
+        direction = "left" if currentindex < viewindex else "right"
 
         sm.transition.direction = direction
-        sm.current = view + 'view'
+        sm.current = view + "view"
 
     def _create_entry_widget(self, ctx):
-        return [Builder.template(view._ENTRY_TEMPLATE, **ctx)
-                for view in self._views]
+        return [
+            Builder.template(view._ENTRY_TEMPLATE, **ctx)
+            for view in self._views
+        ]
 
     def _get_file_paths(self, items):
         if self._views:
@@ -1068,36 +1140,40 @@ class FileChooser(FileChooserController):
     def on_entry_added(self, node, parent=None):
         for index, view in enumerate(self._views):
             view.dispatch(
-                'on_entry_added',
-                node[index], parent[index] if parent else None)
+                "on_entry_added",
+                node[index],
+                parent[index] if parent else None,
+            )
 
     def on_entries_cleared(self):
         for view in self._views:
-            view.dispatch('on_entries_cleared')
+            view.dispatch("on_entries_cleared")
 
     def on_subentry_to_entry(self, subentry, entry):
         for index, view in enumerate(self._views):
-            view.dispatch('on_subentry_to_entry', subentry[index], entry)
+            view.dispatch("on_subentry_to_entry", subentry[index], entry)
 
     def on_remove_subentry(self, subentry, entry):
         for index, view in enumerate(self._views):
-            view.dispatch('on_remove_subentry', subentry[index], entry)
+            view.dispatch("on_remove_subentry", subentry[index], entry)
 
     def on_submit(self, selected, touch=None):
         view_mode = self.view_mode
         for view in self._views:
             if view_mode == view.VIEWNAME:
-                view.dispatch('on_submit', selected, touch)
+                view.dispatch("on_submit", selected, touch)
                 return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.app import App
     from pprint import pprint
     import textwrap
     import sys
 
-    root = Builder.load_string(textwrap.dedent('''\
+    root = Builder.load_string(
+        textwrap.dedent(
+            """\
     BoxLayout:
         orientation: 'vertical'
 
@@ -1117,10 +1193,11 @@ if __name__ == '__main__':
 
             FileChooserIconLayout
             FileChooserListLayout
-    '''))
+    """
+        )
+    )
 
     class FileChooserApp(App):
-
         def build(self):
             v = root.ids.fc
             if len(sys.argv) > 1:

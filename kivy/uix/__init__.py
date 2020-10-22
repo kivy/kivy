@@ -1,4 +1,4 @@
-'''
+"""
 Widgets
 =======
 
@@ -53,4 +53,4 @@ Kivy widgets can be categorized as follows:
     :doc:`api-kivy.uix.screenmanager`
 
 ----
-'''
+"""

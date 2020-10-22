@@ -1,4 +1,4 @@
-'''
+"""
 Audio
 =====
 
@@ -43,16 +43,22 @@ keep this in mind when debugging or running in a
     this functionality, please refer to the
     `audiostream <https://github.com/kivy/audiostream>`_ extension.
 
-'''
+"""
 
-__all__ = ('Sound', 'SoundLoader')
+__all__ = ("Sound", "SoundLoader")
 
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.resources import resource_find
-from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-    AliasProperty, BooleanProperty, BoundedNumericProperty
+from kivy.properties import (
+    StringProperty,
+    NumericProperty,
+    OptionProperty,
+    AliasProperty,
+    BooleanProperty,
+    BoundedNumericProperty,
+)
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL2
 
@@ -60,36 +66,34 @@ from sys import float_info
 
 
 class SoundLoader:
-    '''Load a sound, using the best loader for the given file type.
-    '''
+    """Load a sound, using the best loader for the given file type."""
 
     _classes = []
 
     @staticmethod
     def register(classobj):
-        '''Register a new class to load the sound.'''
-        Logger.debug('Audio: register %s' % classobj.__name__)
+        """Register a new class to load the sound."""
+        Logger.debug("Audio: register %s" % classobj.__name__)
         SoundLoader._classes.append(classobj)
 
     @staticmethod
     def load(filename):
-        '''Load a sound, and return a Sound() instance.'''
+        """Load a sound, and return a Sound() instance."""
         rfn = resource_find(filename)
         if rfn is not None:
             filename = rfn
-        ext = filename.split('.')[-1].lower()
-        if '?' in ext:
-            ext = ext.split('?')[0]
+        ext = filename.split(".")[-1].lower()
+        if "?" in ext:
+            ext = ext.split("?")[0]
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
-        Logger.warning('Audio: Unable to find a loader for <%s>' %
-                       filename)
+        Logger.warning("Audio: Unable to find a loader for <%s>" % filename)
         return None
 
 
 class Sound(EventDispatcher):
-    '''Represents a sound to play. This class is abstract, and cannot be used
+    """Represents a sound to play. This class is abstract, and cannot be used
     directly.
 
     Use SoundLoader to load a sound.
@@ -99,74 +103,76 @@ class Sound(EventDispatcher):
             Fired when the sound is played.
         `on_stop`: None
             Fired when the sound is stopped.
-    '''
+    """
 
     source = StringProperty(None)
-    '''Filename / source of your audio file.
+    """Filename / source of your audio file.
 
     .. versionadded:: 1.3.0
 
     :attr:`source` is a :class:`~kivy.properties.StringProperty` that defaults
     to None and is read-only. Use the :meth:`SoundLoader.load` for loading
     audio.
-    '''
+    """
 
-    volume = NumericProperty(1.)
-    '''Volume, in the range 0-1. 1 means full volume, 0 means mute.
+    volume = NumericProperty(1.0)
+    """Volume, in the range 0-1. 1 means full volume, 0 means mute.
 
     .. versionadded:: 1.3.0
 
     :attr:`volume` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
-    '''
+    """
 
-    pitch = BoundedNumericProperty(1., min=float_info.epsilon)
-    '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
+    pitch = BoundedNumericProperty(1.0, min=float_info.epsilon)
+    """Pitch of a sound. 2 is an octave higher, .5 one below. This is only
     implemented for SDL2 audio provider yet.
 
     .. versionadded:: 1.10.0
 
     :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.
-    '''
+    """
 
-    state = OptionProperty('stop', options=('stop', 'play'))
-    '''State of the sound, one of 'stop' or 'play'.
+    state = OptionProperty("stop", options=("stop", "play"))
+    """State of the sound, one of 'stop' or 'play'.
 
     .. versionadded:: 1.3.0
 
-    :attr:`state` is a read-only :class:`~kivy.properties.OptionProperty`.'''
+    :attr:`state` is a read-only :class:`~kivy.properties.OptionProperty`."""
 
     loop = BooleanProperty(False)
-    '''Set to True if the sound should automatically loop when it finishes.
+    """Set to True if the sound should automatically loop when it finishes.
 
     .. versionadded:: 1.8.0
 
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    False.'''
+    False."""
 
     #
     # deprecated
     #
     def _get_status(self):
         return self.state
-    status = AliasProperty(
-        _get_status, None, bind=('state', ), deprecated=True)
-    '''
+
+    status = AliasProperty(_get_status, None, bind=("state",), deprecated=True)
+    """
     .. deprecated:: 1.3.0
         Use :attr:`state` instead.
-    '''
+    """
 
     def _get_filename(self):
         return self.source
+
     filename = AliasProperty(
-        _get_filename, None, bind=('source', ), deprecated=True)
-    '''
+        _get_filename, None, bind=("source",), deprecated=True
+    )
+    """
     .. deprecated:: 1.3.0
         Use :attr:`source` instead.
-    '''
+    """
 
-    __events__ = ('on_play', 'on_stop')
+    __events__ = ("on_play", "on_stop")
 
     def on_source(self, instance, filename):
         self.unload()
@@ -175,45 +181,47 @@ class Sound(EventDispatcher):
         self.load()
 
     def get_pos(self):
-        '''
+        """
         Returns the current position of the audio file.
         Returns 0 if not playing.
 
         .. versionadded:: 1.4.1
-        '''
+        """
         return 0
 
     def _get_length(self):
         return 0
 
-    length = property(lambda self: self._get_length(),
-                      doc='Get length of the sound (in seconds).')
+    length = property(
+        lambda self: self._get_length(),
+        doc="Get length of the sound (in seconds).",
+    )
 
     def load(self):
-        '''Load the file into memory.'''
+        """Load the file into memory."""
         pass
 
     def unload(self):
-        '''Unload the file from memory.'''
+        """Unload the file from memory."""
         pass
 
     def play(self):
-        '''Play the file.'''
-        self.state = 'play'
-        self.dispatch('on_play')
+        """Play the file."""
+        self.state = "play"
+        self.dispatch("on_play")
 
     def stop(self):
-        '''Stop playback.'''
-        self.state = 'stop'
-        self.dispatch('on_stop')
+        """Stop playback."""
+        self.state = "stop"
+        self.dispatch("on_stop")
 
     def seek(self, position):
-        '''Go to the <position> (in seconds).
+        """Go to the <position> (in seconds).
 
         .. note::
             Most sound providers cannot seek when the audio is stopped.
             Play then seek.
-        '''
+        """
         pass
 
     def on_play(self):
@@ -226,19 +234,20 @@ class Sound(EventDispatcher):
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
 audio_libs = []
-if platform == 'android':
-    audio_libs += [('android', 'audio_android')]
-elif platform in ('macosx', 'ios'):
-    audio_libs += [('avplayer', 'audio_avplayer')]
+if platform == "android":
+    audio_libs += [("android", "audio_android")]
+elif platform in ("macosx", "ios"):
+    audio_libs += [("avplayer", "audio_avplayer")]
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
-    audio_libs += [('gstplayer', 'audio_gstplayer')]
+
+    audio_libs += [("gstplayer", "audio_gstplayer")]
 except ImportError:
     pass
-audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
+audio_libs += [("ffpyplayer", "audio_ffpyplayer")]
 if USE_SDL2:
-    audio_libs += [('sdl2', 'audio_sdl2')]
+    audio_libs += [("sdl2", "audio_sdl2")]
 else:
-    audio_libs += [('pygame', 'audio_pygame')]
+    audio_libs += [("pygame", "audio_pygame")]
 
-libs_loaded = core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs("audio", audio_libs)

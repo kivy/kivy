@@ -1,6 +1,6 @@
-'''
+"""
 Test properties attached to a widget
-'''
+"""
 
 import unittest
 import pytest
@@ -16,7 +16,6 @@ wid = _TestProperty()
 
 
 class PropertiesTestCase(unittest.TestCase):
-
     @pytest.fixture(autouse=True)
     def set_clock(self, kivy_clock):
         self.kivy_clock = kivy_clock
@@ -25,8 +24,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import Property
 
         a = Property(-1)
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), -1)
         a.set(wid, 0)
         self.assertEqual(a.get(wid), 0)
@@ -37,8 +36,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import Property
 
         a = Property(-1)
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), -1)
         global observe_called
         observe_called = 0
@@ -46,6 +45,7 @@ class PropertiesTestCase(unittest.TestCase):
         def observe(obj, value):
             global observe_called
             observe_called = 1
+
         a.bind(wid, observe)
 
         a.set(wid, 0)
@@ -63,8 +63,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import ObjectProperty
 
         a = ObjectProperty(False)
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), False)
         a.set(wid, True)
         self.assertEqual(a.get(wid), True)
@@ -73,15 +73,15 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import StringProperty
 
         a = StringProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
-        self.assertEqual(a.get(wid), '')
-        a.set(wid, 'hello')
-        self.assertEqual(a.get(wid), 'hello')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
+        self.assertEqual(a.get(wid), "")
+        a.set(wid, "hello")
+        self.assertEqual(a.get(wid), "hello")
 
         try:
             a.set(wid, 88)  # number shouldn't be accepted
-            self.fail('string accept number, fail.')
+            self.fail("string accept number, fail.")
         except ValueError:
             pass
 
@@ -89,8 +89,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import NumericProperty
 
         a = NumericProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), 0)
         a.set(wid, 99)
         self.assertEqual(a.get(wid), 99)
@@ -105,8 +105,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import ListProperty
 
         a = ListProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), [])
         a.set(wid, [1, 2, 3])
         self.assertEqual(a.get(wid), [1, 2, 3])
@@ -115,18 +115,18 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import DictProperty
 
         a = DictProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), {})
-        a.set(wid, {'foo': 'bar'})
-        self.assertEqual(a.get(wid), {'foo': 'bar'})
+        a.set(wid, {"foo": "bar"})
+        self.assertEqual(a.get(wid), {"foo": "bar"})
 
     def test_propertynone(self):
         from kivy.properties import NumericProperty
 
         a = NumericProperty(0, allownone=True)
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), 0)
         try:
             a.set(wid, None)
@@ -140,14 +140,14 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import NumericProperty, ReferenceListProperty
 
         x = NumericProperty(0)
-        x.link(wid, 'x')
-        x.link_deps(wid, 'x')
+        x.link(wid, "x")
+        x.link_deps(wid, "x")
         y = NumericProperty(0)
-        y.link(wid, 'y')
-        y.link_deps(wid, 'y')
+        y.link(wid, "y")
+        y.link_deps(wid, "y")
         pos = ReferenceListProperty(x, y)
-        pos.link(wid, 'pos')
-        pos.link_deps(wid, 'pos')
+        pos.link(wid, "pos")
+        pos.link_deps(wid, "pos")
 
         self.assertEqual(x.get(wid), 0)
         self.assertEqual(y.get(wid), 0)
@@ -171,6 +171,7 @@ class PropertiesTestCase(unittest.TestCase):
         def observe(obj, value):
             global observe_called
             observe_called = 1
+
         pos.bind(wid, observe)
 
         self.assertEqual(observe_called, 0)
@@ -181,14 +182,14 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import NumericProperty, ReferenceListProperty
 
         x = NumericProperty(0)
-        x.link(wid, 'x')
-        x.link_deps(wid, 'x')
+        x.link(wid, "x")
+        x.link_deps(wid, "x")
         y = NumericProperty(0)
-        y.link(wid, 'y')
-        y.link_deps(wid, 'y')
+        y.link(wid, "y")
+        y.link_deps(wid, "y")
         pos = ReferenceListProperty(x, y)
-        pos.link(wid, 'pos')
-        pos.link_deps(wid, 'pos')
+        pos.link(wid, "pos")
+        pos.link_deps(wid, "pos")
 
         pos.get(wid)[0] = 10
         self.assertEqual(pos.get(wid), [10, 0])
@@ -200,8 +201,8 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import DictProperty
 
         x = DictProperty()
-        x.link(wid, 'x')
-        x.link_deps(wid, 'x')
+        x.link(wid, "x")
+        x.link_deps(wid, "x")
 
         # test observer
         global observe_called
@@ -214,23 +215,23 @@ class PropertiesTestCase(unittest.TestCase):
         x.bind(wid, observe)
 
         observe_called = 0
-        x.get(wid)['toto'] = 1
+        x.get(wid)["toto"] = 1
         self.assertEqual(observe_called, 1)
 
         observe_called = 0
-        x.get(wid)['toto'] = 2
+        x.get(wid)["toto"] = 2
         self.assertEqual(observe_called, 1)
 
         observe_called = 0
-        x.get(wid)['youupi'] = 2
+        x.get(wid)["youupi"] = 2
         self.assertEqual(observe_called, 1)
 
         observe_called = 0
-        del x.get(wid)['toto']
+        del x.get(wid)["toto"]
         self.assertEqual(observe_called, 1)
 
         observe_called = 0
-        x.get(wid).update({'bleh': 5})
+        x.get(wid).update({"bleh": 5})
         self.assertEqual(observe_called, 1)
 
     def test_bounded_numeric_property(self):
@@ -238,7 +239,7 @@ class PropertiesTestCase(unittest.TestCase):
 
         bnp = BoundedNumericProperty(0.0, min=0.0, max=3.5)
 
-        bnp.link(wid, 'bnp')
+        bnp.link(wid, "bnp")
 
         bnp.set(wid, 1)
         bnp.set(wid, 0.0)
@@ -251,7 +252,7 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import BoundedNumericProperty
 
         bnp = BoundedNumericProperty(0, min=-5, max=5, errorvalue=1)
-        bnp.link(wid, 'bnp')
+        bnp.link(wid, "bnp")
 
         bnp.set(wid, 1)
         self.assertEqual(bnp.get(wid), 1)
@@ -272,10 +273,10 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import BoundedNumericProperty
 
         bnp = BoundedNumericProperty(
-            0, min=-5, max=5,
-            errorhandler=lambda x: 5 if x > 5 else -5)
+            0, min=-5, max=5, errorhandler=lambda x: 5 if x > 5 else -5
+        )
 
-        bnp.link(wid, 'bnp')
+        bnp.link(wid, "bnp")
 
         bnp.set(wid, 1)
         self.assertEqual(bnp.get(wid), 1)
@@ -296,37 +297,38 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import NumericProperty
 
         a = NumericProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), 0)
 
-        a.set(wid, '55dp')
+        a.set(wid, "55dp")
         from kivy.core.window import Window
-        density = Window._density if hasattr(Window, '_density') else 1
+
+        density = Window._density if hasattr(Window, "_density") else 1
         self.assertEqual(a.get(wid), 55 * density)
-        self.assertEqual(a.get_format(wid), 'dp')
+        self.assertEqual(a.get_format(wid), "dp")
 
-        a.set(wid, u'55dp')
+        a.set(wid, "55dp")
         self.assertEqual(a.get(wid), 55 * density)
-        self.assertEqual(a.get_format(wid), 'dp')
+        self.assertEqual(a.get_format(wid), "dp")
 
-        a.set(wid, '99in')
+        a.set(wid, "99in")
         self.assertEqual(a.get(wid), 9504.0 * density)
-        self.assertEqual(a.get_format(wid), 'in')
+        self.assertEqual(a.get_format(wid), "in")
 
-        a.set(wid, u'99in')
+        a.set(wid, "99in")
         self.assertEqual(a.get(wid), 9504.0 * density)
-        self.assertEqual(a.get_format(wid), 'in')
+        self.assertEqual(a.get_format(wid), "in")
 
     def test_numeric_string_without_units(self):
         from kivy.properties import NumericProperty
 
         a = NumericProperty()
-        a.link(wid, 'a')
-        a.link_deps(wid, 'a')
+        a.link(wid, "a")
+        a.link_deps(wid, "a")
         self.assertEqual(a.get(wid), 0)
 
-        a.set(wid, '2')
+        a.set(wid, "2")
         self.assertEqual(a.get(wid), 2)
 
     def test_property_rebind(self):
@@ -343,11 +345,10 @@ class PropertiesTestCase(unittest.TestCase):
             button = ObjectProperty(None, rebind=False, allownone=True)
 
         class DictWidget(Label):
-            button = DictProperty({'button': None}, rebind=True,
-                                  allownone=True)
+            button = DictProperty({"button": None}, rebind=True, allownone=True)
 
         class DictWidgetFalse(Label):
-            button = DictProperty({'button': None}, rebind=False)
+            button = DictProperty({"button": None}, rebind=False)
 
         class AliasWidget(Label):
             _button = None
@@ -358,9 +359,11 @@ class PropertiesTestCase(unittest.TestCase):
 
             def getter(self):
                 return self._button
+
             button = AliasProperty(getter, setter, rebind=True)
 
-        Builder.load_string('''
+        Builder.load_string(
+            """
 <ObjWidget>:
     text: self.button.state if self.button is not None else 'Unset'
 
@@ -377,7 +380,8 @@ class PropertiesTestCase(unittest.TestCase):
 <DictWidgetFalse>:
     text: self.button.button.state if self.button.button is not None\
     else 'Unset'
-        ''')
+        """
+        )
 
         obj = ObjWidget()
         obj_false = ObjWidgetRebindFalse()
@@ -386,11 +390,11 @@ class PropertiesTestCase(unittest.TestCase):
         alias_rebind = AliasWidget()
         button = ToggleButton()
         Clock.tick()
-        self.assertEqual(obj.text, 'Unset')
-        self.assertEqual(obj_false.text, 'Unset')
-        self.assertEqual(dict_rebind.text, 'Unset')
-        self.assertEqual(dict_false.text, 'Unset')
-        self.assertEqual(alias_rebind.text, 'Unset')
+        self.assertEqual(obj.text, "Unset")
+        self.assertEqual(obj_false.text, "Unset")
+        self.assertEqual(dict_rebind.text, "Unset")
+        self.assertEqual(dict_false.text, "Unset")
+        self.assertEqual(alias_rebind.text, "Unset")
 
         obj.button = button
         obj_false.button = button
@@ -398,27 +402,27 @@ class PropertiesTestCase(unittest.TestCase):
         dict_false.button.button = button
         alias_rebind.button = button
         Clock.tick()
-        self.assertEqual(obj.text, 'normal')
-        self.assertEqual(obj_false.text, 'normal')
-        self.assertEqual(dict_rebind.text, 'normal')
-        self.assertEqual(dict_false.text, 'Unset')
-        self.assertEqual(alias_rebind.text, 'normal')
+        self.assertEqual(obj.text, "normal")
+        self.assertEqual(obj_false.text, "normal")
+        self.assertEqual(dict_rebind.text, "normal")
+        self.assertEqual(dict_false.text, "Unset")
+        self.assertEqual(alias_rebind.text, "normal")
 
-        button.state = 'down'
+        button.state = "down"
         Clock.tick()
-        self.assertEqual(obj.text, 'down')
-        self.assertEqual(obj_false.text, 'normal')
-        self.assertEqual(dict_rebind.text, 'down')
-        self.assertEqual(dict_false.text, 'Unset')
-        self.assertEqual(alias_rebind.text, 'down')
+        self.assertEqual(obj.text, "down")
+        self.assertEqual(obj_false.text, "normal")
+        self.assertEqual(dict_rebind.text, "down")
+        self.assertEqual(dict_false.text, "Unset")
+        self.assertEqual(alias_rebind.text, "down")
 
-        button.state = 'normal'
+        button.state = "normal"
         Clock.tick()
-        self.assertEqual(obj.text, 'normal')
-        self.assertEqual(obj_false.text, 'normal')
-        self.assertEqual(dict_rebind.text, 'normal')
-        self.assertEqual(dict_false.text, 'Unset')
-        self.assertEqual(alias_rebind.text, 'normal')
+        self.assertEqual(obj.text, "normal")
+        self.assertEqual(obj_false.text, "normal")
+        self.assertEqual(dict_rebind.text, "normal")
+        self.assertEqual(dict_false.text, "Unset")
+        self.assertEqual(alias_rebind.text, "normal")
 
         obj.button = None
         obj_false.button = None
@@ -426,36 +430,36 @@ class PropertiesTestCase(unittest.TestCase):
         dict_false.button.button = None
         alias_rebind.button = None
         Clock.tick()
-        self.assertEqual(obj.text, 'Unset')
-        self.assertEqual(obj_false.text, 'Unset')
-        self.assertEqual(dict_rebind.text, 'Unset')
-        self.assertEqual(dict_false.text, 'Unset')
-        self.assertEqual(alias_rebind.text, 'Unset')
+        self.assertEqual(obj.text, "Unset")
+        self.assertEqual(obj_false.text, "Unset")
+        self.assertEqual(dict_rebind.text, "Unset")
+        self.assertEqual(dict_false.text, "Unset")
+        self.assertEqual(alias_rebind.text, "Unset")
 
     def test_color_property(self):
         from kivy.properties import ColorProperty
 
         color = ColorProperty()
-        color.link(wid, 'color')
-        color.link_deps(wid, 'color')
+        color.link(wid, "color")
+        color.link_deps(wid, "color")
         self.assertEqual(color.get(wid), [1, 1, 1, 1])
 
         color2 = ColorProperty()
-        color2.link(wid, 'color2')
-        color2.link_deps(wid, 'color2')
+        color2.link(wid, "color2")
+        color2.link_deps(wid, "color2")
         self.assertEqual(color2.get(wid), [1, 1, 1, 1])
 
-        color.set(wid, 'yellow')
+        color.set(wid, "yellow")
         self.assertEqual(color.get(wid), [1.0, 1.0, 0.0, 1.0])
 
         color.set(wid, "#00ff00")
         self.assertEqual(color.get(wid), [0, 1, 0, 1])
 
         color.set(wid, "#7f7fff7f")
-        self.assertEqual(color.get(wid)[0], 127 / 255.)
-        self.assertEqual(color.get(wid)[1], 127 / 255.)
+        self.assertEqual(color.get(wid)[0], 127 / 255.0)
+        self.assertEqual(color.get(wid)[1], 127 / 255.0)
         self.assertEqual(color.get(wid)[2], 1)
-        self.assertEqual(color.get(wid)[3], 127 / 255.)
+        self.assertEqual(color.get(wid)[3], 127 / 255.0)
 
         color.set(wid, (1, 1, 0))
         self.assertEqual(color.get(wid), [1, 1, 0, 1])
@@ -482,7 +486,6 @@ class PropertiesTestCase(unittest.TestCase):
         expected_value = 5
 
         class CustomAlias(EventDispatcher):
-
             def _get_prop(self):
                 self.getter_called += 1
                 return expected_value
@@ -503,13 +506,12 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(wid.getter_called, 1)
 
         # Setter should raise an AttributeError
-        self.assertRaises(AttributeError, partial(setattr, wid, 'prop', 1))
+        self.assertRaises(AttributeError, partial(setattr, wid, "prop", 1))
 
     def test_alias_property(self):
         from kivy.properties import AliasProperty
 
         class CustomAlias(EventDispatcher):
-
             def _get_prop(self):
                 self.getter_called += 1
 
@@ -560,7 +562,6 @@ class PropertiesTestCase(unittest.TestCase):
         expected_value = 5
 
         class CustomAlias(EventDispatcher):
-
             def _get_prop(self):
                 self.getter_called += 1
                 return expected_value
@@ -615,7 +616,7 @@ class PropertiesTestCase(unittest.TestCase):
             def set_right(self, value):
                 self.x = value - self.width
 
-            right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+            right = AliasProperty(get_right, set_right, bind=("x", "width"))
 
             def __init__(self, **kwargs):
                 super(CustomAlias, self).__init__(**kwargs)
@@ -653,7 +654,6 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import AliasProperty
 
         class CustomAlias(EventDispatcher):
-
             def _get_prop(self):
                 self.getter_called += 1
 
@@ -706,9 +706,9 @@ class PropertiesTestCase(unittest.TestCase):
             def _set_prop(self, value):
                 self.base_value = value / 2
 
-            prop = AliasProperty(_get_prop, _set_prop,
-                                 bind=('base_value',),
-                                 cache=True)
+            prop = AliasProperty(
+                _get_prop, _set_prop, bind=("base_value",), cache=True
+            )
 
             def __init__(self, **kwargs):
                 super(CustomAlias, self).__init__(**kwargs)
@@ -739,7 +739,6 @@ class PropertiesTestCase(unittest.TestCase):
         from kivy.properties import AliasProperty
 
         class CustomAlias(EventDispatcher):
-
             def _get_prop(self):
                 self.getter_called += 1
                 return self.base_value * 2
@@ -749,9 +748,9 @@ class PropertiesTestCase(unittest.TestCase):
                 self.base_value = value / 2
                 return True
 
-            prop = AliasProperty(_get_prop, _set_prop,
-                                 cache=True,
-                                 force_dispatch=True)
+            prop = AliasProperty(
+                _get_prop, _set_prop, cache=True, force_dispatch=True
+            )
 
             def __init__(self, **kwargs):
                 super(CustomAlias, self).__init__(**kwargs)
@@ -799,11 +798,11 @@ def test_dictproperty_is_none():
     from kivy.properties import DictProperty
 
     d1 = DictProperty(None)
-    d1.link(wid, 'd1')
+    d1.link(wid, "d1")
     assert d1.get(wid) is None
 
-    d2 = DictProperty({'a': 1, 'b': 2}, allownone=True)
-    d2.link(wid, 'd2')
+    d2 = DictProperty({"a": 1, "b": 2}, allownone=True)
+    d2.link(wid, "d2")
     d2.set(wid, None)
     assert d2.get(wid) is None
 
@@ -812,10 +811,10 @@ def test_listproperty_is_none():
     from kivy.properties import ListProperty
 
     l1 = ListProperty(None)
-    l1.link(wid, 'l1')
+    l1.link(wid, "l1")
     assert l1.get(wid) is None
 
     l2 = ListProperty([1, 2, 3], allownone=True)
-    l2.link(wid, 'l2')
+    l2.link(wid, "l2")
     l2.set(wid, None)
     assert l2.get(wid) is None

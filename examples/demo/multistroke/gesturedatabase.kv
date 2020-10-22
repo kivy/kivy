@@ -45,7 +45,7 @@
             on_press: root.mass_select()
         Button:
             text:
-                (root.selected_count 
+                (root.selected_count
                 and 'Save ' + str(root.selected_count) + ' gestures'
                 or 'Save all')
             size_hint_y: None
@@ -53,7 +53,7 @@
             on_press: root.export_popup.open()
         Button:
             text:
-                (root.selected_count 
+                (root.selected_count
                 and 'Unload ' + str(root.selected_count) + ' gestures'
                 or 'Unload all')
             size_hint_y: None

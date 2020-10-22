@@ -2,7 +2,8 @@ from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.lang import Builder
 
-Builder.load_string("""
+Builder.load_string(
+    """
 #:import hex kivy.utils.get_color_from_hex
 
 <Root>:
@@ -46,7 +47,8 @@ Builder.load_string("""
                 pos: self.pos
                 size: self.size
         text: "rgba: hex('#27ae60')"
-""")
+"""
+)
 
 
 class Root(GridLayout):

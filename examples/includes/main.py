@@ -15,5 +15,5 @@ class TestApp(App):
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TestApp().run()

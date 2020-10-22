@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.lang import Builder
 
 
-kv = '''
+kv = """
 BoxLayout:
     orientation: 'vertical'
 
@@ -21,7 +21,7 @@ BoxLayout:
         Button:
             text: 'Stop'
             on_release: camera.play = False
-'''
+"""
 
 
 class CameraApp(App):
@@ -29,5 +29,5 @@ class CameraApp(App):
         return Builder.load_string(kv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CameraApp().run()

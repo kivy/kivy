@@ -1,8 +1,8 @@
-'''
+"""
 Example usage of the effectwidget.
 
 Currently highly experimental.
-'''
+"""
 
 from kivy.app import App
 from kivy.uix.effectwidget import EffectWidget
@@ -11,14 +11,16 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
-from kivy.uix.effectwidget import (MonochromeEffect,
-                                   InvertEffect,
-                                   ChannelMixEffect,
-                                   ScanlinesEffect,
-                                   FXAAEffect,
-                                   PixelateEffect,
-                                   HorizontalBlurEffect,
-                                   VerticalBlurEffect)
+from kivy.uix.effectwidget import (
+    MonochromeEffect,
+    InvertEffect,
+    ChannelMixEffect,
+    ScanlinesEffect,
+    FXAAEffect,
+    PixelateEffect,
+    HorizontalBlurEffect,
+    VerticalBlurEffect,
+)
 
 
 class ComparisonWidget(EffectWidget):
@@ -36,30 +38,31 @@ class SpinnerRow(BoxLayout):
         effects = []
         for child in self.children[::-1]:
             text = child.text
-            if text == 'none':
+            if text == "none":
                 pass
-            if text == 'fxaa':
+            if text == "fxaa":
                 effects.append(FXAAEffect())
-            if text == 'monochrome':
+            if text == "monochrome":
                 effects.append(MonochromeEffect())
-            if text == 'invert':
+            if text == "invert":
                 effects.append(InvertEffect())
-            if text == 'mix':
+            if text == "mix":
                 effects.append(ChannelMixEffect())
-            if text == 'blur_h':
+            if text == "blur_h":
                 effects.append(HorizontalBlurEffect())
-            if text == 'blur_v':
+            if text == "blur_v":
                 effects.append(VerticalBlurEffect())
-            if text == 'postprocessing':
+            if text == "postprocessing":
                 effects.append(ScanlinesEffect())
-            if text == 'pixelate':
+            if text == "pixelate":
                 effects.append(PixelateEffect())
 
         if self.effectwidget:
             self.effectwidget.effects = effects
 
 
-example = Builder.load_string('''
+example = Builder.load_string(
+    """
 #:import Vector kivy.vector.Vector
 BoxLayout:
     orientation: 'vertical'
@@ -182,7 +185,8 @@ BoxLayout:
         'invert', 'mix',
         'blur_h', 'blur_v',
         'postprocessing', 'pixelate',]
-''')
+"""
+)
 
 
 class EffectApp(App):

@@ -5,7 +5,7 @@ from kivy.modules import inspector
 from kivy.factory import Factory
 
 
-KV = '''
+KV = """
 #:import Factory kivy.factory.Factory
 
 <InspectorTestModal@ModalView>:
@@ -43,7 +43,7 @@ BoxLayout:
     Button:
         id: dummy
         text: 'dummy'
-'''
+"""
 
 
 class InspectorTestCase(GraphicUnitTest):
@@ -53,7 +53,7 @@ class InspectorTestCase(GraphicUnitTest):
         # kill KV lang logging (too long test)
         import kivy.lang.builder as builder
 
-        if not hasattr(self, '_trace'):
+        if not hasattr(self, "_trace"):
             self._trace = builder.trace
 
         self.builder = builder
@@ -63,6 +63,7 @@ class InspectorTestCase(GraphicUnitTest):
     def tearDown(self):
         # add the logging back
         import kivy.lang.builder as builder
+
         builder.Builder.unload_file("InspectorTestCase.KV")
         builder.trace = self._trace
         super(InspectorTestCase, self).tearDown()
@@ -80,7 +81,8 @@ class InspectorTestCase(GraphicUnitTest):
 
         # build the widget tree & add Window as the main EL
         self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
+            KV, filename="InspectorTestCase.KV"
+        )
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -119,7 +121,8 @@ class InspectorTestCase(GraphicUnitTest):
 
         # build the widget tree & add Window as the main EL
         self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
+            KV, filename="InspectorTestCase.KV"
+        )
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -160,7 +163,8 @@ class InspectorTestCase(GraphicUnitTest):
 
         # build the widget tree & add Window as the main EL
         self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
+            KV, filename="InspectorTestCase.KV"
+        )
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -192,10 +196,10 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertEqual(ins.widget.text, highlight_exp)
         # data in properties
         for node in ins.treeview.iterate_all_nodes():
-            lkey = getattr(node.ids, 'lkey', None)
+            lkey = getattr(node.ids, "lkey", None)
             if not lkey:
                 continue
-            if lkey.text == 'text':
+            if lkey.text == "text":
                 ltext = node.ids.ltext
                 # slice because the string is displayed with quotes
                 self.assertEqual(ltext.text[1:-1], highlight_exp)
@@ -220,7 +224,8 @@ class InspectorTestCase(GraphicUnitTest):
 
         # build the widget tree & add Window as the main EL
         self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
+            KV, filename="InspectorTestCase.KV"
+        )
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -268,10 +273,10 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertEqual(ins.widget.text, temp_popup_exp)
         # data in properties
         for node in ins.treeview.iterate_all_nodes():
-            lkey = getattr(node.ids, 'lkey', None)
+            lkey = getattr(node.ids, "lkey", None)
             if not lkey:
                 continue
-            if lkey.text == 'text':
+            if lkey.text == "text":
                 ltext = node.ids.ltext
                 # slice because the string is displayed with quotes
                 self.assertEqual(ltext.text[1:-1], temp_popup_exp)
@@ -304,7 +309,8 @@ class InspectorTestCase(GraphicUnitTest):
 
         # build the widget tree & add Window as the main EL
         self.root = self.builder.Builder.load_string(
-            KV, filename="InspectorTestCase.KV")
+            KV, filename="InspectorTestCase.KV"
+        )
         self.render(self.root)
         self.assertLess(len(self._win.children), 2)
 
@@ -331,21 +337,14 @@ class InspectorTestCase(GraphicUnitTest):
 
         # touch Window center to open
         # the second and the third popup
-        touch = UnitTestTouch(
-            self._win.width / 2.0,
-            self._win.height / 2.0
-        )
+        touch = UnitTestTouch(self._win.width / 2.0, self._win.height / 2.0)
         for i in range(2):
             touch.touch_down()
             touch.touch_up()
             self.advance_frames(1)
 
         # fixed order, first opened - last closed
-        modals = [
-            Factory.ThirdModal,
-            Factory.SecondModal,
-            Factory.FirstModal
-        ]
+        modals = [Factory.ThirdModal, Factory.SecondModal, Factory.FirstModal]
         for mod in modals:
             # start inspecting
             ins.inspect_enabled = True
@@ -379,6 +378,7 @@ class InspectorTestCase(GraphicUnitTest):
         self.render(self.root)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

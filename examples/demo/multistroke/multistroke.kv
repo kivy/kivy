@@ -41,7 +41,7 @@
         id: max_strokes
         title: 'Max strokes'
         type: 'int'
-        desc: 
+        desc:
             ('Max number of strokes for a single gesture. If 0, the ' +
             'gesture will only be analyzed once the temporal window has ' +
             'expired since the last strokes touch up event')
@@ -53,7 +53,7 @@
         id: temporal_win
         title: 'Temporal Window'
         type: 'float'
-        desc: 
+        desc:
             ('Time to wait from last touch up in a gesture before analyzing ' +
             'the input. If 0, only analyzed once Max Strokes is reached')
         value: 2.
@@ -68,7 +68,7 @@
         id: timeout
         title: 'Draw Timeout'
         type: 'float'
-        desc: 
+        desc:
             ('How long to display the gesture (and result label) on the ' +
             'gesture surface once analysis has completed')
         value: 2.
@@ -79,7 +79,7 @@
         id: line_width
         title: 'Line width'
         type: 'int'
-        desc: 
+        desc:
             ('Width of lines on the gesture surface; 0 does not draw ' +
             'anything; 1 uses OpenGL line, >1 uses custom drawing method.')
         value: 2

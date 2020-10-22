@@ -16,67 +16,67 @@ touch_id = count()
 
 class _TestGrid(GridLayout):
     def __init__(self, **kwargs):
-        kwargs['cols'] = 1
-        kwargs['spacing'] = 10
-        kwargs['size_hint'] = (None, None)
+        kwargs["cols"] = 1
+        kwargs["spacing"] = 10
+        kwargs["size_hint"] = (None, None)
         super(_TestGrid, self).__init__(**kwargs)
-        self.bind(minimum_height=self.setter('height'))
-        self.bind(minimum_width=self.setter('width'))
+        self.bind(minimum_height=self.setter("height"))
+        self.bind(minimum_width=self.setter("width"))
 
         for i in range(10):
-            self.add_widget(Label(
-                size_hint=(None, None),
-                height=100, width=1000,
-                text=str(i)
-            ))
+            self.add_widget(
+                Label(
+                    size_hint=(None, None), height=100, width=1000, text=str(i)
+                )
+            )
 
 
 class _TestScrollbarHorizontal(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_width'] = 20
-        kwargs['do_scroll_y'] = False
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_width"] = 20
+        kwargs["do_scroll_y"] = False
         super(_TestScrollbarHorizontal, self).__init__(**kwargs)
 
 
 class _TestScrollbarVertical(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_width'] = 20
-        kwargs['do_scroll_x'] = False
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_width"] = 20
+        kwargs["do_scroll_x"] = False
         super(_TestScrollbarVertical, self).__init__(**kwargs)
 
 
 class _TestScrollbarBoth(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_width'] = 20
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_width"] = 20
         super(_TestScrollbarBoth, self).__init__(**kwargs)
 
 
 class _TestScrollbarHorizontalMargin(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_margin'] = 40
-        kwargs['bar_width'] = 20
-        kwargs['do_scroll_y'] = False
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_margin"] = 40
+        kwargs["bar_width"] = 20
+        kwargs["do_scroll_y"] = False
         super(_TestScrollbarHorizontalMargin, self).__init__(**kwargs)
 
 
 class _TestScrollbarVerticalMargin(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_margin'] = 40
-        kwargs['bar_width'] = 20
-        kwargs['do_scroll_x'] = False
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_margin"] = 40
+        kwargs["bar_width"] = 20
+        kwargs["do_scroll_x"] = False
         super(_TestScrollbarVerticalMargin, self).__init__(**kwargs)
 
 
 class _TestScrollbarBothMargin(ScrollView):
     def __init__(self, **kwargs):
-        kwargs['scroll_type'] = ["bars"]
-        kwargs['bar_margin'] = 40
-        kwargs['bar_width'] = 20
+        kwargs["scroll_type"] = ["bars"]
+        kwargs["bar_margin"] = 40
+        kwargs["bar_width"] = 20
         super(_TestScrollbarBothMargin, self).__init__(**kwargs)
 
 
@@ -89,17 +89,18 @@ class ScrollViewTestCase(GraphicUnitTest):
 
         for point in points:
             if DEBUG:
-                print('point:', point, scroll.scroll_x, scroll.scroll_y)
+                print("point:", point, scroll.scroll_x, scroll.scroll_y)
                 Clock.schedule_once(lambda *dt: sleep(0.5), 0)
                 self.render(scroll)
 
             x, y, nx, ny, pos_x, pos_y, border_check = point
             scroll.bar_pos = (pos_x, pos_y)
 
-            touch = UTMotionEvent("unittest", next(touch_id), {
-                "x": x / float(win.width),
-                "y": y / float(win.height),
-            })
+            touch = UTMotionEvent(
+                "unittest",
+                next(touch_id),
+                {"x": x / float(win.width), "y": y / float(win.height),},
+            )
 
             # we start with the default top-left corner
             self.assertAlmostEqual(scroll.scroll_x, 0.0, delta=dt)
@@ -108,10 +109,9 @@ class ScrollViewTestCase(GraphicUnitTest):
             # check the collision with the margin empty area
             if border_check:
                 EventLoop.post_dispatch_input("begin", touch)
-                touch.move({
-                    "x": nx / float(win.width),
-                    "y": ny / float(win.height)
-                })
+                touch.move(
+                    {"x": nx / float(win.width), "y": ny / float(win.height)}
+                )
                 EventLoop.post_dispatch_input("update", touch)
                 EventLoop.post_dispatch_input("end", touch)
 
@@ -120,10 +120,9 @@ class ScrollViewTestCase(GraphicUnitTest):
                 return
 
             EventLoop.post_dispatch_input("begin", touch)
-            touch.move({
-                "x": nx / float(win.width),
-                "y": ny / float(win.height)
-            })
+            touch.move(
+                {"x": nx / float(win.width), "y": ny / float(win.height)}
+            )
             EventLoop.post_dispatch_input("update", touch)
             EventLoop.post_dispatch_input("end", touch)
 
@@ -134,12 +133,10 @@ class ScrollViewTestCase(GraphicUnitTest):
 
             # check the scroll position
             self.assertAlmostEqual(
-                scroll.scroll_x, 0.0 if x == nx else 1.0,
-                delta=dt
+                scroll.scroll_x, 0.0 if x == nx else 1.0, delta=dt
             )
             self.assertAlmostEqual(
-                scroll.scroll_y, 1.0 if y == ny else 0.0,
-                delta=dt
+                scroll.scroll_y, 1.0 if y == ny else 0.0, delta=dt
             )
 
             # reset scroll to original state
@@ -161,8 +158,8 @@ class ScrollViewTestCase(GraphicUnitTest):
         bottom, top = scroll.to_window(scroll.y, scroll.top)
 
         points = [
-            [left, bottom, right, bottom, 'bottom', 'right', False],
-            [left, top, right, top, 'top', 'right', False]
+            [left, bottom, right, bottom, "bottom", "right", False],
+            [left, top, right, top, "top", "right", False],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -182,8 +179,8 @@ class ScrollViewTestCase(GraphicUnitTest):
         bottom, top = scroll.to_window(scroll.y, scroll.top)
 
         points = [
-            [right, top, right, bottom, 'bottom', 'right', False],
-            [left, top, left, bottom, 'bottom', 'left', False]
+            [right, top, right, bottom, "bottom", "right", False],
+            [left, top, left, bottom, "bottom", "left", False],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -203,10 +200,10 @@ class ScrollViewTestCase(GraphicUnitTest):
         bottom, top = scroll.to_window(scroll.y, scroll.top)
 
         points = [
-            [left, bottom, right, bottom, 'bottom', 'right', False],
-            [left, top, right, top, 'top', 'right', False],
-            [right, top, right, bottom, 'bottom', 'right', False],
-            [left, top, left, bottom, 'bottom', 'left', False]
+            [left, bottom, right, bottom, "bottom", "right", False],
+            [left, top, right, top, "top", "right", False],
+            [right, top, right, bottom, "bottom", "right", False],
+            [left, top, left, bottom, "bottom", "left", False],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -229,10 +226,10 @@ class ScrollViewTestCase(GraphicUnitTest):
         # touch in the half of the bar
         m = margin + scroll.bar_width / 2.0
         points = [
-            [left, bottom + m, right, bottom + m, 'bottom', 'right', False],
-            [left, top - m, right, top - m, 'top', 'right', False],
-            [left, bottom, right, bottom, 'bottom', 'right', True],
-            [left, top, right, top, 'top', 'right', True]
+            [left, bottom + m, right, bottom + m, "bottom", "right", False],
+            [left, top - m, right, top - m, "top", "right", False],
+            [left, bottom, right, bottom, "bottom", "right", True],
+            [left, top, right, top, "top", "right", True],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -255,10 +252,10 @@ class ScrollViewTestCase(GraphicUnitTest):
         # touch in the half of the bar
         m = margin + scroll.bar_width / 2.0
         points = [
-            [right - m, top, right - m, bottom, 'bottom', 'right', False],
-            [left + m, top, left + m, bottom, 'bottom', 'left', False],
-            [right, top, right, bottom, 'bottom', 'right', True],
-            [left, top, left, bottom, 'bottom', 'left', True]
+            [right - m, top, right - m, bottom, "bottom", "right", False],
+            [left + m, top, left + m, bottom, "bottom", "left", False],
+            [right, top, right, bottom, "bottom", "right", True],
+            [left, top, left, bottom, "bottom", "left", True],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -281,14 +278,14 @@ class ScrollViewTestCase(GraphicUnitTest):
         # touch in the half of the bar
         m = margin + scroll.bar_width / 2.0
         points = [
-            [left, bottom + m, right, bottom + m, 'bottom', 'right', False],
-            [left, top - m, right, top - m, 'top', 'right', False],
-            [right - m, top, right - m, bottom, 'bottom', 'right', False],
-            [left + m, top, left + m, bottom, 'bottom', 'left', False],
-            [left, bottom, right, bottom, 'bottom', 'right', True],
-            [left, top, right, top, 'top', 'right', True],
-            [right, top, right, bottom, 'bottom', 'right', True],
-            [left, top, left, bottom, 'bottom', 'left', True]
+            [left, bottom + m, right, bottom + m, "bottom", "right", False],
+            [left, top - m, right, top - m, "top", "right", False],
+            [right - m, top, right - m, bottom, "bottom", "right", False],
+            [left + m, top, left + m, bottom, "bottom", "left", False],
+            [left, bottom, right, bottom, "bottom", "right", True],
+            [left, top, right, top, "top", "right", True],
+            [right, top, right, bottom, "bottom", "right", True],
+            [left, top, left, bottom, "bottom", "left", True],
         ]
         self.process_points(scroll, points)
         self.render(scroll)
@@ -315,13 +312,17 @@ class ScrollViewTestCase(GraphicUnitTest):
         e = scroll.effect_y
         assert e.velocity == 0
 
-        touch = UTMotionEvent("unittest", next(touch_id), {
-            "x": scroll.center_x / float(win.width),
-            "y": scroll.center_y / float(win.height),
-        })
+        touch = UTMotionEvent(
+            "unittest",
+            next(touch_id),
+            {
+                "x": scroll.center_x / float(win.width),
+                "y": scroll.center_y / float(win.height),
+            },
+        )
 
-        touch.profile.append('button')
-        touch.button = 'scrollup'
+        touch.profile.append("button")
+        touch.button = "scrollup"
 
         EventLoop.post_dispatch_input("begin", touch)
         # EventLoop.post_dispatch_input("update", touch)
@@ -336,12 +337,16 @@ class ScrollViewTestCase(GraphicUnitTest):
         while e.velocity:
             EventLoop.idle()
 
-        touch = UTMotionEvent("unittest", next(touch_id), {
-            "x": scroll.center_x / float(win.width),
-            "y": scroll.center_y / float(win.height),
-        })
-        touch.profile.append('button')
-        touch.button = 'scrolldown'
+        touch = UTMotionEvent(
+            "unittest",
+            next(touch_id),
+            {
+                "x": scroll.center_x / float(win.width),
+                "y": scroll.center_y / float(win.height),
+            },
+        )
+        touch.profile.append("button")
+        touch.button = "scrolldown"
 
         EventLoop.post_dispatch_input("begin", touch)
         # EventLoop.post_dispatch_input("update", touch)
@@ -353,6 +358,7 @@ class ScrollViewTestCase(GraphicUnitTest):
         assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

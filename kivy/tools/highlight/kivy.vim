@@ -1,9 +1,9 @@
 " ~/.vim/after/syntax/kivy.vim
 "
 " Vim syntax file
-" Language:	Kivy
-" Maintainer:	Gabriel Pettier <gabriel.pettier@gmail.com>
-" Last Change:	2020 June 23
+" Language:    Kivy
+" Maintainer:    Gabriel Pettier <gabriel.pettier@gmail.com>
+" Last Change:    2020 June 23
 
 syntax clear
 

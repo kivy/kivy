@@ -1,4 +1,3 @@
-
 """
 Label textsize
 ============
@@ -14,7 +13,7 @@ from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 # Copied from https://en.wikipedia.org/wiki/A_Tale_of_Two_Cities
 # Published in 1859 and public domain.
 # The newline after the title will help demonstrate halign
-_example_title_text = 'A Tale of Two Cities, by Charles Dickens\n'
+_example_title_text = "A Tale of Two Cities, by Charles Dickens\n"
 _example_text = """It was the best of times, it was the worst of times,
 it was the age of wisdom, it was the age of foolishness, it was the epoch of
 belief, it was the epoch of incredulity, it was the season of Light, it was
@@ -147,8 +146,8 @@ BoxLayout:
 
 class LabelTextureSizeExample(App):
     # All Labels use these properties, set to Label defaults
-    valign = StringProperty('bottom')
-    halign = StringProperty('left')
+    valign = StringProperty("bottom")
+    halign = StringProperty("left")
     shorten = BooleanProperty(False)
     max_lines = NumericProperty(0)
 
@@ -158,9 +157,11 @@ class LabelTextureSizeExample(App):
 
     def on_start(self):
         widget_ids = self.root.ids
-        self.text_content_widgets = (widget_ids.left_content,
-                                     widget_ids.right_content,
-                                     widget_ids.bottom_content)
+        self.text_content_widgets = (
+            widget_ids.left_content,
+            widget_ids.right_content,
+            widget_ids.bottom_content,
+        )
         self.reset_words()
 
     def reset_words(self):
@@ -180,14 +181,14 @@ class LabelTextureSizeExample(App):
             return
 
         for content_widget in self.text_content_widgets:
-            content_widget.text += word + ' '
+            content_widget.text += word + " "
 
         pause_time = 0.03 * len(word)
-        if word.endswith(','):
+        if word.endswith(","):
             pause_time += 0.6
 
         self._add_word_ev = Clock.schedule_once(self.add_word, pause_time)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     LabelTextureSizeExample().run()

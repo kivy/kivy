@@ -1,4 +1,4 @@
-'''Vector
+"""Vector
 ======
 
 The :class:`Vector` represents a 2D vector (x, y).
@@ -78,16 +78,15 @@ You can also use in-place operators::
     >>> v /= 2.
     [7.5, 7.5]
 
-'''
+"""
 
-__all__ = ('Vector', )
+__all__ = ("Vector",)
 
 import math
 
 
 class Vector(list):
-    '''Vector class. See module documentation for more information.
-    '''
+    """Vector class. See module documentation for more information."""
 
     def __init__(self, *largs):
         if len(largs) == 1:
@@ -95,7 +94,7 @@ class Vector(list):
         elif len(largs) == 2:
             super(Vector, self).__init__(largs)
         else:
-            raise Exception('Invalid vector')
+            raise Exception("Invalid vector")
 
     def _get_x(self):
         return self[0]
@@ -104,14 +103,14 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
-    ''':attr:`x` represents the first element in the list.
+    """:attr:`x` represents the first element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[0]
     12
     >>> v.x
     12
-    '''
+    """
 
     def _get_y(self):
         return self[1]
@@ -120,7 +119,7 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
-    ''':attr:`y` represents the second element in the list.
+    """:attr:`y` represents the second element in the list.
 
     >>> v = Vector(12, 23)
     >>> v[1]
@@ -128,7 +127,7 @@ class Vector(list):
     >>> v.y
     23
 
-    '''
+    """
 
     def __getslice__(self, i, j):
         try:
@@ -136,7 +135,7 @@ class Vector(list):
             # result to vector
             return Vector(super(Vector, self).__getslice__(i, j))
         except Exception:
-            raise TypeError('vector::FAILURE in __getslice__')
+            raise TypeError("vector::FAILURE in __getslice__")
 
     def __add__(self, val):
         return Vector(list(map(lambda x, y: x + y, self, val)))
@@ -181,7 +180,7 @@ class Vector(list):
         return self
 
     def __rmul__(self, val):
-        return (self * val)
+        return self * val
 
     def __truediv__(self, val):
         try:
@@ -217,7 +216,7 @@ class Vector(list):
         return self
 
     def length(self):
-        '''Returns the length of a vector.
+        """Returns the length of a vector.
 
         >>> Vector(10, 10).length()
         14.142135623730951
@@ -225,11 +224,11 @@ class Vector(list):
         >>> Vector(pos).length()
         14.142135623730951
 
-        '''
+        """
         return math.sqrt(self[0] ** 2 + self[1] ** 2)
 
     def length2(self):
-        '''Returns the length of a vector squared.
+        """Returns the length of a vector squared.
 
         >>> Vector(10, 10).length2()
         200
@@ -237,11 +236,11 @@ class Vector(list):
         >>> Vector(pos).length2()
         200
 
-        '''
+        """
         return self[0] ** 2 + self[1] ** 2
 
     def distance(self, to):
-        '''Returns the distance between two points.
+        """Returns the distance between two points.
 
         >>> Vector(10, 10).distance((5, 10))
         5.
@@ -250,20 +249,20 @@ class Vector(list):
         >>> Vector(a).distance(b)
         14.035668847618199
 
-        '''
+        """
         return math.sqrt((self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2)
 
     def distance2(self, to):
-        '''Returns the distance between two points squared.
+        """Returns the distance between two points squared.
 
         >>> Vector(10, 10).distance2((5, 10))
         25
 
-        '''
+        """
         return (self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2
 
     def normalize(self):
-        '''Returns a new vector that has the same direction as vec,
+        """Returns a new vector that has the same direction as vec,
         but has a length of one.
 
         >>> v = Vector(88, 33).normalize()
@@ -272,22 +271,22 @@ class Vector(list):
         >>> v.length()
         1.0
 
-        '''
-        if self[0] == 0. and self[1] == 0.:
-            return Vector(0., 0.)
+        """
+        if self[0] == 0.0 and self[1] == 0.0:
+            return Vector(0.0, 0.0)
         return self / self.length()
 
     def dot(self, a):
-        '''Computes the dot product of a and b.
+        """Computes the dot product of a and b.
 
         >>> Vector(2, 4).dot((2, 2))
         12
 
-        '''
+        """
         return self[0] * a[0] + self[1] * a[1]
 
     def angle(self, a):
-        '''Computes the angle between a and b, and returns the angle in
+        """Computes the angle between a and b, and returns the angle in
         degrees.
 
         >>> Vector(100, 0).angle((0, 100))
@@ -295,28 +294,29 @@ class Vector(list):
         >>> Vector(87, 23).angle((-77, 10))
         -157.7920283010705
 
-        '''
+        """
         angle = -(180 / math.pi) * math.atan2(
-            self[0] * a[1] - self[1] * a[0],
-            self[0] * a[0] + self[1] * a[1])
+            self[0] * a[1] - self[1] * a[0], self[0] * a[0] + self[1] * a[1]
+        )
         return angle
 
     def rotate(self, angle):
-        '''Rotate the vector with an angle in degrees.
+        """Rotate the vector with an angle in degrees.
 
         >>> v = Vector(100, 0)
         >>> v.rotate(45)
         [70.71067811865476, 70.71067811865474]
 
-        '''
+        """
         angle = math.radians(angle)
         return Vector(
             (self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
-            (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
+            (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)),
+        )
 
     @staticmethod
     def line_intersection(v1, v2, v3, v4):
-        '''
+        """
         Finds the intersection point between the lines (1)v1->v2 and (2)v3->v4
         and returns it as a vector object.
 
@@ -332,13 +332,13 @@ class Vector(list):
             This is a line intersection method, not a segment intersection.
 
         For math see: http://en.wikipedia.org/wiki/Line-line_intersection
-        '''
+        """
         # linear algebar sucks...seriously!!
         x1, x2, x3, x4 = float(v1[0]), float(v2[0]), float(v3[0]), float(v4[0])
         y1, y2, y3, y4 = float(v1[1]), float(v2[1]), float(v3[1]), float(v4[1])
 
-        u = (x1 * y2 - y1 * x2)
-        v = (x3 * y4 - y3 * x4)
+        u = x1 * y2 - y1 * x2
+        v = x3 * y4 - y3 * x4
         denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
         if denom == 0:
             return None
@@ -350,7 +350,7 @@ class Vector(list):
 
     @staticmethod
     def segment_intersection(v1, v2, v3, v4):
-        '''
+        """
         Finds the intersection point between segments (1)v1->v2 and (2)v3->v4
         and returns it as a vector object.
 
@@ -367,15 +367,15 @@ class Vector(list):
         >>> d = (10, 0)
         >>> Vector.segment_intersection(a, b, c, d)
         [5, 5]
-        '''
+        """
 
         # Yaaay! I love linear algebra applied within the realms of geometry.
         x1, x2, x3, x4 = float(v1[0]), float(v2[0]), float(v3[0]), float(v4[0])
         y1, y2, y3, y4 = float(v1[1]), float(v2[1]), float(v3[1]), float(v4[1])
 
         # This is mostly the same as the line_intersection
-        u = (x1 * y2 - y1 * x2)
-        v = (x3 * y4 - y3 * x4)
+        u = x1 * y2 - y1 * x2
+        v = x3 * y4 - y3 * x4
         denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
         if denom == 0:
             return None
@@ -395,7 +395,7 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return True if `point` is in the bounding box defined by `a`
+        """Return True if `point` is in the bounding box defined by `a`
         and `b`.
 
         >>> bmin = (0, 0)
@@ -405,8 +405,15 @@ class Vector(list):
         >>> Vector.in_bbox((647, -10), bmin, bmax)
         False
 
-        '''
-        return ((point[0] <= a[0] and point[0] >= b[0] or
-                 point[0] <= b[0] and point[0] >= a[0]) and
-                (point[1] <= a[1] and point[1] >= b[1] or
-                 point[1] <= b[1] and point[1] >= a[1]))
+        """
+        return (
+            point[0] <= a[0]
+            and point[0] >= b[0]
+            or point[0] <= b[0]
+            and point[0] >= a[0]
+        ) and (
+            point[1] <= a[1]
+            and point[1] >= b[1]
+            or point[1] <= b[1]
+            and point[1] >= a[1]
+        )

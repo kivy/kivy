@@ -790,19 +790,19 @@ long keysym2ucs(KeySym keysym)
 
     /* also check for directly encoded 24-bit UCS characters */
     if ((keysym & 0xff000000) == 0x01000000)
-	return keysym & 0x00ffffff;
+    return keysym & 0x00ffffff;
 
     /* binary search in table */
     while (max >= min) {
-	mid = (min + max) / 2;
-	if (keysymtab[mid].keysym < keysym)
-	    min = mid + 1;
-	else if (keysymtab[mid].keysym > keysym)
-	    max = mid - 1;
-	else {
-	    /* found it */
-	    return keysymtab[mid].ucs;
-	}
+    mid = (min + max) / 2;
+    if (keysymtab[mid].keysym < keysym)
+        min = mid + 1;
+    else if (keysymtab[mid].keysym > keysym)
+        max = mid - 1;
+    else {
+        /* found it */
+        return keysymtab[mid].ucs;
+    }
     }
 
     /* no matching Unicode value found */

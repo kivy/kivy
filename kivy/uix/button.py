@@ -1,4 +1,4 @@
-'''
+"""
 Button
 ======
 
@@ -42,9 +42,9 @@ Kv Example::
         on_state:
             print("my current state is {}".format(self.state))
 
-'''
+"""
 
-__all__ = ('Button', )
+__all__ = ("Button",)
 
 from kivy.uix.label import Label
 from kivy.properties import StringProperty, ListProperty, ColorProperty
@@ -52,16 +52,16 @@ from kivy.uix.behaviors import ButtonBehavior
 
 
 class Button(ButtonBehavior, Label):
-    '''Button class, see module documentation for more information.
+    """Button class, see module documentation for more information.
 
     .. versionchanged:: 1.8.0
         The behavior / logic of the button has been moved to
         :class:`~kivy.uix.behaviors.ButtonBehaviors`.
 
-    '''
+    """
 
     background_color = ColorProperty([1, 1, 1, 1])
-    '''Background color, in the format (r, g, b, a).
+    """Background color, in the format (r, g, b, a).
 
     This acts as a *multiplier* to the texture colour. The default
     texture is grey, so just setting the background color will give
@@ -76,33 +76,36 @@ class Button(ButtonBehavior, Label):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    '''
+    """
 
     background_normal = StringProperty(
-        'atlas://data/images/defaulttheme/button')
-    '''Background image of the button used for the default graphical
+        "atlas://data/images/defaulttheme/button"
+    )
+    """Background image of the button used for the default graphical
     representation when the button is not pressed.
 
     .. versionadded:: 1.0.4
 
     :attr:`background_normal` is a :class:`~kivy.properties.StringProperty`
     and defaults to 'atlas://data/images/defaulttheme/button'.
-    '''
+    """
 
     background_down = StringProperty(
-        'atlas://data/images/defaulttheme/button_pressed')
-    '''Background image of the button used for the default graphical
+        "atlas://data/images/defaulttheme/button_pressed"
+    )
+    """Background image of the button used for the default graphical
     representation when the button is pressed.
 
     .. versionadded:: 1.0.4
 
     :attr:`background_down` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/button_pressed'.
-    '''
+    """
 
     background_disabled_normal = StringProperty(
-        'atlas://data/images/defaulttheme/button_disabled')
-    '''Background image of the button used for the default graphical
+        "atlas://data/images/defaulttheme/button_disabled"
+    )
+    """Background image of the button used for the default graphical
     representation when the button is disabled and not pressed.
 
     .. versionadded:: 1.8.0
@@ -110,11 +113,12 @@ class Button(ButtonBehavior, Label):
     :attr:`background_disabled_normal` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/button_disabled'.
-    '''
+    """
 
     background_disabled_down = StringProperty(
-        'atlas://data/images/defaulttheme/button_disabled_pressed')
-    '''Background image of the button used for the default graphical
+        "atlas://data/images/defaulttheme/button_disabled_pressed"
+    )
+    """Background image of the button used for the default graphical
     representation when the button is disabled and pressed.
 
     .. versionadded:: 1.8.0
@@ -122,10 +126,10 @@ class Button(ButtonBehavior, Label):
     :attr:`background_disabled_down` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     'atlas://data/images/defaulttheme/button_disabled_pressed'.
-    '''
+    """
 
     border = ListProperty([16, 16, 16, 16])
-    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    """Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction. Used with :attr:`background_normal` and
     :attr:`background_down`. Can be used for custom backgrounds.
 
@@ -134,4 +138,4 @@ class Button(ButtonBehavior, Label):
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
-    '''
+    """

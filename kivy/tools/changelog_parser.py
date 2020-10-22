@@ -40,66 +40,75 @@ from collections import defaultdict
 from functools import partial
 import sys
 
-__all__ = ('process_changelog', )
+__all__ = ("process_changelog",)
 
 
 def _remove_escaping(value):
-    return value.replace(
-        r'\[', '[').replace(r'\]', ']').replace(r'\#', '#').replace(
-        r'\(', '(').replace(r'\)', ')').replace(r'\_', '_').replace(r'\>', '>')
+    return (
+        value.replace(r"\[", "[")
+        .replace(r"\]", "]")
+        .replace(r"\#", "#")
+        .replace(r"\(", "(")
+        .replace(r"\)", ")")
+        .replace(r"\_", "_")
+        .replace(r"\>", ">")
+    )
 
 
 def _format_pr_list(items, indent=0):
-    return '\n'.join('{}{}'.format(' ' * indent, item) for item in items)
+    return "\n".join("{}{}".format(" " * indent, item) for item in items)
 
 
 def process_changelog(filename_in, filename_out):
     if exists(filename_out):
         raise ValueError(
-            '{} already exists and would be overwritten'.format(filename_out))
+            "{} already exists and would be overwritten".format(filename_out)
+        )
 
-    highlight, deprecate, items, nested_items, unknown = _get_pulls(
-        filename_in)
+    highlight, deprecate, items, nested_items, unknown = _get_pulls(filename_in)
     items.update(nested_items)
 
-    with open(filename_out, 'w') as fh:
+    with open(filename_out, "w") as fh:
         if highlight:
-            fh.write('Highlights\n==========\n\n')
+            fh.write("Highlights\n==========\n\n")
             fh.write(_format_pr_list(highlight, 4))
-            fh.write('\n\n')
+            fh.write("\n\n")
 
         if deprecate:
-            fh.write('Deprecated\n==========\n\n')
+            fh.write("Deprecated\n==========\n\n")
             fh.write(_format_pr_list(deprecate, 4))
-            fh.write('\n\n')
+            fh.write("\n\n")
 
         for section, values in sorted(items.items(), key=lambda x: x[0]):
-            fh.write('{}\n{}\n\n'.format(section, '-' * len(section)))
+            fh.write("{}\n{}\n\n".format(section, "-" * len(section)))
 
             if isinstance(values, list):
                 fh.write(_format_pr_list(values, 4))
-                fh.write('\n\n')
+                fh.write("\n\n")
             else:
                 for subsection, prs in sorted(
-                        values.items(), key=lambda x: x[0]):
-                    fh.write('{}{}\n\n'.format(' ' * 4, subsection))
+                    values.items(), key=lambda x: x[0]
+                ):
+                    fh.write("{}{}\n\n".format(" " * 4, subsection))
                     fh.write(_format_pr_list(prs, 4))
-                    fh.write('\n\n')
+                    fh.write("\n\n")
 
         if unknown:
-            fh.write('Unknown\n=======\n\n')
+            fh.write("Unknown\n=======\n\n")
             fh.write(_format_pr_list(unknown, 4))
-            fh.write('\n\n')
+            fh.write("\n\n")
 
 
 def _get_pulls(filename_in):
     with open(filename_in) as fh:
-        lines = [line.strip() for line in fh.read().splitlines()
-                 if line.strip()]
+        lines = [
+            line.strip() for line in fh.read().splitlines() if line.strip()
+        ]
 
     pat = re.compile(
-        r'^- (?:\\\[(.+?)\\\])?(?:\\\[(highlight)\\\])?(.+?)\[\\#([0-9]+)\]'
-        r'\(https://github.com/kivy/kivy/pull/[0-9]+\)$')
+        r"^- (?:\\\[(.+?)\\\])?(?:\\\[(highlight)\\\])?(.+?)\[\\#([0-9]+)\]"
+        r"\(https://github.com/kivy/kivy/pull/[0-9]+\)$"
+    )
 
     items = defaultdict(list)
     nested_items = defaultdict(partial(defaultdict, list))
@@ -118,29 +127,29 @@ def _get_pulls(filename_in):
         label, highlighted, title, num = m.groups()
         title = _remove_escaping(title)
         title = title.strip()
-        item = '- [#{}]: {}'.format(num, title)
+        item = "- [#{}]: {}".format(num, title)
 
         if highlighted:
             highlight.append(item)
             continue
 
         label = label.lower()
-        if label == 'docs':
-            label = 'doc'
+        if label == "docs":
+            label = "doc"
 
-        if label == 'deprecated':
-            label = 'deprecate'
+        if label == "deprecated":
+            label = "deprecate"
 
-        if label == 'deprecate':
+        if label == "deprecate":
             deprecate.append(item)
             continue
 
-        if '/' in label:
-            parent, child = label.split('/')
+        if "/" in label:
+            parent, child = label.split("/")
             nested_items[parent.title()][child.title()].append(item)
         else:
-            if label == 'ci':
-                label = 'CI'
+            if label == "ci":
+                label = "CI"
             else:
                 label = label.title()
             items[label].append(item)
@@ -148,5 +157,5 @@ def _get_pulls(filename_in):
     return highlight, deprecate, items, nested_items, unknown
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     process_changelog(*sys.argv[1:])

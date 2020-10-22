@@ -11,7 +11,9 @@ class DemoBox(F.ButtonBehavior, F.BoxLayout):
     font_size = F.NumericProperty(10)
 
 
-runTouchApp(Builder.load_string('''
+runTouchApp(
+    Builder.load_string(
+        """
 #:import F kivy.factory.Factory
 <MenuLabel@Label>:
     bold: True
@@ -293,4 +295,6 @@ BoxLayout:
 #            state: 'down'
 #            on_state:
 #                for c in boxes.children: c.markup = self.state == 'down'
-'''))
+"""
+    )
+)

@@ -1,7 +1,7 @@
 # flake8: noqa
 from __future__ import print_function
 
-a = '''cdef void   glActiveTexture (cgl.GLenum texture)
+a = """cdef void   glActiveTexture (cgl.GLenum texture)
 cdef void   glAttachShader (cgl.GLuint program, cgl.GLuint shader)
 cdef void   glBindAttribLocation (cgl.GLuint program, cgl.GLuint index,  cgl.GLchar* name)
 cdef void   glBindBuffer (cgl.GLenum target, cgl.GLuint buffer)
@@ -142,60 +142,67 @@ cdef void  glVertexAttrib3fv (cgl.GLuint indx,  cgl.GLfloat* values)
 cdef void  glVertexAttrib4f (cgl.GLuint indx, cgl.GLfloat x, cgl.GLfloat y, cgl.GLfloat z, cgl.GLfloat w)
 cdef void  glVertexAttrib4fv (cgl.GLuint indx,  cgl.GLfloat* values)
 cdef void  glVertexAttribPointer (cgl.GLuint indx, cgl.GLint size, cgl.GLenum type, cgl.GLboolean normalized, cgl.GLsizei stride,  cgl.GLvoid* ptr)
-cdef void  glViewport (cgl.GLint x, cgl.GLint y, cgl.GLsizei width, cgl.GLsizei height)'''
+cdef void  glViewport (cgl.GLint x, cgl.GLint y, cgl.GLsizei width, cgl.GLsizei height)"""
+
 
 def replace(s):
-    item = s.split(' ')
+    item = s.split(" ")
     rettype = item[1]
     item = item[2:]
     for x in item:
         x = x.strip()
-        if not x or x.startswith('GL'):
+        if not x or x.startswith("GL"):
             continue
-        if x.startswith('(GL'):
-            yield '('
+        if x.startswith("(GL"):
+            yield "("
             continue
-        if x.startswith('gl'):
-            prefix = ''
-            if rettype != 'void':
-                prefix = 'return '
-            yield '%scgl.%s' % (prefix, x)
+        if x.startswith("gl"):
+            prefix = ""
+            if rettype != "void":
+                prefix = "return "
+            yield "%scgl.%s" % (prefix, x)
             continue
         yield x
 
-print('''
+
+print(
+    """
 # This file was automatically generated with kivy/tools/stub-gl-debug.py
 cimport c_opengl as cgl
 
-''')
+"""
+)
 
 lines = a.splitlines()
 for x in lines:
-    if x.startswith('#'):
+    if x.startswith("#"):
         # There are some functions that either do not exist or break on OSX.
         # Just skip those.
         print('# Skipping generation of: "%s"' % x)
         continue
-    x = x.replace('cgl.', '')
-    y = ' '.join(replace(x))
+    x = x.replace("cgl.", "")
+    y = " ".join(replace(x))
 
-    print('%s with gil:' % x)
+    print("%s with gil:" % x)
     s = x.split()
-    print('    print "GL %s(' % s[2], end=' ')
+    print('    print "GL %s(' % s[2], end=" ")
     pointer = 0
     for arg in s[3:]:
         arg = arg.strip()
-        arg = arg.replace(',', '').replace(')', '')
-        if 'GL' in arg or arg == '(':
-            pointer = arg.count('*')
+        arg = arg.replace(",", "").replace(")", "")
+        if "GL" in arg or arg == "(":
+            pointer = arg.count("*")
             continue
-        pointer = '*' * pointer
+        pointer = "*" * pointer
         if pointer:
-            print('%s%s=", repr(hex(<long> %s)), ",' % (arg, pointer, arg), end=' ')
+            print(
+                '%s%s=", repr(hex(<long> %s)), ",' % (arg, pointer, arg),
+                end=" ",
+            )
         else:
-            print('%s = ", %s, ",' % (arg, arg), end=' ')
+            print('%s = ", %s, ",' % (arg, arg), end=" ")
         pointer = 0
     print(')"')
-    print('    %s' % y)
-    print('    ret = glGetError()')
+    print("    %s" % y)
+    print("    ret = glGetError()")
     print('    if ret: print("ERR {} / {}".format(ret, ret))')

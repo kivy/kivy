@@ -1,4 +1,4 @@
-'''
+"""
 Plasma Shader
 =============
 
@@ -6,7 +6,7 @@ This shader example have been taken from
 http://www.iquilezles.org/apps/shadertoy/ with some adaptation.
 
 This might become a Kivy widget when experimentation will be done.
-'''
+"""
 
 
 from kivy.clock import Clock
@@ -18,7 +18,7 @@ from kivy.properties import StringProperty
 
 
 # Plasma shader
-plasma_shader = '''
+plasma_shader = """
 $HEADER$
 
 uniform vec2 resolution;
@@ -38,7 +38,7 @@ void main(void)
    float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
    gl_FragColor = vec4( c1,c2,c3,1.0);
 }
-'''
+"""
 
 
 class ShaderWidget(FloatLayout):
@@ -56,7 +56,7 @@ class ShaderWidget(FloatLayout):
         super(ShaderWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
-        Clock.schedule_interval(self.update_glsl, 1 / 60.)
+        Clock.schedule_interval(self.update_glsl, 1 / 60.0)
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -65,16 +65,16 @@ class ShaderWidget(FloatLayout):
         shader.fs = value
         if not shader.success:
             shader.fs = old_value
-            raise Exception('failed')
+            raise Exception("failed")
 
     def update_glsl(self, *largs):
-        self.canvas['time'] = Clock.get_boottime()
-        self.canvas['resolution'] = list(map(float, self.size))
+        self.canvas["time"] = Clock.get_boottime()
+        self.canvas["resolution"] = list(map(float, self.size))
         # This is needed for the default vertex shader.
         win_rc = Window.render_context
-        self.canvas['projection_mat'] = win_rc['projection_mat']
-        self.canvas['modelview_mat'] = win_rc['modelview_mat']
-        self.canvas['frag_modelview_mat'] = win_rc['frag_modelview_mat']
+        self.canvas["projection_mat"] = win_rc["projection_mat"]
+        self.canvas["modelview_mat"] = win_rc["modelview_mat"]
+        self.canvas["frag_modelview_mat"] = win_rc["frag_modelview_mat"]
 
 
 class PlasmaApp(App):
@@ -82,5 +82,5 @@ class PlasmaApp(App):
         return ShaderWidget(fs=plasma_shader)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     PlasmaApp().run()

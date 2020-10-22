@@ -1,4 +1,4 @@
-'''Kivy Language
+"""Kivy Language
 =============
 
 The Kivy language is a language dedicated to describing user interface and
@@ -866,12 +866,23 @@ will first be unloaded and then reloaded again. For example:
                 pos: self.pos
                 size: (self.size[0]/4, self.size[1]/4)
 
-'''
+"""
 
 
-from kivy.lang.builder import (Observable, Builder, BuilderBase,
-                               BuilderException)
+from kivy.lang.builder import (
+    Observable,
+    Builder,
+    BuilderBase,
+    BuilderException,
+)
 from kivy.lang.parser import Parser, ParserException, global_idmap
 
-__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException',
-           'Parser', 'ParserException', 'global_idmap')
+__all__ = (
+    "Observable",
+    "Builder",
+    "BuilderBase",
+    "BuilderException",
+    "Parser",
+    "ParserException",
+    "global_idmap",
+)

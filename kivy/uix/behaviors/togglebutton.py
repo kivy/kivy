@@ -1,4 +1,4 @@
-'''
+"""
 ToggleButton Behavior
 =====================
 
@@ -40,9 +40,9 @@ that behaves like a togglebutton::
 
 
     SampleApp().run()
-'''
+"""
 
-__all__ = ('ToggleButtonBehavior', )
+__all__ = ("ToggleButtonBehavior",)
 
 from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.uix.behaviors.button import ButtonBehavior
@@ -50,34 +50,34 @@ from weakref import ref
 
 
 class ToggleButtonBehavior(ButtonBehavior):
-    '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
+    """This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     :mod:`~kivy.uix.togglebutton` behavior. Please see the
     :mod:`togglebutton behaviors module <kivy.uix.behaviors.togglebutton>`
     documentation for more information.
 
     .. versionadded:: 1.8.0
-    '''
+    """
 
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
-    '''Group of the button. If `None`, no group will be used (the button will be
+    """Group of the button. If `None`, no group will be used (the button will be
     independent). If specified, :attr:`group` must be a hashable object, like
     a string. Only one button in a group can be in a 'down' state.
 
     :attr:`group` is a :class:`~kivy.properties.ObjectProperty` and defaults to
     `None`.
-    '''
+    """
 
     allow_no_selection = BooleanProperty(True)
-    '''This specifies whether the widgets in a group allow no selection i.e.
+    """This specifies whether the widgets in a group allow no selection i.e.
     everything to be deselected.
 
     .. versionadded:: 1.9.0
 
     :attr:`allow_no_selection` is a :class:`BooleanProperty` and defaults to
     `True`
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._previous_group = None
@@ -107,15 +107,14 @@ class ToggleButtonBehavior(ButtonBehavior):
                 group.remove(item)
             if widget is current:
                 continue
-            widget.state = 'normal'
+            widget.state = "normal"
 
     def _do_press(self):
-        if (not self.allow_no_selection and
-                self.group and self.state == 'down'):
+        if not self.allow_no_selection and self.group and self.state == "down":
             return
 
         self._release_group(self)
-        self.state = 'normal' if self.state == 'down' else 'down'
+        self.state = "normal" if self.state == "down" else "down"
 
     def _do_release(self, *args):
         pass
@@ -131,7 +130,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     @staticmethod
     def get_widgets(groupname):
-        '''Return a list of the widgets contained in a specific group. If the
+        """Return a list of the widgets contained in a specific group. If the
         group doesn't exist, an empty list will be returned.
 
         .. note::
@@ -149,7 +148,7 @@ class ToggleButtonBehavior(ButtonBehavior):
             It's possible that some widgets that you have previously
             deleted are still in the list. The garbage collector might need
             to release other objects before flushing them.
-        '''
+        """
         groups = ToggleButtonBehavior.__groups
         if groupname not in groups:
             return []

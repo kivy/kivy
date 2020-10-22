@@ -1,4 +1,4 @@
-'''
+"""
 Stencil View
 ============
 
@@ -27,14 +27,14 @@ provides an efficient way to clip the drawing area of children.
 
         class BoxStencil(BoxLayout, StencilView):
             pass
-'''
+"""
 
-__all__ = ('StencilView', )
+__all__ = ("StencilView",)
 
 from kivy.uix.widget import Widget
 
 
 class StencilView(Widget):
-    '''StencilView class. See module documentation for more information.
-    '''
+    """StencilView class. See module documentation for more information."""
+
     pass

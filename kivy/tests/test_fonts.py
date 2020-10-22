@@ -4,22 +4,22 @@ from .common import requires_graphics
 
 
 class FontTestCase(unittest.TestCase):
-
     def setUp(self):
         import os
         import tempfile
         from os.path import join, dirname, exists
 
         fdir = dirname(__file__)
-        self.temp_dir = join(tempfile.gettempdir(), 'kivy_test_fonts')
+        self.temp_dir = join(tempfile.gettempdir(), "kivy_test_fonts")
 
         if not exists(self.temp_dir):
             os.mkdir(self.temp_dir)
 
-        self.font_name = join(self.temp_dir, u'कीवी.ttf')
+        self.font_name = join(self.temp_dir, "कीवी.ttf")
         if not exists(self.font_name):
             from zipfile import ZipFile
-            with ZipFile(join(fdir, 'unicode_font.zip'), 'r') as myzip:
+
+            with ZipFile(join(fdir, "unicode_font.zip"), "r") as myzip:
                 myzip.extractall(path=self.temp_dir)
 
         print(self.font_name)
@@ -27,9 +27,10 @@ class FontTestCase(unittest.TestCase):
     @requires_graphics
     def test_unicode_name(self):
         from kivy.core.text import Label
+
         lbl = Label(font_name=self.font_name)
         lbl.refresh()
-        self.assertNotEqual(lbl.get_extents(''), None)
+        self.assertNotEqual(lbl.get_extents(""), None)
 
     def tearDown(self):
         import shutil

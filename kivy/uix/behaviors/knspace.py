@@ -1,4 +1,4 @@
-'''
+"""
 Kivy Namespaces
 ===============
 
@@ -258,9 +258,9 @@ Now, having forked, we just need to do:
 
 Since by forking we automatically created a unique namespace for each
 `MyCompositeWidget` instance.
-'''
+"""
 
-__all__ = ('KNSpace', 'KNSpaceBehavior', 'knspace')
+__all__ = ("KNSpace", "KNSpaceBehavior", "knspace")
 
 from kivy.event import EventDispatcher
 from kivy.properties import StringProperty, ObjectProperty, AliasProperty
@@ -268,7 +268,7 @@ from kivy.context import register_context
 
 
 class KNSpace(EventDispatcher):
-    '''Each :class:`KNSpace` instance is a namespace that stores the named Kivy
+    """Each :class:`KNSpace` instance is a namespace that stores the named Kivy
     objects associated with this namespace. Each named object is
     stored as the value of a Kivy :class:`~kivy.properties.ObjectProperty` of
     this instance whose property name is the object's given name. Both `rebind`
@@ -287,21 +287,21 @@ class KNSpace(EventDispatcher):
             namespace will have in its namespace all its named objects
             as well as the named objects of its parent and parent's parent
             etc. See :meth:`fork` for more details.
-    '''
+    """
 
     parent = None
-    '''(internal) The parent namespace instance, :class:`KNSpace`, or None. See
+    """(internal) The parent namespace instance, :class:`KNSpace`, or None. See
     :meth:`fork`.
-    '''
+    """
     __has_applied = None
 
     keep_ref = False
-    '''Whether a direct reference should be kept to the stored objects.
+    """Whether a direct reference should be kept to the stored objects.
     If ``True``, we use the direct object, otherwise we use
     :attr:`~kivy.uix.widget.proxy_ref` when present.
 
     Defaults to False.
-    '''
+    """
 
     def __init__(self, parent=None, keep_ref=False, **kwargs):
         self.keep_ref = keep_ref
@@ -317,32 +317,31 @@ class KNSpace(EventDispatcher):
                 super(KNSpace, self).__setattr__(name, value)
             else:
                 self.apply_property(
-                    **{name:
-                       ObjectProperty(None, rebind=True, allownone=True)}
+                    **{name: ObjectProperty(None, rebind=True, allownone=True)}
                 )
                 if not self.keep_ref:
-                    value = getattr(value, 'proxy_ref', value)
+                    value = getattr(value, "proxy_ref", value)
                 has_applied.add(name)
                 super(KNSpace, self).__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
             if not self.keep_ref:
-                value = getattr(value, 'proxy_ref', value)
+                value = getattr(value, "proxy_ref", value)
             super(KNSpace, self).__setattr__(name, value)
         else:
             if not self.keep_ref:
-                value = getattr(value, 'proxy_ref', value)
+                value = getattr(value, "proxy_ref", value)
             super(KNSpace, self).__setattr__(name, value)
 
     def __getattribute__(self, name):
-        if name in super(KNSpace, self).__getattribute__('__dict__'):
+        if name in super(KNSpace, self).__getattribute__("__dict__"):
             return super(KNSpace, self).__getattribute__(name)
 
         try:
             value = super(KNSpace, self).__getattribute__(name)
         except AttributeError:
-            parent = super(KNSpace, self).__getattribute__('parent')
+            parent = super(KNSpace, self).__getattribute__("parent")
             if parent is None:
                 raise AttributeError(name)
             return getattr(parent, name)
@@ -350,7 +349,7 @@ class KNSpace(EventDispatcher):
         if value is not None:
             return value
 
-        parent = super(KNSpace, self).__getattribute__('parent')
+        parent = super(KNSpace, self).__getattribute__("parent")
         if parent is None:
             return None
 
@@ -371,7 +370,7 @@ class KNSpace(EventDispatcher):
         return prop
 
     def fork(self):
-        '''Returns a new :class:`KNSpace` instance which will have access to
+        """Returns a new :class:`KNSpace` instance which will have access to
         all the named objects in the current namespace but will also have a
         namespace of its own that is unique to it.
 
@@ -386,21 +385,21 @@ class KNSpace(EventDispatcher):
         `forked_knspace1` and `forked_knspace2` namespaces by the normal means.
         However, any names added to `forked_knspace1` will not be accessible
         from `knspace` or `forked_knspace2`. Similar for `forked_knspace2`.
-        '''
+        """
         return KNSpace(parent=self)
 
 
 class KNSpaceBehavior(object):
-    '''Inheriting from this class allows naming of the inherited objects, which
+    """Inheriting from this class allows naming of the inherited objects, which
     are then added to the associated namespace :attr:`knspace` and accessible
     through it.
 
     Please see the :mod:`knspace behaviors module <kivy.uix.behaviors.knspace>`
     documentation for more information.
-    '''
+    """
 
     _knspace = ObjectProperty(None, allownone=True)
-    _knsname = StringProperty('')
+    _knsname = StringProperty("")
     __last_knspace = None
     __callbacks = None
 
@@ -420,7 +419,7 @@ class KNSpaceBehavior(object):
         new = self.__set_parent_knspace()
         if new is last:
             return
-        self.property('_knspace').dispatch(self)
+        self.property("_knspace").dispatch(self)
 
         name = self.knsname
         if not name:
@@ -432,8 +431,9 @@ class KNSpaceBehavior(object):
         if new:
             setattr(new, name, self)
         else:
-            raise ValueError('Object has name "{}", but no namespace'.
-                             format(name))
+            raise ValueError(
+                'Object has name "{}", but no namespace'.format(name)
+            )
 
     def __set_parent_knspace(self):
         callbacks = self.__callbacks = []
@@ -442,7 +442,7 @@ class KNSpaceBehavior(object):
         parent_key = self.knspace_key
         clear = self.__knspace_clear_callbacks
 
-        append((self, 'knspace_key', fbind('knspace_key', clear)))
+        append((self, "knspace_key", fbind("knspace_key", clear)))
         if not parent_key:
             self.__last_knspace = knspace
             return knspace
@@ -452,9 +452,9 @@ class KNSpaceBehavior(object):
         while parent is not None:
             fbind = parent.fbind
 
-            parent_knspace = getattr(parent, 'knspace', 0)
+            parent_knspace = getattr(parent, "knspace", 0)
             if parent_knspace != 0:
-                append((parent, 'knspace', fbind('knspace', clear)))
+                append((parent, "knspace", fbind("knspace", clear)))
                 self.__last_knspace = parent_knspace
                 return parent_knspace
 
@@ -486,13 +486,13 @@ class KNSpaceBehavior(object):
         if name and knspace and getattr(knspace, name) == self:
             setattr(knspace, name, None)  # reset old namespace
 
-        if value == 'fork':
+        if value == "fork":
             if not knspace:
                 knspace = self.knspace  # get parents in case we haven't before
             if knspace:
                 value = knspace.fork()
             else:
-                raise ValueError('Cannot fork with no namespace')
+                raise ValueError("Cannot fork with no namespace")
 
         for obj, prop_name, uid in self.__callbacks or []:
             obj.unbind_uid(prop_name, uid)
@@ -509,17 +509,23 @@ class KNSpaceBehavior(object):
                 knspace = self._knspace = value
 
             if not knspace:
-                raise ValueError('Object has name "{}", but no namespace'.
-                                 format(name))
+                raise ValueError(
+                    'Object has name "{}", but no namespace'.format(name)
+                )
         else:
             if value is None:
                 self.__set_parent_knspace()  # update before trigger below
             self._knspace = value
 
     knspace = AliasProperty(
-        _get_knspace, _set_knspace, bind=('_knspace', ), cache=False,
-        rebind=True, allownone=True)
-    '''The namespace instance, :class:`KNSpace`, associated with this widget.
+        _get_knspace,
+        _set_knspace,
+        bind=("_knspace",),
+        cache=False,
+        rebind=True,
+        allownone=True,
+    )
+    """The namespace instance, :class:`KNSpace`, associated with this widget.
     The :attr:`knspace` namespace stores this widget when naming this widget
     with :attr:`knsname`.
 
@@ -544,16 +550,16 @@ class KNSpaceBehavior(object):
     See the module examples for a motivating example.
 
     Both `rebind` and `allownone` are `True`.
-    '''
+    """
 
-    knspace_key = StringProperty('parent', allownone=True)
-    '''The name of the property of this instance, to use to search upwards for
+    knspace_key = StringProperty("parent", allownone=True)
+    """The name of the property of this instance, to use to search upwards for
     a namespace to use by this instance. Defaults to `'parent'` so that we'll
     search the parent tree. See :attr:`knspace`.
 
     When `None`, we won't search the parent tree for the namespace.
     `allownone` is `True`.
-    '''
+    """
 
     def _get_knsname(self):
         return self._knsname
@@ -569,22 +575,24 @@ class KNSpaceBehavior(object):
             if knspace:
                 setattr(knspace, value, self)
             else:
-                raise ValueError('Object has name "{}", but no namespace'.
-                                 format(value))
+                raise ValueError(
+                    'Object has name "{}", but no namespace'.format(value)
+                )
 
     knsname = AliasProperty(
-        _get_knsname, _set_knsname, bind=('_knsname', ), cache=False)
-    '''The name given to this instance. If named, the name will be added to the
+        _get_knsname, _set_knsname, bind=("_knsname",), cache=False
+    )
+    """The name given to this instance. If named, the name will be added to the
     associated :attr:`knspace` namespace, which will then point to the
     `proxy_ref` of this instance.
 
     When named, one can access this object by e.g. self.knspace.name, where
     `name` is the given name of this instance. See :attr:`knspace` and the
     module description for more details.
-    '''
+    """
 
 
-knspace = register_context('knspace', KNSpace)
-'''The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
+knspace = register_context("knspace", KNSpace)
+"""The default :class:`KNSpace` namespace. See :attr:`KNSpaceBehavior.knspace`
 for more details.
-'''
+"""

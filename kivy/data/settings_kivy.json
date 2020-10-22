@@ -1,117 +1,142 @@
 [
-	{
-		"type": "title",
-		"title": "Windows"
-	},
-	{
-		"type": "bool",
-		"title": "Fullscreen",
-		"desc": "Set the window in windowed or fullscreen",
-		"section": "graphics",
-		"key": "fullscreen",
-		"values": ["0", "auto"]
-	},
-	{
-		"type": "numeric",
-		"title": "FPS Limit",
-		"desc": "Maximum FPS limit if set, 0 for unlimited",
-		"section": "graphics",
-		"key": "maxfps"
-	},
-	{
-		"type": "bool",
-		"title": "Mouse cursor",
-		"desc": "Show/hide the mouse cursor on the window",
-		"section": "graphics",
-		"key": "show_cursor"
-	},
-    {
-        "type": "options",
-        "title": "Rotation",
-        "desc": "Rotation of the window",
-        "section": "graphics",
-        "key": "rotation",
-        "options": ["0", "90", "180", "270"]
-    },
-
-	{
-		"type": "title",
-		"title": "Logging"
-	},
-	{
-		"type": "bool",
-		"title": "File logging",
-		"desc": "If activated, the logging will be stored in a file",
-		"section": "kivy",
-		"key": "log_enable"
-	},
-	{
-		"type": "options",
-		"title": "Log level",
-		"desc": "Level of logging information",
-		"section": "kivy",
-		"key": "log_level",
-		"options": ["trace", "debug", "info", "warning", "error", "critical"]
-	},
-
-	{
-		"type": "title",
-		"title": "Keyboard"
-	},
-	{
-		"type": "options",
-		"title": "Keyboard mode",
-		"desc": "Activate the usage of Kivy Virtual Keyboard",
-		"section": "kivy",
-		"key": "keyboard_mode",
-		"options": ["system", "dock", "multi", "systemanddock", "systemandmulti"]
-	},
-	{
-		"type": "options",
-		"title": "Keyboard layout",
-		"desc": "Select a layout for virtual keyboard",
-		"section": "kivy",
-		"key": "keyboard_layout",
-		"options": ["qwerty", "azerty", "qwertz", "de_CH", "fr_CH", "en_US"]
-	},
-
-	{
-		"type": "title",
-		"title": "Input post-processing"
-	},
-	{
-		"type": "numeric",
-		"title": "Double tap distance",
-		"desc": "Radius in pixels within a double tap is detected",
-		"section": "postproc",
-		"key": "double_tap_distance"
-	},
-	{
-		"type": "numeric",
-		"title": "Double tap time",
-		"desc": "Time in milliseconds during a double tap is allowed",
-		"section": "postproc",
-		"key": "double_tap_time"
-	},
-	{
-		"type": "numeric",
-		"title": "Retain distance",
-		"desc": "Maximum distance to retain the touch",
-		"section": "postproc",
-		"key": "retain_distance"
-	},
-	{
-		"type": "numeric",
-		"title": "Retain time",
-		"desc": "Time in milliseconds during the touch will be retain",
-		"section": "postproc",
-		"key": "retain_distance"
-	},
-	{
-		"type": "numeric",
-		"title": "Jitter distance",
-		"desc": "Radius in pixels within the touch moves will be ignored",
-		"section": "postproc",
-		"key": "jitter_distance"
-	}
+  {
+    "title": "Windows",
+    "type": "title"
+  },
+  {
+    "desc": "Set the window in windowed or fullscreen",
+    "key": "fullscreen",
+    "section": "graphics",
+    "title": "Fullscreen",
+    "type": "bool",
+    "values": [
+      "0",
+      "auto"
+    ]
+  },
+  {
+    "desc": "Maximum FPS limit if set, 0 for unlimited",
+    "key": "maxfps",
+    "section": "graphics",
+    "title": "FPS Limit",
+    "type": "numeric"
+  },
+  {
+    "desc": "Show/hide the mouse cursor on the window",
+    "key": "show_cursor",
+    "section": "graphics",
+    "title": "Mouse cursor",
+    "type": "bool"
+  },
+  {
+    "desc": "Rotation of the window",
+    "key": "rotation",
+    "options": [
+      "0",
+      "90",
+      "180",
+      "270"
+    ],
+    "section": "graphics",
+    "title": "Rotation",
+    "type": "options"
+  },
+  {
+    "title": "Logging",
+    "type": "title"
+  },
+  {
+    "desc": "If activated, the logging will be stored in a file",
+    "key": "log_enable",
+    "section": "kivy",
+    "title": "File logging",
+    "type": "bool"
+  },
+  {
+    "desc": "Level of logging information",
+    "key": "log_level",
+    "options": [
+      "trace",
+      "debug",
+      "info",
+      "warning",
+      "error",
+      "critical"
+    ],
+    "section": "kivy",
+    "title": "Log level",
+    "type": "options"
+  },
+  {
+    "title": "Keyboard",
+    "type": "title"
+  },
+  {
+    "desc": "Activate the usage of Kivy Virtual Keyboard",
+    "key": "keyboard_mode",
+    "options": [
+      "system",
+      "dock",
+      "multi",
+      "systemanddock",
+      "systemandmulti"
+    ],
+    "section": "kivy",
+    "title": "Keyboard mode",
+    "type": "options"
+  },
+  {
+    "desc": "Select a layout for virtual keyboard",
+    "key": "keyboard_layout",
+    "options": [
+      "qwerty",
+      "azerty",
+      "qwertz",
+      "de_CH",
+      "fr_CH",
+      "en_US"
+    ],
+    "section": "kivy",
+    "title": "Keyboard layout",
+    "type": "options"
+  },
+  {
+    "title": "Input post-processing",
+    "type": "title"
+  },
+  {
+    "desc": "Radius in pixels within a double tap is detected",
+    "key": "double_tap_distance",
+    "section": "postproc",
+    "title": "Double tap distance",
+    "type": "numeric"
+  },
+  {
+    "desc": "Time in milliseconds during a double tap is allowed",
+    "key": "double_tap_time",
+    "section": "postproc",
+    "title": "Double tap time",
+    "type": "numeric"
+  },
+  {
+    "desc": "Maximum distance to retain the touch",
+    "key": "retain_distance",
+    "section": "postproc",
+    "title": "Retain distance",
+    "type": "numeric"
+  },
+  {
+    "desc": "Time in milliseconds during the touch will be retain",
+    "key": "retain_distance",
+    "section": "postproc",
+    "title": "Retain time",
+    "type": "numeric"
+  },
+  {
+    "desc": "Radius in pixels within the touch moves will be ignored",
+    "key": "jitter_distance",
+    "section": "postproc",
+    "title": "Jitter distance",
+    "type": "numeric"
+  }
 ]

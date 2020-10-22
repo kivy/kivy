@@ -1,4 +1,4 @@
-'''
+"""
 Texture Wrapping and Coordinates Example
 ========================================
 
@@ -12,7 +12,7 @@ and taw_width) while the buttons change how the texture is rendered when more
 than one copy is in the rectangle (the
 texture_wrap).
 
-'''
+"""
 
 
 from kivy.uix.widget import Widget
@@ -25,7 +25,7 @@ from kivy.base import runTouchApp
 class TextureAccessibleWidget(Widget):
     texture = ObjectProperty(None)
     tex_coords = ListProperty([0, 0, 1, 0, 1, 1, 0, 1])
-    texture_wrap = StringProperty('clamp_to_edge')
+    texture_wrap = StringProperty("clamp_to_edge")
 
     def __init__(self, **kwargs):
         super(TextureAccessibleWidget, self).__init__(**kwargs)
@@ -38,7 +38,8 @@ class TextureAccessibleWidget(Widget):
         self.texture.wrap = value
 
 
-root = Builder.load_string('''
+root = Builder.load_string(
+    """
 <TextureAccessibleWidget>:
     canvas:
         Rectangle:
@@ -137,7 +138,8 @@ BoxLayout:
         Button:
             text: 'mirrored_repeat'
             on_press: taw.texture_wrap = 'mirrored_repeat'
-''')
+"""
+)
 
 
 runTouchApp(root)

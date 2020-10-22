@@ -1,4 +1,4 @@
-'''
+"""
 .. _motionevent:
 
 Motion Event
@@ -82,9 +82,9 @@ If you want to select only the fiducials::
         if 'markerid' not in touch.profile:
             return
 
-'''
+"""
 
-__all__ = ('MotionEvent', )
+__all__ = ("MotionEvent",)
 
 import weakref
 from inspect import isroutine
@@ -94,7 +94,6 @@ from kivy.vector import Vector
 
 
 class EnhancedDictionary(dict):
-
     def __getattr__(self, attr):
         try:
             return self.__getitem__(attr)
@@ -106,60 +105,82 @@ class EnhancedDictionary(dict):
 
 
 class MotionEventMetaclass(type):
-
     def __new__(mcs, name, bases, attrs):
         __attrs__ = []
         for base in bases:
-            if hasattr(base, '__attrs__'):
+            if hasattr(base, "__attrs__"):
                 __attrs__.extend(base.__attrs__)
-        if '__attrs__' in attrs:
-            __attrs__.extend(attrs['__attrs__'])
-        attrs['__attrs__'] = tuple(__attrs__)
-        return super(MotionEventMetaclass, mcs).__new__(mcs, name,
-                                                        bases, attrs)
+        if "__attrs__" in attrs:
+            __attrs__.extend(attrs["__attrs__"])
+        attrs["__attrs__"] = tuple(__attrs__)
+        return super(MotionEventMetaclass, mcs).__new__(mcs, name, bases, attrs)
 
 
-MotionEventBase = MotionEventMetaclass('MotionEvent', (object, ), {})
+MotionEventBase = MotionEventMetaclass("MotionEvent", (object,), {})
 
 
 class MotionEvent(MotionEventBase):
-    '''Abstract class that represents an input event (touch or non-touch).
+    """Abstract class that represents an input event (touch or non-touch).
 
     :Parameters:
         `id`: str
             unique ID of the MotionEvent
         `args`: list
             list of parameters, passed to the depack() function
-    '''
+    """
 
     __uniq_id = 0
-    __attrs__ = \
-        ('device', 'push_attrs', 'push_attrs_stack',
-         'is_touch', 'id', 'shape', 'profile',
-         # current position, in 0-1 range
-         'sx', 'sy', 'sz',
-         # first position set, in 0-1 range
-         'osx', 'osy', 'osz',
-         # last position set, in 0-1 range
-         'psx', 'psy', 'psz',
-         # delta from the last position and current one, in 0-1 range
-         'dsx', 'dsy', 'dsz',
-         # current position, in screen range
-         'x', 'y', 'z',
-         # first position set, in screen range
-         'ox', 'oy', 'oz',
-         # last position set, in 0-1 range
-         'px', 'py', 'pz',
-         # delta from the last position and current one, in screen range
-         'dx', 'dy', 'dz',
-         'time_start',
-         'is_double_tap', 'double_tap_time',
-         'is_triple_tap', 'triple_tap_time',
-         'ud')
+    __attrs__ = (
+        "device",
+        "push_attrs",
+        "push_attrs_stack",
+        "is_touch",
+        "id",
+        "shape",
+        "profile",
+        # current position, in 0-1 range
+        "sx",
+        "sy",
+        "sz",
+        # first position set, in 0-1 range
+        "osx",
+        "osy",
+        "osz",
+        # last position set, in 0-1 range
+        "psx",
+        "psy",
+        "psz",
+        # delta from the last position and current one, in 0-1 range
+        "dsx",
+        "dsy",
+        "dsz",
+        # current position, in screen range
+        "x",
+        "y",
+        "z",
+        # first position set, in screen range
+        "ox",
+        "oy",
+        "oz",
+        # last position set, in 0-1 range
+        "px",
+        "py",
+        "pz",
+        # delta from the last position and current one, in screen range
+        "dx",
+        "dy",
+        "dz",
+        "time_start",
+        "is_double_tap",
+        "double_tap_time",
+        "is_triple_tap",
+        "triple_tap_time",
+        "ud",
+    )
 
     def __init__(self, device, id, args):
         if self.__class__ == MotionEvent:
-            raise NotImplementedError('class MotionEvent is abstract')
+            raise NotImplementedError("class MotionEvent is abstract")
         MotionEvent.__uniq_id += 1
 
         #: True if the Motion Event is a Touch. Can be also verified is
@@ -169,8 +190,21 @@ class MotionEvent(MotionEventBase):
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
-        self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos')
+        self.push_attrs = (
+            "x",
+            "y",
+            "z",
+            "dx",
+            "dy",
+            "dz",
+            "ox",
+            "oy",
+            "oz",
+            "px",
+            "py",
+            "pz",
+            "pos",
+        )
 
         #: Uniq ID of the touch. You can safely use this property, it will be
         #: never the same accross all existing touches.
@@ -287,7 +321,7 @@ class MotionEvent(MotionEventBase):
         self.depack(args)
 
     def depack(self, args):
-        '''Depack `args` into attributes of the class'''
+        """Depack `args` into attributes of the class"""
         # set initial position and last position
         if self.osx is None:
             self.psx = self.osx = self.sx
@@ -299,7 +333,7 @@ class MotionEvent(MotionEventBase):
         self.dsz = self.sz - self.psz
 
     def grab(self, class_instance, exclusive=False):
-        '''Grab this motion event. You can grab a touch if you want
+        """Grab this motion event. You can grab a touch if you want
         to receive subsequent :meth:`~kivy.uix.widget.Widget.on_touch_move`
         and :meth:`~kivy.uix.widget.Widget.on_touch_up`
         events, even if the touch is not dispatched by the parent:
@@ -322,19 +356,18 @@ class MotionEvent(MotionEventBase):
                 else:
                     # it's a normal touch
                     pass
-        '''
+        """
         if not self.is_touch:
-            raise Exception('Grab works only for Touch MotionEvents.')
+            raise Exception("Grab works only for Touch MotionEvents.")
         if self.grab_exclusive_class is not None:
-            raise Exception('Cannot grab the touch, touch is exclusive')
+            raise Exception("Cannot grab the touch, touch is exclusive")
         class_instance = weakref.ref(class_instance.__self__)
         if exclusive:
             self.grab_exclusive_class = class_instance
         self.grab_list.append(class_instance)
 
     def ungrab(self, class_instance):
-        '''Ungrab a previously grabbed touch
-        '''
+        """Ungrab a previously grabbed touch"""
         class_instance = weakref.ref(class_instance.__self__)
         if self.grab_exclusive_class == class_instance:
             self.grab_exclusive_class = None
@@ -342,8 +375,7 @@ class MotionEvent(MotionEventBase):
             self.grab_list.remove(class_instance)
 
     def move(self, args):
-        '''Move the touch to another position
-        '''
+        """Move the touch to another position"""
         self.px = self.x
         self.py = self.y
         self.pz = self.z
@@ -353,10 +385,10 @@ class MotionEvent(MotionEventBase):
         self.time_update = time()
         self.depack(args)
 
-    def scale_for_screen(self, w, h, p=None, rotation=0,
-                         smode='None', kheight=0):
-        '''Scale position for the screen
-        '''
+    def scale_for_screen(
+        self, w, h, p=None, rotation=0, smode="None", kheight=0
+    ):
+        """Scale position for the screen"""
         sx, sy = self.sx, self.sy
         if rotation == 0:
             self.x = sx * float(w)
@@ -378,11 +410,12 @@ class MotionEvent(MotionEventBase):
             self.z = self.sz * float(p)
 
         if smode:
-            if smode == 'pan':
+            if smode == "pan":
                 self.y -= kheight
-            elif smode == 'scale':
-                self.y += (kheight * (
-                    (self.y - kheight) / (h - kheight))) - kheight
+            elif smode == "scale":
+                self.y += (
+                    kheight * ((self.y - kheight) / (h - kheight))
+                ) - kheight
 
         if self.ox is None:
             self.px = self.ox = self.x
@@ -397,24 +430,22 @@ class MotionEvent(MotionEventBase):
         self.pos = self.x, self.y
 
     def push(self, attrs=None):
-        '''Push attribute values in `attrs` onto the stack
-        '''
+        """Push attribute values in `attrs` onto the stack"""
         if attrs is None:
             attrs = self.push_attrs
         values = [getattr(self, x) for x in attrs]
         self.push_attrs_stack.append((attrs, values))
 
     def pop(self):
-        '''Pop attributes values from the stack
-        '''
+        """Pop attributes values from the stack"""
         attrs, values = self.push_attrs_stack.pop()
         for i in range(len(attrs)):
             setattr(self, attrs[i], values[i])
 
     def apply_transform_2d(self, transform):
-        '''Apply a transformation on x, y, z, px, py, pz,
+        """Apply a transformation on x, y, z, px, py, pz,
         ox, oy, oz, dx, dy, dz
-        '''
+        """
         self.x, self.y = self.pos = transform(self.x, self.y)
         self.px, self.py = transform(self.px, self.py)
         self.ox, self.oy = transform(self.ox, self.oy)
@@ -422,13 +453,12 @@ class MotionEvent(MotionEventBase):
         self.dy = self.y - self.py
 
     def copy_to(self, to):
-        '''Copy some attribute to another touch object.'''
+        """Copy some attribute to another touch object."""
         for attr in self.__attrs__:
             to.__setattr__(attr, copy(self.__getattribute__(attr)))
 
     def distance(self, other_touch):
-        '''Return the distance between the current touch and another touch.
-        '''
+        """Return the distance between the current touch and another touch."""
         return Vector(self.pos).distance(other_touch.pos)
 
     def update_time_end(self):
@@ -437,50 +467,48 @@ class MotionEvent(MotionEventBase):
     # facilities
     @property
     def dpos(self):
-        '''Return delta between last position and current position, in the
-        screen coordinate system (self.dx, self.dy)'''
+        """Return delta between last position and current position, in the
+        screen coordinate system (self.dx, self.dy)"""
         return self.dx, self.dy
 
     @property
     def opos(self):
-        '''Return the initial position of the touch in the screen
-        coordinate system (self.ox, self.oy)'''
+        """Return the initial position of the touch in the screen
+        coordinate system (self.ox, self.oy)"""
         return self.ox, self.oy
 
     @property
     def ppos(self):
-        '''Return the previous position of the touch in the screen
-        coordinate system (self.px, self.py)'''
+        """Return the previous position of the touch in the screen
+        coordinate system (self.px, self.py)"""
         return self.px, self.py
 
     @property
     def spos(self):
-        '''Return the position in the 0-1 coordinate system
-        (self.sx, self.sy)'''
+        """Return the position in the 0-1 coordinate system
+        (self.sx, self.sy)"""
         return self.sx, self.sy
 
     def __str__(self):
         basename = str(self.__class__)
-        classname = basename.split('.')[-1].replace('>', '').replace('\'', '')
-        return '<%s spos=%s pos=%s>' % (classname, self.spos, self.pos)
+        classname = basename.split(".")[-1].replace(">", "").replace("'", "")
+        return "<%s spos=%s pos=%s>" % (classname, self.spos, self.pos)
 
     def __repr__(self):
         out = []
         for x in dir(self):
             v = getattr(self, x)
-            if x[0] == '_':
+            if x[0] == "_":
                 continue
             if isroutine(v):
                 continue
             out.append('%s="%s"' % (x, v))
-        return '<%s %s>' % (
-            self.__class__.__name__,
-            ' '.join(out))
+        return "<%s %s>" % (self.__class__.__name__, " ".join(out))
 
     @property
     def is_mouse_scrolling(self, *args):
-        '''Returns True if the touch is a mousewheel scrolling
+        """Returns True if the touch is a mousewheel scrolling
 
         .. versionadded:: 1.6.0
-        '''
-        return 'button' in self.profile and 'scroll' in self.button
+        """
+        return "button" in self.profile and "scroll" in self.button

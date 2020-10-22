@@ -1,4 +1,4 @@
-'''
+"""
 Effects
 =======
 
@@ -20,4 +20,4 @@ We have multiple implementations:
   information to reduce the opacity of the scrollview widget. When the user
   stops the drag, the opacity is set back to 1.
 
-'''
+"""

@@ -1,15 +1,16 @@
-'''
+"""
 TabbedPanel
 ============
 
 Test of the widget TabbedPanel.
-'''
+"""
 
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.lang import Builder
 
-Builder.load_string("""
+Builder.load_string(
+    """
 
 <Test>:
     size_hint: .5, .5
@@ -34,7 +35,8 @@ Builder.load_string("""
                 '\\n'.join(("Hello world", "-----------",
                 "You are in the third tab."))
 
-""")
+"""
+)
 
 
 class Test(TabbedPanel):
@@ -46,5 +48,5 @@ class TabbedPanelApp(App):
         return Test()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TabbedPanelApp().run()

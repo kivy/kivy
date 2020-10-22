@@ -9,4 +9,3 @@ Android
 
 You can copy/paste this directory into /sdcard/kivy/touchtracer in your
 android device.
-

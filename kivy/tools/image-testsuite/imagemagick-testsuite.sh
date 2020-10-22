@@ -29,7 +29,7 @@ Usage: $0 <target-directory>
   Creates test images in many formats using ImageMagick 'convert'
   utility. The pixel values are encoded in the filename, so they
   can be reconstructed and verified independently. This system
-  is referred to as the image test protocol (version 0). 
+  is referred to as the image test protocol (version 0).
 
   More info: kivy/tools/image-testsuite/README.md
 EOM

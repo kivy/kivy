@@ -1,4 +1,4 @@
-'''
+"""
 Enchant Spelling
 ================
 
@@ -6,7 +6,7 @@ Implementation spelling backend based on enchant.
 
 .. warning:: pyenchant doesn't have dedicated build anymore for Windows/x64.
              See https://github.com/kivy/kivy/issues/5816 for more informations
-'''
+"""
 
 
 import enchant
@@ -16,9 +16,9 @@ from kivy.compat import PY2
 
 
 class SpellingEnchant(SpellingBase):
-    '''
+    """
     Spelling backend based on the enchant library.
-    '''
+    """
 
     def __init__(self, language=None):
         self._language = None
@@ -28,7 +28,7 @@ class SpellingEnchant(SpellingBase):
         try:
             self._language = enchant.Dict(language)
         except enchant.DictNotFoundError:
-            err = 'Enchant Backend: No language for "%s"' % (language, )
+            err = 'Enchant Backend: No language for "%s"' % (language,)
             raise NoSuchLangError(err)
 
     def list_languages(self):
@@ -46,5 +46,5 @@ class SpellingEnchant(SpellingBase):
         # Don't show suggestions that are invalid
         suggestions = [s for s in suggestions if self.check(s)]
         if PY2:
-            suggestions = [s.decode('utf-8') for s in suggestions]
+            suggestions = [s.decode("utf-8") for s in suggestions]
         return suggestions

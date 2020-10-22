@@ -22,7 +22,8 @@ from kivy import require
 # to load custom json files from the app folder.
 require("1.8.0")
 
-Builder.load_string('''
+Builder.load_string(
+    """
 <KeyboardScreen>:
     displayLabel: displayLabel
     kbContainer: kbContainer
@@ -103,7 +104,8 @@ Builder.load_string('''
                     text: "Continue"
                     on_release: root.next()
 
-''')
+"""
+)
 
 
 class ModeScreen(Screen):
@@ -111,30 +113,35 @@ class ModeScreen(Screen):
     Present the option to change keyboard mode and warn of system-wide
     consequences.
     """
+
     center_label = ObjectProperty()
     mode_spinner = ObjectProperty()
 
     keyboard_mode = ""
 
     def on_pre_enter(self, *args):
-        """ Detect the current keyboard mode and set the text of the main
-        label accordingly. """
+        """Detect the current keyboard mode and set the text of the main
+        label accordingly."""
 
         self.keyboard_mode = Config.get("kivy", "keyboard_mode")
         self.mode_spinner.text = "'{0}'".format(self.keyboard_mode)
 
         p1 = "Current keyboard mode: '{0}'\n\n".format(self.keyboard_mode)
-        if self.keyboard_mode in ['dock', 'system', 'systemanddock']:
+        if self.keyboard_mode in ["dock", "system", "systemanddock"]:
             p2 = "You have the right setting to use this demo.\n\n"
         else:
-            p2 = "You need the keyboard mode to 'dock', 'system' or '"\
-                 "'systemanddock'(below)\n in order to "\
-                 "use custom onscreen keyboards.\n\n"
+            p2 = (
+                "You need the keyboard mode to 'dock', 'system' or '"
+                "'systemanddock'(below)\n in order to "
+                "use custom onscreen keyboards.\n\n"
+            )
 
-        p3 = "[b][color=#ff0000]Warning:[/color][/b] This is a system-wide " \
-            "setting and will affect all Kivy apps. If you change the\n" \
-            " keyboard mode, please use this app" \
+        p3 = (
+            "[b][color=#ff0000]Warning:[/color][/b] This is a system-wide "
+            "setting and will affect all Kivy apps. If you change the\n"
+            " keyboard mode, please use this app"
             " to reset this value to its original one."
+        )
 
         self.center_label.text = "".join([p1, p2, p3])
 
@@ -142,8 +149,10 @@ class ModeScreen(Screen):
         """ Sets the keyboard mode to the one specified """
         Config.set("kivy", "keyboard_mode", mode.replace("'", ""))
         Config.write()
-        self.center_label.text = "Please restart the application for this\n" \
+        self.center_label.text = (
+            "Please restart the application for this\n"
             "setting to take effect."
+        )
 
     def next(self):
         """ Continue to the main screen """
@@ -155,6 +164,7 @@ class KeyboardScreen(Screen):
     Screen containing all the available keyboard layouts. Clicking the buttons
     switches to these layouts.
     """
+
     displayLabel = ObjectProperty()
     kbContainer = ObjectProperty()
 
@@ -164,21 +174,19 @@ class KeyboardScreen(Screen):
         self._keyboard = None
 
     def _add_keyboards(self):
-        """ Add a buttons for each available keyboard layout. When clicked,
-        the buttons will change the keyboard layout to the one selected. """
+        """Add a buttons for each available keyboard layout. When clicked,
+        the buttons will change the keyboard layout to the one selected."""
         layouts = list(VKeyboard().available_layouts.keys())
         # Add the file in our app directory, the .json extension is required.
         layouts.append("numeric.json")
         for key in layouts:
             self.kbContainer.add_widget(
-                Button(
-                    text=key,
-                    on_release=partial(self.set_layout, key)))
+                Button(text=key, on_release=partial(self.set_layout, key))
+            )
 
     def set_layout(self, layout, button):
         """ Change the keyboard layout to the one specified by *layout*. """
-        kb = Window.request_keyboard(
-            self._keyboard_close, self)
+        kb = Window.request_keyboard(self._keyboard_close, self)
         if kb.widget:
             # If the current configuration supports Virtual Keyboards, this
             # widget will be a kivy.uix.vkeyboard.VKeyboard instance.
@@ -187,8 +195,7 @@ class KeyboardScreen(Screen):
         else:
             self._keyboard = kb
 
-        self._keyboard.bind(on_key_down=self.key_down,
-                            on_key_up=self.key_up)
+        self._keyboard.bind(on_key_down=self.key_down, on_key_up=self.key_up)
 
     def _keyboard_close(self, *args):
         """ The active keyboard is being closed. """
@@ -199,7 +206,7 @@ class KeyboardScreen(Screen):
 
     def key_down(self, keyboard, keycode, text, modifiers):
         """ The callback function that catches keyboard events. """
-        self.displayLabel.text = u"Key pressed - {0}".format(text)
+        self.displayLabel.text = "Key pressed - {0}".format(text)
 
     # def key_up(self, keyboard, keycode):
     def key_up(self, keyboard, keycode, *args):
@@ -208,7 +215,7 @@ class KeyboardScreen(Screen):
         # dock keyboard keycode: 'z'
         if isinstance(keycode, tuple):
             keycode = keycode[1]
-        self.displayLabel.text += u" (up {0})".format(keycode)
+        self.displayLabel.text += " (up {0})".format(keycode)
 
 
 class KeyboardDemo(App):

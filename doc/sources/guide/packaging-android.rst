@@ -34,7 +34,7 @@ Buildozer
 Buildozer is a tool that automates the entire build process. It
 downloads and sets up all the prequisites for python-for-android,
 including the android SDK and NDK, then builds an apk that can be
-automatically pushed to the device. 
+automatically pushed to the device.
 
 Buildozer currently works only in Linux, and is a beta
 release, but it already works well and can significantly simplify the
@@ -63,7 +63,7 @@ Finally, plug in your android device and run::
 
     buildozer android debug deploy run
 
-to build, push and automatically run the apk on your device. 
+to build, push and automatically run the apk on your device.
 
 Buildozer has many available options and tools to help you, the steps
 above are just the simplest way to build and run your
@@ -92,7 +92,7 @@ Packaging your application for the Kivy Launcher
 
 The `Kivy launcher <https://play.google.com/store/apps/details?id=org.kivy.pygame&hl=en>`_
 is an Android application that runs any Kivy examples stored on your
-SD Card. 
+SD Card.
 To install the Kivy launcher, you must:
 
 #. Go to the `Kivy Launcher page <https://market.android.com/details?id=org.kivy.pygame>`_
@@ -122,7 +122,7 @@ The file `android.txt` must contain::
     title=<Application Title>
     author=<Your Name>
     orientation=<portrait|landscape>
-    
+
 These options are just a very basic configuration. If you create your
 own APK using the tools above, you can choose many other settings.
 
@@ -140,7 +140,7 @@ trying the Kivy launcher. You can run them as below::
 
 #. Run the launcher and select one of the Pictures, Showcase, Touchtracer, Cymunk or other demos...
 
-    
+
 .. _release_on_the_market:
 
 Release on the market

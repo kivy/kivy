@@ -1,4 +1,4 @@
-'''
+"""
 Behaviors
 =========
 
@@ -76,12 +76,20 @@ offers:
     (e.g. both `from kivy.uix.behaviors import ButtonBehavior` and
     `from kivy.uix.behaviors.button import ButtonBehavior` work).
 
-'''
+"""
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
-           'FocusBehavior', 'CompoundSelectionBehavior',
-           'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior',
-           'TouchRippleBehavior', 'TouchRippleButtonBehavior')
+__all__ = (
+    "ButtonBehavior",
+    "ToggleButtonBehavior",
+    "DragBehavior",
+    "FocusBehavior",
+    "CompoundSelectionBehavior",
+    "CodeNavigationBehavior",
+    "EmacsBehavior",
+    "CoverBehavior",
+    "TouchRippleBehavior",
+    "TouchRippleButtonBehavior",
+)
 
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior

@@ -1,4 +1,4 @@
-'''
+"""
 Cover Behavior
 ==============
 
@@ -53,16 +53,17 @@ In Kivy Language:
         reference_size: self.texture_size
 
 See :class:`~kivy.uix.behaviors.cover.CoverBehavior` for details.
-'''
+"""
 
-__all__ = ('CoverBehavior', )
+__all__ = ("CoverBehavior",)
 
 from decimal import Decimal
 from kivy.lang import Builder
 from kivy.properties import ListProperty
 
 
-Builder.load_string("""
+Builder.load_string(
+    """
 <-CoverBehavior>:
     canvas.before:
         StencilPush
@@ -81,51 +82,49 @@ Builder.load_string("""
             pos: self.pos
             size: self.size
         StencilPop
-""")
+"""
+)
 
 
 class CoverBehavior(object):
-    '''The CoverBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
+    """The CoverBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
     provides rendering a texture covering full widget size keeping aspect ratio
     of the original texture.
 
     .. versionadded:: 1.10.0
-    '''
+    """
 
     reference_size = ListProperty([])
-    '''Reference size used for aspect ratio approximation calculation.
+    """Reference size used for aspect ratio approximation calculation.
 
     :attr:`reference_size` is a :class:`~kivy.properties.ListProperty` and
     defaults to `[]`.
-    '''
+    """
 
     cover_size = ListProperty([0, 0])
-    '''Size of the aspect ratio aware texture. Gets calculated in
+    """Size of the aspect ratio aware texture. Gets calculated in
     ``CoverBehavior.calculate_cover``.
 
     :attr:`cover_size` is a :class:`~kivy.properties.ListProperty` and
     defaults to `[0, 0]`.
-    '''
+    """
 
     cover_pos = ListProperty([0, 0])
-    '''Position of the aspect ratio aware texture. Gets calculated in
+    """Position of the aspect ratio aware texture. Gets calculated in
     ``CoverBehavior.calculate_cover``.
 
     :attr:`cover_pos` is a :class:`~kivy.properties.ListProperty` and
     defaults to `[0, 0]`.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(CoverBehavior, self).__init__(**kwargs)
         # bind covering
-        self.bind(
-            size=self.calculate_cover,
-            pos=self.calculate_cover
-        )
+        self.bind(size=self.calculate_cover, pos=self.calculate_cover)
 
     def _aspect_ratio_approximate(self, size):
         # return a decimal approximation of an aspect ratio.
-        return Decimal('%.2f' % (float(size[0]) / size[1]))
+        return Decimal("%.2f" % (float(size[0]) / size[1]))
 
     def _scale_size(self, size, sizer):
         # return scaled size based on sizer, where sizer (n, None) scales x

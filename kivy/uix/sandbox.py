@@ -1,4 +1,4 @@
-'''
+"""
 Sandbox
 =======
 
@@ -20,9 +20,9 @@ the whole application. Because it has been designed that way, we are still
 enhancing this widget and the :mod:`kivy.context` module.
 Don't use it unless you know what you are doing.
 
-'''
+"""
 
-__all__ = ('Sandbox', )
+__all__ = ("Sandbox",)
 
 from functools import wraps
 from kivy.context import Context
@@ -41,11 +41,11 @@ def sandbox(f):
         with self:
             ret = f(self, *args, **kwargs)
         return ret
+
     return _f2
 
 
 class SandboxExceptionManager(ExceptionManagerBase):
-
     def __init__(self, sandbox):
         ExceptionManagerBase.__init__(self)
         self.sandbox = sandbox
@@ -61,13 +61,13 @@ class SandboxContent(RelativeLayout):
 
 
 class Sandbox(FloatLayout):
-    '''Sandbox widget, used to trap all the exceptions raised by child
+    """Sandbox widget, used to trap all the exceptions raised by child
     widgets.
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._context = Context(init=True)
-        self._context['ExceptionManager'] = SandboxExceptionManager(self)
+        self._context["ExceptionManager"] = SandboxExceptionManager(self)
         self._context.sandbox = self
         self._context.push()
         self.on_context_created()
@@ -80,7 +80,7 @@ class Sandbox(FloatLayout):
         # force SandboxClock's scheduling
         Clock.schedule_interval(self._clock_sandbox, 0)
         Clock.schedule_once(self._clock_sandbox_draw, -1)
-        self.main_clock = object.__getattribute__(Clock, '_obj')
+        self.main_clock = object.__getattribute__(Clock, "_obj")
 
     def __enter__(self):
         self._context.push()
@@ -91,19 +91,20 @@ class Sandbox(FloatLayout):
             return self.on_exception(value, _traceback=traceback)
 
     def on_context_created(self):
-        '''Override this method in order to load your kv file or do anything
+        """Override this method in order to load your kv file or do anything
         else with the newly created context.
-        '''
+        """
         pass
 
     def on_exception(self, exception, _traceback=None):
-        '''Override this method in order to catch all the exceptions from
+        """Override this method in order to catch all the exceptions from
         children.
 
         If you return True, it will not reraise the exception.
         If you return False, the exception will be raised to the parent.
-        '''
+        """
         import traceback
+
         traceback.print_tb(_traceback)
         return True
 
@@ -149,12 +150,11 @@ class Sandbox(FloatLayout):
         self.main_clock.schedule_once(self._clock_sandbox_draw, -1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
 
     class TestButton(Button):
-
         def on_touch_up(self, touch):
             # raise Exception('fdfdfdfdfdfdfd')
             return super(TestButton, self).on_touch_up(touch)
@@ -165,7 +165,8 @@ if __name__ == '__main__':
 
     s = Sandbox()
     with s:
-        Builder.load_string('''
+        Builder.load_string(
+            """
 <TestButton>:
     canvas:
         Color:
@@ -186,12 +187,13 @@ if __name__ == '__main__':
     # on_touch_down: root.f()
     on_release: root.args()
     # on_press: root.args()
-''')
-        b = TestButton(text='Hello World')
+"""
+        )
+        b = TestButton(text="Hello World")
         s.add_widget(b)
 
         # this exception is within the "with" block, but will be ignored by
         # default because the sandbox on_exception will return True
-        raise Exception('hello')
+        raise Exception("hello")
 
     runTouchApp(s)

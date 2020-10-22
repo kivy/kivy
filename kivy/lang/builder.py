@@ -1,9 +1,9 @@
-'''
+"""
 Builder
 ======
 
 Class used for the registering and application of rules for specific widgets.
-'''
+"""
 import codecs
 import sys
 import types
@@ -14,8 +14,13 @@ from types import CodeType
 from functools import partial
 
 from kivy.factory import Factory
-from kivy.lang.parser import Parser, ParserException, _handlers, global_idmap,\
-    ParserRuleProperty
+from kivy.lang.parser import (
+    Parser,
+    ParserException,
+    _handlers,
+    global_idmap,
+    ParserRuleProperty,
+)
 from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
@@ -24,7 +29,7 @@ from kivy.context import register_context
 from kivy.resources import resource_find
 from kivy._event import Observable, EventDispatcher
 
-__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
+__all__ = ("Observable", "Builder", "BuilderBase", "BuilderException")
 
 
 trace = Logger.trace
@@ -40,8 +45,8 @@ _delayed_start = None
 
 
 class BuilderException(ParserException):
-    '''Exception raised when the Builder failed to apply a rule on a widget.
-    '''
+    """Exception raised when the Builder failed to apply a rule on a widget."""
+
     pass
 
 
@@ -53,19 +58,21 @@ def get_proxy(widget):
 
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
-    idmap['args'] = largs
+    idmap["args"] = largs
     exec(__kvlang__.co_value, idmap)
 
 
 def call_fn(args, instance, v):
     element, key, value, rule, idmap = args
     if __debug__:
-        trace('Lang: call_fn %s, key=%s, value=%r, %r' % (
-            element, key, value, rule.value))
+        trace(
+            "Lang: call_fn %s, key=%s, value=%r, %r"
+            % (element, key, value, rule.value)
+        )
     rule.count += 1
     e_value = eval(value, idmap)
     if __debug__:
-        trace('Lang: call_fn => value=%r' % (e_value, ))
+        trace("Lang: call_fn => value=%r" % (e_value,))
     setattr(element, key, e_value)
 
 
@@ -84,7 +91,7 @@ def delayed_call_fn(args, instance, v):
 
 
 def update_intermediates(base, keys, bound, s, fn, args, instance, value):
-    ''' Function that is called when an intermediate property is updated
+    """Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
     property and rebind to the new value of the property.
@@ -119,7 +126,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
             1 (first attr).
         `fn`
             The function to be called args, `args` on bound callback.
-    '''
+    """
     # first remove all the old bound functions from `s` and down.
     for f, k, fun, uid in bound[s:]:
         if fun is None:
@@ -144,17 +151,18 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
         # add the attr to the list
         if isinstance(f, (EventDispatcher, Observable)):
             prop = f.property(val, True)
-            if prop is not None and getattr(prop, 'rebind', False):
+            if prop is not None and getattr(prop, "rebind", False):
                 # fbind should not dispatch, otherwise
                 # update_intermediates might be called in the middle
                 # here messing things up
                 uid = f.fbind(
-                    val, update_intermediates, base, keys, bound, s, fn, args)
+                    val, update_intermediates, base, keys, bound, s, fn, args
+                )
                 append([f.proxy_ref, val, update_intermediates, uid])
             else:
                 append([f.proxy_ref, val, None, None])
         else:
-            append([getattr(f, 'proxy_ref', f), val, None, None])
+            append([getattr(f, "proxy_ref", f), val, None, None])
 
         f = getattr(f, val, None)
         if f is None:
@@ -177,7 +185,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     idmap = copy(idmap)
     idmap.update(global_idmap)
-    idmap['self'] = iself.proxy_ref
+    idmap["self"] = iself.proxy_ref
     bound_list = _handlers[iself.uid][key]
     handler_append = bound_list.append
 
@@ -196,7 +204,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
             base = idmap.get(keys[0])
             if base is None:
                 continue
-            f = base = getattr(base, 'proxy_ref', base)
+            f = base = getattr(base, "proxy_ref", base)
             bound = []
             was_bound = False
             append = bound.append
@@ -208,19 +216,26 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                 # just add the attr to the list
                 if isinstance(f, (EventDispatcher, Observable)):
                     prop = f.property(val, True)
-                    if prop is not None and getattr(prop, 'rebind', False):
+                    if prop is not None and getattr(prop, "rebind", False):
                         # fbind should not dispatch, otherwise
                         # update_intermediates might be called in the middle
                         # here messing things up
                         uid = f.fbind(
-                            val, update_intermediates, base, keys, bound, k,
-                            fn, args)
+                            val,
+                            update_intermediates,
+                            base,
+                            keys,
+                            bound,
+                            k,
+                            fn,
+                            args,
+                        )
                         append([f.proxy_ref, val, update_intermediates, uid])
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
                 elif not isinstance(f, type):
-                    append([getattr(f, 'proxy_ref', f), val, None, None])
+                    append([getattr(f, "proxy_ref", f), val, None, None])
                 else:
                     append([f, val, None, None])
                 f = getattr(f, val, None)
@@ -242,18 +257,21 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
         return eval(value, idmap), bound_list
     except Exception as e:
         tb = sys.exc_info()[2]
-        raise BuilderException(rule.ctx, rule.line,
-                               '{}: {}'.format(e.__class__.__name__, e),
-                               cause=tb)
+        raise BuilderException(
+            rule.ctx,
+            rule.line,
+            "{}: {}".format(e.__class__.__name__, e),
+            cause=tb,
+        )
 
 
 class BuilderBase(object):
-    '''The Builder is responsible for creating a :class:`Parser` for parsing a
+    """The Builder is responsible for creating a :class:`Parser` for parsing a
     kv file, merging the results into its internal rules, templates, etc.
 
     By default, :class:`Builder` is a global Kivy instance used in widgets
     that you can use to load other kv files in addition to the default ones.
-    '''
+    """
 
     def __init__(self):
         super(BuilderBase, self).__init__()
@@ -285,8 +303,8 @@ class BuilderBase(object):
 
         return obj
 
-    def load_file(self, filename, encoding='utf8', **kwargs):
-        '''Insert a file into the language builder and return the root widget
+    def load_file(self, filename, encoding="utf8", **kwargs):
+        """Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
 
         :parameters:
@@ -295,18 +313,18 @@ class BuilderBase(object):
                 widget inside the definition.
 
             `encoding`: File charcter encoding. Defaults to utf-8,
-        '''
+        """
         filename = resource_find(filename) or filename
         if __debug__:
-            trace('Lang: load file %s, using %s encoding', filename, encoding)
+            trace("Lang: load file %s, using %s encoding", filename, encoding)
 
-        kwargs['filename'] = filename
-        with open(filename, 'r', encoding=encoding) as fd:
+        kwargs["filename"] = filename
+        with open(filename, "r", encoding=encoding) as fd:
             data = fd.read()
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
-        '''Unload all rules associated with a previously imported file.
+        """Unload all rules associated with a previously imported file.
 
         .. versionadded:: 1.0.8
 
@@ -315,7 +333,7 @@ class BuilderBase(object):
             This will not remove rules or templates already applied/used on
             current widgets. It will only effect the next widgets creation or
             template invocation.
-        '''
+        """
         # remove rules and templates
         filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
@@ -359,14 +377,15 @@ class BuilderBase(object):
 
         '''
 
-        kwargs.setdefault('rulesonly', False)
-        self._current_filename = fn = kwargs.get('filename', None)
+        kwargs.setdefault("rulesonly", False)
+        self._current_filename = fn = kwargs.get("filename", None)
 
         # put a warning if a file is loaded multiple times
         if fn in self.files:
             Logger.warning(
-                'Lang: The file {} is loaded multiples times, '
-                'you might have unwanted behaviors.'.format(fn))
+                "Lang: The file {} is loaded multiples times, "
+                "you might have unwanted behaviors.".format(fn)
+            )
 
         try:
             # parse the string
@@ -379,66 +398,77 @@ class BuilderBase(object):
             # add the template found by the parser into ours
             for name, cls, template in parser.templates:
                 self.templates[name] = (cls, template, fn)
-                Factory.register(name,
-                                 cls=partial(self.template, name),
-                                 is_template=True, warn=True)
+                Factory.register(
+                    name,
+                    cls=partial(self.template, name),
+                    is_template=True,
+                    warn=True,
+                )
 
             # register all the dynamic classes
             for name, baseclasses in parser.dynamic_classes.items():
-                Factory.register(name, baseclasses=baseclasses, filename=fn,
-                                 warn=True)
+                Factory.register(
+                    name, baseclasses=baseclasses, filename=fn, warn=True
+                )
 
             # create root object is exist
-            if kwargs['rulesonly'] and parser.root:
-                filename = kwargs.get('rulesonly', '<string>')
-                raise Exception('The file <%s> contain also non-rules '
-                                'directives' % filename)
+            if kwargs["rulesonly"] and parser.root:
+                filename = kwargs.get("rulesonly", "<string>")
+                raise Exception(
+                    "The file <%s> contain also non-rules "
+                    "directives" % filename
+                )
 
             # save the loaded files only if there is a root without
             # template/dynamic classes
-            if fn and (parser.templates or
-                       parser.dynamic_classes or parser.rules):
+            if fn and (
+                parser.templates or parser.dynamic_classes or parser.rules
+            ):
                 self.files.append(fn)
 
             if parser.root:
                 widget = Factory.get(parser.root.name)(__no_builder=True)
                 rule_children = []
                 widget.apply_class_lang_rules(
-                    root=widget, rule_children=rule_children)
+                    root=widget, rule_children=rule_children
+                )
                 self._apply_rule(
-                    widget, parser.root, parser.root,
-                    rule_children=rule_children)
+                    widget,
+                    parser.root,
+                    parser.root,
+                    rule_children=rule_children,
+                )
 
                 for child in rule_children:
-                    child.dispatch('on_kv_post', widget)
-                widget.dispatch('on_kv_post', widget)
+                    child.dispatch("on_kv_post", widget)
+                widget.dispatch("on_kv_post", widget)
                 return widget
         finally:
             self._current_filename = None
 
     def template(self, *args, **ctx):
-        '''Create a specialized template using a specific context.
+        """Create a specialized template using a specific context.
 
         .. versionadded:: 1.0.5
 
         With templates, you can construct custom widgets from a kv lang
         definition by giving them a context. Check :ref:`Template usage
         <template_usage>`.
-        '''
+        """
         # Prevent naming clash with whatever the user might be putting into the
         # ctx as key.
         name = args[0]
         if name not in self.templates:
-            raise Exception('Unknown <%s> template name' % name)
+            raise Exception("Unknown <%s> template name" % name)
         baseclasses, rule, fn = self.templates[name]
-        key = '%s|%s' % (name, baseclasses)
-        cls = Cache.get('kv.lang', key)
+        key = "%s|%s" % (name, baseclasses)
+        cls = Cache.get("kv.lang", key)
         if cls is None:
             rootwidgets = []
-            for basecls in baseclasses.split('+'):
+            for basecls in baseclasses.split("+"):
                 rootwidgets.append(Factory.get(basecls))
             cls = type(name, tuple(rootwidgets), {})
-            Cache.append('kv.lang', key, cls)
+            Cache.append("kv.lang", key, cls)
         widget = cls()
         # in previous versions, ``ctx`` is passed as is as ``template_ctx``
         # preventing widgets in it from be collected by the GC. This was
@@ -448,9 +478,14 @@ class BuilderBase(object):
         return widget
 
     def apply_rules(
-            self, widget, rule_name, ignored_consts=set(), rule_children=None,
-            dispatch_kv_post=False):
-        '''Search all the rules that match the name `rule_name`
+        self,
+        widget,
+        rule_name,
+        ignored_consts=set(),
+        rule_children=None,
+        dispatch_kv_post=False,
+    ):
+        """Search all the rules that match the name `rule_name`
         and apply them to `widget`.
 
         .. versionadded:: 1.10.0
@@ -481,10 +516,10 @@ class BuilderBase(object):
                 Defaults to False.
 
                 .. versionchanged:: 1.11.0
-        '''
+        """
         rules = self.match_rule_name(rule_name)
         if __debug__:
-            trace('Lang: Found %d rules for %s' % (len(rules), rule_name))
+            trace("Lang: Found %d rules for %s" % (len(rules), rule_name))
         if not rules:
             return
 
@@ -492,15 +527,24 @@ class BuilderBase(object):
             rule_children = rule_children if rule_children is not None else []
         for rule in rules:
             self._apply_rule(
-                widget, rule, rule, ignored_consts=ignored_consts,
-                rule_children=rule_children)
+                widget,
+                rule,
+                rule,
+                ignored_consts=ignored_consts,
+                rule_children=rule_children,
+            )
         if dispatch_kv_post:
             for w in rule_children:
-                w.dispatch('on_kv_post', widget)
+                w.dispatch("on_kv_post", widget)
 
-    def apply(self, widget, ignored_consts=set(), rule_children=None,
-              dispatch_kv_post=False):
-        '''Search all the rules that match the widget and apply them.
+    def apply(
+        self,
+        widget,
+        ignored_consts=set(),
+        rule_children=None,
+        dispatch_kv_post=False,
+    ):
+        """Search all the rules that match the widget and apply them.
 
         :Parameters:
 
@@ -528,10 +572,10 @@ class BuilderBase(object):
                 Defaults to False.
 
                 .. versionchanged:: 1.11.0
-        '''
+        """
         rules = self.match(widget)
         if __debug__:
-            trace('Lang: Found %d rules for %s' % (len(rules), widget))
+            trace("Lang: Found %d rules for %s" % (len(rules), widget))
         if not rules:
             return
 
@@ -539,45 +583,58 @@ class BuilderBase(object):
             rule_children = rule_children if rule_children is not None else []
         for rule in rules:
             self._apply_rule(
-                widget, rule, rule, ignored_consts=ignored_consts,
-                rule_children=rule_children)
+                widget,
+                rule,
+                rule,
+                ignored_consts=ignored_consts,
+                rule_children=rule_children,
+            )
         if dispatch_kv_post:
             for w in rule_children:
-                w.dispatch('on_kv_post', widget)
+                w.dispatch("on_kv_post", widget)
 
     def _clear_matchcache(self):
         self._match_cache.clear()
         self._match_name_cache.clear()
 
-    def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
-                    ignored_consts=set(), rule_children=None):
+    def _apply_rule(
+        self,
+        widget,
+        rule,
+        rootrule,
+        template_ctx=None,
+        ignored_consts=set(),
+        rule_children=None,
+    ):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
 
         # will collect reference to all the id in children
-        assert(rule not in self.rulectx)
+        assert rule not in self.rulectx
         self.rulectx[rule] = rctx = {
-            'ids': {'root': widget.proxy_ref},
-            'set': [], 'hdl': []}
+            "ids": {"root": widget.proxy_ref},
+            "set": [],
+            "hdl": [],
+        }
 
         # extract the context of the rootrule (not rule!)
-        assert(rootrule in self.rulectx)
+        assert rootrule in self.rulectx
         rctx = self.rulectx[rootrule]
 
         # if a template context is passed, put it as "ctx"
         if template_ctx is not None:
-            rctx['ids']['ctx'] = QueryDict(template_ctx)
+            rctx["ids"]["ctx"] = QueryDict(template_ctx)
 
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
             # use only the first word as `id` discard the rest.
-            rule.id = rule.id.split('#', 1)[0].strip()
-            rctx['ids'][rule.id] = widget.proxy_ref
+            rule.id = rule.id.split("#", 1)[0].strip()
+            rctx["ids"][rule.id] = widget.proxy_ref
             # set id name as a attribute for root widget so one can in python
             # code simply access root_widget.id_name
-            _ids = dict(rctx['ids'])
-            _root = _ids.pop('root')
+            _ids = dict(rctx["ids"])
+            _root = _ids.pop("root")
             _new_ids = _root.ids
             for _key in _ids.keys():
                 if _ids[_key] == _root:
@@ -593,16 +650,19 @@ class BuilderBase(object):
         # build the widget canvas
         if rule.canvas_before:
             with widget.canvas.before:
-                self._build_canvas(widget.canvas.before, widget,
-                                   rule.canvas_before, rootrule)
+                self._build_canvas(
+                    widget.canvas.before, widget, rule.canvas_before, rootrule
+                )
         if rule.canvas_root:
             with widget.canvas:
-                self._build_canvas(widget.canvas, widget,
-                                   rule.canvas_root, rootrule)
+                self._build_canvas(
+                    widget.canvas, widget, rule.canvas_root, rootrule
+                )
         if rule.canvas_after:
             with widget.canvas.after:
-                self._build_canvas(widget.canvas.after, widget,
-                                   rule.canvas_after, rootrule)
+                self._build_canvas(
+                    widget.canvas.after, widget, rule.canvas_after, rootrule
+                )
 
         # create children tree
         Factory_get = Factory.get
@@ -610,11 +670,13 @@ class BuilderBase(object):
         for crule in rule.children:
             cname = crule.name
 
-            if cname in ('canvas', 'canvas.before', 'canvas.after'):
+            if cname in ("canvas", "canvas.before", "canvas.after"):
                 raise ParserException(
-                    crule.ctx, crule.line,
-                    'Canvas instructions added in kv must '
-                    'be declared before child widgets.')
+                    crule.ctx,
+                    crule.line,
+                    "Canvas instructions added in kv must "
+                    "be declared before child widgets.",
+                )
 
             # depending if the child rule is a template or not, we are not
             # having the same approach
@@ -625,9 +687,9 @@ class BuilderBase(object):
                 # handlers, and push them in a "ctx" dictionary.
                 ctx = {}
                 idmap = copy(global_idmap)
-                idmap.update({'root': rctx['ids']['root']})
-                if 'ctx' in rctx['ids']:
-                    idmap.update({'ctx': rctx['ids']['ctx']})
+                idmap.update({"root": rctx["ids"]["root"]})
+                if "ctx" in rctx["ids"]:
+                    idmap.update({"ctx": rctx["ids"]["ctx"]})
                 try:
                     for prule in crule.properties.values():
                         value = prule.co_value
@@ -640,8 +702,11 @@ class BuilderBase(object):
                 except Exception as e:
                     tb = sys.exc_info()[2]
                     raise BuilderException(
-                        prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                        prule.ctx,
+                        prule.line,
+                        "{}: {}".format(e.__class__.__name__, e),
+                        cause=tb,
+                    )
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -649,7 +714,7 @@ class BuilderBase(object):
 
                 # reference it on our root rule context
                 if crule.id:
-                    rctx['ids'][crule.id] = child
+                    rctx["ids"][crule.id] = child
 
             else:
                 # we got a "normal" rule, construct it manually
@@ -659,23 +724,26 @@ class BuilderBase(object):
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
                 child.apply_class_lang_rules(
-                    root=rctx['ids']['root'], rule_children=rule_children)
+                    root=rctx["ids"]["root"], rule_children=rule_children
+                )
                 self._apply_rule(
-                    child, crule, rootrule, rule_children=rule_children)
+                    child, crule, rootrule, rule_children=rule_children
+                )
 
                 if rule_children is not None:
                     rule_children.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
-            rctx['set'].append((widget.proxy_ref,
-                                list(rule.properties.values())))
+            rctx["set"].append(
+                (widget.proxy_ref, list(rule.properties.values()))
+            )
             for key, crule in rule.properties.items():
                 # clear previously applied rules if asked
                 if crule.ignore_prev:
                     Builder.unbind_property(widget, key)
         if rule.handlers:
-            rctx['hdl'].append((widget.proxy_ref, rule.handlers))
+            rctx["hdl"].append((widget.proxy_ref, rule.handlers))
 
         # if we are applying another rule that the root one, then it's done for
         # us!
@@ -686,65 +754,76 @@ class BuilderBase(object):
         # normally, we can apply a list of properties with a proper context
         try:
             rule = None
-            for widget_set, rules in reversed(rctx['set']):
+            for widget_set, rules in reversed(rctx["set"]):
                 for rule in rules:
-                    assert(isinstance(rule, ParserRuleProperty))
+                    assert isinstance(rule, ParserRuleProperty)
                     key = rule.name
                     value = rule.co_value
                     if type(value) is CodeType:
                         value, bound = create_handler(
-                            widget_set, widget_set, key, value, rule,
-                            rctx['ids'])
+                            widget_set,
+                            widget_set,
+                            key,
+                            value,
+                            rule,
+                            rctx["ids"],
+                        )
                         # if there's a rule
-                        if (widget_set != widget or bound or
-                                key not in ignored_consts):
+                        if (
+                            widget_set != widget
+                            or bound
+                            or key not in ignored_consts
+                        ):
                             setattr(widget_set, key, value)
                     else:
-                        if (widget_set != widget or
-                                key not in ignored_consts):
+                        if widget_set != widget or key not in ignored_consts:
                             setattr(widget_set, key, value)
 
         except Exception as e:
             if rule is not None:
                 tb = sys.exc_info()[2]
-                raise BuilderException(rule.ctx, rule.line,
-                                       '{}: {}'.format(e.__class__.__name__,
-                                                       e), cause=tb)
+                raise BuilderException(
+                    rule.ctx,
+                    rule.line,
+                    "{}: {}".format(e.__class__.__name__, e),
+                    cause=tb,
+                )
             raise e
 
         # build handlers
         try:
             crule = None
-            for widget_set, rules in rctx['hdl']:
+            for widget_set, rules in rctx["hdl"]:
                 for crule in rules:
-                    assert(isinstance(crule, ParserRuleProperty))
-                    assert(crule.name.startswith('on_'))
+                    assert isinstance(crule, ParserRuleProperty)
+                    assert crule.name.startswith("on_")
                     key = crule.name
                     if not widget_set.is_event_type(key):
                         key = key[3:]
                     idmap = copy(global_idmap)
-                    idmap.update(rctx['ids'])
-                    idmap['self'] = widget_set.proxy_ref
-                    if not widget_set.fbind(key, custom_callback, crule,
-                                            idmap):
+                    idmap.update(rctx["ids"])
+                    idmap["self"] = widget_set.proxy_ref
+                    if not widget_set.fbind(key, custom_callback, crule, idmap):
                         raise AttributeError(key)
                     # hack for on_parent
-                    if crule.name == 'on_parent':
+                    if crule.name == "on_parent":
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
                 tb = sys.exc_info()[2]
                 raise BuilderException(
-                    crule.ctx, crule.line,
-                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                    crule.ctx,
+                    crule.line,
+                    "{}: {}".format(e.__class__.__name__, e),
+                    cause=tb,
+                )
             raise e
 
         # rule finished, forget it
         del self.rulectx[rootrule]
 
     def match(self, widget):
-        '''Return a list of :class:`ParserRule` objects matching the widget.
-        '''
+        """Return a list of :class:`ParserRule` objects matching the widget."""
         cache = self._match_cache
         k = (widget.__class__, tuple(widget.cls))
         if k in cache:
@@ -759,8 +838,7 @@ class BuilderBase(object):
         return rules
 
     def match_rule_name(self, rule_name):
-        '''Return a list of :class:`ParserRule` objects matching the widget.
-        '''
+        """Return a list of :class:`ParserRule` objects matching the widget."""
         cache = self._match_name_cache
         rule_name = str(rule_name)
         k = rule_name.lower()
@@ -776,11 +854,11 @@ class BuilderBase(object):
         return rules
 
     def sync(self):
-        '''Execute all the waiting operations, such as the execution of all the
+        """Execute all the waiting operations, such as the execution of all the
         expressions related to the canvas.
 
         .. versionadded:: 1.7.0
-        '''
+        """
         global _delayed_start
         next_args = _delayed_start
         if next_args is None:
@@ -799,7 +877,7 @@ class BuilderBase(object):
         _delayed_start = None
 
     def unbind_widget(self, uid):
-        '''Unbind all the handlers created by the KV rules of the
+        """Unbind all the handlers created by the KV rules of the
         widget. The :attr:`kivy.uix.widget.Widget.uid` is passed here
         instead of the widget itself, because Builder is using it in the
         widget destructor.
@@ -809,11 +887,11 @@ class BuilderBase(object):
 
         .. code-block:: python
 
-            >>> w = Builder.load_string(\'''
+            >>> w = Builder.load_string('''
             ... Widget:
             ...     height: self.width / 2. if self.disabled else self.width
             ...     x: self.y + 50
-            ... \''')
+            ... ''')
             >>> w.size
             [100, 100]
             >>> w.pos
@@ -830,7 +908,7 @@ class BuilderBase(object):
             [50, 500]
 
         .. versionadded:: 1.7.2
-        '''
+        """
         if uid not in _handlers:
             return
         for prop_callbacks in _handlers[uid].values():
@@ -846,7 +924,7 @@ class BuilderBase(object):
         del _handlers[uid]
 
     def unbind_property(self, widget, name):
-        '''Unbind the handlers created by all the rules of the widget that set
+        """Unbind the handlers created by all the rules of the widget that set
         the name.
 
         This effectively clears all the rules of widget that take the form::
@@ -857,11 +935,11 @@ class BuilderBase(object):
 
         .. code-block:: python
 
-            >>> w = Builder.load_string(\'''
+            >>> w = Builder.load_string('''
             ... Widget:
             ...     height: self.width / 2. if self.disabled else self.width
             ...     x: self.y + 50
-            ... \''')
+            ... ''')
             >>> w.size
             [100, 100]
             >>> w.pos
@@ -878,7 +956,7 @@ class BuilderBase(object):
             [550, 500]
 
         .. versionadded:: 1.9.1
-        '''
+        """
         uid = widget.uid
         if uid not in _handlers:
             return
@@ -903,39 +981,50 @@ class BuilderBase(object):
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
         if Instruction is None:
-            Instruction = Factory.get('Instruction')
-        idmap = copy(self.rulectx[rootrule]['ids'])
+            Instruction = Factory.get("Instruction")
+        idmap = copy(self.rulectx[rootrule]["ids"])
         for crule in rule.children:
             name = crule.name
-            if name == 'Clear':
+            if name == "Clear":
                 canvas.clear()
                 continue
             instr = Factory.get(name)()
             if not isinstance(instr, Instruction):
                 raise BuilderException(
-                    crule.ctx, crule.line,
-                    'You can add only graphics Instruction in canvas.')
+                    crule.ctx,
+                    crule.line,
+                    "You can add only graphics Instruction in canvas.",
+                )
             try:
                 for prule in crule.properties.values():
                     key = prule.name
                     value = prule.co_value
                     if type(value) is CodeType:
                         value, _ = create_handler(
-                            widget, instr.proxy_ref,
-                            key, value, prule, idmap, True)
+                            widget,
+                            instr.proxy_ref,
+                            key,
+                            value,
+                            prule,
+                            idmap,
+                            True,
+                        )
                     setattr(instr, key, value)
             except Exception as e:
                 tb = sys.exc_info()[2]
                 raise BuilderException(
-                    prule.ctx, prule.line,
-                    '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+                    prule.ctx,
+                    prule.line,
+                    "{}: {}".format(e.__class__.__name__, e),
+                    cause=tb,
+                )
 
 
 #: Main instance of a :class:`BuilderBase`.
-Builder: BuilderBase = register_context('Builder', BuilderBase)
-Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
+Builder: BuilderBase = register_context("Builder", BuilderBase)
+Builder.load_file(join(kivy_data_dir, "style.kv"), rulesonly=True)
 
-if 'KIVY_PROFILE_LANG' in environ:
+if "KIVY_PROFILE_LANG" in environ:
     import atexit
     import cgi
 
@@ -961,11 +1050,11 @@ if 'KIVY_PROFILE_LANG' in environ:
 
     def dump_builder_stats():
         html = [
-            '<!doctype html>'
-            '<html><body>',
+            "<!doctype html>" "<html><body>",
             '<style type="text/css">\n',
-            'pre { margin: 0; }\n',
-            '</style>']
+            "pre { margin: 0; }\n",
+            "</style>",
+        ]
         files = set([x[1].ctx.filename for x in Builder.rules])
         for fn in files:
             try:
@@ -973,7 +1062,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                     lines = f.readlines()
             except (IOError, TypeError) as e:
                 continue
-            html += ['<h2>', fn, '</h2>', '<table>']
+            html += ["<h2>", fn, "</h2>", "<table>"]
             count = 0
             for index, line in enumerate(lines):
                 line = line.rstrip()
@@ -985,16 +1074,24 @@ if 'KIVY_PROFILE_LANG' in environ:
                 count = sum(set([x.count for x in matched_prp]))
 
                 color = (255, 155, 155) if count else (255, 255, 255)
-                html += ['<tr style="background-color: rgb{}">'.format(color),
-                         '<td>', str(index + 1), '</td>',
-                         '<td>', str(count), '</td>',
-                         '<td><pre>', line, '</pre></td>',
-                         '</tr>']
-            html += ['</table>']
-        html += ['</body></html>']
-        with open('builder_stats.html', 'w') as fd:
-            fd.write(''.join(html))
+                html += [
+                    '<tr style="background-color: rgb{}">'.format(color),
+                    "<td>",
+                    str(index + 1),
+                    "</td>",
+                    "<td>",
+                    str(count),
+                    "</td>",
+                    "<td><pre>",
+                    line,
+                    "</pre></td>",
+                    "</tr>",
+                ]
+            html += ["</table>"]
+        html += ["</body></html>"]
+        with open("builder_stats.html", "w") as fd:
+            fd.write("".join(html))
 
-        print('Profiling written at builder_stats.html')
+        print("Profiling written at builder_stats.html")
 
     atexit.register(dump_builder_stats)

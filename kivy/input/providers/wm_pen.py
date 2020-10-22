@@ -1,20 +1,29 @@
-'''
+"""
 Support for WM_PEN messages (Windows platform)
 ==============================================
-'''
+"""
 
-__all__ = ('WM_PenProvider', 'WM_Pen')
+__all__ = ("WM_PenProvider", "WM_Pen")
 
 import os
-from kivy.input.providers.wm_common import RECT, PEN_OR_TOUCH_MASK, \
-    PEN_OR_TOUCH_SIGNATURE, PEN_EVENT_TOUCH_MASK, WM_LBUTTONDOWN, \
-    WM_MOUSEMOVE, WM_LBUTTONUP, WM_TABLET_QUERYSYSTEMGESTURE, \
-    QUERYSYSTEMGESTURE_WNDPROC, WNDPROC, SetWindowLong_WndProc_wrapper
+from kivy.input.providers.wm_common import (
+    RECT,
+    PEN_OR_TOUCH_MASK,
+    PEN_OR_TOUCH_SIGNATURE,
+    PEN_EVENT_TOUCH_MASK,
+    WM_LBUTTONDOWN,
+    WM_MOUSEMOVE,
+    WM_LBUTTONUP,
+    WM_TABLET_QUERYSYSTEMGESTURE,
+    QUERYSYSTEMGESTURE_WNDPROC,
+    WNDPROC,
+    SetWindowLong_WndProc_wrapper,
+)
 from kivy.input.motionevent import MotionEvent
 
 
 class WM_Pen(MotionEvent):
-    '''MotionEvent representing the WM_Pen event. Supports the pos profile.'''
+    """MotionEvent representing the WM_Pen event. Supports the pos profile."""
 
     def depack(self, args):
         self.is_touch = True
@@ -23,10 +32,10 @@ class WM_Pen(MotionEvent):
 
     def __str__(self):
         i, u, s, d = (self.id, self.uid, str(self.spos), self.device)
-        return '<WMPen id:%d uid:%d pos:%s device:%s>' % (i, u, s, d)
+        return "<WMPen id:%d uid:%d pos:%s device:%s>" % (i, u, s, d)
 
 
-if 'KIVY_DOC' in os.environ:
+if "KIVY_DOC" in os.environ:
     # documentation hack
     WM_PenProvider = None
 
@@ -39,7 +48,6 @@ else:
     win_rect = RECT()
 
     class WM_PenProvider(MotionEventProvider):
-
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
             # It's a touch or a pen
@@ -52,19 +60,19 @@ else:
                 return
 
             windll.user32.GetClientRect(self.hwnd, byref(win_rect))
-            x = c_int16(lParam & 0xffff).value / float(win_rect.w)
+            x = c_int16(lParam & 0xFFFF).value / float(win_rect.w)
             y = c_int16(lParam >> 16).value / float(win_rect.h)
             y = abs(1.0 - y)
 
             if msg == WM_LBUTTONDOWN:
-                self.pen_events.appendleft(('begin', x, y))
+                self.pen_events.appendleft(("begin", x, y))
                 self.pen_status = True
 
             if msg == WM_MOUSEMOVE and self.pen_status:
-                self.pen_events.appendleft(('update', x, y))
+                self.pen_events.appendleft(("update", x, y))
 
             if msg == WM_LBUTTONUP:
-                self.pen_events.appendleft(('end', x, y))
+                self.pen_events.appendleft(("end", x, y))
                 self.pen_status = False
 
         def _pen_wndProc(self, hwnd, msg, wParam, lParam):
@@ -74,8 +82,9 @@ else:
                 self._pen_handler(msg, wParam, lParam)
                 return 1
             else:
-                return windll.user32.CallWindowProcW(self.old_windProc,
-                                                     hwnd, msg, wParam, lParam)
+                return windll.user32.CallWindowProcW(
+                    self.old_windProc, hwnd, msg, wParam, lParam
+                )
 
         def start(self):
             self.uid = 0
@@ -89,7 +98,8 @@ else:
             # before window manager does
             self.new_windProc = WNDPROC(self._pen_wndProc)
             self.old_windProc = SetWindowLong_WndProc_wrapper(
-                self.hwnd, self.new_windProc)
+                self.hwnd, self.new_windProc
+            )
 
         def update(self, dispatch_fn):
             while True:
@@ -99,12 +109,12 @@ else:
                 except:
                     break
 
-                if etype == 'begin':
+                if etype == "begin":
                     self.uid += 1
                     self.pen = WM_Pen(self.device, self.uid, [x, y])
-                elif etype == 'update':
+                elif etype == "update":
                     self.pen.move([x, y])
-                elif etype == 'end':
+                elif etype == "end":
                     self.pen.update_time_end()
 
                 dispatch_fn(etype, self.pen)
@@ -113,4 +123,4 @@ else:
             self.pen = None
             SetWindowLong_WndProc_wrapper(self.hwnd, self.old_windProc)
 
-    MotionEventFactory.register('wm_pen', WM_PenProvider)
+    MotionEventFactory.register("wm_pen", WM_PenProvider)

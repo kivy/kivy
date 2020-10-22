@@ -1,4 +1,4 @@
-'''
+"""
 UrlRequest
 ==========
 
@@ -54,7 +54,7 @@ Example of Posting data (adapted from httplib example)::
 
 If you want a synchronous request, you can call the wait() method.
 
-'''
+"""
 
 from base64 import b64encode
 from collections import deque
@@ -95,7 +95,7 @@ g_requests = []
 
 
 class UrlRequest(Thread):
-    '''A UrlRequest. See module documentation for usage.
+    """A UrlRequest. See module documentation for usage.
 
     .. versionchanged:: 1.5.1
         Add `debug` parameter
@@ -179,15 +179,33 @@ class UrlRequest(Thread):
         `proxy_headers`: dict, defaults to None
             If set, and `proxy_host` is also set, the headers to send to the
             proxy server in the ``CONNECT`` request.
-    '''
+    """
 
-    def __init__(self, url, on_success=None, on_redirect=None,
-                 on_failure=None, on_error=None, on_progress=None,
-                 req_body=None, req_headers=None, chunk_size=8192,
-                 timeout=None, method=None, decode=True, debug=False,
-                 file_path=None, ca_file=None, verify=True, proxy_host=None,
-                 proxy_port=None, proxy_headers=None, user_agent=None,
-                 on_cancel=None, cookies=None):
+    def __init__(
+        self,
+        url,
+        on_success=None,
+        on_redirect=None,
+        on_failure=None,
+        on_error=None,
+        on_progress=None,
+        req_body=None,
+        req_headers=None,
+        chunk_size=8192,
+        timeout=None,
+        method=None,
+        decode=True,
+        debug=False,
+        file_path=None,
+        ca_file=None,
+        verify=True,
+        proxy_host=None,
+        proxy_port=None,
+        proxy_headers=None,
+        user_agent=None,
+        on_cancel=None,
+        cookies=None,
+    ):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -218,8 +236,9 @@ class UrlRequest(Thread):
         self._user_agent = user_agent
         self._cookies = cookies
 
-        if platform in ['android', 'ios']:
+        if platform in ["android", "ios"]:
             import certifi
+
             self.ca_file = ca_file or certifi.where()
         else:
             self.ca_file = ca_file
@@ -248,14 +267,13 @@ class UrlRequest(Thread):
         cookies = self._cookies
 
         if user_agent:
-            req_headers.setdefault('User-Agent', user_agent)
+            req_headers.setdefault("User-Agent", user_agent)
 
-        elif (
-            Config.has_section('network')
-            and 'useragent' in Config.items('network')
+        elif Config.has_section("network") and "useragent" in Config.items(
+            "network"
         ):
-            useragent = Config.get('network', 'useragent')
-            req_headers.setdefault('User-Agent', useragent)
+            useragent = Config.get("network", "useragent")
+            req_headers.setdefault("User-Agent", useragent)
 
         if cookies:
             req_headers.setdefault("Cookie", cookies)
@@ -265,19 +283,19 @@ class UrlRequest(Thread):
             if self.decode:
                 result = self.decode_result(result, resp)
         except Exception as e:
-            q(('error', None, e))
+            q(("error", None, e))
         else:
             if not self._cancel_event.is_set():
-                q(('success', resp, result))
+                q(("success", resp, result))
             else:
-                q(('killed', None, None))
+                q(("killed", None, None))
 
         # using trigger can result in a missed on_success event
         self._trigger_result()
 
         # clean ourself when the queue is empty
         while len(self._queue):
-            sleep(.1)
+            sleep(0.1)
             self._trigger_result()
 
         # ok, authorize the GC to clean us.
@@ -293,12 +311,13 @@ class UrlRequest(Thread):
         # append user + pass to hostname if specified
         if parse.username and parse.password:
             userpass = {
-                "Authorization": "Basic {}".format(b64encode(
-                    "{}:{}".format(
-                        parse.username,
-                        parse.password
-                    ).encode('utf-8')
-                ).decode('utf-8'))
+                "Authorization": "Basic {}".format(
+                    b64encode(
+                        "{}:{}".format(parse.username, parse.password).encode(
+                            "utf-8"
+                        )
+                    ).decode("utf-8")
+                )
             }
 
         return host, port, userpass, parse
@@ -314,12 +333,13 @@ class UrlRequest(Thread):
         verify = self.verify
 
         if self._debug:
-            Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
-                id(self), url))
-            Logger.debug('UrlRequest: {0} - body: {1}'.format(
-                id(self), body))
-            Logger.debug('UrlRequest: {0} - headers: {1}'.format(
-                id(self), headers))
+            Logger.debug(
+                "UrlRequest: {0} Fetch url <{1}>".format(id(self), url)
+            )
+            Logger.debug("UrlRequest: {0} - body: {1}".format(id(self), body))
+            Logger.debug(
+                "UrlRequest: {0} - headers: {1}".format(id(self), headers)
+            )
 
         # parse url
         host, port, userpass, parse = self._parse_url(url)
@@ -335,36 +355,44 @@ class UrlRequest(Thread):
         # reconstruct path to pass on the request
         path = parse.path
         if parse.params:
-            path += ';' + parse.params
+            path += ";" + parse.params
         if parse.query:
-            path += '?' + parse.query
+            path += "?" + parse.query
         if parse.fragment:
-            path += '#' + parse.fragment
+            path += "#" + parse.fragment
 
         # create connection instance
         args = {}
         if timeout is not None:
-            args['timeout'] = timeout
+            args["timeout"] = timeout
 
-        if (ca_file is not None and hasattr(ssl, 'create_default_context') and
-                parse.scheme == 'https'):
+        if (
+            ca_file is not None
+            and hasattr(ssl, "create_default_context")
+            and parse.scheme == "https"
+        ):
             ctx = ssl.create_default_context(cafile=ca_file)
             ctx.verify_mode = ssl.CERT_REQUIRED
-            args['context'] = ctx
+            args["context"] = ctx
 
-        if not verify and parse.scheme == 'https' and (
-            hasattr(ssl, 'create_default_context')):
+        if (
+            not verify
+            and parse.scheme == "https"
+            and (hasattr(ssl, "create_default_context"))
+        ):
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
-            args['context'] = ctx
+            args["context"] = ctx
 
         if self._proxy_host:
-            Logger.debug('UrlRequest: {0} - proxy via {1}:{2}'.format(
-                id(self), self._proxy_host, self._proxy_port
-            ))
+            Logger.debug(
+                "UrlRequest: {0} - proxy via {1}:{2}".format(
+                    id(self), self._proxy_host, self._proxy_port
+                )
+            )
             req = cls(self._proxy_host, self._proxy_port, **args)
-            if parse.scheme == 'https':
+            if parse.scheme == "https":
                 req.set_tunnel(host, port, self._proxy_headers)
             else:
                 path = urlunparse(parse)
@@ -374,7 +402,7 @@ class UrlRequest(Thread):
         # send request
         method = self._method
         if method is None:
-            method = 'GET' if body is None else 'POST'
+            method = "GET" if body is None else "POST"
         req.request(method, path, body, headers or {})
 
         # read header
@@ -383,18 +411,18 @@ class UrlRequest(Thread):
         # read content
         if report_progress or file_path is not None:
             try:
-                total_size = int(resp.getheader('content-length'))
+                total_size = int(resp.getheader("content-length"))
             except:
                 total_size = -1
 
             # before starting the download, send a fake progress to permit the
             # user to initialize his ui
             if report_progress:
-                q(('progress', resp, (0, total_size)))
+                q(("progress", resp, (0, total_size)))
 
             def get_chunks(fd=None):
                 bytes_so_far = 0
-                result = b''
+                result = b""
                 while 1:
                     chunk = resp.read(chunk_size)
                     if not chunk:
@@ -408,14 +436,14 @@ class UrlRequest(Thread):
                     bytes_so_far += len(chunk)
                     # report progress to user
                     if report_progress:
-                        q(('progress', resp, (bytes_so_far, total_size)))
+                        q(("progress", resp, (bytes_so_far, total_size)))
                         trigger()
                     if self._cancel_event.is_set():
                         break
                 return bytes_so_far, result
 
             if file_path is not None:
-                with open(file_path, 'wb') as fd:
+                with open(file_path, "wb") as fd:
                     bytes_so_far, result = get_chunks(fd)
             else:
                 bytes_so_far, result = get_chunks()
@@ -423,13 +451,13 @@ class UrlRequest(Thread):
             # ensure that results are dispatched for the last chunk,
             # avoid trigger
             if report_progress:
-                q(('progress', resp, (bytes_so_far, total_size)))
+                q(("progress", resp, (bytes_so_far, total_size)))
                 trigger()
         else:
             result = resp.read()
             try:
                 if isinstance(result, bytes):
-                    result = result.decode('utf-8')
+                    result = result.decode("utf-8")
             except UnicodeDecodeError:
                 # if it's an image? decoding would not work
                 pass
@@ -439,32 +467,32 @@ class UrlRequest(Thread):
         return result, resp
 
     def get_connection_for_scheme(self, scheme):
-        '''Return the Connection class for a particular scheme.
+        """Return the Connection class for a particular scheme.
         This is an internal function that can be expanded to support custom
         schemes.
 
         Actual supported schemes: http, https.
-        '''
-        if scheme == 'http':
+        """
+        if scheme == "http":
             return HTTPConnection
-        elif scheme == 'https' and HTTPSConnection is not None:
+        elif scheme == "https" and HTTPSConnection is not None:
             return HTTPSConnection
         else:
-            raise Exception('No class for scheme %s' % scheme)
+            raise Exception("No class for scheme %s" % scheme)
 
     def decode_result(self, result, resp):
-        '''Decode the result fetched from url according to his Content-Type.
+        """Decode the result fetched from url according to his Content-Type.
         Currently supports only application/json.
-        '''
+        """
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
         # decoded.
-        content_type = resp.getheader('Content-Type', None)
+        content_type = resp.getheader("Content-Type", None)
         if content_type is not None:
-            ct = content_type.split(';')[0]
-            if ct == 'application/json':
+            ct = content_type.split(";")[0]
+            if ct == "application/json":
                 if isinstance(result, bytes):
-                    result = result.decode('utf-8')
+                    result = result.decode("utf-8")
                 try:
                     return loads(result)
                 except:
@@ -497,14 +525,15 @@ class UrlRequest(Thread):
                 # ..urllib2-multiple-set-cookie-headers-in-response
                 self._resp_headers = dict(parsed_headers)
                 self._resp_status = resp.status
-            if result == 'success':
+            if result == "success":
                 status_class = resp.status // 100
 
                 if status_class in (1, 2):
                     if self._debug:
-                        Logger.debug('UrlRequest: {0} Download finished with'
-                                     ' {1} datalen'.format(id(self),
-                                                           len(data)))
+                        Logger.debug(
+                            "UrlRequest: {0} Download finished with"
+                            " {1} datalen".format(id(self), len(data))
+                        )
                     self._is_finished = True
                     self._result = data
                     if self.on_success:
@@ -514,8 +543,10 @@ class UrlRequest(Thread):
 
                 elif status_class == 3:
                     if self._debug:
-                        Logger.debug('UrlRequest: {} Download '
-                                     'redirected'.format(id(self)))
+                        Logger.debug(
+                            "UrlRequest: {} Download "
+                            "redirected".format(id(self))
+                        )
                     self._is_finished = True
                     self._result = data
                     if self.on_redirect:
@@ -525,9 +556,10 @@ class UrlRequest(Thread):
 
                 elif status_class in (4, 5):
                     if self._debug:
-                        Logger.debug('UrlRequest: {} Download failed with '
-                                     'http error {}'.format(id(self),
-                                                            resp.status))
+                        Logger.debug(
+                            "UrlRequest: {} Download failed with "
+                            "http error {}".format(id(self), resp.status)
+                        )
                     self._is_finished = True
                     self._result = data
                     if self.on_failure:
@@ -535,10 +567,12 @@ class UrlRequest(Thread):
                         if func:
                             func(self, data)
 
-            elif result == 'error':
+            elif result == "error":
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download error '
-                                 '<{1}>'.format(id(self), data))
+                    Logger.debug(
+                        "UrlRequest: {0} Download error "
+                        "<{1}>".format(id(self), data)
+                    )
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
@@ -546,70 +580,72 @@ class UrlRequest(Thread):
                     if func:
                         func(self, data)
 
-            elif result == 'progress':
+            elif result == "progress":
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download progress '
-                                 '{1}'.format(id(self), data))
+                    Logger.debug(
+                        "UrlRequest: {0} Download progress "
+                        "{1}".format(id(self), data)
+                    )
                 if self.on_progress:
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
 
-            elif result == 'killed':
+            elif result == "killed":
                 if self._debug:
-                    Logger.debug('UrlRequest: Cancelled by user')
+                    Logger.debug("UrlRequest: Cancelled by user")
                 if self.on_cancel:
                     func = self.on_cancel()
                     if func:
                         func(self)
 
             else:
-                assert(0)
+                assert 0
 
     @property
     def is_finished(self):
-        '''Return True if the request has finished, whether it's a
+        """Return True if the request has finished, whether it's a
         success or a failure.
-        '''
+        """
         return self._is_finished
 
     @property
     def result(self):
-        '''Return the result of the request.
+        """Return the result of the request.
         This value is not determined until the request is finished.
-        '''
+        """
         return self._result
 
     @property
     def resp_headers(self):
-        '''If the request has been completed, return a dictionary containing
+        """If the request has been completed, return a dictionary containing
         the headers of the response. Otherwise, it will return None.
-        '''
+        """
         return self._resp_headers
 
     @property
     def resp_status(self):
-        '''Return the status code of the response if the request is complete,
+        """Return the status code of the response if the request is complete,
         otherwise return None.
-        '''
+        """
         return self._resp_status
 
     @property
     def error(self):
-        '''Return the error of the request.
+        """Return the error of the request.
         This value is not determined until the request is completed.
-        '''
+        """
         return self._error
 
     @property
     def chunk_size(self):
-        '''Return the size of a chunk, used only in "progress" mode (when
+        """Return the size of a chunk, used only in "progress" mode (when
         on_progress callback is set.)
-        '''
+        """
         return self._chunk_size
 
     def wait(self, delay=0.5):
-        '''Wait for the request to finish (until :attr:`resp_status` is not
+        """Wait for the request to finish (until :attr:`resp_status` is not
         None)
 
         .. note::
@@ -618,41 +654,44 @@ class UrlRequest(Thread):
             from which you're calling.
 
         .. versionadded:: 1.1.0
-        '''
+        """
         while self.resp_status is None:
             self._dispatch_result(delay)
             sleep(delay)
 
     def cancel(self):
-        '''Cancel the current request. It will be aborted, and the result
+        """Cancel the current request. It will be aborted, and the result
         will not be dispatched. Once cancelled, the callback on_cancel will
         be called.
 
         .. versionadded:: 1.11.0
-        '''
+        """
         self._cancel_event.set()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     from pprint import pprint
 
     def on_success(req, result):
-        pprint('Got the result:')
+        pprint("Got the result:")
         pprint(result)
 
     def on_error(req, error):
-        pprint('Got an error:')
+        pprint("Got an error:")
         pprint(error)
 
     Clock.start_clock()
-    req = UrlRequest('https://en.wikipedia.org/w/api.php?format'
-        '=json&action=query&titles=Kivy&prop=revisions&rvprop=content',
-        on_success, on_error)
+    req = UrlRequest(
+        "https://en.wikipedia.org/w/api.php?format"
+        "=json&action=query&titles=Kivy&prop=revisions&rvprop=content",
+        on_success,
+        on_error,
+    )
     while not req.is_finished:
         sleep(1)
         Clock.tick()
     Clock.stop_clock()
 
-    print('result =', req.result)
-    print('error =', req.error)
+    print("result =", req.result)
+    print("error =", req.error)

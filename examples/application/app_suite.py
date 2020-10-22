@@ -1,4 +1,4 @@
-'''
+"""
 Suite of Application Builders
 =============================
 
@@ -11,7 +11,7 @@ application is created.
 
 This uses the file testkvfile.kv and the file app_suite_data/testkvdir.kv.
 
-'''
+"""
 
 from __future__ import print_function
 import sys
@@ -19,12 +19,14 @@ import re
 from random import choice
 
 import kivy
-kivy.require('1.8.0')  # 1.8 is when kv_directory became part of app.
+
+kivy.require("1.8.0")  # 1.8 is when kv_directory became part of app.
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.lang import Builder
 
 from kivy.uix.floatlayout import FloatLayout
+
 # Note that importing FloatLayout causes Kivy to execute, including
 # starting up the Logger and some other messages.
 print("** In main program, done with imports")
@@ -32,13 +34,14 @@ print("** In main program, done with imports")
 
 class TestBuildApp(App):
     """ Use build() function to return a widget. """
+
     def build(self):
-        """   Build called by kivy when an App is started.
-              Called after trying to load a .kv file.
-              Returns a new Button as a root widget.
-              """
+        """Build called by kivy when an App is started.
+        Called after trying to load a .kv file.
+        Returns a new Button as a root widget.
+        """
         print("** inside build()")
-        return Button(text='hello from TestBuildApp')
+        return Button(text="hello from TestBuildApp")
 
 
 class TestKVFileApp(App):
@@ -48,6 +51,7 @@ class TestKVFileApp(App):
     off the final 'app', i.e. 'testkvfile.kv'. If not file is found, and no
     other method sets the self.root, the program will run with an empty screen.
     """
+
     pass
 
 
@@ -58,7 +62,8 @@ class TestKVDirApp(App):
     The name of the kv file is still governed by the class name and the .kv
     file should still have one root widget.
     """
-    kv_directory = 'app_suite_data'
+
+    kv_directory = "app_suite_data"
 
 
 class TestKVStringApp(App):
@@ -66,26 +71,30 @@ class TestKVStringApp(App):
     Use a build() function and use the kivy.lang.Builder function to parse up a
     Kivy language string.
     """
+
     def build(self):
         """   Called by kivy run().  """
         print("** inside build()")
         widget = Builder.load_string(
-            "Button:\n  text: 'hello from TestKVStringApp'")
+            "Button:\n  text: 'hello from TestKVStringApp'"
+        )
         print("** widget built")
         return widget
 
 
 class TestPrebuiltApp(App):
-    """ Use the Builder to create a top level widget at the beginning
+    """Use the Builder to create a top level widget at the beginning
     of the Python program, then use a dummy class for that widget.
-    This costs a bit more in start-up time. """
+    This costs a bit more in start-up time."""
+
     kv = "<Prebuilt>\n  Button:\n    text:'hello from TestPrebuiltApp'"
     Builder.load_string(kv)
     print("** in TestPrebuiltApp, class initialization built <Prebuilt>")
 
     class Prebuilt(FloatLayout):
-        """ Empty class to cause setting root to <Prebuilt> tag and
-        set inheritence """
+        """Empty class to cause setting root to <Prebuilt> tag and
+        set inheritence"""
+
         pass
 
     def build(self):
@@ -105,32 +114,33 @@ def print_class(class_name):
 
 
 # the __name__ idiom executes when run from command line but not from import.
-if __name__ == '__main__':
+if __name__ == "__main__":
     dash = "-" * 40
 
     arg = sys.argv[1][0].lower() if len(sys.argv) > 1 else "h"
     print(dash)
 
-    if arg == 'r':
-        arg = choice('bfds')
+    if arg == "r":
+        arg = choice("bfds")
 
-    if arg == 'b':
+    if arg == "b":
         print_class("TestBuildApp")
         TestBuildApp().run()
-    elif arg == 'f':
+    elif arg == "f":
         print_class("TestKVFileApp")
         TestKVFileApp().run()
-    elif arg == 'd':
+    elif arg == "d":
         print_class("TestKVDirApp")
         TestKVDirApp().run()
-    elif arg == 's':
+    elif arg == "s":
         print_class("TestKVStringApp")
         TestKVStringApp().run()
-    elif arg == 'p':
+    elif arg == "p":
         print_class("TestPrebuiltApp")
         TestPrebuiltApp().run()
-    else:   # help
-        print("""
+    else:  # help
+        print(
+            """
 This demo runs different application windows based on a command line argument.
 
 Try using one of these:
@@ -146,7 +156,8 @@ Try using one of these:
    After closing the application window, this program will exit.
    While the run() method does return, kivy cannot run another
    application window after one has been closed.
- """)
+ """
+        )
 
     print(dash)
     print("This program is gratified to be of use.")

@@ -1,4 +1,4 @@
-__all__ = ('GestureDatabase', 'GestureDatabaseItem')
+__all__ = ("GestureDatabase", "GestureDatabaseItem")
 
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -14,7 +14,7 @@ from kivy.multistroke import Recognizer
 from helpers import InformationPopup
 
 
-Builder.load_file('gesturedatabase.kv')
+Builder.load_file("gesturedatabase.kv")
 
 
 class GestureExportPopup(Popup):
@@ -26,7 +26,7 @@ class GestureImportPopup(Popup):
 
 
 class GestureDatabaseItem(FloatLayout):
-    name = StringProperty('(no name)')
+    name = StringProperty("(no name)")
     template_count = NumericProperty(0)
     gesture_list = ListProperty([])
 
@@ -36,17 +36,17 @@ class GestureDatabaseItem(FloatLayout):
         self._draw_trigger = Clock.create_trigger(self.draw_item, 0)
         self.update_template_count()
         self.bind(gesture_list=self.update_template_count)
-        self.register_event_type('on_select')
-        self.register_event_type('on_deselect')
+        self.register_event_type("on_select")
+        self.register_event_type("on_deselect")
 
     def toggle_selected(self, *l):
         self._draw_rect(clear=True)
-        if self.ids.select.state == 'down':
-            self.dispatch('on_select')
-            self.ids.select.text = 'Deselect'
+        if self.ids.select.state == "down":
+            self.dispatch("on_select")
+            self.ids.select.text = "Deselect"
         else:
-            self.dispatch('on_deselect')
-            self.ids.select.text = 'Select'
+            self.dispatch("on_deselect")
+            self.ids.select.text = "Select"
 
     def update_template_count(self, *l):
         tpl_count = 0
@@ -63,9 +63,9 @@ class GestureDatabaseItem(FloatLayout):
         self._draw_rect()
 
     def _draw_rect(self, clear=False, *l):
-        col = self.ids.select.state == 'down' and 1 or .2
+        col = self.ids.select.state == "down" and 1 or 0.2
         with self.canvas:
-            Color(col, 0, 0, .15)
+            Color(col, 0, 0, 0.15)
             if self.rect or clear:
                 self.canvas.remove(self.rect)
             self.rect = Rectangle(size=self.size, pos=self.pos)
@@ -114,13 +114,13 @@ class GestureDatabase(GridLayout):
     def mass_select(self, *l):
         if self.selected_count:
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'down':
-                    i.ids.select.state = 'normal'
+                if i.ids.select.state == "down":
+                    i.ids.select.state = "normal"
                     i.draw_item()
         else:
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'normal':
-                    i.ids.select.state = 'down'
+                if i.ids.select.state == "normal":
+                    i.ids.select.state = "down"
                     i.draw_item()
 
     def unload_gestures(self, *l):
@@ -131,7 +131,7 @@ class GestureDatabase(GridLayout):
             return
 
         for i in self.ids.gesture_list.children[:]:
-            if i.ids.select.state == 'down':
+            if i.ids.select.state == "down":
                 self.selected_count -= 1
                 for g in i.gesture_list:
                     # if g in self.recognizer.db:  # not needed, for testing
@@ -142,16 +142,16 @@ class GestureDatabase(GridLayout):
         path = self.export_popup.ids.filename.text
         if not path:
             self.export_popup.dismiss()
-            self.info_popup.text = 'Missing filename'
+            self.info_popup.text = "Missing filename"
             self.info_popup.open()
             return
-        elif not path.lower().endswith('.kg'):
-            path += '.kg'
+        elif not path.lower().endswith(".kg"):
+            path += ".kg"
 
         self.save_selection_to_file(path)
 
         self.export_popup.dismiss()
-        self.info_popup.text = 'Gestures exported!'
+        self.info_popup.text = "Gestures exported!"
         self.info_popup.open()
 
     def perform_import(self, filechooser, *l):
@@ -159,8 +159,9 @@ class GestureDatabase(GridLayout):
         for f in filechooser.selection:
             self.recognizer.import_gesture(filename=f)
         self.import_gdb()
-        self.info_popup.text = ("Imported %d gestures.\n" %
-                                (len(self.recognizer.db) - count))
+        self.info_popup.text = "Imported %d gestures.\n" % (
+            len(self.recognizer.db) - count
+        )
         self.import_popup.dismiss()
         self.info_popup.open()
 
@@ -170,7 +171,7 @@ class GestureDatabase(GridLayout):
         else:
             tmpgdb = Recognizer()
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'down':
+                if i.ids.select.state == "down":
                     for g in i.gesture_list:
                         tmpgdb.db.append(g)
             tmpgdb.export_gesture(filename=filename)

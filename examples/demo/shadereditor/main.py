@@ -1,4 +1,4 @@
-'''
+"""
 Live Shader Editor
 ==================
 
@@ -11,12 +11,13 @@ describes the interface.
 On each keystroke to either shader, declarations are added and the shaders
 are compiled. If there are no errors, the screen is updated. Otherwise,
 the error is visible as logging message in your terminal.
-'''
+"""
 
 
 import sys
 import kivy
-kivy.require('1.0.6')
+
+kivy.require("1.0.6")
 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -27,7 +28,7 @@ from kivy.properties import StringProperty, ObjectProperty
 from kivy.clock import Clock
 from kivy.compat import PY2
 
-fs_header = '''
+fs_header = """
 #ifdef GL_ES
     precision highp float;
 #endif
@@ -42,9 +43,9 @@ uniform sampler2D texture0;
 /* custom one */
 uniform vec2 resolution;
 uniform float time;
-'''
+"""
 
-vs_header = '''
+vs_header = """
 #ifdef GL_ES
     precision highp float;
 #endif
@@ -61,7 +62,7 @@ attribute vec2     vTexCoords0;
 uniform mat4       modelview_mat;
 uniform mat4       projection_mat;
 uniform vec4       color;
-'''
+"""
 
 
 class ShaderViewer(FloatLayout):
@@ -75,9 +76,9 @@ class ShaderViewer(FloatLayout):
 
     def update_shader(self, *args):
         s = self.canvas
-        s['projection_mat'] = Window.render_context['projection_mat']
-        s['time'] = Clock.get_boottime()
-        s['resolution'] = list(map(float, self.size))
+        s["projection_mat"] = Window.render_context["projection_mat"]
+        s["time"] = Clock.get_boottime()
+        s["resolution"] = list(map(float, self.size))
         s.ask_update()
 
     def on_fs(self, instance, value):
@@ -87,25 +88,29 @@ class ShaderViewer(FloatLayout):
         self.canvas.shader.vs = value
 
 
-Factory.register('ShaderViewer', cls=ShaderViewer)
+Factory.register("ShaderViewer", cls=ShaderViewer)
 
 
 class ShaderEditor(FloatLayout):
 
-    source = StringProperty('data/logo/kivy-icon-512.png')
+    source = StringProperty("data/logo/kivy-icon-512.png")
 
-    fs = StringProperty('''
+    fs = StringProperty(
+        """
 void main (void){
     gl_FragColor = frag_color * texture2D(texture0, tex_coord0);
 }
-''')
-    vs = StringProperty('''
+"""
+    )
+    vs = StringProperty(
+        """
 void main (void) {
   frag_color = color;
   tex_coord0 = vTexCoords0;
   gl_Position = projection_mat * modelview_mat * vec4(vPosition.xy, 0.0, 1.0);
 }
-''')
+"""
+    )
 
     viewer = ObjectProperty(None)
 
@@ -117,21 +122,21 @@ void main (void) {
         self.bind(fs=self.trigger_compile, vs=self.trigger_compile)
 
     def compile_shaders(self, *largs):
-        print('try compile')
+        print("try compile")
         if not self.viewer:
             return
 
         # we don't use str() here because it will crash with non-ascii char
         if PY2:
-            fs = fs_header + self.fs.encode('utf-8')
-            vs = vs_header + self.vs.encode('utf-8')
+            fs = fs_header + self.fs.encode("utf-8")
+            vs = vs_header + self.vs.encode("utf-8")
         else:
             fs = fs_header + self.fs
             vs = vs_header + self.vs
 
-        print('-->', fs)
+        print("-->", fs)
         self.viewer.fs = fs
-        print('-->', vs)
+        print("-->", vs)
         self.viewer.vs = vs
 
 
@@ -139,9 +144,9 @@ class ShaderEditorApp(App):
     def build(self):
         kwargs = {}
         if len(sys.argv) > 1:
-            kwargs['source'] = sys.argv[1]
+            kwargs["source"] = sys.argv[1]
         return ShaderEditor(**kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ShaderEditorApp().run()

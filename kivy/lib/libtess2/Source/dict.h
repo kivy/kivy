@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -48,27 +48,27 @@ DictNode *dictSearch( Dict *dict, DictKey key );
 DictNode *dictInsertBefore( Dict *dict, DictNode *node, DictKey key );
 void dictDelete( Dict *dict, DictNode *node );
 
-#define dictKey(n)	((n)->key)
-#define dictSucc(n)	((n)->next)
-#define dictPred(n)	((n)->prev)
-#define dictMin(d)	((d)->head.next)
-#define dictMax(d)	((d)->head.prev)
+#define dictKey(n)    ((n)->key)
+#define dictSucc(n)    ((n)->next)
+#define dictPred(n)    ((n)->prev)
+#define dictMin(d)    ((d)->head.next)
+#define dictMax(d)    ((d)->head.prev)
 #define dictInsert(d,k) (dictInsertBefore((d),&(d)->head,(k)))
 
 
 /*** Private data structures ***/
 
 struct DictNode {
-	DictKey	key;
-	DictNode *next;
-	DictNode *prev;
+    DictKey    key;
+    DictNode *next;
+    DictNode *prev;
 };
 
 struct Dict {
-	DictNode head;
-	void *frame;
-	struct BucketAlloc *nodePool;
-	int (*leq)(void *frame, DictKey key1, DictKey key2);
+    DictNode head;
+    void *frame;
+    struct BucketAlloc *nodePool;
+    int (*leq)(void *frame, DictKey key1, DictKey key2);
 };
 
 #endif

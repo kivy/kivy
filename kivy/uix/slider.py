@@ -37,13 +37,20 @@ Kv Example::
             text: str(slider.value)
 
 """
-__all__ = ('Slider', )
+__all__ = ("Slider",)
 
 from kivy.uix.widget import Widget
-from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
-                             ReferenceListProperty, BoundedNumericProperty,
-                             StringProperty, ListProperty, BooleanProperty,
-                             ColorProperty)
+from kivy.properties import (
+    NumericProperty,
+    AliasProperty,
+    OptionProperty,
+    ReferenceListProperty,
+    BoundedNumericProperty,
+    StringProperty,
+    ListProperty,
+    BooleanProperty,
+    ColorProperty,
+)
 
 
 class Slider(Widget):
@@ -52,26 +59,26 @@ class Slider(Widget):
     Check module documentation for more details.
     """
 
-    value = NumericProperty(0.)
-    '''Current value used for the slider.
+    value = NumericProperty(0.0)
+    """Current value used for the slider.
 
     :attr:`value` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 0.'''
+    to 0."""
 
-    min = NumericProperty(0.)
-    '''Minimum value allowed for :attr:`value`.
+    min = NumericProperty(0.0)
+    """Minimum value allowed for :attr:`value`.
 
     :attr:`min` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.'''
+    0."""
 
-    max = NumericProperty(100.)
-    '''Maximum value allowed for :attr:`value`.
+    max = NumericProperty(100.0)
+    """Maximum value allowed for :attr:`value`.
 
     :attr:`max` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    100.'''
+    100."""
 
-    padding = NumericProperty('16sp')
-    '''Padding of the slider. The padding is used for graphical representation
+    padding = NumericProperty("16sp")
+    """Padding of the slider. The padding is used for graphical representation
     and interaction. It prevents the cursor from going out of the bounds of the
     slider bounding box.
 
@@ -80,18 +87,19 @@ class Slider(Widget):
     width without having the cursor go out of the widget.
 
     :attr:`padding` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 16sp.'''
+    to 16sp."""
 
-    orientation = OptionProperty('horizontal', options=(
-        'vertical', 'horizontal'))
-    '''Orientation of the slider.
+    orientation = OptionProperty(
+        "horizontal", options=("vertical", "horizontal")
+    )
+    """Orientation of the slider.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
-    '''
+    """
 
     range = ReferenceListProperty(min, max)
-    '''Range of the slider in the format (minimum value, maximum value)::
+    """Range of the slider in the format (minimum value, maximum value)::
 
         >>> slider = Slider(min=10, max=80)
         >>> slider.range
@@ -104,10 +112,10 @@ class Slider(Widget):
 
     :attr:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`min`, :attr:`max`) properties.
-    '''
+    """
 
     step = BoundedNumericProperty(0, min=0)
-    '''Step size of the slider.
+    """Step size of the slider.
 
     .. versionadded:: 1.4.0
 
@@ -116,10 +124,11 @@ class Slider(Widget):
     last step will be capped by slider.max
 
     :attr:`step` is a :class:`~kivy.properties.NumericProperty` and defaults
-    to 1.'''
+    to 1."""
 
     background_horizontal = StringProperty(
-        'atlas://data/images/defaulttheme/sliderh_background')
+        "atlas://data/images/defaulttheme/sliderh_background"
+    )
     """Background of the slider used in the horizontal orientation.
 
     .. versionadded:: 1.10.0
@@ -129,7 +138,8 @@ class Slider(Widget):
     """
 
     background_disabled_horizontal = StringProperty(
-        'atlas://data/images/defaulttheme/sliderh_background_disabled')
+        "atlas://data/images/defaulttheme/sliderh_background_disabled"
+    )
     """Background of the disabled slider used in the horizontal orientation.
 
     .. versionadded:: 1.10.0
@@ -140,7 +150,8 @@ class Slider(Widget):
     """
 
     background_vertical = StringProperty(
-        'atlas://data/images/defaulttheme/sliderv_background')
+        "atlas://data/images/defaulttheme/sliderv_background"
+    )
     """Background of the slider used in the vertical orientation.
 
     .. versionadded:: 1.10.0
@@ -150,7 +161,8 @@ class Slider(Widget):
     """
 
     background_disabled_vertical = StringProperty(
-        'atlas://data/images/defaulttheme/sliderv_background_disabled')
+        "atlas://data/images/defaulttheme/sliderv_background_disabled"
+    )
     """Background of the disabled slider used in the vertical orientation.
 
     .. versionadded:: 1.10.0
@@ -160,7 +172,7 @@ class Slider(Widget):
     `atlas://data/images/defaulttheme/sliderv_background_disabled`.
     """
 
-    background_width = NumericProperty('36sp')
+    background_width = NumericProperty("36sp")
     """Slider's background's width (thickness), used in both horizontal
     and vertical orientations.
 
@@ -171,7 +183,8 @@ class Slider(Widget):
     """
 
     cursor_image = StringProperty(
-        'atlas://data/images/defaulttheme/slider_cursor')
+        "atlas://data/images/defaulttheme/slider_cursor"
+    )
     """Path of the image used to draw the slider cursor.
 
     .. versionadded 1.10.0
@@ -181,7 +194,8 @@ class Slider(Widget):
     """
 
     cursor_disabled_image = StringProperty(
-        'atlas://data/images/defaulttheme/slider_cursor_disabled')
+        "atlas://data/images/defaulttheme/slider_cursor_disabled"
+    )
     """Path of the image used to draw the disabled slider cursor.
 
     .. versionadded 1.10.0
@@ -190,7 +204,7 @@ class Slider(Widget):
     and defaults to `atlas://data/images/defaulttheme/slider_cursor_disabled`.
     """
 
-    cursor_width = NumericProperty('32sp')
+    cursor_width = NumericProperty("32sp")
     """Width of the cursor image.
 
     .. versionadded 1.10.0
@@ -199,7 +213,7 @@ class Slider(Widget):
     and defaults to 32sp.
     """
 
-    cursor_height = NumericProperty('32sp')
+    cursor_height = NumericProperty("32sp")
     """Height of the cursor image.
 
     .. versionadded 1.10.0
@@ -258,7 +272,7 @@ class Slider(Widget):
         :class:`~kivy.properties.ColorProperty`.
     """
 
-    value_track_width = NumericProperty('3dp')
+    value_track_width = NumericProperty("3dp")
     """Width of the track line.
 
     .. versionadded 1.10.0
@@ -267,7 +281,7 @@ class Slider(Widget):
     and defaults to 3dp.
     """
 
-    sensitivity = OptionProperty('all', options=('all', 'handle'))
+    sensitivity = OptionProperty("all", options=("all", "handle"))
     """Whether the touch collides with the whole body of the widget
     or with the slider handle part only.
 
@@ -302,13 +316,15 @@ class Slider(Widget):
         if step == 0:
             self.value = val
         else:
-            self.value = min(round((val - vmin) / step) * step + vmin,
-                             vmax)
+            self.value = min(round((val - vmin) / step) * step + vmin, vmax)
 
-    value_normalized = AliasProperty(get_norm_value, set_norm_value,
-                                     bind=('value', 'min', 'max'),
-                                     cache=True)
-    '''Normalized value inside the :attr:`range` (min/max) to 0-1 range::
+    value_normalized = AliasProperty(
+        get_norm_value,
+        set_norm_value,
+        bind=("value", "min", "max"),
+        cache=True,
+    )
+    """Normalized value inside the :attr:`range` (min/max) to 0-1 range::
 
         >>> slider = Slider(value=50, min=0, max=100)
         >>> slider.value
@@ -334,14 +350,14 @@ class Slider(Widget):
         200
 
     :attr:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
-    '''
+    """
 
     def get_value_pos(self):
         padding = self.padding
         x = self.x
         y = self.y
         nval = self.value_normalized
-        if self.orientation == 'horizontal':
+        if self.orientation == "horizontal":
             return (x + padding + nval * (self.width - 2 * padding), y)
         else:
             return (x, y + padding + nval * (self.height - 2 * padding))
@@ -350,47 +366,59 @@ class Slider(Widget):
         padding = self.padding
         x = min(self.right - padding, max(pos[0], self.x + padding))
         y = min(self.top - padding, max(pos[1], self.y + padding))
-        if self.orientation == 'horizontal':
+        if self.orientation == "horizontal":
             if self.width == 0:
                 self.value_normalized = 0
             else:
-                self.value_normalized = (x - self.x - padding
-                                         ) / float(self.width - 2 * padding)
+                self.value_normalized = (x - self.x - padding) / float(
+                    self.width - 2 * padding
+                )
         else:
             if self.height == 0:
                 self.value_normalized = 0
             else:
-                self.value_normalized = (y - self.y - padding
-                                         ) / float(self.height - 2 * padding)
+                self.value_normalized = (y - self.y - padding) / float(
+                    self.height - 2 * padding
+                )
 
-    value_pos = AliasProperty(get_value_pos, set_value_pos,
-                              bind=('pos', 'size', 'min', 'max', 'padding',
-                                    'value_normalized', 'orientation'),
-                              cache=True)
-    '''Position of the internal cursor, based on the normalized value.
+    value_pos = AliasProperty(
+        get_value_pos,
+        set_value_pos,
+        bind=(
+            "pos",
+            "size",
+            "min",
+            "max",
+            "padding",
+            "value_normalized",
+            "orientation",
+        ),
+        cache=True,
+    )
+    """Position of the internal cursor, based on the normalized value.
 
     :attr:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
-    '''
+    """
 
     def on_touch_down(self, touch):
         if self.disabled or not self.collide_point(*touch.pos):
             return
         if touch.is_mouse_scrolling:
-            if 'down' in touch.button or 'left' in touch.button:
+            if "down" in touch.button or "left" in touch.button:
                 if self.step:
                     self.value = min(self.max, self.value + self.step)
                 else:
                     self.value = min(
-                        self.max,
-                        self.value + (self.max - self.min) / 20)
-            if 'up' in touch.button or 'right' in touch.button:
+                        self.max, self.value + (self.max - self.min) / 20
+                    )
+            if "up" in touch.button or "right" in touch.button:
                 if self.step:
                     self.value = max(self.min, self.value - self.step)
                 else:
                     self.value = max(
-                        self.min,
-                        self.value - (self.max - self.min) / 20)
-        elif self.sensitivity == 'handle':
+                        self.min, self.value - (self.max - self.min) / 20
+                    )
+        elif self.sensitivity == "handle":
             if self.children[0].collide_point(*touch.pos):
                 touch.grab(self)
         else:
@@ -409,7 +437,7 @@ class Slider(Widget):
             return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from kivy.app import App
 
     class SliderApp(App):

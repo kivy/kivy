@@ -1,4 +1,4 @@
-'''
+"""
 Color Picker
 ============
 
@@ -31,16 +31,21 @@ Usage::
     clr_picker.bind(color=on_color)
 
 
-'''
+"""
 
-__all__ = ('ColorPicker', 'ColorWheel')
+__all__ = ("ColorPicker", "ColorWheel")
 
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from kivy.properties import (NumericProperty, BoundedNumericProperty,
-                             ListProperty, ObjectProperty,
-                             ReferenceListProperty, StringProperty,
-                             AliasProperty)
+from kivy.properties import (
+    NumericProperty,
+    BoundedNumericProperty,
+    ListProperty,
+    ObjectProperty,
+    ReferenceListProperty,
+    StringProperty,
+    AliasProperty,
+)
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from kivy.utils import get_color_from_hex, get_hex_from_color
@@ -50,7 +55,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 def distance(pt1, pt2):
-    return sqrt((pt1[0] - pt2[0]) ** 2. + (pt1[1] - pt2[1]) ** 2.)
+    return sqrt((pt1[0] - pt2[0]) ** 2.0 + (pt1[1] - pt2[1]) ** 2.0)
 
 
 def polar_to_rect(origin, r, theta):
@@ -62,9 +67,9 @@ def rect_to_polar(origin, x, y):
         if y == origin[1]:
             return (0, 0)
         elif y > origin[1]:
-            return (y - origin[1], pi / 2.)
+            return (y - origin[1], pi / 2.0)
         else:
-            return (origin[1] - y, 3 * pi / 2.)
+            return (origin[1] - y, 3 * pi / 2.0)
     t = atan(float((y - origin[1])) / (x - origin[0]))
     if x - origin[0] < 0:
         t += pi
@@ -76,49 +81,49 @@ def rect_to_polar(origin, x, y):
 
 
 class ColorWheel(Widget):
-    '''Chromatic wheel for the ColorPicker.
+    """Chromatic wheel for the ColorPicker.
 
     .. versionchanged:: 1.7.1
         `font_size`, `font_name` and `foreground_color` have been removed. The
         sizing is now the same as others widget, based on 'sp'. Orientation is
         also automatically determined according to the width/height ratio.
 
-    '''
+    """
 
     r = BoundedNumericProperty(0, min=0, max=1)
-    '''The Red value of the color currently selected.
+    """The Red value of the color currently selected.
 
     :attr:`r` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1. It defaults to 0.
-    '''
+    """
 
     g = BoundedNumericProperty(0, min=0, max=1)
-    '''The Green value of the color currently selected.
+    """The Green value of the color currently selected.
 
     :attr:`g` is a :class:`~kivy.properties.BoundedNumericProperty`
     and can be a value from 0 to 1.
-    '''
+    """
 
     b = BoundedNumericProperty(0, min=0, max=1)
-    '''The Blue value of the color currently selected.
+    """The Blue value of the color currently selected.
 
     :attr:`b` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1.
-    '''
+    """
 
     a = BoundedNumericProperty(0, min=0, max=1)
-    '''The Alpha value of the color currently selected.
+    """The Alpha value of the color currently selected.
 
     :attr:`a` is a :class:`~kivy.properties.BoundedNumericProperty` and
     can be a value from 0 to 1.
-    '''
+    """
 
     color = ReferenceListProperty(r, g, b, a)
-    '''The holds the color currently selected.
+    """The holds the color currently selected.
 
     :attr:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
     contains a list of `r`, `g`, `b`, `a` values.
-    '''
+    """
 
     _origin = ListProperty((100, 100))
     _radius = NumericProperty(100)
@@ -127,7 +132,7 @@ class ColorWheel(Widget):
     _pieces_of_pie = NumericProperty(16)
 
     _inertia_slowdown = 1.25
-    _inertia_cutoff = .25
+    _inertia_cutoff = 0.25
 
     _num_touches = 0
     _pinch_flag = False
@@ -139,7 +144,8 @@ class ColorWheel(Widget):
 
         pdv = self._piece_divisions
         self.sv_s = [(float(x) / pdv, 1) for x in range(pdv)] + [
-            (1, float(y) / pdv) for y in reversed(range(pdv))]
+            (1, float(y) / pdv) for y in reversed(range(pdv))
+        ]
 
     def on__origin(self, instance, value):
         self.init_wheel(None)
@@ -164,18 +170,21 @@ class ColorWheel(Widget):
                         2 * pi * (float(t) / float(ppie)),
                         2 * pi * (float(t + 1) / float(ppie)),
                         origin=self._origin,
-                        color=(float(t) / ppie,
-                               self.sv_s[self.sv_idx + r][0],
-                               self.sv_s[self.sv_idx + r][1],
-                               1)))
+                        color=(
+                            float(t) / ppie,
+                            self.sv_s[self.sv_idx + r][0],
+                            self.sv_s[self.sv_idx + r][1],
+                            1,
+                        ),
+                    )
+                )
 
                 self.canvas.add(self.arcs[-1])
 
     def recolor_wheel(self):
         ppie = self._pieces_of_pie
         for idx, segment in enumerate(self.arcs):
-            segment.change_color(
-                sv=self.sv_s[int(self.sv_idx + idx / ppie)])
+            segment.change_color(sv=self.sv_s[int(self.sv_idx + idx / ppie)])
 
     def change_alpha(self, val):
         for idx, segment in enumerate(self.arcs):
@@ -191,8 +200,9 @@ class ColorWheel(Widget):
         if dt * self._inertia_slowdown > self._inertia_cutoff:
             return False
         else:
-            Clock.schedule_once(self.inertial_incr_sv_idx,
-                                dt * self._inertia_slowdown)
+            Clock.schedule_once(
+                self.inertial_incr_sv_idx, dt * self._inertia_slowdown
+            )
 
     def inertial_decr_sv_idx(self, dt):
         # if its already zoomed all the way in, cancel the inertial zoom
@@ -203,8 +213,9 @@ class ColorWheel(Widget):
         if dt * self._inertia_slowdown > self._inertia_cutoff:
             return False
         else:
-            Clock.schedule_once(self.inertial_decr_sv_idx,
-                                dt * self._inertia_slowdown)
+            Clock.schedule_once(
+                self.inertial_decr_sv_idx, dt * self._inertia_slowdown
+            )
 
     def on_touch_down(self, touch):
         r = self._get_touch_r(touch.pos)
@@ -220,22 +231,23 @@ class ColorWheel(Widget):
 
         touch.grab(self)
         self._num_touches += 1
-        touch.ud['anchor_r'] = r
-        touch.ud['orig_sv_idx'] = self.sv_idx
-        touch.ud['orig_time'] = Clock.get_time()
+        touch.ud["anchor_r"] = r
+        touch.ud["orig_sv_idx"] = self.sv_idx
+        touch.ud["orig_time"] = Clock.get_time()
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
             return
         r = self._get_touch_r(touch.pos)
-        goal_sv_idx = (touch.ud['orig_sv_idx'] -
-                       int((r - touch.ud['anchor_r']) /
-                            (float(self._radius) / self._piece_divisions)))
+        goal_sv_idx = touch.ud["orig_sv_idx"] - int(
+            (r - touch.ud["anchor_r"])
+            / (float(self._radius) / self._piece_divisions)
+        )
 
         if (
-            goal_sv_idx != self.sv_idx and
-            goal_sv_idx >= 0 and
-            goal_sv_idx <= len(self.sv_s) - self._piece_divisions
+            goal_sv_idx != self.sv_idx
+            and goal_sv_idx >= 0
+            and goal_sv_idx <= len(self.sv_s) - self._piece_divisions
         ):
             # this is a pinch to zoom
             self._pinch_flag = True
@@ -251,17 +263,19 @@ class ColorWheel(Widget):
             if self._num_touches == 0:
                 # user was pinching, and now both fingers are up. Return
                 # to normal
-                if self.sv_idx > touch.ud['orig_sv_idx']:
+                if self.sv_idx > touch.ud["orig_sv_idx"]:
                     Clock.schedule_once(
                         self.inertial_incr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time']) /
-                        (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud["orig_time"])
+                        / (self.sv_idx - touch.ud["orig_sv_idx"]),
+                    )
 
-                if self.sv_idx < touch.ud['orig_sv_idx']:
+                if self.sv_idx < touch.ud["orig_sv_idx"]:
                     Clock.schedule_once(
                         self.inertial_decr_sv_idx,
-                        (Clock.get_time() - touch.ud['orig_time']) /
-                        (self.sv_idx - touch.ud['orig_sv_idx']))
+                        (Clock.get_time() - touch.ud["orig_time"])
+                        / (self.sv_idx - touch.ud["orig_sv_idx"]),
+                    )
 
                 self._pinch_flag = False
                 return
@@ -279,8 +293,7 @@ class ColorWheel(Widget):
             # _hsv based on the selected ColorArc
             piece = int((theta / (2 * pi)) * self._pieces_of_pie)
             division = int((r / self._radius) * self._piece_divisions)
-            hsva = list(
-                self.arcs[self._pieces_of_pie * division + piece].color)
+            hsva = list(self.arcs[self._pieces_of_pie * division + piece].color)
             self.color = list(hsv_to_rgb(*hsva[:3])) + hsva[-1:]
 
     def _get_touch_r(self, pos):
@@ -288,8 +301,16 @@ class ColorWheel(Widget):
 
 
 class _ColorArc(InstructionGroup):
-    def __init__(self, r_min, r_max, theta_min, theta_max,
-                 color=(0, 0, 1, 1), origin=(0, 0), **kwargs):
+    def __init__(
+        self,
+        r_min,
+        r_max,
+        theta_min,
+        theta_max,
+        color=(0, 0, 1, 1),
+        origin=(0, 0),
+        **kwargs,
+    ):
         super(_ColorArc, self).__init__(**kwargs)
         self.origin = origin
         self.r_min = r_min
@@ -297,14 +318,18 @@ class _ColorArc(InstructionGroup):
         self.theta_min = theta_min
         self.theta_max = theta_max
         self.color = color
-        self.color_instr = Color(*color, mode='hsv')
+        self.color_instr = Color(*color, mode="hsv")
         self.add(self.color_instr)
         self.mesh = self.get_mesh()
         self.add(self.mesh)
 
     def __str__(self):
         return "r_min: %s r_max: %s theta_min: %s theta_max: %s color: %s" % (
-            self.r_min, self.r_max, self.theta_min, self.theta_max, self.color
+            self.r_min,
+            self.r_max,
+            self.theta_min,
+            self.theta_max,
+            self.color,
         )
 
     def get_mesh(self):
@@ -319,28 +344,54 @@ class _ColorArc(InstructionGroup):
 
         if self.r_min == 0:
             for x in range(0, d_outer, 2):
-                v += (polar_to_rect(self.origin, self.r_max,
-                                    self.theta_min + x * theta_step_outer
-                                    ) * 2)
+                v += (
+                    polar_to_rect(
+                        self.origin,
+                        self.r_max,
+                        self.theta_min + x * theta_step_outer,
+                    )
+                    * 2
+                )
                 v += polar_to_rect(self.origin, 0, 0) * 2
-                v += (polar_to_rect(self.origin, self.r_max,
-                                    self.theta_min + (x + 1) * theta_step_outer
-                                    ) * 2)
+                v += (
+                    polar_to_rect(
+                        self.origin,
+                        self.r_max,
+                        self.theta_min + (x + 1) * theta_step_outer,
+                    )
+                    * 2
+                )
             if not d_outer & 1:  # add a last point if d_outer is even
-                v += (polar_to_rect(self.origin, self.r_max,
-                                    self.theta_min + d_outer * theta_step_outer
-                                    ) * 2)
+                v += (
+                    polar_to_rect(
+                        self.origin,
+                        self.r_max,
+                        self.theta_min + d_outer * theta_step_outer,
+                    )
+                    * 2
+                )
         else:
             for x in range(d_outer + 1):
-                v += (polar_to_rect(self.origin, self.r_min,
-                                    self.theta_min + x * theta_step_outer
-                                    ) * 2)
-                v += (polar_to_rect(self.origin, self.r_max,
-                                    self.theta_min + x * theta_step_outer
-                                    ) * 2)
+                v += (
+                    polar_to_rect(
+                        self.origin,
+                        self.r_min,
+                        self.theta_min + x * theta_step_outer,
+                    )
+                    * 2
+                )
+                v += (
+                    polar_to_rect(
+                        self.origin,
+                        self.r_max,
+                        self.theta_min + x * theta_step_outer,
+                    )
+                    * 2
+                )
 
-        return Mesh(vertices=v, indices=range(int(len(v) / 4)),
-                    mode='triangle_strip')
+        return Mesh(
+            vertices=v, indices=range(int(len(v) / 4)), mode="triangle_strip"
+        )
 
     def change_color(self, color=None, color_delta=None, sv=None, a=None):
         self.remove(self.color_instr)
@@ -352,28 +403,28 @@ class _ColorArc(InstructionGroup):
             self.color = (self.color[0], sv[0], sv[1], self.color[3])
         elif a is not None:
             self.color = (self.color[0], self.color[1], self.color[2], a)
-        self.color_instr = Color(*self.color, mode='hsv')
+        self.color_instr = Color(*self.color, mode="hsv")
         self.insert(0, self.color_instr)
 
 
 class ColorPicker(RelativeLayout):
-    '''
+    """
     See module documentation.
-    '''
+    """
 
-    font_name = StringProperty('data/fonts/RobotoMono-Regular.ttf')
-    '''Specifies the font used on the ColorPicker.
+    font_name = StringProperty("data/fonts/RobotoMono-Regular.ttf")
+    """Specifies the font used on the ColorPicker.
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'data/fonts/RobotoMono-Regular.ttf'.
-    '''
+    """
 
     color = ListProperty((1, 1, 1, 1))
-    '''The :attr:`color` holds the color currently selected in rgba format.
+    """The :attr:`color` holds the color currently selected in rgba format.
 
     :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
     (1, 1, 1, 1).
-    '''
+    """
 
     def _get_hsv(self):
         return rgb_to_hsv(*self.color[:3])
@@ -383,12 +434,13 @@ class ColorPicker(RelativeLayout):
             return
         self.set_color(value)
 
-    hsv = AliasProperty(_get_hsv, _set_hsv, bind=('color', ))
-    '''The :attr:`hsv` holds the color currently selected in hsv format.
+    hsv = AliasProperty(_get_hsv, _set_hsv, bind=("color",))
+    """The :attr:`hsv` holds the color currently selected in hsv format.
 
     :attr:`hsv` is a :class:`~kivy.properties.ListProperty` and defaults to
     (1, 1, 1).
-    '''
+    """
+
     def _get_hex(self):
         return get_hex_from_color(self.color)
 
@@ -397,19 +449,19 @@ class ColorPicker(RelativeLayout):
             return
         self.set_color(get_color_from_hex(value)[:4])
 
-    hex_color = AliasProperty(_get_hex, _set_hex, bind=('color',), cache=True)
-    '''The :attr:`hex_color` holds the currently selected color in hex.
+    hex_color = AliasProperty(_get_hex, _set_hex, bind=("color",), cache=True)
+    """The :attr:`hex_color` holds the currently selected color in hex.
 
     :attr:`hex_color` is an :class:`~kivy.properties.AliasProperty` and
     defaults to `#ffffffff`.
-    '''
+    """
 
     wheel = ObjectProperty(None)
-    '''The :attr:`wheel` holds the color wheel.
+    """The :attr:`wheel` holds the color wheel.
 
     :attr:`wheel` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    '''
+    """
 
     _update_clr_ev = _update_hex_ev = None
 
@@ -431,14 +483,14 @@ class ColorPicker(RelativeLayout):
         mode, clr_idx, text = self._upd_clr_list
         try:
             text = min(255, max(0, float(text)))
-            if mode == 'rgb':
-                self.color[clr_idx] = float(text) / 255.
+            if mode == "rgb":
+                self.color[clr_idx] = float(text) / 255.0
             else:
                 hsv = list(self.hsv[:])
-                hsv[clr_idx] = float(text) / 255.
+                hsv[clr_idx] = float(text) / 255.0
                 self.color[:3] = hsv_to_rgb(*hsv)
         except ValueError:
-            Logger.warning('ColorPicker: invalid value : {}'.format(text))
+            Logger.warning("ColorPicker: invalid value : {}".format(text))
         finally:
             self._updating_clr = False
 
@@ -474,12 +526,14 @@ class ColorPicker(RelativeLayout):
         super(ColorPicker, self).__init__(**kwargs)
 
 
-if __name__ in ('__android__', '__main__'):
+if __name__ in ("__android__", "__main__"):
     from kivy.app import App
 
     class ColorPickerApp(App):
         def build(self):
-            cp = ColorPicker(pos_hint={'center_x': .5, 'center_y': .5},
-                             size_hint=(1, 1))
+            cp = ColorPicker(
+                pos_hint={"center_x": 0.5, "center_y": 0.5}, size_hint=(1, 1)
+            )
             return cp
+
     ColorPickerApp().run()

@@ -5,7 +5,7 @@ from kivy.properties import ListProperty
 from kivy.animation import Animation
 from kivy.metrics import dp
 
-KV = '''
+KV = """
 #:import RGBA kivy.utils.rgba
 
 <ImageButton@ButtonBehavior+Image>:
@@ -119,7 +119,7 @@ BoxLayout:
             Line:
                 rounded_rectangle: self.pos + self.texture_size + [dp(5)]
                 width: 1.01
-'''
+"""
 
 
 class MessengerApp(App):
@@ -130,13 +130,15 @@ class MessengerApp(App):
 
     def add_message(self, text, side, color):
         # create a message for the recycleview
-        self.messages.append({
-            'message_id': len(self.messages),
-            'text': text,
-            'side': side,
-            'bg_color': color,
-            'text_size': [None, None],
-        })
+        self.messages.append(
+            {
+                "message_id": len(self.messages),
+                "text": text,
+                "side": side,
+                "bg_color": color,
+                "text_size": [None, None],
+            }
+        )
 
     def update_message_size(self, message_id, texture_size, max_width):
         # when the label is updated, we want to make sure the displayed size is
@@ -150,23 +152,22 @@ class MessengerApp(App):
         if texture_size[0] >= max_width * 2 / 3:
             self.messages[message_id] = {
                 **self.messages[message_id],
-                'text_size': (max_width * 2 / 3, None),
+                "text_size": (max_width * 2 / 3, None),
             }
 
         # if it was limited, but is now too small to be limited, raise the limit
-        elif texture_size[0] < max_width * 2 / 3 and \
-                texture_size[1] > one_line:
+        elif texture_size[0] < max_width * 2 / 3 and texture_size[1] > one_line:
             self.messages[message_id] = {
                 **self.messages[message_id],
-                'text_size': (max_width * 2 / 3, None),
-                '_size': texture_size,
+                "text_size": (max_width * 2 / 3, None),
+                "_size": texture_size,
             }
 
         # just set the size
         else:
             self.messages[message_id] = {
                 **self.messages[message_id],
-                '_size': texture_size,
+                "_size": texture_size,
             }
 
     @staticmethod
@@ -175,22 +176,22 @@ class MessengerApp(App):
 
     def send_message(self, textinput):
         text = textinput.text
-        textinput.text = ''
-        self.add_message(text, 'right', '#223344')
+        textinput.text = ""
+        self.add_message(text, "right", "#223344")
         self.focus_textinput(textinput)
         Clock.schedule_once(lambda *args: self.answer(text), 1)
         self.scroll_bottom()
 
     def answer(self, text, *args):
-        self.add_message('do you really think so?', 'left', '#332211')
+        self.add_message("do you really think so?", "left", "#332211")
 
     def scroll_bottom(self):
         rv = self.root.ids.rv
         box = self.root.ids.box
         if rv.height < box.height:
-            Animation.cancel_all(rv, 'scroll_y')
-            Animation(scroll_y=0, t='out_quad', d=.5).start(rv)
+            Animation.cancel_all(rv, "scroll_y")
+            Animation(scroll_y=0, t="out_quad", d=0.5).start(rv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MessengerApp().run()

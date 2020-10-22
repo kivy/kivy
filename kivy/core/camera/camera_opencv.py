@@ -1,6 +1,6 @@
-'''
+"""
 OpenCV Camera: Implement CameraBase with OpenCV
-'''
+"""
 
 #
 # TODO: make usage of thread or multiprocess
@@ -8,7 +8,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 
 from __future__ import division
 
-__all__ = ('CameraOpenCV')
+__all__ = "CameraOpenCV"
 
 
 from kivy.logger import Logger
@@ -23,8 +23,9 @@ try:
     try:
         import opencv.highgui as hg
     except ImportError:
+
         class Hg(object):
-            '''
+            """
             On OSX, not only are the import names different,
             but the API also differs.
             There is no module called 'highgui' but the names are
@@ -32,10 +33,10 @@ try:
             Some of them even have a different names.
 
             Therefore we use this proxy object.
-            '''
+            """
 
             def __getattr__(self, attr):
-                if attr.startswith('cv'):
+                if attr.startswith("cv"):
                     attr = attr[2:]
                 got = getattr(cv, attr)
                 return got
@@ -46,6 +47,7 @@ except ImportError:
     # opencv 2 case (and also opencv 3, because it still uses cv2 module name)
     try:
         import cv2
+
         # here missing this OSX specific highgui thing.
         # I'm not on OSX so don't know if it is still valid in opencv >= 2
     except ImportError:
@@ -53,9 +55,10 @@ except ImportError:
 
 
 class CameraOpenCV(CameraBase):
-    '''
+    """
     Implementation of CameraBase using OpenCV
-    '''
+    """
+
     _update_ev = None
 
     def __init__(self, **kwargs):
@@ -84,16 +87,18 @@ class CameraOpenCV(CameraBase):
             PROPERTY_HEIGHT = cv.CV_CAP_PROP_FRAME_HEIGHT
             PROPERTY_FPS = cv.CV_CAP_PROP_FPS
 
-        Logger.debug('Using opencv ver.' + str(self.opencvMajorVersion))
+        Logger.debug("Using opencv ver." + str(self.opencvMajorVersion))
 
         if self.opencvMajorVersion == 1:
             # create the device
             self._device = hg.cvCreateCameraCapture(self._index)
             # Set preferred resolution
-            cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
-                                  self.resolution[0])
-            cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                                  self.resolution[1])
+            cv.SetCaptureProperty(
+                self._device, cv.CV_CAP_PROP_FRAME_WIDTH, self.resolution[0]
+            )
+            cv.SetCaptureProperty(
+                self._device, cv.CV_CAP_PROP_FRAME_HEIGHT, self.resolution[1]
+            )
             # and get frame to check if it's ok
             frame = hg.cvQueryFrame(self._device)
             # Just set the resolution to the frame we just got, but don't use
@@ -108,10 +113,8 @@ class CameraOpenCV(CameraBase):
             # create the device
             self._device = cv2.VideoCapture(self._index)
             # Set preferred resolution
-            self._device.set(PROPERTY_WIDTH,
-                             self.resolution[0])
-            self._device.set(PROPERTY_HEIGHT,
-                             self.resolution[1])
+            self._device.set(PROPERTY_WIDTH, self.resolution[0])
+            self._device.set(PROPERTY_HEIGHT, self.resolution[1])
             # and get frame to check if it's ok
             ret, frame = self._device.read()
 
@@ -136,10 +139,10 @@ class CameraOpenCV(CameraBase):
             # Create the texture
             self._texture = Texture.create(self._resolution)
             self._texture.flip_vertical()
-            self.dispatch('on_load')
+            self.dispatch("on_load")
         try:
             ret, frame = self._device.read()
-            self._format = 'bgr'
+            self._format = "bgr"
             try:
                 self._buffer = frame.imageData
             except AttributeError:
@@ -148,7 +151,7 @@ class CameraOpenCV(CameraBase):
                 self._buffer = frame.reshape(-1)
             self._copy_to_gpu()
         except:
-            Logger.exception('OpenCV: Couldn\'t get image from Camera')
+            Logger.exception("OpenCV: Couldn't get image from Camera")
 
     def start(self):
         super(CameraOpenCV, self).start()

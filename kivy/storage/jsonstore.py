@@ -1,12 +1,12 @@
-'''
+"""
 JSON store
 ==========
 
 A :mod:`Storage <kivy.storage>` module used to save/load key-value pairs from
 a json file.
-'''
+"""
 
-__all__ = ('JsonStore', )
+__all__ = ("JsonStore",)
 
 
 import errno
@@ -17,9 +17,10 @@ from json import loads, dump
 
 
 class JsonStore(AbstractStore):
-    '''Store implementation using a json file for storing the key-value pairs.
+    """Store implementation using a json file for storing the key-value pairs.
     See the :mod:`kivy.storage` module documentation for more information.
-    '''
+    """
+
     def __init__(self, filename, indent=None, sort_keys=False, **kwargs):
         self.filename = filename
         self.indent = indent
@@ -33,8 +34,7 @@ class JsonStore(AbstractStore):
             folder = abspath(dirname(self.filename))
             if not exists(folder):
                 not_found = IOError(
-                    "The folder '{}' doesn't exist!"
-                    "".format(folder)
+                    "The folder '{}' doesn't exist!" "".format(folder)
                 )
                 not_found.errno = errno.ENOENT
                 raise not_found
@@ -48,12 +48,8 @@ class JsonStore(AbstractStore):
     def store_sync(self):
         if not self._is_changed:
             return
-        with open(self.filename, 'w') as fd:
-            dump(
-                self._data, fd,
-                indent=self.indent,
-                sort_keys=self.sort_keys
-            )
+        with open(self.filename, "w") as fd:
+            dump(self._data, fd, indent=self.indent, sort_keys=self.sort_keys)
         self._is_changed = False
 
     def store_exists(self, key):

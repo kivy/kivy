@@ -1,4 +1,4 @@
-'''
+"""
 Application from a .kv in a Template Directory
 ==============================================
 
@@ -11,17 +11,18 @@ of the subclass in that directory, finding the file template1/test.kv. That
 file contains the root widget.
 
 
-'''
+"""
 
 import kivy
-kivy.require('1.0.7')
+
+kivy.require("1.0.7")
 
 from kivy.app import App
 
 
 class TestApp(App):
-    kv_directory = 'template1'
+    kv_directory = "template1"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TestApp().run()

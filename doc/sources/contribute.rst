@@ -74,7 +74,7 @@ spelling or just weird examples, please take 2 minutes to report the issue.
 #. Validate the issue and you're done!
 
 
-If you are feeling up to it, you can also try to resolve the bug, and contribute by sending 
+If you are feeling up to it, you can also try to resolve the bug, and contribute by sending
 us the patch :) Read the next section to find out how to do this.
 
 Code Contributions
@@ -100,7 +100,7 @@ Coding style
 
 This will pass the code added to the git staging zone (about to be committed)
 through a pep8 checker program when you do a commit, and ensure that you didn't
-introduce pep8 errors. If you did, the commit will be rejected: please correct the 
+introduce pep8 errors. If you did, the commit will be rejected: please correct the
 errors and try again.
 
 Performance
@@ -141,9 +141,9 @@ you fork it. Here are the steps:
        clicking the *fork* button.
     #. Clone your fork of our repository to your computer. Your fork will have
        the git remote name 'origin' and you will be on branch 'master'::
-       
+
         git clone https://github.com/username/kivy.git
-       
+
     #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
        styleguide by executing `make hook` from the root directory of your
@@ -175,7 +175,7 @@ Now, whenever you want to create a patch, you follow the following steps:
     #. Give each commit an appropriate commit message, so that others who are
        not familiar with the matter get a good idea of what you changed.
     #. Once you are satisfied with your changes, pull our upstream repository and
-       merge it with you local repository. We can pull your stuff, but since you know 
+       merge it with you local repository. We can pull your stuff, but since you know
        exactly what's changed, you should do the merge::
 
         git pull kivy master
@@ -207,7 +207,7 @@ get instant karma. Congratulations, you're a hero!
 Documentation Contributions
 ---------------------------
 
-Documentation contributions generally follow the same workflow as code contributions, 
+Documentation contributions generally follow the same workflow as code contributions,
 but are just a bit more lax.
 
     #. Following the instructions above,
@@ -233,9 +233,9 @@ To submit a documentation update, use the following steps:
     #. Modify the documentation with your correction or improvement.
     #. Re-generate the HTML pages, and review your update::
 
-			make html
+            make html
 
-    #. Give each commit an appropriate commit message, so that others who are not familiar with 
+    #. Give each commit an appropriate commit message, so that others who are not familiar with
        the matter get a good idea of what you changed.
     #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't
        logically belong to this update.
@@ -325,7 +325,7 @@ If you updated your kivy install, and have some trouble compiling docs, run::
     make clean force html
 
 The docs will be generated in ``docs/build/html``. For more information on
-docstring formatting, please refer to the official 
+docstring formatting, please refer to the official
 `Sphinx Documentation <http://sphinx-doc.org/>`_.
 
 Unit tests contributions
@@ -348,4 +348,3 @@ GSOC
     :maxdepth: 3
 
     gsoc
-

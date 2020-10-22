@@ -89,6 +89,3 @@ class CameraAVFoundation(CameraBase):
             self._update_ev.cancel()
             self._update_ev = None
         avf_camera_stop(storage.camera)
-
-
-

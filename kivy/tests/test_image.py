@@ -6,13 +6,13 @@ from kivy import setupconfig
 
 
 class ImageTestCase(unittest.TestCase):
-
     def setUp(self):
         from kivy.core.window import Window
         from kivy.core.image import Image
         import os
+
         self.cls = Image
-        self.image = os.path.join(os.path.dirname(__file__), 'test_button.png')
+        self.image = os.path.join(os.path.dirname(__file__), "test_button.png")
         print(self.image)
         self.root = Image(self.image)
 
@@ -22,7 +22,7 @@ class ImageTestCase(unittest.TestCase):
         self.assertEqual(root._image._data[0].data, None)
         i1 = self.cls(self.image, keep_data=True)
         if not i1._image._data[0].data:
-            self.fail('Image has no data even with keep_data = True')
+            self.fail("Image has no data even with keep_data = True")
 
     @unittest.skip("Travis on Xenial don't have SDL_image >= 2.0.5")
     def test_save_into_bytesio(self):
