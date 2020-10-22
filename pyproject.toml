@@ -9,3 +9,24 @@ requires = [
     'kivy_deps.sdl2~=0.3.1; sys_platform == "win32"',
     'kivy_deps.glew~=0.3.0; sys_platform == "win32"',
 ]
+
+[tool.black]
+line-length = 80
+target-version = ['py37']
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  |  __pycache__
+)
+'''
