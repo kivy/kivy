@@ -1,3 +1,10 @@
+"""
+.. warning::
+
+    The classes in this file are internal and may well be removed to an
+    external kivy-pytest package or similar in the future. Use at your own
+    risk.
+"""
 import random
 import time
 import math
@@ -144,6 +151,12 @@ class WidgetResolver(object):
 
 class UnitKivyApp(object):
     """Base class to use with async test apps.
+
+    .. warning::
+
+        The classes in this file are internal and may well be removed to an
+        external kivy-pytest package or similar in the future. Use at your own
+        risk.
     """
 
     app_has_started = False
