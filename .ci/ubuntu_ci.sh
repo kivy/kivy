@@ -151,7 +151,7 @@ upload_docs_to_server() {
 
   git checkout --orphan "$branch"
   rm LICENSE README.md
-  cp -rp ./doc/build/html/* .
+  cp -rp ../doc/build/html/* .
 
   git add .
   git commit -a -m "Docs for git-$commit"
