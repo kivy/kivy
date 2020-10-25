@@ -141,21 +141,22 @@ upload_docs_to_server() {
     return
   fi
 
-  git clone https://github.com/kivy/kivy-website-docs.git
+  git clone --depth 1 --branch "$branch" https://github.com/kivy/kivy-website-docs.git
   cd kivy-website-docs
 
   git config user.email "kivy@kivy.org"
-  git config user.name "Kivy developers"
+  git config user.name "Kivy bot"
   git remote rm origin || true
   git remote add origin "https://x-access-token:${DOC_PUSH_TOKEN}@github.com/kivy/kivy-website-docs.git"
 
-  git checkout --orphan "$branch"
-  rm LICENSE README.md
-  cp -rp ../doc/build/html/* .
+  rsync --delete --force --exclude .git/ --exclude .gitignore -r ../doc/build/html/ .
 
   git add .
-  git commit -a -m "Docs for git-$commit"
-  git push origin "$branch" -f
+  git add -u
+  if ! git diff --cached --exit-code --quiet; then
+    git commit -m "Docs for git-$commit"
+    git push origin "$branch"
+  fi
 }
 
 generate_manylinux2010_wheels() {
