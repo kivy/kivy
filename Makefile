@@ -96,7 +96,7 @@ style:
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
 	# consistency.
-	pre-commit install -f
+	pre-commit install -f --config=kivy/tools/precommit_hooks/pre-commit-config.yaml
 
 image-testsuite:
 	mkdir -p "${KIVY_DIR}tests/image-testsuite"
