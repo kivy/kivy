@@ -133,24 +133,30 @@ generate_docs() {
 }
 
 upload_docs_to_server() {
-  versions=$1
-  branch=$2
-  ip=$3
+  branch="docs-$1"
+  commit="$2"
 
-  if [ ! -d ~/.ssh ]; then
-    mkdir ~/.ssh
+  # only upload docs if we have a branch for it
+  if [ -z "$(git ls-remote --heads https://github.com/kivy/kivy-website-docs.git "$branch")" ]; then
+    return
   fi
-  printf "%s" "$UBUNTU_UPLOAD_KEY" >~/.ssh/id_rsa
-  chmod 600 ~/.ssh/id_rsa
-  echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
 
-  for version in $versions; do
-    if [ "$version" == "${branch}" ]; then
-      echo "[$(echo $versions | tr ' ' ', ' | sed -s 's/\([^,]\+\)/"\1"/g')]" >versions.json
-      rsync --force -e "ssh -p 2457" versions.json root@$ip:/web/doc/
-      rsync --delete --force -r -e "ssh -p 2457" ./doc/build/html/ root@$ip:/web/doc/$version
-    fi
-  done
+  git clone --depth 1 --branch "$branch" https://github.com/kivy/kivy-website-docs.git
+  cd kivy-website-docs
+
+  git config user.email "kivy@kivy.org"
+  git config user.name "Kivy bot"
+  git remote rm origin || true
+  git remote add origin "https://x-access-token:${DOC_PUSH_TOKEN}@github.com/kivy/kivy-website-docs.git"
+
+  rsync --delete --force --exclude .git/ --exclude .gitignore -r ../doc/build/html/ .
+
+  git add .
+  git add -u
+  if ! git diff --cached --exit-code --quiet; then
+    git commit -m "Docs for git-$commit"
+    git push origin "$branch"
+  fi
 }
 
 generate_manylinux2010_wheels() {

@@ -4,8 +4,6 @@ on: [push, pull_request]
 
 env:
   KIVY_SPLIT_EXAMPLES: 1
-  SERVER_IP: '159.203.106.198'
-  DOC_VERSIONS: 'stable master stable-1.10.1 stable-1.11.0'
 
 jobs:
   PEP8_test:
@@ -86,12 +84,12 @@ jobs:
       with:
         name: docs
         path: doc/build/html
-    - name: Upload docs to server
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/stable'))
+    - name: Upload docs to kivy-website-docs
+      if: github.event_name == 'push'
       env:
         REF_NAME: ${{ github.ref }}
-        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+        DOC_PUSH_TOKEN: ${{ secrets.DOC_PUSH_TOKEN }}
       run: |
         branch_name=$(python3 -c "print('$REF_NAME'.split('/')[-1])")
         source .ci/ubuntu_ci.sh
-        upload_docs_to_server "$DOC_VERSIONS" "$branch_name" "$SERVER_IP"
+        upload_docs_to_server "$branch_name" "$GITHUB_SHA"
