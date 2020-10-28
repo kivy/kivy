@@ -370,9 +370,9 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
     else:
         use_color = (
             os.environ.get("WT_SESSION") or
-			os.environ.get("COLORTERM") == 'truecolor' or
-			os.environ.get('PYCHARM_HOSTED') == '1' or
-			os.environ.get("TERMINAL_EMULATOR") == 'JetBrains-JediTerm' or
+            os.environ.get("COLORTERM") == 'truecolor' or
+            os.environ.get('PYCHARM_HOSTED') == '1' or
+            os.environ.get("TERMINAL_EMULATOR") == 'JetBrains-JediTerm' or
             os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
             os.environ.get('TERM') in (
                 'rxvt',
