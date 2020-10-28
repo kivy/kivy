@@ -238,6 +238,12 @@ Available configuration tokens
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
+    `vsync`: `none`, empty value, `1`, `-1`, or `0`
+        Whether vsync is enabled, currently only used with sdl2 window.
+        Possible values are `none` or empty value -- leaves it unchanged,
+        ``1`` -- sets standard vsync, ``-1`` sets adaptive vsync and falls
+        back to standard if not available, or `0` -- disables vsync.
+        See ``SDL_GL_SetSwapInterval``.
 
 :input:
 
@@ -308,6 +314,9 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted
     arguments.
+
+.. versionchanged:: 2.0.0
+    `vsync` has been added to the graphics section
 
 .. versionchanged:: 1.10.0
     `min_state_time`  and `allow_screensaver` have been added
@@ -879,6 +888,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 20:
             Config.setdefault('network', 'useragent', 'curl')
+
+        elif version == 21:
+            Config.setdefault('graphics', 'vsync', '')
 
         else:
             # for future.

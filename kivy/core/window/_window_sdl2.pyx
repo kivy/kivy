@@ -149,6 +149,22 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
+        # vsync
+        vsync = Config.get('graphics', 'vsync')
+        if vsync and vsync != 'none':
+            vsync = Config.getint('graphics', 'vsync')
+            if vsync:
+                Logger.debug(f'WindowSDL: enabling vsync interval: {vsync}')
+                if vsync == -1:
+                    if SDL_GL_SetSwapInterval(-1) == -1:
+                        Logger.debug('WindowSDL: adaptive vsync not supported, using standard vsync')
+                        SDL_GL_SetSwapInterval(1)
+                else:
+                    SDL_GL_SetSwapInterval(1)
+            else:
+                Logger.debug('WindowSDL: disabling vsync')
+                SDL_GL_SetSwapInterval(0)
+
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
