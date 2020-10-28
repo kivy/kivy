@@ -369,19 +369,19 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
         use_color = (
-            os.environ.get("WT_SESSION") or
-            os.environ.get("COLORTERM") == 'truecolor' or
-            os.environ.get('PYCHARM_HOSTED') == '1' or
-            os.environ.get("TERMINAL_EMULATOR") == 'JetBrains-JediTerm' or
-            os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in (
-                'rxvt',
-                'rxvt-256color',
-                'rxvt-unicode',
-                'rxvt-unicode-256color',
-                'xterm',
-                'xterm-256color',
-            )
+            (
+                os.environ.get("WT_SESSION") or
+                os.environ.get("COLORTERM") == 'truecolor' or
+                os.environ.get('PYCHARM_HOSTED') == '1' or
+                os.environ.get('TERM') in (
+                    'rxvt',
+                    'rxvt-256color',
+                    'rxvt-unicode',
+                    'rxvt-unicode-256color',
+                    'xterm',
+                    'xterm-256color',
+                )
+            ) and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
         )
         if not use_color:
             # No additional control characters will be inserted inside the
