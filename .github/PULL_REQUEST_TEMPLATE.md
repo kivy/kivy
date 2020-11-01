@@ -11,3 +11,4 @@ Maintainer merge checklist
 * [ ] Applied the `release-highlight` to be highlighted in release notes.
 * [ ] Added to the milestone version it was merged into.
 * [ ] **Unittests** are included in PR.
+* [ ] Properly documented, including `versionadded`, `versionchanged` as needed.
