@@ -24,6 +24,7 @@ by many projects managed by the [Kivy Organization](https://kivy.org/#organizati
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
 [![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
+[![Downloads](https://pepy.tech/badge/kivy)](https://pepy.tech/project/kivy)
 [![Windows Unittests Status](https://github.com/kivy/kivy/workflows/Windows%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+Unittests%22)
 [![Ubuntu Unittests Status](https://github.com/kivy/kivy/workflows/Ubuntu%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Ubuntu+Unittests%22)
 [![OSX Unittests Status](https://github.com/kivy/kivy/workflows/OSX%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+Unittests%22)
