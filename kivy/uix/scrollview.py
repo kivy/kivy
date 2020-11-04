@@ -148,7 +148,7 @@ from kivy.config import Config
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
-from kivy.metrics import sp, dp
+from kivy.metrics import dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty, \
@@ -607,17 +607,14 @@ class ScrollView(StencilView):
     def _update_effect_y_bounds(self, *args):
         if not self._viewport or not self.effect_y:
             return
-        self.effect_y.min = max(0, self.height - self.viewport_size[1])
-        self.effect_y.max = self.height - self.viewport_size[1]
+        scrollable_height = self.height - self.viewport_size[1]
+        self.effect_y.min = 0 if scrollable_height < 0 else scrollable_height
+        self.effect_y.max = scrollable_height
         self.effect_y.value = self.effect_y.max * self.scroll_y
 
     def _update_effect_bounds(self, *args):
-        if not self._viewport:
-            return
-        if self.effect_x:
-            self._update_effect_x_bounds()
-        if self.effect_y:
-            self._update_effect_y_bounds()
+        self._update_effect_x_bounds()
+        self._update_effect_y_bounds()
 
     def _update_effect_x(self, *args):
         vp = self._viewport
@@ -720,12 +717,11 @@ class ScrollView(StencilView):
              'right': self.right - touch.x - self.bar_margin}
 
         ud['in_bar_x'] = (scroll_bar and width_scrollable and
-                             (0 <= d[self.bar_pos_x] <= self.bar_width))
+                          (0 <= d[self.bar_pos_x] <= self.bar_width))
         ud['in_bar_y'] = (scroll_bar and height_scrollable and
-                             (0 <= d[self.bar_pos_y] <= self.bar_width))
+                          (0 <= d[self.bar_pos_y] <= self.bar_width))
 
-        if vp and 'button' in touch.profile and \
-                touch.button.startswith('scroll'):
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
             btn = touch.button
             m = self.scroll_wheel_distance
             e = None
@@ -738,12 +734,20 @@ class ScrollView(StencilView):
             ):
                 return False
 
-            if (self.effect_x and self.do_scroll_y and height_scrollable and
-                    btn in ('scrolldown', 'scrollup')):
+            if (
+                self.effect_x
+                and self.do_scroll_y
+                and height_scrollable
+                and btn in ('scrolldown', 'scrollup')
+            ):
                 e = self.effect_x if ud['in_bar_x'] else self.effect_y
 
-            elif (self.effect_y and self.do_scroll_x and width_scrollable and
-                    btn in ('scrollleft', 'scrollright')):
+            elif (
+                self.effect_y
+                and self.do_scroll_x
+                and width_scrollable
+                and btn in ('scrollleft', 'scrollright')
+            ):
                 e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
             if e:
@@ -753,19 +757,19 @@ class ScrollView(StencilView):
                     if self.smooth_scroll_end:
                         e.velocity -= m * self.smooth_scroll_end
                     else:
-                        if not self.always_overscroll:
-                            e.value = max(e.value - m, e.min)
-                        else:
+                        if self.always_overscroll:
                             e.value = e.value - m
+                        else:
+                            e.value = max(e.value - m, e.max)
                         e.velocity = 0
                 elif btn in ('scrollup', 'scrollright'):
                     if self.smooth_scroll_end:
                         e.velocity += m * self.smooth_scroll_end
                     else:
-                        if not self.always_overscroll:
-                            e.value = min(e.value + m, e.min)
-                        else:
+                        if self.always_overscroll:
                             e.value = e.value + m
+                        else:
+                            e.value = min(e.value + m, e.min)
                         e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
