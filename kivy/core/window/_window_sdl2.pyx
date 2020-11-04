@@ -149,22 +149,6 @@ cdef class _WindowSDL2Storage:
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
-        # vsync
-        vsync = Config.get('graphics', 'vsync')
-        if vsync and vsync != 'none':
-            vsync = Config.getint('graphics', 'vsync')
-            if vsync:
-                Logger.debug(f'WindowSDL: enabling vsync interval: {vsync}')
-                if vsync == -1:
-                    if SDL_GL_SetSwapInterval(-1) == -1:
-                        Logger.debug('WindowSDL: adaptive vsync not supported, using standard vsync')
-                        SDL_GL_SetSwapInterval(1)
-                else:
-                    SDL_GL_SetSwapInterval(1)
-            else:
-                Logger.debug('WindowSDL: disabling vsync')
-                SDL_GL_SetSwapInterval(0)
-
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
@@ -248,6 +232,22 @@ cdef class _WindowSDL2Storage:
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()
+
+        # vsync
+        vsync = Config.get('graphics', 'vsync')
+        if vsync and vsync != 'none':
+            vsync = Config.getint('graphics', 'vsync')
+
+            Logger.debug(f'WindowSDL: setting vsync interval=={vsync}')
+            res = SDL_GL_SetSwapInterval(vsync)
+
+            if res == -1:
+                status = ''
+                if vsync not in (0, 1):
+                    res = SDL_GL_SetSwapInterval(1)
+                    status = ', trying fallback to 1: ' + 'failed' if res == -1 else 'succeeded'
+
+                Logger.debug('WindowSDL: requested vsync failed' + status)
 
         # Open all available joysticks
         cdef int joy_i

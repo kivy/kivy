@@ -238,12 +238,12 @@ Available configuration tokens
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
-    `vsync`: `none`, empty value, `1`, `-1`, or `0`
+    `vsync`: `none`, empty value, or integers
         Whether vsync is enabled, currently only used with sdl2 window.
         Possible values are `none` or empty value -- leaves it unchanged,
-        ``1`` -- sets standard vsync, ``-1`` sets adaptive vsync and falls
-        back to standard if not available, or `0` -- disables vsync.
-        See ``SDL_GL_SetSwapInterval``.
+        ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
+        ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
+        or ``-1`` failed. See ``SDL_GL_SetSwapInterval``.
 
 :input:
 
@@ -759,7 +759,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'rotation', '0')
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
-            Config.setdefault('graphics', 'vsync', '1')
             Config.setdefault('graphics', 'width', '800')
 
             # input configuration
@@ -795,7 +794,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
         elif version == 1:
-            Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
         elif version == 2:
