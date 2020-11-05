@@ -369,7 +369,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 21
+KIVY_CONFIG_VERSION = 22
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
