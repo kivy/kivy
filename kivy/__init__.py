@@ -476,11 +476,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 for msg in _logging_msgs:
     Logger.info(msg)
 
-if _KIVY_RELEASE:
-    Logger.info('Kivy: v%s' % __version__)
-elif not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
+if not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
     Logger.info('Kivy: v%s, git-%s, %s' % (
         __version__, _kivy_git_hash[:7], _kivy_build_date))
+else:
+    Logger.info('Kivy: v%s' % __version__)
 Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
 Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
