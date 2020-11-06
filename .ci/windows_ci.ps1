@@ -95,7 +95,8 @@ function Install-kivy-wheel {
     python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
-    $kivy_fname=(ls $root/dist/Kivy-*$version*win_amd64*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    $bitness=python -c "import sys; print('win_amd64' if sys.maxsize > 2**32 else 'win32')"
+    $kivy_fname=(ls $root/dist/Kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
     python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
