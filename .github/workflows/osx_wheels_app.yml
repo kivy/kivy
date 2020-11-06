@@ -89,9 +89,10 @@ jobs:
         name: osx_wheels
         path: dist
 
-  osx_wheel_upload_test:
+  osx_wheel_upload:
     runs-on: macos-10.15
-    needs: [osx_wheels_create, kivy_examples_create]
+    needs: osx_wheels_create
+    if: github.event_name != 'pull_request'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
@@ -110,7 +111,6 @@ jobs:
         source .ci/ubuntu_ci.sh
         rename_wheels
     - name: Upload wheels to server
-      if: github.event_name != 'pull_request'
       env:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
@@ -132,26 +132,45 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         upload_artifacts_to_pypi
-    - name: Install test dependencies
-      run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy_test_wheel_run_pip_deps
-    - name: Install Kivy wheel
-      run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy_wheel
-    - uses: actions/download-artifact@v2
-      with:
-        name: osx_examples_wheel
-        path: dist
-    - name: Install kivy-examples wheel
-      run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy_examples_wheel
-    - name: Test Kivy wheel
-      run: |
-        source .ci/ubuntu_ci.sh
-        test_kivy_install
+
+  osx_wheel_test:
+    runs-on: macos-10.15
+    needs: [ osx_wheels_create, kivy_examples_create ]
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+    env:
+      KIVY_GL_BACKEND: 'mock'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_wheels
+          path: dist
+      - name: Install test dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_wheel_run_pip_deps
+      - name: Install Kivy wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_wheel
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_examples_wheel
+          path: dist
+      - name: Install kivy-examples wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_examples_wheel
+      - name: Test Kivy wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          test_kivy_install
 
   osx_app_create:
     runs-on: macos-10.15

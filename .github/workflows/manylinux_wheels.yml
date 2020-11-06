@@ -59,11 +59,10 @@ jobs:
         name: manylinux_wheels
         path: dist
 
-  manylinux_wheel_upload_test:
+  manylinux_wheel_upload:
     runs-on: ubuntu-18.04
     needs: [manylinux_wheel_create, kivy_examples_create]
-    env:
-      DISPLAY: ':99.0'
+    if: github.event_name != 'pull_request'
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
@@ -80,7 +79,6 @@ jobs:
         source .ci/ubuntu_ci.sh
         rename_wheels
     - name: Upload wheels to server
-      if: github.event_name != 'pull_request'
       env:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |
@@ -102,6 +100,25 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         upload_artifacts_to_pypi
+
+  manylinux_wheel_test:
+    runs-on: ubuntu-18.04
+    needs: [manylinux_wheel_create, kivy_examples_create]
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+    env:
+      DISPLAY: ':99.0'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - uses: actions/download-artifact@v2
+      with:
+        name: manylinux_wheels
+        path: dist
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
