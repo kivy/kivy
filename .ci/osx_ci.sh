@@ -75,6 +75,13 @@ install_platypus() {
 }
 
 generate_osx_wheels() {
+  # for some reason wheels sometimes fail to properly generate because both the parent and grandparent
+  # are named kivy so instead acquire a new grandparent name
+  root=$(pwd)
+  cd ~
+  mv "$root" kivy_project
+  cd kivy_project
+
   python3 -m pip install git+http://github.com/tito/osxrelocator
   python3 -m pip install --upgrade delocate
   python3 setup.py bdist_wheel
@@ -118,6 +125,9 @@ generate_osx_wheels() {
   popd
 
   delocate-addplat --rm-orig -x 10_9 -x 10_10 dist/*.whl
+
+  cd ..
+  mv kivy_project "$root"
 }
 
 generate_osx_app_bundle() {
