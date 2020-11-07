@@ -6,9 +6,11 @@ import pytest
     '_fills_from_left_to_right',
     '_fills_from_top_to_bottom',
 ))
-def test_a_certain_properties_exist_in_the_super_class(prop_name):
+def test_a_certain_properties_are_actually_overwritten(prop_name):
+    from kivy.uix.bubble import Bubble
     from kivy.uix.gridlayout import GridLayout
-    assert hasattr(GridLayout, prop_name)
+    assert issubclass(Bubble, GridLayout)
+    assert getattr(Bubble, prop_name) is not getattr(GridLayout, prop_name)
 
 
 @pytest.mark.parametrize('orientation', ('vertical', 'horizontal'))
