@@ -6,7 +6,7 @@ import pytest
     '_fills_from_left_to_right',
     '_fills_from_top_to_bottom',
 ))
-def test_a_certain_properties_are_actually_overwritten(prop_name):
+def test_a_certain_properties_from_the_super_class_are_overwritten(prop_name):
     from kivy.uix.bubble import Bubble
     from kivy.uix.gridlayout import GridLayout
     assert issubclass(Bubble, GridLayout)
