@@ -59,8 +59,8 @@ def sleep(t):
     from time import time, sleep
     from kivy.clock import Clock
     tick = Clock.tick
-    start = time()
-    while time() < start + t:
+    deadline = time() + t
+    while time() < deadline:
         sleep(.01)
         tick()
 
