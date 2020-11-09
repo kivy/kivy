@@ -35,6 +35,12 @@ def ec_cls():
     return EventCounter
 
 
+@pytest.fixture(scope='module')
+def approx():
+    from functools import partial
+    return partial(pytest.approx, abs=1)
+
+
 @pytest.fixture(autouse=True)
 def cleanup():
     from kivy.animation import Animation
@@ -61,14 +67,14 @@ def sleep(t):
 
 class TestAnimation:
 
-    def test_start_animation(self):
+    def test_start_animation(self, approx):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
         w = Widget()
         a.start(w)
         sleep(1.5)
-        assert w.x == pytest.approx(100)
+        assert w.x == approx(100)
         assert no_animations_being_played()
 
     def test_animation_duration_0(self):
@@ -80,7 +86,7 @@ class TestAnimation:
         sleep(.5)
         assert no_animations_being_played()
 
-    def test_stop_animation(self):
+    def test_stop_animation(self, approx):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
@@ -88,8 +94,8 @@ class TestAnimation:
         a.start(w)
         sleep(.5)
         a.stop(w)
-        assert w.x != pytest.approx(100)
-        assert w.x != pytest.approx(0)
+        assert w.x != approx(100)
+        assert w.x != approx(0)
         assert no_animations_being_played()
 
     def test_stop_all(self):
@@ -127,16 +133,16 @@ class TestAnimation:
         a = Animation(x=100)
         assert a.animated_properties == {'x': 100, }
 
-    def test_animated_instruction(self):
+    def test_animated_instruction(self, approx):
         from kivy.graphics import Scale
         from kivy.animation import Animation
         a = Animation(x=100, d=1)
         instruction = Scale(3)
         a.start(instruction)
         assert a.animated_properties == {'x': 100, }
-        assert instruction.x == pytest.approx(3)
+        assert instruction.x == approx(3)
         sleep(1.5)
-        assert instruction.x == pytest.approx(100)
+        assert instruction.x == approx(100)
         assert no_animations_being_played()
 
     def test_weakref(self):
