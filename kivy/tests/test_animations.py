@@ -38,8 +38,9 @@ def ec_cls():
 @pytest.fixture(autouse=True)
 def cleanup():
     from kivy.animation import Animation
-    for anim in Animation._instances.copy():
-        anim.cancel()
+    for anim in Animation._instances:
+        anim._widgets.clear()
+        anim._clock_uninstall()
     Animation._instances.clear()
 
 
