@@ -973,14 +973,12 @@ class ScrollView(StencilView):
         self._touch = None
         uid = self._get_uid()
         ud = touch.ud[uid]
-        if self.do_scroll_x and self.effect_x:
-            if not touch.ud.get('in_bar_x', False) and\
-                    self.scroll_type != ['bars']:
-                self.effect_x.stop(touch.x)
-        if self.do_scroll_y and self.effect_y and\
-                self.scroll_type != ['bars']:
-            if not touch.ud.get('in_bar_y', False):
-                self.effect_y.stop(touch.y)
+        not_in_bar = not touch.ud.get('in_bar_x', False) and \
+            not touch.ud.get('in_bar_y', False)
+        if self.do_scroll_x and self.effect_x and not_in_bar:
+            self.effect_x.stop(touch.x)
+        if self.do_scroll_y and self.effect_y and not_in_bar:
+            self.effect_y.stop(touch.y)
         if ud['mode'] == 'unknown':
             # we must do the click at least..
             # only send the click if it was not a click to stop
