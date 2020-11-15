@@ -103,8 +103,8 @@ from kivy.properties import (
     NumericProperty, AliasProperty)
 from os import listdir
 from os.path import (
-    basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
+    sep, altsep, splitdrive, getsize)
+import os.path
 from fnmatch import fnmatch
 import collections
 
@@ -159,6 +159,51 @@ class FileSystemAbstract(object):
         '''
         pass
 
+    def is_root(self, path):
+        '''Return True if the argument (path) passed is the root dir
+        '''
+        pass
+
+    def normpath(self, fn):
+        '''Return similar compared to `os.path.normpath`
+        '''
+        pass
+
+    def realpath(self, fn):
+        '''Return similar compared to `os.path.realpath`
+        '''
+        pass
+
+    def basename(self, fn):
+        '''Return similar compared to `os.path.basename`
+        '''
+        pass
+
+    def expanduser(self, fn):
+        '''Return similar compared to `os.path.expanduser`
+        '''
+        pass
+
+    def dirname(self, fn):
+        '''Return similar compared to `os.path.dirname`
+        '''
+        pass
+
+    def isfile(self, fn):
+        '''Return similar compared to `os.path.isfile`
+        '''
+        pass
+
+    def join(self, *paths):
+        '''Return similar compared to `os.path.join`
+        '''
+        pass
+
+    def abspath(self, fn):
+        '''Return similar compared to `os.path.abspath`
+        '''
+        pass
+
 
 class FileSystemLocal(FileSystemAbstract):
     '''Implementation of :class:`FileSystemAbstract` for local files.
@@ -184,11 +229,45 @@ class FileSystemLocal(FileSystemAbstract):
                 # of chances to not being able to do anything with it.
                 Logger.exception('unable to access to <%s>' % fn)
                 return True
-
-        return basename(fn).startswith('.')
+        #  TODO: use self.basename or os.path.basename ?
+        return self.basename(fn).startswith('.')
 
     def is_dir(self, fn):
-        return isdir(fn)
+        return os.path.isdir(fn)
+
+    def is_root(self, path):
+        if platform == 'win':
+            return splitdrive(path)[1] in (sep, altsep)
+        elif platform in ('macosx', 'linux', 'android', 'ios'):
+            return self.normpath(self.expanduser(path)) == sep
+        else:
+            # Unknown fs, just always add the .. entry but also log
+            Logger.warning('Filechooser: Unsupported OS: %r' % platform)
+        return False
+
+    def normpath(self, fn):
+        return os.path.normpath(fn)
+
+    def realpath(self, fn):
+        return os.path.realpath(fn)
+
+    def basename(self, fn):
+        return os.path.basename(fn)
+
+    def expanduser(self, fn):
+        return os.path.expanduser(fn)
+
+    def dirname(self, fn):
+        return os.path.dirname(fn)
+
+    def isfile(self, fn):
+        return os.path.isfile(fn)
+
+    def join(self, *paths):
+        return os.path.join(*paths)
+
+    def abspath(self, fn):
+        return os.path.abspath(fn)
 
 
 class FileChooserProgressBase(FloatLayout):
@@ -516,7 +595,7 @@ class FileChooserController(RelativeLayout):
 
     font_name = StringProperty(DEFAULT_FONT)
     '''Filename of the font to use in UI components. The path can be
-    absolute or relative.  Relative paths are resolved by the
+    absolute or relative. Relative paths are resolved by the
     :func:`~kivy.resources.resource_find` function.
 
     :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
@@ -624,7 +703,9 @@ class FileChooserController(RelativeLayout):
         else:
             if _dir and not self.dirselect:
                 return
-            self.selection = [abspath(join(self.path, entry.path)), ]
+            _abspath = self.file_system.abspath
+            _join = self.file_system.join
+            self.selection = [_abspath(_join(self.path, entry.path)), ]
 
     def entry_released(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -657,7 +738,9 @@ class FileChooserController(RelativeLayout):
         else:
             # If entry.path is to jump to previous directory, update path with
             # parent directory
-            self.path = abspath(join(self.path, entry.path))
+            _abspath = self.file_system.abspath
+            _join = self.file_system.join
+            self.path = _abspath(_join(self.path, entry.path))
             self.selection = [self.path, ] if self.dirselect else []
 
     def _apply_filters(self, files):
@@ -699,7 +782,7 @@ class FileChooserController(RelativeLayout):
         self._gitems_gen = self._generate_file_entries(
             path=kwargs.get('path', self.path),
             parent=self._gitems_parent)
-        self.path = abspath(self.path)
+        self.path = self.file_system.abspath(self.path)
 
         # cancel any previous clock if exist
         ev = self._create_files_entries_ev
@@ -814,21 +897,15 @@ class FileChooserController(RelativeLayout):
 
         # Add the components that are always needed
         if self.rootpath:
-            rootpath = realpath(self.rootpath)
-            path = realpath(path)
+            rootpath = self.file_system.realpath(self.rootpath)
+            path = self.file_system.realpath(path)
             if not path.startswith(rootpath):
                 self.path = rootpath
                 return
             elif path == rootpath:
                 is_root = True
         else:
-            if platform == 'win':
-                is_root = splitdrive(path)[1] in (sep, altsep)
-            elif platform in ('macosx', 'linux', 'android', 'ios'):
-                is_root = normpath(expanduser(path)) == sep
-            else:
-                # Unknown fs, just always add the .. entry but also log
-                Logger.warning('Filechooser: Unsupported OS: %r' % platform)
+            is_root = self.file_system.is_root(path)
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
@@ -861,16 +938,18 @@ class FileChooserController(RelativeLayout):
         return Builder.template(template, **ctx)
 
     def _add_files(self, path, parent=None):
-        path = expanduser(path)
-        if isfile(path):
-            path = dirname(path)
+        path = self.file_system.expanduser(path)
+        if self.file_system.isfile(path):
+            path = self.file_system.dirname(path)
 
         files = []
         fappend = files.append
         for f in self.file_system.listdir(path):
             try:
                 # In the following, use fully qualified filenames
-                fappend(normpath(join(path, f)))
+                _normpath = self.file_system.normpath
+                _join = self.file_system.join
+                fappend(_normpath(_join(path, f)))
             except UnicodeDecodeError:
                 Logger.exception('unable to decode <{}>'.format(f))
             except UnicodeEncodeError:
@@ -891,7 +970,7 @@ class FileChooserController(RelativeLayout):
                 # Use a closure for lazy-loading here
                 return self.get_nice_size(fn)
 
-            ctx = {'name': basename(fn),
+            ctx = {'name': self.file_system.basename(fn),
                    'get_nice_size': get_nice_size,
                    'path': fn,
                    'controller': wself,
