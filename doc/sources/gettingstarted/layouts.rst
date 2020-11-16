@@ -22,7 +22,7 @@ Layouts are containers used to arrange widgets in a particular manner.
         borders.
     :mod:`ScatterLayout <kivy.uix.scatterlayout>`:
         Widgets are positioned similarly to a RelativeLayout, but
-        they can be translated, rotate and scaled.
+        they can be translated, rotated and scaled.
     :mod:`StackLayout <kivy.uix.stacklayout>`:
         Widgets are stacked in a `lr-tb` (left to right then top to
         bottom) or `tb-lr` order.
