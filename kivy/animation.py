@@ -194,6 +194,18 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
+        if widget is None:
+            if largs:
+                for animation in Animation._instances.copy():
+                    for info in tuple(animation._widgets.values()):
+                        widget = info['widget']
+                        for x in largs:
+                            animation.cancel_property(widget, x)
+            else:
+                for animation in Animation._instances.copy():
+                    for info in tuple(animation._widgets.values()):
+                        animation.cancel(info['widget'])
+            return
         if len(largs):
             for animation in list(Animation._instances):
                 for x in largs:

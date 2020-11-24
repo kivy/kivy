@@ -38,10 +38,7 @@ def ec_cls():
 @pytest.fixture(autouse=True)
 def cleanup():
     from kivy.animation import Animation
-    for anim in Animation._instances:
-        anim._widgets.clear()
-        anim._clock_uninstall()
-    Animation._instances.clear()
+    Animation.cancel_all(None)
 
 
 def no_animations_being_played():
@@ -78,6 +75,38 @@ class TestAnimation:
         w = Widget()
         a.start(w)
         sleep(.5)
+        assert no_animations_being_played()
+
+    def test_cancel_all(self):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        a1 = Animation(x=100)
+        a2 = Animation(y=100)
+        w1 = Widget()
+        w2 = Widget()
+        a1.start(w1)
+        a1.start(w2)
+        a2.start(w1)
+        a2.start(w2)
+        assert not no_animations_being_played()
+        Animation.cancel_all(None)
+        assert no_animations_being_played()
+
+    def test_cancel_all_2(self):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        a1 = Animation(x=100)
+        a2 = Animation(y=100)
+        w1 = Widget()
+        w2 = Widget()
+        a1.start(w1)
+        a1.start(w2)
+        a2.start(w1)
+        a2.start(w2)
+        assert not no_animations_being_played()
+        Animation.cancel_all(None, 'x')
+        assert not no_animations_being_played()
+        Animation.cancel_all(None, 'y')
         assert no_animations_being_played()
 
     def test_stop_animation(self):
