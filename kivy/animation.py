@@ -193,6 +193,10 @@ class Animation(EventDispatcher):
             Animation.cancel_all(widget, 'x')
 
         .. versionadded:: 1.4.0
+
+        .. versionchanged:: 2.0.0
+            If the first positional argument is None, all animated widgets
+            will be the target.
         '''
         if widget is None:
             if largs:
