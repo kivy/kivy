@@ -195,7 +195,7 @@ class Animation(EventDispatcher):
         .. versionadded:: 1.4.0
 
         .. versionchanged:: 2.0.0
-            If the first positional argument is None, all animated widgets
+            The parameter 'widget' can be None. If so, all animated widgets
             will be the target.
         '''
         if widget is None:
