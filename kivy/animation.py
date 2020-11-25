@@ -206,9 +206,10 @@ class Animation(EventDispatcher):
                         for x in largs:
                             animation.cancel_property(widget, x)
             else:
-                for animation in Animation._instances.copy():
-                    for info in tuple(animation._widgets.values()):
-                        animation.cancel(info['widget'])
+                for animation in Animation._instances:
+                    animation._widgets.clear()
+                    animation._clock_uninstall()
+                Animation._instances.clear()
             return
         if len(largs):
             for animation in list(Animation._instances):
