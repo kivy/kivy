@@ -104,7 +104,7 @@ class TestAnimation:
         a2.start(w1)
         a2.start(w2)
         assert not no_animations_being_played()
-        Animation.cancel_all(None, 'x')
+        Animation.cancel_all(None, 'x', 'z')
         assert not no_animations_being_played()
         Animation.cancel_all(None, 'y')
         assert no_animations_being_played()
