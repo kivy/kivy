@@ -1912,7 +1912,9 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target, input_type='text'):
+    def request_keyboard(
+            self, callback, target, input_type='text', keyboard_suggestions=True
+    ):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
@@ -1945,6 +1947,11 @@ class WindowBase(EventDispatcher):
                     `input_type` is currently only honored on mobile devices.
 
                 .. versionadded:: 1.8.0
+
+            `keyboard_suggestions`: bool
+                If True provides auto suggestions on top of keyboard.
+                This will only work if input_type is set to `text`, `url`,
+                `mail` or `address`.
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
