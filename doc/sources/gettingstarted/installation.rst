@@ -3,21 +3,37 @@
 Installing Kivy
 ===============
 
-The following installation instructions is for **Kivy version** |kivy_version|.
+Installation for Kivy version |kivy_version_bold|. Read the :ref:`changelog here <changelog>`.
 For other Kivy versions, select the documentation from the dropdown on the top left.
-Kivy |kivy_version| officially supports **Python versions** |python_versions|.
 
-==========  ==================================================  =======================================================================
-Platform    Installation                                        Packaging
-==========  ==================================================  =======================================================================
-Windows     :ref:`pip<install-pip>`                             :ref:`PyInstaller<packaging-win>`
-OS X        :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
-Linux       :ref:`pip<install-pip>`, :ref:`PPA<linux-ppa>`      ---
-RPi         :ref:`pip<install-pip>`                             ---
-Android     :ref:`python-for-android<packaging_android>`        :ref:`python-for-android<packaging_android>`
-iOS         :ref:`kivy-ios<packaging_ios>`                      :ref:`kivy-ios<packaging_ios>`
-Anaconda    :ref:`conda<iinstall-conda>`                        ---
-==========  ==================================================  =======================================================================
+Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
+
+==========  ==================  ==================================================  =======================================================================
+‎           Platform            Installation                                        Packaging
+==========  ==================  ==================================================  =======================================================================
+|w_logo|    Windows             :ref:`pip<install-pip>`                             :ref:`PyInstaller<packaging-win>`
+|m_logo|    OS X                :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
+|l_logo|    Linux               :ref:`pip<install-pip>`, :ref:`PPA<linux-ppa>`      ---
+|r_logo|    RPi                 :ref:`pip<install-pip>`                             ---
+|a_logo|    Android             :ref:`python-for-android<packaging_android>`        :ref:`python-for-android<packaging_android>`
+|i_logo|    iOS                 :ref:`kivy-ios<packaging_ios>`                      :ref:`kivy-ios<packaging_ios>`
+|c_logo|    Anaconda            :ref:`conda<install-conda>`                         ---
+==========  ==================  ==================================================  =======================================================================
+
+.. |w_logo| image:: ../images/windows.png
+   :height: 20pt
+.. |m_logo| image:: ../images/macosx.png
+   :height: 20pt
+.. |l_logo| image:: ../images/linux.png
+   :height: 20pt
+.. |r_logo| image:: ../images/raspberrypi.png
+   :height: 20pt
+.. |a_logo| image:: ../images/android.png
+   :height: 20pt
+.. |i_logo| image:: ../images/IOS_wordmark_(2017).svg
+   :height: 20pt
+.. |c_logo| image:: ../images/conda.png
+   :height: 20pt
 
 .. _install-pip:
 
