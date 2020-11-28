@@ -3,87 +3,112 @@
 Installation on Linux
 =====================
 
-Using Precompiled Wheels
-------------------------
+To install Kivy on Linux using ``pip``, please follow the main :ref:`installation guide<installation-canonical>`.
+Otherwise, continue to the :ref:`PPA instructions below<linux-ppa>`.
 
-.. note::
+Installation components
+-----------------------
 
-    Linux wheels are new and still experimental, if you run into issues, uninstall
-    it and use any of the other installation methods listed further down.
+Following, are additional information linked to from some of the steps in the
+main :ref:`pip installation guide<installation-canonical>`, specific to Linux.
 
-Wheels are precompiled binaries for all linux platforms using the manylinux2010 tag.
-In the following, replace `python` with `python3` for Python 3.
-To install first update pip (at least pip v19.0 is required to support a manylinux2010 wheel)::
+.. _install-python-linux:
 
-    $ python -m pip install --upgrade --user pip setuptools virtualenv
+Installing Python
+^^^^^^^^^^^^^^^^^
 
-Then make and load the virtualenv. This is optional, but highly recommended::
+Python and python-pip must be installed from the package manager:
 
-    $ python -m virtualenv ~/kivy_venv
-    $ source ~/kivy_venv/bin/activate
+Ubuntu
+~~~~~~
 
-Finally install the Kivy wheel and optionally the kivy-examples::
+Using apt::
 
-    $ python -m pip install kivy
-    $ python -m pip install kivy_examples
+    sudo apt-get install -y \
+        python3-pip \
+        build-essential \
+        git \
+        python3 \
+        python3-dev \
 
-Gstreamer is not included, so if you would like to use media playback with kivy,
-you should install `ffpyplayer` like so ::
+Fedora
+~~~~~~
 
-    $ python -m pip install ffpyplayer
+You will likely need to do this preliminary step which installs the rpmfusion-free repository unless you have some
+other 3rd-party repo installed which has the required packages. See rpmfusion.org for complete installation
+instructions, but only the rpmfusion-free repo is needed for acquiring kivy dependencies
+(though rpmfusion-nonfree is recommended by rpm fusion installation instructions) as shown in this step.
 
-Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
-Only Python 3.5+ is supported.
+Using dnf::
 
-Nightly wheel installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+    sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 
-.. |cp35_linux| replace:: Python 3.5
-.. _cp35_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp35-cp35m-manylinux2010_x86_64.whl
-.. |cp36_linux| replace:: Python 3.6
-.. _cp36_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp36-cp36m-manylinux2010_x86_64.whl
-.. |cp37_linux| replace:: Python 3.7
-.. _cp37_linux: https://kivy.org/downloads/ci/linux/kivy/Kivy-2.0.0.dev0-cp37-cp37m-manylinux2010_x86_64.whl
-.. |examples_whl_linux| replace:: Kivy examples
-.. _examples_whl_linux: https://kivy.org/downloads/appveyor/kivy/Kivy_examples-2.0.0.dev0-py2.py3-none-any.whl
+After you ensure that a 3rd-party repository containing any packages that dnf is otherwise unable to find,
+continue installing dependencies::
 
-.. warning::
+    sudo dnf install -y python3-devel
 
-    Using the latest development version can be risky and you might encounter
-    issues during development. If you encounter any bugs, please report them.
+.. _install-source-linux:
 
-Snapshot wheels of current Kivy master are created daily on the
-`master` branch of kivy repository. They can be found
-`here <https://kivy.org/downloads/ci/linux/kivy/>`_. To use them, instead of
-doing ``python -m pip install kivy`` we'll install one of these wheels as
-follows.
+Source installation Dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- |cp35_linux|_
-- |cp36_linux|_
-- |cp37_linux|_
+To install Kivy from source, please follow the installation guide until you reach the
+:ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
+before continuing. Additionally, if you'd like to be able to use the x11 window backend do::
 
-#. Download the appropriate wheel for your Python version.
-#. Install it as above but with ``pip install wheel-name`` where ``wheel-name``
-   is the name of the file, instead.
+    export USE_X11=1
 
-Kivy examples are separated from the core because of their size. The examples
-can be installed separately on all Python versions with this single wheel:
+Ubuntu
+~~~~~~
 
-- |examples_whl_linux|_
+Using apt::
 
-Using Conda
------------
+    # Install necessary system packages
+    sudo apt-get install -y \
+        libsdl2-dev \
+        libsdl2-image-dev \
+        libsdl2-mixer-dev \
+        libsdl2-ttf-dev \
+        libportmidi-dev \
+        libswscale-dev \
+        libavformat-dev \
+        libavcodec-dev \
+        zlib1g-dev
 
-If you use Anaconda, you can simply install kivy using::
+    # Install gstreamer for audio, video (optional)
+    sudo apt-get install -y \
+        libgstreamer1.0 \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good
 
-   $ conda install kivy -c conda-forge
+
+Fedora
+~~~~~~
+
+Using dnf::
+
+    # Install necessary system packages
+    sudo dnf install -y ffmpeg-libs SDL2-devel SDL2_image-devel SDL2_mixer-devel \
+    SDL2_ttf-devel portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache \
+    mesa-libGL mesa-libGL-devel
+    # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
+    sudo dnf install -y xclip
+
+    #
+    # In case you get the following error preventing kivy install:
+    #  annobin: _event.c: Error: plugin built for compiler version (8.0.1) but run with compiler version (8.1.1)
+    #  cc1: error: fail to initialize plugin /usr/lib/gcc/86_64-redhat-linux/8/plugin/annobin.so
+    # This has been resolved in later updates after the on-disk release of Fedora 28, so upgrade your packages:
+    #  sudo dnf -y upgrade
+
+.. _linux-ppa:
 
 Using software packages (PPA etc.)
 ----------------------------------
 
-
 Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #. Add one of the PPAs as you prefer
 
@@ -97,8 +122,6 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
 
 #. Install Kivy
 
-    :Python2 - **python-kivy**:
-        $ sudo apt-get install python-kivy
     :Python3 - **python3-kivy**:
         $ sudo apt-get install python3-kivy
     :optionally the `gallery of Examples <../examples/gallery.html>`_ - **kivy-examples**:
@@ -184,7 +207,25 @@ Gentoo
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
-Manually installing Kivy from source
-------------------------------------
 
-For other distros or to manually install Kivy from source, see :ref:`installation_in_venv`.
+Device permissions
+------------------
+
+When you app starts, Kivy uses `Mtdev <http://wiki.ubuntu.com/Multitouch>`_ to
+scan for available multi-touch devices to use for input. Access to these
+devices is typically restricted to users or groups with the appropriate
+permissions.
+
+If you do not have access to these devices, Kivy will log an error or warning
+specifying these devices, normally something like::
+
+    Permission denied:'/dev/input/eventX'
+
+In order to use these devices, you can add your user to a group
+that has the required permissions. For example, in Ubuntu, you can add the user to
+the 'input' group::
+
+    $ sudo adduser $USER input
+
+Note that you need to log out then back in again for these permissions to
+be applied.

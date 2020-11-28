@@ -1,3 +1,5 @@
+.. _packaging-osx:
+
 Creating packages for OS X
 ==========================
 
@@ -5,6 +7,8 @@ Creating packages for OS X
 
     This guide describes multiple ways for packaging Kivy applications.
     Packaging with PyInstaller is recommended for general use.
+
+.. _packaging-osx-sdk:
 
 Using the Kivy SDK
 ------------------

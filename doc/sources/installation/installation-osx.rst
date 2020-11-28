@@ -3,53 +3,126 @@
 Installation on OS X
 ====================
 
+To install Kivy on OS X using ``pip``, please follow the main
+:ref:`installation guide<installation-canonical>`.
+Otherwise, continue to the :ref:`Kivy.app instructions below<osx-app>`.
+
+Installation components
+-----------------------
+
+Following, are additional information linked to from some of the steps in the
+main :ref:`installation guide<installation-canonical>`, specific to OS X.
+
+.. _install-python-osx:
+
+Installing Python
+^^^^^^^^^^^^^^^^^
+
+Homebrew
+~~~~~~~~
+
+If you're using `Homebrew <http://brew.sh>`_, you can install Python with::
+
+    brew install python3
+
+MacPorts
+~~~~~~~~
+
+If you're using `Macports <https://www.macports.org>`_, you can install Python with::
+
+    # Install and set e.g. Python 3.8 as the default
+    port install python38
+    port select --set python python38
+
+    # Install and set pip as the default::
+    port install py38-pip
+    port select --set pip py38-pip
+
+Frameworks
+~~~~~~~~~~
+
+To install frameworks Python on OSX, download it from the main
+`Python website <https://www.python.org/downloads/mac-osx/>`_ and follow the
+installation steps. You can read more about the installation in the
+`Python guide <https://docs.python.org/3/using/mac.html>`_.
+
+.. _install-source-osx:
+
+Source installation Dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To install Kivy from source, please follow the installation guide until you reach the
+:ref:`Kivy install step<kivy-source-install>` and then install the additional dependencies
+below before continuing.
+
+Homebrew
+~~~~~~~~
+
+If you're using Homebrew, you can install the dependencies with::
+
+    brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer
+
+MacPorts
+~~~~~~~~
+
 .. note::
 
-    This guide describes multiple ways for setting up Kivy.
+    You will have to manually install gstreamer support if you wish to
+    support video playback in your Kivy App. The latest port documents show the
+    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
 
-Using Wheels
-------------
+If you're using MacPorts, you can install the dependencies with::
 
-Wheels are precompiled binaries for the specific platform you are on.
-All you need to do to install Kivy using wheels on osx is ::
+    port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
 
-    $ python -m pip install kivy
+Frameworks
+~~~~~~~~~~
 
-Gstreamer is not included, so if you would like to use media playback with kivy,
-you should install `ffpyplayer` like so ::
+If you're installing Python from a framework, you will need to install Kivy's dependencies
+from frameworks as well. You can do that with the following commands (customize as needed)::
 
-    $ python -m pip install ffpyplayer
+    # configure kivy
+    export CC=clang
+    export CXX=clang
+    export FFLAGS='-ff2c'
+    export USE_SDL2=1
+    export USE_GSTREAMER=1
 
-Make sure to set `KIVY_VIDEO=ffpyplayer` env variable before running the app.
+    # get the dependencies
+    export SDL2=2.0.12
+    export SDL2_IMAGE=2.0.5
+    export SDL2_MIXER=2.0.4
+    export SDL2_TTF=2.0.15
+    export GSTREAMER=1.16.2
 
-Nightly wheel installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+    curl -O -L "https://www.libsdl.org/release/SDL2-$SDL2.dmg"
+    curl -O -L "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-$SDL2_IMAGE.dmg"
+    curl -O -L "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-$SDL2_MIXER.dmg"
+    curl -O -L "https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-$SDL2_TTF.dmg"
+    curl -O -L "https://gstreamer.freedesktop.org/data/pkg/osx/$GSTREAMER/gstreamer-1.0-$GSTREAMER-x86_64.pkg"
+    curl -O -L "https://gstreamer.freedesktop.org/data/pkg/osx/$GSTREAMER/gstreamer-1.0-devel-$GSTREAMER-x86_64.pkg"
 
-.. warning::
+    hdiutil attach SDL2-$SDL2.dmg
+    sudo cp -a /Volumes/SDL2/SDL2.framework /Library/Frameworks/
+    hdiutil attach SDL2_image-$SDL2_IMAGE.dmg
+    sudo cp -a /Volumes/SDL2_image/SDL2_image.framework /Library/Frameworks/
+    hdiutil attach SDL2_ttf-$SDL2_TTF.dmg
+    sudo cp -a /Volumes/SDL2_ttf/SDL2_ttf.framework /Library/Frameworks/
+    hdiutil attach SDL2_mixer-$SDL2_MIXER.dmg
+    sudo cp -a /Volumes/SDL2_mixer/SDL2_mixer.framework /Library/Frameworks/
 
-    Using the latest development version can be risky and you might encounter
-    issues during development. If you encounter any bugs, please report them.
+    sudo installer -package gstreamer-1.0-$GSTREAMER-x86_64.pkg -target /
+    sudo installer -package gstreamer-1.0-devel-$GSTREAMER-x86_64.pkg -target /
 
-Snapshot wheels of current Kivy master are created daily on the
-``master`` branch of kivy repository. You can install wheels with::
+Now that you have all the dependencies for kivy, you need to make sure
+you have the command line tools installed::
 
-    pip install kivy[base] kivy_examples --pre --extra-index-url https://kivy.org/downloads/simple/
+    xcode-select --install
 
-Using Conda
------------
-
-If you use Anaconda, you can simply install kivy using::
-
-   $ conda install kivy -c conda-forge
-
-.. _osx-run-app:
+.. _osx-app:
 
 Using The Kivy.app
 ------------------
-
-.. note::
-
-    These instructions apply only from Kivy v2.0.0 onwards.
 
 .. note::
 
@@ -87,7 +160,7 @@ To install the Kivy virtualenv, you must:
        kivy's home path etc.).
 
 Using the App Virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The path to the underlying virtualenv is ``/Applications/Kivy.app/Contents/Resources/venv``.
 To activate it so you can use python, like any normal virtualenv, do::
@@ -104,60 +177,7 @@ able to ``activate`` the virtualenv, hence why we changed the directory temporar
 gstreamer, and other variables.
 
 Start any Kivy Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can run any Kivy application by simply dragging the application's main file
 onto the Kivy.app icon.
-
-
-Using Homebrew with pip
------------------------
-
-You can install Kivy with Homebrew and pip using the following steps:
-
-    1. Install the requirements using `homebrew <http://brew.sh>`_::
-
-        $ brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer python3
-
-    2. Install Kivy using pip::
-
-           $ python3 -m pip install --no-binary kivy kivy[base]
-
-       To install the development version, use this in the second step::
-
-           $ python3 -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
-
-Using MacPorts with pip
------------------------
-
-.. note::
-
-    You will have to manually install gstreamer support if you wish to
-    support video playback in your Kivy App. The latest port documents show the
-    following `py-gst-python port <https://trac.macports.org/ticket/44813>`_.
-
-You can install Kivy with Macports and pip using the following steps:
-
-    1. Install `Macports <https://www.macports.org>`_
-
-    2. Install and set Python 3.8 as the default::
-
-        $ port install python38
-        $ port select --set python python38
-
-    3. Install and set pip as the default::
-
-        $ port install py38-pip
-        $ port select --set pip py38-pip
-
-    4. Install the requirements using `Macports <https://www.macports.org>`_::
-
-        $ port install libsdl2 libsdl2_image libsdl2_ttf libsdl2_mixer
-
-    2. Install Kivy using pip::
-
-           $ python3 -m pip install --no-binary kivy kivy[base]
-
-       To install the development version, use this in the second step::
-
-           $ python3 -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
