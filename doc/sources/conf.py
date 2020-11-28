@@ -31,7 +31,9 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax']
+    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
+
+extlinks = {'repo': ('https://github.com/kivy/kivy/issues/%s', '#')}
 
 # Todo configuration
 todo_include_todos = True
@@ -223,9 +225,12 @@ config_parser.read(os.path.join(base_dir, '..', '..', 'setup.cfg'))
 # if used in a code-block, the block has to be marked with
 # .. parse-literal::, otherwise it won't be replaced
 # !!! doesn't work for "::", ".. code::" or ".. code-block::"
+python_versions = config_parser['kivy']['python_versions'].strip()
 replacements = {
-    'python_versions': config_parser['kivy']['python_versions'].strip(),
+    'python_versions': python_versions,
     'kivy_version': kivy.__version__,
+    'python_versions_bold': f'**{python_versions}**',
+    'kivy_version_bold': f'**{kivy.__version__}**',
 }
 
 epilog = []
