@@ -998,6 +998,7 @@ def get_extensions_from_sources(sources):
         print('Fake build_ext asked, will generate only .h/.c')
         return ext_modules
     for pyx, flags in sources.items():
+        module_name = get_modulename_from_file(join('kivy', pyx))
         is_graphics = pyx.startswith('graphics')
         pyx = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
@@ -1009,7 +1010,6 @@ def get_extensions_from_sources(sources):
             depends = resolve_dependencies(pyx, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
-        module_name = get_modulename_from_file(pyx)
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
