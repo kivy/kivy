@@ -289,7 +289,7 @@ bool Camera::attemptFrameRateSelection(int desiredFrameRate){
             [mCaptureDevice unlockForConfiguration];
         }
     } else {
-        NSLog(@"Selected FPS not available on this platform.");
+        NSLog(@"Selected FPS (%d) not available on this platform.", desiredFrameRate);
     }
     return isFPSSupported;
 }
@@ -300,7 +300,7 @@ bool Camera::attemptCapturePreset(AVCaptureSessionPreset preset){
         [mCaptureSession setSessionPreset: preset];
         return true;
     }
-    NSLog(@"Selected preset not available on this platform");
+    NSLog(@"Selected preset (%@) not available on this platform", preset);
     return false;
 }
 
