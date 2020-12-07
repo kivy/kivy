@@ -296,7 +296,9 @@ class BuilderBase(object):
 
             `encoding`: File charcter encoding. Defaults to utf-8,
         '''
-        filename = resource_find(filename) or filename
+
+        # Cache here can give problems since Clock sometimes does not exist.
+        filename = resource_find(filename, use_cache=False) or filename
         if __debug__:
             trace('Lang: load file %s, using %s encoding', filename, encoding)
 
