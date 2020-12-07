@@ -69,9 +69,9 @@ def resource_find(filename, use_cache=True):
             found_filename = abspath(filename)
         else:
             for path in reversed(resource_paths):
-                output = abspath(join(path, filename))
-                if exists(output):
-                    found_filename = output
+                abspath_filename = abspath(join(path, filename))
+                if exists(abspath_filename):
+                    found_filename = abspath_filename
                     break
         if not found_filename and filename.startswith("data:"):
             found_filename = filename
