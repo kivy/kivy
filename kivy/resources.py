@@ -52,7 +52,7 @@ def resource_find(filename, use_cache=True):
     By default, results are cached for 60 seconds.
     This can be disabled using use_cache=False.
     .. versionchanged:: 2.0.0rc5
-        A default cache and the `use_cache` parameter were added.
+        `use_cache` parameter added and made True by default.
     '''
     if not filename:
         return
