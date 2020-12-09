@@ -3,6 +3,308 @@
 Changelog
 =========
 
+2.0.0
+=====
+
+Highlights
+----------
+
+- [:repo:`6351`]: Core: Drop Python 2 support
+- [:repo:`6368`]: Core: Add async support to kivy App
+- [:repo:`7084`]: Dependencies: Add basic dependencies to install requirements
+
+Breaking changes
+----------------
+
+- [:repo:`6351`]: Core: Drop Python 2 support.
+- [:repo:`6368`]: Core: Add async support to kivy App
+- [:repo:`6448`]: EventDispatcher: Move `__self__` from widget to EventDispatcher and fix tests.
+- [:repo:`6467`]: Graphics: Change filename to source
+- [:repo:`6469`]: ModalView: Updating ModalView to improve theming
+- [:repo:`6607`]: Window: Fix SDL Keycode Typo
+- [:repo:`6650`]: DropDown/ModalView: Make modal and dropdown consistent
+- [:repo:`6677`]: Widget: Remove `id` from Widget.
+- [:repo:`6678`]: ScrollView: Add always_enable_overscroll property on scrollview
+- [:repo:`6721`]: Image: Remove gpl gif implementation
+- [:repo:`6918`]: ColorProperty: Use ColorProperty instead of ListProperty for color property
+- [:repo:`6937`]: Base: Rename `slave` to `embedded`
+- [:repo:`6950`]: Cache: Raise KeyError if None is used as key in Cache
+
+Kv-lang
+-------
+
+- [:repo:`6442`]: KV lang: Make it easy to copy Builder and Factory and make them all contexts.
+- [:repo:`6548`]: Factory: Meaningful Error Message
+- [:repo:`6880`]: KV: Use utf-8 encoding by default on reading .kv files. Fixes #5154
+
+Misc
+----
+
+- [:repo:`6323`]: Loader: User agent was not correctly resolved.
+- [:repo:`6658`]: Garden: Fixes incorrect path to kivy garden libs on iOS
+- [:repo:`6703`]: Network: Fix https in python3.x
+- [:repo:`6748`]: Network: Extend certifi usage to ios
+- [:repo:`6922`]: WeakMethod: Fx and cleanup WeakMethod usage
+- [:repo:`6931`]: VIM: Fix and improve vim syntax highlighting for kv lang
+- [:repo:`6945`]: Cache: Don't double copy keys when purging cache by timeout
+- [:repo:`6950`]: Cache: Raise KeyError if None is used as key in Cache
+- [:repo:`6954`]: Network: Ignore ca_file on http scheme, fixes #6946
+- [:repo:`7054`]: Networking: User Agent and Cookies added to UrlRequest
+
+Packaging
+---------
+
+- [:repo:`6359`]: Packaging: Fix path by setting to bytes
+- [:repo:`6643`]: PyInstaller: List kivy.weakmethod because pyinstaller doesn't see into cython files
+- [:repo:`6772`]: PyInstaller: window_info is not included in x86 pyinstaller
+- [:repo:`7080`]: OSX: Generate Kivy.app on the CI
+
+Widgets
+-------
+
+- [:repo:`6288`]: TextInput: Cache `text` property in TextInput
+- [:repo:`6362`]: Carousel: Let 'Carousel._curr_slide()' prepare for the situation where 'index' is None
+- [:repo:`6365`]: Carousel: Let 'Carousel.remove_widget()' remove the container of the widget
+- [:repo:`6372`]: Carousel: make 'Carousel.remove_widget()' not cause 'IndexError'
+- [:repo:`6374`]: Carousel: Make 'Carousel' able to handle the case where 'loop == True' and 'len(slides) == 2'
+- [:repo:`6436`]: ColorWheel: Remove bug in algorithm to compute arcs of colorwheel (#6435)
+- [:repo:`6469`]: ModalView: Updating ModalView to improve theming
+- [:repo:`6481`]: ScreenManager: Make clear_widgets correctly iterate over screens
+- [:repo:`6542`]: TextInput: Fixes TextInput Bubble from diseappering immediately after it appears
+- [:repo:`6543`]: TextInput: Fixes TextInput cursor "rendering" issue
+- [:repo:`6574`]: TreeViewNode: Fix arrow pos and size
+- [:repo:`6579`]: Slider: Horizontal value track is offset from the center of Slider
+- [:repo:`6624`]: Filechooser: Use full path
+- [:repo:`6650`]: DropDown/ModalView: Make modal and dropdown consistent
+- [:repo:`6666`]: TextInput: Fix for crashes caused by text selection outside of TextInput area
+- [:repo:`6678`]: ScrollView: Add always_enable_overscroll property on scrollview
+- [:repo:`6741`]: GridLayout: Add 'orientation' property to GridLayout
+- [:repo:`6815`]: Image: Fixes for Image and AsyncImage
+- [:repo:`6859`]: Slider: Adding allow_stretch to Slider in style.kv
+- [:repo:`6879`]: VKeyboard: Fix key_background_color property not used
+- [:repo:`6897`]: RecycleView: Add behavior to set RV data using kv ids
+- [:repo:`6905`]: FileChooser: Add font property
+- [:repo:`6912`]: TextInput: Remove 'encode' argument from getter method of 'text' property of TextInput
+- [:repo:`6918`]: ColorProperty: Use ColorProperty instead of ListProperty for color property
+- [:repo:`6942`]: ScrollView: Don't crash when scrollview's content is the same size
+- [:repo:`6971`]: Camera: Fix an inconsistency between docs and code on Camera
+- [:repo:`6976`]: ModalView: Prevent modalview dismissal without on_touch_down
+- [:repo:`6985`]: ScrollView: Fix scrollview scroll/effect recursion
+- [:repo:`7009`]: TextInput: IME support for textinput
+- [:repo:`7021`]: ColorProperty: Use ColorProperty for remaining color properites
+- [:repo:`7032`]: ScreenManager: Fix typo in SlideTransition
+- [:repo:`7069`]: ScrollView: Horizontal scrolling disabled if no overflow
+- [:repo:`7074`]: Splitter: Fix handling offset
+- [:repo:`7118`]: GridLayout : optimize GridLayout
+- [:repo:`7129`]: TabbedPanel: Stop tab buttons from scrolling around
+- [:repo:`7196`]: ScrollView: fix jumping to bottom when using scrollwheel.
+
+Core-app
+--------
+
+- [:repo:`6351`]: Core: Drop Python 2 support.
+- [:repo:`6368`]: Core: Add async support to kivy App
+- [:repo:`6376`]: Cython: Set cython language_level to py3.
+- [:repo:`6381`]: Inspector: Use sets to check if inspector should be activated.
+- [:repo:`6404`]: App: Fix pausing without app instance
+- [:repo:`6458`]: Core: Fix memory leaks by cleaning up after resources
+- [:repo:`6540`]: Config: fix erroneous check of KIVY_NO_ENV_CONFIG
+- [:repo:`6581`]: Dependencies: Bump max cython version
+- [:repo:`6729`]: DDSFile: ddsfile.py fix for string/bytes comparing for py3
+- [:repo:`6773`]: Clock: Add correct value of CLOCK_MONOTONIC for OpenBSD
+- [:repo:`6798`]: Platform: Corrected platform detection on Android
+- [:repo:`6910`]: Logger: Add encoding
+- [:repo:`6926`]: Clock: Add clock lifecycle, better exception handling and other cleanup
+- [:repo:`6937`]: Base: Rename `slave` to `embedded`
+- [:repo:`6994`]: EventLoop: Don't do event loop stuff when stopped.
+- [:repo:`7083`]: Core: Add _version.py and move updating version metadata to the CI
+- [:repo:`7112`]: Python: Require python version >=3.6
+- [:repo:`7132`]: Python: Add support for Python 3.9.
+- [:repo:`7151`]: Dependencies: Bump cython to 0.29.21
+- [:repo:`7178`]: Dependencies: Add dependency selection varaibles
+- [:repo:`7181`]: Logging: Added color support for compatible terminals
+
+Core-providers
+--------------
+
+- [:repo:`6384`]: Window: Allow window providers to indicate which gl backends they are compatible with
+- [:repo:`6422`]: Label: Fixes multiline label w/ line_height < 1
+- [:repo:`6433`]: Window: Center cache problem on MacOS
+- [:repo:`6461`]: Audio: Fix playing audio streams from ffpyplayer
+- [:repo:`6507`]: Text: Revert "Fixes multiline label w/ line_height < 1"
+- [:repo:`6513`]: Text: Fix issue #6508 Multiline label w/ line_height < 1 renders badly (workaround)
+- [:repo:`6515`]: Text: Fixes positioning (valign) issue when using max_lines
+- [:repo:`6578`]: Window: Revert swap forced sync (#4219) as it causes performance issue
+- [:repo:`6589`]: Window: Add the ability to show statusbar on iOS
+- [:repo:`6603`]: Audio: Native audio support for Android
+- [:repo:`6607`]: Window: Fix SDL Keycode Typo
+- [:repo:`6608`]: Audio: Replace deprecated variables in audio providers
+- [:repo:`6721`]: Image: Remove gpl gif implementation
+- [:repo:`6743`]: Clipboard: xclip less verbose Kivy startup
+- [:repo:`6754`]: Text: Properly raise errors reading a font
+- [:repo:`6947`]: Image: Remove 'img_gif' entry from image_libs
+- [:repo:`6988`]: Camera: Improve avfoundation camera implementation on iOS
+- [:repo:`7071`]: Camera: Fixes crash during camera configuration
+- [:repo:`7102`]: Audio: Added loop functionality for SoundAndroidPlayer
+
+Core-widget
+-----------
+
+- [:repo:`5926`]: Animation: Fix kivy.animation.Sequence and kivy.animation.Parallel consistency
+- [:repo:`6373`]: Properties: Allow observable list and dict dispatch to propagate exceptions.
+- [:repo:`6441`]: EventDispatcher: Move Widget proxy_ref upwards to EventDispatcher
+- [:repo:`6443`]: Property: Initialize KV created property with default value
+- [:repo:`6448`]: EventDispatcher: Move `__self__` from widget to EventDispatcher and fix tests.
+- [:repo:`6677`]: Widget: Remove `id` from Widget.
+- [:repo:`6858`]: Effects: Fix update_velocity
+- [:repo:`6917`]: ColorProperty: Re-add ColorProperty to __all__ list in properties.pyx module
+- [:repo:`6930`]: Property: Use ObservableList as internal storage for ColorProperty
+- [:repo:`6941`]: Property: Let ColorProperty accept arbitrary list types.
+- [:repo:`6965`]: Property: Allow assignment of color names as values for ColorProperty
+- [:repo:`6993`]: Property: Add kwargs to 'sort' method of ObservableList
+
+Distribution
+------------
+
+- [:repo:`6354`]: Dependecy: Move cython version info to setup.cfg.
+- [:repo:`6355`]: Dependency: kivy_deps need to be imported before any modules.
+- [:repo:`6356`]: Dependency: Bump cython to 0.29.10 to fix CI building.
+- [:repo:`6397`]: Install: Automatically discover kivy sub-packages
+- [:repo:`6562`]: RPi: Autodetect when we are on a Raspberry Pi 4
+- [:repo:`6568`]: CI: Cross compile wheel for armv7l (Raspberry Pi 4) using Github Actions CI
+- [:repo:`6642`]: Install: Switch to using pyproject.toml and setup.cfg for metadata
+- [:repo:`6656`]: Wheel: Don't package examples in the wheel
+- [:repo:`6662`]: CI: Compile wheels for Raspberry Pi 1-3 using the CI
+- [:repo:`6670`]: Dependencies: Fix CI PyPI upload and pin to latest kivy_deps versions.
+- [:repo:`6674`]: Sdist: Cannot handle carriage return in description.
+- [:repo:`6769`]: RPi: Kivy now works on the Raspberry Pi 4 without X11
+- [:repo:`6774`]: Install: Build the extensions in parallel if the options has not been set
+- [:repo:`6852`]: Platform: Fix android platform detection when using p4a
+- [:repo:`6854`]: Install: Reuse `kivy_build` var (complements #6852)
+- [:repo:`6891`]: Cython: Update to latest cython version
+- [:repo:`6990`]: Installation: Make setuptools use its local distutils
+- [:repo:`7084`]: Dependencies: Add min basic dependencies to install requirements.
+- [:repo:`7110`]: Makefile: Detect python verion and gracefully fail on unsupported version
+- [:repo:`7152`]: RPi: Stop building wheels for RPi stretch
+- [:repo:`7154`]: Anconda: Respect SDKROOT and use_osx_frameworks
+- [:repo:`7157`]: Makefile: Try python3 first as python may point to python2.
+- [:repo:`7159`]: Makefile: Use python3 if it's present.
+- [:repo:`7195`]: Inlcude doc in PR checklist
+
+Documentation
+-------------
+
+- [:repo:`6352`]: Docs: force to use sphinx 1.7.9 to restore search
+- [:repo:`6377`]: Docs: Embed func signatures in cython to help IDEs.
+- [:repo:`6383`]: Doc: Create FUNDING.yml
+- [:repo:`6389`]: Doc: Fix linux install docs and update garden instructions
+- [:repo:`6398`]: Doc: Update clock.py - Corrected typo
+- [:repo:`6399`]: Doc: Fix pip link
+- [:repo:`6427`]: Doc: Add comment on required pip version
+- [:repo:`6459`]: Docs: fix wrong highlights
+- [:repo:`6466`]: Docs: Config docs update
+- [:repo:`6478`]: Examples: Fix lack of white-space after ":" in pong.kv
+- [:repo:`6479`]: Doc: Fix typos, grammar in install instructions
+- [:repo:`6485`]: Doc: Fix KIVY_EVENTLOOP doc
+- [:repo:`6491`]: Doc: Fix Widget.pos_hint doc
+- [:repo:`6510`]: Doc: Few minor fixes in the doc.
+- [:repo:`6511`]: Doc: Update note about kivy-ios python version
+- [:repo:`6523`]: Doc: Remove reference to Kivy Designer
+- [:repo:`6537`]: Doc: fix GridLayout doc
+- [:repo:`6558`]: Examples: Fixed depreciated option for twisted, and sys.exc_call is only run in py2
+- [:repo:`6625`]: Doc: Update CONTRIBUTING.md
+- [:repo:`6636`]: Example: Missing directory replaced in colorpicker #6599
+- [:repo:`6638`]: Docs: Fix typo
+- [:repo:`6641`]: Doc: Fix TextInput typos cursor row/col
+- [:repo:`6683`]: Doc: Fix spinner kv example
+- [:repo:`6694`]: Doc: Fix css on docs
+- [:repo:`6712`]: Doc: Revisit of the Windows installation instructions
+- [:repo:`6714`]: Doc: Fix spelling errors
+- [:repo:`6750`]: Doc: Update packaging-windows.rst
+- [:repo:`6775`]: Doc: Fixed the gallery documentation
+- [:repo:`6778`]: Doc: Updated Raspberry Pi 4 doc on HW acceleration
+- [:repo:`6780`]: Doc: Make RPi SDL2 install instructions clear
+- [:repo:`6813`]: Example: bugfix for 3D rendering example
+- [:repo:`6821`]: Doc: Expand on the current logger docs
+- [:repo:`6863`]: Doc: Add missing hid input parameter
+- [:repo:`6868`]: Doc: iOS - migrates to the new install procedure
+- [:repo:`6882`]: Example: Improved ScreenManager example
+- [:repo:`6895`]: Doc: Add annotations to proxies.
+- [:repo:`6924`]: Doc: Buildozer is now in Beta.
+- [:repo:`6927`]: Doc: Improvements to kv lang docs
+- [:repo:`6938`]: Doc: trigger_action warning / documentation updates
+- [:repo:`6963`]: Doc: Correct comments to use proportion, not percent
+- [:repo:`6969`]: Doc: Fix docs for on_dropfile
+- [:repo:`6975`]: Doc: Update the dev installation instructions
+- [:repo:`6977`]: Doc: Add some typing to clock
+- [:repo:`6979`]: Doc: Remove duplicate python3-pip
+- [:repo:`7002`]: Doc: Print about KIVY_NO_ARGS when printing usage.
+- [:repo:`7022`]: Doc: Update doc for all instances of ColorProperty
+- [:repo:`7038`]: Doc: Fix on_ref_press documentation
+- [:repo:`7039`]: Doc: fixed typo in hbar doc string
+- [:repo:`7043`]: Doc: fixed doc string
+- [:repo:`7160`]: Examples: Add Recycleview examples
+- [:repo:`7179`]: Docs: Switch to staging docs on kivy-website-docs
+- [:repo:`7222`]: Docs: minor typo fix in layout docs
+- [:repo:`7240`]: Docs: Re-write install docs.
+- [:repo:`7241`]: Docs: Add changelog to docs
+
+Graphics
+--------
+
+- [:repo:`6457`]: Graphics: Fix "Error in sys.excepthook"
+- [:repo:`6467`]: Graphics: Change filename to source
+- [:repo:`6472`]: Graphics: Fix relative import for the egl backend
+- [:repo:`6533`]: Graphics: Fixes fbo/renderbuffer freeze on iOS
+- [:repo:`6702`]: Graphics: Adding support for non-file SVGs
+- [:repo:`6777`]: Graphics: Also set points _mode propery to LINE_MODE_POINTS
+- [:repo:`6808`]: Graphics: Fix Svg consistency #6467
+- [:repo:`6844`]: Graphics: Use GLES context when ES2 is forced
+- [:repo:`6846`]: Graphics: Revert "Use GLES context when ES2 is forced"
+- [:repo:`6978`]: Graphics: fix ignored alpha value in hsv mode
+
+Input
+-----
+
+- [:repo:`6319`]: Mouse: Fix ctypes definition to work with other packages
+- [:repo:`7065`]: Mouse: Added support for the mouse4 and mouse5 buttons
+
+Tests/ci
+--------
+
+- [:repo:`6375`]: CI: Fix CI failure, 3.5.7 doesn't have compiled binaries.
+- [:repo:`6390`]: CI: Python 3.5 doesn't seem to work anymore on travis bionic.
+- [:repo:`6403`]: CI: Remove osx workarounds as it breaks the build.
+- [:repo:`6415`]: Test: Add tests for coordinates translation
+- [:repo:`6417`]: Test: Add preliminary support for coverage for kv files.
+- [:repo:`6482`]: CI: Remove usage of KIVY_USE_SETUPTOOLS
+- [:repo:`6503`]: CI: Fix rtd builds
+- [:repo:`6514`]: Test: Add test method for touch to follow a widget's position
+- [:repo:`6516`]: CI: Don't use the Window when computing dp during docs generation
+- [:repo:`6554`]: CI: Build latest .DMG for osx app
+- [:repo:`6556`]: CI: Update .travis.yml for osx app on master
+- [:repo:`6565`]: Test: Add ability to specify offset from widget pos
+- [:repo:`6570`]: CI: Enable Python 3.8 wheel generation for osx
+- [:repo:`6595`]: Tests: Fix test failures in Python 3.8 (fixes #6594)
+- [:repo:`6618`]: Test: Don't preset async_sleep
+- [:repo:`6622`]: CI: Switch from Travis/Appveyor to GitHub Actions
+- [:repo:`6659`]: CI: Use pip to build wheel so it uses pyproject.toml.
+- [:repo:`6669`]: CI: Test generated wheels and sdist
+- [:repo:`6673`]: CI: Latest twine doesn't support py3.5
+- [:repo:`6681`]: CI: Switch to flake8 and fix PEP8 issues
+- [:repo:`6682`]: CI: Create all the wheels before doing any uploads
+- [:repo:`6771`]: GitHub: Update issue templates to new format
+- [:repo:`6845`]: Tests: Fix failing tests
+- [:repo:`6855`]: CI: Upgrade to actions/checkout@v2 & actions/setup-python@v2
+- [:repo:`6892`]: Test: Fix failing coverage
+- [:repo:`6940`]: CI: Fix linux SDL2
+- [:repo:`6951`]: Tests: Refactors test_urlrequest.py
+- [:repo:`7115`]: CI: Remove mcnotify integration
+- [:repo:`7147`]: PEP8: Fix PEP8 issues
+- [:repo:`7174`]: Tests: Warn that async app test framewrok may be removed from kivy.
+- [:repo:`7201`]: CI: Test all wheel versions, not just one per OS
+- [:repo:`7203`]: Tests: Ensure Bubble uses it's superclass's valid private API
+
 1.11.1 (June 20, 2019)
 ============================
 
