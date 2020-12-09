@@ -3,6 +3,7 @@ Test properties attached to a widget
 '''
 
 import unittest
+import pytest
 from kivy.event import EventDispatcher
 from functools import partial
 
@@ -15,6 +16,10 @@ wid = _TestProperty()
 
 
 class PropertiesTestCase(unittest.TestCase):
+
+    @pytest.fixture(autouse=True)
+    def set_clock(self, kivy_clock):
+        self.kivy_clock = kivy_clock
 
     def test_base(self):
         from kivy.properties import Property
@@ -435,6 +440,14 @@ class PropertiesTestCase(unittest.TestCase):
         color.link_deps(wid, 'color')
         self.assertEqual(color.get(wid), [1, 1, 1, 1])
 
+        color2 = ColorProperty()
+        color2.link(wid, 'color2')
+        color2.link_deps(wid, 'color2')
+        self.assertEqual(color2.get(wid), [1, 1, 1, 1])
+
+        color.set(wid, 'yellow')
+        self.assertEqual(color.get(wid), [1.0, 1.0, 0.0, 1.0])
+
         color.set(wid, "#00ff00")
         self.assertEqual(color.get(wid), [0, 1, 0, 1])
 
@@ -448,6 +461,20 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(color.get(wid), [1, 1, 0, 1])
         color.set(wid, (1, 1, 0, 0))
         self.assertEqual(color.get(wid), [1, 1, 0, 0])
+
+        color.set(wid, [1, 1, 1, 1])
+        color_value = color.get(wid)
+        color_value[0] = 0.5
+        self.assertEqual(color.get(wid), [0.5, 1, 1, 1])
+
+        self.assertEqual(color2.get(wid), [1, 1, 1, 1])
+        color2.set(wid, color.get(wid))
+        self.assertEqual(color2.get(wid), [0.5, 1, 1, 1])
+
+        color.set(wid, [1, 1, 1, 1])
+        color_value = color.get(wid)
+        color_value[:] = [0, 1, 0, 1]
+        self.assertEqual(color.get(wid), [0, 1, 0, 1])
 
     def test_alias_property_without_setter(self):
         from kivy.properties import AliasProperty

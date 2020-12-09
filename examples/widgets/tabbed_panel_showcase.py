@@ -72,7 +72,7 @@ Builder.load_string('''
             source: 'data/images/defaulttheme-0.png'
         Image:
             id: tab_3_content
-            source: 'data/images/image-loading.gif'
+            source: 'data/images/image-loading.zip'
     StandingHeader:
         id: sh
         content: tab_2_content.__self__
@@ -181,7 +181,7 @@ Builder.load_string('''
     TabbedPanelItem:
         text: 'tab3'
         Image:
-            source: 'data/images/image-loading.gif'
+            source: 'data/images/image-loading.zip'
 
 <PanelbRight>
     tab_pos: 'right_top'

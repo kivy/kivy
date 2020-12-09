@@ -107,19 +107,19 @@ def _tokenize_path(pathdef):
         for token in RE_FLOAT.findall(x):
             yield token
 
-cdef inline float angle(float ux, float uy, float vx, float vy):
+cdef inline double angle(double ux, double uy, double vx, double vy):
     a = acos((ux * vx + uy * vy) / sqrt((ux ** 2 + uy ** 2) * (vx ** 2 + vy ** 2)))
     sgn = 1 if ux * vy > uy * vx else -1
     return sgn * a
 
 cdef float parse_width(txt, float vbox_width):
     if txt.endswith('%'):
-        return vbox_width * float(txt[:-1]) / 100.
+        return <float>(vbox_width * txt[:-1] / 100.)
     return parse_float(txt)
 
 cdef float parse_height(txt, float vbox_height):
     if txt.endswith('%'):
-        return vbox_height * float(txt[:-1]) / 100.
+        return <float>(vbox_height * txt[:-1] / 100.)
     return parse_float(txt)
 
 cdef float parse_float(txt):
@@ -127,7 +127,7 @@ cdef float parse_float(txt):
         return 0.
     if txt[-2:] in NUMERIC_FORMATS:
         return dpi2px(txt[:-2], txt[-2:])
-    return float(txt)
+    return <float>float(txt)
 
 cdef list parse_list(string):
     return re.findall(RE_LIST, string)
@@ -213,12 +213,12 @@ cdef class Matrix(object):
             if string.startswith('matrix('):
                 i = 0
                 for sf in parse_list(string[7:-1]):
-                    self.mat[i] = float(sf)
+                    self.mat[i] = <float>float(sf)
                     i += 1
             elif string.startswith('translate('):
                 a, b = parse_list(string[10:-1])
-                self.mat[4] = float(a)
-                self.mat[5] = float(b)
+                self.mat[4] = <float>float(a)
+                self.mat[5] = <float>float(b)
             elif string.startswith('scale('):
                 value = parse_list(string[6:-1])
                 if len(value) == 1:
@@ -227,8 +227,8 @@ cdef class Matrix(object):
                     a, b = value
                 else:
                     print("SVG: unknown how to parse: {!r}".format(value))
-                self.mat[0] = float(a)
-                self.mat[3] = float(b)
+                self.mat[0] = <float>float(a)
+                self.mat[3] = <float>float(b)
         elif string is not None:
             i = 0
             for f in string:
@@ -236,13 +236,13 @@ cdef class Matrix(object):
                 i += 1
 
     cdef void transform(self, float ox, float oy, float *x, float *y):
-        cdef float rx = self.mat[0] * ox + self.mat[2] * oy + self.mat[4]
-        cdef float ry = self.mat[1] * ox + self.mat[3] * oy + self.mat[5]
-        x[0] = rx
-        y[0] = ry
+        cdef double rx = self.mat[0] * ox + self.mat[2] * oy + self.mat[4]
+        cdef double ry = self.mat[1] * ox + self.mat[3] * oy + self.mat[5]
+        x[0] = <float>rx
+        y[0] = <float>ry
 
     cpdef Matrix inverse(self):
-        cdef float d = self.mat[0] * self.mat[3] - self.mat[1]*self.mat[2]
+        cdef double d = self.mat[0] * self.mat[3] - self.mat[1]*self.mat[2]
         return Matrix([self.mat[3] / d, -self.mat[1] / d, -self.mat[2] / d, self.mat[0] / d,
                        (self.mat[2] * self.mat[5] - self.mat[3] * self.mat[4]) / d,
                        (self.mat[1] * self.mat[4] - self.mat[0] * self.mat[5]) / d])
@@ -340,7 +340,7 @@ class Gradient(object):
                 v = getattr(parent, param, None)
             my_v = self.element.get(param)
             if my_v:
-                v = float(my_v)
+                v = <float>float(my_v)
             if v:
                 setattr(self, param, v)
 
@@ -366,13 +366,13 @@ cdef class Svg(RenderContext):
     """Svg class. See module for more informations about the usage.
     """
 
-    def __init__(self, filename, anchor_x=0, anchor_y=0,
+    def __init__(self, source=None, anchor_x=0, anchor_y=0,
                  bezier_points=BEZIER_POINTS, circle_points=CIRCLE_POINTS,
                  color=None):
         '''
         Creates an SVG object from a .svg or .svgz file.
 
-        :param str filename: The name of the file to be loaded.
+        :param str source: The name of the file to be loaded.
         :param float anchor_x: The horizontal anchor position for scaling and
             rotations. Defaults to 0. The symbolic values 'left', 'center' and
             'right' are also accepted.
@@ -384,6 +384,14 @@ cdef class Svg(RenderContext):
         :param int circle_points: The number of line segments into which to
             subdivide circular and elliptic arcs. Defaults to 10.
         :param color the default color to use for Svg elements that specify "currentColor"
+
+        .. note:: if you want to use SVGs from string, you can parse the source yourself
+            using `from xml.etree.cElementTree import fromstring` and pass the result to 
+            Svg().set_tree(). This will trigger the rendering of the Svg - as an alternative
+            to assigning a filepath to Svg.source. This is also viable to trigger reloading.
+
+        .. versionchanged:: 2.0.0
+            Parameter `filename` changed to `source` and made optional.
         '''
 
         super(Svg, self).__init__(fs=SVG_FS, vs=SVG_VS,
@@ -416,8 +424,9 @@ cdef class Svg(RenderContext):
         self.line_texture.blit_buffer(
                 b"\xff\xff\xff\xff\xff\xff\xff\x00", colorfmt="rgba")
 
-        self._filename = None
-        self.filename = filename
+        self._source = None
+        if source:
+            self.source = source
 
 
     @property
@@ -480,18 +489,21 @@ cdef class Svg(RenderContext):
         self.reload()
 
     @property
-    def filename(self):
-        '''filename to load.
+    def source(self):
+        '''Filename / source to load.
 
-        The parsing and rendering is done as soon as you set the filename.
+        The parsing and rendering is done as soon as you set the source.
+
+        .. versionchanged:: 2.0.0
+            The property name is now `source` instead of `filename`
 
         .. versionchanged:: 1.10.3
             You can get the used filename
         '''
-        return self._filename
+        return self._source
 
-    @filename.setter
-    def filename(self, filename):
+    @source.setter
+    def source(self, filename):
         Logger.debug('Svg: Loading {}'.format(filename))
         # check gzip
         start = time()
@@ -504,13 +516,23 @@ cdef class Svg(RenderContext):
             fd = open(filename, 'rb')
         try:
             #save the tree for later reloading
-            self.tree = parse(fd)
-            self.reload()
+            self.set_tree(parse(fd))
             end = time()
             Logger.debug("Svg: Loaded {} in {:.2f}s".format(filename, end - start))
         finally:
-            self._filename = filename
+            self._source = filename
             fd.close()
+
+    def set_tree(self, tree):
+        '''
+        sets the tree used to render the Svg and triggers reloading.
+	
+        :param xml.etree.cElementTree tree: the tree parsed from the SVG source
+
+        .. versionadded:: 2.0.0
+        '''
+        self.tree = tree
+        self.reload()
 
     cdef void reload(self) except *:
             # parse tree
@@ -553,11 +575,11 @@ cdef class Svg(RenderContext):
         self.fill = parse_color(e.get('fill', 'black'), self.current_color)
         self.stroke = parse_color(e.get('stroke'), self.current_color)
         oldopacity = self.opacity
-        self.opacity *= float(e.get('opacity', 1))
-        fill_opacity = float(e.get('fill-opacity', 1))
-        stroke_opacity = float(e.get('stroke-opacity', 1))
+        self.opacity *= <float>float(e.get('opacity', 1))
+        fill_opacity = <float>float(e.get('fill-opacity', 1))
+        stroke_opacity = <float>float(e.get('stroke-opacity', 1))
         old_line_width = self.line_width
-        self.line_width = float(e.get('stroke-width', self.line_width))
+        self.line_width = <float>float(e.get('stroke-width', self.line_width))
 
         oldtransform = self.transform
         for t in self.parse_transform(e.get('transform')):
@@ -569,11 +591,11 @@ cdef class Svg(RenderContext):
             if 'fill' in sdict:
                 self.fill = parse_color(sdict['fill'], self.current_color)
             if 'fill-opacity' in sdict:
-                fill_opacity *= float(sdict['fill-opacity'])
+                fill_opacity *= <float>float(sdict['fill-opacity'])
             if 'stroke' in sdict:
                 self.stroke = parse_color(sdict['stroke'], self.current_color)
             if 'stroke-opacity' in sdict:
-                stroke_opacity *= float(sdict['stroke-opacity'])
+                stroke_opacity *= <float>float(sdict['stroke-opacity'])
             if 'stroke-width' in sdict:
                 self.line_width = parse_float(sdict['stroke-width'])
 
@@ -816,11 +838,11 @@ cdef class Svg(RenderContext):
                 last_command = 'S'
 
             elif command == 'A':
-                rx = float(elements.pop())
-                ry = float(elements.pop())
-                rotation = float(elements.pop())
-                arc = float(elements.pop())
-                sweep = float(elements.pop())
+                rx = <float>float(elements.pop())
+                ry = <float>float(elements.pop())
+                rotation = <float>float(elements.pop())
+                arc = <float>float(elements.pop())
+                sweep = <float>float(elements.pop())
                 x = parse_width(elements.pop(), self.vbox_width)
                 y = parse_height(elements.pop(), self.vbox_height)
 
@@ -887,22 +909,22 @@ cdef class Svg(RenderContext):
             self.loop.append(self.loop[0])
             self.loop.append(self.loop[1])
 
-    cdef void set_position(self, float x, float y, int absolute=1):
+    cdef void set_position(self, double x, double y, int absolute=1):
         if absolute:
-            self.x = x
-            self.y = y
+            self.x = <float>x
+            self.y = <float>y
         else:
-            self.x += x
-            self.y += y
+            self.x += <float>x
+            self.y += <float>y
         self.loop.append(self.x)
         self.loop.append(self.y)
 
-    cdef arc_to(self, float rx, float ry, float phi, float large_arc,
-            float sweep, float x, float y):
+    cdef arc_to(self, double rx, double ry, double phi, double large_arc,
+            double sweep, double x, double y):
         # This function is made out of magical fairy dust
         # http://www.w3.org/TR/2003/REC-SVG11-20030114/implnote.html#ArcImplementationNotes
-        cdef float x1, y1, x2, y2, cp, sp, dx, dy, x_, y_, r2, cx_, cy_, cx, cy
-        cdef float psi, delta, ct, st, theta
+        cdef double x1, y1, x2, y2, cp, sp, dx, dy, x_, y_, r2, cx_, cy_, cx, cy
+        cdef double psi, delta, ct, st, theta
         cdef int n_points, i
         x1 = self.x
         y1 = self.y
@@ -934,7 +956,7 @@ cdef class Svg(RenderContext):
         if n_points < 1:
             n_points = 1
 
-        for i in xrange(n_points + 1):
+        for i in range(n_points + 1):
             theta = psi + i * delta / n_points
             ct = cos(theta)
             st = sin(theta)
@@ -959,10 +981,10 @@ cdef class Svg(RenderContext):
                     format="f")
             f_bc = self.bezier_coefficients
             for i in range(bp_count):
-                t = float(i) / self.bezier_points
-                t0 = (1 - t) ** 2
-                t1 = 2 * t * (1 - t)
-                t2 = t ** 2
+                t = <float>(i / self.bezier_points)
+                t0 = <float>pow(1 - t, 2)
+                t1 = <float>(2 * t * (1 - t))
+                t2 = <float>pow(t, 2)
                 f_bc[i * 3] = t0
                 f_bc[i * 3 + 1] = t1
                 f_bc[i * 3 + 2] = t2
@@ -972,7 +994,7 @@ cdef class Svg(RenderContext):
         self.last_cx = cx
         self.last_cy = cy
         count = bp_count * 2
-        ilast = len(self.loop)
+        ilast = <int>len(self.loop)
         array.resize(self.loop, ilast + count)
         f_loop = self.loop.data.as_floats
         for i in range(bp_count):
@@ -1002,11 +1024,11 @@ cdef class Svg(RenderContext):
                     format="f")
             f_bc = self.bezier_coefficients
             for i in range(bp_count):
-                t = float(i) / self.bezier_points
-                t0 = (1 - t) ** 3
-                t1 = 3 * t * (1 - t) ** 2
-                t2 = 3 * t ** 2 * (1 - t)
-                t3 = t ** 3
+                t = <float>float(i) / self.bezier_points
+                t0 = <float>pow(1 - t, 3)
+                t1 = <float>(3 * t * pow(1 - t, 2))
+                t2 = <float>(3 * pow(t, 2) * (1 - t))
+                t3 = <float>pow(t, 3)
                 f_bc[i * 4] = t0
                 f_bc[i * 4 + 1] = t1
                 f_bc[i * 4 + 2] = t2
@@ -1017,7 +1039,7 @@ cdef class Svg(RenderContext):
         self.last_cx = x2
         self.last_cy = y2
         count = bp_count * 2
-        ilast = len(self.loop)
+        ilast = <int>len(self.loop)
         array.resize(self.loop, ilast + count)
         f_loop = self.loop.data.as_floats
         for i in range(bp_count):
@@ -1039,7 +1061,7 @@ cdef class Svg(RenderContext):
         if self.fill:
             tess = Tesselator()
             for loop in self.path:
-                tess.add_contour_data(loop.data.as_voidptr, len(loop) / 2)
+                tess.add_contour_data(loop.data.as_voidptr, <int>int(len(loop) / 2.))
             tess.tesselate()
             tris = tess.vertices
 
@@ -1073,7 +1095,7 @@ cdef class Svg(RenderContext):
         cdef float x, y, r, g, b, a
         cdef Mesh mesh
 
-        cdef int count = len(path) / 2
+        cdef int count = <int>int(len(path) / 2.)
         vertices = <float *>malloc(sizeof(float) * count * 8)
         if vertices == NULL:
             return
@@ -1127,7 +1149,7 @@ cdef class Svg(RenderContext):
         # Caps and joint are missing
         cdef int index, vindex = 0, odd = 0, i
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0
-        cdef int count = len(path) / 2
+        cdef int count = <int>int(len(path) / 2.)
         cdef float *vertices = NULL
         vindex = 0
 
@@ -1188,14 +1210,14 @@ cdef class Svg(RenderContext):
             vertices[vindex + 7] = vertices[vindex + 15] = \
                 vertices[vindex + 23] = vertices[vindex + 31] = a
 
-            vertices[vindex + 0] = x1
-            vertices[vindex + 1] = y1
-            vertices[vindex + 8] = x4
-            vertices[vindex + 9] = y4
-            vertices[vindex + 16] = x2
-            vertices[vindex + 17] = y2
-            vertices[vindex + 24] = x3
-            vertices[vindex + 25] = y3
+            vertices[vindex + 0] = <float>x1
+            vertices[vindex + 1] = <float>y1
+            vertices[vindex + 8] = <float>x4
+            vertices[vindex + 9] = <float>y4
+            vertices[vindex + 16] = <float>x2
+            vertices[vindex + 17] = <float>y2
+            vertices[vindex + 24] = <float>x3
+            vertices[vindex + 25] = <float>y3
             vindex += 32
 
         # if self.closed:
@@ -1228,7 +1250,7 @@ cdef class Svg(RenderContext):
         #     tindices[17] = i7
         #     tindices = tindices + 18
 
-        self.push_strip_mesh(vertices, vindex, (vindex / 32) * 4, 1)
+        self.push_strip_mesh(vertices, vindex, <int>int((vindex / 32.)) * 4, 1)
         free(vertices)
 
     cdef void render(self):

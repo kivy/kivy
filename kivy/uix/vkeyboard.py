@@ -117,7 +117,7 @@ from kivy.config import Config
 from kivy.uix.scatter import Scatter
 from kivy.uix.label import Label
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty, \
-    BooleanProperty, DictProperty, OptionProperty, ListProperty
+    BooleanProperty, DictProperty, OptionProperty, ListProperty, ColorProperty
 from kivy.logger import Logger
 from kivy.graphics import Color, BorderImage, Canvas
 from kivy.core.image import Image
@@ -236,12 +236,16 @@ class VKeyboard(Scatter):
     defaults to 20.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a). If a background is
     set, the color will be combined with the background texture.
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background = StringProperty(
@@ -264,12 +268,16 @@ class VKeyboard(Scatter):
 
     '''
 
-    key_background_color = ListProperty([1, 1, 1, 1])
+    key_background_color = ColorProperty([1, 1, 1, 1])
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :attr:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`key_background_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     key_background_normal = StringProperty(
@@ -562,7 +570,7 @@ class VKeyboard(Scatter):
         texture = Image(background, mipmap=True).texture
 
         with self.active_keys_layer:
-            Color(1, 1, 1)
+            Color(*self.key_background_color)
             for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
                 BorderImage(texture=texture, pos=pos, size=size,
@@ -664,10 +672,11 @@ class VKeyboard(Scatter):
                                    self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
         with self.background_key_layer:
+            Color(*self.key_background_color)
             for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
-                        BorderImage(texture=texture, pos=pos, size=size,
-                                    border=self.key_border)
+                    BorderImage(texture=texture, pos=pos, size=size,
+                                border=self.key_border)
 
         # then draw the text
         for line_nb in range(1, layout_rows + 1):

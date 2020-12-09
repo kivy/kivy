@@ -140,6 +140,7 @@ import sys
 import imp
 from os.path import dirname, join, realpath, exists, abspath
 from kivy import kivy_home_dir
+from kivy.utils import platform
 import kivy
 
 #: system path where garden modules can be installed
@@ -151,6 +152,12 @@ if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', False):
     garden_app_dir = join(realpath(sys._MEIPASS), 'libs', 'garden')
 else:
     garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
+#: Fixes issue #4030 in kivy where garden path is incorrect on iOS
+if platform == "ios":
+    from os.path import join, dirname
+    import __main__
+    main_py_file = __main__.__file__
+    garden_app_dir = join(dirname(main_py_file), 'libs', 'garden')
 
 
 class GardenImporter(object):

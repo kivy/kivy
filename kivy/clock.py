@@ -50,14 +50,14 @@ to write a short function that does accept dt. For Example::
 .. note::
 
     You cannot unschedule an anonymous function unless you keep a
-    reference to it. It's better to add \*args to your function
+    reference to it. It's better to add \\*args to your function
     definition so that it can be called with an arbitrary number of
     parameters.
 
 .. important::
 
-    The callback is weak-referenced: you are responsible for keeping a
-    reference to your original object/callback. If you don't keep a
+    The class method callback is weak-referenced: you are responsible for
+    keeping a reference to your original object/callback. If you don't keep a
     reference, the ClockBase will never execute your callback. For
     example::
 
@@ -115,12 +115,13 @@ Triggered Events
 
 .. versionadded:: 1.0.5
 
-A triggered event is a way to defer a callback. It functions exactly like
-schedule_once() and schedule_interval() except that it doesn't immediately
+:meth:`CyClockBase.create_trigger` is an advanced method way to defer a
+callback. It functions exactly like :meth:`CyClockBase.schedule_once` and
+:meth:`CyClockBase.schedule_interval` except that it doesn't immediately
 schedule the callback. Instead, one schedules the callback using the
 :class:`ClockEvent` returned by it. This ensures that you can call the event
 multiple times but it won't be scheduled more than once. This is not the case
-with :meth:`Clock.schedule_once`::
+with :meth:`CyClockBase.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -137,7 +138,8 @@ with :meth:`Clock.schedule_once`::
     event()
 
 In addition, it is more convenient to create and bind to
-the triggered event than using :meth:`Clock.schedule_once` in a function::
+the triggered event than using :meth:`CyClockBase.schedule_once` in a
+function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -152,16 +154,6 @@ the triggered event than using :meth:`Clock.schedule_once` in a function::
             pass
 
 Even if x and y changes within one frame, the callback is only run once.
-
-:meth:`CyClockBase.create_trigger` has a timeout parameter that
-behaves exactly like :meth:`CyClockBase.schedule_once`.
-
-.. versionchanged:: 1.10.0
-
-    :meth:`CyClockBase.create_trigger` now has a ``interval`` parameter.
-    If False, the default, it'll create an event similar to
-    :meth:`CyClockBase.schedule_once`. Otherwise it'll create an event
-    similar to :meth:`CyClockBase.schedule_interval`.
 
 Unscheduling
 -------------
@@ -197,11 +189,103 @@ The best way to unschedule a callback is with :meth:`ClockEvent.cancel`.
 :meth:`CyClockBase.unschedule` is mainly an alias for that for that function.
 However, if the original callback itself is passed to
 :meth:`CyClockBase.unschedule`, it'll unschedule all instances of that
-callback (provided ``all`` is True, the default, other just the first match is
-removed).
+callback (provided ``all`` is True, the default, otherwise only the first match
+is removed).
 
 Calling :meth:`CyClockBase.unschedule` on the original callback is highly
 discouraged because it's significantly slower than when using the event.
+
+Clock Lifecycle
+---------------
+
+Kivy's clock has a lifecycle. By default, scheduling a callback after the Clock
+has ended will not raise an error, even though the callback may never be
+called. That's because most callbacks are like services, e.g. responding to a
+user button press - if the app is running the callbacks need to service the app
+and respond to the input, but once the app has stopped or is stopping, we can
+safely not process these events.
+
+Other events always need to be processed. E.g. another thread may request a
+callback in kivy's thread and then process some result. If the event is not
+processed in Kivy's thread because the app stopped, the second thread may
+block forever hanging the application as it exits.
+
+Consequently, we provide a API
+(:meth:`CyClockBase.create_lifecycle_aware_trigger`) for scheduling callbacks
+that raise a :class:`ClockNotRunningError` if the clock has stopped. If the
+scheduling succeeded it guarantees that one of its callbacks will be called.
+I.e. the new :meth:`CyClockBase.create_lifecycle_aware_trigger` accepts an
+additional ``clock_ended_callback`` parameter. Normally, ``callback`` will be
+called when the event is processed. But, if the clock is stopped before it can
+be processed, if the application exited normally (and the app was started) and
+the event wasn't canceled, and the callbacks are not garbage collected, then
+``clock_ended_callback`` will be called instead when the clock is stopped.
+
+That is, given these conditions, if :class:`ClockNotRunningError` was not
+raised when the event was scheduled, then one of these callbacks will be
+called - either ``callback`` if the event executed normally, or
+``clock_ended_callback`` if the clock is stopped while the event is scheduled.
+
+By default, events can be scheduled before the clock is started because it is
+assumed the clock will eventually be started when the app starts. I.e.
+calling :meth:`CyClockBase.create_lifecycle_aware_trigger` before the clock
+and application starts will succeed. But if the app never actually starts, then
+neither of the callbacks may be executed.
+
+.. versionadded:: 2.0.0
+    The lifecycle was added in 2.0.0
+
+Exception Handling
+------------------
+
+Kivy provides a exception handling manager,
+:attr:`~kivy.base.ExceptionManager`, to handle its internal exceptions
+including exceptions raised by clock callbacks, without crashing the
+application. By default when an exception is raised, the app will crash.
+But, if a handler is registered with the exception manager and the handler
+handles the exception, the app will not crash and will continue as normal.::
+
+    from kivy.base import ExceptionHandler, ExceptionManager
+    class MyHandler(ExceptionHandler):
+        def handle_exception(self, inst):
+            if isinstance(inst, ValueError):
+                Logger.exception('ValueError caught by MyHandler')
+                return ExceptionManager.PASS
+            return ExceptionManager.RAISE
+
+    ExceptionManager.add_handler(MyHandler())
+
+Then, all ValueError exceptions will be logged to the console and ignored.
+Similarly, if a scheduled clock callback raises a ValueError, other clock
+events will still be processed normally.
+
+If an event's callback raises an exception, before the exception handler is
+executed, the callback is immediately canceled.
+
+It still is possible for the app to be corrupted if kivy itself is the source
+of the exception. I.e. even with a handler that ignores exceptions and doesn't
+crash, the app may be in a corrupted state if the error originates from within
+Kivy itself. However, the exception handler can help protect the app from
+crashing and can help protect against user callbacks crashing the app.
+
+.. versionchanged:: 2.0.0
+    Prior to Kivy 2.0.0, an exception raised in a event's callback would
+    cause the clock to crash and subsequent events may or may not be executed.
+    Even if the exception was handled by an
+    :class:`~kivy.base.ExceptionHandler`, there was no guarantee that some
+    scheduled events would not be skipped.
+
+    From 2.0.0 onward, if a event's exception is handled by an
+    :class:`~kivy.base.ExceptionHandler`, other events will be shielded from
+    the exception and will execute normally.
+
+Scheduling from ``__del__``
+---------------------------
+
+It is not safe to schedule Clock events from a object's ``__del__`` or
+``__dealloc__`` method. If you must schedule a Clock call from this method, use
+:meth:`CyClockBase.schedule_del_safe` or
+:meth:`CyClockBase.schedule_lifecycle_aware_del_safe` instead.
 
 Threading and Callback Order
 -----------------------------
@@ -343,10 +427,29 @@ overwrites the config selection. Its possible values are as follows:
   independently; normal events are fps limited while free events are not - is
   used.
 
+Async clock support
+-------------------
+
+.. versionadded:: 2.0.0
+
+Experimental async support has been added in 2.0.0. The Clock now has a
+:meth:`ClockBaseBehavior.async_tick` and :meth:`ClockBaseBehavior.async_idle`
+coroutine method which is used by the kivy EventLoop when the kivy EventLoop is
+executed in a asynchronous manner. When used, the kivy clock does not
+block while idling.
+
+The async library to use is selected with the `KIVY_EVENTLOOP` environmental
+variable or by  calling :meth:`~kivy.clock.ClockBaseBehavior.init_async_lib`
+directly. The library can be one of `"asyncio"` when the standard library
+`asyncio` should be used, or `"trio"` if the trio library
+should be used. If not set it defaults to `"asyncio"`.
+
+See :mod:`~kivy.app` for example usage.
 '''
 
 __all__ = (
-    'Clock', 'ClockEvent', 'FreeClockEvent', 'CyClockBase', 'CyClockBaseFree',
+    'Clock', 'ClockNotRunningError', 'ClockEvent', 'FreeClockEvent',
+    'CyClockBase', 'CyClockBaseFree',
     'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
     'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
     'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
@@ -357,11 +460,11 @@ from functools import wraps, partial
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time, PY2
+from kivy.compat import clock as _default_time
 import time
 try:
     from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
-        CyClockBaseFree
+        CyClockBaseFree, ClockNotRunningError
 except ImportError:
     Logger.error(
         'Clock: Unable to import kivy._clock. Have you perhaps forgotten to '
@@ -371,10 +474,6 @@ except ImportError:
         'to compile Kivy')
     raise
 
-try:
-    from multiprocessing import Event as MultiprocessingEvent
-except ImportError:  # https://bugs.python.org/issue3770
-    from threading import Event as MultiprocessingEvent
 from threading import Event as ThreadingEvent
 
 # some reading: http://gameprogrammingpatterns.com/game-loop.html
@@ -394,7 +493,7 @@ try:
 
         _kernel32 = ctypes.windll.kernel32
 
-        def _get_sleep_obj():
+        def _get_sleep_obj():  # noqa: F811
             return _kernel32.CreateWaitableTimerA(None, True, None)
 
         def _usleep(microseconds, obj=None):
@@ -432,6 +531,8 @@ try:
                     # 12: CLOCK_MONOTONIC_FAST (FreeBSD specific)
                     Logger.debug('clock.py: {{{:s}}} clock ID {:d}'.format(
                         platform, _clockid))
+                elif 'openbsd' in platform:
+                    _clockid = 3  # CLOCK_MONOTONIC
                 else:
                     _clockid = 1  # CLOCK_MONOTONIC
 
@@ -446,7 +547,7 @@ try:
 
                 return _time
 
-            _default_time = _libc_clock_gettime_wrapper()
+            _default_time = _libc_clock_gettime_wrapper()  # noqa: F811
 
         _libc.usleep.argtypes = [ctypes.c_ulong]
         _libc_usleep = _libc.usleep
@@ -467,6 +568,17 @@ except (OSError, ImportError, AttributeError):
 
 class ClockBaseBehavior(object):
     '''The base of the kivy clock.
+
+    :parameters:
+
+        `async_lib`: string
+            The async library to use when the clock is run asynchronously.
+            Can be one of, `"asyncio"` when the standard library asyncio
+            should be used, or `"trio"` if the trio library should be used.
+
+            It defaults to `'asyncio'` or the value in the environmental
+            variable `KIVY_EVENTLOOP` if set. :meth:`init_async_lib` can also
+            be called directly to set the library.
     '''
 
     _dt = 0.0001
@@ -490,14 +602,48 @@ class ClockBaseBehavior(object):
 
     MIN_SLEEP = 0.005
     '''The minimum time to sleep. If the remaining time is less than this,
-    the event loop will continuo
+    the event loop will continue.
     '''
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
-    def __init__(self, **kwargs):
+    _async_lib = None
+
+    _async_wait_for = None
+
+    def __init__(self, async_lib='asyncio', **kwargs):
+        self.init_async_lib(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
+
+    def init_async_lib(self, lib):
+        """Manually sets the async library to use internally, when running in
+        a asynchronous manner.
+
+        This can be called anytime before the kivy event loop has started,
+        but not once the kivy App is running.
+
+        :parameters:
+
+            `lib`: string
+                The async library to use when the clock is run asynchronously.
+                Can be one of, `"asyncio"` when the standard library asyncio
+                should be used, or `"trio"` if the trio library should be used.
+        """
+        if lib == 'trio':
+            import trio
+            self._async_lib = trio
+
+            async def wait_for(coro, t):
+                with trio.move_on_after(t):
+                    await coro
+            self._async_wait_for = wait_for
+        elif lib == 'asyncio':
+            import asyncio
+            self._async_lib = asyncio
+            self._async_wait_for = asyncio.wait_for
+        else:
+            raise ValueError('async library {} not recognized'.format(lib))
 
     @property
     def frametime(self):
@@ -548,6 +694,32 @@ class ClockBaseBehavior(object):
         self._last_tick = current
         return current
 
+    async def async_idle(self):
+        '''(internal) async version of :meth:`idle`.
+        '''
+        fps = self._max_fps
+        if fps > 0:
+            min_sleep = self.get_resolution()
+            undershoot = 4 / 5. * min_sleep
+            ready = self._check_ready
+
+            slept = False
+            done, sleeptime = ready(fps, min_sleep, undershoot)
+            while not done:
+                slept = True
+                await self._async_lib.sleep(sleeptime)
+                done, sleeptime = ready(fps, min_sleep, undershoot)
+
+            if not slept:
+                await self._async_lib.sleep(0)
+        else:
+            await self._async_lib.sleep(0)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        return current
+
     def _check_ready(self, fps, min_sleep, undershoot):
         sleeptime = 1 / fps - (self.time() - self._last_tick)
         return sleeptime - undershoot <= min_sleep, sleeptime - undershoot
@@ -556,12 +728,25 @@ class ClockBaseBehavior(object):
         '''Advance the clock to the next step. Must be called every frame.
         The default clock has a tick() function called by the core Kivy
         framework.'''
+        self.pre_idle()
+        ts = self.time()
+        self.post_idle(ts, self.idle())
 
+    async def async_tick(self):
+        '''async version of :meth:`tick`. '''
+        self.pre_idle()
+        ts = self.time()
+        current = await self.async_idle()
+        self.post_idle(ts, current)
+
+    def pre_idle(self):
+        '''Called before :meth:`idle` by :meth:`tick`.
+        '''
         self._release_references()
 
-        ts = self.time()
-        current = self.idle()
-
+    def post_idle(self, ts, current):
+        '''Called after :meth:`idle` by :meth:`tick`.
+        '''
         # tick the current time
         self._frames += 1
         self._fps_counter += 1
@@ -623,6 +808,12 @@ class ClockBaseBehavior(object):
 
     time = staticmethod(partial(_default_time))
 
+    def handle_exception(self, e):
+        from kivy.base import ExceptionManager
+
+        if ExceptionManager.handle_exception(e) == ExceptionManager.RAISE:
+            raise
+
 
 ClockBaseBehavior.time.__doc__ = \
     '''Proxy method for :func:`~kivy.compat.clock`. '''
@@ -634,17 +825,37 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
     interupt_next_only = False
     _event = None
+    _async_event = None
     _get_min_timeout_func = None
 
     def __init__(self, interupt_next_only=False, **kwargs):
         super(ClockBaseInterruptBehavior, self).__init__(**kwargs)
-        self._event = MultiprocessingEvent() if PY2 else ThreadingEvent()
+        self._event = ThreadingEvent()
         self.interupt_next_only = interupt_next_only
         self._get_min_timeout_func = self.get_min_timeout
+
+    def init_async_lib(self, lib):
+        super(ClockBaseInterruptBehavior, self).init_async_lib(lib)
+        if lib == 'trio':
+            import trio
+            self._async_event = trio.Event()
+            # we don't know if this is called after things have already been
+            # scheduled, so don't delay for a full frame before processing
+            # events
+            self._async_event.set()
+        elif lib == 'asyncio':
+            import asyncio
+            self._async_event = asyncio.Event()
+            self._async_event.set()
 
     def usleep(self, microseconds):
         self._event.clear()
         self._event.wait(microseconds / 1000000.)
+
+    async def async_usleep(self, microseconds):
+        self._async_event.clear()
+        await self._async_wait_for(
+            self._async_event.wait(), microseconds / 1000000.)
 
     def on_schedule(self, event):
         fps = self._max_fps
@@ -657,6 +868,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
                 (self.time() - self._last_tick) +  # elapsed time
                 4 / 5. * self.get_resolution()):  # resolution fudge factor
             self._event.set()
+            if self._async_event:
+                self._async_event.set()
 
     def idle(self):
         fps = self._max_fps
@@ -664,7 +877,7 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         resolution = self.get_resolution()
         if fps > 0:
             done, sleeptime = self._check_ready(
-                fps, resolution, 4 / 5. * resolution)
+                fps, resolution, 4 / 5. * resolution, event)
             if not done:
                 event.wait(sleeptime)
 
@@ -679,8 +892,33 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         # the `self._last_tick = current` bytecode.
         return current
 
-    def _check_ready(self, fps, min_sleep, undershoot):
-        if self._event.is_set():
+    async def async_idle(self):
+        fps = self._max_fps
+        event = self._async_event
+        resolution = self.get_resolution()
+        if fps > 0:
+            done, sleeptime = self._check_ready(
+                fps, resolution, 4 / 5. * resolution, event)
+            if not done:
+                await self._async_wait_for(event.wait(), sleeptime)
+            else:
+                await self._async_lib.sleep(0)
+        else:
+            await self._async_lib.sleep(0)
+
+        current = self.time()
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()
+        # anything scheduled from now on, if scheduled for the upcoming frame
+        # will cause a timeout of the event on the next idle due to on_schedule
+        # `self._last_tick = current` must happen before clear, otherwise the
+        # on_schedule computation is wrong when exec between the clear and
+        # the `self._last_tick = current` bytecode.
+        return current
+
+    def _check_ready(self, fps, min_sleep, undershoot, event):
+        if event.is_set():
             return True, 0
 
         t = self._get_min_timeout_func()
@@ -785,6 +1023,52 @@ class ClockBaseFreeInterruptOnly(
         event.clear()  # this needs to stay after _last_tick
         return current
 
+    async def async_idle(self):
+        fps = self._max_fps
+        current = self.time()
+        event = self._async_event
+        if fps > 0:
+            min_sleep = self.get_resolution()
+            usleep = self.usleep
+            undershoot = 4 / 5. * min_sleep
+            min_t = self.get_min_free_timeout
+            interupt_next_only = self.interupt_next_only
+
+            sleeptime = 1 / fps - (current - self._last_tick)
+            slept = False
+            while sleeptime - undershoot > min_sleep:
+                if event.is_set():
+                    do_free = True
+                else:
+                    t = min_t()
+                    if not t:
+                        do_free = True
+                    elif interupt_next_only:
+                        do_free = False
+                    else:
+                        sleeptime = min(sleeptime, t - current)
+                        do_free = sleeptime - undershoot <= min_sleep
+
+                if do_free:
+                    event.clear()
+                    self._process_free_events(current)
+                else:
+                    slept = True
+                    await self._async_wait_for(
+                        event.wait(), sleeptime - undershoot)
+                current = self.time()
+                sleeptime = 1 / fps - (current - self._last_tick)
+
+            if not slept:
+                await self._async_lib.sleep(0)
+        else:
+            await self._async_lib.sleep(0)
+
+        self._dt = current - self._last_tick
+        self._last_tick = current
+        event.clear()  # this needs to stay after _last_tick
+        return current
+
 
 def mainthread(func):
     '''Decorator that will schedule the call of the function for the next
@@ -870,7 +1154,7 @@ def triggered(timeout=0, interval=False):
 
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.
-    Clock = None
+    Clock: ClockBase = None
 else:
     _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
                 'free_all': ClockBaseFreeInterruptAll,
@@ -881,6 +1165,8 @@ else:
             '{} is not a valid kivy clock. Valid clocks are {}'.format(
                 _clk, sorted(_classes.keys())))
 
-    Clock = register_context('Clock', _classes[_clk])
+    Clock: ClockBase = register_context(
+        'Clock', _classes[_clk],
+        async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
     '''The kivy Clock instance. See module documentation for details.
     '''

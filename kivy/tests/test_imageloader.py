@@ -32,10 +32,10 @@ v0_PIXELS = {  # NOTE: 't' is not included here, see match_prediction()
 
 # Kivy image test protocol v0: File name
 # width x height _ pattern _ alpha _ fmtinfo _ testname _ encoder . ext
-v0_FILE_RE = re.compile('^v0_(\d+)x(\d+)_' '([wxrgbycptA-F0-9]+)_'
-                        '([0-9a-fA-F]{2})_' '([a-zA-Z0-9\-]+)_'
-                        '([a-zA-Z0-9\-]+)_' '([a-zA-Z0-9\-]+)'
-                        '\.([a-z]+)$')
+v0_FILE_RE = re.compile(r'^v0_(\d+)x(\d+)_' r'([wxrgbycptA-F0-9]+)_'
+                        r'([0-9a-fA-F]{2})_' r'([a-zA-Z0-9-]+)_'
+                        r'([a-zA-Z0-9-]+)_' r'([a-zA-Z0-9-]+)'
+                        r'\.([a-z]+)$')
 
 
 def asset(*fn):
@@ -477,7 +477,6 @@ class ConverterTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import sys
     accept_filter = ['ImageLoader{}'.format(x) for x in sys.argv[1:]]
     if accept_filter:
         LOADERS = {x: LOADERS[x] for x in accept_filter}

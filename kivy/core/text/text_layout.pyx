@@ -106,7 +106,7 @@ cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
         This assumes that global h is accurate and includes the text previously
         added to the line.
         '''
-        cdef int old_lh = line.h, count = len(lines), add_h
+        cdef int old_lh = line.h, count = <int>len(lines), add_h
         if lw:
             line.words.append(LayoutWord(options, lw, lh, text))
             line.w += lw
@@ -154,7 +154,7 @@ cdef inline void final_strip(LayoutLine line):
 
         stripped = last_word.text.rstrip()  # ends with space
         # subtract ending space length
-        diff = ((len(last_word.text) - len(stripped)) *
+        diff = ((<int>len(last_word.text) - <int>len(stripped)) *
                 last_word.options['space_width'])
         line.w = max(0, line.w - diff)  # line w
         line.words.append(LayoutWord(   # re-add last word
@@ -176,10 +176,10 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
     cdef LayoutLine _line
 
     new_lines = text.split('\n')
-    n = len(new_lines)
+    n = <int>len(new_lines)
     s = 0
     k = n
-    pos = len(lines)  # always include first line, start w/ no lines added
+    pos = <int>len(lines)  # always include first line, start w/ no lines added
     # there's a last line to which first (last) new line must be appended
     if pos:
         if dwn:  # append to last line
@@ -410,7 +410,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
 
     new_lines = text.split('\n')
-    n = len(new_lines)
+    n = <int>len(new_lines)
     uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
     _, bare_h = get_extents('')
     if dwn:
@@ -419,7 +419,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     # split into lines and find how many line wraps each line requires
     indices = range(n) if dwn else reversed(range(n))
     for i in indices:
-        k = len(lines)
+        k = <int>len(lines)
         if (max_lines > 0 and k > max_lines or uh != -1 and
             h > uh and k > 1):
             break
@@ -447,7 +447,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         if strip and ends_line:
             line = line.rstrip()
 
-        k = len(line)
+        k = <int>len(line)
         if not k:  # just add empty line if empty
             _line.is_last_line = ends_line  # nothing will be appended
             # ensure we don't leave trailing from before
@@ -514,7 +514,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
                 # try to fit word on new line, if it doesn't fit we'll
                 # have to break the word into as many lines needed
                 if strip or ref_strip and _line.line_wrap:
-                    s = e - len(line[s:e].lstrip())
+                    s = e - <int>len(line[s:e].lstrip())
                 if s == e:  # if it was only a stripped space, move on
                     m = s
                     continue
@@ -566,12 +566,14 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     if max_lines > 0 and len(lines) > max_lines:
         val = True
         if dwn:
+            h-= sum(l.h for l in lines[max_lines:])
             del lines[max_lines:]
         else:
-            del lines[:max(0, len(lines) - max_lines)]
+            h-= sum(l.h for l in lines[:max(0, <int>len(lines) - max_lines)])
+            del lines[:max(0, <int>len(lines) - max_lines)]
 
     # now make sure we don't have lines outside specified height
-    k = len(lines)
+    k = <int>len(lines)
     if k > 1 and uh != -1 and h > uh:
         val = True
         if dwn:  # remove from last line going up

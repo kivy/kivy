@@ -96,7 +96,7 @@ Kv Example::
         Label:
             size_hint_y: None
             height: self.texture_size[1]
-            text_size: self.width
+            text_size: self.width, None
             padding: 10, 10
             text:
                 'really some amazing text\\n' * 100
@@ -148,10 +148,11 @@ from kivy.config import Config
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.stencilview import StencilView
-from kivy.metrics import sp, dp
+from kivy.metrics import dp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty
+    ObjectProperty, ListProperty, ReferenceListProperty, OptionProperty, \
+    ColorProperty
 from kivy.uix.behaviors import FocusBehavior
 
 
@@ -262,7 +263,7 @@ class ScrollView(StencilView):
         return (self.do_scroll_x, self.do_scroll_y)
 
     def _set_do_scroll(self, value):
-        if type(value) in (list, tuple):
+        if isinstance(value, (list, tuple)):
             self.do_scroll_x, self.do_scroll_y = value
         else:
             self.do_scroll_x = self.do_scroll_y = bool(value)
@@ -274,6 +275,23 @@ class ScrollView(StencilView):
 
     :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
     (:attr:`do_scroll_x` + :attr:`do_scroll_y`)
+    '''
+
+    always_overscroll = BooleanProperty(True)
+    '''Make sure user can overscroll even if there is not enough content
+    to require scrolling.
+
+    This is useful if you want to trigger some action on overscroll, but
+    there is not always enough content to trigger it.
+
+    :attr:`always_overscroll` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to `True`.
+
+    .. versionadded:: 2.0.0
+
+    The option was added and enabled by default, set to False to get the
+    previous behavior of only allowing to overscroll when there is
+    enough content to allow scrolling.
     '''
 
     def _get_vbar(self):
@@ -299,7 +317,7 @@ class ScrollView(StencilView):
     .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a
-    percentage of the current scrollview height. This property is used
+    proportion of the current scrollview height. This property is used
     internally for drawing the little vertical bar when you're scrolling.
 
     :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
@@ -328,29 +346,37 @@ class ScrollView(StencilView):
     .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a
-    percentage of the current scrollview height. This property is used
+    proportion of the current scrollview height. This property is used
     internally for drawing the little horizontal bar when you're scrolling.
 
-    :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    :attr:`hbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
 
-    bar_color = ListProperty([.7, .7, .7, .9])
+    bar_color = ColorProperty([.7, .7, .7, .9])
     '''Color of horizontal / vertical scroll bar, in RGBA format.
 
     .. versionadded:: 1.2.0
 
-    :attr:`bar_color` is a :class:`~kivy.properties.ListProperty` and defaults
+    :attr:`bar_color` is a :class:`~kivy.properties.ColorProperty` and defaults
     to [.7, .7, .7, .9].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    bar_inactive_color = ListProperty([.7, .7, .7, .2])
+    bar_inactive_color = ColorProperty([.7, .7, .7, .2])
     '''Color of horizontal / vertical scroll bar (in RGBA format), when no
     scroll is happening.
 
     .. versionadded:: 1.9.0
 
     :attr:`bar_inactive_color` is a
-    :class:`~kivy.properties.ListProperty` and defaults to [.7, .7, .7, .2].
+    :class:`~kivy.properties.ColorProperty` and defaults to [.7, .7, .7, .2].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     bar_width = NumericProperty('2dp')
@@ -540,9 +566,8 @@ class ScrollView(StencilView):
         fbind('scroll_y', trigger_update_from_scroll)
         fbind('pos', trigger_update_from_scroll)
         fbind('size', trigger_update_from_scroll)
-        fbind('scroll_y', self._update_effect_bounds)
-        fbind('scroll_x', self._update_effect_bounds)
 
+        trigger_update_from_scroll()
         update_effect_widget()
         update_effect_x_bounds()
         update_effect_y_bounds()
@@ -574,24 +599,22 @@ class ScrollView(StencilView):
     def _update_effect_x_bounds(self, *args):
         if not self._viewport or not self.effect_x:
             return
-        self.effect_x.min = -(self.viewport_size[0] - self.width)
-        self.effect_x.max = 0
-        self.effect_x.value = self.effect_x.min * self.scroll_x
+        scrollable_width = self.width - self.viewport_size[0]
+        self.effect_x.min = 0
+        self.effect_x.max = min(0, scrollable_width)
+        self.effect_x.value = scrollable_width * self.scroll_x
 
     def _update_effect_y_bounds(self, *args):
         if not self._viewport or not self.effect_y:
             return
-        self.effect_y.min = -(self.viewport_size[1] - self.height)
-        self.effect_y.max = 0
-        self.effect_y.value = self.effect_y.min * self.scroll_y
+        scrollable_height = self.height - self.viewport_size[1]
+        self.effect_y.min = 0 if scrollable_height < 0 else scrollable_height
+        self.effect_y.max = scrollable_height
+        self.effect_y.value = self.effect_y.max * self.scroll_y
 
     def _update_effect_bounds(self, *args):
-        if not self._viewport:
-            return
-        if self.effect_x:
-            self._update_effect_x_bounds()
-        if self.effect_y:
-            self._update_effect_y_bounds()
+        self._update_effect_x_bounds()
+        self._update_effect_y_bounds()
 
     def _update_effect_x(self, *args):
         vp = self._viewport
@@ -602,10 +625,11 @@ class ScrollView(StencilView):
             sw = vp.width - self._effect_x_start_width
         else:
             sw = vp.width - self.width
-        if sw < 1:
+        if sw < 1 and not (self.always_overscroll and self.do_scroll_x):
             return
-        sx = self.effect_x.scroll / float(sw)
-        self.scroll_x = -sx
+        if sw != 0:
+            sx = self.effect_x.scroll / sw
+            self.scroll_x = -sx
         self._trigger_update_from_scroll()
 
     def _update_effect_y(self, *args):
@@ -616,10 +640,12 @@ class ScrollView(StencilView):
             sh = vp.height - self._effect_y_start_height
         else:
             sh = vp.height - self.height
-        if sh < 1:
+
+        if sh < 1 and not (self.always_overscroll and self.do_scroll_y):
             return
-        sy = self.effect_y.scroll / float(sh)
-        self.scroll_y = -sy
+        if sh != 0:
+            sy = self.effect_y.scroll / sh
+            self.scroll_y = -sy
         self._trigger_update_from_scroll()
 
     def to_local(self, x, y, **k):
@@ -681,8 +707,9 @@ class ScrollView(StencilView):
         scroll_bar = 'bars' in scroll_type
 
         # check if touch is in bar_x(horizontal) or bar_y(vertical)
-        width_scrollable = vp.width > self.width
-        height_scrollable = vp.height > self.height
+        # width_enable_overscroll or vp.width > self.width
+        width_scrollable = self.always_overscroll or vp.width > self.width
+        height_scrollable = self.always_overscroll or vp.height > self.height
 
         d = {'bottom': touch.y - self.y - self.bar_margin,
              'top': self.top - touch.y - self.bar_margin,
@@ -690,42 +717,59 @@ class ScrollView(StencilView):
              'right': self.right - touch.x - self.bar_margin}
 
         ud['in_bar_x'] = (scroll_bar and width_scrollable and
-                             (0 <= d[self.bar_pos_x] <= self.bar_width))
+                          (0 <= d[self.bar_pos_x] <= self.bar_width))
         ud['in_bar_y'] = (scroll_bar and height_scrollable and
-                             (0 <= d[self.bar_pos_y] <= self.bar_width))
+                          (0 <= d[self.bar_pos_y] <= self.bar_width))
 
-        if vp and 'button' in touch.profile and \
-                touch.button.startswith('scroll'):
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
             btn = touch.button
             m = self.scroll_wheel_distance
             e = None
 
-            if ((btn == 'scrolldown' and self.scroll_y >= 1) or
-                (btn == 'scrollup' and self.scroll_y <= 0) or
-                (btn == 'scrollleft' and self.scroll_x >= 1) or
-                    (btn == 'scrollright' and self.scroll_x <= 0)):
+            if (
+                (btn == 'scrolldown' and self.scroll_y >= 1)
+                or (btn == 'scrollup' and self.scroll_y <= 0)
+                or (btn == 'scrollleft' and self.scroll_x >= 1)
+                or (btn == 'scrollright' and self.scroll_x <= 0)
+            ):
                 return False
 
-            if (self.effect_x and self.do_scroll_y and height_scrollable and
-                    btn in ('scrolldown', 'scrollup')):
+            if (
+                self.effect_x
+                and self.do_scroll_y
+                and height_scrollable
+                and btn in ('scrolldown', 'scrollup')
+            ):
                 e = self.effect_x if ud['in_bar_x'] else self.effect_y
 
-            elif (self.effect_y and self.do_scroll_x and width_scrollable and
-                    btn in ('scrollleft', 'scrollright')):
+            elif (
+                self.effect_y
+                and self.do_scroll_x
+                and width_scrollable
+                and btn in ('scrollleft', 'scrollright')
+            ):
                 e = self.effect_y if ud['in_bar_y'] else self.effect_x
 
             if e:
+                # make sure the effect's value is synced to scroll value
+                self._update_effect_bounds()
                 if btn in ('scrolldown', 'scrollleft'):
                     if self.smooth_scroll_end:
                         e.velocity -= m * self.smooth_scroll_end
                     else:
-                        e.value = max(e.value - m, e.min)
+                        if self.always_overscroll:
+                            e.value = e.value - m
+                        else:
+                            e.value = max(e.value - m, e.max)
                         e.velocity = 0
                 elif btn in ('scrollup', 'scrollright'):
                     if self.smooth_scroll_end:
                         e.velocity += m * self.smooth_scroll_end
                     else:
-                        e.value = min(e.value + m, e.max)
+                        if self.always_overscroll:
+                            e.value = e.value + m
+                        else:
+                            e.value = min(e.value + m, e.min)
                         e.velocity = 0
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
@@ -756,13 +800,23 @@ class ScrollView(StencilView):
             'dy': 0,
             'user_stopped': in_bar,
             'frames': Clock.frames,
-            'time': touch.time_start}
+            'time': touch.time_start,
+        }
 
-        if self.do_scroll_x and self.effect_x and not ud['in_bar_x']:
+        if (self.do_scroll_x and self.effect_x and not ud['in_bar_x']
+                and not ud['in_bar_y']):
+            # make sure the effect's value is synced to scroll value
+            self._update_effect_bounds()
+
             self._effect_x_start_width = self.width
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
-        if self.do_scroll_y and self.effect_y and not ud['in_bar_y']:
+
+        if (self.do_scroll_y and self.effect_y and not ud['in_bar_x']
+                and not ud['in_bar_y']):
+            # make sure the effect's value is synced to scroll value
+            self._update_effect_bounds()
+
             self._effect_y_start_height = self.height
             self.effect_y.start(touch.y)
             self._scroll_y_mouse = self.scroll_y
@@ -826,7 +880,7 @@ class ScrollView(StencilView):
 
         # check if the minimum distance has been travelled
         if ud['mode'] == 'unknown':
-            if not self.do_scroll_x and not self.do_scroll_y:
+            if not (self.do_scroll_x or self.do_scroll_y):
                 # touch is in parent, but _change expects window coords
                 touch.push()
                 touch.apply_transform_2d(self.to_local)
@@ -845,9 +899,10 @@ class ScrollView(StencilView):
                     and self.effect_x:
                 width = self.width
                 if touch.ud.get('in_bar_x', False):
-                    dx = touch.dx / float(width - width * self.hbar[1])
-                    self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
-                    self._trigger_update_from_scroll()
+                    if self.hbar[1] != 1:
+                        dx = touch.dx / float(width - width * self.hbar[1])
+                        self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
+                        self._trigger_update_from_scroll()
                 else:
                     if self.scroll_type != ['bars']:
                         self.effect_x.update(touch.x)
@@ -1028,6 +1083,7 @@ class ScrollView(StencilView):
         if the size of the content changes.
         '''
         if not self._viewport:
+            self.g_translate.xy = self.pos
             return
         vp = self._viewport
 
@@ -1039,6 +1095,7 @@ class ScrollView(StencilView):
             if vp.size_hint_max_x is not None:
                 w = min(w, vp.size_hint_max_x)
             vp.width = w
+
         if vp.size_hint_y is not None:
             h = vp.size_hint_y * self.height
             if vp.size_hint_min_y is not None:
@@ -1047,12 +1104,13 @@ class ScrollView(StencilView):
                 h = min(h, vp.size_hint_max_y)
             vp.height = h
 
-        if vp.width > self.width:
+        if vp.width > self.width or self.always_overscroll:
             sw = vp.width - self.width
             x = self.x - self.scroll_x * sw
         else:
             x = self.x
-        if vp.height > self.height:
+
+        if vp.height > self.height or self.always_overscroll:
             sh = vp.height - self.height
             y = self.y - self.scroll_y * sh
         else:

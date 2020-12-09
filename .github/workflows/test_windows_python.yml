@@ -1,0 +1,37 @@
+name: Windows Unittests
+
+on: [push, pull_request]
+
+env:
+  GST_REGISTRY: '~/registry.bin'
+  KIVY_GL_BACKEND: 'angle_sdl2'
+  KIVY_SPLIT_EXAMPLES: 1
+  SETUPTOOLS_USE_DISTUTILS: local
+
+jobs:
+  unit_test:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        arch: ['x64', 'x86']
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.arch }}
+    - name: Install dependencies
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy-test-run-win-deps
+        Install-kivy-test-run-pip-deps
+    - name: Install Kivy
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy
+    - name: Test Kivy
+      run: |
+        . .\.ci\windows_ci.ps1
+        Test-kivy

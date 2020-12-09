@@ -18,8 +18,9 @@ from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
-from kivy.graphics.opengl import *
-from kivy.graphics import *
+from kivy.graphics.opengl import glEnable, glDisable, GL_DEPTH_TEST
+from kivy.graphics import RenderContext, Callback, PushMatrix, PopMatrix, \
+    Color, Translate, Rotate, Mesh, UpdateNormalMatrix
 from objloader import ObjFile
 
 

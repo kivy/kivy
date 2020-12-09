@@ -130,6 +130,7 @@ from kivy.graphics import (RenderContext, Fbo, Color, Rectangle,
 from kivy.event import EventDispatcher
 from kivy.base import EventLoop
 from kivy.resources import resource_find
+from kivy.logger import Logger
 
 __all__ = ('EffectWidget', 'EffectBase', 'AdvancedEffectBase',
            'MonochromeEffect', 'InvertEffect', 'ChannelMixEffect',

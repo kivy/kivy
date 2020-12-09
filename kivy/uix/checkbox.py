@@ -30,7 +30,7 @@ An example usage::
 
 __all__ = ('CheckBox', )
 
-from kivy.properties import AliasProperty, StringProperty, ListProperty
+from kivy.properties import AliasProperty, StringProperty, ColorProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.widget import Widget
 
@@ -155,7 +155,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
     'atlas://data/images/defaulttheme/checkbox_radio_disabled_on'.
     '''
 
-    color = ListProperty([1, 1, 1, 1])
+    color = ColorProperty([1, 1, 1, 1])
     '''Color is used for tinting the default graphical representation
     of checkbox and radio button (images).
 
@@ -164,8 +164,12 @@ class CheckBox(ToggleButtonBehavior, Widget):
     .. versionadded:: 1.10.0
 
     :attr:`color` is a
-    :class:`~kivy.properties.ListProperty` and defaults to
+    :class:`~kivy.properties.ColorProperty` and defaults to
     '[1, 1, 1, 1]'.
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     def __init__(self, **kwargs):

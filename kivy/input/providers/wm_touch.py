@@ -6,7 +6,10 @@ Support for WM_TOUCH messages (Windows platform)
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import *
+from kivy.input.providers.wm_common import WNDPROC, \
+    SetWindowLong_WndProc_wrapper, RECT, POINT, WM_TABLET_QUERYSYSTEMGESTURE, \
+    QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE, WM_MOUSELAST, \
+    TOUCHINPUT, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE, PEN_EVENT_TOUCH_MASK
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 

@@ -308,15 +308,107 @@ Here is a simple example of how on_pause() should be used::
     Both `on_pause` and `on_stop` must save important data because after
     `on_pause` is called, `on_resume` may not be called at all.
 
+Asynchronous app
+----------------
+
+In addition to running an app normally,
+Kivy can be run within an async event loop such as provided by the standard
+library asyncio package or the trio package (highly recommended).
+
+Background
+~~~~~~~~~~
+
+Normally, when a Kivy app is run, it blocks the thread that runs it until the
+app exits. Internally, at each clock iteration it executes all the app
+callbacks, handles graphics and input, and idles by sleeping for any remaining
+time.
+
+To be able to run asynchronously, the Kivy app may not sleep, but instead must
+release control of the running context to the asynchronous event loop running
+the Kivy app. We do this when idling by calling the appropriate functions of
+the async package being used instead of sleeping.
+
+Async configuration
+~~~~~~~~~~~~~~~~~~~
+
+To run a Kivy app asynchronously, either the :func:`async_runTouchApp` or
+:meth:`App.async_run` coroutine must be scheduled to run in the event loop of
+the async library being used.
+
+The environmental variable ``KIVY_EVENTLOOP`` or the ``async_lib`` parameter in
+:func:`async_runTouchApp` and :meth:`App.async_run` set the async
+library that Kivy uses internally when the app is run with
+:func:`async_runTouchApp` and :meth:`App.async_run`. It can be set to one of
+`"asyncio"` when the standard library `asyncio` is used, or `"trio"` if the
+trio library is used. If the environment variable is not set and ``async_lib``
+is not provided, the stdlib ``asyncio`` is used.
+
+:meth:`~kivy.clock.ClockBaseBehavior.init_async_lib` can also be directly
+called to set the async library to use, but it may only be called before the
+app has begun running with :func:`async_runTouchApp` or :meth:`App.async_run`.
+
+To run the app asynchronously, one schedules :func:`async_runTouchApp`
+or :meth:`App.async_run` to run within the given library's async event loop as
+in the examples shown below. Kivy is then treated as just another coroutine
+that the given library runs in its event loop. Internally, Kivy will use the
+specified async library's API, so ``KIVY_EVENTLOOP`` or ``async_lib`` must
+match the async library that is running Kivy.
+
+
+For a fuller basic and more advanced examples, see the demo apps in
+``examples/async``.
+
+Asyncio example
+~~~~~~~~~~~~~--
+
+.. code-block:: python
+
+    import asyncio
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        async_runTouchApp(Label(text='Hello, World!'), async_lib='asyncio'))
+    loop.close()
+
+Trio example
+~~~~~~~~~~--
+
+.. code-block:: python
+
+    import trio
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+    trio.run(async_runTouchApp, Label(text='Hello, World!'), async_lib='trio')
+
+Interacting with Kivy app from other coroutines
+-----------------------------------------------
+
+It is fully safe to interact with any kivy object from other coroutines
+running within the same async event loop. This is because they are all running
+from the same thread and the other coroutines are only executed when Kivy
+is idling.
+
+Similarly, the kivy callbacks may safely interact with objects from other
+coroutines running in the same event loop. Normal single threaded rules apply
+to both case.
+
+.. versionadded:: 2.0.0
+
 '''
 
-__all__ = ('App', )
+__all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
 
 import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
-from kivy.base import runTouchApp, stopTouchApp
+from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
@@ -820,9 +912,7 @@ Context.html#getFilesDir()>`_ is returned.
             self._app_name = clsname.lower()
         return self._app_name
 
-    def run(self):
-        '''Launches the app in standalone mode.
-        '''
+    def _run_prepare(self):
         if not self.built:
             self.load_config()
             self.load_kv(filename=self.kv_file)
@@ -852,7 +942,24 @@ Context.html#getFilesDir()>`_ is returned.
             return
 
         self.dispatch('on_start')
+
+    def run(self):
+        '''Launches the app in standalone mode.
+        '''
+        self._run_prepare()
         runTouchApp()
+        self.stop()
+
+    async def async_run(self, async_lib=None):
+        '''Identical to :meth:`run`, but is a coroutine and can be
+        scheduled in a running async event loop.
+
+        See :mod:`kivy.app` for example usage.
+
+        .. versionadded:: 2.0.0
+        '''
+        self._run_prepare()
+        await async_runTouchApp(async_lib=async_lib)
         self.stop()
 
     def stop(self, *largs):
@@ -868,6 +975,7 @@ Context.html#getFilesDir()>`_ is returned.
         if self._app_window:
             for child in self._app_window.children:
                 self._app_window.remove_widget(child)
+        App._running_app = None
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after

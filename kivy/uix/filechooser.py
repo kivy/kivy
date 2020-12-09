@@ -87,6 +87,8 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
 
 from weakref import ref
 from time import time
+
+from kivy.core.text import DEFAULT_FONT
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -350,7 +352,7 @@ class FileChooserController(RelativeLayout):
     '''
     filters specifies the filters to be applied to the files in the directory.
     filters is a :class:`~kivy.properties.ListProperty` and defaults to [].
-    This is equivalent to '\*' i.e. nothing is filtered.
+    This is equivalent to '\\*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -359,13 +361,13 @@ class FileChooserController(RelativeLayout):
 
     #. Patterns
 
-        e.g. ['\*.png'].
+        e.g. ['\\*.png'].
         You can use the following patterns:
 
             ========== =================================
             Pattern     Meaning
             ========== =================================
-            \*         matches everything
+            \\*         matches everything
             ?          matches any single character
             [seq]      matches any character in seq
             [!seq]     matches any character not in seq
@@ -510,6 +512,16 @@ class FileChooserController(RelativeLayout):
     :class:`FileSystemLocal()`
 
     .. versionadded:: 1.8.0
+    '''
+
+    font_name = StringProperty(DEFAULT_FONT)
+    '''Filename of the font to use in UI components. The path can be
+    absolute or relative.  Relative paths are resolved by the
+    :func:`~kivy.resources.resource_find` function.
+
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'Roboto'. This value is taken
+    from :class:`~kivy.config.Config`.
     '''
 
     _update_files_ev = None
@@ -687,6 +699,7 @@ class FileChooserController(RelativeLayout):
         self._gitems_gen = self._generate_file_entries(
             path=kwargs.get('path', self.path),
             parent=self._gitems_parent)
+        self.path = abspath(self.path)
 
         # cancel any previous clock if exist
         ev = self._create_files_entries_ev

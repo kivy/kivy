@@ -127,7 +127,15 @@ cdef class _SurfaceContainer:
         r.w = st.w
         r.h = st.h
         SDL_SetSurfaceAlphaMod(st, <int>(color[3] * 255))
-        SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
+        if container.options['line_height'] < 1:
+            """
+            We are using SDL_BLENDMODE_BLEND only when line_height < 1 as a workaround.
+            Previously, We enabled SDL_BLENDMODE_BLEND also for text w/ line_height >= 1,
+            but created an unexpected behavior (See PR #6507 and issue #6508).
+            """
+            SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_BLEND)
+        else:
+            SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
         SDL_FreeSurface(st)
 
@@ -138,11 +146,12 @@ cdef class _SurfaceContainer:
         return data
 
 
-cdef TTF_Font *_get_font(self):
+cdef TTF_Font *_get_font(self) except *:
     cdef TTF_Font *fontobject = NULL
     cdef _TTFContainer ttfc
     cdef char *error
     cdef str s_error
+    cdef bytes bytes_fontname
 
     # fast path
     fontid = self._get_font_id()
@@ -164,9 +173,8 @@ cdef TTF_Font *_get_font(self):
                                   int(self.options['font_size']))
     # fallback to search a system font
     if fontobject == NULL:
-        s_error = (<bytes>SDL_GetError()).encode('utf-8')
-        print(s_error)
-        assert(0)
+        s_error = SDL_GetError()
+        raise ValueError('{}: for font {}'.format(s_error, fontname))
 
     # set underline and strikethrough style
     style = TTF_STYLE_NORMAL

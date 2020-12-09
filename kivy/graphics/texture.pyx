@@ -684,7 +684,8 @@ cdef class Texture:
 
         '''
         for cb in self.observers[:]:
-            if cb.is_dead() or cb() is callback:
+            method = cb()
+            if method is None or method is callback:
                 self.observers.remove(cb)
                 continue
 
@@ -922,7 +923,7 @@ cdef class Texture:
 
         # need conversion, do check here because it seems to be faster ?
         if not gl_has_texture_native_format(colorfmt):
-            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt, 
+            pbuffer, colorfmt = convert_to_gl_format(pbuffer, colorfmt,
                                                      size[0], size[1])
         cdef char [:] char_view
         cdef short [:] short_view
@@ -934,7 +935,7 @@ cdef class Texture:
         cdef long datasize = 0
         if isinstance(pbuffer, bytes):  # if it's bytes, just use memory
             cdata = <bytes>pbuffer  # explicit bytes
-            datasize = len(pbuffer)
+            datasize = <long>len(pbuffer)
         else:   # if it's a memoryview or buffer type, use start of memory
             if glbufferfmt == GL_UNSIGNED_BYTE or glbufferfmt == GL_BYTE:
                 char_view = pbuffer
@@ -1120,10 +1121,11 @@ cdef class Texture:
 
         # then update content again
         for callback in self.observers[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def save(self, filename, flipped=True, fmt=None):
         '''Save the texture content to a file. Check
@@ -1352,10 +1354,11 @@ cdef class TextureRegion(Texture):
         # then update content again
         self.bind()
         for callback in self.observers[:]:
-            if callback.is_dead():
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def ask_update(self, callback):
         # redirect to owner

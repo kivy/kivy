@@ -36,7 +36,7 @@ downloads and sets up all the prequisites for python-for-android,
 including the android SDK and NDK, then builds an apk that can be
 automatically pushed to the device. 
 
-Buildozer currently works only in Linux, and is an alpha
+Buildozer currently works only in Linux, and is a beta
 release, but it already works well and can significantly simplify the
 apk build.
 

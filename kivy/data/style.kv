@@ -60,7 +60,7 @@
             rgba: root.value_track_color if self.value_track and self.orientation == 'horizontal' else [1, 1, 1, 0]
         Line:
             width: self.value_track_width
-            points: self.x + self.padding, self.center_y - self.value_track_width / 2, self.value_pos[0], self.center_y - self.value_track_width / 2
+            points: self.x + self.padding, self.center_y, self.value_pos[0], self.center_y
         Color:
             rgba: root.value_track_color if self.value_track and self.orientation == 'vertical' else [1, 1, 1, 0]
         Line:
@@ -72,6 +72,8 @@
         pos: (root.value_pos[0] - root.cursor_width / 2, root.center_y - root.cursor_height / 2) if root.orientation == 'horizontal' else (root.center_x - root.cursor_width / 2, root.value_pos[1] - root.cursor_height / 2)
         size: root.cursor_size
         source: root.cursor_disabled_image if root.disabled else root.cursor_image
+        allow_stretch: True
+        keep_ratio: False
 
 <ProgressBar>:
     canvas:
@@ -235,8 +237,8 @@
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
-            size: self.height / 2.0, self.height / 2.0
-            pos: self.x - 20, self.center_y - 8
+            size: self.height / (3. if dp(1) > 1 else 2.), self.height / (3. if dp(1) > 1 else 2.)
+            pos: self.x - dp(20), int(self.center_y - (self.height / (3. if dp(1) > 1 else 2.)) * .5)
     canvas.after:
         Color:
             rgba: .5, .5, .5, .2
@@ -350,12 +352,13 @@
             halign: 'left'
             shorten: True
             text: ctx.name
+            font_name: ctx.controller().font_name
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
             text: '{}'.format(ctx.get_nice_size())
-
+            font_name: ctx.controller().font_name
 
 <FileChooserIconLayout>:
     on_entry_added: stacklayout.add_widget(args[1])
@@ -411,14 +414,15 @@
         pos: root.x + dp(24), root.y + dp(40)
     Label:
         text: ctx.name
+        font_name: ctx.controller().font_name
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
         size: '100dp', '16dp'
         pos: root.x, root.y + dp(16)
-
     Label:
         text: '{}'.format(ctx.get_nice_size())
+        font_name: ctx.controller().font_name
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'
@@ -492,12 +496,12 @@
 <ModalView>:
     canvas:
         Color:
-            rgba: root.background_color[:3] + [root.background_color[-1] * self._anim_alpha]
+            rgba: root.overlay_color[:3] + [root.overlay_color[-1] * self._anim_alpha]
         Rectangle:
             size: self._window.size if self._window else (0, 0)
 
         Color:
-            rgb: 1, 1, 1
+            rgba: root.background_color
         BorderImage:
             source: root.background
             border: root.border
@@ -940,7 +944,6 @@
         pos: root.pos
         cols: 1
         id: menu
-        orientation: 'vertical'
         padding: 5
 
         canvas.after:
@@ -1010,7 +1013,7 @@
 <VideoPlayerPreview>:
     pos_hint: {'x': 0, 'y': 0}
     image_overlay_play: 'atlas://data/images/defaulttheme/player-play-overlay'
-    image_loading: 'data/images/image-loading.gif'
+    image_loading: 'data/images/image-loading.zip'
     Image:
         source: root.source
         color: (.5, .5, .5, 1) if root.source else (0, 0, 0, 0)

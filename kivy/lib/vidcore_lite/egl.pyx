@@ -1,8 +1,8 @@
 
 from libc.stdlib cimport malloc, free
-from bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
-cimport bcm
-import bcm
+from .bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
+cimport kivy.lib.vidcore_lite.bcm as bcm
+import kivy.lib.vidcore_lite.bcm as bcm
 
 cdef extern from "EGL/egl.h":
     ctypedef int EGLint ###maybe wrong

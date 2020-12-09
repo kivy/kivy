@@ -1,3 +1,5 @@
+.. _packaging-win:
+
 Create a package for Windows
 ============================
 
@@ -91,6 +93,51 @@ to the examples as ``examples-path``. The touchtracer example is in
     python -m PyInstaller touchtracer.spec
 
 #. The compiled package will be in the `TouchApp\\dist\\touchtracer` directory.
+
+Single File Application
+-----------------------
+
+Next, we will modify the example above to package the **touchtracer** example project as a single file application. Following the same steps as above, instead issue the following command::
+
+     python -m PyInstaller --onefile --name touchtracer examples-path\demo\touchtracer\main.py
+
+#. As before, this will generate touchtracer.spec, which we will edit to add the dependencies. In this instance, edit the arguments to the EXE command so that it will look something like this::
+
+     exe = EXE(pyz, Tree('examples-path\\demo\\touchtracer\\'),
+          a.scripts,
+          a.binaries,
+          a.zipfiles,
+          a.datas,
+          *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+          upx=True
+          name='touchtracer')
+
+#. Now you can build the spec file as before with::
+
+     python -m PyInstaller touchtracer.spec
+
+#. The compiled package will be in the `TouchApp\\dist` directory and will consist of a single executable file.
+
+Bundling Data Files
+-------------------
+
+We will again modify the previous example to include bundled data files. PyInstaller allows inclusion of outside data files (such as images, databases, etc) that the project needs to run. When running an app on Windows, the executable extracts to a temporary folder which the Kivy project doesn't know about, so it can't locate these data files. We can fix that with a few lines.
+
+#. First, follow PyInstaller documentation on how to include data files in your application.
+
+#. Modify your main python code to include the following imports (if it doesn't have them already)::
+
+     import os, sys
+     from kivy.resources import resource_add_path, resource_find
+
+#. Modify your main python code to include the following (using the **touchtracer** app as an example)::
+
+     if __name__ == '__main__':
+         if hasattr(sys, '_MEIPASS'):
+             resource_add_path(os.path.join(sys._MEIPASS))
+         TouchtracerApp().run()
+
+#. Finally, follow the steps for bundling your application above.
 
 Packaging a video app with gstreamer
 ------------------------------------

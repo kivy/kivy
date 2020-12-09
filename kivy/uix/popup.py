@@ -106,7 +106,7 @@ __all__ = ('Popup', 'PopupException')
 from kivy.core.text import DEFAULT_FONT
 from kivy.uix.modalview import ModalView
 from kivy.properties import (StringProperty, ObjectProperty, OptionProperty,
-                             NumericProperty, ListProperty)
+                             NumericProperty, ColorProperty)
 
 
 class PopupException(Exception):
@@ -171,22 +171,30 @@ class Popup(ModalView):
     to None.
     '''
 
-    title_color = ListProperty([1, 1, 1, 1])
+    title_color = ColorProperty([1, 1, 1, 1])
     '''Color used by the Title.
 
     .. versionadded:: 1.8.0
 
-    :attr:`title_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`title_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
+    separator_color = ColorProperty([47 / 255., 167 / 255., 212 / 255., 1.])
     '''Color used by the separator between title and content.
 
     .. versionadded:: 1.1.0
 
-    :attr:`separator_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [47 / 255., 167 / 255., 212 / 255., 1.]
+    :attr:`separator_color` is a :class:`~kivy.properties.ColorProperty` and
+    defaults to [47 / 255., 167 / 255., 212 / 255., 1.].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     separator_height = NumericProperty('2dp')

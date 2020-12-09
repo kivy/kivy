@@ -1,0 +1,280 @@
+name: OSX wheels/app
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  CC: clang
+  CXX: clang
+  FFLAGS: '-ff2c'
+  USE_SDL2: 1
+  USE_GSTREAMER: 1
+  GST_REGISTRY: '~/registry.bin'
+
+jobs:
+  kivy_examples_create:
+    # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy_test_wheel_run_pip_deps
+    - name: Create wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        create_kivy_examples_wheel
+    - name: Upload kivy-examples wheel as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: osx_examples_wheel
+        path: dist
+
+  osx_wheels_create:
+    runs-on: macos-10.15
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Cache OSX deps
+      uses: actions/cache@v2
+      with:
+        path: osx-cache
+        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+    - name: Cache OSX gst-devel deps
+      uses: actions/cache@v2
+      with:
+        path: osx-cache-gst-devel
+        key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+    - name: Generate version metadata
+      run: |
+        source .ci/ubuntu_ci.sh
+        update_version_metadata
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        source .ci/osx_versions.sh
+        source .ci/osx_ci.sh
+        install_kivy_test_run_sys_deps
+        install_kivy_test_run_pip_deps
+    - name: Install Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy
+    - name: Make wheels
+      run: |
+        source .ci/osx_versions.sh
+        source .ci/osx_ci.sh
+        generate_osx_wheels
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: osx_wheels
+        path: dist
+
+  osx_wheel_upload:
+    runs-on: macos-10.15
+    needs: osx_wheels_create
+    if: github.event_name != 'pull_request'
+    env:
+      KIVY_GL_BACKEND: 'mock'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - uses: actions/download-artifact@v2
+      with:
+        name: osx_wheels
+        path: dist
+    - name: Rename wheels
+      if: github.event.ref_type != 'tag'
+      run: |
+        source .ci/ubuntu_ci.sh
+        rename_wheels
+    - name: Upload wheels to server
+      env:
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_file_to_server "$SERVER_IP" "osx/kivy/"
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_release }}
+      with:
+        files: dist/*
+        draft: true
+    - name: Publish to PyPI
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_artifacts_to_pypi
+
+  osx_wheel_test:
+    runs-on: macos-10.15
+    needs: [ osx_wheels_create, kivy_examples_create ]
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+    env:
+      KIVY_GL_BACKEND: 'mock'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_wheels
+          path: dist
+      - name: Install test dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_test_wheel_run_pip_deps
+      - name: Install Kivy wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_wheel
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_examples_wheel
+          path: dist
+      - name: Install kivy-examples wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          install_kivy_examples_wheel
+      - name: Test Kivy wheel
+        run: |
+          source .ci/ubuntu_ci.sh
+          test_kivy_install
+
+  osx_app_create:
+    runs-on: macos-10.15
+    if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
+    env:
+      KIVY_SPLIT_EXAMPLES: 0
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Cache OSX deps
+        uses: actions/cache@v2
+        with:
+          path: osx-cache
+          key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+      - name: Cache OSX gst-devel deps
+        uses: actions/cache@v2
+        with:
+          path: osx-cache-gst-devel
+          key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+      - name: Generate version metadata
+        run: |
+          source .ci/ubuntu_ci.sh
+          update_version_metadata
+      - name: Install dependencies
+        run: |
+          source .ci/ubuntu_ci.sh
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          install_kivy_test_run_sys_deps
+          install_platypus
+          install_kivy_test_run_pip_deps
+      - name: Make app bundle
+        run: |
+          py_version=$(python3 -c "import platform; print(platform.python_version())")
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          generate_osx_app_bundle "$py_version"
+      - name: Create dmg from bundle
+        run: |
+          source .ci/osx_versions.sh
+          source .ci/osx_ci.sh
+          generate_osx_app_dmg_from_bundle
+      - name: Upload dmg as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: osx_app
+          path: app
+
+  osx_app_upload_test:
+    runs-on: macos-10.15
+    needs: [osx_app_create, kivy_examples_create]
+    env:
+      KIVY_GL_BACKEND: 'mock'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_app
+          path: app
+      - name: Rename app
+        if: github.event.ref_type != 'tag'
+        run: |
+          py_version=$(python3 -c "import platform; print(platform.python_version())")
+          source .ci/osx_ci.sh
+          rename_osx_app "$py_version"
+      - name: Upload app to server
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+        run: |
+          source .ci/ubuntu_ci.sh
+          upload_file_to_server "$SERVER_IP" "osx/app/" "*.dmg" "app"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_release }}
+        with:
+          files: app/*
+          draft: true
+      - name: Mount Kivy.app
+        run: |
+          source .ci/osx_ci.sh
+          mount_osx_app
+      - uses: actions/download-artifact@v2
+        with:
+          name: osx_examples_wheel
+          path: dist
+      - name: Install test dependencies
+        run: |
+          source .ci/osx_ci.sh
+          source .ci/ubuntu_ci.sh
+          activate_osx_app_venv
+          install_kivy_test_wheel_run_pip_deps
+          install_kivy_examples_wheel
+      - name: Test Kivy app
+        run: |
+          source .ci/osx_ci.sh
+          source .ci/ubuntu_ci.sh
+          activate_osx_app_venv
+          test_kivy_install

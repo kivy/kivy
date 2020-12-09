@@ -98,8 +98,9 @@ class Camera(Image):
         if self.index < 0:
             return
         if self.resolution[0] < 0 or self.resolution[1] < 0:
-            return
-        self._camera = CoreCamera(index=self.index,
+            self._camera = CoreCamera(index=self.index, stopped=True)
+        else:
+            self._camera = CoreCamera(index=self.index,
                                   resolution=self.resolution, stopped=True)
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
@@ -107,8 +108,9 @@ class Camera(Image):
             self._camera.bind(on_texture=self.on_tex)
 
     def _camera_loaded(self, *largs):
-        self.texture = self._camera.texture
-        self.texture_size = list(self.texture.size)
+        if self._camera.texture is not None:
+            self.texture = self._camera.texture
+            self.texture_size = list(self.texture.size)
 
     def on_play(self, instance, value):
         if not self._camera:

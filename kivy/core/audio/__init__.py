@@ -50,7 +50,6 @@ __all__ = ('Sound', 'SoundLoader')
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
-from kivy.compat import PY2
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
@@ -227,7 +226,9 @@ class Sound(EventDispatcher):
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
 audio_libs = []
-if platform in ('macosx', 'ios'):
+if platform == 'android':
+    audio_libs += [('android', 'audio_android')]
+elif platform in ('macosx', 'ios'):
     audio_libs += [('avplayer', 'audio_avplayer')]
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA

@@ -59,9 +59,8 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-    AliasProperty, BooleanProperty, NumericProperty
+    AliasProperty, BooleanProperty, NumericProperty, ColorProperty
 from kivy.logger import Logger
-from kivy.compat import PY2
 
 # delayed imports
 Loader = None
@@ -124,15 +123,19 @@ class Image(Widget):
     read-only.
     '''
 
-    color = ListProperty([1, 1, 1, 1])
+    color = ColorProperty([1, 1, 1, 1])
     '''Image color, in the format (r, g, b, a). This attribute can be used to
     'tint' an image. Be careful: if the source image is not gray/white, the
     color will not really work as expected.
 
     .. versionadded:: 1.0.6
 
-    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults to
     [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     allow_stretch = BooleanProperty(False)
@@ -201,7 +204,7 @@ class Image(Widget):
 
     def get_norm_image_size(self):
         if not self.texture:
-            return self.size
+            return list(self.size)
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
@@ -209,7 +212,7 @@ class Image(Widget):
         # ensure that the width is always maximized to the containter width
         if self.allow_stretch:
             if not self.keep_ratio:
-                return w, h
+                return [w, h]
             iw = w
         else:
             iw = min(w, tw)
@@ -223,7 +226,7 @@ class Image(Widget):
             else:
                 ih = min(h, th)
             iw = ih * ratio
-        return iw, ih
+        return [iw, ih]
 
     norm_image_size = AliasProperty(get_norm_image_size,
                                     bind=('texture', 'size', 'allow_stretch',
@@ -241,45 +244,40 @@ class Image(Widget):
     def __init__(self, **kwargs):
         self._coreimage = None
         self._loops = 0
-        super(Image, self).__init__(**kwargs)
-        fbind = self.fbind
         update = self.texture_update
+        fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
-        if self.source:
-            update()
-        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
+        super().__init__(**kwargs)
 
     def texture_update(self, *largs):
         if not self.source:
-            self.texture = None
-        else:
-            filename = resource_find(self.source)
-            self._loops = 0
-            if filename is None:
-                return Logger.error('Image: Error reading file {filename}'.
-                                    format(filename=self.source))
-            mipmap = self.mipmap
-            if self._coreimage is not None:
-                self._coreimage.unbind(on_texture=self._on_tex_change)
-            try:
-                if PY2 and isinstance(filename, str):
-                    filename = filename.decode('utf-8')
-                self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                                                 anim_delay=self.anim_delay,
-                                                 keep_data=self.keep_data,
-                                                 nocache=self.nocache)
-            except:
-                Logger.error('Image: Error loading texture {filename}'.
-                                    format(filename=self.source))
-                self._coreimage = ci = None
-
-            if ci:
-                ci.bind(on_texture=self._on_tex_change)
-                self.texture = ci.texture
+            self._clear_core_image()
+            return
+        source = resource_find(self.source)
+        if not source:
+            Logger.error('Image: Not found <%s>' % self.source)
+            self._clear_core_image()
+            return
+        if self._coreimage:
+            self._coreimage.unbind(on_texture=self._on_tex_change)
+        try:
+            self._coreimage = image = CoreImage(
+                source,
+                mipmap=self.mipmap,
+                anim_delay=self.anim_delay,
+                keep_data=self.keep_data,
+                nocache=self.nocache
+            )
+        except Exception:
+            Logger.error('Image: Error loading <%s>' % self.source)
+            self._clear_core_image()
+            image = self._coreimage
+        if image:
+            image.bind(on_texture=self._on_tex_change)
+            self.texture = image.texture
 
     def on_anim_delay(self, instance, value):
-        self._loop = 0
         if self._coreimage is None:
             return
         self._coreimage.anim_delay = value
@@ -287,8 +285,14 @@ class Image(Widget):
             self._coreimage.anim_reset(False)
 
     def on_texture(self, instance, value):
-        if value is not None:
-            self.texture_size = list(value.size)
+        self.texture_size = value.size if value else [0, 0]
+
+    def _clear_core_image(self):
+        if self._coreimage:
+            self._coreimage.unbind(on_texture=self._on_tex_change)
+        self.texture = None
+        self._coreimage = None
+        self._loops = 0
 
     def _on_tex_change(self, *largs):
         # update texture from core image
@@ -314,20 +318,24 @@ class Image(Widget):
             # image will be re-loaded from disk
 
         '''
-        try:
-            self._coreimage.remove_from_cache()
-
-        except AttributeError:
-            pass
-
-        oldsource = self.source
+        self.remove_from_cache()
+        old_source = self.source
         self.source = ''
-        self.source = oldsource
+        self.source = old_source
+
+    def remove_from_cache(self):
+        '''Remove image from cache.
+
+        .. versionadded:: 2.0.0
+        '''
+        if self._coreimage:
+            self._coreimage.remove_from_cache()
 
     def on_nocache(self, *args):
-        if self.nocache and self._coreimage:
-            self._coreimage.remove_from_cache()
-            self._coreimage._nocache = True
+        if self.nocache:
+            self.remove_from_cache()
+            if self._coreimage:
+                self._coreimage._nocache = True
 
 
 class AsyncImage(Image):
@@ -340,40 +348,49 @@ class AsyncImage(Image):
         want to refer to the :mod:`~kivy.loader` documentation and in
         particular, the :class:`~kivy.loader.ProxyImage` for more detail
         on how to handle events around asynchronous image loading.
+
+    .. note::
+
+        AsyncImage currently does not support properties
+        :attr:`anim_loop` and :attr:`mipmap` and setting those properties will
+        have no effect.
     '''
 
     __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
+        self._found_source = None
         self._coreimage = None
-        super(AsyncImage, self).__init__(**kwargs)
         global Loader
         if not Loader:
             from kivy.loader import Loader
         self.fbind('source', self._load_source)
-        if self.source:
-            self._load_source()
-        self.on_anim_delay(self, kwargs.get('anim_delay', .25))
+        super().__init__(**kwargs)
 
     def _load_source(self, *args):
         source = self.source
         if not source:
-            if self._coreimage is not None:
-                self._coreimage.unbind(on_texture=self._on_tex_change)
-                self._coreimage.unbind(on_load=self._on_source_load)
-            self.texture = None
-            self._coreimage = None
-        else:
-            if not self.is_uri(source):
-                source = resource_find(source)
-            self._coreimage = image = Loader.image(source,
-                nocache=self.nocache, mipmap=self.mipmap,
-                anim_delay=self.anim_delay)
-
-            image.bind(on_load=self._on_source_load)
-            image.bind(on_error=self._on_source_error)
-            image.bind(on_texture=self._on_tex_change)
-            self.texture = image.texture
+            self._clear_core_image()
+            return
+        if not self.is_uri(source):
+            source = resource_find(source)
+            if not source:
+                Logger.error('AsyncImage: Not found <%s>' % self.source)
+                self._clear_core_image()
+                return
+        self._found_source = source
+        self._coreimage = image = Loader.image(
+            source,
+            nocache=self.nocache,
+            mipmap=self.mipmap,
+            anim_delay=self.anim_delay
+        )
+        image.bind(
+            on_load=self._on_source_load,
+            on_error=self._on_source_error,
+            on_texture=self._on_tex_change
+        )
+        self.texture = image.texture
 
     def _on_source_load(self, value):
         image = self._coreimage.image
@@ -395,6 +412,12 @@ class AsyncImage(Image):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp', 'smb')
 
+    def _clear_core_image(self):
+        if self._coreimage:
+            self._coreimage.unbind(on_load=self._on_source_load)
+        super()._clear_core_image()
+        self._found_source = None
+
     def _on_tex_change(self, *largs):
         if self._coreimage:
             self.texture = self._coreimage.texture
@@ -402,11 +425,7 @@ class AsyncImage(Image):
     def texture_update(self, *largs):
         pass
 
-    def reload(self):
-        if Loader:
-            source = self.source
-            if not self.is_uri(source):
-                source = resource_find(source)
-            Loader.remove_from_cache(source)
-
-        super(AsyncImage, self).reload()
+    def remove_from_cache(self):
+        if self._found_source:
+            Loader.remove_from_cache(self._found_source)
+        super().remove_from_cache()

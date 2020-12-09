@@ -1,6 +1,7 @@
 
 
-__all__ = ('ClockEvent', 'CyClockBase', 'FreeClockEvent', 'CyClockBaseFree')
+__all__ = ('ClockNotRunningError', 'ClockEvent', 'CyClockBase',
+           'FreeClockEvent', 'CyClockBaseFree')
 
 
 cdef extern from "float.h":
@@ -8,7 +9,14 @@ cdef extern from "float.h":
 
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
-from threading import Lock
+from threading import Lock, RLock
+
+
+class ClockNotRunningError(RuntimeError):
+    """Raised by the kivy Clock when scheduling an event if the
+    Kivy Clock has already finished (:class:`~CyClockBase.stop_clock` was
+    called).
+    """
 
 
 cdef class ClockEvent(object):
@@ -27,7 +35,8 @@ cdef class ClockEvent(object):
 
     def __init__(
             self, CyClockBase clock, int loop, callback, double timeout,
-            double starttime, cid=None, int trigger=False, **kwargs):
+            double starttime, cid=None, int trigger=False,
+            clock_ended_callback=None, release_ref=True, **kwargs):
         super(ClockEvent, self).__init__(**kwargs)
         self._is_triggered = False
         self.next = None
@@ -40,10 +49,20 @@ cdef class ClockEvent(object):
         self.timeout = timeout
         self._last_dt = starttime
         self._dt = 0.
+        self.weak_clock_ended_callback = None
+        self.clock_ended_callback = clock_ended_callback
+        self.release_ref = release_ref
 
         if trigger:
-            self._is_triggered = True
             clock._lock_acquire()
+            # only fail if clock_ended_callback was provided from the lifecycle_aware API
+            if self.clock.has_ended and (
+                    self.clock_ended_callback is not None or
+                    self.weak_clock_ended_callback is not None):
+                clock._lock_release()
+                raise ClockNotRunningError
+
+            self._is_triggered = True
 
             if clock._root_event is None:
                 clock._last_event = clock._root_event = self
@@ -51,16 +70,30 @@ cdef class ClockEvent(object):
                 clock._last_event.next = self
                 self.prev = clock._last_event
                 clock._last_event = self
-            self.clock.on_schedule(self)
             clock._lock_release()
+
+            self.clock.on_schedule(self)
 
     def __call__(self, *largs):
         ''' Schedules the callback associated with this instance.
         If the callback is already scheduled, it will not be scheduled again.
         '''
+        # The lock must be held continuously between checking whether the clock
+        # ended and triggering the event. Otherwise, if the clock has not ended,
+        # then in between checking whether it ended and scheduling the event in
+        # this thread, the main thread could have stopped the clock and
+        # processed all the clock_ended_callbacks. So this event would be scheduled,
+        # but callback and clock_ended_callback won't be called.
         self.clock._lock_acquire()
+        # only fail if clock_ended_callback was provided from the lifecycle_aware API
+        if self.clock.has_ended and (
+                self.clock_ended_callback is not None or
+                self.weak_clock_ended_callback is not None):
+            self.clock._lock_release()
+            raise ClockNotRunningError
 
-        if not self._is_triggered:
+        trigger = not self._is_triggered
+        if trigger:
             self._is_triggered = True
             self._last_dt = self.clock._last_tick
 
@@ -70,9 +103,11 @@ cdef class ClockEvent(object):
                 self.clock._last_event.next = self
                 self.prev = self.clock._last_event
                 self.clock._last_event = self
-            self.clock.on_schedule(self)
 
         self.clock._lock_release()
+
+        if trigger:
+            self.clock.on_schedule(self)
 
     cpdef get_callback(self):
         '''Returns the callback associated with the event. Callbacks get stored
@@ -82,10 +117,20 @@ cdef class ClockEvent(object):
         cdef object callback = self.callback
         if callback is not None:
             return callback
-        callback = self.weak_callback
-        if callback.is_dead():
+        return self.weak_callback()
+
+    cpdef get_clock_ended_callback(self):
+        """Returns the clock_ended_callback associated with the event.
+        Callbacks get stored with a indirect ref so that it doesn't keep
+        objects alive. If the callback is dead or wasn't provided,
+        None is returned.
+        """
+        cdef object callback = self.clock_ended_callback
+        if callback is not None:
+            return callback
+        if self.weak_clock_ended_callback is None:
             return None
-        return callback()
+        return self.weak_clock_ended_callback()
 
     @property
     def is_triggered(self):
@@ -138,6 +183,10 @@ cdef class ClockEvent(object):
         self.weak_callback = WeakMethod(self.callback)
         self.callback = None
 
+        if self.clock_ended_callback is not None:
+            self.weak_clock_ended_callback = WeakMethod(self.clock_ended_callback)
+            self.clock_ended_callback = None
+
     cpdef tick(self, double curtime):
         '''(internal method) Processes the event for the kivy thread.
         '''
@@ -164,6 +213,8 @@ cdef class ClockEvent(object):
             self.cancel()
 
         # call the callback
+        # this may raise an exception, but the state must remain clean so we
+        # can still cancel the event if the exception is handled and suppressed
         ret = callback(self._dt)
 
         # if the user returns False explicitly, remove the event
@@ -206,6 +257,40 @@ cdef class CyClockBase(object):
         self._lock_acquire = self._lock.acquire
         self._lock_release = self._lock.release
         self._del_queue = []
+        self._del_safe_lock = RLock()
+        self._del_safe_done = False
+        self.has_ended = False
+
+    def start_clock(self):
+        """Must be called to start the clock.
+
+        Once :meth:`stop_clock` is called, it cannot be started again.
+        """
+        self._lock_acquire()
+        try:
+            pass
+            # for now don't raise an exception when restarting because kivy's
+            # graphical tests are not setup to handle clock isolation so they try
+            # to restart the clock
+            # if self.has_ended:
+            #     raise TypeError('Clock already ended. Cannot re-start the Clock')
+        finally:
+            self._lock_release()
+
+    def stop_clock(self):
+        """Stops the clock and cleans up.
+
+        This must be called to process the lifecycle_aware callbacks etc.
+        """
+        self._lock_acquire()
+        try:
+            if self.has_ended:
+                return
+
+            self.has_ended = True
+        finally:
+            self._lock_release()
+        self._process_clock_ended_callbacks()
 
     cpdef get_resolution(self):
         '''Returns the minimum resolution the clock has. It's a function of
@@ -225,12 +310,94 @@ cdef class CyClockBase(object):
     def on_schedule(self, event):
         '''Function that is called internally every time an event is triggered
         for this clock. It takes the event as a parameter.
+
+        The order of ``on_schedule`` calls are not guaranteed to be in the same
+        order that the events are scheduled. Similarly, it is possible that the
+        event being scheduled was canceled before this is called on the event.
+        That's because :meth:`on_schedule` may be called from different threads.
         '''
         pass
 
-    cpdef create_trigger(self, callback, timeout=0, interval=False):
-        '''Create a Trigger event. Check module documentation for more
-        information.
+    cpdef ClockEvent create_lifecycle_aware_trigger(
+            self, callback, clock_ended_callback, timeout=0, interval=False,
+            release_ref=True):
+        '''Create a Trigger event similarly to :meth:`create_trigger`, but the event
+        is sensitive to the clock's state.
+
+        If this event is triggered after the clock has stopped (:meth:`stop_clock`), then a
+        :class:`ClockNotRunningError` will be raised. If the error is not raised,
+        then either ``callback`` or ``clock_ended_callback`` will be
+        called. ``callback`` will be called when the event
+        is normally executed. If the clock is stopped before it can be executed,
+        provided the app exited normally without crashing and the event wasn't manually
+        canceled, and the callbacks are not garbage collected then
+        ``clock_ended_callback`` will be called instead when the clock is stopped.
+
+        :Parameters:
+
+            `callback`: callable
+                The callback to execute from kivy. It takes a single parameter - the
+                current elapsed kivy time.
+            `clock_ended_callback`: callable
+                A callback that will be called if the clock is stopped
+                while the event is still scheduled to be called. The callback takes
+                a single parameter - the event object. When the event is successfully
+                scheduled, if the app exited normally and the event wasn't canceled,
+                and the callbacks are not garbage collected - it is guaranteed that
+                either ``callback`` or ``clock_ended_callback`` would have been called.
+            `timeout`: float
+                How long to wait before calling the callback.
+            `interval`: bool
+                Whether the callback should be called once (False) or repeatedly
+                with a period of ``timeout`` (True) like :meth:`schedule_interval`.
+            `release_ref`: bool
+                If True, the default, then if ``callback`` or ``clock_ended_callback``
+                is a class method and the object has no references to it, then
+                the object may be garbage collected and the callbacks won't be called.
+                If False, the clock keeps a reference to the object preventing it
+                from being garbage collected - so it will be called.
+
+        :returns:
+
+            A :class:`ClockEvent` instance. To schedule the callback of this
+            instance, you can call it.
+
+        .. versionadded:: 2.0.0
+        '''
+        cdef ClockEvent ev = ClockEvent(
+            self, interval, callback, timeout, 0,
+            clock_ended_callback=clock_ended_callback, release_ref=release_ref)
+        if release_ref:
+            ev.release()
+        return ev
+
+    cpdef ClockEvent create_trigger(
+            self, callback, timeout=0, interval=False, release_ref=True):
+        '''Create a Trigger event. It is thread safe but not ``__del__`` or
+        ``__dealloc__`` safe (see :meth:`schedule_del_safe`).
+        Check module documentation for more information.
+
+        To cancel the event before it is executed, call :meth:`ClockEvent.cancel`
+        on the returned event.
+        To schedule it again, simply call the event (``event()``) and it'll be safely
+        rescheduled if it isn't already scheduled.
+
+        :Parameters:
+
+            `callback`: callable
+                The callback to execute from kivy. It takes a single parameter - the
+                current elapsed kivy time.
+            `timeout`: float
+                How long to wait before calling the callback.
+            `interval`: bool
+                Whether the callback should be called once (False) or repeatedly
+                with a period of ``timeout`` (True) like :meth:`schedule_interval`.
+            `release_ref`: bool
+                If True, the default, then if ``callback``
+                is a class method and the object has no references to it, then
+                the object may be garbage collected and the callbacks won't be called.
+                If False, the clock keeps a reference to the object preventing it
+                from being garbage collected - so it will be called.
 
         :returns:
 
@@ -241,33 +408,80 @@ cdef class CyClockBase(object):
 
         .. versionchanged:: 1.10.0
 
-            ``interval`` has been added. If True, it create a event that is called
-            every <timeout> seconds similar to :meth:`schedule_interval`. Defaults to
-            False.
+            ``interval`` has been added.
+
+        .. versionchanged:: 2.0.0
+
+            ``release_ref`` has been added.
         '''
-        cdef ClockEvent ev = ClockEvent(self, interval, callback, timeout, 0)
-        ev.release()
+        cdef ClockEvent ev = ClockEvent(
+            self, interval, callback, timeout, 0, release_ref=release_ref)
+        if release_ref:
+            ev.release()
         return ev
 
-    cpdef schedule_del_safe(self, callback):
-        '''Schedule a callback. Might be called from GC and cannot be cancelled.
+    cpdef schedule_lifecycle_aware_del_safe(self, callback, clock_ended_callback):
+        '''Schedule a callback that is thread safe and ``__del__`` or
+        ``__dealloc__`` safe similarly to :meth:`schedule_del_safe`, but the callback
+        is sensitive to the clock's state.
 
-        It's unsafe to call various kinds of code, such as code with a lock,
-        from a `__del__` or `__dealloc__` methods. Since Kivy's Clock uses a
-        lock, it's generally unsafe to call from these methods. Instead,
-        use this method, which is thread safe and `__del__` or `__dealloc__`
+        If this event is triggered after the clock has stopped (:meth:`stop_clock`), then a
+        :class:`ClockNotRunningError` will be raised. If the error is not raised,
+        then either ``callback`` or ``clock_ended_callback`` will be
+        called. ``callback`` will be called when the callback
+        is normally executed. If the clock is stopped before it can be executed,
+        provided the app exited normally without crashing then
+        ``clock_ended_callback`` will be called instead when the clock is stopped.
+
+        :Parameters:
+
+            `callback`: Callable
+                The callback the execute from kivy. It takes no parameters and
+                cannot be canceled.
+            `clock_ended_callback`: callable
+                A callback that will be called if the clock is stopped
+                while the callback is still scheduled to be called. The callback takes
+                a single parameter - the callback. If the
+                app exited normally, it is guaranteed that either ``callback``
+                or ``clock_ended_callback`` would have been called.
+
+        .. versionadded:: 2.0.0
+        '''
+        with self._del_safe_lock:
+            if self._del_safe_done:
+                raise ClockNotRunningError
+            self._del_queue.append((callback, clock_ended_callback))
+
+    cpdef schedule_del_safe(self, callback):
+        '''Schedule a callback that is thread safe and ``__del__`` or
+        ``__dealloc__`` safe.
+
+        It's unsafe to call various kinds of code from ``__del__`` or
+        ``__dealloc__`` methods because they can be executed at any time. Most
+        Kivy's Clock methods are unsafe to call the Clock from these methods. Instead,
+        use this method, which is thread safe and ``__del__`` or ``__dealloc__``
         safe, to schedule the callback in the kivy thread. It'll be executed
         in order after the normal events are processed.
 
-        The callback takes no parameters and cannot be canceled.
+        :Parameters:
+
+            `callback`: Callable
+                The callback the execute from kivy. It takes no parameters and
+                cannot be canceled.
 
         .. versionadded:: 1.11.0
         '''
-        self._del_queue.append(callback)
+        self._del_queue.append((callback, None))
 
-    cpdef schedule_once(self, callback, timeout=0):
+    cpdef ClockEvent schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds. If <timeout> is unspecified
         or 0, the callback will be called after the next frame is rendered.
+        See :meth:`create_trigger` for advanced scheduling and more details.
+
+        To cancel the event before it is executed, call :meth:`ClockEvent.cancel`
+        on the returned event.
+        If the callback is a class method, a weakref to the object is created and it
+        may be garbage collected if there's no other reference to the object.
 
         :returns:
 
@@ -287,8 +501,14 @@ cdef class CyClockBase(object):
             self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval(self, callback, timeout):
+    cpdef ClockEvent schedule_interval(self, callback, timeout):
         '''Schedule an event to be called every <timeout> seconds.
+        See :meth:`create_trigger` for advanced scheduling and more details.
+
+        To cancel the event before it is executed, call :meth:`ClockEvent.cancel`
+        on the returned event.
+        If the callback is a class method, a weakref to the object is created and it
+        may be garbage collected if there's no other reference to the object.
 
         :returns:
 
@@ -306,6 +526,9 @@ cdef class CyClockBase(object):
 
     cpdef unschedule(self, callback, all=True):
         '''Remove a previously scheduled event.
+
+        An :class:`ClockEvent` can also be canceled directly by calling
+        :meth:`ClockEvent.cancel`.
 
         :parameters:
 
@@ -373,13 +596,22 @@ cdef class CyClockBase(object):
 
         ev = self._root_event
         while ev is not None:
-            if ev.callback is not None:
+            if ev.callback is not None and ev.release_ref:
                 events.append(ev)
             ev = ev.next
 
         self._lock_release()
         for ev in events:
             ev.release()
+
+    cpdef _process_del_safe_events(self):
+        callbacks = self._del_queue[:]
+        del self._del_queue[:len(callbacks)]
+        for callback, _ in callbacks:
+            try:
+                callback()
+            except BaseException as e:
+                self.handle_exception(e)
 
     cpdef _process_events(self):
         cdef ClockEvent event
@@ -388,6 +620,7 @@ cdef class CyClockBase(object):
         self._lock_acquire()
         if self._root_event is None:
             self._lock_release()
+            self._process_del_safe_events()
             return
 
         self._cap_event = self._last_event
@@ -410,19 +643,17 @@ cdef class CyClockBase(object):
 
             try:
                 event.tick(self._last_tick)
-            except:
-                raise
-            else:
-                self._lock_acquire()
+            except BaseException as e:
+                # cancel the event either way
+                event.cancel()
+                self.handle_exception(e)
+            self._lock_acquire()
             event = self._next_event
 
         self._next_event = self._cap_event = None
         self._lock_release()
 
-        callbacks = self._del_queue[:]
-        del self._del_queue[:len(callbacks)]
-        for callback in callbacks:
-            callback()
+        self._process_del_safe_events()
 
     cpdef _process_events_before_frame(self):
         cdef ClockEvent event
@@ -448,6 +679,7 @@ cdef class CyClockBase(object):
                 self._lock_release()
                 return
 
+            # see _process_events for the logic
             self._cap_event = self._last_event
             event = self._root_event
             while not done and event is not None:
@@ -463,10 +695,11 @@ cdef class CyClockBase(object):
 
                 try:
                     event.tick(self._last_tick)
-                except:
-                    raise
-                else:
-                    self._lock_acquire()
+                except BaseException as e:
+                    # cancel the event either way
+                    event.cancel()
+                    self.handle_exception(e)
+                self._lock_acquire()
                 event = self._next_event
             self._next_event = self._cap_event = None
             self._lock_release()
@@ -503,6 +736,64 @@ cdef class CyClockBase(object):
         self._lock_release()
         return events
 
+    def handle_exception(self, e):
+        """Provides an opportunity to handle an event's exception.
+
+        If desired, the exception is handled, otherwise it should be raised
+        again. By default it is raised again.
+
+        :param e: The exception to be handled.
+
+        .. versionadded:: 2.0.0
+        """
+        raise
+
+    cpdef _process_clock_ended_del_safe_events(self):
+        with self._del_safe_lock:
+            self._del_safe_done = True
+            callbacks = self._del_queue[:]
+
+        del self._del_queue[:len(callbacks)]
+        for callback, clock_ended_callback in callbacks:
+            try:
+                if clock_ended_callback is not None:
+                    clock_ended_callback(callback)
+            except BaseException as e:
+                self.handle_exception(e)
+
+    cpdef _process_clock_ended_callbacks(self):
+        # at this point, if an event is scheduled, it should raise an exception
+        cdef ClockEvent event
+        cdef int done = False
+
+        self._lock_acquire()
+        if self._root_event is None:
+            self._lock_release()
+            self._process_clock_ended_del_safe_events()
+            return
+
+        # see _process_events for the logic
+        self._cap_event = self._last_event
+        event = self._root_event
+        while not done and event is not None:
+            self._next_event = event.next
+            done = self._cap_event is event or self._cap_event is None
+            self._lock_release()
+
+            callback = event.get_clock_ended_callback()
+            if callback is not None:
+                try:
+                    callback(event)
+                except BaseException as e:
+                    self.handle_exception(e)
+            self._lock_acquire()
+            event = self._next_event
+
+        self._next_event = self._cap_event = None
+        self._lock_release()
+
+        self._process_clock_ended_del_safe_events()
+
 
 cdef class CyClockBaseFree(CyClockBase):
     '''A clock class that supports scheduling free events in addition to normal
@@ -514,15 +805,33 @@ cdef class CyClockBaseFree(CyClockBase):
     for creating a free event.
     '''
 
-    cpdef create_trigger(self, callback, timeout=0, interval=False):
+    cpdef FreeClockEvent create_lifecycle_aware_trigger(
+            self, callback, clock_ended_callback, timeout=0, interval=False,
+            release_ref=True):
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
-        event = FreeClockEvent(False, self, interval, callback, timeout, 0)
-        event.release()
+
+        event = FreeClockEvent(
+            False, self, interval, callback, timeout, 0,
+            clock_ended_callback=clock_ended_callback, release_ref=release_ref)
+        if release_ref:
+            event.release()
         return event
 
-    cpdef schedule_once(self, callback, timeout=0):
+    cpdef FreeClockEvent create_trigger(
+            self, callback, timeout=0, interval=False, release_ref=True):
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            False, self, interval, callback, timeout, 0, release_ref=release_ref)
+        if release_ref:
+            event.release()
+        return event
+
+    cpdef FreeClockEvent schedule_once(self, callback, timeout=0):
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -531,7 +840,7 @@ cdef class CyClockBaseFree(CyClockBase):
             False, self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval(self, callback, timeout):
+    cpdef FreeClockEvent schedule_interval(self, callback, timeout):
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
@@ -540,18 +849,39 @@ cdef class CyClockBaseFree(CyClockBase):
             False, self, True, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef create_trigger_free(self, callback, timeout=0, interval=False):
+    cpdef FreeClockEvent create_lifecycle_aware_trigger_free(
+            self, callback, clock_ended_callback, timeout=0, interval=False,
+            release_ref=True):
+        '''Similar to :meth:`~CyClockBase.create_lifecycle_aware_trigger`, but instead creates
+        a free event.
+        '''
+        cdef FreeClockEvent event
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
+
+        event = FreeClockEvent(
+            True, self, interval, callback, timeout, 0,
+            clock_ended_callback=clock_ended_callback, release_ref=release_ref)
+        if release_ref:
+            event.release()
+        return event
+
+    cpdef FreeClockEvent create_trigger_free(
+            self, callback, timeout=0, interval=False, release_ref=True):
         '''Similar to :meth:`~CyClockBase.create_trigger`, but instead creates
         a free event.
         '''
         cdef FreeClockEvent event
         if not callable(callback):
             raise ValueError('callback must be a callable, got %s' % callback)
-        event = FreeClockEvent(True, self, interval, callback, timeout, 0)
-        event.release()
+
+        event = FreeClockEvent(
+            True, self, interval, callback, timeout, 0, release_ref=release_ref)
+        if release_ref:
+            event.release()
         return event
 
-    cpdef schedule_once_free(self, callback, timeout=0):
+    cpdef FreeClockEvent schedule_once_free(self, callback, timeout=0):
         '''Similar to :meth:`~CyClockBase.schedule_once`, but instead creates
         a free event.
         '''
@@ -563,7 +893,7 @@ cdef class CyClockBaseFree(CyClockBase):
             True, self, False, callback, timeout, self._last_tick, None, True)
         return event
 
-    cpdef schedule_interval_free(self, callback, timeout):
+    cpdef FreeClockEvent schedule_interval_free(self, callback, timeout):
         '''Similar to :meth:`~CyClockBase.schedule_interval`, but instead creates
         a free event.
         '''
@@ -599,10 +929,11 @@ cdef class CyClockBaseFree(CyClockBase):
 
             try:
                 event.tick(last_tick)
-            except:
-                raise
-            else:
-                self._lock_acquire()
+            except BaseException as e:
+                # cancel the event either way
+                event.cancel()
+                self.handle_exception(e)
+            self._lock_acquire()
             event = self._next_event
 
         self._next_event = self._cap_event = None

@@ -314,6 +314,16 @@ constraint::
         alpha: self.a.b[self.c.d]
         beta: self.alpha.e.f
 
+In addition, properties in python f-strings are also not yet supported::
+
+    <FStringExample>:
+        text: f"I want to use {self.a} in property"
+
+Instead, the ``format()`` method should be used::
+
+    <FormatStringExample>:
+        text: "I want to use {} in property".format(self.a)
+
 
 Graphical Instructions
 ----------------------

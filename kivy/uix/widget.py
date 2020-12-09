@@ -392,10 +392,6 @@ class Widget(WidgetBase):
     def __hash__(self):
         return id(self)
 
-    @property
-    def __self__(self):
-        return self
-
     def apply_class_lang_rules(
             self, root=None, ignored_consts=set(), rule_children=None):
         '''
@@ -957,18 +953,24 @@ class Widget(WidgetBase):
                 return
 
     def to_widget(self, x, y, relative=False):
-        '''Convert the given coordinate from window to local widget
-        coordinates. See :mod:`~kivy.uix.relativelayout` for details on the
-        coordinate systems.
+        '''Convert the coordinate from window to local (current widget)
+        coordinates.
+
+        See :mod:`~kivy.uix.relativelayout` for details on the coordinate
+        systems.
         '''
         if self.parent:
             x, y = self.parent.to_widget(x, y)
         return self.to_local(x, y, relative=relative)
 
     def to_window(self, x, y, initial=True, relative=False):
-        '''Transform local coordinates to window coordinates. See
-        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
-        '''
+        """If ``initial`` is True, the default, it transforms **parent**
+        coordinates to window coordinates. Otherwise, it transforms **local**
+        (current widget) coordinates to window coordinates.
+
+        See :mod:`~kivy.uix.relativelayout` for details on the coordinate
+        systems.
+        """
         if not initial:
             x, y = self.to_parent(x, y, relative=relative)
         if self.parent:
@@ -977,27 +979,31 @@ class Widget(WidgetBase):
         return (x, y)
 
     def to_parent(self, x, y, relative=False):
-        '''Transform local coordinates to parent coordinates. See
-        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
+        """Transform local (current widget) coordinates to parent coordinates.
+
+        See :mod:`~kivy.uix.relativelayout` for details on the coordinate
+        systems.
 
         :Parameters:
             `relative`: bool, defaults to False
                 Change to True if you want to translate relative positions from
                 a widget to its parent coordinates.
-        '''
+        """
         if relative:
             return (x + self.x, y + self.y)
         return (x, y)
 
     def to_local(self, x, y, relative=False):
-        '''Transform parent coordinates to local coordinates. See
-        :mod:`~kivy.uix.relativelayout` for details on the coordinate systems.
+        """Transform parent coordinates to local (current widget) coordinates.
+
+        See :mod:`~kivy.uix.relativelayout` for details on the coordinate
+        systems.
 
         :Parameters:
             `relative`: bool, defaults to False
                 Change to True if you want to translate coordinates to
                 relative widget coordinates.
-        '''
+        """
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
@@ -1146,23 +1152,6 @@ class Widget(WidgetBase):
     '''Class of the widget, used for styling.
     '''
 
-    id = StringProperty(None, allownone=True, deprecated=True)
-    '''Identifier of the widget in the tree.
-
-    :attr:`id` is a :class:`~kivy.properties.StringProperty` and defaults to
-    None.
-
-    .. note::
-
-        The :attr:`id` is not the same as ``id`` in the kv language. For the
-        latter, see :attr:`ids` and :ref:`Kivy Language: ids <kv-lang-ids>`.
-
-    .. warning::
-
-        The :attr:`id` property has been deprecated and will be removed
-        completely in future versions.
-    '''
-
     children = ListProperty([])
     '''List of children of this widget.
 
@@ -1230,7 +1219,7 @@ class Widget(WidgetBase):
 
     pos_hint = ObjectProperty({})
     '''Position hint. This property allows you to set the position of
-    the widget inside its parent layout, in percent (similar to
+    the widget inside its parent layout (similar to
     size_hint).
 
     For example, if you want to set the top of the widget to be at 90%

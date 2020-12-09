@@ -25,7 +25,7 @@ __all__ = (
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
     'kivy_icons_dir', 'kivy_home_dir',
-    'kivy_config_fn', 'kivy_usermodules_dir',
+    'kivy_config_fn', 'kivy_usermodules_dir', 'kivy_examples_dir'
 )
 
 import sys
@@ -35,25 +35,10 @@ from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
-from kivy.compat import PY2
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
-
-MAJOR = 1
-MINOR = 11
-MICRO = 1
-RELEASE = True
-
-__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-if not RELEASE:
-    __version__ += 'rc2'
-
-try:
-    from kivy.version import __hash__, __date__
-    __hash__ = __hash__[:7]
-except ImportError:
-    __hash__ = __date__ = ''
+from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
+    _kivy_git_hash, _kivy_build_date
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -69,6 +54,12 @@ if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     details.
     '''
     Logger.critical(r)
+
+if sys.version_info[0] == 2:
+    Logger.critical(
+        'Unsupported Python version detected!: Kivy 2.0.0 and higher does not '
+        'support Python 2. Please upgrade to Python 3, or downgrade Kivy to '
+        '1.11.0 - the last Kivy release that still supports Python 2.')
 
 
 def parse_kivy_version(version):
@@ -173,6 +164,9 @@ def kivy_register_post_configuration(callback):
 def kivy_usage():
     '''Kivy Usage: %s [OPTION...]::
 
+            Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
+            disable Kivy's argument parser.
+
         -h, --help
             Prints this help message.
         -d, --debug
@@ -259,6 +253,59 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
+#: Kivy examples directory
+kivy_examples_dir = ''
+for examples_dir in (
+        join(dirname(dirname(__file__)), 'examples'),
+        join(sys.exec_prefix, 'share', 'kivy-examples'),
+        join(sys.prefix, 'share', 'kivy-examples'),
+        '/usr/share/kivy-examples', '/usr/local/share/kivy-examples',
+        expanduser('~/.local/share/kivy-examples')):
+    if exists(examples_dir):
+        kivy_examples_dir = examples_dir
+        break
+
+# if there are deps, import them so they can do their magic.
+_packages = []
+try:
+    from kivy import deps as old_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(old_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy.deps'))
+        else:
+            _packages.append((importer, modname, 'kivy.deps'))
+except ImportError:
+    pass
+
+try:
+    import kivy_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy_deps'))
+        else:
+            _packages.append((importer, modname, 'kivy_deps'))
+except ImportError:
+    pass
+
+_logging_msgs = []
+for importer, modname, package in _packages:
+    try:
+        mod = importer.find_module(modname).load_module(modname)
+
+        version = ''
+        if hasattr(mod, '__version__'):
+            version = ' {}'.format(mod.__version__)
+        _logging_msgs.append(
+            'deps: Successfully imported "{}.{}"{}'.
+            format(package, modname, version))
+    except ImportError as e:
+        Logger.warning(
+            'deps: Error importing dependency "{}.{}": {}'.
+            format(package, modname, str(e)))
 
 # if there are deps, import them so they can do their magic.
 import kivy.deps
@@ -320,9 +367,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif platform == 'ios':
             user_home_dir = join(expanduser('~'), 'Documents')
         kivy_home_dir = join(user_home_dir, '.kivy')
-
-    if PY2:
-        kivy_home_dir = kivy_home_dir.decode(sys.getfilesystemencoding())
 
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
@@ -471,10 +515,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 for msg in _logging_msgs:
     Logger.info(msg)
 
-if RELEASE:
+if _KIVY_RELEASE:
     Logger.info('Kivy: v%s' % __version__)
-elif not RELEASE and __hash__ and __date__:
-    Logger.info('Kivy: v%s, git-%s, %s' % (__version__, __hash__, __date__))
+elif not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
+    Logger.info('Kivy: v%s, git-%s, %s' % (
+        __version__, _kivy_git_hash[:7], _kivy_build_date))
 Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
 Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
@@ -482,9 +527,3 @@ Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
 from kivy.logger import file_log_handler
 if file_log_handler is not None:
     file_log_handler.purge_logs()
-
-
-if PY2:
-    Logger.warning(
-        'Deprecated: Python 2 Kivy support has been deprecated. The '
-        'Kivy release after 1.11.0 will not support Python 2 anymore')

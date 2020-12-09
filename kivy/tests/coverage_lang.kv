@@ -1,0 +1,17 @@
+#:import kivy kivy
+
+<SomeWidget@Widget>:
+    on_x: self.something = 42
+    height: self.width
+    width: 78
+    on_y:
+        self.another = 23
+        self.home = 78
+    canvas.before:
+        Color:
+            rgb: 1, 1, 1
+
+Widget:
+    size: 55, self.y + 10
+    SomeWidget:
+        size_hint_x: .5

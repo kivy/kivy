@@ -1,0 +1,169 @@
+name: Windows wheels
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
+  GST_REGISTRY: '~/registry.bin'
+  KIVY_GL_BACKEND: 'angle_sdl2'
+  SETUPTOOLS_USE_DISTUTILS: local
+
+jobs:
+  windows_wheels_create:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        arch: ['x64', 'x86']
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.arch }}
+    - name: Generate version metadata
+      run: |
+        . .\.ci\windows_ci.ps1
+        Update-version-metadata
+    - name: Install dependencies
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy-test-run-win-deps
+        Install-kivy-test-run-pip-deps
+    - name: Generate sdist/kivy-examples
+      if: matrix.arch == 'x64' && matrix.python == '3.8'
+      # only windows kivy-examples is uploaded
+      run: |
+        . .\.ci\windows_ci.ps1
+        Generate-sdist
+    - name: Install Kivy
+      run: |
+        . .\.ci\windows_ci.ps1
+        Install-kivy
+    - name: Make wheels
+      run: |
+        . .\.ci\windows_ci.ps1
+        Generate-windows-wheels
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows_wheels
+        path: dist
+
+  windows_wheel_upload:
+    runs-on: windows-latest
+    needs: windows_wheels_create
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows_wheels
+          path: dist
+      - name: Fix wheel names
+        if: github.event.ref_type != 'tag'
+        run: |
+          . .\.ci\windows_ci.ps1
+          Rename-windows-wheels
+      - name: Install MSYS2
+        run: choco install msys2
+      - name: Upload wheels to server
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+          MSYSTEM: MINGW64
+          CHERE_INVOKING: 1
+        run: |
+          . .\.ci\windows_ci.ps1
+          Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_release }}
+        with:
+          files: dist/*
+          draft: true
+      - name: Publish to PyPI
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.pypi_password }}
+        run: |
+          . .\.ci\windows_ci.ps1
+          Upload-artifacts-to-pypi
+
+  windows_wheel_test:
+    runs-on: windows-latest
+    needs: windows_wheels_create
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        arch: [ 'x64', 'x86' ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: ${{ matrix.arch }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows_wheels
+          path: dist
+      - name: Install Kivy Wheel
+        run: |
+          . .\.ci\windows_ci.ps1
+          Install-kivy-wheel
+      - name: Test Kivy Wheel
+        run: |
+          . .\.ci\windows_ci.ps1
+          Test-kivy-installed
+
+  windows_sdist_test:
+    runs-on: windows-latest
+    needs: windows_wheels_create
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows_wheels
+          path: dist
+      - name: Install Kivy sdist
+        env:
+          KIVY_SPLIT_EXAMPLES: 0
+        run: |
+          . .\.ci\windows_ci.ps1
+          Install-kivy-sdist
+      - name: Test Kivy sdist
+        run: |
+          . .\.ci\windows_ci.ps1
+          Test-kivy-installed
+
+  always_job:
+    name: Always run job
+    runs-on: windows-latest
+    steps:
+      - name: Always run
+        run: |
+          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
+          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"

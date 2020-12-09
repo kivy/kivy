@@ -74,10 +74,25 @@ class Cache(object):
             `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
+
+        :raises:
+            `ValueError`: If `None` is used as `key`.
+
+        .. versionchanged:: 2.0.0
+            Raises `ValueError` if `None` is used as `key`.
+
         '''
         # check whether obj should not be cached first
         if getattr(obj, '_nocache', False):
             return
+        if key is None:
+            # This check is added because of the case when key is None and
+            # one of purge methods gets called. Then loop in purge method will
+            # call Cache.remove with key None which then clears entire
+            # category from Cache making next iteration of loop to raise a
+            # KeyError because next key will not exist.
+            # See: https://github.com/kivy/kivy/pull/6950
+            raise ValueError('"None" cannot be used as key in Cache')
         try:
             cat = Cache._categories[category]
         except KeyError:
@@ -213,7 +228,7 @@ class Cache(object):
                 Cache._categories[category]['timeout'] = timeout
                 continue
 
-            for key in list(Cache._objects[category].keys())[:]:
+            for key in list(Cache._objects[category].keys()):
                 lastaccess = Cache._objects[category][key]['lastaccess']
                 objtimeout = Cache._objects[category][key]['timeout']
 

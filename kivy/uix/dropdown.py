@@ -191,6 +191,8 @@ class DropDown(ScrollView):
     list. It is a :class:`~kivy.uix.gridlayout.GridLayout` by default.
     '''
 
+    _touch_started_inside = None
+
     __events__ = ('on_select', 'on_dismiss')
 
     def __init__(self, **kwargs):
@@ -295,23 +297,24 @@ class DropDown(ScrollView):
         return super(DropDown, self).clear_widgets()
 
     def on_touch_down(self, touch):
-        if super(DropDown, self).on_touch_down(touch):
-            return True
-        if self.collide_point(*touch.pos):
-            return True
-        if (self.attach_to and self.attach_to.collide_point(
-                *self.attach_to.to_widget(*touch.pos))):
-            return True
+        self._touch_started_inside = self.collide_point(*touch.pos)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(DropDown, self).on_touch_down(touch)
+        return True
+
+    def on_touch_move(self, touch):
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(DropDown, self).on_touch_move(touch)
+        return True
 
     def on_touch_up(self, touch):
-        if super(DropDown, self).on_touch_up(touch):
-            return True
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
-            return
-        if self.collide_point(*touch.pos):
-            return True
-        if self.auto_dismiss:
+        # Explicitly test for False as None occurs when shown by on_touch_down
+        if self.auto_dismiss and self._touch_started_inside is False:
             self.dismiss()
+        else:
+            super(DropDown, self).on_touch_up(touch)
+        self._touch_started_inside = None
+        return True
 
     def _reposition(self, *largs):
         # calculate the coordinate of the attached widget in the window
