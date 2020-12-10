@@ -315,7 +315,7 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
-.. versionchanged:: 2.0.0
+.. versionchanged:: 2.1.0
     `vsync` has been added to the graphics section
 
 .. versionchanged:: 1.10.0
