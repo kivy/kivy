@@ -51,7 +51,7 @@ def resource_find(filename, use_cache=True):
     Use resource_add_path to add a custom path to the search.
     By default, results are cached for 60 seconds.
     This can be disabled using use_cache=False.
-    .. versionchanged:: 2.0.0rc5
+    .. versionchanged:: 2.1.0
         `use_cache` parameter added and made True by default.
     '''
     if not filename:
