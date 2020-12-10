@@ -64,11 +64,7 @@ prepare_env_for_unittest() {
 }
 
 install_kivy() {
-  path="$(pwd)"
-  ln -s "$path" ~/base_kivy
-  cd ~/base_kivy
   python3 -m pip install -e "$(pwd)[dev,full]"
-  cd "$path"
 }
 
 
