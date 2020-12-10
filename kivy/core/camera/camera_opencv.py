@@ -40,7 +40,7 @@ try:
                 got = getattr(cv, attr)
                 return got
 
-    hg = Hg()
+        hg = Hg()
 
 except ImportError:
     # opencv 2 case (and also opencv 3, because it still uses cv2 module name)

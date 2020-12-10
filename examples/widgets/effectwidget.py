@@ -13,17 +13,12 @@ from kivy.properties import ObjectProperty
 
 from kivy.uix.effectwidget import (MonochromeEffect,
                                    InvertEffect,
-                                   ScanlinesEffect,
                                    ChannelMixEffect,
                                    ScanlinesEffect,
                                    FXAAEffect,
                                    PixelateEffect,
                                    HorizontalBlurEffect,
                                    VerticalBlurEffect)
-
-
-class ComparisonWidget(EffectWidget):
-    pass
 
 
 class ComparisonWidget(EffectWidget):
@@ -51,8 +46,6 @@ class SpinnerRow(BoxLayout):
                 effects.append(InvertEffect())
             if text == 'mix':
                 effects.append(ChannelMixEffect())
-            if text == 'flash':
-                effects.append(FlashEffect())
             if text == 'blur_h':
                 effects.append(HorizontalBlurEffect())
             if text == 'blur_v':

@@ -191,9 +191,18 @@ class UtilsTest(unittest.TestCase):
         assert first == second
 
     def test_Platform_android(self):
+        with patch.dict('os.environ', {'KIVY_BUILD': 'android'}):
+            self.assertEqual(_get_platform(), 'android')
+        self.assertNotIn('KIVY_BUILD', os.environ)
+
+    def test_Platform_android_with_p4a(self):
+        with patch.dict('os.environ', {'P4A_BOOTSTRAP': 'sdl2'}):
+            self.assertEqual(_get_platform(), 'android')
+        self.assertNotIn('P4A_BOOTSTRAP', os.environ)
+
+    def test_Platform_android_with_android_argument(self):
         with patch.dict('os.environ', {'ANDROID_ARGUMENT': ''}):
-            pf = _get_platform()
-            self.assertTrue(pf == 'android')
+            self.assertEqual(_get_platform(), 'android')
         self.assertNotIn('ANDROID_ARGUMENT', os.environ)
 
     def test_Platform_ios(self):

@@ -15,6 +15,7 @@ cdef class EventDispatcher(ObjectWithUid):
     cdef dict __storage
     cdef object __weakref__
     cdef public set _kwargs_applied_init
+    cdef public object _proxy_ref
     cpdef dict properties(self)
 
 

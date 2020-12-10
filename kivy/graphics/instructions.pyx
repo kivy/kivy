@@ -747,8 +747,8 @@ cdef popActiveCanvas():
 #TODO: same as canvas, move back to context.pyx..fix circular import
 #on actual import from python problem
 include "common.pxi"
-from vertex cimport *
-#from texture cimport *
+from .vertex cimport *
+#from .texture cimport *
 
 from os.path import join
 from kivy import kivy_shader_dir

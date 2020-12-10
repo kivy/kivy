@@ -10,10 +10,15 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
-__all__ = ('GraphicUnitTest', 'UTMotionEvent')
+__all__ = (
+    'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
+    'requires_graphics')
 
 import unittest
 import logging
+import pytest
+import sys
+from functools import partial
 import os
 import threading
 from kivy.graphics.cgl import cgl_get_backend_name
@@ -24,31 +29,43 @@ log = logging.getLogger('unittest')
 _base = object
 if 'mock' != cgl_get_backend_name():
     # check what the gl backend might be, we can't know for sure
-    # what it'll be untill actually initialized by the window.
+    # what it'll be until actually initialized by the window.
     _base = unittest.TestCase
 
 make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 http_server = None
 http_server_ready = threading.Event()
+kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
 
 
-def ensure_web_server():
+def requires_graphics(func):
+    if 'mock' == cgl_get_backend_name():
+        return pytest.mark.skip(
+            reason='Skipping because gl backend is set to mock')(func)
+    return func
+
+
+def ensure_web_server(root=None):
     if http_server is not None:
         return True
 
+    if not root:
+        root = os.path.join(os.path.dirname(__file__), "..", "..")
+    need_chdir = sys.version_info.major == 3 and sys.version_info.minor <= 6
+    curr_dir = os.getcwd()
+
     def _start_web_server():
         global http_server
-        try:
-            from SimpleHTTPServer import SimpleHTTPRequestHandler
-            from SocketServer import TCPServer
-        except ImportError:
-            from http.server import SimpleHTTPRequestHandler
-            from socketserver import TCPServer
+        from http.server import SimpleHTTPRequestHandler
+        from socketserver import TCPServer
 
         try:
-            handler = SimpleHTTPRequestHandler
-            handler.directory = os.path.join(
-                os.path.dirname(__file__), "..", "..")
+            if need_chdir:
+                os.chdir(root)
+                handler = SimpleHTTPRequestHandler
+            else:
+                handler = partial(SimpleHTTPRequestHandler, directory=root)
+
             http_server = TCPServer(
                 ("", 8000), handler, bind_and_activate=False)
             http_server.daemon_threads = True
@@ -63,6 +80,9 @@ def ensure_web_server():
         finally:
             http_server = None
             http_server_ready.set()
+
+            if need_chdir:
+                os.chdir(curr_dir)
 
     th = threading.Thread(target=_start_web_server)
     th.daemon = True
@@ -279,6 +299,7 @@ class GraphicUnitTest(_base):
         '''
         from kivy.base import stopTouchApp
         from kivy.core.window import Window
+        from kivy.clock import Clock
         Window.unbind(on_flip=self.on_window_flip)
         stopTouchApp()
 
@@ -398,7 +419,7 @@ class UnitTestTouch(MotionEvent):
 
         super(UnitTestTouch, self).__init__(
             # device, (tuio) id, args
-            "UnitTestTouch", 99, {
+            self.__class__.__name__, 99, {
                 "x": x / float(win.width),
                 "y": y / float(win.height),
             }
@@ -440,3 +461,47 @@ class UTMotionEvent(MotionEvent):
         self.sy = args['y']
         self.profile = ['pos']
         super(UTMotionEvent, self).depack(args)
+
+
+def async_run(func=None, app_cls_func=None):
+    def inner_func(func):
+        if 'mock' == cgl_get_backend_name():
+            return pytest.mark.skip(
+                reason='Skipping because gl backend is set to mock')(func)
+
+        if sys.version_info[0] < 3 or sys.version_info[1] <= 5:
+            return pytest.mark.skip(
+                reason='Skipping because graphics tests are not supported on '
+                       'py3.5, only on py3.6+')(func)
+
+        if app_cls_func is not None:
+            func = pytest.mark.parametrize(
+                "kivy_app", [[app_cls_func], ], indirect=True)(func)
+
+        if kivy_eventloop == 'asyncio':
+            try:
+                import pytest_asyncio
+                return pytest.mark.asyncio(func)
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='KIVY_EVENTLOOP == "asyncio" but '
+                           '"pytest-asyncio" is not installed')(func)
+        elif kivy_eventloop == 'trio':
+            try:
+                import trio
+                from pytest_trio import trio_fixture
+                func._force_trio_fixture = True
+                return func
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='KIVY_EVENTLOOP == "trio" but '
+                           '"pytest-trio" is not installed')(func)
+        else:
+            return pytest.mark.skip(
+                reason='KIVY_EVENTLOOP must be set to either of "asyncio" or '
+                       '"trio" to run async tests')(func)
+
+    if func is None:
+        return inner_func
+
+    return inner_func(func)

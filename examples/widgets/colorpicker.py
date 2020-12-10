@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.graphics import Color, Point
+from kivy.graphics import Color, Point, GraphicException
 
 from math import sqrt
 from os import walk
@@ -200,9 +200,9 @@ class MainRootWidget(BoxLayout):
 
     def on_parent(self, instance, parent):
         if parent:
-            _dir = join(dirname(__file__), 'lists/fruit_images/')
+            _dir = join(dirname(__file__), '../demo/pictures/images/')
             for image in list(walk(_dir))[0][2]:
-                if image.find('512') > -1:
+                if image.find('jpg') > -1:
                     self.client_area.add_widget(Picture(source=_dir + image))
 
 

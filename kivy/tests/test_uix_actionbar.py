@@ -218,6 +218,11 @@ class ActionBarTestCase(GraphicUnitTest):
         self.assertTrue(group2.is_open)
         self.assertFalse(group1.is_open)
 
+        # click away from ActionBar and wait for it to disappear
+        TouchPoint(0, 0)
+        sleep(g2dd.min_state_time)
+        self.move_frames(1)
+
         # click on Group 1
         TouchPoint(*group1.center)
 

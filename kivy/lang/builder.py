@@ -20,7 +20,6 @@ from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir
-from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 from kivy._event import Observable, EventDispatcher
@@ -29,12 +28,6 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
 
 
 trace = Logger.trace
-
-# class types to check with isinstance
-if PY2:
-    _cls_type = (type, types.ClassType)
-else:
-    _cls_type = (type, )
 
 # late import
 Instruction = None
@@ -226,7 +219,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                elif not isinstance(f, _cls_type):
+                elif not isinstance(f, type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
                 else:
                     append([f, val, None, None])
@@ -262,18 +255,37 @@ class BuilderBase(object):
     that you can use to load other kv files in addition to the default ones.
     '''
 
-    _match_cache = {}
-    _match_name_cache = {}
-
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self._match_cache = {}
+        self._match_name_cache = {}
         self.files = []
         self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
 
-    def load_file(self, filename, **kwargs):
+    @classmethod
+    def create_from(cls, builder):
+        """Creates a instance of the class, and initializes to the state of
+        ``builder``.
+
+        :param builder: The builder to initialize from.
+        :return: A new instance of this class.
+        """
+        obj = cls()
+        obj._match_cache = copy(builder._match_cache)
+        obj._match_name_cache = copy(builder._match_name_cache)
+        obj.files = copy(builder.files)
+        obj.dynamic_classes = copy(builder.dynamic_classes)
+        obj.templates = copy(builder.templates)
+        obj.rules = list(builder.rules)
+        assert not builder.rulectx
+        obj.rulectx = dict(builder.rulectx)
+
+        return obj
+
+    def load_file(self, filename, encoding='utf8', **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
 
@@ -281,23 +293,16 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+
+            `encoding`: File charcter encoding. Defaults to utf-8,
         '''
         filename = resource_find(filename) or filename
         if __debug__:
-            trace('Lang: load file %s' % filename)
-        with open(filename, 'r') as fd:
-            kwargs['filename'] = filename
+            trace('Lang: load file %s, using %s encoding', filename, encoding)
+
+        kwargs['filename'] = filename
+        with open(filename, 'r', encoding=encoding) as fd:
             data = fd.read()
-
-            # remove bom ?
-            if PY2:
-                if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-                    raise ValueError('Unsupported UTF16 for kv files.')
-                if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-                    raise ValueError('Unsupported UTF32 for kv files.')
-                if data.startswith(codecs.BOM_UTF8):
-                    data = data[len(codecs.BOM_UTF8):]
-
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
@@ -379,7 +384,7 @@ class BuilderBase(object):
                                  is_template=True, warn=True)
 
             # register all the dynamic classes
-            for name, baseclasses in iteritems(parser.dynamic_classes):
+            for name, baseclasses in parser.dynamic_classes.items():
                 Factory.register(name, baseclasses=baseclasses, filename=fn,
                                  warn=True)
 
@@ -541,8 +546,8 @@ class BuilderBase(object):
                 w.dispatch('on_kv_post', widget)
 
     def _clear_matchcache(self):
-        BuilderBase._match_cache = {}
-        BuilderBase._match_name_cache = {}
+        self._match_cache.clear()
+        self._match_name_cache.clear()
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
                     ignored_consts=set(), rule_children=None):
@@ -574,7 +579,7 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in iterkeys(_ids):
+            for _key in _ids.keys():
                 if _ids[_key] == _root:
                     # skip on self
                     continue
@@ -740,7 +745,7 @@ class BuilderBase(object):
     def match(self, widget):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_cache
+        cache = self._match_cache
         k = (widget.__class__, tuple(widget.cls))
         if k in cache:
             return cache[k]
@@ -756,7 +761,7 @@ class BuilderBase(object):
     def match_rule_name(self, rule_name):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_name_cache
+        cache = self._match_name_cache
         rule_name = str(rule_name)
         k = rule_name.lower()
         if k in cache:
@@ -927,7 +932,7 @@ class BuilderBase(object):
 
 
 #: Main instance of a :class:`BuilderBase`.
-Builder = register_context('Builder', BuilderBase)
+Builder: BuilderBase = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
@@ -937,7 +942,7 @@ if 'KIVY_PROFILE_LANG' in environ:
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
-        for prop, prp in iteritems(rule.properties):
+        for prop, prp in rule.properties.items():
             if prp.line != index:
                 continue
             yield prp

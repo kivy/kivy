@@ -6,8 +6,9 @@ mkdir ~/kivy_sources;
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
 
 cd ~/kivy_sources;
-git clone --depth 1 https://github.com/spurious/SDL-mirror.git
-cd SDL-mirror;
+wget http://www.libsdl.org/release/SDL2-2.0.12.tar.gz
+tar xzf SDL2-2.0.12.tar.gz
+cd SDL2-2.0.12
 ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"  --enable-alsa-shared=no  --enable-jack-shared=no  --enable-pulseaudio-shared=no  --enable-esd-shared=no  --enable-arts-shared=no  --enable-nas-shared=no  --enable-sndio-shared=no  --enable-fusionsound-shared=no  --enable-libsamplerate-shared=no  --enable-wayland-shared=no --enable-x11-shared=no --enable-directfb-shared=no --enable-kmsdrm-shared=no;
 make;
 make install;
@@ -42,14 +43,14 @@ make distclean;
 
 cd /io;
 for PYBIN in /opt/python/*3*/bin; do
-    if [[ $PYBIN != *"34"* ]]; then
+    if [[ $PYBIN != *"34"* && $PYBIN != *"35"* ]]; then
         "${PYBIN}/pip" install --upgrade setuptools pip;
         "${PYBIN}/pip" install --upgrade cython nose pygments docutils;
-        USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel --no-deps . -w wheelhouse/;
+        KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" "${PYBIN}/pip" wheel --no-deps . -w dist/;
     fi
 done
 
-for name in /io/wheelhouse/*.whl; do
+for name in /io/dist/*.whl; do
     echo "Fixing $name";
-    auditwheel repair --plat manylinux2010_x86_64 $name -w /io/wheelhouse/;
+    auditwheel repair --plat manylinux2010_x86_64 $name -w /io/dist/;
 done

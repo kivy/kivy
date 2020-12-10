@@ -63,7 +63,7 @@ class PageLayout(Layout):
     '''
 
     swipe_threshold = NumericProperty(.5)
-    '''The thresold used to trigger swipes as percentage of the widget
+    '''The threshold used to trigger swipes as ratio of the widget
     size.
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`

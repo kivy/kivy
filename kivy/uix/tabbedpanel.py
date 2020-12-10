@@ -136,7 +136,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.logger import Logger
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-    ListProperty, NumericProperty, AliasProperty, BooleanProperty
+    ListProperty, NumericProperty, AliasProperty, BooleanProperty, \
+    ColorProperty
 
 
 class TabbedPanelException(Exception):
@@ -266,11 +267,15 @@ class TabbedPanel(GridLayout):
     '''The TabbedPanel class. See module documentation for more information.
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     border = ListProperty([16, 16, 16, 16])
@@ -678,7 +683,7 @@ class TabbedPanel(GridLayout):
         tab_pos = self.tab_pos
         tab_layout = self._tab_layout
         tab_layout.clear_widgets()
-        scrl_v = ScrollView(size_hint=(None, 1))
+        scrl_v = ScrollView(size_hint=(None, 1), always_overscroll=False)
         tabs = self._tab_strip
         parent = tabs.parent
         if parent:

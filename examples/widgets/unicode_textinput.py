@@ -78,7 +78,7 @@ Builder.load_string('''
                     if _platform == 'android'
                     else os.path.expanduser('~/Library/Fonts')
                     if _platform == 'macosx'
-                    else os.environ['WINDIR'] +'\Fonts\')
+                    else os.environ['WINDIR'] +'\\Fonts\')
             Button:
                 size_hint: 1, .2
                 text: 'System Font directory'
@@ -91,7 +91,7 @@ Builder.load_string('''
                     if _platform == 'linux' else '/system/fonts'
                     if _platform == 'android' else os.path.expanduser
                     ('/System/Library/Fonts') if _platform == 'macosx'
-                    else os.environ['WINDIR'] + "\Fonts\")
+                    else os.environ['WINDIR'] + "\\Fonts\")
             Label:
                 text: 'BookMarks'
         BoxLayout:

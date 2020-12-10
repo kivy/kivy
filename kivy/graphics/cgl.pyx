@@ -39,7 +39,7 @@ include "../include/config.pxi"
 
 from sys import platform
 from os import environ
-from cgl cimport GLES2_Context
+from .cgl cimport GLES2_Context
 import importlib
 from kivy.logger import Logger
 

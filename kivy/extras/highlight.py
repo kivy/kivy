@@ -3,7 +3,7 @@
 from pygments.lexer import RegexLexer, bygroups, using
 from pygments.lexers.agile import PythonLexer
 from pygments import highlight
-from pygments.token import *
+from pygments.token import Comment, Text, Name, Punctuation, Operator
 from pygments.formatters import get_formatter_by_name
 import sys
 
@@ -26,7 +26,8 @@ class KivyLexer(RegexLexer):
                 bygroups(Name.Class, Text, Punctuation, Text)),
             (r'(.*?)(\s*)(:)(\s*)(.*?)$',
                 bygroups(Name.Attribute, Text, Punctuation, Text,
-                using(PythonLexer)))],
+                using(PythonLexer))),
+            (r'[^:]+?$', using(PythonLexer))],
         'classList': [
             (r'(,)(\s*)([A-Z][A-Za-z0-9]*)',
                 bygroups(Punctuation, Text, Name.Class)),
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     file, the second argument is the format of the destination and the third
     argument is the output filename
     '''
-    if len(sys.argv) is not 4:
+    if len(sys.argv) != 4:
         raise Exception('Three arguments expected, found %s' %
             (len(sys.argv) - 1))
     k = KivyLexer()

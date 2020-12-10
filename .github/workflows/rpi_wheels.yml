@@ -1,0 +1,66 @@
+name: RPi wheels
+
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
+
+env:
+  SERVER_IP: '159.203.106.198'
+  KIVY_CROSS_PLATFORM: 'rpi'
+  KIVY_CROSS_SYSROOT: '/rpi-firmware'
+
+jobs:
+  raspberrypi:
+    runs-on: ubuntu-18.04
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
+    strategy:
+      matrix:
+        docker_images: ['balenalib/armv7hf-debian:buster']
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate version metadata
+      run: |
+        source .ci/ubuntu_ci.sh
+        update_version_metadata
+    - name: Make ${{ matrix.docker_images }} wheel
+      run: |
+        source .ci/ubuntu_ci.sh
+        generate_armv7l_wheels ${{ matrix.docker_images }} "$KIVY_CROSS_PLATFORM" "$KIVY_CROSS_SYSROOT"
+    - name: Rename wheels
+      if: github.event.ref_type != 'tag'
+      run: |
+        source .ci/ubuntu_ci.sh
+        rename_wheels
+    - name: Upload wheels to server
+      if: github.event_name != 'pull_request'
+      env:
+        UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+      run: |
+        source .ci/ubuntu_ci.sh
+        upload_file_to_server "$SERVER_IP" "raspberrypi/kivy/"
+    - name: Upload wheels as artifact
+      uses: actions/upload-artifact@v2
+      if: github.event_name == 'pull_request'
+      with:
+        name: armv7l_wheels
+        path: dist
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_release }}
+      with:
+        files: dist/*
+        draft: true
+
+  always_job:
+    name: Always run job
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Always run
+        run: |
+          echo "This is run to prevent the workflow from showing an error if the wheels job is not run and no jobs run is an error."
+          echo "See https://github.community/t5/GitHub-Actions/Workflow-is-failing-if-no-job-can-be-ran-due-to-condition/m-p/38085"

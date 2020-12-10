@@ -13,13 +13,13 @@ TODO:
 
 '''
 
-__all__ = ('WindowSDL2', )
+__all__ = ('WindowSDL', )
 
 from os.path import join
 import sys
 from kivy import kivy_data_dir
 from kivy.logger import Logger
-from kivy.base import EventLoop, ExceptionManager, stopTouchApp
+from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase
@@ -70,7 +70,7 @@ SDLK_SUPER = 1073742051
 SDLK_CAPS = 1073741881
 SDLK_INSERT = 1073741897
 SDLK_KEYPADNUM = 1073741907
-SDLK_KP_DEVIDE = 1073741908
+SDLK_KP_DIVIDE = 1073741908
 SDLK_KP_MULTIPLY = 1073741909
 SDLK_KP_MINUS = 1073741910
 SDLK_KP_PLUS = 1073741911
@@ -181,7 +181,7 @@ class WindowSDL(WindowBase):
                         SDLK_F6: 287, SDLK_F7: 288, SDLK_F8: 289, SDLK_F9: 290,
                         SDLK_F10: 291, SDLK_F11: 292, SDLK_F12: 293,
                         SDLK_F13: 294, SDLK_F14: 295, SDLK_F15: 296,
-                        SDLK_KEYPADNUM: 300, SDLK_KP_DEVIDE: 267,
+                        SDLK_KEYPADNUM: 300, SDLK_KP_DIVIDE: 267,
                         SDLK_KP_MULTIPLY: 268, SDLK_KP_MINUS: 269,
                         SDLK_KP_PLUS: 270, SDLK_KP_ENTER: 271,
                         SDLK_KP_DOT: 266, SDLK_KP_0: 256, SDLK_KP_1: 257,
@@ -229,11 +229,9 @@ class WindowSDL(WindowBase):
             from kivy.base import stopTouchApp
             app = App.get_running_app()
             if not app:
-                Logger.info('WindowSDL: No running App found, exit.')
-                stopTouchApp()
-                return 0
+                Logger.info('WindowSDL: No running App found, pause.')
 
-            if not app.dispatch('on_pause'):
+            elif not app.dispatch('on_pause'):
                 Logger.info(
                     'WindowSDL: App doesn\'t support pause mode, stop.')
                 stopTouchApp()
@@ -248,7 +246,8 @@ class WindowSDL(WindowBase):
             if self._pause_loop:
                 self._pause_loop = False
                 app = App.get_running_app()
-                app.dispatch('on_resume')
+                if app:
+                    app.dispatch('on_resume')
 
         elif action == 'windowresized':
             self._size = largs
@@ -475,9 +474,7 @@ class WindowSDL(WindowBase):
                           (self.system_size[1] - y) * self._density)
         return x, y
 
-    def _mainloop(self):
-        EventLoop.idle()
-
+    def mainloop(self):
         # for android/iOS, we don't want to have any event nor executing our
         # main loop while the pause is going on. This loop wait any event (not
         # handled by the event filter), and remove them from the queue.
@@ -541,6 +538,10 @@ class WindowSDL(WindowBase):
                     btn = 'right'
                 elif button == 2:
                     btn = 'middle'
+                elif button == 4:
+                    btn = "mouse4"
+                elif button == 5:
+                    btn = "mouse5"
                 eventname = 'on_mouse_down'
                 self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
@@ -709,11 +710,8 @@ class WindowSDL(WindowBase):
         from kivy.base import stopTouchApp
         app = App.get_running_app()
         if not app:
-            Logger.info('WindowSDL: No running App found, exit.')
-            stopTouchApp()
-            return
-
-        if not app.dispatch('on_pause'):
+            Logger.info('WindowSDL: No running App found, pause.')
+        elif not app.dispatch('on_pause'):
             Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
             stopTouchApp()
             return
@@ -735,26 +733,8 @@ class WindowSDL(WindowBase):
             elif action == 'windowrestored':
                 break
 
-        app.dispatch('on_resume')
-
-    def mainloop(self):
-        # don't known why, but pygame required a resize event
-        # for opengl, before mainloop... window reinit ?
-        # self.dispatch('on_resize', *self.size)
-
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException as inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass
-        Logger.info("WindowSDL: exiting mainloop and closing.")
-        self.close()
+        if app:
+            app.dispatch('on_resume')
 
     def _update_modifiers(self, mods=None, key=None):
         if mods is None and key is None:

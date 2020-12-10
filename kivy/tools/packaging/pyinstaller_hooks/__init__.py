@@ -69,7 +69,10 @@ import re
 import glob
 
 import kivy
-import kivy.deps
+try:
+    from kivy import deps as old_deps
+except ImportError:
+    old_deps = None
 try:
     import kivy_deps
 except ImportError:
@@ -86,7 +89,9 @@ if 'KIVY_DOC' not in environ:
 
     kivy_modules = [
         'xml.etree.cElementTree',
-        'kivy.core.gl'
+        'kivy.core.gl',
+        'kivy.weakmethod',
+        'kivy.core.window.window_info',
     ] + collect_submodules('kivy.graphics')
     '''List of kivy modules that are always needed as hiddenimports of
     pyinstaller.
@@ -206,16 +211,9 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
 
         mods.append(full_name)
         single_mod = False
-        if sys.version < '3.0':
-            # Mod name could potentially be any basestring subclass
-            if isinstance(val, basestring):
-                single_mod = True
-                mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
-        else:
-            # There is no `basestring` in Py3
-            if isinstance(val, (str, bytes)):
-                single_mod = True
-                mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
+        if isinstance(val, (str, bytes)):
+            single_mod = True
+            mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
         if not single_mod:
             for v in val:
                 mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, v))
@@ -291,17 +289,20 @@ def add_dep_paths():
     during its crawling stage.
     '''
     paths = []
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-        if not ispkg:
-            continue
-        try:
-            mod = importer.find_module(modname).load_module(modname)
-        except ImportError as e:
-            logging.warn("deps: Error importing dependency: {}".format(str(e)))
-            continue
+    if old_deps is not None:
+        for importer, modname, ispkg in pkgutil.iter_modules(
+                old_deps.__path__):
+            if not ispkg:
+                continue
+            try:
+                mod = importer.find_module(modname).load_module(modname)
+            except ImportError as e:
+                logging.warn(
+                    "deps: Error importing dependency: {}".format(str(e)))
+                continue
 
-        if hasattr(mod, 'dep_bins'):
-            paths.extend(mod.dep_bins)
+            if hasattr(mod, 'dep_bins'):
+                paths.extend(mod.dep_bins)
     sys.path.extend(paths)
 
     if kivy_deps is None:

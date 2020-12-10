@@ -222,6 +222,7 @@ div.sphinxsidebar li a:hover {
 	background-color: #f0f0f0;
 	padding: 10px 15px;
 	font-family: 'Source Code Pro', monospace;
+	white-space: pre-wrap;
 }
 
 #content h1 {

@@ -6,7 +6,10 @@ Support for WM_PEN messages (Windows platform)
 __all__ = ('WM_PenProvider', 'WM_Pen')
 
 import os
-from kivy.input.providers.wm_common import *
+from kivy.input.providers.wm_common import RECT, PEN_OR_TOUCH_MASK, \
+    PEN_OR_TOUCH_SIGNATURE, PEN_EVENT_TOUCH_MASK, WM_LBUTTONDOWN, \
+    WM_MOUSEMOVE, WM_LBUTTONUP, WM_TABLET_QUERYSYSTEMGESTURE, \
+    QUERYSYSTEMGESTURE_WNDPROC, WNDPROC, SetWindowLong_WndProc_wrapper
 from kivy.input.motionevent import MotionEvent
 
 

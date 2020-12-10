@@ -19,12 +19,18 @@ widgets are built with multitouch support.
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the [Kivy Organization](https://kivy.org/#organization).
 
-[![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
-[![Build Status](https://travis-ci.org/kivy/kivy.svg?branch=master)](https://travis-ci.org/kivy/kivy)
-[![Build status](https://ci.appveyor.com/api/projects/status/sqc46n4a3bq2gj1s/branch/master?svg=true)](https://ci.appveyor.com/project/KivyOrg/kivy/branch/master)
 [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
-[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers) 
-[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors) 
+[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+
+[![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
+[![Windows Unittests Status](https://github.com/kivy/kivy/workflows/Windows%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+Unittests%22)
+[![Ubuntu Unittests Status](https://github.com/kivy/kivy/workflows/Ubuntu%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Ubuntu+Unittests%22)
+[![OSX Unittests Status](https://github.com/kivy/kivy/workflows/OSX%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+Unittests%22)
+[![Windows wheels Status](https://github.com/kivy/kivy/workflows/Windows%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+wheels%22)
+[![Manylinux wheels Status](https://github.com/kivy/kivy/workflows/Manylinux%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Manylinux+wheels%22)
+[![Raspberry Pi wheels Status](https://github.com/kivy/kivy/workflows/RPi%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22RPi+wheels%22)
+[![OSX wheels Status](https://github.com/kivy/kivy/workflows/OSX%20wheels%2Fapp/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+wheels%2Fapp%22)
 
 Installation, Documentation and Examples
 ----------------------------------------
@@ -83,7 +89,6 @@ Sister projects
   packaging Kivy applications for iOS.
 - [Audiostream](https://github.com/kivy/audiostream): library for direct access
   to the microphone and speaker.
-- [Kivy Designer](https://github.com/kivy/kivy-designer): UI designer for Kivy.
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.

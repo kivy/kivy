@@ -97,7 +97,7 @@ Or you can clean your canvas and start fresh::
             self.bind(pos=self.draw_my_stuff)
             self.bind(size=self.draw_my_stuff)
 
-        def draw_my_stuff(self):
+        def draw_my_stuff(self, *args):
             self.canvas.clear()
 
             with self.canvas:

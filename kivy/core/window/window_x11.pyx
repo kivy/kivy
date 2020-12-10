@@ -15,7 +15,7 @@ from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
 from os import environ
 
-from window_info cimport WindowInfoX11
+from .window_info cimport WindowInfoX11
 
 include "window_attrs.pxi"
 
@@ -48,7 +48,7 @@ cdef extern from "X11/Xutil.h":
         int x, y
         unsigned int state
         unsigned int button
-        
+
     ctypedef struct XConfigureEvent:
         int type
         int x, y
@@ -111,7 +111,7 @@ cdef int event_callback(XEvent *event):
         modifiers = get_modifiers_from_state(event.xmotion.state)
         _window_object.dispatch('on_mouse_move',
                 event.xmotion.x, event.xmotion.y, modifiers)
-                
+
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):
             _window_object._size = event.xconfigure.width, event.xconfigure.height
@@ -226,22 +226,8 @@ class WindowX11(WindowBase):
         return window_info
 
     def mainloop(self):
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException, inst:
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    stopTouchApp()
-                    raise
-                else:
-                    pass
-
-    def _mainloop(self):
-        EventLoop.idle()
         if x11_idle() == 0 and not self.dispatch('on_request_close'):
-                EventLoop.quit = True
+            EventLoop.quit = True
 
     def flip(self):
         x11_gl_swap()

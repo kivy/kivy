@@ -78,7 +78,7 @@ from kivy.logger import Logger
 from kivy.animation import Animation
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
-    NumericProperty, ListProperty
+    NumericProperty, ListProperty, ColorProperty
 
 
 class ModalView(AnchorLayout):
@@ -99,6 +99,9 @@ class ModalView(AnchorLayout):
     .. versionchanged:: 1.11.0
         Added events `on_pre_open` and `on_pre_dismiss`.
 
+    .. versionchanged:: 2.0.0
+        Added property 'overlay_color'.
+
     '''
 
     auto_dismiss = BooleanProperty(True)
@@ -118,11 +121,22 @@ class ModalView(AnchorLayout):
     defaults to None.
     '''
 
-    background_color = ListProperty([0, 0, 0, .7])
-    '''Background color in the format (r, g, b, a).
+    background_color = ColorProperty([1, 1, 1, 1])
+    '''Background color, in the format (r, g, b, a).
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [0, 0, 0, .7].
+    This acts as a *multiplier* to the texture colour. The default
+    texture is grey, so just setting the background color will give
+    a darker result. To set a plain color, set the
+    :attr:`background_normal` to ``''``.
+
+    The :attr:`background_color` is a
+    :class:`~kivy.properties.ColorProperty` and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed behavior to affect the background of the widget itself, not
+        the overlay dimming.
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background = StringProperty(
@@ -146,6 +160,16 @@ class ModalView(AnchorLayout):
     (16, 16, 16, 16).
     '''
 
+    overlay_color = ColorProperty([0, 0, 0, .7])
+    '''Overlay color in the format (r, g, b, a).
+    Used for dimming the window behind the modal view.
+
+    :attr:`overlay_color` is a :class:`~kivy.properties.ColorProperty` and
+    defaults to [0, 0, 0, .7].
+
+    .. versionadded:: 2.0.0
+    '''
+
     # Internals properties used for graphical representation.
 
     _anim_alpha = NumericProperty(0)
@@ -153,6 +177,8 @@ class ModalView(AnchorLayout):
     _anim_duration = NumericProperty(.1)
 
     _window = ObjectProperty(None, allownone=True, rebind=True)
+
+    _touch_started_inside = None
 
     __events__ = ('on_pre_open', 'on_open', 'on_pre_dismiss', 'on_dismiss')
 
@@ -240,19 +266,23 @@ class ModalView(AnchorLayout):
             self.center = self._window.center
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.auto_dismiss:
-                self.dismiss()
-                return True
-        super(ModalView, self).on_touch_down(touch)
+        self._touch_started_inside = self.collide_point(*touch.pos)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
-        super(ModalView, self).on_touch_move(touch)
+        if not self.auto_dismiss or self._touch_started_inside:
+            super(ModalView, self).on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
-        super(ModalView, self).on_touch_up(touch)
+        # Explicitly test for False as None occurs when shown by on_touch_down
+        if self.auto_dismiss and self._touch_started_inside is False:
+            self.dismiss()
+        else:
+            super(ModalView, self).on_touch_up(touch)
+        self._touch_started_inside = None
         return True
 
     def on__anim_alpha(self, instance, value):

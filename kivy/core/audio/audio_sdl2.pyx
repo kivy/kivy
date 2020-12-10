@@ -171,8 +171,8 @@ class SoundSDL2(Sound):
             return 0
         if not Mix_QuerySpec(&freq, &fmt, &channels):
             return 0
-        points = cc.chunk.alen / ((fmt & 0xFF) / 8)
-        frames = points / channels
+        points = <unsigned int>int(cc.chunk.alen / ((fmt & 0xFF) / 8))
+        frames = <unsigned int>int(points / channels)
         return <double>frames / <double>freq
 
     def on_pitch(self, instance, value):
@@ -204,7 +204,7 @@ class SoundSDL2(Sound):
         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
         if cc.channel == -1:
             Logger.warning('AudioSDL2: Unable to play {}: {}'.format(
-                           self.filename, Mix_GetError()))
+                           self.source, Mix_GetError()))
             return
         # schedule event to check if the sound is still playing or not
         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
@@ -225,18 +225,18 @@ class SoundSDL2(Sound):
     def load(self):
         cdef ChunkContainer cc = self.cc
         self.unload()
-        if self.filename is None:
+        if self.source is None:
             return
 
-        if isinstance(self.filename, bytes):
-            fn = self.filename
+        if isinstance(self.source, bytes):
+            fn = self.source
         else:
-            fn = self.filename.encode('UTF-8')
+            fn = self.source.encode('UTF-8')
 
         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if cc.chunk == NULL:
             Logger.warning('AudioSDL2: Unable to load {}: {}'.format(
-                           self.filename, Mix_GetError()))
+                           self.source, Mix_GetError()))
         else:
             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
             cc.chunk.volume = int(self.volume * 128)
@@ -317,7 +317,7 @@ class MusicSDL2(Sound):
         Mix_VolumeMusic(int(self.volume * 128))
         if Mix_PlayMusic(mc.music, 1) == -1:
             Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(
-                           self.filename, Mix_GetError()))
+                           self.source, Mix_GetError()))
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
@@ -338,18 +338,18 @@ class MusicSDL2(Sound):
     def load(self):
         cdef MusicContainer mc = self.mc
         self.unload()
-        if self.filename is None:
+        if self.source is None:
             return
 
-        if isinstance(self.filename, bytes):
-            fn = self.filename
+        if isinstance(self.source, bytes):
+            fn = self.source
         else:
-            fn = self.filename.encode('UTF-8')
+            fn = self.source.encode('UTF-8')
 
         mc.music = Mix_LoadMUS(<char *><bytes>fn)
         if mc.music == NULL:
             Logger.warning('AudioSDL2: Unable to load music {}: {}'.format(
-                           self.filename, Mix_GetError()))
+                           self.source, Mix_GetError()))
         else:
             Mix_VolumeMusic(int(self.volume * 128))
 

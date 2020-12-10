@@ -280,7 +280,7 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
-from kivy.utils import get_color_from_hex
+from kivy.utils import get_color_from_hex, colormap
 
 
 cdef float g_dpi = -1
@@ -297,7 +297,7 @@ cpdef float dpi2px(value, ext) except *:
         g_dpi = Metrics.dpi
         g_density = Metrics.density
         g_fontscale = Metrics.fontscale
-    cdef float rv = float(value)
+    cdef float rv = <float>float(value)
     if ext == 'in':
         return rv * g_dpi
     elif ext == 'px':
@@ -307,11 +307,11 @@ cpdef float dpi2px(value, ext) except *:
     elif ext == 'sp':
         return rv * g_density * g_fontscale
     elif ext == 'pt':
-        return rv * g_dpi / 72.
+        return rv * g_dpi / <float>72.
     elif ext == 'cm':
-        return rv * g_dpi / 2.54
+        return rv * g_dpi / <float>2.54
     elif ext == 'mm':
-        return rv * g_dpi / 25.4
+        return rv * g_dpi / <float>25.4
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -663,7 +663,7 @@ cdef class NumericProperty(Property):
         if value[-2:] in NUMERIC_FORMATS:
             return self.parse_list(obj, value[:-2], value[-2:])
         else:
-            return float(value)
+            return <float>float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         cdef PropertyStorage ps = obj.__storage[self._name]
@@ -700,7 +700,7 @@ cdef class StringProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-cdef inline void observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self) except *:
     cdef Property prop = self.prop
     obj = self.obj()
     if obj is not None:
@@ -771,8 +771,8 @@ class ObservableList(list):
         self.last_op = 'extend', None
         observable_list_dispatch(self)
 
-    def sort(self, *largs):
-        list.sort(self, *largs)
+    def sort(self, *largs, **kwargs):
+        list.sort(self, *largs, **kwargs)
         self.last_op = 'sort', None
         observable_list_dispatch(self)
 
@@ -839,7 +839,7 @@ cdef class ListProperty(Property):
             value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
-cdef inline void observable_dict_dispatch(object self):
+cdef inline void observable_dict_dispatch(object self) except *:
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 
@@ -1983,35 +1983,59 @@ cdef class ConfigParserProperty(Property):
 cdef class ColorProperty(Property):
     '''Property that represents a color. The assignment can take either:
 
-    - a list of 3 to 4 float value between 0-1 (kivy default)
+    - a collection of 3 or 4 float values between 0-1 (kivy default)
     - a string in the format #rrggbb or #rrggbbaa
+    - a string representing color name (eg. 'red', 'yellow', 'green')
+
+    Object :obj:`~kivy.utils.colormap` is used to retreive color from color
+    name and names definitions can be found at this
+    `link <https://www.w3.org/TR/SVG11/types.html#ColorKeywords>`_. Color can
+    be assinged in different formats, but it will be returned as
+    :class:`~kivy.properties.ObservableList` of 4 float elements with values
+    between 0-1.
 
     :Parameters:
-        `defaultvalue`: list or string, defaults to [1, 1, 1, 1]
+        `defaultvalue`: list or string, defaults to [1.0, 1.0, 1.0, 1.0]
             Specifies the default value of the property.
 
     .. versionadded:: 1.10.0
+
+    .. versionchanged:: 2.0.0
+        Color value will be dispatched when set through indexing or slicing,
+        but when setting with slice you must ensure that slice has 4 components
+        with float values between 0-1.
+        Assingning color name as value is now supported.
+        Value `None` is allowed as default value for property.
     '''
-    def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or [1, 1, 1, 1]
+
+    def __init__(self, defaultvalue=0, **kw):
+        defaultvalue = \
+            [1.0, 1.0, 1.0, 1.0] if defaultvalue == 0 else defaultvalue
         super(ColorProperty, self).__init__(defaultvalue, **kw)
 
     cdef convert(self, EventDispatcher obj, x):
         if x is None:
             return x
-        tp = type(x)
-        if tp is tuple or tp is list:
-            if len(x) != 3 and len(x) != 4:
-                raise ValueError('{}.{} must have 3 or 4 components (got {!r})'.format(
-                    obj.__class__.__name__, self.name, x))
-            if len(x) == 3:
-                return list(x) + [1]
-            return list(x)
-        elif isinstance(x, string_types):
-            return self.parse_str(obj, x)
-        else:
-            raise ValueError('{}.{} has an invalid format (got {!r})'.format(
-                obj.__class__.__name__, self.name, x))
+        cdef object color = x
+        try:
+            if isinstance(x, string_types):
+                color = self.parse_str(obj, x)
+            color = self.parse_list(obj, color)
+        except (ValueError, TypeError) as e:
+            raise ValueError(
+                '{}.{} has an invalid format (got {!r})'
+                .format(obj.__class__.__name__, self.name, x)
+            ) from e
+        return color
 
     cdef list parse_str(self, EventDispatcher obj, value):
-        return get_color_from_hex(value)
+        cdef list color = colormap.get(value)
+        return color if color else get_color_from_hex(value)
+
+    cdef object parse_list(self, EventDispatcher obj, value):
+        cdef int count = len(value)
+        if count == 4:
+            return ObservableList(self, obj, value)
+        if count == 3:
+            return ObservableList(self, obj, list(value) + [1.0])
+        raise ValueError('Invalid value for color (got %r)' % value)

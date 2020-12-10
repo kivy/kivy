@@ -2,10 +2,18 @@
 Logger object
 =============
 
-Differents logging levels are available : trace, debug, info, warning, error
-and critical.
+The Kivy `Logger` class provides a singleton logger instance. This instance
+exposes a standard Python
+`logger <https://docs.python.org/3/library/logging.html>`_ object but adds
+some convenient features.
 
-Examples of usage::
+All the standard logging levels are available : `trace`, `debug`, `info`,
+`warning`, `error` and `critical`.
+
+Example Usage
+-------------
+
+Use the `Logger` as you would a standard Python logger. ::
 
     from kivy.logger import Logger
 
@@ -17,9 +25,9 @@ Examples of usage::
     except Exception:
         Logger.exception('Something happened!')
 
-The message passed to the logger is split into two parts, separated by a colon
-(:). The first part is used as a title, and the second part is used as the
-message. This way, you can "categorize" your message easily. ::
+The message passed to the logger is split into two parts separated by a colon
+(:). The first part is used as a title and the second part is used as the
+message. This way, you can "categorize" your messages easily. ::
 
     Logger.info('Application: This is a test')
 
@@ -27,7 +35,30 @@ message. This way, you can "categorize" your message easily. ::
 
     [INFO   ] [Application ] This is a test
 
-Logger configuration
+You can change the logging level at any time using the `setLevel` method. ::
+
+    from kivy.logger import Logger, LOG_LEVELS
+
+    Logger.setLevel(LOG_LEVELS["debug"])
+
+
+Features
+--------
+
+Although you are free to use standard python loggers, the Kivy `Logger` offers
+some solid benefits and useful features. These include:
+
+* simplied usage (single instance, simple configuration, works by default)
+* color-coded output
+* output to `stdout` by default
+* message categorization via colon separation
+* access to log history even if logging is disabled
+* built-in handling of various cross-platform considerations
+
+Kivys' logger was designed to be used with kivy apps and makes logging from
+Kivy apps more convenient.
+
+Logger Configuration
 --------------------
 
 The Logger can be controlled via the Kivy configuration file::
@@ -42,7 +73,7 @@ The Logger can be controlled via the Kivy configuration file::
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
 
-Logger history
+Logger History
 --------------
 
 Even if the logger is not enabled, you still have access to the last 100
@@ -58,7 +89,6 @@ import logging
 import os
 import sys
 import kivy
-from kivy.compat import PY2
 from random import randint
 from functools import partial
 
@@ -114,6 +144,7 @@ class FileHandler(logging.Handler):
     filename = 'log.txt'
     fd = None
     log_dir = ''
+    encoding = 'utf-8'
 
     def purge_logs(self):
         '''Purge log is called randomly to prevent the log directory from being
@@ -189,8 +220,7 @@ class FileHandler(logging.Handler):
         FileHandler.filename = filename
         if FileHandler.fd is not None:
             FileHandler.fd.close()
-        FileHandler.fd = open(filename, 'w')
-
+        FileHandler.fd = open(filename, 'w', encoding=FileHandler.encoding)
         Logger.info('Logger: Record log in %s' % filename)
 
     def _write_message(self, record):
@@ -201,21 +231,7 @@ class FileHandler(logging.Handler):
         stream = FileHandler.fd
         fs = "%s\n"
         stream.write('[%-7s] ' % record.levelname)
-        if PY2:
-            try:
-                if (isinstance(msg, unicode) and
-                        getattr(stream, 'encoding', None)):
-                    ufs = u'%s\n'
-                    try:
-                        stream.write(ufs % msg)
-                    except UnicodeEncodeError:
-                        stream.write((ufs % msg).encode(stream.encoding))
-                else:
-                    stream.write(fs % msg)
-            except UnicodeError:
-                stream.write(fs % msg.encode("UTF-8"))
-        else:
-            stream.write(fs % msg)
+        stream.write(fs % msg)
         stream.flush()
 
     def emit(self, message):
@@ -253,6 +269,14 @@ class LoggerHistory(logging.Handler):
 
     def emit(self, message):
         LoggerHistory.history = [message] + LoggerHistory.history[:100]
+
+    @classmethod
+    def clear_history(cls):
+        del cls.history[:]
+
+    def flush(self):
+        super(LoggerHistory, self).flush()
+        self.clear_history()
 
 
 class ColoredFormatter(logging.Formatter):
@@ -345,16 +369,19 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
         use_color = (
-            os.name != 'nt' and
-            os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in (
-                'rxvt',
-                'rxvt-256color',
-                'rxvt-unicode',
-                'rxvt-unicode-256color',
-                'xterm',
-                'xterm-256color',
-            )
+            (
+                os.environ.get("WT_SESSION") or
+                os.environ.get("COLORTERM") == 'truecolor' or
+                os.environ.get('PYCHARM_HOSTED') == '1' or
+                os.environ.get('TERM') in (
+                    'rxvt',
+                    'rxvt-256color',
+                    'rxvt-unicode',
+                    'rxvt-unicode-256color',
+                    'xterm',
+                    'xterm-256color',
+                )
+            ) and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
         )
         if not use_color:
             # No additional control characters will be inserted inside the

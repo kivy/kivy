@@ -93,8 +93,10 @@ from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
-    ObjectProperty, StringProperty
+    ObjectProperty, StringProperty, OptionProperty
 from math import ceil
+from itertools import accumulate, product, chain, islice
+from operator import sub
 
 
 def nmax(*args):
@@ -150,7 +152,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
@@ -161,7 +163,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     col_default_width = NumericProperty(0)
@@ -251,6 +253,27 @@ class GridLayout(Layout):
     only.
     '''
 
+    orientation = OptionProperty('lr-tb', options=(
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
+        'bt-rl'))
+    '''Orientation of the layout.
+
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'lr-tb'.
+
+    Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt' and 'bt-rl'.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        'lr' means Left to Right.
+        'rl' means Right to Left.
+        'tb' means Top to Bottom.
+        'bt' means Bottom to Top.
+    '''
+
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
@@ -268,6 +291,7 @@ class GridLayout(Layout):
         fbind('children', update)
         fbind('size', update)
         fbind('pos', update)
+        fbind('orientation', update)
 
     def get_max_widgets(self):
         if self.cols and self.rows:
@@ -283,6 +307,18 @@ class GridLayout(Layout):
             raise GridLayoutException(
                 'Too many children in GridLayout. Increase rows/cols!')
 
+    @property
+    def _fills_row_first(self):
+        return self.orientation[0] in 'lr'
+
+    @property
+    def _fills_from_left_to_right(self):
+        return 'lr' in self.orientation
+
+    @property
+    def _fills_from_top_to_bottom(self):
+        return 'tb' in self.orientation
+
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
         # and determine if they have stretch or not
@@ -295,6 +331,7 @@ class GridLayout(Layout):
             Logger.warning('%r have no cols or rows set, '
                            'layout is not triggered.' % self)
             return
+
         if current_cols is None:
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
@@ -333,13 +370,12 @@ class GridLayout(Layout):
         cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
         has_bound_y = has_bound_x = False
-        for i, child in enumerate(reversed(self.children)):
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
+        for child, (col, row) in zip(reversed(self.children), idx_iter):
             (shw, shh), (w, h) = child.size_hint, child.size
             shw_min, shh_min = child.size_hint_min
             shw_max, shh_max = child.size_hint_max
-            row, col = divmod(i, n_cols)
 
             # compute minimum size / maximum stretch needed
             if shw is None:
@@ -480,24 +516,60 @@ class GridLayout(Layout):
                     rows[index] += stretch_h * row_stretch / rows_weight
 
     def _iterate_layout(self, count):
-        selfx = self.x
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
+        orientation = self.orientation
+        padding = self.padding
         spacing_x, spacing_y = self.spacing
 
-        i = count - 1
-        y = self.top - padding_top
         cols = self._cols
-        for row_height in self._rows:
-            x = selfx + padding_left
-            for col_width in cols:
-                if i < 0:
-                    break
+        if self._fills_from_left_to_right:
+            x_iter = accumulate(chain(
+                (self.x + padding[0], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(cols, len(cols) - 1)
+                ),
+            ))
+        else:
+            x_iter = accumulate(chain(
+                (self.right - padding[2] - cols[-1], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(reversed(cols), 1, None)
+                ),
+            ), sub)
+            cols = reversed(cols)
 
-                yield i, x, y - row_height, col_width, row_height
-                i = i - 1
-                x = x + col_width + spacing_x
-            y -= row_height + spacing_y
+        rows = self._rows
+        if self._fills_from_top_to_bottom:
+            y_iter = accumulate(chain(
+                (self.top - padding[1] - rows[0], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(rows, 1, None)
+                ),
+            ), sub)
+        else:
+            y_iter = accumulate(chain(
+                (self.y + padding[3], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(reversed(rows), len(rows) - 1)
+                ),
+            ))
+            rows = reversed(rows)
+
+        if self._fills_row_first:
+            for i, (y, x), (row_height, col_width) in zip(
+                    reversed(range(count)),
+                    product(y_iter, x_iter),
+                    product(rows, cols)):
+                yield i, x, y, col_width, row_height
+        else:
+            for i, (x, y), (col_width, row_height) in zip(
+                    reversed(range(count)),
+                    product(x_iter, y_iter),
+                    product(cols, rows)):
+                yield i, x, y, col_width, row_height
 
     def do_layout(self, *largs):
         children = self.children
@@ -542,3 +614,16 @@ class GridLayout(Layout):
                     c.width = w
                 else:
                     c.size = (w, h)
+
+    def _create_idx_iter(self, n_cols, n_rows):
+        col_indices = range(n_cols) if self._fills_from_left_to_right \
+            else range(n_cols - 1, -1, -1)
+        row_indices = range(n_rows) if self._fills_from_top_to_bottom \
+            else range(n_rows - 1, -1, -1)
+
+        if self._fills_row_first:
+            return (
+                (col_index, row_index)
+                for row_index, col_index in product(row_indices, col_indices))
+        else:
+            return product(col_indices, row_indices)

@@ -401,19 +401,19 @@ template instead, like so:
 
 .. code-block:: kv
 
-    <MyBigButt@Button>:
+    <MyBigButton@Button>:
         text_size: self.size
         font_size: '25sp'
         markup: True
 
     <MyWidget>:
-        MyBigButt:
+        MyBigButton:
             text: "Hello world, watch this text wrap inside the button"
-        MyBigButt:
+        MyBigButton:
             text: "Even absolute is relative to itself"
-        MyBigButt:
+        MyBigButton:
             text: "repeating the same thing over and over in a comp = fail"
-        MyBigButt:
+        MyBigButton:
 
 This class, created just by the declaration of this rule, inherits from the
 Button class and allows us to change default values and create bindings for all
@@ -539,3 +539,9 @@ are 3 things going on here:
 
 And that's that. Now when we run `main.py`, `controller.kv` will be loaded so
 that the ``Button`` and ``Label`` will show up and respond to our touch events.
+
+More documentation
+------------------
+For a full description of the different components of the `KV` language,
+ advanced usage and limitations, see the documentation
+ for :mod:`~kivy.lang`

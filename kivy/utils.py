@@ -18,11 +18,11 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 'rgba')
+           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version')
 
-from os import environ
+from os import environ, path
 from sys import platform as _sys_platform
-from re import match, split
+from re import match, split, search, MULTILINE, IGNORECASE
 from kivy.compat import string_types
 
 
@@ -75,7 +75,7 @@ def strtotuple(s):
 
     '''
     # security
-    if not match('^[,.0-9 ()\[\]]*$', s):
+    if not match(r'^[,.0-9 ()\[\]]*$', s):
         raise Exception('Invalid characters in string for tuple conversion')
     # fast syntax check
     if s.count('(') != s.count(')'):
@@ -120,7 +120,7 @@ def get_color_from_hex(s):
     value = [int(x, 16) / 255.
              for x in split('([0-9a-f]{2})', s.lower()) if x != '']
     if len(value) == 3:
-        value.append(1)
+        value.append(1.0)
     return value
 
 
@@ -424,12 +424,17 @@ def format_bytes_to_human(size, precision=2):
 
 def _get_platform():
     # On Android sys.platform returns 'linux2', so prefer to check the
-    # presence of python-for-android environment variables (ANDROID_ARGUMENT
-    # or ANDROID_PRIVATE).
-    if 'ANDROID_ARGUMENT' in environ:
+    # existence of environ variables set during Python initialization
+    kivy_build = environ.get('KIVY_BUILD', '')
+    if kivy_build in {'android', 'ios'}:
+        return kivy_build
+    elif 'P4A_BOOTSTRAP' in environ:
         return 'android'
-    elif environ.get('KIVY_BUILD', '') == 'ios':
-        return 'ios'
+    elif 'ANDROID_ARGUMENT' in environ:
+        # We used to use this method to detect android platform,
+        # leaving it here to be backwards compatible with `pydroid3`
+        # and similar tools outside kivy's ecosystem
+        return 'android'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
     elif _sys_platform == 'darwin':
@@ -505,3 +510,36 @@ class reify(object):
         retval = self.func(inst)
         setattr(inst, self.func.__name__, retval)
         return retval
+
+
+def _get_pi_version():
+    """Detect the version of the Raspberry Pi by reading the revision field value from '/proc/cpuinfo'
+    See: https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+    Based on: https://github.com/adafruit/Adafruit_Python_GPIO/blob/master/Adafruit_GPIO/Platform.py
+    """  # noqa
+    # Check if file exist
+    if not path.isfile('/proc/cpuinfo'):
+        return None
+
+    with open('/proc/cpuinfo', 'r') as f:
+        cpuinfo = f.read()
+
+    # Match a line like 'Revision   : a01041'
+    revision = search(r'^Revision\s+:\s+(\w+)$', cpuinfo,
+                      flags=MULTILINE | IGNORECASE)
+    if not revision:
+        # Couldn't find the hardware revision, assume it is not a Pi
+        return None
+
+    # Determine the Pi version using the processor bits using the new-style
+    # revision format
+    revision = int(revision.group(1), base=16)
+    if revision & 0x800000:
+        return ((revision & 0xF000) >> 12) + 1
+
+    # If it is not using the new style revision format,
+    # then it must be a Raspberry Pi 1
+    return 1
+
+
+pi_version = _get_pi_version()

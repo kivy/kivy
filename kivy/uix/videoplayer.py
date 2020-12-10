@@ -375,11 +375,11 @@ class VideoPlayer(GridLayout):
 
     '''
 
-    image_loading = StringProperty('data/images/image-loading.gif')
+    image_loading = StringProperty('data/images/image-loading.zip')
     '''Image filename used when the video is loading.
 
     :attr:`image_loading` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/images/image-loading.gif'.
+    defaults to 'data/images/image-loading.zip'.
     '''
 
     image_play = StringProperty(
@@ -587,11 +587,13 @@ class VideoPlayer(GridLayout):
                 self.container.add_widget(label)
 
     def seek(self, percent, precise=True):
-        '''Change the position to a percentage of duration.
+        '''Change the position to a percentage (strictly, a proportion)
+           of duration.
 
         :Parameters:
             `percent`: float or int
-                Position to seek, must be between 0-1.
+                Position to seek as a proportion of total duration, must
+                be between 0-1.
             `precise`: bool, defaults to True
                 Precise seeking is slower, but seeks to exact requested
                 percent.

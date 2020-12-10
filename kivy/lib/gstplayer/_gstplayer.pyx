@@ -332,17 +332,17 @@ cdef class GstPlayer:
                 g_object_set_double(self.playbin, 'volume', volume)
 
     def get_duration(self):
-        cdef float duration
+        cdef double duration
         with nogil:
-            duration = self._get_duration()
+            duration = <double>self._get_duration()
         if duration == -1:
             return -1
         return duration / float(GST_SECOND)
 
     def get_position(self):
-        cdef float position
+        cdef double position
         with nogil:
-            position = self._get_position()
+            position = <double>self._get_position()
         if position == -1:
             return -1
         return position / float(GST_SECOND)

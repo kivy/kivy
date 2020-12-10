@@ -84,14 +84,14 @@ Here is an example with a 'Menu Screen' and a 'Settings Screen'::
     class SettingsScreen(Screen):
         pass
 
-    # Create the screen manager
-    sm = ScreenManager()
-    sm.add_widget(MenuScreen(name='menu'))
-    sm.add_widget(SettingsScreen(name='settings'))
-
     class TestApp(App):
 
         def build(self):
+            # Create the screen manager
+            sm = ScreenManager()
+            sm.add_widget(MenuScreen(name='menu'))
+            sm.add_widget(SettingsScreen(name='settings'))
+
             return sm
 
     if __name__ == '__main__':
@@ -197,7 +197,7 @@ from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (StringProperty, ObjectProperty, AliasProperty,
                              NumericProperty, ListProperty, OptionProperty,
-                             BooleanProperty)
+                             BooleanProperty, ColorProperty)
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
@@ -460,13 +460,18 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
-    clearcolor = ListProperty([0, 0, 0, 1])
+    clearcolor = ColorProperty([0, 0, 0, 1])
     '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
-    :attr:`clearcolor` is a :class:`~kivy.properties.ListProperty`
-    and defaults to [0, 0, 0, 1].'''
+    :attr:`clearcolor` is a :class:`~kivy.properties.ColorProperty`
+    and defaults to [0, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
+    '''
 
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size, with_stencilbuffer=True)
@@ -585,7 +590,7 @@ class SlideTransition(TransitionBase):
             a.y = y + height * (1 - progression)
             b.y = y - height * progression
         elif direction == 'up':
-            a.x = b.x = manager.x
+            a.x = b.x = x
             b.y = y + height * progression
             a.y = y - height * (1 - progression)
 
@@ -1013,11 +1018,13 @@ class ScreenManager(FloatLayout):
         self.screens.remove(screen)
 
     def clear_widgets(self, screens=None):
-        if not screens:
+        if screens is None:
             screens = self.screens
-        remove_widget = self.remove_widget
-        for screen in screens:
-            remove_widget(screen)
+
+        # iterate over a copy of screens, as self.remove_widget
+        # modifies self.screens in place
+        for screen in screens[:]:
+            self.remove_widget(screen)
 
     def real_add_widget(self, screen, *args):
         # ensure screen is removed from its previous parent
@@ -1182,7 +1189,7 @@ class ScreenManager(FloatLayout):
             if self.transition.is_active and \
                 (child == self.transition.screen_in or
                  child == self.transition.screen_out):
-                    continue
+                continue
             child.pos = value
 
     def on_touch_down(self, touch):
