@@ -412,21 +412,22 @@ cdef class EventDispatcher(ObjectWithUid):
         When binding a method to an event or property, a
         :class:`kivy.weakmethod.WeakMethod` of the callback is saved. That is,
         rather than storing a regular reference, it stores both a weak
-        reference to the instance (see Python's :class:`weakref`), and the
-        name of the method.
+        reference to the instance (see Python's :class:`weakref`).
 
         This has two consequences.
 
         The first is that the binding will not prevent garbage collection of
-        the object. The client must maintain a reference to the instance for
+        the method's object. The client must maintain a reference to the instance for
         the desired lifetime. The callback reference is silently removed if it
         becomes invalid.
 
-        The second is that method's `__name__` attribute must be registered as
-        as attribute on the instance. This will be true for most methods, but
-        may not be true for decorated methods. Consider the use of Python's
-        :class:`functools.wraps` in the decorator's definition to associate 
-        the correct name with wrapped functions.
+        The second is that when using a decorated method e.g.::
+
+            @my_decorator
+            def callback(self, *args):
+                pass
+
+        the decorator (``my_decorator`` here) must use `wraps <https://docs.python.org/3/library/functools.html#functools.wraps>`_ internally.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps
