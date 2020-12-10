@@ -895,6 +895,9 @@ class ScrollView(StencilView):
                 ud['mode'] = 'scroll'
 
         if ud['mode'] == 'scroll':
+            not_in_bar = not touch.ud.get('in_bar_x', False) and \
+                not touch.ud.get('in_bar_y', False)
+
             if not touch.ud['sv.handled']['x'] and self.do_scroll_x \
                     and self.effect_x:
                 width = self.width
@@ -903,9 +906,9 @@ class ScrollView(StencilView):
                         dx = touch.dx / float(width - width * self.hbar[1])
                         self.scroll_x = min(max(self.scroll_x + dx, 0.), 1.)
                         self._trigger_update_from_scroll()
-                else:
-                    if self.scroll_type != ['bars']:
-                        self.effect_x.update(touch.x)
+                elif not_in_bar:
+                    self.effect_x.update(touch.x)
+
                 if self.scroll_x < 0 or self.scroll_x > 1:
                     rv = False
                 else:
@@ -919,9 +922,9 @@ class ScrollView(StencilView):
                     dy = touch.dy / float(height - height * self.vbar[1])
                     self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
                     self._trigger_update_from_scroll()
-                else:
-                    if self.scroll_type != ['bars']:
-                        self.effect_y.update(touch.y)
+                elif not_in_bar:
+                    self.effect_y.update(touch.y)
+
                 if self.scroll_y < 0 or self.scroll_y > 1:
                     rv = False
                 else:
@@ -973,14 +976,12 @@ class ScrollView(StencilView):
         self._touch = None
         uid = self._get_uid()
         ud = touch.ud[uid]
-        if self.do_scroll_x and self.effect_x:
-            if not touch.ud.get('in_bar_x', False) and\
-                    self.scroll_type != ['bars']:
-                self.effect_x.stop(touch.x)
-        if self.do_scroll_y and self.effect_y and\
-                self.scroll_type != ['bars']:
-            if not touch.ud.get('in_bar_y', False):
-                self.effect_y.stop(touch.y)
+        not_in_bar = not touch.ud.get('in_bar_x', False) and \
+            not touch.ud.get('in_bar_y', False)
+        if self.do_scroll_x and self.effect_x and not_in_bar:
+            self.effect_x.stop(touch.x)
+        if self.do_scroll_y and self.effect_y and not_in_bar:
+            self.effect_y.stop(touch.y)
         if ud['mode'] == 'unknown':
             # we must do the click at least..
             # only send the click if it was not a click to stop
