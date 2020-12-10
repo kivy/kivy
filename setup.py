@@ -534,18 +534,6 @@ if c_options['use_sdl2'] or (
 # -----------------------------------------------------------------------------
 # declare flags
 
-
-def get_modulename_from_file(filename):
-    filename = filename.replace(sep, '/')
-    pyx = '.'.join(filename.split('.')[:-1])
-    pyxl = pyx.split('/')
-    while pyxl[0] != 'kivy':
-        pyxl.pop(0)
-    if pyxl[1] == 'kivy':
-        pyxl.pop(0)
-    return '.'.join(pyxl)
-
-
 def expand(root, *args):
     return join(root, 'kivy', *args)
 
@@ -999,23 +987,23 @@ def get_extensions_from_sources(sources):
         return ext_modules
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
-        pyx = expand(src_path, pyx)
+        pyx_path = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
         if not can_use_cython:
             # can't use cython, so use the .c files instead.
-            pyx = '%s.c' % pyx[:-4]
+            pyx_path = '%s.c' % pyx_path[:-4]
         if is_graphics:
-            depends = resolve_dependencies(pyx, depends)
+            depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
-        module_name = get_modulename_from_file(pyx)
+        module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(
-            module_name, [pyx] + f_depends + c_depends, **flags_clean))
+            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
 
