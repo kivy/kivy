@@ -88,9 +88,12 @@ messages::
 import logging
 import os
 import sys
-import kivy
+import copy
 from random import randint
 from functools import partial
+
+import kivy
+
 
 __all__ = (
     'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
@@ -286,6 +289,9 @@ class ColoredFormatter(logging.Formatter):
         self.use_color = use_color
 
     def format(self, record):
+        """Apply terminal color code to the record"""
+        # deepcopy so we do not mess up the record for other formatters
+        record = copy.deepcopy(record)
         try:
             msg = record.msg.split(':', 1)
             if len(msg) == 2:
