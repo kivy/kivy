@@ -90,7 +90,9 @@ class Camera(Image):
         fbind('resolution', on_index)
         on_index()
 
-    def on_tex(self, *l):
+    def on_tex(self, camera):
+        self.texture = texture = camera.texture
+        self.texture_size = list(texture.size)
         self.canvas.ask_update()
 
     def _on_index(self, *largs):
@@ -102,14 +104,9 @@ class Camera(Image):
         else:
             self._camera = CoreCamera(index=self.index,
                                   resolution=self.resolution, stopped=True)
-        self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
             self._camera.bind(on_texture=self.on_tex)
-
-    def _camera_loaded(self, *largs):
-        self.texture = self._camera.texture
-        self.texture_size = list(self.texture.size)
 
     def on_play(self, instance, value):
         if not self._camera:
