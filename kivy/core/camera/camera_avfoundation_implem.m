@@ -137,7 +137,7 @@ public:
     int startCaptureDevice();
     void stopCaptureDevice();
     bool attemptFrameRateSelection(int desiredFrameRate);
-    bool attemptCapturePreset(AVCaptureSessionPreset preset);
+    bool attemptCapturePreset(NSString *preset);
     bool attemptStartMetadataAnalysis();
     bool haveNewMetadata();
 
@@ -294,7 +294,7 @@ bool Camera::attemptFrameRateSelection(int desiredFrameRate){
     return isFPSSupported;
 }
 
-bool Camera::attemptCapturePreset(AVCaptureSessionPreset preset){
+bool Camera::attemptCapturePreset(NSString *preset){
     // See available presets: https://developer.apple.com/documentation/avfoundation/avcapturesessionpreset
     if([mCaptureSession canSetSessionPreset: preset]){
         [mCaptureSession setSessionPreset: preset];
@@ -393,7 +393,7 @@ int Camera::startCaptureDevice() {
         /* By default, We're using the AVCaptureSessionPresetHigh preset for capturing frames on both iOS and MacOS.
            The user can override these settings by calling the attemptCapturePreset() function
         */
-        attemptCapturePreset(AVCaptureSessionPresetHigh);
+        attemptCapturePreset(@"AVCaptureSessionPresetHigh");
 
         [mCaptureSession addInput:mCaptureDeviceInput];
         [mCaptureSession addOutput:mCaptureDecompressedVideoOutput];
@@ -702,7 +702,7 @@ bool avf_camera_attempt_framerate_selection(camera_t camera, int fps){
 }
 
 bool avf_camera_attempt_capture_preset(camera_t camera, char *preset){
-    AVCaptureSessionPreset capture_preset = (AVCaptureSessionPreset)[NSString stringWithUTF8String:preset];
+    NSString *capture_preset = [NSString stringWithUTF8String:preset];
     NSLog(@"Preset: %@", capture_preset);
     return ((Camera *)camera)->attemptCapturePreset(capture_preset);
 }
