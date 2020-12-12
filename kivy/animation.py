@@ -194,9 +194,10 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
 
-        .. versionchanged:: 2.0.0
-            The parameter 'widget' can be None. If so, all animated widgets
-            will be the target.
+        .. versionchanged:: 2.1.0
+            If the parameter ``widget`` is None, all animated widgets will be
+            the target and cancelled. If ``largs`` is also given, animation of these
+            properties will be canceled for all animated widgets.
         '''
         if widget is None:
             if largs:
