@@ -221,13 +221,20 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         top = y + h
         at_idx = self.get_view_index_at
         # 'tl' is not actually 'top-left' unless 'orientation' is 'lr-tb'.
-        # But we can pretend it always is. Same for 'bl' and 'br'.
-        tl, __, bl, br = sorted((
-            at_idx((x, y)),
-            at_idx((right, y)),
-            at_idx((x, top)),
-            at_idx((right, top)),
-        ))
+        # But we can pretend it always is. Same for 'tr', 'bl' and 'br'.
+        tl = at_idx((x, top))
+        tr = at_idx((right, top))
+        bl = at_idx((x, y))
+        br = at_idx((right, y))
+        cond1 = not self._fills_from_top_to_bottom
+        cond2 = not self._fills_from_left_to_right
+        if not self._fills_row_first:
+            tr, bl = bl, tr
+            cond1, cond2 = cond2, cond1
+        if cond1:
+            tl, tr, bl, br = bl, br, tl, tr
+        if cond2:
+            tl, tr, bl, br = tr, tl, br, bl
 
         n = len(data)
         indices = []
