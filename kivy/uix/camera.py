@@ -31,6 +31,7 @@ from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ListProperty, \
     BooleanProperty
+from kivy.clock import Clock
 
 
 class Camera(Image):
@@ -103,10 +104,13 @@ class Camera(Image):
             self._camera = CoreCamera(index=self.index, stopped=True)
         else:
             self._camera = CoreCamera(index=self.index,
-                                  resolution=self.resolution, stopped=True)
+                                      resolution=self.resolution, stopped=True)
+        self._camera.bind(on_texture=self.on_tex)
+        Clock.schedule_once(self._check_start)
+
+    def _check_start(self, *args):
         if self.play:
             self._camera.start()
-            self._camera.bind(on_texture=self.on_tex)
 
     def on_play(self, instance, value):
         if not self._camera:
