@@ -98,6 +98,7 @@ install_kivy_sdist() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
+  python3 -c 'from kivy.uix.widget import Widget; Widget()'
   KIVY_NO_ARGS=1 python3 -m pytest -x --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
