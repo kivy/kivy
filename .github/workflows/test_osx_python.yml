@@ -4,7 +4,8 @@ on: [push, pull_request]
 
 env:
   KIVY_SPLIT_EXAMPLES: 1
-  KIVY_GL_BACKEND: 'mock'
+  SDL_VIDEODRIVER: cocoa
+  KIVY_GL_BACKEND: 'sdl2'
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
