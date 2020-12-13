@@ -6,6 +6,7 @@ env:
   KIVY_SPLIT_EXAMPLES: 1
   SDL_VIDEODRIVER: cocoa
   KIVY_GL_BACKEND: 'sdl2'
+  KIVY_GRAPHICS: gles
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
