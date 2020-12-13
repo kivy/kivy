@@ -75,7 +75,7 @@ def resource_find(filename, use_cache=True):
                     break
         if not found_filename and filename.startswith("data:"):
             found_filename = filename
-    if use_cache:
+    if use_cache and found_filename:
         Cache.append('kv.resourcefind', filename, found_filename)
     return found_filename
 
