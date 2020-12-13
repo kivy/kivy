@@ -31,6 +31,17 @@ class Test_layout:
             for c in layout.children
         }
 
+    # |---|
+    # | 0 |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 1), (1, 1)])
+    def test_1x1(self, n_cols, n_rows):
+        from kivy.uix.recyclegridlayout import RecycleGridLayout
+        for orientation in RecycleGridLayout.orientation.options:
+            assert {0: (0, 0), } == self.compute_layout(
+                n_data=1, orientation=orientation, n_cols=n_cols,
+                n_rows=n_rows)
+
     # |---|---|---|
     # | 0 | 1 | 2 |
     # |---|---|---|
