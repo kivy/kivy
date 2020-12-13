@@ -36,6 +36,7 @@ from kivy.cache import Cache
 from kivy.utils import platform
 from kivy.logger import Logger
 import sys
+import os
 import kivy
 
 resource_paths = ['.', dirname(sys.argv[0])]
@@ -46,7 +47,7 @@ resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
 Cache.register('kv.resourcefind', timeout=60)
 
 
-def resource_find(filename, use_cache=True):
+def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
     '''Search for a resource in the list of paths.
     Use resource_add_path to add a custom path to the search.
     By default, results are cached for 60 seconds.
