@@ -34,20 +34,8 @@ class Test_layout:
     # |---|---|---|
     # | 0 | 1 | 2 |
     # |---|---|---|
-    @pytest.mark.parametrize("orientation, n_cols, n_rows", [
-        ('lr-tb', 3, None),
-        ('lr-bt', 3, None),
-        ('lr-tb', None, 1),
-        ('lr-bt', None, 1),
-        ('lr-tb', 3, 1),
-        ('lr-bt', 3, 1),
-        ('tb-lr', 3, None),
-        ('bt-lr', 3, None),
-        ('tb-lr', None, 1),
-        ('bt-lr', None, 1),
-        ('tb-lr', 3, 1),
-        ('bt-lr', 3, 1),
-    ])
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 1), (3, 1)])
+    @pytest.mark.parametrize("orientation", "lr-tb lr-bt tb-lr bt-lr".split())
     def test_3x1_lr(self, orientation, n_cols, n_rows):
         assert {0: (0, 0), 1: (100, 0), 2: (200, 0)} == self.compute_layout(
             n_data=3, orientation=orientation, n_cols=n_cols, n_rows=n_rows)
@@ -55,20 +43,8 @@ class Test_layout:
     # |---|---|---|
     # | 2 | 1 | 0 |
     # |---|---|---|
-    @pytest.mark.parametrize("orientation, n_cols, n_rows", [
-        ('rl-tb', 3, None),
-        ('rl-bt', 3, None),
-        ('rl-tb', None, 1),
-        ('rl-bt', None, 1),
-        ('rl-tb', 3, 1),
-        ('rl-bt', 3, 1),
-        ('tb-rl', 3, None),
-        ('bt-rl', 3, None),
-        ('tb-rl', None, 1),
-        ('bt-rl', None, 1),
-        ('tb-rl', 3, 1),
-        ('bt-rl', 3, 1),
-    ])
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 1), (3, 1)])
+    @pytest.mark.parametrize("orientation", "rl-tb rl-bt tb-rl bt-rl".split())
     def test_3x1_rl(self, orientation, n_cols, n_rows):
         assert {0: (200, 0), 1: (100, 0), 2: (0, 0)} == self.compute_layout(
             n_data=3, orientation=orientation, n_cols=n_cols, n_rows=n_rows)
@@ -80,20 +56,8 @@ class Test_layout:
     # |---|
     # | 2 |
     # |---|
-    @pytest.mark.parametrize("orientation, n_cols, n_rows", [
-        ('tb-lr', 1, None),
-        ('tb-rl', 1, None),
-        ('tb-lr', None, 3),
-        ('tb-rl', None, 3),
-        ('tb-lr', 1, 3),
-        ('tb-rl', 1, 3),
-        ('lr-tb', 1, None),
-        ('rl-tb', 1, None),
-        ('lr-tb', None, 3),
-        ('rl-tb', None, 3),
-        ('lr-tb', 1, 3),
-        ('rl-tb', 1, 3),
-    ])
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 3), (1, 3)])
+    @pytest.mark.parametrize("orientation", "tb-lr tb-rl lr-tb rl-tb".split())
     def test_1x3_tb(self, orientation, n_cols, n_rows):
         assert {0: (0, 200), 1: (0, 100), 2: (0, 0)} == self.compute_layout(
             n_data=3, orientation=orientation, n_cols=n_cols, n_rows=n_rows)
@@ -105,20 +69,8 @@ class Test_layout:
     # |---|
     # | 0 |
     # |---|
-    @pytest.mark.parametrize("orientation, n_cols, n_rows", [
-        ('bt-lr', 1, None),
-        ('bt-rl', 1, None),
-        ('bt-lr', None, 3),
-        ('bt-rl', None, 3),
-        ('bt-lr', 1, 3),
-        ('bt-rl', 1, 3),
-        ('lr-bt', 1, None),
-        ('rl-bt', 1, None),
-        ('lr-bt', None, 3),
-        ('rl-bt', None, 3),
-        ('lr-bt', 1, 3),
-        ('rl-bt', 1, 3),
-    ])
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 3), (1, 3)])
+    @pytest.mark.parametrize("orientation", "bt-lr bt-rl lr-bt rl-bt".split())
     def test_1x3_bt(self, orientation, n_cols, n_rows):
         assert {0: (0, 0), 1: (0, 100), 2: (0, 200)} == self.compute_layout(
             n_data=3, orientation=orientation, n_cols=n_cols, n_rows=n_rows)
