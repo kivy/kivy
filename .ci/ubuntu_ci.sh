@@ -98,7 +98,7 @@ install_kivy_sdist() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+  KIVY_NO_ARGS=1 python3 -m pytest -x --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
 test_kivy_install() {
