@@ -5,7 +5,6 @@
  *
  * TODO:
  * - add interface for setting some capabilities as focus/exposure/...
- * - add interface for setting orientation
  * I've let the code concerning caps, even if it's not yet used. uncomment
  * WITH_CAMERA_CAPS to compile with it.
  */
@@ -140,6 +139,7 @@ public:
     bool attemptCapturePreset(NSString *preset);
     bool attemptStartMetadataAnalysis();
     bool haveNewMetadata();
+    bool setVideoOrientation(int orientation);
 
 #ifdef WITH_CAMERA_CAPS
     double getProperty(int property_id);
@@ -419,6 +419,13 @@ int Camera::startCaptureDevice() {
     return 0;
 }
 
+bool Camera::setVideoOrientation(int orientation) {
+    AVCaptureConnection *conn = [mCaptureDecompressedVideoOutput connectionWithMediaType:AVMediaTypeVideo];
+    if([conn isVideoOrientationSupported]){
+        [conn setVideoOrientation:(AVCaptureVideoOrientation) orientation];
+    }
+}
+
 #ifdef WITH_CAMERA_CAPS
 void Camera::setWidthHeight() {
     NSAutoreleasePool* localpool = [[NSAutoreleasePool alloc] init];
@@ -626,14 +633,15 @@ fromConnection:(AVCaptureConnection *)connection{
         if (image == NULL)
             image = new CameraFrame((int)width, (int)height);
 
+        image->width = width;
+        image->height = height;
+        image->rowsize = (unsigned int)rowsize;
+
         if (image->datasize != width * height * sizeof(char) * 4) {
-            image->width = width;
-            image->height = height;
             image->datasize = (unsigned int)(width * height * sizeof(char) * 4);
             if (image->data != NULL)
                 free(image->data);
             image->data = (char *)malloc(image->datasize);
-            image->rowsize = (unsigned int)rowsize;
         }
 
         if (image->rowsize == width * 4)
@@ -719,5 +727,9 @@ void avf_camera_get_metadata(camera_t camera, char **metatype, char **data) {
 
 bool avf_camera_have_new_metadata(camera_t camera){
     return ((Camera *)camera)->haveNewMetadata();
+}
+
+bool avf_camera_set_video_orientation(camera_t camera, int orientation){
+    return ((Camera *)camera)->setVideoOrientation(orientation);
 }
 

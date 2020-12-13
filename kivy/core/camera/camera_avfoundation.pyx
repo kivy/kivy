@@ -20,6 +20,7 @@ cdef extern from "camera_avfoundation_implem.h":
     bint avf_camera_attempt_start_metadata_analysis(camera_t camera)
     void avf_camera_get_metadata(camera_t camera, char **metatype, char **data)
     bint avf_camera_have_new_metadata(camera_t camera);
+    bint avf_camera_set_video_orientation(camera_t camera, int orientation)
 
 
 from kivy.logger import Logger
@@ -109,6 +110,10 @@ class CameraAVFoundation(CameraBase):
     def set_preset(self, preset):
         cdef _AVStorage storage = <_AVStorage>self._storage
         avf_camera_attempt_capture_preset(storage.camera, preset)
+
+    def set_video_orientation(self, orientation):
+        cdef _AVStorage storage = <_AVStorage>self._storage
+        avf_camera_set_video_orientation(storage.camera, orientation)
 
     def start_metadata_analysis(self, callback=None):
         cdef _AVStorage storage = <_AVStorage>self._storage
