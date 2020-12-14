@@ -1,7 +1,7 @@
 import pytest
 
 
-class Test_layout:
+class TestLayout_all_the_data_is_visible:
     def compute_layout(self, *, n_cols, n_rows, orientation, n_data):
         '''Returns {view-index: pos, view-index: pos, ...}'''
         from textwrap import dedent
@@ -173,3 +173,225 @@ class Test_layout:
         assert {0: (100, 0), 1: (100, 100), 2: (0, 0), 3: (0, 100)} == \
             self.compute_layout(
                 n_data=4, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows)
+
+
+class TestLayout_only_a_part_of_the_data_is_visible:
+    def compute_layout(self, *, n_cols, n_rows, orientation, n_data,
+                       scroll_to):
+        '''Returns {view-index: pos, view-index: pos, ...}'''
+        from textwrap import dedent
+        from kivy.clock import Clock
+        from kivy.lang import Builder
+
+        # Use Kv because RecycleView cannot be constructed from python
+        rv = Builder.load_string(dedent(f'''
+            RecycleView:
+                viewclass: 'Widget'
+                size: 100, 100
+                data: ({{}} for __ in range({n_data}))
+                RecycleGridLayout:
+                    id: layout
+                    cols: {n_cols}
+                    rows: {n_rows}
+                    orientation: '{orientation}'
+                    default_size_hint: None, None
+                    default_size: 100, 100
+                    size_hint: None, None
+                    size: self.minimum_size
+            '''))
+        Clock.tick()
+        layout = rv.ids.layout
+        x, y = scroll_to
+        try:
+            rv.scroll_x = x / (layout.width - rv.width)
+        except ZeroDivisionError:
+            pass
+        try:
+            rv.scroll_y = y / (layout.height - rv.height)
+        except ZeroDivisionError:
+            pass
+        Clock.tick()
+        return {
+            layout.get_view_index_at(c.center): tuple(c.pos)
+            for c in layout.children
+        }
+
+    # |---|---|---|---|
+    # |   | 1 | 2 |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 1), (4, 1)])
+    @pytest.mark.parametrize("orientation", "lr-tb lr-bt tb-lr bt-lr".split())
+    def test_4x1_lr(self, orientation, n_cols, n_rows):
+        assert {1: (100, 0), 2: (200, 0)} == self.compute_layout(
+            n_data=4, orientation=orientation, n_cols=n_cols, n_rows=n_rows,
+            scroll_to=(150, 0))
+
+    # |---|---|---|---|
+    # |   | 2 | 1 |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 1), (4, 1)])
+    @pytest.mark.parametrize("orientation", "rl-tb rl-bt tb-rl bt-rl".split())
+    def test_4x1_rl(self, orientation, n_cols, n_rows):
+        assert {1: (200, 0), 2: (100, 0)} == self.compute_layout(
+            n_data=4, orientation=orientation, n_cols=n_cols, n_rows=n_rows,
+            scroll_to=(150, 0))
+
+    # |---|
+    # |   |
+    # |---|
+    # | 1 |
+    # |---|
+    # | 2 |
+    # |---|
+    # |   |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 4), (1, 4)])
+    @pytest.mark.parametrize("orientation", "tb-lr tb-rl lr-tb rl-tb".split())
+    def test_1x4_tb(self, orientation, n_cols, n_rows):
+        assert {1: (0, 200), 2: (0, 100)} == self.compute_layout(
+            n_data=4, orientation=orientation, n_cols=n_cols, n_rows=n_rows,
+            scroll_to=(0, 150))
+
+    # |---|
+    # |   |
+    # |---|
+    # | 2 |
+    # |---|
+    # | 1 |
+    # |---|
+    # |   |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 4), (1, 4)])
+    @pytest.mark.parametrize("orientation", "bt-lr bt-rl lr-bt rl-bt".split())
+    def test_1x4_bt(self, orientation, n_cols, n_rows):
+        assert {1: (0, 100), 2: (0, 200)} == self.compute_layout(
+            n_data=4, orientation=orientation, n_cols=n_cols, n_rows=n_rows,
+            scroll_to=(0, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 5 | 6 |   |
+    # |---|---|---|---|
+    # |   | 9 | 10|   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_lr_tb(self, n_cols, n_rows):
+        assert {5: (100, 200), 6: (200, 200), 9: (100, 100), 10: (200, 100)} \
+            == self.compute_layout(
+                n_data=16, orientation='lr-tb', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 9 | 10|   |
+    # |---|---|---|---|
+    # |   | 5 | 6 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_lr_bt(self, n_cols, n_rows):
+        assert {5: (100, 100), 6: (200, 100), 9: (100, 200), 10: (200, 200)} \
+            == self.compute_layout(
+                n_data=16, orientation='lr-bt', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 6 | 5 |   |
+    # |---|---|---|---|
+    # |   | 10| 9 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_rl_tb(self, n_cols, n_rows):
+        assert {5: (200, 200), 6: (100, 200), 9: (200, 100), 10: (100, 100)} \
+            == self.compute_layout(
+                n_data=16, orientation='rl-tb', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 10| 9 |   |
+    # |---|---|---|---|
+    # |   | 6 | 5 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_rl_bt(self, n_cols, n_rows):
+        assert {5: (200, 100), 6: (100, 100), 9: (200, 200), 10: (100, 200)} \
+            == self.compute_layout(
+                n_data=16, orientation='rl-bt', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 5 | 9 |   |
+    # |---|---|---|---|
+    # |   | 6 | 10|   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_tb_lr(self, n_cols, n_rows):
+        assert {5: (100, 200), 6: (100, 100), 9: (200, 200), 10: (200, 100)} \
+            == self.compute_layout(
+                n_data=16, orientation='tb-lr', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 9 | 5 |   |
+    # |---|---|---|---|
+    # |   | 10| 6 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_tb_rl(self, n_cols, n_rows):
+        assert {5: (200, 200), 6: (200, 100), 9: (100, 200), 10: (100, 100)} \
+            == self.compute_layout(
+                n_data=16, orientation='tb-rl', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 6 | 10|   |
+    # |---|---|---|---|
+    # |   | 5 | 9 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_bt_lr(self, n_cols, n_rows):
+        assert {5: (100, 100), 6: (100, 200), 9: (200, 100), 10: (200, 200)} \
+            == self.compute_layout(
+                n_data=16, orientation='bt-lr', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
+
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    # |   | 10| 6 |   |
+    # |---|---|---|---|
+    # |   | 9 | 5 |   |
+    # |---|---|---|---|
+    # |   |   |   |   |
+    # |---|---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
+    def test_4x4_bt_rl(self, n_cols, n_rows):
+        assert {5: (200, 100), 6: (200, 200), 9: (100, 100), 10: (100, 200)} \
+            == self.compute_layout(
+                n_data=16, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 150))
