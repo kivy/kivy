@@ -220,28 +220,16 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         right = x + w
         top = y + h
         at_idx = self.get_view_index_at
-        tl = at_idx((x, top))
-        tr = at_idx((right, top))
-        bl = at_idx((x, y))
-        br = at_idx((right, y))
-
-        # What is doing here is that re-ordering the view-indices above so
-        # that the last part of the method doesn't have to care about the
-        # 'orientation' so much.
-        # When this part is done, 'tl' will not actually be 'top-left' unless
-        # the 'orientation' is either of 'lr-tb' or 'tb-lr'. Similar thing can
-        # be said to 'tr', 'bl' and 'br'.
-        cond1 = not self._fills_from_top_to_bottom
-        cond2 = not self._fills_from_left_to_right
-        if not self._fills_row_first:
-            tr, bl = bl, tr
-            cond1, cond2 = cond2, cond1
-        if cond1:
-            tl, tr, bl, br = bl, br, tl, tr
-        if cond2:
-            tl, tr, bl, br = tr, tl, br, bl
-
         n = len(data)
+        tl, tr, bl, br = sorted((
+            at_idx((x, y)),
+            at_idx((right, y)),
+            at_idx((x, top)),
+            at_idx((right, top)),
+        ))
+        if len({tl, tr, bl, br}) < 4:
+            # visible area is one row/column
+            return list(range(min(n, tl), min(n, br + 1)))
         indices = []
         stride = len(self._cols) if self._fills_row_first else len(self._rows)
         if stride:
