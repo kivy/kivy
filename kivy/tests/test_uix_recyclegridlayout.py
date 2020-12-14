@@ -212,14 +212,12 @@ class TestLayout_only_a_part_of_the_data_is_visible:
         clock.tick()
         layout = rv.ids.layout
         x, y = scroll_to
-        try:
-            rv.scroll_x = x / (layout.width - rv.width)
-        except ZeroDivisionError:
-            pass
-        try:
-            rv.scroll_y = y / (layout.height - rv.height)
-        except ZeroDivisionError:
-            pass
+        scrollable_width = layout.width - rv.width
+        if scrollable_width:  # avoids ZeroDivisionError
+            rv.scroll_x = x / scrollable_width
+        scrollable_height = layout.height - rv.height
+        if scrollable_height:  # avoids ZeroDivisionError
+            rv.scroll_y = y / scrollable_height
         clock.tick()
         return {
             layout.get_view_index_at(c.center): tuple(c.pos)
