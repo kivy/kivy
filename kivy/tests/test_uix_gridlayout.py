@@ -84,29 +84,160 @@ def test_create_idx_iter2(orientation):
     assert [(0, 0)] == list(index_iter)
 
 
-@pytest.mark.parametrize(
-    "n_cols, n_rows, orientation, n_children, expectation", [
-        (3, None, 'lr-tb', 4, [(0, 15), (10, 15), (20, 15), (0, 0)]),
-        (3, None, 'lr-bt', 4, [(0, 0), (10, 0), (20, 0), (0, 15)]),
-        (3, None, 'rl-tb', 4, [(20, 15), (10, 15), (0, 15), (20, 0)]),
-        (3, None, 'rl-bt', 4, [(20, 0), (10, 0), (0, 0), (20, 15)]),
-        (None, 3, 'tb-lr', 4, [(0, 20), (0, 10), (0, 0), (15, 20)]),
-        (None, 3, 'tb-rl', 4, [(15, 20), (15, 10), (15, 0), (0, 20)]),
-        (None, 3, 'bt-lr', 4, [(0, 0), (0, 10), (0, 20), (15, 0)]),
-        (None, 3, 'bt-rl', 4, [(15, 0), (15, 10), (15, 20), (0, 0)]),
-    ]
-)
-def test_children_pos(n_cols, n_rows, orientation, n_children, expectation):
-    from kivy.uix.widget import Widget
-    from kivy.uix.gridlayout import GridLayout
-    gl = GridLayout(
-        cols=n_cols, rows=n_rows, orientation=orientation,
-        pos=(0, 0), size=(30, 30))
-    for __ in range(n_children):
-        gl.add_widget(Widget())
-    gl.do_layout()
-    actual_layout = [tuple(c.pos) for c in reversed(gl.children)]
-    assert actual_layout == expectation
+class TestLayout_fixed_sized_children:
+    def compute_layout(self, *, n_cols, n_rows, ori, n_children):
+        from kivy.uix.widget import Widget
+        from kivy.uix.gridlayout import GridLayout
+        gl = GridLayout(cols=n_cols, rows=n_rows, orientation=ori, pos=(0, 0))
+        gl.bind(minimum_size=gl.setter("size"))
+        for __ in range(n_children):
+            # set 'pos' to some random value to make this test more reliable
+            gl.add_widget(Widget(
+                size_hint=(None, None), size=(100, 100), pos=(8, 8)))
+        gl.do_layout()
+        return [tuple(c.pos) for c in reversed(gl.children)]
+
+    # |---|
+    # | 0 |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 1), (1, 1)])
+    def test_1x1(self, n_cols, n_rows):
+        from kivy.uix.gridlayout import GridLayout
+        for ori in GridLayout.orientation.options:
+            assert [(0, 0), ] == self.compute_layout(
+                n_children=1, ori=ori, n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|---|
+    # | 0 | 1 | 2 |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 1), (3, 1)])
+    @pytest.mark.parametrize("ori", "lr-tb lr-bt tb-lr bt-lr".split())
+    def test_3x1_lr(self, ori, n_cols, n_rows):
+        assert [(0, 0), (100, 0), (200, 0)] == self.compute_layout(
+            n_children=3, ori=ori, n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|---|
+    # | 2 | 1 | 0 |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 1), (3, 1)])
+    @pytest.mark.parametrize("ori", "rl-tb rl-bt tb-rl bt-rl".split())
+    def test_3x1_rl(self, ori, n_cols, n_rows):
+        assert [(200, 0), (100, 0), (0, 0)] == self.compute_layout(
+            n_children=3, ori=ori, n_cols=n_cols, n_rows=n_rows)
+
+    # |---|
+    # | 0 |
+    # |---|
+    # | 1 |
+    # |---|
+    # | 2 |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 3), (1, 3)])
+    @pytest.mark.parametrize("ori", "tb-lr tb-rl lr-tb rl-tb".split())
+    def test_1x3_tb(self, ori, n_cols, n_rows):
+        assert [(0, 200), (0, 100), (0, 0)] == self.compute_layout(
+            n_children=3, ori=ori, n_cols=n_cols, n_rows=n_rows)
+
+    # |---|
+    # | 2 |
+    # |---|
+    # | 1 |
+    # |---|
+    # | 0 |
+    # |---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(1, None), (None, 3), (1, 3)])
+    @pytest.mark.parametrize("ori", "bt-lr bt-rl lr-bt rl-bt".split())
+    def test_1x3_bt(self, ori, n_cols, n_rows):
+        assert [(0, 0), (0, 100), (0, 200)] == self.compute_layout(
+            n_children=3, ori=ori, n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 0 | 1 |
+    # |---|---|
+    # | 2 | 3 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_lr_tb(self, n_cols, n_rows):
+        assert [(0, 100), (100, 100), (0, 0), (100, 0)] == \
+            self.compute_layout(
+                n_children=4, ori='lr-tb', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 2 | 3 |
+    # |---|---|
+    # | 0 | 1 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_lr_bt(self, n_cols, n_rows):
+        assert [(0, 0), (100, 0), (0, 100), (100, 100)] == \
+            self.compute_layout(
+                n_children=4, ori='lr-bt', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 1 | 0 |
+    # |---|---|
+    # | 3 | 2 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_rl_tb(self, n_cols, n_rows):
+        assert [(100, 100), (0, 100), (100, 0), (0, 0)] == \
+            self.compute_layout(
+                n_children=4, ori='rl-tb', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 3 | 2 |
+    # |---|---|
+    # | 1 | 0 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_rl_bt(self, n_cols, n_rows):
+        assert [(100, 0), (0, 0), (100, 100), (0, 100)] == \
+            self.compute_layout(
+                n_children=4, ori='rl-bt', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 0 | 2 |
+    # |---|---|
+    # | 1 | 3 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_tb_lr(self, n_cols, n_rows):
+        assert [(0, 100), (0, 0), (100, 100), (100, 0)] == \
+            self.compute_layout(
+                n_children=4, ori='tb-lr', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 2 | 0 |
+    # |---|---|
+    # | 3 | 1 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_tb_rl(self, n_cols, n_rows):
+        assert [(100, 100), (100, 0), (0, 100), (0, 0)] == \
+            self.compute_layout(
+                n_children=4, ori='tb-rl', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 1 | 3 |
+    # |---|---|
+    # | 0 | 2 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_bt_lr(self, n_cols, n_rows):
+        assert [(0, 0), (0, 100), (100, 0), (100, 100)] == \
+            self.compute_layout(
+                n_children=4, ori='bt-lr', n_cols=n_cols, n_rows=n_rows)
+
+    # |---|---|
+    # | 3 | 1 |
+    # |---|---|
+    # | 2 | 0 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
+    def test_2x2_bt_rl(self, n_cols, n_rows):
+        assert [(100, 0), (100, 100), (0, 0), (0, 100)] == \
+            self.compute_layout(
+                n_children=4, ori='bt-rl', n_cols=n_cols, n_rows=n_rows)
 
 
 if __name__ == '__main__':
