@@ -14,6 +14,8 @@ The RecycleGridLayout is designed to provide a
 :mod:`~kivy.uix.recycleview` module documentation for more information.
 """
 
+import itertools
+chain_from_iterable = itertools.chain.from_iterable
 from kivy.uix.recyclelayout import RecycleLayout
 from kivy.uix.gridlayout import GridLayout, GridLayoutException, nmax, nmin
 from collections import defaultdict
@@ -234,8 +236,9 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         stride = len(self._cols) if self._fills_row_first else len(self._rows)
         if stride:
             x_slice = br - bl + 1
-            for s in range(tl, bl + 1, stride):
-                indices.extend(range(min(s, n), min(n, s + x_slice)))
+            indices = chain_from_iterable(
+                range(min(s, n), min(n, s + x_slice))
+                for s in range(tl, bl + 1, stride))
         return indices
 
     def _calculate_idx_from_a_view_idx(self, n_cols, n_rows, view_idx):
