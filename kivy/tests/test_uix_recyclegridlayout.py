@@ -92,98 +92,92 @@ class TestLayout_all_the_data_is_visible:
     # |---|---|
     # | 0 | 1 |
     # |---|---|
-    # | 2 | 3 |
-    # |---|---|
+    # | 2 |
+    # |---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_lr_tb(self, kivy_clock, n_cols, n_rows):
-        assert {0: (0, 100), 1: (100, 100), 2: (0, 0), 3: (100, 0)} == \
-            self.compute_layout(
-                n_data=4, orientation='lr-tb', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (0, 100), 1: (100, 100), 2: (0, 0)} == self.compute_layout(
+            n_data=3, orientation='lr-tb', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
-    # |---|---|
-    # | 2 | 3 |
+    # |---|
+    # | 2 |
     # |---|---|
     # | 0 | 1 |
     # |---|---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_lr_bt(self, kivy_clock, n_cols, n_rows):
-        assert {0: (0, 0), 1: (100, 0), 2: (0, 100), 3: (100, 100)} == \
-            self.compute_layout(
-                n_data=4, orientation='lr-bt', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (0, 0), 1: (100, 0), 2: (0, 100)} == self.compute_layout(
+            n_data=3, orientation='lr-bt', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
     # |---|---|
     # | 1 | 0 |
     # |---|---|
-    # | 3 | 2 |
-    # |---|---|
+    #     | 2 |
+    #     |---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_rl_tb(self, kivy_clock, n_cols, n_rows):
-        assert {0: (100, 100), 1: (0, 100), 2: (100, 0), 3: (0, 0)} == \
+        assert {0: (100, 100), 1: (0, 100), 2: (100, 0)} == \
             self.compute_layout(
-                n_data=4, orientation='rl-tb', n_cols=n_cols, n_rows=n_rows,
+                n_data=3, orientation='rl-tb', n_cols=n_cols, n_rows=n_rows,
                 clock=kivy_clock)
 
-    # |---|---|
-    # | 3 | 2 |
+    #     |---|
+    #     | 2 |
     # |---|---|
     # | 1 | 0 |
     # |---|---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_rl_bt(self, kivy_clock, n_cols, n_rows):
-        assert {0: (100, 0), 1: (0, 0), 2: (100, 100), 3: (0, 100)} == \
-            self.compute_layout(
-                n_data=4, orientation='rl-bt', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (100, 0), 1: (0, 0), 2: (100, 100)} == self.compute_layout(
+            n_data=3, orientation='rl-bt', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
     # |---|---|
     # | 0 | 2 |
     # |---|---|
-    # | 1 | 3 |
-    # |---|---|
+    # | 1 |
+    # |---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_tb_lr(self, kivy_clock, n_cols, n_rows):
-        assert {0: (0, 100), 1: (0, 0), 2: (100, 100), 3: (100, 0)} == \
-            self.compute_layout(
-                n_data=4, orientation='tb-lr', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (0, 100), 1: (0, 0), 2: (100, 100)} == self.compute_layout(
+            n_data=3, orientation='tb-lr', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
     # |---|---|
     # | 2 | 0 |
     # |---|---|
-    # | 3 | 1 |
-    # |---|---|
+    #     | 1 |
+    #     |---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_tb_rl(self, kivy_clock, n_cols, n_rows):
-        assert {0: (100, 100), 1: (100, 0), 2: (0, 100), 3: (0, 0)} == \
+        assert {0: (100, 100), 1: (100, 0), 2: (0, 100)} == \
             self.compute_layout(
-                n_data=4, orientation='tb-rl', n_cols=n_cols, n_rows=n_rows,
+                n_data=3, orientation='tb-rl', n_cols=n_cols, n_rows=n_rows,
                 clock=kivy_clock)
 
-    # |---|---|
-    # | 1 | 3 |
+    # |---|
+    # | 1 |
     # |---|---|
     # | 0 | 2 |
     # |---|---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_bt_lr(self, kivy_clock, n_cols, n_rows):
-        assert {0: (0, 0), 1: (0, 100), 2: (100, 0), 3: (100, 100)} == \
-            self.compute_layout(
-                n_data=4, orientation='bt-lr', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (0, 0), 1: (0, 100), 2: (100, 0)} == self.compute_layout(
+            n_data=3, orientation='bt-lr', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
-    # |---|---|
-    # | 3 | 1 |
+    #     |---|
+    #     | 1 |
     # |---|---|
     # | 2 | 0 |
     # |---|---|
     @pytest.mark.parametrize("n_cols, n_rows", [(2, None), (None, 2), (2, 2)])
     def test_2x2_bt_rl(self, kivy_clock, n_cols, n_rows):
-        assert {0: (100, 0), 1: (100, 100), 2: (0, 0), 3: (0, 100)} == \
-            self.compute_layout(
-                n_data=4, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows,
-                clock=kivy_clock)
+        assert {0: (100, 0), 1: (100, 100), 2: (0, 0)} == self.compute_layout(
+            n_data=3, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows,
+            clock=kivy_clock)
 
 
 class TestLayout_only_a_part_of_the_data_is_visible:
@@ -276,130 +270,114 @@ class TestLayout_only_a_part_of_the_data_is_visible:
             n_data=4, orientation=orientation, n_cols=n_cols, n_rows=n_rows,
             scroll_to=(0, 150), clock=kivy_clock)
 
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 5 | 6 |   |
-    # |---|---|---|---|
-    # |   | 9 | 10|   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_lr_tb(self, kivy_clock, n_cols, n_rows):
-        assert {5: (100, 200), 6: (200, 200), 9: (100, 100), 10: (200, 100)} \
-            == self.compute_layout(
-                n_data=16, orientation='lr-tb', n_cols=n_cols, n_rows=n_rows,
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    # |   | 4 | 5 |
+    # |---|---|---|
+    # |   | 7 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_lr_tb(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (200, 100), 7: (100, 0)} == \
+            self.compute_layout(
+                n_data=8, orientation='lr-tb', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 50), clock=kivy_clock)
+
+    # |---|---|
+    # |   | 7 |
+    # |---|---|---|
+    # |   | 4 | 5 |
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_lr_bt(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (200, 100), 7: (100, 200)} == \
+            self.compute_layout(
+                n_data=8, orientation='lr-bt', n_cols=n_cols, n_rows=n_rows,
                 scroll_to=(150, 150), clock=kivy_clock)
 
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 9 | 10|   |
-    # |---|---|---|---|
-    # |   | 5 | 6 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_lr_bt(self, kivy_clock, n_cols, n_rows):
-        assert {5: (100, 100), 6: (200, 100), 9: (100, 200), 10: (200, 200)} \
-            == self.compute_layout(
-                n_data=16, orientation='lr-bt', n_cols=n_cols, n_rows=n_rows,
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    # | 5 | 4 |   |
+    # |---|---|---|
+    #     | 7 |   |
+    #     |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_rl_tb(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (0, 100), 7: (100, 0)} == \
+            self.compute_layout(
+                n_data=8, orientation='rl-tb', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(50, 50), clock=kivy_clock)
+
+    #     |---|---|
+    #     | 7 |   |
+    # |---|---|---|
+    # | 5 | 4 |   |
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_rl_bt(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (0, 100), 7: (100, 200)} == \
+            self.compute_layout(
+                n_data=8, orientation='rl-bt', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(50, 150), clock=kivy_clock)
+
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    # |   | 4 | 7 |
+    # |---|---|---|
+    # |   | 5 |
+    # |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_tb_lr(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (100, 0), 7: (200, 100)} == \
+            self.compute_layout(
+                n_data=8, orientation='tb-lr', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(150, 50), clock=kivy_clock)
+
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    # | 7 | 4 |   |
+    # |---|---|---|
+    #     | 5 |   |
+    #     |---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_tb_rl(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (100, 0), 7: (0, 100)} == \
+            self.compute_layout(
+                n_data=8, orientation='tb-rl', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(50, 50), clock=kivy_clock)
+
+    # |---|---|
+    # |   | 5 |
+    # |---|---|---|
+    # |   | 4 | 7 |
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_bt_lr(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (100, 200), 7: (200, 100)} == \
+            self.compute_layout(
+                n_data=8, orientation='bt-lr', n_cols=n_cols, n_rows=n_rows,
                 scroll_to=(150, 150), clock=kivy_clock)
 
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 6 | 5 |   |
-    # |---|---|---|---|
-    # |   | 10| 9 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_rl_tb(self, kivy_clock, n_cols, n_rows):
-        assert {5: (200, 200), 6: (100, 200), 9: (200, 100), 10: (100, 100)} \
-            == self.compute_layout(
-                n_data=16, orientation='rl-tb', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
-
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 10| 9 |   |
-    # |---|---|---|---|
-    # |   | 6 | 5 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_rl_bt(self, kivy_clock, n_cols, n_rows):
-        assert {5: (200, 100), 6: (100, 100), 9: (200, 200), 10: (100, 200)} \
-            == self.compute_layout(
-                n_data=16, orientation='rl-bt', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
-
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 5 | 9 |   |
-    # |---|---|---|---|
-    # |   | 6 | 10|   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_tb_lr(self, kivy_clock, n_cols, n_rows):
-        assert {5: (100, 200), 6: (100, 100), 9: (200, 200), 10: (200, 100)} \
-            == self.compute_layout(
-                n_data=16, orientation='tb-lr', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
-
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 9 | 5 |   |
-    # |---|---|---|---|
-    # |   | 10| 6 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_tb_rl(self, kivy_clock, n_cols, n_rows):
-        assert {5: (200, 200), 6: (200, 100), 9: (100, 200), 10: (100, 100)} \
-            == self.compute_layout(
-                n_data=16, orientation='tb-rl', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
-
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 6 | 10|   |
-    # |---|---|---|---|
-    # |   | 5 | 9 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_bt_lr(self, kivy_clock, n_cols, n_rows):
-        assert {5: (100, 100), 6: (100, 200), 9: (200, 100), 10: (200, 200)} \
-            == self.compute_layout(
-                n_data=16, orientation='bt-lr', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
-
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    # |   | 10| 6 |   |
-    # |---|---|---|---|
-    # |   | 9 | 5 |   |
-    # |---|---|---|---|
-    # |   |   |   |   |
-    # |---|---|---|---|
-    @pytest.mark.parametrize("n_cols, n_rows", [(4, None), (None, 4), (4, 4)])
-    def test_4x4_bt_rl(self, kivy_clock, n_cols, n_rows):
-        assert {5: (200, 100), 6: (200, 200), 9: (100, 100), 10: (100, 200)} \
-            == self.compute_layout(
-                n_data=16, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows,
-                scroll_to=(150, 150), clock=kivy_clock)
+    #     |---|---|
+    #     | 5 |   |
+    # |---|---|---|
+    # | 7 | 4 |   |
+    # |---|---|---|
+    # |   |   |   |
+    # |---|---|---|
+    @pytest.mark.parametrize("n_cols, n_rows", [(3, None), (None, 3), (3, 3)])
+    def test_3x3_bt_rl(self, kivy_clock, n_cols, n_rows):
+        assert {4: (100, 100), 5: (100, 200), 7: (0, 100)} == \
+            self.compute_layout(
+                n_data=8, orientation='bt-rl', n_cols=n_cols, n_rows=n_rows,
+                scroll_to=(50, 150), clock=kivy_clock)
