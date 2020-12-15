@@ -369,7 +369,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 22
+KIVY_CONFIG_VERSION = 23
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -889,6 +889,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 21:
             Config.setdefault('graphics', 'vsync', '')
+
+        elif version == 22:
+            Config.setdefault('graphics', 'verify_gl_main_thread', '1')
 
         else:
             # for future.
