@@ -222,13 +222,14 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         right = x + w
         top = y + h
         at_idx = self.get_view_index_at
-        n = len(data)
         tl, tr, bl, br = sorted((
             at_idx((x, y)),
             at_idx((right, y)),
             at_idx((x, top)),
             at_idx((right, top)),
         ))
+
+        n = len(data)
         if len({tl, tr, bl, br}) < 4:
             # visible area is one row/column
             return list(range(min(n, tl), min(n, br + 1)))
