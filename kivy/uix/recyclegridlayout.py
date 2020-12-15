@@ -232,7 +232,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         n = len(data)
         if len({tl, tr, bl, br}) < 4:
             # visible area is one row/column
-            return list(range(min(n, tl), min(n, br + 1)))
+            return range(min(n, tl), min(n, br + 1))
         indices = []
         stride = len(self._cols) if self._fills_row_first else len(self._rows)
         if stride:
