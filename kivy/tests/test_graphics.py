@@ -131,7 +131,6 @@ class CallbackInstructionTest(GraphicUnitTest):
         self.assertTrue(root.callback_test == 'TEST')
 
 
-@requires_graphics
 @pytest.fixture
 def widget_verify_thread(request):
     from kivy.uix.widget import Widget
@@ -146,6 +145,7 @@ def widget_verify_thread(request):
     Config.set('graphics', 'verify_gl_main_thread', original)
 
 
+@requires_graphics
 @pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
 def test_graphics_main_thread(widget_verify_thread):
     from kivy.graphics import Color
@@ -156,6 +156,7 @@ def test_graphics_main_thread(widget_verify_thread):
     color.rgb = .1, .2, .3
 
 
+@requires_graphics
 @pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
 def test_create_graphics_second_thread(widget_verify_thread):
     from kivy.graphics import Color
@@ -182,6 +183,7 @@ def test_create_graphics_second_thread(widget_verify_thread):
         raise exception[0].with_traceback(exception[1])
 
 
+@requires_graphics
 @pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
 def test_change_graphics_second_thread(widget_verify_thread):
     from kivy.graphics import Color
