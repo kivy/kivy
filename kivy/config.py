@@ -244,6 +244,9 @@ Available configuration tokens
         ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
         ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
         or ``-1`` failed. See ``SDL_GL_SetSwapInterval``.
+    `verify_gl_main_thread`: int, 1 or 0, defaults to 1
+        Whether to check if code that changes any gl instructions is
+        running outside the main thread and then raise an error.
 
 :input:
 
@@ -316,7 +319,8 @@ Available configuration tokens
     arguments.
 
 .. versionchanged:: 2.1.0
-    `vsync` has been added to the graphics section
+    `vsync` has been added to the graphics section.
+    `verify_gl_main_thread` has been added to the graphics section.
 
 .. versionchanged:: 1.10.0
     `min_state_time`  and `allow_screensaver` have been added
