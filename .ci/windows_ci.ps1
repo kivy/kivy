@@ -111,7 +111,13 @@ function Install-kivy-sdist {
 }
 
 function Test-kivy {
-    python -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+    python -m pytest  --benchmark-skip --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+}
+
+function Test-kivy-benchmark {
+    python -m pytest "$(pwd)/kivy/tests/test_benchmark.py" --benchmark-warmup=on --benchmark-warmup-iterations=5 `
+--benchmark-disable-gc --benchmark-name=short --benchmark-sort=fullname --benchmark-group-by=fullfunc `
+--benchmark-storage=benchmarks --benchmark-save=kivy
 }
 
 function Test-kivy-installed {
@@ -121,7 +127,7 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    raise-only-error -Func {python -m pytest --timeout=300 .}
+    raise-only-error -Func {python -m pytest --benchmark-skip --timeout=300 .}
 }
 
 function Upload-artifacts-to-pypi {

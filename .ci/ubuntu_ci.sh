@@ -98,7 +98,13 @@ install_kivy_sdist() {
 
 test_kivy() {
   rm -rf kivy/tests/build || true
-  KIVY_NO_ARGS=1 python3 -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+  KIVY_NO_ARGS=1 python3 -m pytest --benchmark-skip --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+}
+
+test_kivy_benchmark() {
+  KIVY_NO_ARGS=1 python3 -m pytest "$(pwd)/kivy/tests/test_benchmark.py" --benchmark-warmup=on --benchmark-warmup-iterations=5 \
+  --benchmark-disable-gc --benchmark-name=short --benchmark-sort=fullname --benchmark-group-by=fullfunc \
+  --benchmark-storage=benchmarks --benchmark-save=kivy
 }
 
 test_kivy_install() {
@@ -112,7 +118,7 @@ test_kivy_install() {
   plugins = kivy.tools.coverage
 
 EOF
-  KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --timeout=300 .
+  KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --benchmark-skip --timeout=300 .
 }
 
 upload_coveralls() {
