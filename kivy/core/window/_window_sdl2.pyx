@@ -571,10 +571,16 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_MOUSEWHEEL:
             x = event.wheel.x
             y = event.wheel.y
+            # TODO we should probably support events with both an x and y offset
             if x != 0:
                 suffix = 'left' if x > 0 else 'right'
-            else:
+            elif y != 0:
                 suffix = 'down' if y > 0 else 'up'
+            else:
+                # It's possible to get mouse wheel events with no offset in
+                # either x or y direction, we just ignore them
+                # https://wiki.libsdl.org/SDL_MouseWheelEvent
+                return None
             action = 'mousewheel' + suffix
             return (action, x, y, None)
         elif event.type == SDL_FINGERMOTION:
