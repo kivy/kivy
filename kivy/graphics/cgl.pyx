@@ -49,7 +49,7 @@ cdef GLES2_Context g_cgl
 cdef GLES2_Context *cgl = &g_cgl
 cdef object cgl_name = None
 cdef int kivy_opengl_es2 = USE_OPENGL_ES2 or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
-cdef long long initialized_tid = 0
+cdef unsigned long initialized_tid = 0
 cdef public int verify_gl_main_thread = 1
 """Whether we should check if the gl instructions occur in a thread outside the main thread.
 """
