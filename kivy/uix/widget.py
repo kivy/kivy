@@ -1053,6 +1053,13 @@ class Widget(WidgetBase):
         Keep in mind that the `width` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
         method.
+
+    .. warning::
+        Kivy allows the `width` property to be negative, but Kivy does not
+        support negative sizes. It is recommended to always have a positive
+        `width` property. If not, the programmer must account for the
+        consequences of a negative `width`. For example, `right` will actually
+        be left of `x` when `width` is negative.
     '''
 
     height = NumericProperty(100)
@@ -1065,6 +1072,13 @@ class Widget(WidgetBase):
         Keep in mind that the `height` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
         method.
+
+    .. warning::
+        Kivy allows the `height` property to be negative, but Kivy does not
+        support negative sizes. It is recommended to always have a positive
+        `height` property. If not, the programmer must account for the
+        consequences of a negative `height`. For example, `top` will actually
+        be below of `y` when `height` is negative.
     '''
 
     pos = ReferenceListProperty(x, y)
