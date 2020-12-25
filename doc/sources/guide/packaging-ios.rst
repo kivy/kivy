@@ -5,7 +5,7 @@ Create a package for IOS
 
 .. note::
 
-    Currently, kivy-iOS builds packages with Python 3.7.
+    Currently, kivy-iOS builds packages with Python 3.8.x
 
 The overall process for creating a package for IOS can be explained in 4 steps:
 
