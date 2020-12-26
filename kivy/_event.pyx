@@ -230,7 +230,8 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # then auto register
         for event in events:
-            self.__event_stack[event] = EventObservers(1, 0)
+            self.__event_stack[event] = EventObservers.__new__(
+                EventObservers, 1, 0)
 
     def __init__(self, **kwargs):
         cdef basestring func, name, key
@@ -300,7 +301,8 @@ cdef class EventDispatcher(ObjectWithUid):
 
         # Add the event type to the stack
         if event_type not in self.__event_stack:
-            self.__event_stack[event_type] = EventObservers(1, 0)
+            self.__event_stack[event_type] = EventObservers.__new__(
+                EventObservers, 1, 0)
 
     def unregister_event_types(self, basestring event_type):
         '''Unregister an event type in the dispatcher.
@@ -946,9 +948,18 @@ cdef class EventDispatcher(ObjectWithUid):
 
 
 cdef class BoundCallback:
+    """Bound callback storage.
 
-    def __cinit__(self, object func, tuple largs, dict kwargs, int is_ref,
-                  uid=None):
+    .. note::
+
+        We do not call ``__init__`` on the class because we use cython's faster
+        instantiation using ``__new__``.
+    """
+
+    def __cinit__(
+            self, EventObservers observers, object func, tuple largs,
+            dict kwargs, int is_ref, uid=None):
+        self.observers = observers
         self.func = func
         self.largs = largs
         self.kwargs = kwargs
@@ -957,6 +968,12 @@ cdef class BoundCallback:
         self.prev = self.next = None
         self.uid = uid
 
+    def unbind_callback(self, *args):
+        self.observers.unbind_callback(self)
+
+    cdef void set_largs(self, tuple largs):
+        self.largs = largs
+
 
 cdef class EventObservers:
     '''A class that stores observers as a doubly linked list. See dispatch
@@ -964,6 +981,11 @@ cdef class EventObservers:
 
     In all instances, largs and kwargs if None or empty are all converted
     to None internally before storing or comparing.
+
+    .. note::
+
+        We do not call ``__init__`` on the class because we use cython's faster
+        instantiation using ``__new__``.
     '''
 
     def __cinit__(self, int dispatch_reverse=0, dispatch_value=1):
@@ -971,6 +993,14 @@ cdef class EventObservers:
         self.dispatch_value = dispatch_value
         self.last_callback = self.first_callback = None
         self.uid = 1  # start with 1 so uid is always evaluated to True
+
+    cdef inline BoundCallback make_callback(
+            self, object observer, tuple largs, dict kwargs, int is_ref, uid=None):
+        return BoundCallback.__new__(
+            BoundCallback, self, observer,
+            largs if largs else None,
+            kwargs if kwargs else None,
+            is_ref, uid)
 
     cdef inline void bind(self, object observer, object src_observer, int is_ref) except *:
         '''Bind the observer to the event. If this observer has already been
@@ -994,7 +1024,7 @@ cdef class EventObservers:
                 return
             callback = callback.next
 
-        new_callback = BoundCallback(observer, None, None, is_ref)
+        new_callback = self.make_callback(observer, None, None, is_ref)
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
         else:
@@ -1010,9 +1040,8 @@ cdef class EventObservers:
         '''
         cdef object uid = self.uid
         self.uid += 1
-        cdef BoundCallback new_callback = BoundCallback(
-            observer, largs if largs else None, kwargs if kwargs else None,
-            is_ref, uid)
+        cdef BoundCallback new_callback = self.make_callback(
+            observer, largs, kwargs, is_ref, uid)
 
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
@@ -1028,9 +1057,8 @@ cdef class EventObservers:
         is_ref, if true, will mark the observer that it is a ref so that we
         can unref it before calling.
         '''
-        cdef BoundCallback new_callback = BoundCallback(
-            observer, largs if largs else None, kwargs if kwargs else None,
-            is_ref)
+        cdef BoundCallback new_callback = self.make_callback(
+            observer, largs, kwargs, is_ref)
 
         if self.first_callback is None:
             self.last_callback = self.first_callback = new_callback
@@ -1039,6 +1067,14 @@ cdef class EventObservers:
             new_callback.prev = self.last_callback
             self.last_callback = new_callback
         return new_callback
+
+    cdef inline void fbind_existing_callback(self, BoundCallback callback):
+        if self.first_callback is None:
+            self.last_callback = self.first_callback = callback
+        else:
+            self.last_callback.next = callback
+            callback.prev = self.last_callback
+            self.last_callback = callback
 
     cdef inline void unbind(self, object observer, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before

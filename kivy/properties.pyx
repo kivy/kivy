@@ -274,7 +274,6 @@ include "include/config.pxi"
 
 
 from weakref import ref
-from kivy.compat import string_types
 from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
@@ -286,7 +285,8 @@ from kivy.utils import get_color_from_hex, colormap
 cdef float g_dpi = -1
 cdef float g_density = -1
 cdef float g_fontscale = -1
-cdef EventObservers pixel_scale_observers = EventObservers()
+cdef EventObservers pixel_scale_observers = EventObservers.__new__(
+    EventObservers)
 NUMERIC_FORMATS = ('in', 'px', 'dp', 'sp', 'pt', 'cm', 'mm')
 
 
@@ -441,7 +441,7 @@ cdef class Property:
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.value = self.convert(obj, self.defaultvalue)
-        storage.observers = EventObservers()
+        storage.observers = EventObservers.__new__(EventObservers)
 
     cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
@@ -671,14 +671,14 @@ cdef class NumericProperty(Property):
         # ref this prop because the class will not die anyway before the obj, and
         # when the obj dies it'll remove the observer so there will not be a ref
         # to the class either
-        cdef list unregister_arg = [None, ]
-        # the ref must be saved somewhere, but also need it anyway
-        cdef tuple args = (ref(obj, partial(_unregister_dpi_observer, unregister_arg)), )
+        cdef BoundCallback callback = pixel_scale_observers.make_callback(
+            self._dpi_callback, None, None, 0)
+        # the ref must be saved somewhere, but also need it anyway. Unbind only
+        # happens when obj dies, so no double unbind
+        callback.set_largs((ref(obj, callback.unbind_callback), ))
 
-        cdef BoundCallback bound_callback = pixel_scale_observers.fbind_callback(
-            self._dpi_callback, args, None, 0)
-        # item for sure won't be garbage collected until this exits
-        unregister_arg[0] = bound_callback
+        # obj for sure won't be garbage collected until this exits
+        pixel_scale_observers.fbind_existing_callback(callback)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -708,7 +708,7 @@ cdef class NumericProperty(Property):
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], x[1])
-        elif isinstance(x, string_types):
+        elif isinstance(x, str):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
@@ -754,7 +754,7 @@ cdef class StringProperty(Property):
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise ValueError('%s.%s accept only str' % (
                 obj.__class__.__name__,
                 self.name))
@@ -1693,7 +1693,7 @@ cdef class VariableListProperty(Property):
                 elif self.length == 2:
                     err = '%s.%s must have 1 or 2 components (got %r)'
                 raise ValueError(err % (obj.__class__.__name__, self.name, x))
-        elif tp is int or tp is long or tp is float or isinstance(x, string_types):
+        elif tp is int or tp is long or tp is float or isinstance(x, str):
             y = self._convert_numeric(obj, x)
             if self.length == 4:
                 return [y, y, y, y]
@@ -1714,7 +1714,7 @@ cdef class VariableListProperty(Property):
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], x[1])
-        elif isinstance(x, string_types):
+        elif isinstance(x, str):
             return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
@@ -1865,7 +1865,7 @@ cdef class ConfigParserProperty(Property):
         self.section = section
         self.key = key
 
-        if isinstance(config, string_types) and config:
+        if isinstance(config, str) and config:
             self.config_name = config
         elif isinstance(config, ConfigParser):
             self.config = config
@@ -1874,10 +1874,10 @@ cdef class ConfigParserProperty(Property):
             'config {}, is not a ConfigParser instance or a non-empty string'.
             format(config))
 
-        if not self.section or not isinstance(section, string_types):
+        if not self.section or not isinstance(section, str):
             raise ValueError('section {}, is not a non-empty string'.
                              format(section))
-        if not self.key or not isinstance(key, string_types):
+        if not self.key or not isinstance(key, str):
             raise ValueError('key {}, is not a non-empty string'.
                              format(key))
         if self.val_type is not None and not callable(self.val_type):
@@ -2077,7 +2077,7 @@ cdef class ColorProperty(Property):
             return x
         cdef object color = x
         try:
-            if isinstance(x, string_types):
+            if isinstance(x, str):
                 color = self.parse_str(obj, x)
             color = self.parse_list(obj, color)
         except (ValueError, TypeError) as e:

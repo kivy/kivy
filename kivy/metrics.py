@@ -272,6 +272,11 @@ class MetricsBase(EventDispatcher):
     can vary between 0.8 and 1.2.
 '''
 
+    def reload_metrics(self, *args):
+        self.dpi = self.get_dpi(force_recompute=True)
+        self.density = self.get_density(force_recompute=True)
+        self.fontscale = self.get_fontscale(force_recompute=True)
+
 
 #: Default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.7.0
