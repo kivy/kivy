@@ -102,8 +102,28 @@ __all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
 
 from os import environ
 from kivy.utils import reify, platform
-from kivy.properties import dpi2px
+from kivy.properties import dpi2px, AliasProperty
+from kivy.event import EventDispatcher
 from kivy.setupconfig import USE_SDL2
+
+_default_dpi = None
+_default_density = None
+_default_fontscale = None
+if environ.get('KIVY_DOC_INCLUDE', None) == '1':
+    _default_dpi = 132.
+    _default_density = 1
+else:
+    _custom_dpi = environ.get('KIVY_DPI')
+    if _custom_dpi:
+        _default_dpi = float(_custom_dpi)
+
+    _custom_density = environ.get('KIVY_METRICS_DENSITY')
+    if _custom_density:
+        _default_density = float(_custom_density)
+
+    _custom_fontscale = environ.get('KIVY_METRICS_FONTSCALE')
+    if _custom_fontscale:
+        _default_fontscale = float(_custom_fontscale)
 
 
 def pt(value):
@@ -142,23 +162,20 @@ def sp(value):
     return dpi2px(value, 'sp')
 
 
-class MetricsBase(object):
+class MetricsBase(EventDispatcher):
     '''Class that contains the default attributes for Metrics. Don't use this
     class directly, but use the `Metrics` instance.
     '''
 
-    @reify
-    def dpi(self):
-        '''Return the DPI of the screen. Depending on the platform, the DPI can
-        be taken from the Window provider (Desktop mainly) or from a
-        platform-specific module (like android/ios).
-        '''
-        if environ.get('KIVY_DOC_INCLUDE', None):
-            return 132.
+    _dpi = _default_dpi
 
-        custom_dpi = environ.get('KIVY_DPI')
-        if custom_dpi:
-            return float(custom_dpi)
+    _density = _default_density
+
+    _fontscale = _default_fontscale
+
+    def get_dpi(self, force_recompute=False):
+        if not force_recompute and self._dpi is not None:
+            return self._dpi
 
         if platform == 'android':
             if USE_SDL2:
@@ -177,11 +194,17 @@ class MetricsBase(object):
         EventLoop.ensure_window()
         return EventLoop.window.dpi
 
-    @reify
-    def dpi_rounded(self):
-        '''Return the DPI of the screen, rounded to the nearest of 120, 160,
-        240 or 320.
-        '''
+    def set_dpi(self, value):
+        self._dpi = value
+        return True
+
+    dpi = AliasProperty(get_dpi, set_dpi, cache=True)
+    '''Return the DPI of the screen. Depending on the platform, the DPI can
+    be taken from the Window provider (Desktop mainly) or from a
+    platform-specific module (like android/ios).
+    '''
+
+    def get_dpi_rounded(self):
         dpi = self.dpi
         if dpi < 140:
             return 120
@@ -191,17 +214,15 @@ class MetricsBase(object):
             return 240
         return 320
 
-    @reify
-    def density(self):
-        '''Return the density of the screen. This value is 1 by default
-        on desktops but varies on android depending on the screen.
-        '''
-        if environ.get('KIVY_DOC_INCLUDE', None):
-            return 1.
+    dpi_rounded = AliasProperty(
+        get_dpi_rounded, None, bind=('dpi', ), cache=True)
+    '''Return the DPI of the screen, rounded to the nearest of 120, 160,
+    240 or 320.
+    '''
 
-        custom_density = environ.get('KIVY_METRICS_DENSITY')
-        if custom_density:
-            return float(custom_density)
+    def get_density(self, force_recompute=False):
+        if not force_recompute and self._density is not None:
+            return self._density
 
         if platform == 'android':
             import jnius
@@ -217,14 +238,19 @@ class MetricsBase(object):
 
         return 1.0
 
-    @reify
-    def fontscale(self):
-        '''Return the fontscale user preference. This value is 1 by default but
-        can vary between 0.8 and 1.2.
-        '''
-        custom_fontscale = environ.get('KIVY_METRICS_FONTSCALE')
-        if custom_fontscale:
-            return float(custom_fontscale)
+    def set_density(self, value):
+        self._density = value
+        return True
+
+    density = AliasProperty(
+        get_density, set_density, bind=('dpi', ), cache=True)
+    '''Return the density of the screen. This value is 1 by default
+    on desktops but varies on android depending on the screen.
+    '''
+
+    def get_fontscale(self, force_recompute=False):
+        if not force_recompute and self._fontscale is not None:
+            return self._fontscale
 
         if platform == 'android':
             from jnius import autoclass
@@ -236,6 +262,15 @@ class MetricsBase(object):
             return config.fontScale
 
         return 1.0
+
+    def set_fontscale(self, value):
+        self._fontscale = value
+        return True
+
+    fontscale = AliasProperty(get_fontscale, set_fontscale, cache=True)
+    '''Return the fontscale user preference. This value is 1 by default but
+    can vary between 0.8 and 1.2.
+'''
 
 
 #: Default instance of :class:`MetricsBase`, used everywhere in the code

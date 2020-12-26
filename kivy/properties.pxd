@@ -1,4 +1,4 @@
-from kivy._event cimport EventDispatcher, EventObservers
+from kivy._event cimport EventDispatcher, EventObservers, BoundCallback
 
 cdef class PropertyStorage:
     cdef object value

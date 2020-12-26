@@ -1022,6 +1022,24 @@ cdef class EventObservers:
             self.last_callback = new_callback
         return uid
 
+    cdef inline BoundCallback fbind_callback(
+            self, object observer, tuple largs, dict kwargs, int is_ref):
+        '''Similar to bind, except it accepts largs, kwargs that is forwards.
+        is_ref, if true, will mark the observer that it is a ref so that we
+        can unref it before calling.
+        '''
+        cdef BoundCallback new_callback = BoundCallback(
+            observer, largs if largs else None, kwargs if kwargs else None,
+            is_ref)
+
+        if self.first_callback is None:
+            self.last_callback = self.first_callback = new_callback
+        else:
+            self.last_callback.next = new_callback
+            new_callback.prev = self.last_callback
+            self.last_callback = new_callback
+        return new_callback
+
     cdef inline void unbind(self, object observer, int stop_on_first) except *:
         '''Removes the observer. If is_ref, he observers will be derefed before
         comparing to observer, if they are refed. If stop_on_first, after the
@@ -1088,6 +1106,13 @@ cdef class EventObservers:
             if callback.lock != deleted:
                 self.remove_callback(callback)
             return
+
+    cdef inline object unbind_callback(self, BoundCallback callback):
+        '''Remove the callback identified by the uid. If passed uid is None,
+        a ValueError is raised.
+        '''
+        if callback.lock != deleted:
+            self.remove_callback(callback)
 
     cdef inline void remove_callback(self, BoundCallback callback, int force=0) except *:
         '''Removes the callback from the doubly linked list. If the callback is

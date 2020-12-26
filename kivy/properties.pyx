@@ -286,17 +286,40 @@ from kivy.utils import get_color_from_hex, colormap
 cdef float g_dpi = -1
 cdef float g_density = -1
 cdef float g_fontscale = -1
-
+cdef EventObservers pixel_scale_observers = EventObservers()
 NUMERIC_FORMATS = ('in', 'px', 'dp', 'sp', 'pt', 'cm', 'mm')
+
+
+def _unregister_dpi_observer(bound_callback_, obj):
+    cdef BoundCallback bound_callback = bound_callback_[0]
+    if bound_callback is None:
+        # this should never happen (see where the callback is scheduled),
+        # but just in case
+        return
+    pixel_scale_observers.unbind_callback(bound_callback)
+
+
+def _dispatch_pixel_scale(*args):
+    from kivy.metrics import Metrics
+    global g_dpi, g_density, g_fontscale
+
+    g_dpi = Metrics.dpi
+    g_density = Metrics.density
+    g_fontscale = Metrics.fontscale
+    pixel_scale_observers.dispatch(None, None, None, None, 0)
+
 
 cpdef float dpi2px(value, ext) except *:
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
-    global g_dpi, g_density, g_fontscale
     if g_dpi == -1:
         from kivy.metrics import Metrics
-        g_dpi = Metrics.dpi
-        g_density = Metrics.density
-        g_fontscale = Metrics.fontscale
+        Metrics.fbind('dpi', _dispatch_pixel_scale)
+        Metrics.fbind('density', _dispatch_pixel_scale)
+        Metrics.fbind('fontscale', _dispatch_pixel_scale)
+
+        _dispatch_pixel_scale()
+
+
     cdef float rv = <float>float(value)
     if ext == 'in':
         return rv * g_dpi
@@ -312,6 +335,7 @@ cpdef float dpi2px(value, ext) except *:
         return rv * g_dpi / <float>2.54
     elif ext == 'mm':
         return rv * g_dpi / <float>25.4
+
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -628,9 +652,33 @@ cdef class NumericProperty(Property):
     def __init__(self, defaultvalue=0, **kw):
         super(NumericProperty, self).__init__(defaultvalue, **kw)
 
+    def _dpi_callback(self, obj, _obj, _value):
+        cdef EventDispatcher event_dispatcher = obj()
+        if event_dispatcher is None:
+            return
+
+        cdef PropertyStorage ps = event_dispatcher.__storage[self._name]
+        if ps.numeric_fmt == 'px':
+            return
+        self.set(event_dispatcher, ps.numeric_fmt)
+
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
         storage.numeric_fmt = 'px'
         Property.init_storage(self, obj, storage)
+
+        # this prop is stored in the class of obj. So, the class will never be
+        # freed before the obj is garbage collected. Therefore, we don't have to
+        # ref this prop because the class will not die anyway before the obj, and
+        # when the obj dies it'll remove the observer so there will not be a ref
+        # to the class either
+        cdef list unregister_arg = [None, ]
+        # the ref must be saved somewhere, but also need it anyway
+        cdef tuple args = (ref(obj, partial(_unregister_dpi_observer, unregister_arg)), )
+
+        cdef BoundCallback bound_callback = pixel_scale_observers.fbind_callback(
+            self._dpi_callback, args, None, 0)
+        # item for sure won't be garbage collected until this exits
+        unregister_arg[0] = bound_callback
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
@@ -641,11 +689,19 @@ cdef class NumericProperty(Property):
                 self.name, value))
 
     cdef convert(self, EventDispatcher obj, x):
+        cdef PropertyStorage ps
         if x is None:
+            if self.allownone:
+                ps = obj.__storage[self._name]
+                ps.numeric_fmt = 'px'
             return x
+
         tp = type(x)
         if tp is int or tp is float or tp is long:
+            ps = obj.__storage[self._name]
+            ps.numeric_fmt = 'px'
             return x
+
         if tp is tuple or tp is list:
             if len(x) != 2:
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
@@ -660,14 +716,17 @@ cdef class NumericProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, EventDispatcher obj, value) except *:
+        cdef PropertyStorage ps
         if value[-2:] in NUMERIC_FORMATS:
             return self.parse_list(obj, value[:-2], value[-2:])
         else:
+            ps = obj.__storage[self._name]
+            ps.numeric_fmt = 'px'
             return <float>float(value)
 
     cdef float parse_list(self, EventDispatcher obj, value, ext) except *:
         cdef PropertyStorage ps = obj.__storage[self._name]
-        ps.numeric_fmt = ext
+        ps.numeric_fmt = value, ext
         return dpi2px(value, ext)
 
     def get_format(self, EventDispatcher obj):
