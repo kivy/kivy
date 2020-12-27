@@ -892,8 +892,6 @@ class WindowBase(EventDispatcher):
         return cls.__instance
 
     def __init__(self, **kwargs):
-        from kivy.metrics import Metrics
-
         force = kwargs.pop('force', False)
 
         # don't init window 2 times,
@@ -908,7 +906,7 @@ class WindowBase(EventDispatcher):
         # property changes
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
-        self.fbind('dpi', Metrics.reset_dpi)
+        self.fbind('dpi', self._reset_metrics_dpi)
 
         # Create a trigger for updating the keyboard height
         self.trigger_keyboard_height = Clock.create_trigger(
@@ -995,6 +993,10 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
+
+    def _reset_metrics_dpi(self, *args):
+        from kivy.metrics import Metrics
+        Metrics.reset_dpi()
 
     def _bind_create_window(self):
         for prop in (

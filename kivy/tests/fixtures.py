@@ -4,7 +4,7 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_clock', 'kivy_exception_manager', 'kivy_app', )
+__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app')
 
 
 @pytest.fixture()
@@ -25,6 +25,22 @@ def kivy_clock():
         Clock.stop_clock()
     finally:
         context.pop()
+
+
+@pytest.fixture()
+def kivy_metrics():
+    from kivy.context import Context
+    from kivy.metrics import MetricsBase, Metrics
+
+    context = Context(init=False)
+    context['Metrics'] = MetricsBase()
+    context.push()
+
+    try:
+        yield Metrics
+    finally:
+        context.pop()
+        Metrics._set_cached_scaling()
 
 
 @pytest.fixture()

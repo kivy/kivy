@@ -97,14 +97,19 @@ You can also simulate an alternative user preference for fontscale as follows::
 '''
 
 
-__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
-
-
 from os import environ
-from kivy.utils import reify, platform
-from kivy.properties import dpi2px, AliasProperty
+from kivy.utils import platform
+from kivy.properties import AliasProperty
 from kivy.event import EventDispatcher
 from kivy.setupconfig import USE_SDL2
+from kivy.context import register_context
+from kivy._metrics import dpi2px, NUMERIC_FORMATS, dispatch_pixel_scale
+
+
+__all__ = (
+    'Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp', 'dpi2px',
+    'NUMERIC_FORMATS')
+
 
 _default_dpi = None
 _default_density = None
@@ -126,37 +131,37 @@ else:
         _default_fontscale = float(_custom_fontscale)
 
 
-def pt(value):
+def pt(value) -> float:
     '''Convert from points to pixels
     '''
     return dpi2px(value, 'pt')
 
 
-def inch(value):
+def inch(value) -> float:
     '''Convert from inches to pixels
     '''
     return dpi2px(value, 'in')
 
 
-def cm(value):
+def cm(value) -> float:
     '''Convert from centimeters to pixels
     '''
     return dpi2px(value, 'cm')
 
 
-def mm(value):
+def mm(value) -> float:
     '''Convert from millimeters to pixels
     '''
     return dpi2px(value, 'mm')
 
 
-def dp(value):
+def dp(value) -> float:
     '''Convert from density-independent pixels to pixels
     '''
     return dpi2px(value, 'dp')
 
 
-def sp(value):
+def sp(value) -> float:
     '''Convert from scale-independent pixels to pixels
     '''
     return dpi2px(value, 'sp')
@@ -172,6 +177,12 @@ class MetricsBase(EventDispatcher):
     _density = _default_density
 
     _fontscale = _default_fontscale
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fbind('dpi', dispatch_pixel_scale)
+        self.fbind('density', dispatch_pixel_scale)
+        self.fbind('fontscale', dispatch_pixel_scale)
 
     def get_dpi(self, force_recompute=False):
         if not force_recompute and self._dpi is not None:
@@ -198,7 +209,7 @@ class MetricsBase(EventDispatcher):
         self._dpi = value
         return True
 
-    dpi = AliasProperty(get_dpi, set_dpi, cache=True)
+    dpi: float = AliasProperty(get_dpi, set_dpi, cache=True)
     '''The DPI of the screen.
 
     Depending on the platform, the DPI can be taken from the Window provider
@@ -219,7 +230,7 @@ class MetricsBase(EventDispatcher):
             return 240
         return 320
 
-    dpi_rounded = AliasProperty(
+    dpi_rounded: int = AliasProperty(
         get_dpi_rounded, None, bind=('dpi', ), cache=True)
     '''Return the :attr:`dpi` of the screen, rounded to the nearest of 120,
     160, 240 or 320.
@@ -247,7 +258,7 @@ class MetricsBase(EventDispatcher):
         self._density = value
         return True
 
-    density = AliasProperty(
+    density: float = AliasProperty(
         get_density, set_density, bind=('dpi', ), cache=True)
     '''The density of the screen.
 
@@ -277,7 +288,7 @@ class MetricsBase(EventDispatcher):
         self._fontscale = value
         return True
 
-    fontscale = AliasProperty(get_fontscale, set_fontscale, cache=True)
+    fontscale: float = AliasProperty(get_fontscale, set_fontscale, cache=True)
     '''The fontscale user preference. 
 
     This value is 1 by default but can vary between 0.8 and 1.2.
@@ -299,7 +310,17 @@ class MetricsBase(EventDispatcher):
         """
         self.dpi = self.get_dpi(force_recompute=True)
 
+    def _set_cached_scaling(self):
+        dispatch_pixel_scale()
 
-#: Default instance of :class:`MetricsBase`, used everywhere in the code
-#: .. versionadded:: 1.7.0
-Metrics = MetricsBase()
+
+Metrics: MetricsBase = register_context('Metrics', MetricsBase)
+"""The metrics object storing the window scaling factors.
+
+.. versionadded:: 1.7.0
+
+.. versionchanged:: 2.1.0
+
+     :attr:`Metrics` is now a Context registered variable (like e.g.
+     :attr:`~kivy.clock.Clock`).
+"""

@@ -821,52 +821,130 @@ def test_listproperty_is_none():
     assert l2.get(wid) is None
 
 
-def test_numeric_property_dp():
+def test_numeric_property_dp(kivy_metrics):
     from kivy.event import EventDispatcher
     from kivy.properties import NumericProperty
-    from kivy.metrics import Metrics
+    kivy_metrics.density = 1
 
     class Number(EventDispatcher):
 
-        with_dp = NumericProperty(10)
+        with_dp = NumericProperty(5)
 
         no_dp = NumericProperty(10)
 
+        default_dp = NumericProperty('10dp')
+
     number = Number()
-    counter = {'with_dp': 0, 'no_dp': 0}
+    counter = {'with_dp': 0, 'no_dp': 0, 'default_dp': 0}
 
     def callback(name, *args):
         counter[name] += 1
 
     number.fbind('with_dp', callback, 'with_dp')
     number.fbind('no_dp', callback, 'no_dp')
+    number.fbind('default_dp', callback, 'default_dp')
 
     assert not counter['with_dp']
     assert not counter['no_dp']
-    assert number.with_dp == 10
+    assert not counter['default_dp']
+    assert number.with_dp == 5
     assert number.no_dp == 10
+    assert number.default_dp == 10
 
-    density = Metrics.density
-    Metrics.density = 2
+    number.with_dp = 10
+    assert counter['with_dp'] == 1
+    assert number.with_dp == 10
 
-    assert not counter['with_dp']
+    kivy_metrics.density = 2
+
+    assert counter['with_dp'] == 1
     assert not counter['no_dp']
+    assert counter['default_dp'] == 1
     assert number.with_dp == 10
     assert number.no_dp == 10
+    assert number.default_dp == 20
 
     number.with_dp = '20dp'
     number.no_dp = 20
 
-    assert counter['with_dp'] == 1
-    assert counter['no_dp'] == 1
-    assert number.with_dp == 40
-    assert number.no_dp == 20
-
-    Metrics.density = 1
-
     assert counter['with_dp'] == 2
     assert counter['no_dp'] == 1
+    assert counter['default_dp'] == 1
+    assert number.with_dp == 40
+    assert number.no_dp == 20
+    assert number.default_dp == 20
+
+    kivy_metrics.density = 1
+
+    assert counter['with_dp'] == 3
+    assert counter['no_dp'] == 1
+    assert counter['default_dp'] == 2
     assert number.with_dp == 20
     assert number.no_dp == 20
+    assert number.default_dp == 10
 
-    Metrics.density = density
+
+def test_variable_list_property_dp_default(kivy_metrics):
+    from kivy.event import EventDispatcher
+    from kivy.properties import VariableListProperty
+    kivy_metrics.density = 1
+
+    class Number(EventDispatcher):
+
+        a = VariableListProperty(['10dp', (20, 'dp'), 3, 4.0])
+
+    number = Number()
+    counter = 0
+
+    def callback(name, *args):
+        nonlocal counter
+        counter += 1
+
+    number.fbind('a', callback)
+    assert list(number.a) == [10, 20, 3, 4]
+    assert not counter
+
+    kivy_metrics.density = 2
+
+    assert counter == 1
+    assert list(number.a) == [20, 40, 3, 4]
+
+    kivy_metrics.density = 1
+
+    assert counter == 2
+    assert list(number.a) == [10, 20, 3, 4]
+
+
+def test_variable_list_property_dp(kivy_metrics):
+    from kivy.event import EventDispatcher
+    from kivy.properties import VariableListProperty
+    kivy_metrics.density = 1
+
+    class Number(EventDispatcher):
+
+        a = VariableListProperty([0, 20, 3, 4])
+
+    number = Number()
+    counter = 0
+
+    def callback(name, *args):
+        nonlocal counter
+        counter += 1
+
+    number.fbind('a', callback)
+    assert list(number.a) == [0, 20, 3, 4]
+    assert not counter
+
+    number.a = ['10dp', (20, 'dp'), 3, 4.0]
+    assert list(number.a) == [10, 20, 3, 4]
+    assert counter == 1
+
+    kivy_metrics.density = 2
+
+    assert counter == 2
+    assert list(number.a) == [20, 40, 3, 4]
+
+    kivy_metrics.density = 1
+
+    assert counter == 3
+    assert list(number.a) == [10, 20, 3, 4]

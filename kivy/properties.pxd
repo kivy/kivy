@@ -1,8 +1,10 @@
 from kivy._event cimport EventDispatcher, EventObservers, BoundCallback
+from kivy._metrics cimport dpi2px, pixel_scale_observers
 
 cdef class PropertyStorage:
     cdef object value
     cdef EventObservers observers
+    cdef Property property_obj
 
 
 cdef class Property:
@@ -109,11 +111,18 @@ cdef class AliasProperty(Property):
     cdef public int rebind
     cpdef trigger_change(self, EventDispatcher obj, value)
 
+
+cdef class VariableListPropertyStorage(PropertyStorage):
+    cdef object original_num
+    cdef int uses_scaling
+
+
 cdef class VariableListProperty(Property):
     cdef public int length
     cdef _convert_numeric(self, EventDispatcher obj, x)
     cdef float parse_str(self, EventDispatcher obj, value) except *
     cdef float parse_list(self, EventDispatcher obj, value, ext) except *
+
 
 cdef class ConfigParserProperty(Property):
     cdef object config
