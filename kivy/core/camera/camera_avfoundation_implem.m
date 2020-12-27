@@ -218,20 +218,23 @@ Camera::~Camera() {
 }
 
 bool Camera::grabFrame(double timeOut) {
-
+    
     NSAutoreleasePool* localpool = [[NSAutoreleasePool alloc] init];
+    bool haveFrame = false;
     double sleepTime = 0.005;
     double total = 0;
     NSDate *loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
-    [capture updateImage];
-    while (![capture updateImage] && (total += sleepTime)<=timeOut &&
+    haveFrame = [capture updateImage];
+    while (!haveFrame && (total += sleepTime)<=timeOut &&
             [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-            beforeDate:loopUntil])
+            beforeDate:loopUntil]){
+        haveFrame = [capture updateImage];
         loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
+    }
 
     [localpool drain];
 
-    return total <= timeOut;
+    return haveFrame;
 }
 
 CameraFrame* Camera::retrieveFrame() {
@@ -689,8 +692,8 @@ void avf_camera_deinit(camera_t camera) {
     delete (Camera *)(camera);
 }
 
-void avf_camera_update(camera_t camera) {
-    ((Camera *)camera)->grabFrame(0);
+bool avf_camera_update(camera_t camera) {
+    return ((Camera *)camera)->grabFrame(0);
 }
 
 void avf_camera_get_image(camera_t camera, int *width, int *height, int *rowsize, char **data) {
