@@ -684,7 +684,9 @@ class WindowBase(EventDispatcher):
                                 bind=('_size', 'softinput_mode',
                                       'keyboard_height'),
                                 cache=True)
-    '''Real size of the window ignoring rotation.
+    '''Real size of the window ignoring rotation. If the density is
+    not 1, the :attr:`system_size` is the :attr:`size` devided by
+    density.
 
     .. versionadded:: 1.0.9
 
@@ -692,8 +694,8 @@ class WindowBase(EventDispatcher):
     '''
 
     def _get_effective_size(self):
-        '''On density=1 and non-ios displays, return system_size, else
-        return scaled / rotated size.
+        '''On density=1 and non-ios displays, return :attr:`system_size`,
+        else return scaled / rotated :attr:`size`.
 
         Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
         '''
@@ -890,6 +892,7 @@ class WindowBase(EventDispatcher):
         return cls.__instance
 
     def __init__(self, **kwargs):
+        from kivy.metrics import Metrics
 
         force = kwargs.pop('force', False)
 
@@ -905,6 +908,7 @@ class WindowBase(EventDispatcher):
         # property changes
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
+        self.fbind('dpi', Metrics.reset_dpi)
 
         # Create a trigger for updating the keyboard height
         self.trigger_keyboard_height = Clock.create_trigger(
@@ -1472,9 +1476,7 @@ class WindowBase(EventDispatcher):
         from kivy.graphics.transformation import Matrix
         from math import radians
 
-        w, h = self.system_size
-        if self._density != 1:
-            w, h = self.size
+        w, h = self._get_effective_size()
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
@@ -1820,17 +1822,15 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    @reify
-    def dpi(self):
-        '''Return the DPI of the screen. If the implementation doesn't support
-        any DPI lookup, it will just return 96.
+    dpi = NumericProperty(96.)
+    '''Return the DPI of the screen as computed by the window. If the
+    implementation doesn't support DPI lookup, it's 96.
 
-        .. warning::
+    .. warning::
 
-            This value is not cross-platform. Use
-            :attr:`kivy.base.EventLoop.dpi` instead.
-        '''
-        return 96.
+        This value is not cross-platform. Use
+        :attr:`kivy.metrics.Metrics.dpi` instead.
+    '''
 
     def configure_keyboards(self):
         # Configure how to provide keyboards (virtual or not)

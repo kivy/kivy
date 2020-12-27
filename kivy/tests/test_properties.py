@@ -294,6 +294,7 @@ class PropertiesTestCase(unittest.TestCase):
 
     def test_numeric_string_with_units_check(self):
         from kivy.properties import NumericProperty
+        from kivy.metrics import Metrics
 
         a = NumericProperty()
         a.link(wid, 'a')
@@ -301,8 +302,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 0)
 
         a.set(wid, '55dp')
-        from kivy.core.window import Window
-        density = Window._density if hasattr(Window, '_density') else 1
+        density = Metrics.density
         self.assertEqual(a.get(wid), 55 * density)
         self.assertEqual(a.get_format(wid), 'dp')
 
@@ -819,3 +819,54 @@ def test_listproperty_is_none():
     l2.link(wid, 'l2')
     l2.set(wid, None)
     assert l2.get(wid) is None
+
+
+def test_numeric_property_dp():
+    from kivy.event import EventDispatcher
+    from kivy.properties import NumericProperty
+    from kivy.metrics import Metrics
+
+    class Number(EventDispatcher):
+
+        with_dp = NumericProperty(10)
+
+        no_dp = NumericProperty(10)
+
+    number = Number()
+    counter = {'with_dp': 0, 'no_dp': 0}
+
+    def callback(name, *args):
+        counter[name] += 1
+
+    number.fbind('with_dp', callback, 'with_dp')
+    number.fbind('no_dp', callback, 'no_dp')
+
+    assert not counter['with_dp']
+    assert not counter['no_dp']
+    assert number.with_dp == 10
+    assert number.no_dp == 10
+
+    density = Metrics.density
+    Metrics.density = 2
+
+    assert not counter['with_dp']
+    assert not counter['no_dp']
+    assert number.with_dp == 10
+    assert number.no_dp == 10
+
+    number.with_dp = '20dp'
+    number.no_dp = 20
+
+    assert counter['with_dp'] == 1
+    assert counter['no_dp'] == 1
+    assert number.with_dp == 40
+    assert number.no_dp == 20
+
+    Metrics.density = 1
+
+    assert counter['with_dp'] == 2
+    assert counter['no_dp'] == 1
+    assert number.with_dp == 20
+    assert number.no_dp == 20
+
+    Metrics.density = density

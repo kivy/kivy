@@ -199,9 +199,14 @@ class MetricsBase(EventDispatcher):
         return True
 
     dpi = AliasProperty(get_dpi, set_dpi, cache=True)
-    '''Return the DPI of the screen. Depending on the platform, the DPI can
-    be taken from the Window provider (Desktop mainly) or from a
-    platform-specific module (like android/ios).
+    '''The DPI of the screen.
+
+    Depending on the platform, the DPI can be taken from the Window provider
+    (Desktop mainly) or from a platform-specific module (like android/ios).
+
+    The :attr:`dpi` can be set and that value will be used instead. But, the
+    :attr:`dpi` is reloaded and reset if we get it from the Window provider and
+    the Window changes dpi.
     '''
 
     def get_dpi_rounded(self):
@@ -216,8 +221,8 @@ class MetricsBase(EventDispatcher):
 
     dpi_rounded = AliasProperty(
         get_dpi_rounded, None, bind=('dpi', ), cache=True)
-    '''Return the DPI of the screen, rounded to the nearest of 120, 160,
-    240 or 320.
+    '''Return the :attr:`dpi` of the screen, rounded to the nearest of 120,
+    160, 240 or 320.
     '''
 
     def get_density(self, force_recompute=False):
@@ -244,8 +249,13 @@ class MetricsBase(EventDispatcher):
 
     density = AliasProperty(
         get_density, set_density, bind=('dpi', ), cache=True)
-    '''Return the density of the screen. This value is 1 by default
-    on desktops but varies on android depending on the screen.
+    '''The density of the screen.
+
+    This value is 1 by default on desktops but varies on android depending on
+    the screen.
+
+    The :attr:`density` can be set and that value will be used instead. But,
+    the :attr:`density` is reloaded and reset if we get it from the Window.
     '''
 
     def get_fontscale(self, force_recompute=False):
@@ -268,14 +278,26 @@ class MetricsBase(EventDispatcher):
         return True
 
     fontscale = AliasProperty(get_fontscale, set_fontscale, cache=True)
-    '''Return the fontscale user preference. This value is 1 by default but
-    can vary between 0.8 and 1.2.
-'''
+    '''The fontscale user preference. 
 
-    def reload_metrics(self, *args):
+    This value is 1 by default but can vary between 0.8 and 1.2.
+
+    The :attr:`fontscale` can be set and that value will be used instead.
+    '''
+
+    def reset_metrics(self):
+        """Resets the dpi/density/fontscale to the platform values, overwriting
+        any manually set values.
+        """
         self.dpi = self.get_dpi(force_recompute=True)
         self.density = self.get_density(force_recompute=True)
         self.fontscale = self.get_fontscale(force_recompute=True)
+
+    def reset_dpi(self, *args):
+        """Resets the dpi (and possibly density) to the platform values,
+        overwriting any manually set values.
+        """
+        self.dpi = self.get_dpi(force_recompute=True)
 
 
 #: Default instance of :class:`MetricsBase`, used everywhere in the code

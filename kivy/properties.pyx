@@ -287,10 +287,15 @@ cdef float g_density = -1
 cdef float g_fontscale = -1
 cdef EventObservers pixel_scale_observers = EventObservers.__new__(
     EventObservers)
+"""These observers are dispatched when the dpi/density/font scale changes.
+All NumericProperties bind to it, and dispatch their prop in response (if it
+causes changes to them).
+"""
 NUMERIC_FORMATS = ('in', 'px', 'dp', 'sp', 'pt', 'cm', 'mm')
 
 
 def _dispatch_pixel_scale(*args):
+    """This is bound to Metrics.dpi/density/fontscale."""
     from kivy.metrics import Metrics
     global g_dpi, g_density, g_fontscale
 
@@ -300,7 +305,8 @@ def _dispatch_pixel_scale(*args):
     pixel_scale_observers.dispatch(None, None, None, None, 0)
 
 
-cpdef float dpi2px(value, ext) except *:
+cpdef float dpi2px(value, str ext) except *:
+    """Converts the value acording to the ext."""
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
     if g_dpi == -1:
         from kivy.metrics import Metrics
@@ -435,6 +441,7 @@ cdef class Property:
         storage.observers = EventObservers.__new__(EventObservers)
 
     cdef PropertyStorage create_property_storage(self):
+        """Returns a new property storage used by this property."""
         return PropertyStorage()
 
     cpdef link(self, EventDispatcher obj, str name):
