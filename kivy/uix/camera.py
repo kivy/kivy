@@ -41,16 +41,16 @@ class Camera(Image):
     '''Boolean indicating whether the camera is playing or not.
     You can start/stop the camera by setting this property::
 
-        # start the camera playing at creation (default)
+        # start the camera playing at creation
         cam = Camera(play=True)
 
-        # create the camera, and start later
+        # create the camera, and start later (default)
         cam = Camera(play=False)
         # and later
         cam.play = True
 
     :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    True.
+    False.
     '''
 
     index = NumericProperty(-1)
