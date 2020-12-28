@@ -119,6 +119,7 @@ You can also set the glsl by automatically loading the string from a
 file, simply set the :attr:`EffectBase.source` property of an effect.
 
 '''
+from kivy.graphics.instructions import Callback
 
 from kivy.clock import Clock
 from kivy.uix.relativelayout import RelativeLayout
@@ -654,6 +655,7 @@ class EffectWidget(RelativeLayout):
 
         self.canvas = RenderContext(use_parent_projection=True,
                                     use_parent_modelview=True)
+        self._callbacks = {}
 
         with self.canvas:
             self.fbo = Fbo(size=self.size)
@@ -670,8 +672,6 @@ class EffectWidget(RelativeLayout):
 
         super(EffectWidget, self).__init__(**kwargs)
 
-        Clock.schedule_interval(self._update_glsl, 0)
-
         fbind = self.fbind
         fbo_setup = self.refresh_fbo_setup
         fbind('size', fbo_setup)
@@ -684,17 +684,11 @@ class EffectWidget(RelativeLayout):
     def _refresh_background_color(self, *args):
         self._background_color.rgba = self.background_color
 
-    def _update_glsl(self, *largs):
-        '''(internal) Passes new time and resolution uniform
-        variables to the shader.
-        '''
-        time = Clock.get_boottime()
-        resolution = [float(size) for size in self.size]
-        self.canvas['time'] = time
-        self.canvas['resolution'] = resolution
+    def _propagate_updates(self, *largs):
+        """Propagate updates from widgets."""
+        del largs
         for fbo in self.fbo_list:
-            fbo['time'] = time
-            fbo['resolution'] = resolution
+            fbo.ask_update()
 
     def refresh_fbo_setup(self, *args):
         '''(internal) Creates and assigns one :class:`~kivy.graphics.Fbo`
@@ -754,12 +748,16 @@ class EffectWidget(RelativeLayout):
         # Add the widget to our Fbo instead of the normal canvas
         c = self.canvas
         self.canvas = self.fbo
+        with widget.canvas:
+            self._callbacks[widget.canvas] = Callback(self._propagate_updates)
         super(EffectWidget, self).add_widget(widget)
         self.canvas = c
 
     def remove_widget(self, widget):
         # Remove the widget from our Fbo instead of the normal canvas
         c = self.canvas
+        widget.canvas.remove(self._callbacks[widget.canvas])
+        del self._callbacks[widget.canvas]
         self.canvas = self.fbo
         super(EffectWidget, self).remove_widget(widget)
         self.canvas = c
@@ -768,5 +766,9 @@ class EffectWidget(RelativeLayout):
         # Clear widgets from our Fbo instead of the normal canvas
         c = self.canvas
         self.canvas = self.fbo
+        for canvas, callback in self._callbacks.items():
+            canvas.remove(callback)
+        self._callbacks = {}
+
         super(EffectWidget, self).clear_widgets(children)
         self.canvas = c
