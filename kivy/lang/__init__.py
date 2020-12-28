@@ -210,8 +210,8 @@ Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
 these ids may not be available during the inner widget's `__init__` function.
 
-Valid expressons
-~~~~~~~~~~~~~~~~
+Valid expressions
+~~~~~~~~~~~~~~~~~
 
 There are two places that accept python statements in a kv file:
 after a property, which assigns to the property the result of the expression

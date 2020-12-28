@@ -296,6 +296,7 @@ class BuilderBase(object):
 
             `encoding`: File charcter encoding. Defaults to utf-8,
         '''
+
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Lang: load file %s, using %s encoding', filename, encoding)

@@ -193,7 +193,25 @@ class Animation(EventDispatcher):
             Animation.cancel_all(widget, 'x')
 
         .. versionadded:: 1.4.0
+
+        .. versionchanged:: 2.1.0
+            If the parameter ``widget`` is None, all animated widgets will be
+            the target and cancelled. If ``largs`` is also given, animation of
+            these properties will be canceled for all animated widgets.
         '''
+        if widget is None:
+            if largs:
+                for animation in Animation._instances.copy():
+                    for info in tuple(animation._widgets.values()):
+                        widget = info['widget']
+                        for x in largs:
+                            animation.cancel_property(widget, x)
+            else:
+                for animation in Animation._instances:
+                    animation._widgets.clear()
+                    animation._clock_uninstall()
+                Animation._instances.clear()
+            return
         if len(largs):
             for animation in list(Animation._instances):
                 for x in largs:

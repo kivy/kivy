@@ -289,7 +289,7 @@ class Gradient(object):
     def __init__(self, element, svg):
         self.element = element
         self.stops = {}
-        for e in element.getiterator():
+        for e in element:
             if e.tag.endswith('stop'):
                 style = parse_style(e.get('style', ''))
                 color = parse_color(e.get('stop-color'), svg.current_color)
@@ -568,7 +568,7 @@ cdef class Svg(RenderContext):
             self.width = w
 
         self.opacity = 1.0
-        for e in root.getchildren():
+        for e in root:
             self.parse_element(e)
 
     cdef parse_element(self, e):
@@ -707,7 +707,7 @@ cdef class Svg(RenderContext):
         elif e.tag.endswith('radialGradient'):
             self.gradients[e.get('id')] = RadialGradient(e, self)
 
-        for c in e.getchildren():
+        for c in e:
             self.parse_element(c)
 
         self.transform = oldtransform
