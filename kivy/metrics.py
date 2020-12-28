@@ -289,7 +289,7 @@ class MetricsBase(EventDispatcher):
         return True
 
     fontscale: float = AliasProperty(get_fontscale, set_fontscale, cache=True)
-    '''The fontscale user preference. 
+    '''The fontscale user preference.
 
     This value is 1 by default but can vary between 0.8 and 1.2.
 
