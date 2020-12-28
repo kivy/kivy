@@ -31,14 +31,13 @@ from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ListProperty, \
     BooleanProperty
-from kivy.clock import Clock
 
 
 class Camera(Image):
     '''Camera class. See module documentation for more information.
     '''
 
-    play = BooleanProperty(True)
+    play = BooleanProperty(False)
     '''Boolean indicating whether the camera is playing or not.
     You can start/stop the camera by setting this property::
 
@@ -105,12 +104,10 @@ class Camera(Image):
         else:
             self._camera = CoreCamera(index=self.index,
                                       resolution=self.resolution, stopped=True)
-        self._camera.bind(on_texture=self.on_tex)
-        Clock.schedule_once(self._check_start)
-
-    def _check_start(self, *args):
         if self.play:
             self._camera.start()
+
+        self._camera.bind(on_texture=self.on_tex)
 
     def on_play(self, instance, value):
         if not self._camera:
