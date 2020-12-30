@@ -1025,12 +1025,7 @@ cdef class EventObservers:
             callback = callback.next
 
         new_callback = self.make_callback(observer, None, None, is_ref)
-        if self.first_callback is None:
-            self.last_callback = self.first_callback = new_callback
-        else:
-            self.last_callback.next = new_callback
-            new_callback.prev = self.last_callback
-            self.last_callback = new_callback
+        self.fbind_existing_callback(new_callback)
 
     cdef inline object fbind(self, object observer, tuple largs, dict kwargs,
                                int is_ref):
@@ -1042,13 +1037,7 @@ cdef class EventObservers:
         self.uid += 1
         cdef BoundCallback new_callback = self.make_callback(
             observer, largs, kwargs, is_ref, uid)
-
-        if self.first_callback is None:
-            self.last_callback = self.first_callback = new_callback
-        else:
-            self.last_callback.next = new_callback
-            new_callback.prev = self.last_callback
-            self.last_callback = new_callback
+        self.fbind_existing_callback(new_callback)
         return uid
 
     cdef inline BoundCallback fbind_callback(
@@ -1059,13 +1048,7 @@ cdef class EventObservers:
         '''
         cdef BoundCallback new_callback = self.make_callback(
             observer, largs, kwargs, is_ref)
-
-        if self.first_callback is None:
-            self.last_callback = self.first_callback = new_callback
-        else:
-            self.last_callback.next = new_callback
-            new_callback.prev = self.last_callback
-            self.last_callback = new_callback
+        self.fbind_existing_callback(new_callback)
         return new_callback
 
     cdef inline void fbind_existing_callback(self, BoundCallback callback):
