@@ -31,10 +31,13 @@ def kivy_clock():
 def kivy_metrics():
     from kivy.context import Context
     from kivy.metrics import MetricsBase, Metrics
+    from kivy._metrics import dispatch_pixel_scale
 
     context = Context(init=False)
     context['Metrics'] = MetricsBase()
     context.push()
+    # need to do it to reset the global value
+    dispatch_pixel_scale()
 
     try:
         yield Metrics

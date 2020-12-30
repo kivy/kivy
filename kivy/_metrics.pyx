@@ -4,7 +4,8 @@
 Module for low level metrics operations.
 
 """
-__all__ = ('dpi2px', 'NUMERIC_FORMATS', 'dispatch_pixel_scale')
+__all__ = (
+    'dpi2px', 'NUMERIC_FORMATS', 'dispatch_pixel_scale', 'sync_pixel_scale')
 
 
 cdef float g_dpi = -1
@@ -37,13 +38,27 @@ def dispatch_pixel_scale(*args):
     pixel_scale_observers.dispatch(None, None, None, None, 0)
 
 
+def sync_pixel_scale(dpi=None, density=None, fontscale=None):
+    """Internal method to manually updated the scaling factors when metrics
+    changes, before anything has been dispatched.
+
+    Do not call in user code!"""
+    global g_dpi, g_density, g_fontscale
+    if dpi is not None:
+        g_dpi = dpi
+    if density is not None:
+        g_density = density
+    if fontscale is not None:
+        g_fontscale = fontscale
+
+
 cpdef float dpi2px(value, str ext) except *:
     """Converts the value according to the ext."""
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
     if g_dpi == -1:
         dispatch_pixel_scale()
 
-
+    # all of these must linearly scale the value (10xx = 10 * 1xx)
     cdef float rv = <float>float(value)
     if ext == 'in':
         return rv * g_dpi

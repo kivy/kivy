@@ -103,7 +103,8 @@ from kivy.properties import AliasProperty
 from kivy.event import EventDispatcher
 from kivy.setupconfig import USE_SDL2
 from kivy.context import register_context
-from kivy._metrics import dpi2px, NUMERIC_FORMATS, dispatch_pixel_scale
+from kivy._metrics import dpi2px, NUMERIC_FORMATS, dispatch_pixel_scale, \
+    sync_pixel_scale
 
 
 __all__ = (
@@ -192,21 +193,28 @@ class MetricsBase(EventDispatcher):
             if USE_SDL2:
                 import jnius
                 Hardware = jnius.autoclass('org.renpy.android.Hardware')
-                return Hardware.getDPI()
+                value = Hardware.getDPI()
             else:
                 import android
-                return android.get_dpi()
+                value = android.get_dpi()
         elif platform == 'ios':
             import ios
-            return ios.get_dpi()
+            value = ios.get_dpi()
+        else:
+            # for all other platforms..
+            from kivy.base import EventLoop
+            EventLoop.ensure_window()
+            value = EventLoop.window.dpi
 
-        # for all other platforms..
-        from kivy.base import EventLoop
-        EventLoop.ensure_window()
-        return EventLoop.window.dpi
+        # because dp prop binds to dpi etc. its getter will be executed
+        # before dispatch_pixel_scale bound to dpi was called, so we need to
+        # call this to make sure it's updated
+        sync_pixel_scale(dpi=value)
+        return value
 
     def set_dpi(self, value):
         self._dpi = value
+        sync_pixel_scale(dpi=value)
         return True
 
     dpi: float = AliasProperty(get_dpi, set_dpi, cache=True)
@@ -215,9 +223,9 @@ class MetricsBase(EventDispatcher):
     Depending on the platform, the DPI can be taken from the Window provider
     (Desktop mainly) or from a platform-specific module (like android/ios).
 
-    The :attr:`dpi` can be set and that value will be used instead. But, the
-    :attr:`dpi` is reloaded and reset if we get it from the Window provider and
-    the Window changes dpi.
+    :attr:`dpi` is a :class:`~kivy.properties.AliasProperty` and can be 
+    set to change the value. But, the :attr:`density` is reloaded and reset if
+    we got it from the Window and the Window ``dpi`` changed.
     '''
 
     def get_dpi_rounded(self):
@@ -234,28 +242,34 @@ class MetricsBase(EventDispatcher):
         get_dpi_rounded, None, bind=('dpi', ), cache=True)
     '''Return the :attr:`dpi` of the screen, rounded to the nearest of 120,
     160, 240 or 320.
+
+    :attr:`dpi_rounded` is a :class:`~kivy.properties.AliasProperty` and
+    updates when :attr:`dpi` changes.
     '''
 
     def get_density(self, force_recompute=False):
         if not force_recompute and self._density is not None:
             return self._density
 
+        value = 1.0
         if platform == 'android':
             import jnius
             Hardware = jnius.autoclass('org.renpy.android.Hardware')
-            return Hardware.metrics.scaledDensity
+            value = Hardware.metrics.scaledDensity
         elif platform == 'ios':
             import ios
-            return ios.get_scale()
+            value = ios.get_scale()
         elif platform == 'macosx':
             from kivy.base import EventLoop
             EventLoop.ensure_window()
-            return EventLoop.window.dpi / 96.
+            value = EventLoop.window.dpi / 96.
 
-        return 1.0
+        sync_pixel_scale(density=value)
+        return value
 
     def set_density(self, value):
         self._density = value
+        sync_pixel_scale(density=value)
         return True
 
     density: float = AliasProperty(
@@ -265,14 +279,16 @@ class MetricsBase(EventDispatcher):
     This value is 1 by default on desktops but varies on android depending on
     the screen.
 
-    The :attr:`density` can be set and that value will be used instead. But,
-    the :attr:`density` is reloaded and reset if we get it from the Window.
+    :attr:`density` is a :class:`~kivy.properties.AliasProperty` and can be 
+    set to change the value. But, the :attr:`density` is reloaded and reset if
+    we got it from the Window and the Window ``density`` changed.
     '''
 
     def get_fontscale(self, force_recompute=False):
         if not force_recompute and self._fontscale is not None:
             return self._fontscale
 
+        value = 1.0
         if platform == 'android':
             from jnius import autoclass
             if USE_SDL2:
@@ -280,12 +296,14 @@ class MetricsBase(EventDispatcher):
             else:
                 PythonActivity = autoclass('org.renpy.android.PythonActivity')
             config = PythonActivity.mActivity.getResources().getConfiguration()
-            return config.fontScale
+            value = config.fontScale
 
-        return 1.0
+        sync_pixel_scale(fontscale=value)
+        return value
 
     def set_fontscale(self, value):
         self._fontscale = value
+        sync_pixel_scale(fontscale=value)
         return True
 
     fontscale: float = AliasProperty(get_fontscale, set_fontscale, cache=True)
@@ -293,8 +311,87 @@ class MetricsBase(EventDispatcher):
 
     This value is 1 by default but can vary between 0.8 and 1.2.
 
-    The :attr:`fontscale` can be set and that value will be used instead.
+    :attr:`fontscale` is a :class:`~kivy.properties.AliasProperty` and can be
+    set to change the value.
     '''
+
+    def get_in(self):
+        # we bind to all dpi, density, fontscale, even though not all may be
+        # used for a specific suffix, because we don't want to rely on the
+        # internal details of dpi2px. But it will be one of the three. But it's
+        # an issue, since it won't trigger the prop if the value doesn't change
+        return dpi2px(1, 'in')
+
+    inch: float = AliasProperty(
+        get_in, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from inches to pixels.
+
+    :attr:`inch` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.inch`` will
+    update width when :attr:`inch` changes from a screen configuration change.
+    """
+
+    def get_dp(self):
+        return dpi2px(1, 'dp')
+
+    dp: float = AliasProperty(
+        get_dp, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from density-independent pixels to
+    pixels.
+
+    :attr:`dp` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.dp`` will
+    update width when :attr:`dp` changes from a screen configuration change.
+    """
+
+    def get_sp(self):
+        return dpi2px(1, 'sp')
+
+    sp: float = AliasProperty(
+        get_sp, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from scale-independent pixels to
+    pixels.
+
+    :attr:`sp` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.sp`` will
+    update width when :attr:`sp` changes from a screen configuration change.
+    """
+
+    def get_pt(self):
+        return dpi2px(1, 'pt')
+
+    pt: float = AliasProperty(
+        get_pt, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from points to pixels.
+
+    :attr:`pt` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.pt`` will
+    update width when :attr:`pt` changes from a screen configuration change.
+    """
+
+    def get_cm(self):
+        return dpi2px(1, 'cm')
+
+    cm: float = AliasProperty(
+        get_cm, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from centimeters to pixels.
+
+    :attr:`cm` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.cm`` will
+    update width when :attr:`cm` changes from a screen configuration change.
+    """
+
+    def get_mm(self):
+        return dpi2px(1, 'mm')
+
+    mm: float = AliasProperty(
+        get_mm, None, bind=('dpi', 'density', 'fontscale'), cache=True)
+    """The scaling factor that converts from millimeters to pixels.
+
+    :attr:`mm` is a :class:`~kivy.properties.AliasProperty` containing the
+    factor. E.g in KV: ``width: self.texture_size[0] + 10 * Metrics.mm`` will
+    update width when :attr:`mm` changes from a screen configuration change.
+    """
 
     def reset_metrics(self):
         """Resets the dpi/density/fontscale to the platform values, overwriting
