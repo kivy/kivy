@@ -326,7 +326,13 @@ class Widget(WidgetBase):
 
     __metaclass__ = WidgetMetaclass
     __events__ = (
-        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post')
+        'on_touch_down',
+        'on_touch_move',
+        'on_touch_up',
+        'on_kv_post',
+        'on_destroy'
+    )
+
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -570,6 +576,15 @@ class Widget(WidgetBase):
     def on_kv_post(self, base_widget):
         pass
 
+    def on_destroy(self, base_widget):
+        '''Fired when the widget is removed.
+
+        See :meth:`remove_widget`.
+
+        .. versionadded:: 2.1.0
+        '''
+        pass
+
     #
     # Tree management
     #
@@ -673,6 +688,7 @@ class Widget(WidgetBase):
             self.canvas.before.remove(widget.canvas)
         widget.parent = None
         widget.dec_disabled(self._disabled_count)
+        widget.dispatch('on_destroy', self)
 
     def clear_widgets(self, children=None):
         '''
