@@ -223,7 +223,7 @@ class MetricsBase(EventDispatcher):
     Depending on the platform, the DPI can be taken from the Window provider
     (Desktop mainly) or from a platform-specific module (like android/ios).
 
-    :attr:`dpi` is a :class:`~kivy.properties.AliasProperty` and can be 
+    :attr:`dpi` is a :class:`~kivy.properties.AliasProperty` and can be
     set to change the value. But, the :attr:`density` is reloaded and reset if
     we got it from the Window and the Window ``dpi`` changed.
     '''
@@ -279,7 +279,7 @@ class MetricsBase(EventDispatcher):
     This value is 1 by default on desktops but varies on android depending on
     the screen.
 
-    :attr:`density` is a :class:`~kivy.properties.AliasProperty` and can be 
+    :attr:`density` is a :class:`~kivy.properties.AliasProperty` and can be
     set to change the value. But, the :attr:`density` is reloaded and reset if
     we got it from the Window and the Window ``density`` changed.
     '''
