@@ -359,9 +359,6 @@ Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
-# set the Kivy logger as the default
-logging.root = Logger
-
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
 file_log_handler = None
