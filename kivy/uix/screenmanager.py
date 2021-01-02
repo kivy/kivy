@@ -460,13 +460,13 @@ class ShaderTransition(TransitionBase):
     :attr:`vs` is a :class:`~kivy.properties.StringProperty` and defaults to
     None.'''
 
-    clearcolor = ColorProperty([0, 0, 0, 1])
+    clearcolor = ColorProperty((0, 0, 0, 1))
     '''Sets the color of Fbo ClearColor.
 
     .. versionadded:: 1.9.0
 
     :attr:`clearcolor` is a :class:`~kivy.properties.ColorProperty`
-    and defaults to [0, 0, 0, 1].
+    and defaults to (0, 0, 0, 1).
 
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to

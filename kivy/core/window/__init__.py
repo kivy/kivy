@@ -339,7 +339,7 @@ class WindowBase(EventDispatcher):
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
-    _clearcolor = ObjectProperty([0, 0, 0, 1])
+    _clearcolor = ObjectProperty((0, 0, 0, 1))
     _focus = BooleanProperty(True)
 
     gl_backends_allowed = []
@@ -459,7 +459,7 @@ class WindowBase(EventDispatcher):
                 raise Exception('Clearcolor must be a list or tuple')
             if len(value) != 4:
                 raise Exception('Clearcolor must contain 4 values')
-        self._clearcolor = value
+        self._clearcolor = tuple(value)
 
     clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
                                bind=('_clearcolor', ))
