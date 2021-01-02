@@ -130,7 +130,7 @@ class Image(Widget):
 
     .. versionadded:: 1.0.6
 
-    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults to
     [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0

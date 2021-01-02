@@ -262,7 +262,7 @@ class LabelBase(object):
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
-        options['outline_color'] = outline_color or (0, 0, 0)
+        options['outline_color'] = outline_color or (0, 0, 0, 1)
         options['padding'] = kwargs_get('padding', (0, 0))
         if not isinstance(options['padding'], (list, tuple)):
             options['padding'] = (options['padding'], options['padding'])

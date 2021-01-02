@@ -587,11 +587,13 @@ class VideoPlayer(GridLayout):
                 self.container.add_widget(label)
 
     def seek(self, percent, precise=True):
-        '''Change the position to a percentage of duration.
+        '''Change the position to a percentage (strictly, a proportion)
+           of duration.
 
         :Parameters:
             `percent`: float or int
-                Position to seek, must be between 0-1.
+                Position to seek as a proportion of total duration, must
+                be between 0-1.
             `precise`: bool, defaults to True
                 Precise seeking is slower, but seeks to exact requested
                 percent.

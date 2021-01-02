@@ -237,8 +237,8 @@
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
-            size: self.height / 2.0, self.height / 2.0
-            pos: self.x - dp(20), self.center_y - dp(8)
+            size: self.height / (3. if dp(1) > 1 else 2.), self.height / (3. if dp(1) > 1 else 2.)
+            pos: self.x - dp(20), int(self.center_y - (self.height / (3. if dp(1) > 1 else 2.)) * .5)
     canvas.after:
         Color:
             rgba: .5, .5, .5, .2
@@ -337,7 +337,7 @@
 
     orientation: 'horizontal'
     size_hint_y: None
-    height: '24dp' # '48dp' if dp(1) > 1 else '24dp'
+    height: '48dp' if dp(1) > 1 else '24dp'
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
@@ -944,7 +944,6 @@
         pos: root.pos
         cols: 1
         id: menu
-        orientation: 'vertical'
         padding: 5
 
         canvas.after:

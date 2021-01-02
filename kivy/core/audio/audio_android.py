@@ -75,5 +75,9 @@ class SoundAndroidPlayer(Sound):
             return self._mediaplayer.getDuration() / 1000.
         return super(SoundAndroidPlayer, self)._get_length()
 
+    def on_loop(self, instance, loop):
+        if self._mediaplayer:
+            self._mediaplayer.setLooping(loop)
+
 
 SoundLoader.register(SoundAndroidPlayer)

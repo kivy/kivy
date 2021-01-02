@@ -447,7 +447,7 @@ class Label(Widget):
 
     .. versionadded:: 1.8.0
 
-    :attr:`disabled_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`disabled_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, .3].
 
     .. versionchanged:: 2.0.0
@@ -762,7 +762,7 @@ class Label(Widget):
     color = ColorProperty([1, 1, 1, 1])
     '''Text color, in the format (r, g, b, a).
 
-    :attr:`color` is a :class:`~kivy.properties.ListProperty` and defaults to
+    :attr:`color` is a :class:`~kivy.properties.ColorProperty` and defaults to
     [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
@@ -783,7 +783,7 @@ class Label(Widget):
     defaults to None.
     '''
 
-    outline_color = ListProperty([0, 0, 0])
+    outline_color = ColorProperty([0, 0, 0, 1])
     '''The color of the text outline, in the (r, g, b) format.
 
     .. note::
@@ -791,11 +791,16 @@ class Label(Widget):
 
     .. versionadded:: 1.10.0
 
-    :attr:`outline_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [0, 0, 0].
+    :attr:`outline_color` is a :class:`~kivy.properties.ColorProperty` and
+    defaults to [0, 0, 0, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`. Alpha component is ignored
+        and assigning value to it has no effect.
     '''
 
-    disabled_outline_color = ListProperty([0, 0, 0])
+    disabled_outline_color = ColorProperty([0, 0, 0, 1])
     '''The color of the text outline when the widget is disabled, in the
     (r, g, b) format.
 
@@ -804,8 +809,13 @@ class Label(Widget):
 
     .. versionadded:: 1.10.0
 
-    :attr:`disabled_outline_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`disabled_outline_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to [0, 0, 0].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`. Alpha component is ignored
+        and assigning value to it has no effect.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -995,7 +1005,7 @@ class Label(Widget):
         def print_it(instance, value):
             print('User click on', value)
         widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-        widget.on_ref_press(print_it)
+        widget.bind(on_ref_press=print_it)
 
     .. note::
 

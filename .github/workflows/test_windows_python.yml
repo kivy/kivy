@@ -6,13 +6,14 @@ env:
   GST_REGISTRY: '~/registry.bin'
   KIVY_GL_BACKEND: 'angle_sdl2'
   KIVY_SPLIT_EXAMPLES: 1
+  SETUPTOOLS_USE_DISTUTILS: local
 
 jobs:
   unit_test:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8' ]
+        python: [ '3.6', '3.7', '3.8', '3.9' ]
         arch: ['x64', 'x86']
     steps:
     - uses: actions/checkout@v2

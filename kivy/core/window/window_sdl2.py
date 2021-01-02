@@ -229,11 +229,9 @@ class WindowSDL(WindowBase):
             from kivy.base import stopTouchApp
             app = App.get_running_app()
             if not app:
-                Logger.info('WindowSDL: No running App found, exit.')
-                stopTouchApp()
-                return 0
+                Logger.info('WindowSDL: No running App found, pause.')
 
-            if not app.dispatch('on_pause'):
+            elif not app.dispatch('on_pause'):
                 Logger.info(
                     'WindowSDL: App doesn\'t support pause mode, stop.')
                 stopTouchApp()
@@ -248,7 +246,8 @@ class WindowSDL(WindowBase):
             if self._pause_loop:
                 self._pause_loop = False
                 app = App.get_running_app()
-                app.dispatch('on_resume')
+                if app:
+                    app.dispatch('on_resume')
 
         elif action == 'windowresized':
             self._size = largs
@@ -539,6 +538,10 @@ class WindowSDL(WindowBase):
                     btn = 'right'
                 elif button == 2:
                     btn = 'middle'
+                elif button == 4:
+                    btn = "mouse4"
+                elif button == 5:
+                    btn = "mouse5"
                 eventname = 'on_mouse_down'
                 self._mouse_buttons_down.add(button)
                 if action == 'mousebuttonup':
@@ -707,11 +710,8 @@ class WindowSDL(WindowBase):
         from kivy.base import stopTouchApp
         app = App.get_running_app()
         if not app:
-            Logger.info('WindowSDL: No running App found, exit.')
-            stopTouchApp()
-            return
-
-        if not app.dispatch('on_pause'):
+            Logger.info('WindowSDL: No running App found, pause.')
+        elif not app.dispatch('on_pause'):
             Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
             stopTouchApp()
             return
@@ -733,7 +733,8 @@ class WindowSDL(WindowBase):
             elif action == 'windowrestored':
                 break
 
-        app.dispatch('on_resume')
+        if app:
+            app.dispatch('on_resume')
 
     def _update_modifiers(self, mods=None, key=None):
         if mods is None and key is None:

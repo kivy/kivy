@@ -1,3 +1,5 @@
+.. _packaging-win:
+
 Create a package for Windows
 ============================
 
@@ -98,7 +100,7 @@ Single File Application
 Next, we will modify the example above to package the **touchtracer** example project as a single file application. Following the same steps as above, instead issue the following command::
 
      python -m PyInstaller --onefile --name touchtracer examples-path\demo\touchtracer\main.py
-    
+
 #. As before, this will generate touchtracer.spec, which we will edit to add the dependencies. In this instance, edit the arguments to the EXE command so that it will look something like this::
 
      exe = EXE(pyz, Tree('examples-path\\demo\\touchtracer\\'),
@@ -109,11 +111,11 @@ Next, we will modify the example above to package the **touchtracer** example pr
           *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
           upx=True
           name='touchtracer')
-          
+
 #. Now you can build the spec file as before with::
 
      python -m PyInstaller touchtracer.spec
-     
+
 #. The compiled package will be in the `TouchApp\\dist` directory and will consist of a single executable file.
 
 Bundling Data Files
@@ -124,7 +126,7 @@ We will again modify the previous example to include bundled data files. PyInsta
 #. First, follow PyInstaller documentation on how to include data files in your application.
 
 #. Modify your main python code to include the following imports (if it doesn't have them already)::
-     
+
      import os, sys
      from kivy.resources import resource_add_path, resource_find
 
@@ -134,7 +136,7 @@ We will again modify the previous example to include bundled data files. PyInsta
          if hasattr(sys, '_MEIPASS'):
              resource_add_path(os.path.join(sys._MEIPASS))
          TouchtracerApp().run()
-         
+
 #. Finally, follow the steps for bundling your application above.
 
 Packaging a video app with gstreamer

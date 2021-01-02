@@ -629,8 +629,7 @@ class SettingsPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        if 'cols' not in kwargs:
-            self.cols = 1
+        kwargs.setdefault('cols', 1)
         super(SettingsPanel, self).__init__(**kwargs)
 
     def on_config(self, instance, value):

@@ -123,29 +123,13 @@ Running the application
 -----------------------
 To run the application, follow the instructions for your operating system:
 
-    Linux
-        Follow the instructions for
-        :ref:`running a Kivy application on Linux <linux-run-app>`::
+For Windows, Linux, OS X, or the RPi. From the :ref:`terminal<command-line>`
+where you installed Kivy simply run::
 
-            $ python main.py
+    python main.py
 
-    Windows
-        Follow the instructions for
-        :ref:`running a Kivy application on Windows <windows-run-app>`::
-
-            $ python main.py
-            # or
-            C:\appdir>kivy.bat main.py
-
-    Mac OS X
-        Follow the instructions for
-        :ref:`running a Kivy application on OS X <osx-run-app>`::
-
-            $ kivy main.py
-
-    Android
-        Your application needs some complementary files to be able to run on
-        Android.  See :doc:`/guide/packaging-android` for further reference.
+For Android or iOS, your application needs some complementary files to be able to run.
+See :doc:`/guide/packaging-android` or See :doc:`/guide/packaging-ios` for further reference.
 
 A window should open, showing a single Label (with the Text 'Hello World') that
 covers the entire window's area. That's all there is to it.

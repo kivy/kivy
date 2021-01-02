@@ -95,7 +95,7 @@ class Bubble(GridLayout):
     '''Background color, in the format (r, g, b, a). To use it you have to set
     either :attr:`background_image` or :attr:`arrow_image` first.
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
 
     .. versionchanged:: 2.0.0
@@ -393,3 +393,15 @@ class Bubble(GridLayout):
     def _update_arrow(self, *dt):
         if self.arrow_pos in ('left_mid', 'right_mid'):
             self._sctr.center_y = self._arrow_layout.center_y
+
+    @property
+    def _fills_row_first(self):
+        return True
+
+    @property
+    def _fills_from_left_to_right(self):
+        return True
+
+    @property
+    def _fills_from_top_to_bottom(self):
+        return True

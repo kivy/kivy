@@ -18,9 +18,7 @@ from distutils.command.build_ext import build_ext
 from distutils.version import LooseVersion
 from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
-from time import time, sleep
-from subprocess import check_output, CalledProcessError
-from datetime import datetime
+from time import sleep
 from sysconfig import get_paths
 from pathlib import Path
 import logging
@@ -45,37 +43,6 @@ LooseVersion.__eq__ = ver_equal
 def get_description():
     with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
         return fileh.read().decode("utf8").replace('\r\n', '\n')
-
-
-def get_version(filename='kivy/version.py'):
-    VERSION = kivy.__version__
-    epoch = int(environ.get('SOURCE_DATE_EPOCH', time()))
-    DATE = datetime.utcfromtimestamp(epoch).strftime('%Y%m%d')
-    try:
-        GIT_REVISION = check_output(
-            ['git', 'rev-parse', 'HEAD']
-        ).strip().decode('ascii')
-    except (CalledProcessError, OSError, IOError, FileNotFoundError) as e:
-        # CalledProcessError has no errno
-        errno = getattr(e, 'errno', None)
-        if errno != 2 and 'CalledProcessError' not in repr(e):
-            raise
-        GIT_REVISION = "Unknown"
-
-    cnt = (
-        "# THIS FILE IS GENERATED FROM KIVY SETUP.PY\n"
-        "__version__ = '%(version)s'\n"
-        "__hash__ = '%(hash)s'\n"
-        "__date__ = '%(date)s'\n"
-    )
-
-    with open(filename, 'w') as f:
-        f.write(cnt % {
-            'version': VERSION,
-            'hash': GIT_REVISION,
-            'date': DATE
-        })
-    return VERSION
 
 
 def getoutput(cmd, env=None):
@@ -130,6 +97,9 @@ def get_isolated_env_paths():
 
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
+
+build_examples = build_examples or \
+    os.environ.get('KIVY_BUILD_EXAMPLES', '0') == '1'
 
 platform = sys.platform
 
@@ -231,6 +201,11 @@ if platform in ('ios', 'android'):
 src_path = build_path = dirname(__file__)
 print("Current directory is: {}".format(os.getcwd()))
 print("Source and initial build directory is: {}".format(src_path))
+
+# __version__ is imported by exec, but help linter not complain
+__version__ = None
+with open(join(src_path, 'kivy', '_version.py'), encoding="utf-8") as f:
+    exec(f.read())
 
 
 class KivyBuildExt(build_ext, object):
@@ -559,18 +534,6 @@ if c_options['use_sdl2'] or (
 # -----------------------------------------------------------------------------
 # declare flags
 
-
-def get_modulename_from_file(filename):
-    filename = filename.replace(sep, '/')
-    pyx = '.'.join(filename.split('.')[:-1])
-    pyxl = pyx.split('/')
-    while pyxl[0] != 'kivy':
-        pyxl.pop(0)
-    if pyxl[1] == 'kivy':
-        pyxl.pop(0)
-    return '.'.join(pyxl)
-
-
 def expand(root, *args):
     return join(root, 'kivy', *args)
 
@@ -625,21 +588,24 @@ def determine_base_flags():
             environ.get('LOCALBASE', '/usr/local'), 'include')]
         flags['library_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'lib')]
-    elif platform == 'darwin':
+    elif platform == 'darwin' and c_options['use_osx_frameworks']:
         v = os.uname()
         if v[2] >= '13.0.0':
-            # use xcode-select to search on the right Xcode path
-            # XXX use the best SDK available instead of a specific one
-            import platform as _platform
-            xcode_dev = getoutput('xcode-select -p').splitlines()[0]
-            sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
-            print('Xcode detected at {}, and using OS X{} sdk'.format(
-                xcode_dev, sdk_mac_ver))
-            sysroot = join(
-                xcode_dev.decode('utf-8'),
-                'Platforms/MacOSX.platform/Developer/SDKs',
-                'MacOSX{}.sdk'.format(sdk_mac_ver),
-                'System/Library/Frameworks')
+            if 'SDKROOT' in environ:
+                sysroot = join(environ['SDKROOT'], 'System/Library/Frameworks')
+            else:
+                # use xcode-select to search on the right Xcode path
+                # XXX use the best SDK available instead of a specific one
+                import platform as _platform
+                xcode_dev = getoutput('xcode-select -p').splitlines()[0]
+                sdk_mac_ver = '.'.join(_platform.mac_ver()[0].split('.')[:2])
+                print('Xcode detected at {}, and using OS X{} sdk'.format(
+                    xcode_dev, sdk_mac_ver))
+                sysroot = join(
+                    xcode_dev.decode('utf-8'),
+                    'Platforms/MacOSX.platform/Developer/SDKs',
+                    'MacOSX{}.sdk'.format(sdk_mac_ver),
+                    'System/Library/Frameworks')
         else:
             sysroot = ('/System/Library/Frameworks/'
                        'ApplicationServices.framework/Frameworks')
@@ -1021,23 +987,23 @@ def get_extensions_from_sources(sources):
         return ext_modules
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
-        pyx = expand(src_path, pyx)
+        pyx_path = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
         if not can_use_cython:
             # can't use cython, so use the .c files instead.
-            pyx = '%s.c' % pyx[:-4]
+            pyx_path = '%s.c' % pyx_path[:-4]
         if is_graphics:
-            depends = resolve_dependencies(pyx, depends)
+            depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
-        module_name = get_modulename_from_file(pyx)
+        module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(
-            module_name, [pyx] + f_depends + c_depends, **flags_clean))
+            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
 
@@ -1089,7 +1055,7 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 if not build_examples:
     setup(
         name='Kivy',
-        version=get_version(),
+        version=__version__,
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',
@@ -1132,9 +1098,10 @@ if not build_examples:
             'Operating System :: Microsoft :: Windows',
             'Operating System :: POSIX :: BSD :: FreeBSD',
             'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',
@@ -1151,7 +1118,7 @@ if not build_examples:
 else:
     setup(
         name='Kivy-examples',
-        version=get_version(),
+        version=__version__,
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',

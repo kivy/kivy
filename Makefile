@@ -1,4 +1,21 @@
-PYTHON = python
+
+PYTHON = python3
+ifeq (, $(shell which $(PYTHON) 2> /dev/null ))
+  PYTHON := python
+endif
+
+ifeq (, $(shell which $(PYTHON) 2> /dev/null))
+  $(error "PYTHON=$(PYTHON) not found in $(PATH)")
+endif
+
+PYTHON_VERSION_MIN=3.0
+PYTHON_VERSION=$(shell $(PYTHON) -c 'import sys; print("%d.%d"% sys.version_info[0:2])' )
+PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys;\
+  print(int(float("%d.%d"% sys.version_info[0:2]) >= $(PYTHON_VERSION_MIN)))' )
+
+ifeq ($(PYTHON_VERSION_OK),0)
+  $(error "detected Python $(PYTHON_VERSION) need Python >= $(PYTHON_VERSION_MIN)")
+endif
 CHECKSCRIPT = -m flake8
 KIVY_DIR = kivy/
 PYTEST = $(PYTHON) -m pytest
@@ -27,7 +44,6 @@ endif
 ifneq ($(INSTALL_LAYOUT),)
 	INSTALL_OPTIONS += --install-layout=$(INSTALL_LAYOUT)
 endif
-
 
 .PHONY: build force mesabuild pdf style hook test batchtest cover clean distclean theming
 
@@ -80,8 +96,7 @@ style:
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
 	# consistency.
-	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
-	chmod +x .git/hooks/pre-commit
+	pre-commit install -f --config=kivy/tools/precommit_hooks/pre-commit-config.yaml
 
 image-testsuite:
 	mkdir -p "${KIVY_DIR}tests/image-testsuite"

@@ -406,13 +406,28 @@ cdef class EventDispatcher(ObjectWithUid):
             if __name__ == "__main__":
                 DemoApp().run()
 
-        When binding a function to an event or property, a
-        :class:`kivy.weakmethod.WeakMethod` of the callback is saved, and
-        when dispatching the callback is removed if the callback reference
-        becomes invalid.
-
         If a callback has already been bound to a given event or property,
         it won't be added again.
+
+        When binding a method to an event or property, a
+        :class:`kivy.weakmethod.WeakMethod` of the callback is saved. That is,
+        rather than storing a regular reference, it stores both a weak
+        reference to the instance (see Python's :class:`weakref`).
+
+        This has two consequences.
+
+        The first is that the binding will not prevent garbage collection of
+        the method's object. The client must maintain a reference to the instance for
+        the desired lifetime. The callback reference is silently removed if it
+        becomes invalid.
+
+        The second is that when using a decorated method e.g.::
+
+            @my_decorator
+            def callback(self, *args):
+                pass
+
+        the decorator (``my_decorator`` here) must use `wraps <https://docs.python.org/3/library/functools.html#functools.wraps>`_ internally.
         '''
         cdef EventObservers observers
         cdef PropertyStorage ps

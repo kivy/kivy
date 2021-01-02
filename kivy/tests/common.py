@@ -10,7 +10,9 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
-__all__ = ('GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run')
+__all__ = (
+    'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
+    'requires_graphics')
 
 import unittest
 import logging
@@ -34,6 +36,13 @@ make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 http_server = None
 http_server_ready = threading.Event()
 kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
+
+
+def requires_graphics(func):
+    if 'mock' == cgl_get_backend_name():
+        return pytest.mark.skip(
+            reason='Skipping because gl backend is set to mock')(func)
+    return func
 
 
 def ensure_web_server(root=None):

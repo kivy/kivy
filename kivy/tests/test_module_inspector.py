@@ -226,7 +226,6 @@ class InspectorTestCase(GraphicUnitTest):
 
         # checked widget
         popup = self.root.ids.popup
-        popup_exp = self.root.ids.popup.text
 
         # activate inspector with root as ctx
         inspector.start(self._win, self.root)
@@ -310,7 +309,6 @@ class InspectorTestCase(GraphicUnitTest):
 
         # checked widget
         popup = self.root.ids.popup
-        popup_exp = self.root.ids.popup.text
 
         # activate inspector with root as ctx
         inspector.start(self._win, self.root)

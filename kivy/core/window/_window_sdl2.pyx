@@ -233,6 +233,22 @@ cdef class _WindowSDL2Storage:
             if not self.ctx:
                 self.die()
 
+        # vsync
+        vsync = Config.get('graphics', 'vsync')
+        if vsync and vsync != 'none':
+            vsync = Config.getint('graphics', 'vsync')
+
+            Logger.debug(f'WindowSDL: setting vsync interval=={vsync}')
+            res = SDL_GL_SetSwapInterval(vsync)
+
+            if res == -1:
+                status = ''
+                if vsync not in (0, 1):
+                    res = SDL_GL_SetSwapInterval(1)
+                    status = ', trying fallback to 1: ' + 'failed' if res == -1 else 'succeeded'
+
+                Logger.debug('WindowSDL: requested vsync failed' + status)
+
         # Open all available joysticks
         cdef int joy_i
         for joy_i in range(SDL_NumJoysticks()):
@@ -555,10 +571,16 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_MOUSEWHEEL:
             x = event.wheel.x
             y = event.wheel.y
+            # TODO we should probably support events with both an x and y offset
             if x != 0:
                 suffix = 'left' if x > 0 else 'right'
-            else:
+            elif y != 0:
                 suffix = 'down' if y > 0 else 'up'
+            else:
+                # It's possible to get mouse wheel events with no offset in
+                # either x or y direction, we just ignore them
+                # https://wiki.libsdl.org/SDL_MouseWheelEvent
+                return None
             action = 'mousewheel' + suffix
             return (action, x, y, None)
         elif event.type == SDL_FINGERMOTION:
