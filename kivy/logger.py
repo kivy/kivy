@@ -91,6 +91,7 @@ import sys
 import copy
 from random import randint
 from functools import partial
+import pathlib
 
 import kivy
 
@@ -150,47 +151,37 @@ class FileHandler(logging.Handler):
     encoding = 'utf-8'
 
     def purge_logs(self):
-        '''Purge log is called randomly to prevent the log directory from being
-        filled by lots and lots of log files.
-        You've a chance of 1 in 20 that purge log will be fired.
-        '''
-        if randint(0, 20) != 0:
-            return
-        if not self.log_dir:
-            return
-
+        """Purge logs which exceed the maximum amount of log files,
+        starting with the oldest creation timestamp (or edit-timestamp on Linux)
+        """
         from kivy.config import Config
-        maxfiles = Config.getint('kivy', 'log_maxfiles')
+        maxfiles = Config.getint("kivy", "log_maxfiles")
 
-        if maxfiles < 0:
+        # Get path to log directory
+        log_dir = pathlib.Path(self.log_dir)
+
+        if maxfiles < 0:  # No log file limit set
             return
 
-        Logger.info('Logger: Purge log fired. Analysing...')
-        join = os.path.join
-        unlink = os.unlink
+        Logger.info("Logger: Purge log fired. Processing...")
 
-        # search all log files
-        lst = [join(self.log_dir, x) for x in os.listdir(self.log_dir)]
-        if len(lst) > maxfiles:
-            # get creation time on every files
-            lst = [{'fn': x, 'ctime': os.path.getctime(x)} for x in lst]
+        # Get all files from log directory and corresponding creation timestamps
+        files = [(item, item.stat().st_ctime) for item in log_dir.iterdir() if item.is_file()]
+        # Sort files by ascending timestamp
+        files.sort(key=lambda _: _[1])
+        # Create list containing only files
+        files = [file[0] for file in files]
 
-            # sort by date
-            lst = sorted(lst, key=lambda x: x['ctime'])
+        for file in files[:-maxfiles]:
+            # More log files than allowed maximum,
+            # delete files, starting with oldest creation timestamp (or edit-timestamp on Linux)
+            try:
+                files.pop(0).unlink(missing_ok=True)
+            except PermissionError as e:
+                Logger.info(f"Logger: Skipped file {files[0]}, {repr(e)}")
+                files.pop(0)
 
-            # get the oldest (keep last maxfiles)
-            lst = lst[:-maxfiles] if maxfiles else lst
-            Logger.info('Logger: Purge %d log files' % len(lst))
-
-            # now, unlink every file in the list
-            for filename in lst:
-                try:
-                    unlink(filename['fn'])
-                except PermissionError as e:
-                    Logger.info('Logger: Skipped file {0}, {1}'.
-                                format(filename['fn'], e))
-
-        Logger.info('Logger: Purge finished!')
+        Logger.info("Logger: Purge finished!")
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
