@@ -406,6 +406,3 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
 
 # install stderr handlers
 sys.stderr = LogFile('stderr', Logger.warning)
-
-#: Kivy history handler
-LoggerHistory = LoggerHistory
