@@ -176,10 +176,9 @@ class FileHandler(logging.Handler):
             # More log files than allowed maximum,
             # delete files, starting with oldest creation timestamp (or edit-timestamp on Linux)
             try:
-                files.pop(0).unlink(missing_ok=True)
+                file.unlink(missing_ok=True)
             except PermissionError as e:
                 Logger.info(f"Logger: Skipped file {files[0]}, {repr(e)}")
-                files.pop(0)
 
         Logger.info("Logger: Purge finished!")
 
