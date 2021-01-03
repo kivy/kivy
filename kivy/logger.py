@@ -178,7 +178,7 @@ class FileHandler(logging.Handler):
             try:
                 file.unlink(missing_ok=True)
             except PermissionError as e:
-                Logger.info(f"Logger: Skipped file {files[0]}, {repr(e)}")
+                Logger.info(f"Logger: Skipped file {file}, {repr(e)}")
 
         Logger.info("Logger: Purge finished!")
 
