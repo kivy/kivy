@@ -154,14 +154,15 @@ class FileHandler(logging.Handler):
         """Purge logs which exceed the maximum amount of log files,
         starting with the oldest creation timestamp (or edit-timestamp on Linux)
         """
+
+        if not self.log_dir:
+            return
+
         from kivy.config import Config
         maxfiles = Config.getint("kivy", "log_maxfiles")
 
         # Get path to log directory
         log_dir = pathlib.Path(self.log_dir)
-        
-        if not self.log_dir:
-            return
 
         if maxfiles < 0:  # No log file limit set
             return
