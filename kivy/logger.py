@@ -159,6 +159,9 @@ class FileHandler(logging.Handler):
 
         # Get path to log directory
         log_dir = pathlib.Path(self.log_dir)
+        
+        if not self.log_dir:
+            return
 
         if maxfiles < 0:  # No log file limit set
             return
