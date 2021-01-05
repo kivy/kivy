@@ -59,7 +59,9 @@ class CameraAVFoundation(CameraBase):
 
     def _release_camera(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
-        avf_camera_deinit(storage.camera)
+        if storage.camera != NULL:
+            avf_camera_deinit(storage.camera)
+            storage.camera = NULL
 
     @property
     def _scheduled_rate(self):
