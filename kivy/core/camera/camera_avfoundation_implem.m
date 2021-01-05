@@ -214,7 +214,9 @@ Camera::Camera(int _cameraNum, int _width, int _height) {
 }
 
 Camera::~Camera() {
-    stopCaptureDevice();
+    if(started){
+        stopCaptureDevice();
+    }
 }
 
 bool Camera::grabFrame(double timeOut) {
@@ -411,7 +413,9 @@ int Camera::startCaptureDevice() {
 #endif
         [conn setVideoOrientation:default_orientation];
 
-        [mCaptureSession startRunning];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [mCaptureSession startRunning];
+        });
         [localpool drain];
 
         started = 1;
