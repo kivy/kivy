@@ -179,7 +179,8 @@ class FileHandler(logging.Handler):
 
         for file in files[:-maxfiles]:
             # More log files than allowed maximum,
-            # delete files, starting with oldest creation timestamp (or edit-timestamp on Linux)
+            # delete files, starting with oldest creation timestamp
+            # (or edit-timestamp on Linux)
             try:
                 file.unlink(missing_ok=True)
             except PermissionError as e:
