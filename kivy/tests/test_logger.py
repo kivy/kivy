@@ -34,6 +34,7 @@ def test_purge_logs(tmp_path, file_handler, n):
     # create the default file first so it gets deleted so names match
     handler = FileHandler()
     handler._configure()
+    open_file = pathlib.Path(handler.filename).name
     # wait a little so the timestamps are different for different files
     time.sleep(.001)
 
@@ -47,6 +48,7 @@ def test_purge_logs(tmp_path, file_handler, n):
 
     # files that should have remained after purge
     expected_names = set(list(reversed(names))[:n])
-    expected_names.add(pathlib.Path(handler.filename).name)
     files = {f.name for f in tmp_path.iterdir()}
+    if open_file in files:
+        files.remove(open_file)
     assert expected_names == files
