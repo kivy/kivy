@@ -180,7 +180,7 @@ class FileHandler(logging.Handler):
             # delete files, starting with oldest creation timestamp
             # (or edit-timestamp on Linux)
             try:
-                file.unlink()
+                file.unlink(missing_ok=True)
             except PermissionError as e:
                 Logger.info(f"Logger: Skipped file {file}, {repr(e)}")
 
