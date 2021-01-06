@@ -7,8 +7,24 @@ import pytest
 import pathlib
 import time
 
+
+@pytest.fixture
+def file_handler():
+    # restores handler to original state
+    from kivy.config import Config
+
+    log_dir = Config.get("kivy", "log_dir")
+    log_maxfiles = Config.get("kivy", "log_maxfiles")
+
+    try:
+        yield None
+    finally:
+        Config.set("kivy", "log_dir", log_dir)
+        Config.set("kivy", "log_maxfiles", log_maxfiles)
+
+
 @pytest.mark.parametrize('n', [0, 1, 5])
-def test_purge_logs(tmp_path, n):
+def test_purge_logs(tmp_path, file_handler, n):
     from kivy.config import Config
     from kivy.logger import FileHandler
 
@@ -18,8 +34,6 @@ def test_purge_logs(tmp_path, n):
     # create the default file first so it gets deleted so names match
     handler = FileHandler()
     handler._configure()
-    # must close file so it can be deleted
-    handler.fd.close()
     # wait a little so the timestamps are different for different files
     time.sleep(.001)
 
@@ -32,6 +46,7 @@ def test_purge_logs(tmp_path, n):
     handler.purge_logs()
 
     # files that should have remained after purge
-    expected_names = list(reversed(names))[:n]
+    expected_names = set(list(reversed(names))[:n])
+    expected_names.add(pathlib.Path(handler.filename).name)
     files = {f.name for f in tmp_path.iterdir()}
     assert expected_names == files

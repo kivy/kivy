@@ -170,19 +170,17 @@ class FileHandler(logging.Handler):
         Logger.info("Logger: Purge log fired. Processing...")
 
         # Get all files from log directory and corresponding creation timestamps
-        files = [(item, item.stat().st_ctime) 
-                   for item in log_dir.iterdir() if item.is_file()]
+        files = [(item, item.stat().st_ctime)
+                 for item in log_dir.iterdir() if item.is_file()]
         # Sort files by ascending timestamp
-        files.sort(key=lambda _: _[1])
-        # Create list containing only files
-        files = [file[0] for file in files]
+        files.sort(key=lambda x: x[1])
 
-        for file in files[:-maxfiles]:
+        for file, _ in files[:(-maxfiles or len(files))]:
             # More log files than allowed maximum,
             # delete files, starting with oldest creation timestamp
             # (or edit-timestamp on Linux)
             try:
-                file.unlink(missing_ok=True)
+                file.unlink()
             except PermissionError as e:
                 Logger.info(f"Logger: Skipped file {file}, {repr(e)}")
 
@@ -216,8 +214,9 @@ class FileHandler(logging.Handler):
 
         if FileHandler.filename == filename and FileHandler.fd is not None:
             return
+
         FileHandler.filename = filename
-        if FileHandler.fd is not None:
+        if FileHandler.fd not in (None, False):
             FileHandler.fd.close()
         FileHandler.fd = open(filename, 'w', encoding=FileHandler.encoding)
         Logger.info('Logger: Record log in %s' % filename)
@@ -252,6 +251,8 @@ class FileHandler(logging.Handler):
                 Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
                 # deactivate filehandler...
+                if FileHandler.fd not in (None, False):
+                    FileHandler.fd.close()
                 FileHandler.fd = False
                 Logger.exception('Error while activating FileHandler logger')
                 return
