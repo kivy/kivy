@@ -3,23 +3,35 @@ Logger tests
 ============
 """
 
-import unittest
+import pytest
 import pathlib
+import time
 
-from kivy.config import Config
-from kivy.logger import FileHandler
+@pytest.mark.parametrize('n', [0, 1, 5])
+def test_purge_logs(tmp_path, n):
+    from kivy.config import Config
+    from kivy.logger import FileHandler
 
+    Config.set("kivy", "log_dir", str(tmp_path))
+    Config.set("kivy", "log_maxfiles", n)
 
-class LoggerTest(unittest.TestCase):
-    def test_purge_logs(self):
-        maxfiles = 1
-        log_path = pathlib.Path("test_logs")
+    # create the default file first so it gets deleted so names match
+    handler = FileHandler()
+    handler._configure()
+    # must close file so it can be deleted
+    handler.fd.close()
+    # wait a little so the timestamps are different for different files
+    time.sleep(.001)
 
-        Config.set("kivy", "log_dir", log_path)
-        Config.set("kivy", "log_maxfiles", maxfiles)
+    names = [f'log_{i}.txt' for i in range(n + 2)]
+    for name in names:
+        p = tmp_path / name
+        p.write_text('some data')
+        time.sleep(.001)
 
-        FileHandler().purge_logs()
+    handler.purge_logs()
 
-        current_files = [f for f in log_path.iterdir() if f.is_file()]
-
-        self.assertEqual(maxfiles, len(current_files))
+    # files that should have remained after purge
+    expected_names = list(reversed(names))[:n]
+    files = {f.name for f in tmp_path.iterdir()}
+    assert expected_names == files
