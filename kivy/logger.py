@@ -170,7 +170,8 @@ class FileHandler(logging.Handler):
         Logger.info("Logger: Purge log fired. Processing...")
 
         # Get all files from log directory and corresponding creation timestamps
-        files = [(item, item.stat().st_ctime) for item in log_dir.iterdir() if item.is_file()]
+        files = [(item, item.stat().st_ctime) 
+                   for item in log_dir.iterdir() if item.is_file()]
         # Sort files by ascending timestamp
         files.sort(key=lambda _: _[1])
         # Create list containing only files
