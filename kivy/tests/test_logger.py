@@ -36,13 +36,13 @@ def test_purge_logs(tmp_path, file_handler, n):
     handler._configure()
     open_file = pathlib.Path(handler.filename).name
     # wait a little so the timestamps are different for different files
-    time.sleep(.001)
+    time.sleep(.05)
 
     names = [f'log_{i}.txt' for i in range(n + 2)]
     for name in names:
         p = tmp_path / name
         p.write_text('some data')
-        time.sleep(.001)
+        time.sleep(.05)
 
     handler.purge_logs()
 
