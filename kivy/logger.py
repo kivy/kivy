@@ -181,7 +181,7 @@ class FileHandler(logging.Handler):
             # (or edit-timestamp on Linux)
             try:
                 file.unlink()
-            except PermissionError as e:
+            except (PermissionError, FileNotFoundError) as e:
                 Logger.info(f"Logger: Skipped file {file}, {repr(e)}")
 
         Logger.info("Logger: Purge finished!")
