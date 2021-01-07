@@ -47,8 +47,14 @@ def test_purge_logs(tmp_path, file_handler, n):
     handler.purge_logs()
 
     # files that should have remained after purge
-    expected_names = set(list(reversed(names))[:n])
+    expected_names = list(reversed(names))[:n]
     files = {f.name for f in tmp_path.iterdir()}
     if open_file in files:
+        # one of the remaining files is the current open log, remove it
         files.remove(open_file)
-    assert expected_names == files
+        if len(expected_names) == len(files) + 1:
+            # the open log may or may not have been counted in the remaining
+            # files, remove one from expected to match removed open file
+            expected_names = expected_names[:-1]
+
+    assert set(expected_names) == files
