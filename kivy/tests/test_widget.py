@@ -82,9 +82,9 @@ class WidgetTestCase(unittest.TestCase):
         wid.export_to_png(join(tmp, 'b.png'), scale=.5)
         wid.export_to_png(join(tmp, 'c.png'), scale=2)
 
-        CoreImage(join(tmp, 'a.png')).size == (200, 100)
-        CoreImage(join(tmp, 'b.png')).size == (100, 50)
-        CoreImage(join(tmp, 'c.png')).size == (400, 200)
+        self.assertEqual(CoreImage(join(tmp, 'a.png')).size, (200, 100))
+        self.assertEqual(CoreImage(join(tmp, 'b.png')).size, (100, 50))
+        self.assertEqual(CoreImage(join(tmp, 'c.png')).size, (400, 200))
         rmtree(tmp)
 
         self.root.remove_widget(wid)
