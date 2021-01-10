@@ -720,7 +720,7 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.11.0
         '''
-        self.export_as_image().save(filename, flipped=False)
+        self.export_as_image(*args, **kwargs).save(filename, flipped=False)
 
     def export_as_image(self, *args, **kwargs):
         '''Return an core :class:`~kivy.core.image.Image` of the actual
