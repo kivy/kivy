@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import itertools
-from functools import partial
 from os import environ
 import shlex
 import subprocess
@@ -10,31 +8,27 @@ import sys
 import pytest
 
 ENV_NAME = "KIVY_NO_ARGS"
-KIVY_ENVS_TO_EXCLUDE = ('KIVY_UNITTEST', 'KIVY_PACKAGING')
+KIVY_ENVS_TO_EXCLUDE = ("KIVY_UNITTEST", "KIVY_PACKAGING")
 
 EXPECTED_STR = "Kivy Usage"
 
-TRUTHY = {'true', '1', 'yes'}
-FALSY = {'false', '0', 'no', "anything-else"}
+TRUTHY = {"true", "1", "yes"}
+FALSY = {"false", "0", "no", "anything-else"}
 
-SAMPLE_VALUES = {
-    *TRUTHY, *FALSY
-}
+SAMPLE_VALUES = {*TRUTHY, *FALSY}
+
 
 def _patch_env(*filtered_keys, **kw):
-    env = {
-        k: v
-        for k, v in environ.items()
-        if k not in filtered_keys
-    }
+    env = {k: v for k, v in environ.items() if k not in filtered_keys}
     env.update(kw)
     return env
+
 
 def _kivy_subproces_import(env):
     return subprocess.check_output(
         shlex.split(f"{sys.executable} -c 'import kivy' --help"),
         stderr=subprocess.PIPE,
-        env=env
+        env=env,
     ).decode("utf8")
 
 
@@ -47,6 +41,7 @@ def test_env_exist(value):
         assert EXPECTED_STR not in stdout
     else:
         assert EXPECTED_STR in stdout
+
 
 def test_env_not_exist():
     env = _patch_env(ENV_NAME, *KIVY_ENVS_TO_EXCLUDE)
