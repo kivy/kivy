@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-ENV_NAME="KIVY_NO_ARGS"
+ENV_NAME = "KIVY_NO_ARGS"
 KIVY_ENVS_TO_EXCLUDE = ('KIVY_UNITTEST', 'KIVY_PACKAGING')
 
 EXPECTED_STR = "Kivy Usage"
@@ -40,7 +40,7 @@ def _kivy_subproces_import(env):
 
 @pytest.mark.parametrize("value", SAMPLE_VALUES)
 def test_env_exist(value):
-    env = _patch_env(*KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME:value})
+    env = _patch_env(*KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME : value})
     stdout = _kivy_subproces_import(env)
 
     if value in TRUTHY:
