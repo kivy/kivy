@@ -27,6 +27,8 @@ def _patch_env(*filtered_keys, **kw):
         for k, v in environ.items()
         if k not in filtered_keys
     }
+    env.update(kw)
+    return env
 
 def _kivy_subproces_import(env):
     return subprocess.check_output(
@@ -38,7 +40,7 @@ def _kivy_subproces_import(env):
 
 @pytest.mark.parametrize("value", SAMPLE_VALUES)
 def test_env_exist(value):
-    env = _patch_env(ENV_NAME, *KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME:value})
+    env = _patch_env(*KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME:value})
     stdout = _kivy_subproces_import(env)
 
     if value in TRUTHY:
@@ -47,6 +49,6 @@ def test_env_exist(value):
         assert EXPECTED_STR in stdout
 
 def test_env_not_exist():
-    env = _patch_env(ENV_NAME *KIVY_ENVS_TO_EXCLUDE)
+    env = _patch_env(ENV_NAME, *KIVY_ENVS_TO_EXCLUDE)
     stdout = _kivy_subproces_import(env)
     assert EXPECTED_STR in stdout
