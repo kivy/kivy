@@ -34,7 +34,7 @@ def _kivy_subproces_import(env):
 
 @pytest.mark.parametrize("value", SAMPLE_VALUES)
 def test_env_exist(value):
-    env = _patch_env(*KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME : value})
+    env = _patch_env(*KIVY_ENVS_TO_EXCLUDE, **{ENV_NAME: value})
     stdout = _kivy_subproces_import(env)
 
     if value in TRUTHY:
