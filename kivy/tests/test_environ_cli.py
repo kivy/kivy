@@ -25,11 +25,12 @@ def _patch_env(*filtered_keys, **kw):
 
 
 def _kivy_subproces_import(env):
-    return subprocess.check_output(
+    return subprocess.run(
         shlex.split(f"{sys.executable} -c 'import kivy' --help"),
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
-    ).decode("utf8")
+    ).stdout.decode("utf8")
 
 
 @pytest.mark.parametrize("value", SAMPLE_VALUES)
