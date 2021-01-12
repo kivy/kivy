@@ -237,6 +237,17 @@ class FocusBehavior(object):
         2.0.0.
     '''
 
+    keyboard_suggestions = BooleanProperty(True)
+    '''If True provides auto suggestions on top of keyboard.
+    This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
+    `address`.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True
+    '''
+
     def _set_on_focus_next(self, instance, value):
         ''' If changing code, ensure following code is not infinite loop:
         widget.focus_next = widget
@@ -388,9 +399,12 @@ class FocusBehavior(object):
     def _ensure_keyboard(self):
         if self._keyboard is None:
             self._requested_keyboard = True
-            keyboard = self._keyboard =\
-                EventLoop.window.request_keyboard(
-                    self._keyboard_released, self, input_type=self.input_type)
+            keyboard = self._keyboard = EventLoop.window.request_keyboard(
+                self._keyboard_released,
+                self,
+                input_type=self.input_type,
+                keyboard_suggestions=self.keyboard_suggestions,
+            )
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
