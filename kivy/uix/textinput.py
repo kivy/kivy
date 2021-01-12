@@ -456,7 +456,7 @@ class TextInput(FocusBehavior, Widget):
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
 
-    .. versionchanged:: 2.0.0
+    .. versionchanged:: 2.1.0
         :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_suggestions`
         is now inherited from :class:`~kivy.uix.behaviors.FocusBehavior`.
     '''

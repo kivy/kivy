@@ -1953,6 +1953,8 @@ class WindowBase(EventDispatcher):
                 This will only work if input_type is set to `text`, `url`,
                 `mail` or `address`.
 
+                .. versionadded:: 2.1.0
+
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
             and if the configuration allows it, a
