@@ -241,9 +241,9 @@ class FocusBehavior(object):
     '''If True provides auto suggestions on top of keyboard.
     This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
     `address`.
-    
+
     .. versionadded:: 2.1.0
-    
+
     :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True
     '''
