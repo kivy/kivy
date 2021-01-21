@@ -259,10 +259,8 @@ class MetricsBase(EventDispatcher):
         elif platform == 'ios':
             import ios
             value = ios.get_scale()
-        elif platform == 'macosx':
-            from kivy.base import EventLoop
-            EventLoop.ensure_window()
-            value = EventLoop.window.dpi / 96.
+        elif platform in ('macosx', 'win'):
+            value = self.dpi / 96.
 
         sync_pixel_scale(density=value)
         return value

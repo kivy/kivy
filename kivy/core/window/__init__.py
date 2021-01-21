@@ -991,6 +991,11 @@ class WindowBase(EventDispatcher):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        # because Window is created as soon as imported, if we bound earlier,
+        # metrics would be imported when dp is set during window creation.
+        # Instead, don't process dpi changes until everything is set
+        self.fbind('dpi', self._reset_metrics_dpi)
+
         # mark as initialized
         self.initialized = True
 
