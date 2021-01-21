@@ -101,6 +101,10 @@ test_kivy() {
   KIVY_NO_ARGS=1 python3 -m pytest --maxfail=10 --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
+test_kivy_benchmark() {
+  KIVY_NO_ARGS=1 python3 -m pytest "$(pwd)/kivy/tests" --benchmark-only
+}
+
 test_kivy_install() {
   cd ~
   python3 -c 'import kivy'
