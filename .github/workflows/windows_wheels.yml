@@ -130,6 +130,16 @@ jobs:
         run: |
           . .\.ci\windows_ci.ps1
           Test-kivy-installed
+      - name: Test Kivy benchmarks
+        if: matrix.python == '3.9' && matrix.arch == 'x64' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
+        run: |
+          . .\.ci\windows_ci.ps1
+          Test-kivy-benchmark
+      - name: Upload benchamrks as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: benchmarks
+          path: .benchmarks-kivy
 
   windows_sdist_test:
     runs-on: windows-latest

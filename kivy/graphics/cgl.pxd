@@ -641,6 +641,8 @@ ctypedef struct GLES2_Context:
 
 cdef GLES2_Context *cgl
 cdef int kivy_opengl_es2
+cdef unsigned long initialized_tid
+cdef public int verify_gl_main_thread
 cpdef cgl_init(allowed=*, ignored=*)
 cdef GLES2_Context *cgl_get_context()
 cdef void cgl_set_context(GLES2_Context* ctx)

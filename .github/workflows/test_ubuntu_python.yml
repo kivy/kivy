@@ -53,6 +53,15 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         upload_coveralls
+    - name: Test Kivy benchmarks
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy_benchmark
+    - name: Upload benchamrks as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmarks
+        path: .benchmarks-kivy
 
   gen_docs:
     runs-on: ubuntu-18.04

@@ -276,7 +276,7 @@ cdef class StencilUse(Instruction):
         cdef int op = _stencil_op_to_gl(x)
         if op != self._op:
             self._op = op
-            self.flag_update()
+            self.flag_data_update()
 
 
 cdef class StencilUnUse(Instruction):

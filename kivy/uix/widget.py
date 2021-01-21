@@ -720,7 +720,7 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.11.0
         '''
-        self.export_as_image().save(filename, flipped=False)
+        self.export_as_image(*args, **kwargs).save(filename, flipped=False)
 
     def export_as_image(self, *args, **kwargs):
         '''Return an core :class:`~kivy.core.image.Image` of the actual
@@ -1053,6 +1053,9 @@ class Widget(WidgetBase):
         Keep in mind that the `width` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
         method.
+
+    .. warning::
+        A negative width is not supported.
     '''
 
     height = NumericProperty(100)
@@ -1065,6 +1068,9 @@ class Widget(WidgetBase):
         Keep in mind that the `height` property is subject to layout logic and
         that this has not yet happened at the time of the widget's `__init__`
         method.
+
+    .. warning::
+        A negative height is not supported.
     '''
 
     pos = ReferenceListProperty(x, y)

@@ -484,7 +484,13 @@ cdef class _WindowSDL2Storage:
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
-    def show_keyboard(self, system_keyboard, softinput_mode):
+    def show_keyboard(
+        self,
+        system_keyboard,
+        softinput_mode,
+        input_type,
+        keyboard_suggestions=True,
+    ):
         if SDL_IsTextInputActive():
             return
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
@@ -530,6 +536,51 @@ cdef class _WindowSDL2Storage:
                     rect.h = 1
                     SDL_SetTextInputRect(rect)
 
+                """
+                Android input type selection.
+                Based on input_type and keyboard_suggestions arguments, set the
+                keyboard type to be shown. Note that text suggestions will only
+                work when input_type is "text" or a text variation.
+                """
+
+                from android import mActivity
+
+                # InputType definitions, from Android documentation
+
+                TYPE_CLASS_DATETIME = 4
+                TYPE_CLASS_NUMBER = 2
+                TYPE_CLASS_PHONE = 3
+                TYPE_CLASS_TEXT = 1
+
+                TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
+                TYPE_TEXT_VARIATION_URI = 16
+                TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
+
+                TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
+
+                input_type_value = {
+                                "text": TYPE_CLASS_TEXT,
+                                "number": TYPE_CLASS_NUMBER,
+                                "url":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_URI,
+                                "mail":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                                "datetime": TYPE_CLASS_DATETIME,
+                                "tel": TYPE_CLASS_PHONE,
+                                "address":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+                              }.get(input_type, TYPE_CLASS_TEXT)
+
+                text_keyboards = {"text", "url", "mail", "address"}
+
+                if not keyboard_suggestions and input_type in text_keyboards:
+                    input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
+                mActivity.changeKeyboard(input_type_value)
+
             SDL_StartTextInput()
         finally:
             PyMem_Free(<void *>rect)
@@ -571,10 +622,16 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_MOUSEWHEEL:
             x = event.wheel.x
             y = event.wheel.y
+            # TODO we should probably support events with both an x and y offset
             if x != 0:
                 suffix = 'left' if x > 0 else 'right'
-            else:
+            elif y != 0:
                 suffix = 'down' if y > 0 else 'up'
+            else:
+                # It's possible to get mouse wheel events with no offset in
+                # either x or y direction, we just ignore them
+                # https://wiki.libsdl.org/SDL_MouseWheelEvent
+                return None
             action = 'mousewheel' + suffix
             return (action, x, y, None)
         elif event.type == SDL_FINGERMOTION:

@@ -225,7 +225,7 @@ cdef class Bezier(VertexInstruction):
         self._points = list(points)
         if self._loop:
             self._points.extend(points[:2])
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def segments(self):
@@ -238,7 +238,7 @@ cdef class Bezier(VertexInstruction):
         if value <= 1:
             raise GraphicException('Invalid segments value, must be >= 2')
         self._segments = value
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def dash_length(self):
@@ -252,7 +252,7 @@ cdef class Bezier(VertexInstruction):
         if value < 0:
             raise GraphicException('Invalid dash_length value, must be >= 0')
         self._dash_length = value
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def dash_offset(self):
@@ -267,7 +267,7 @@ cdef class Bezier(VertexInstruction):
         if value < 0:
             raise GraphicException('Invalid dash_offset value, must be >= 0')
         self._dash_offset = value
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class StripMesh(VertexInstruction):
@@ -473,7 +473,7 @@ cdef class Mesh(VertexInstruction):
         self._vertices, self._fvertices = _ensure_float_view(value,
             &self._pvertices)
         self.vcount = <long>len(self._vertices)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def indices(self):
@@ -491,7 +491,7 @@ cdef class Mesh(VertexInstruction):
         self._indices, self._lindices = _ensure_ushort_view(value,
             &self._pindices)
         self.icount = <long>len(self._indices)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def mode(self):
@@ -642,7 +642,7 @@ cdef class Point(VertexInstruction):
         self.batch.append_data(vertices, 4, indices, 6)
 
         if self.parent is not None:
-            self.parent.flag_update()
+            self.parent.flag_data_update()
 
     @property
     def points(self):
@@ -659,7 +659,7 @@ cdef class Point(VertexInstruction):
         if len(_points) > 2**15-2:
             raise GraphicException('Too many elements (limit is 2^15-2)')
         self._points = list(points)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def pointsize(self):
@@ -674,7 +674,7 @@ cdef class Point(VertexInstruction):
         if self._pointsize == pointsize:
             return
         self._pointsize = pointsize
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class Triangle(VertexInstruction):
@@ -725,7 +725,7 @@ cdef class Triangle(VertexInstruction):
     @points.setter
     def points(self, points):
         self._points = list(points)
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class Quad(VertexInstruction):
@@ -785,7 +785,7 @@ cdef class Quad(VertexInstruction):
             raise GraphicException(
                 'Quad: invalid number of points (%d instead of 8)' % len(
                 self._points))
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class Rectangle(VertexInstruction):
@@ -848,7 +848,7 @@ cdef class Rectangle(VertexInstruction):
             return
         self.x = x
         self.y = y
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def size(self):
@@ -864,7 +864,7 @@ cdef class Rectangle(VertexInstruction):
             return
         self.w = w
         self.h = h
-        self.flag_update()
+        self.flag_data_update()
 
 
 
@@ -1087,7 +1087,7 @@ cdef class BorderImage(Rectangle):
     @border.setter
     def border(self, b):
         self._border = list(b)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def auto_scale(self):
@@ -1100,7 +1100,7 @@ cdef class BorderImage(Rectangle):
     @auto_scale.setter
     def auto_scale(self, str value):
         self._auto_scale = value
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def display_border(self):
@@ -1111,7 +1111,7 @@ cdef class BorderImage(Rectangle):
     @display_border.setter
     def display_border(self, b):
         self._display_border = list(b)
-        self.flag_update()
+        self.flag_data_update()
 
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
@@ -1237,7 +1237,7 @@ cdef class Ellipse(Rectangle):
     @segments.setter
     def segments(self, value):
         self._segments = value
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def angle_start(self):
@@ -1248,7 +1248,7 @@ cdef class Ellipse(Rectangle):
     @angle_start.setter
     def angle_start(self, value):
         self._angle_start = value
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def angle_end(self):
@@ -1259,7 +1259,7 @@ cdef class Ellipse(Rectangle):
     @angle_end.setter
     def angle_end(self, value):
         self._angle_end = value
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class RoundedRectangle(Rectangle):
@@ -1561,7 +1561,7 @@ cdef class RoundedRectangle(Rectangle):
     @segments.setter
     def segments(self, value):
         self._segments = self._check_segments(value)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def radius(self):
@@ -1572,4 +1572,4 @@ cdef class RoundedRectangle(Rectangle):
     @radius.setter
     def radius(self, value):
         self._radius = self._check_radius(value)
-        self.flag_update()
+        self.flag_data_update()

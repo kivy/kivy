@@ -906,6 +906,7 @@ class WindowBase(EventDispatcher):
         # property changes
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
+        self.fbind('dpi', self._reset_metrics_dpi)
 
         # Create a trigger for updating the keyboard height
         self.trigger_keyboard_height = Clock.create_trigger(
@@ -1918,7 +1919,9 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target, input_type='text'):
+    def request_keyboard(
+            self, callback, target, input_type='text', keyboard_suggestions=True
+    ):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
@@ -1951,6 +1954,13 @@ class WindowBase(EventDispatcher):
                     `input_type` is currently only honored on mobile devices.
 
                 .. versionadded:: 1.8.0
+
+            `keyboard_suggestions`: bool
+                If True provides auto suggestions on top of keyboard.
+                This will only work if input_type is set to `text`, `url`,
+                `mail` or `address`.
+
+                .. versionadded:: 2.1.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
