@@ -815,7 +815,9 @@ sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     '_clock.pyx': {},
     'weakproxy.pyx': {},
-    'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
+    'properties.pyx': merge(
+        base_flags, {'depends': ['_event.pxd', '_metrics.pxd']}),
+    '_metrics.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': merge(base_flags, gl_flags_base),
     'graphics/context.pyx': merge(base_flags, gl_flags_base),
     'graphics/compiler.pyx': merge(base_flags, gl_flags_base),

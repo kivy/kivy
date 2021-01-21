@@ -294,6 +294,7 @@ class PropertiesTestCase(unittest.TestCase):
 
     def test_numeric_string_with_units_check(self):
         from kivy.properties import NumericProperty
+        from kivy.metrics import Metrics
 
         a = NumericProperty()
         a.link(wid, 'a')
@@ -301,8 +302,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 0)
 
         a.set(wid, '55dp')
-        from kivy.core.window import Window
-        density = Window._density if hasattr(Window, '_density') else 1
+        density = Metrics.density
         self.assertEqual(a.get(wid), 55 * density)
         self.assertEqual(a.get_format(wid), 'dp')
 
@@ -819,3 +819,199 @@ def test_listproperty_is_none():
     l2.link(wid, 'l2')
     l2.set(wid, None)
     assert l2.get(wid) is None
+
+
+def test_numeric_property_dp(kivy_metrics):
+    from kivy.event import EventDispatcher
+    from kivy.properties import NumericProperty
+    kivy_metrics.density = 1
+
+    class Number(EventDispatcher):
+
+        with_dp = NumericProperty(5)
+
+        no_dp = NumericProperty(10)
+
+        default_dp = NumericProperty('10dp')
+
+    number = Number()
+    counter = {'with_dp': 0, 'no_dp': 0, 'default_dp': 0}
+
+    def callback(name, *args):
+        counter[name] += 1
+
+    number.fbind('with_dp', callback, 'with_dp')
+    number.fbind('no_dp', callback, 'no_dp')
+    number.fbind('default_dp', callback, 'default_dp')
+
+    assert not counter['with_dp']
+    assert not counter['no_dp']
+    assert not counter['default_dp']
+    assert number.with_dp == 5
+    assert number.no_dp == 10
+    assert number.default_dp == 10
+
+    number.with_dp = 10
+    assert counter['with_dp'] == 1
+    assert number.with_dp == 10
+
+    kivy_metrics.density = 2
+
+    assert counter['with_dp'] == 1
+    assert not counter['no_dp']
+    assert counter['default_dp'] == 1
+    assert number.with_dp == 10
+    assert number.no_dp == 10
+    assert number.default_dp == 20
+
+    number.with_dp = '20dp'
+    number.no_dp = 20
+
+    assert counter['with_dp'] == 2
+    assert counter['no_dp'] == 1
+    assert counter['default_dp'] == 1
+    assert number.with_dp == 40
+    assert number.no_dp == 20
+    assert number.default_dp == 20
+
+    kivy_metrics.density = 1
+
+    assert counter['with_dp'] == 3
+    assert counter['no_dp'] == 1
+    assert counter['default_dp'] == 2
+    assert number.with_dp == 20
+    assert number.no_dp == 20
+    assert number.default_dp == 10
+
+
+def test_variable_list_property_dp_default(kivy_metrics):
+    from kivy.event import EventDispatcher
+    from kivy.properties import VariableListProperty
+    kivy_metrics.density = 1
+
+    class Number(EventDispatcher):
+
+        a = VariableListProperty(['10dp', (20, 'dp'), 3, 4.0])
+
+    number = Number()
+    counter = 0
+
+    def callback(name, *args):
+        nonlocal counter
+        counter += 1
+
+    number.fbind('a', callback)
+    assert list(number.a) == [10, 20, 3, 4]
+    assert not counter
+
+    kivy_metrics.density = 2
+
+    assert counter == 1
+    assert list(number.a) == [20, 40, 3, 4]
+
+    kivy_metrics.density = 1
+
+    assert counter == 2
+    assert list(number.a) == [10, 20, 3, 4]
+
+
+def test_variable_list_property_dp(kivy_metrics):
+    from kivy.event import EventDispatcher
+    from kivy.properties import VariableListProperty
+    kivy_metrics.density = 1
+
+    class Number(EventDispatcher):
+
+        a = VariableListProperty([0, 20, 3, 4])
+
+    number = Number()
+    counter = 0
+
+    def callback(name, *args):
+        nonlocal counter
+        counter += 1
+
+    number.fbind('a', callback)
+    assert list(number.a) == [0, 20, 3, 4]
+    assert not counter
+
+    number.a = ['10dp', (20, 'dp'), 3, 4.0]
+    assert list(number.a) == [10, 20, 3, 4]
+    assert counter == 1
+
+    kivy_metrics.density = 2
+
+    assert counter == 2
+    assert list(number.a) == [20, 40, 3, 4]
+
+    kivy_metrics.density = 1
+
+    assert counter == 3
+    assert list(number.a) == [10, 20, 3, 4]
+
+
+def test_property_duplicate_name():
+    from kivy.event import EventDispatcher
+    from kivy.properties import ObjectProperty
+
+    class Event(EventDispatcher):
+
+        a = ObjectProperty(5)
+
+    event = Event()
+    counter = 0
+    counter2 = 0
+
+    def callback(*args):
+        nonlocal counter
+        counter += 1
+
+    def callback2(*args):
+        nonlocal counter2
+        counter2 += 1
+
+    event.fbind('a', callback)
+
+    event.create_property('a', None)
+    event.fbind('a', callback2)
+
+    event.a = 12
+    assert not counter
+    assert counter2 == 1
+
+
+def test_property_rename_duplicate():
+    from kivy.event import EventDispatcher
+    from kivy.properties import ObjectProperty
+
+    class Event(EventDispatcher):
+
+        b = ObjectProperty(5)
+        a = b
+
+    event = Event()
+    counter = 0
+    counter2 = 0
+
+    def callback(*args):
+        nonlocal counter
+        counter += 1
+
+    def callback2(*args):
+        nonlocal counter2
+        counter2 += 1
+
+    event.fbind('a', callback)
+    event.fbind('b', callback2)
+
+    event.a = 12
+    assert counter == 1
+    assert counter2 == 1
+    assert event.a == 12
+    assert event.b == 12
+
+    event.b = 14
+    assert counter == 2
+    assert counter2 == 2
+    assert event.a == 14
+    assert event.b == 14

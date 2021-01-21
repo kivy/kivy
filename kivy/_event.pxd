@@ -34,6 +34,9 @@ cdef class BoundCallback:
     cdef BoundCallback next  # next callback in chain
     cdef BoundCallback prev  # previous callback in chain
     cdef object uid  # the uid given for this callback, None if not given
+    cdef EventObservers observers
+
+    cdef void set_largs(self, tuple largs)
 
 
 cdef class EventObservers:
@@ -48,11 +51,15 @@ cdef class EventObservers:
     # The uid to assign to the next bound callback.
     cdef object uid
 
+    cdef inline BoundCallback make_callback(self, object observer, tuple largs, dict kwargs, int is_ref, uid=*)
     cdef inline void bind(self, object observer, object src_observer, int is_ref) except *
     cdef inline object fbind(self, object observer, tuple largs, dict kwargs, int is_ref)
+    cdef inline BoundCallback fbind_callback(self, object observer, tuple largs, dict kwargs, int is_ref)
+    cdef inline void fbind_existing_callback(self, BoundCallback callback)
     cdef inline void unbind(self, object observer, int stop_on_first) except *
     cdef inline void funbind(self, object observer, tuple largs, dict kwargs) except *
     cdef inline object unbind_uid(self, object uid)
+    cdef inline object unbind_callback(self, BoundCallback callback)
     cdef inline void remove_callback(self, BoundCallback callback, int force=*) except *
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value, tuple largs, dict kwargs)

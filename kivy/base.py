@@ -261,9 +261,7 @@ class EventLoopBase(EventDispatcher):
             root_window = wid.get_root_window()
             if wid != root_window and root_window is not None:
                 me.push()
-                w, h = root_window.system_size
-                if platform == 'ios' or root_window._density != 1:
-                    w, h = root_window.size
+                w, h = root_window._get_effective_size()
                 kheight = root_window.keyboard_height
                 smode = root_window.softinput_mode
                 me.scale_for_screen(w, h, rotation=root_window.rotation,
