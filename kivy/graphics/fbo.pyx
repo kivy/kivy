@@ -448,7 +448,7 @@ cdef class Fbo(RenderContext):
         self._width, self._height = x
         self.delete_fbo()
         self.create_fbo()
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def clear_color(self):

@@ -42,11 +42,26 @@ from os import environ
 from .cgl cimport GLES2_Context
 import importlib
 from kivy.logger import Logger
+from threading import get_ident
+from kivy.config import Config
 
 cdef GLES2_Context g_cgl
 cdef GLES2_Context *cgl = &g_cgl
 cdef object cgl_name = None
 cdef int kivy_opengl_es2 = USE_OPENGL_ES2 or environ.get('KIVY_GRAPHICS', '').lower() == 'gles'
+cdef unsigned long initialized_tid = 0
+cdef public int verify_gl_main_thread = 1
+"""Whether we should check if the gl instructions occur in a thread outside the main thread.
+"""
+
+
+def _update_verify_gl_main_thread(*args):
+    global verify_gl_main_thread
+    verify_gl_main_thread = Config.getboolean('graphics', 'verify_gl_main_thread')
+
+if not environ.get('KIVY_DOC_INCLUDE'):
+    Config.add_callback(_update_verify_gl_main_thread, 'graphics', 'verify_gl_main_thread')
+    _update_verify_gl_main_thread()
 
 
 cpdef cgl_get_initialized_backend_name():
@@ -84,8 +99,9 @@ cdef void cgl_set_context(GLES2_Context* ctx):
 cpdef cgl_init(allowed=[], ignored=[]):
     Logger.info('GL: Using the "{}" graphics system'.format(
         'OpenGL ES 2' if kivy_opengl_es2 else 'OpenGL'))
-    global cgl_name
+    global cgl_name, initialized_tid
     cgl_name = backend = cgl_get_backend_name(allowed, ignored)
+    initialized_tid = get_ident()
 
     # for ANGLE, currently we use sdl2, and only on windows.
     if backend == "angle_sdl2":

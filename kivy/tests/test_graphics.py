@@ -5,7 +5,10 @@ Graphics tests
 Testing the simple vertex instructions
 '''
 
-from kivy.tests.common import GraphicUnitTest
+import sys
+import pytest
+from threading import Thread
+from kivy.tests.common import GraphicUnitTest, requires_graphics
 
 
 class VertexInstructionTest(GraphicUnitTest):
@@ -126,3 +129,84 @@ class CallbackInstructionTest(GraphicUnitTest):
         r = self.render
         r(root)
         self.assertTrue(root.callback_test == 'TEST')
+
+
+@pytest.fixture
+def widget_verify_thread(request):
+    from kivy.uix.widget import Widget
+    from kivy.config import Config
+
+    original = Config.get('graphics', 'verify_gl_main_thread')
+    Config.set('graphics', 'verify_gl_main_thread', request.param)
+
+    widget = Widget()
+    yield widget, request.param
+
+    Config.set('graphics', 'verify_gl_main_thread', original)
+
+
+@requires_graphics
+@pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
+def test_graphics_main_thread(widget_verify_thread):
+    from kivy.graphics import Color
+
+    widget, verify_thread = widget_verify_thread
+    with widget.canvas:
+        color = Color()
+    color.rgb = .1, .2, .3
+
+
+@requires_graphics
+@pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
+def test_create_graphics_second_thread(widget_verify_thread):
+    from kivy.graphics import Color
+    widget, verify_thread = widget_verify_thread
+    exception = None
+
+    def callback():
+        nonlocal exception
+        try:
+            with widget.canvas:
+                if verify_thread == '1':
+                    with pytest.raises(TypeError):
+                        Color()
+                else:
+                    Color()
+        except BaseException as e:
+            exception = e, sys.exc_info()[2]
+            raise
+
+    thread = Thread(target=callback)
+    thread.start()
+    thread.join()
+    if exception is not None:
+        raise exception[0].with_traceback(exception[1])
+
+
+@requires_graphics
+@pytest.mark.parametrize('widget_verify_thread', ['0', '1'], indirect=True)
+def test_change_graphics_second_thread(widget_verify_thread):
+    from kivy.graphics import Color
+    widget, verify_thread = widget_verify_thread
+    with widget.canvas:
+        color = Color()
+
+    exception = None
+
+    def callback():
+        nonlocal exception
+        try:
+            if verify_thread == '1':
+                with pytest.raises(TypeError):
+                    color.rgb = .1, .2, .3
+            else:
+                color.rgb = .1, .2, .3
+        except BaseException as e:
+            exception = e, sys.exc_info()[2]
+            raise
+
+    thread = Thread(target=callback)
+    thread.start()
+    thread.join()
+    if exception is not None:
+        raise exception[0].with_traceback(exception[1])
