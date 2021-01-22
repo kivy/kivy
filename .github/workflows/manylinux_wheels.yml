@@ -144,6 +144,16 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_install
+    - name: Test Kivy benchmarks
+      if: matrix.python == '3.9' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy_benchmark
+    - name: Upload benchamrks as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmarks
+        path: .benchmarks-kivy
 
   sdist_test:
     runs-on: ubuntu-18.04

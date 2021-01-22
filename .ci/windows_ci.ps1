@@ -114,6 +114,10 @@ function Test-kivy {
     python -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
+function Test-kivy-benchmark {
+    python -m pytest "$(pwd)/kivy/tests" --benchmark-only
+}
+
 function Test-kivy-installed {
     cd "$HOME"
     python -c 'import kivy'
