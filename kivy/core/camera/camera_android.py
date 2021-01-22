@@ -51,7 +51,7 @@ class CameraAndroid(CameraBase):
         width, height = self._resolution
         params.setPreviewSize(width, height)
         supported_focus_modes = self._android_camera.getParameters() \
-        	.getSupportedFocusModes()
+            .getSupportedFocusModes()
         if supported_focus_modes.contains('continuous-picture'):
             params.setFocusMode('continuous-picture')
         self._android_camera.setParameters(params)
