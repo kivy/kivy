@@ -103,12 +103,9 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-# Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
 if sys.platform == 'darwin':
-    if sys.maxsize > 2 ** 32:
-        osx_arch = 'x86_64'
-    else:
-        osx_arch = 'i386'
+    from platform import machine
+    osx_arch = machine()
 
 
 # Detect Python for android project (http://github.com/kivy/python-for-android)
@@ -427,8 +424,8 @@ elif platform == 'darwin':
         if osx_arch == "i386":
             print("Warning: building with frameworks fail on i386")
         else:
-            print("OSX framework used, force to x86_64 only")
-            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", "-arch x86_64")
+            print(f"OSX framework used, force to {osx_arch} only")
+            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", f"-arch {osx_arch}")
             print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
 
 # detect gstreamer, only on desktop
