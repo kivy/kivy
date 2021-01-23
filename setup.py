@@ -424,7 +424,7 @@ elif platform == 'darwin':
         if osx_arch == "i386":
             print("Warning: building with frameworks fail on i386")
         else:
-            print("OSX framework used, force to {osx_arch} only")
+            print(f"OSX framework used, force to {osx_arch} only")
             environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", f"-arch {osx_arch}")
             print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
 
