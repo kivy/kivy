@@ -500,6 +500,10 @@ class TabbedPanel(GridLayout):
 
         If used with `do_scroll=True`, it scrolls
         to the header's tab too.
+
+        See `discussion
+        <https://github.com/kivy/kivy/issues/3493#issuecomment-121567969>`_
+        for detailed usage.
         '''
         header_content = header.content
         self._current_tab.state = 'normal'
