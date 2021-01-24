@@ -389,7 +389,7 @@ Trio example
     # use functools.partial() to pass keyword arguments:
     async_runTouchApp_func = partial(async_runTouchApp, async_lib='trio')
     
-    trio.run(async_runTouchApp_func, Label(text='Hello, World!'), async_lib='trio')
+    trio.run(async_runTouchApp_func, Label(text='Hello, World!'))
 
 Interacting with Kivy app from other coroutines
 -----------------------------------------------
