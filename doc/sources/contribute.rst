@@ -138,7 +138,7 @@ Code Workflow
 
 So here is the initial setup to begin with our workflow (you only need to do
 this once to install Kivy). Basically you follow the installation
-instructions from :ref:`dev-install`, but you don't clone our repository,
+instructions from :ref:`kivy-dev-install`, but you don't clone our repository,
 you fork it. Here are the steps:
 
     #. Log in to GitHub
@@ -149,7 +149,7 @@ you fork it. Here are the steps:
 
         git clone https://github.com/username/kivy.git
 
-    #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
+    #. Compile and set up PYTHONPATH or install (see :ref:`kivy-dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
        styleguide by executing `make hook` from the root directory of your
        clone. This will run our styleguide check whenever you do a commit,
