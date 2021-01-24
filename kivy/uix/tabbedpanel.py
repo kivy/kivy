@@ -501,9 +501,11 @@ class TabbedPanel(GridLayout):
         If used with `do_scroll=True`, it scrolls
         to the header's tab too.
 
-        See `discussion
+        :meth:`switch_to` cannot be called from within the
+        :class:`TabbedPanel` or its subclass' ``__init__`` method.
+        If that is required, use the ``Clock`` to schedule it. See `discussion
         <https://github.com/kivy/kivy/issues/3493#issuecomment-121567969>`_
-        for detailed usage.
+        for full example.
         '''
         header_content = header.content
         self._current_tab.state = 'normal'
