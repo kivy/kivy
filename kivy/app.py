@@ -383,12 +383,12 @@ Trio example
 
     from kivy.app import async_runTouchApp
     from kivy.uix.label import Label
-    
+
     from functools import partial
-    
+
     # use functools.partial() to pass keyword arguments:
     async_runTouchApp_func = partial(async_runTouchApp, async_lib='trio')
-    
+
     trio.run(async_runTouchApp_func, Label(text='Hello, World!'))
 
 Interacting with Kivy app from other coroutines
