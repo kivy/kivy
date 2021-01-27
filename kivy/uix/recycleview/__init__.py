@@ -167,10 +167,11 @@ Viewclass State
 ^^^^^^^^^^^^^^^
 
 Because the viewclass widgets are reused or instantiated as needed by the
-:class:`RecycleView`, the order and content of the widgets are mutable. So any state
-change to a single widget will stay with that widget, even when the data assigned to
-it from the :attr:`~RecycleView.data` dict changes, unless :attr:`~RecycleView.data`
-tracks those changes or they are manually refreshed when re-used.
+:class:`RecycleView`, the order and content of the widgets are mutable. So any
+state change to a single widget will stay with that widget, even when the data
+assigned to it from the :attr:`~RecycleView.data` dict changes, unless
+:attr:`~RecycleView.data` tracks those changes or they are manually refreshed
+when re-used.
 
 There are two methods for managing state changes in viewclass widgets:
 
@@ -186,7 +187,7 @@ An example::
     from kivy.uix.recycleview import RecycleView
     from kivy.uix.recycleview.views import RecycleDataViewBehavior
     from kivy.properties import BooleanProperty, StringProperty
-    
+
     Builder.load_string('''
     <StatefulLabel>:
         active: stored_state.active
@@ -199,7 +200,7 @@ An example::
         Label:
             id: generate_state
             text: root.generated_state_text
-    
+
     <RV>:
         viewclass: 'StatefulLabel'
         RecycleBoxLayout:
@@ -207,13 +208,13 @@ An example::
             height: self.minimum_height
             orientation: 'vertical'
     ''')
-    
+
     class StatefulLabel(RecycleDataViewBehavior, BoxLayout):
         text = StringProperty()
         generated_state_text = StringProperty()
         active = BooleanProperty()
         index = 0
-    
+
         '''
         To change a viewclass' state as the data assigned to it changes,
         overload the refresh_view_attrs function (inherited from
@@ -228,7 +229,7 @@ An example::
             else:
                 self.generated_state_text = "is even"
             super(StatefulLabel, self).refresh_view_attrs(rv, index, data)
-    
+
         '''
         To keep state changes in the viewclass with associated data,
         they can be explicitly stored in the RecycleView's data object
@@ -236,19 +237,18 @@ An example::
         def store_checkbox_state(self):
             rv = App.get_running_app().rv
             rv.data[self.index]['active'] = self.active
-    
+
     class RV(RecycleView, App):
         def __init__(self, **kwargs):
             super(RV, self).__init__(**kwargs)
             self.data = [{'text': str(x), 'active': False} for x in range(10)]
             App.get_running_app().rv = self
-    
+
         def build(self):
             return self
-    
+
     if __name__ == '__main__':
         RV().run()
-
 
 TODO:
     - Method to clear cached class instances.
