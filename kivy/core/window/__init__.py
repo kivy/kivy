@@ -906,7 +906,6 @@ class WindowBase(EventDispatcher):
         # property changes
         self.trigger_create_window = Clock.create_trigger(
             self.create_window, -1)
-        self.fbind('dpi', self._reset_metrics_dpi)
 
         # Create a trigger for updating the keyboard height
         self.trigger_keyboard_height = Clock.create_trigger(
