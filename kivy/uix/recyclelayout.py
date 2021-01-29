@@ -11,7 +11,9 @@ RecycleLayout
 
 from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
 from kivy.uix.layout import Layout
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import (
+    ObjectProperty, StringProperty, ReferenceListProperty, NumericProperty
+)
 from kivy.factory import Factory
 
 __all__ = ('RecycleLayout', )
@@ -22,19 +24,42 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
     RecycleLayout provides the default layout for RecycleViews.
     """
 
-    default_size = ObjectProperty((100, 100))
-    '''size as in w, h. They each can be None.
+    default_width = NumericProperty(100, allownone=True)
+    default_height = NumericProperty(100, allownone=True)
+    default_size = ReferenceListProperty(default_width, default_height)
+    '''size (width, height). Each value can be None.
     '''
+    default_size_hint_x = NumericProperty(None, allownone=True)
+    default_size_hint_y = NumericProperty(None, allownone=True)
+    default_size_hint = ReferenceListProperty(
+        default_size_hint_x, default_size_hint_y
+    )
+
     key_size = StringProperty(None, allownone=True)
-    default_size_hint = ObjectProperty((None, None))
     key_size_hint = StringProperty(None, allownone=True)
-    default_size_hint_min = ObjectProperty((None, None))
+
     key_size_hint_min = StringProperty(None, allownone=True)
-    default_size_hint_max = ObjectProperty((None, None))
+    default_size_hint_x_min = NumericProperty(None, allownone=True)
+    default_size_hint_y_min = NumericProperty(None, allownone=True)
+    default_size_hint_min = ReferenceListProperty(
+        default_size_hint_x_min,
+        default_size_hint_y_min
+    )
+
     key_size_hint_max = StringProperty(None, allownone=True)
+    default_size_hint_x_max = NumericProperty(None, allownone=True)
+    default_size_hint_y_max = NumericProperty(None, allownone=True)
+    default_size_hint_max = ReferenceListProperty(
+        default_size_hint_x_max,
+        default_size_hint_y_max
+    )
+
     default_pos_hint = ObjectProperty({})
     key_pos_hint = StringProperty(None, allownone=True)
-    initial_size = ObjectProperty((100, 100))
+
+    initial_width = NumericProperty(100)
+    initial_height = NumericProperty(100)
+    initial_size = ReferenceListProperty(initial_width, initial_height)
 
     view_opts = []
 
