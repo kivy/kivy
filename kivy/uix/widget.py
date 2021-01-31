@@ -685,10 +685,10 @@ class Widget(WidgetBase):
             want to remove.
         '''
 
-        if children is None:
-            children = self.children
+        if children is None or children is self.children:
+            children = self.children[:]
         remove_widget = self.remove_widget
-        for child in children[:]:
+        for child in children:
             remove_widget(child)
 
     def export_to_png(self, filename, *args, **kwargs):
