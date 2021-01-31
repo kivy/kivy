@@ -685,7 +685,7 @@ class Widget(WidgetBase):
             want to remove.
         '''
 
-        if not children:
+        if children is None:
             children = self.children
         remove_widget = self.remove_widget
         for child in children[:]:
