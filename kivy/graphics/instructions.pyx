@@ -133,7 +133,7 @@ cdef class Instruction(ObjectWithUid):
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instructions <Instruction>`. Allows for the adding and
+    '''Group of :class:`Instruction`. Allows for the adding and
     removing of graphics instructions. It can be used directly as follows::
 
         blue = InstructionGroup()
