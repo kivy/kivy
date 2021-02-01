@@ -750,11 +750,11 @@ class EffectWidget(RelativeLayout):
             fbo.draw()
         self.fbo.draw()
 
-    def add_widget(self, widget, *args, **kwargs):
+    def add_widget(self, *args, **kwargs):
         # Add the widget to our Fbo instead of the normal canvas
         c = self.canvas
         self.canvas = self.fbo
-        super(EffectWidget, self).add_widget(widget, *args, **kwargs)
+        super(EffectWidget, self).add_widget(*args, **kwargs)
         self.canvas = c
 
     def remove_widget(self, widget):

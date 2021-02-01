@@ -369,12 +369,11 @@ class Accordion(Widget):
         fbind('pos', update)
         fbind('min_space', update)
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, *args, **kwargs):
         if not isinstance(widget, AccordionItem):
             raise AccordionException('Accordion accept only AccordionItem')
-
         widget.accordion = self
-        ret = super(Accordion, self).add_widget(widget, index, canvas)
+        ret = super(Accordion, self).add_widget(widget, *args, **kwargs)
         return ret
 
     def select(self, instance):

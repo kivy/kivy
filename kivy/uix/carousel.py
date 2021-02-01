@@ -642,11 +642,11 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, index=0, *args, **kwargs):
         container = RelativeLayout(
             size=self.size, x=self.x - self.width, y=self.y)
         container.add_widget(widget)
-        super(Carousel, self).add_widget(container, index, canvas)
+        super(Carousel, self).add_widget(container, index, *args, **kwargs)
         if index != 0:
             self.slides.insert(index - len(self.slides), widget)
         else:
