@@ -133,8 +133,9 @@ cdef class Instruction(ObjectWithUid):
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instruction`. Allows for the adding and
-    removing of graphics instructions. It can be used directly as follows::
+    """
+    Group of :class:`Instruction`. Allows for the adding and removing
+    of graphics instructions. It can be used directly as follows::
 
         blue = InstructionGroup()
         blue.add(Color(0, 0, 1, 0.2))
@@ -146,8 +147,7 @@ cdef class InstructionGroup(Instruction):
 
         # Here, self should be a Widget or subclass
         [self.canvas.add(group) for group in [blue, green]]
-
-    '''
+    """
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)
         self.children = list()
