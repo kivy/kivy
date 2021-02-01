@@ -231,7 +231,7 @@ class Splitter(BoxLayout):
         _strp.disabled = self.disabled
         self.bind(disabled=_strp.setter('disabled'))
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, index=0, *args, **kwargs):
         if self._container or not widget:
             return Exception('Splitter accepts only one Child')
         self._container = widget
@@ -244,7 +244,7 @@ class Splitter(BoxLayout):
         index = 0
         if sz_frm in ('r', 'b'):
             index = 1
-        super(Splitter, self).add_widget(widget, index, canvas)
+        super(Splitter, self).add_widget(widget, index, *args, **kwargs)
         self.on_sizable_from(self, self.sizable_from)
 
     def remove_widget(self, widget):

@@ -70,8 +70,8 @@ class ScatterLayout(Scatter):
     def update_size(self, instance, size):
         self.content.size = size
 
-    def add_widget(self, widget, index=0, canvas=None):
-        self.content.add_widget(widget, index, canvas)
+    def add_widget(self, *args, **kwargs):
+        self.content.add_widget(*args, **kwargs)
 
     def remove_widget(self, widget):
         self.content.remove_widget(widget)

@@ -139,10 +139,10 @@ class ShaderWidget(FloatLayout):
     # add their graphics canvas to our Framebuffer, not the usual canvas.
     #
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, *args, **kwargs):
         c = self.canvas
         self.canvas = self.fbo
-        super(ShaderWidget, self).add_widget(widget, index, canvas)
+        super(ShaderWidget, self).add_widget(*args, **kwargs)
         self.canvas = c
 
     def remove_widget(self, widget):

@@ -452,11 +452,15 @@ class ActionGroup(ActionItem, Button):
             # auto_dismiss applies to touching outside of the DropDown
             item.bind(on_release=ddn.dismiss)
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `item` to `widget`.
+        '''
         # if adding ActionSeparator ('normal' mode,
         # everything visible), add it to the parent
         if isinstance(widget, ActionSeparator):
-            super(ActionGroup, self).add_widget(widget, index, canvas)
+            super(ActionGroup, self).add_widget(widget, *args, **kwargs)
             return
 
         if not isinstance(widget, ActionItem):
@@ -489,7 +493,11 @@ class ActionOverflow(ActionGroup):
     and defaults to 'atlas://data/images/defaulttheme/overflow'.
     '''
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, index=0, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+             Renamed argument `action_item` to `widget`.
+        '''
         if widget is None:
             return
 
@@ -575,7 +583,11 @@ class ActionView(BoxLayout):
     def on_action_previous(self, instance, value):
         self._list_action_items.insert(0, value)
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, index=0, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `action_item` to `widget`.
+        '''
         if widget is None:
             return
 
@@ -595,7 +607,7 @@ class ActionView(BoxLayout):
             self.action_previous = widget
 
         else:
-            super(ActionView, self).add_widget(widget, index, canvas)
+            super(ActionView, self).add_widget(widget, index, *args, **kwargs)
             if index == 0:
                 index = len(self._list_action_items)
             self._list_action_items.insert(index, widget)
@@ -835,18 +847,22 @@ class ActionBar(BoxLayout):
         self._stack_cont_action_view = []
         self._emit_previous = partial(self.dispatch, 'on_previous')
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `view` to `widget`.
+        '''
         if isinstance(widget, ContextualActionView):
             self._stack_cont_action_view.append(widget)
             if widget.action_previous is not None:
                 widget.action_previous.unbind(on_release=self._emit_previous)
                 widget.action_previous.bind(on_release=self._emit_previous)
             self.clear_widgets()
-            super(ActionBar, self).add_widget(widget, index, canvas)
+            super(ActionBar, self).add_widget(widget, *args, **kwargs)
 
         elif isinstance(widget, ActionView):
             self.action_view = widget
-            super(ActionBar, self).add_widget(widget, index, canvas)
+            super(ActionBar, self).add_widget(widget, *args, **kwargs)
 
         else:
             raise ActionBarException(

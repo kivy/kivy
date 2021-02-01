@@ -210,15 +210,15 @@ class Bubble(GridLayout):
         self.add_widget(content)
         self.on_arrow_pos()
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, *args, **kwargs):
         content = self.content
         if content is None:
             return
         if widget == content or widget == self._arrow_img\
                 or widget == self._arrow_layout:
-            super(Bubble, self).add_widget(widget, index, canvas)
+            super(Bubble, self).add_widget(widget, *args, **kwargs)
         else:
-            content.add_widget(widget, index, canvas)
+            content.add_widget(widget, *args, **kwargs)
 
     def remove_widget(self, widget):
         content = self.content

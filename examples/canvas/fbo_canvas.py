@@ -41,11 +41,11 @@ class FboFloatLayout(FloatLayout):
         self.texture = self.fbo.texture
         super(FboFloatLayout, self).__init__(**kwargs)
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, *args, **kwargs):
         # trick to attach graphics instruction to fbo instead of canvas
         _canvas = self.canvas
         self.canvas = self.fbo
-        ret = super(FboFloatLayout, self).add_widget(widget, index, canvas)
+        ret = super(FboFloatLayout, self).add_widget(*args, **kwargs)
         self.canvas = _canvas
         return ret
 

@@ -978,7 +978,11 @@ class ScreenManager(FloatLayout):
         if screen == self.current_screen:
             self.current = name
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `screen` to `widget`.
+        '''
         if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')

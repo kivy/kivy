@@ -557,8 +557,8 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def restore_viewport(self):
         pass
 
-    def add_widget(self, widget, index=0, canvas=None):
-        super(RecycleView, self).add_widget(widget, index, canvas)
+    def add_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).add_widget(widget, *args, **kwargs)
         if (isinstance(widget, RecycleLayoutManagerBehavior) and
                 not self.layout_manager):
             self.layout_manager = widget

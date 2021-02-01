@@ -264,10 +264,10 @@ class AccordionItem(FloatLayout):
         fbind('title_args', trigger_title)
         trigger_title()
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, *args, **kwargs):
         if self.container is None:
-            return super(AccordionItem, self).add_widget(widget)
-        return self.container.add_widget(widget, index, canvas)
+            return super(AccordionItem, self).add_widget(*args, **kwargs)
+        return self.container.add_widget(*args, **kwargs)
 
     def remove_widget(self, widget):
         if self.container:
