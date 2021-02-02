@@ -30,6 +30,36 @@ class WidgetTestCase(unittest.TestCase):
         except WidgetException:
             pass
 
+    def test_clear_widgets(self):
+        root = self.root
+        self.assertEqual(root.children, [])
+
+        c1 = self.cls()
+        c2 = self.cls()
+        c3 = self.cls()
+        root.add_widget(c1, index=0)
+        root.add_widget(c2, index=1)
+        root.add_widget(c3, index=2)
+        self.assertEqual(root.children, [c1, c2, c3])
+
+        root.clear_widgets([c2])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets([])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets()
+        self.assertEqual(root.children, [])
+
+    def test_clear_widgets_children(self):
+        root = self.root
+        for _ in range(10):
+            root.add_widget(self.cls())
+        self.assertEqual(len(root.children), 10)
+
+        root.clear_widgets(root.children)
+        self.assertEqual(root.children, [])
+
     def test_position(self):
         wid = self.root
         wid.x = 50
