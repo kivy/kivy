@@ -234,9 +234,6 @@ class Bubble(GridLayout):
         if self.content:
             self.content.clear_widgets(children)
 
-    def _super_clear_widgets(self):
-        super(Bubble, self).clear_widgets()
-
     def on_show_arrow(self, instance, value):
         self._arrow_img.opacity = int(value)
 
@@ -301,7 +298,7 @@ class Bubble(GridLayout):
         self_arrow_layout.clear_widgets()
         self_arrow_img = self._arrow_img
         self._sctr = self._arrow_img
-        self._super_clear_widgets()
+        super(Bubble, self).clear_widgets()
         self_content.parent = None
 
         self_arrow_img.size_hint = (1, None)

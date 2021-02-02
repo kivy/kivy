@@ -1025,7 +1025,7 @@ class ScreenManager(FloatLayout):
         .. versionchanged:: 2.1.0
             Renamed argument `screens` to `children`.
         '''
-        if not children:
+        if children is None:
             # iterate over a copy of screens, as self.remove_widget
             # modifies self.screens in place
             children = self.screens[:]
