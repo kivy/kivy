@@ -47,6 +47,14 @@ class WidgetTestCase(unittest.TestCase):
         root.clear_widgets()
         self.assertEqual(root.children, [])
 
+    def test_clear_widgets_children(self):
+        root = self.root
+        for _ in range(10):
+            root.add_widget(self.cls())
+        self.assertEqual(len(root.children), 10)
+
+        root.clear_widgets(root.children)
+        self.assertEqual(root.children, [])
     def test_position(self):
         wid = self.root
         wid.x = 50
