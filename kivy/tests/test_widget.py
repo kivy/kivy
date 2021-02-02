@@ -31,7 +31,7 @@ class WidgetTestCase(unittest.TestCase):
             pass
 
     def test_clear_widgets(self):
-        root = self.root
+        root = self.cls()
         self.assertEqual(root.children, [])
         c1 = self.cls()
         c2 = self.cls()
