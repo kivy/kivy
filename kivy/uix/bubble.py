@@ -220,15 +220,15 @@ class Bubble(GridLayout):
         else:
             content.add_widget(widget, *args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         content = self.content
         if not content:
             return
         if widget == content or widget == self._arrow_img\
                 or widget == self._arrow_layout:
-            super(Bubble, self).remove_widget(widget)
+            super(Bubble, self).remove_widget(widget, *args, **kwargs)
         else:
-            content.remove_widget(widget)
+            content.remove_widget(widget, *args, **kwargs)
 
     def clear_widgets(self, children=None):
         if self.content:

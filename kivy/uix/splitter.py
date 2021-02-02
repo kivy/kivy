@@ -247,8 +247,8 @@ class Splitter(BoxLayout):
         super(Splitter, self).add_widget(widget, index, *args, **kwargs)
         self.on_sizable_from(self, self.sizable_from)
 
-    def remove_widget(self, widget):
-        super(Splitter, self).remove_widget(widget)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(Splitter, self).remove_widget(widget, *args, **kwargs)
         if widget == self._container:
             self._container = None
 

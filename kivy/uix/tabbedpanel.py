@@ -209,13 +209,13 @@ class TabbedPanelItem(TabbedPanelHeader):
         if panel.current_tab == self:
             panel.switch_to(self)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, *args, **kwargs):
         self.content = None
         if not self.parent:
             return
         panel = self.parent.tabbed_panel
         if panel.current_tab == self:
-            panel.remove_widget(widget)
+            panel.remove_widget(*args, **kwargs)
 
 
 class TabbedPanelStrip(GridLayout):
@@ -553,12 +553,12 @@ class TabbedPanel(GridLayout):
             content.disabled = self.current_tab.disabled
             content.add_widget(widget, *args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         content = self.content
         if content is None:
             return
         if widget in (content, self._tab_layout):
-            super(TabbedPanel, self).remove_widget(widget)
+            super(TabbedPanel, self).remove_widget(widget, *args, **kwargs)
         elif isinstance(widget, TabbedPanelHeader):
             if not (self.do_default_tab and widget is self._default_tab):
                 self_tabs = self._tab_strip
@@ -574,7 +574,7 @@ class TabbedPanel(GridLayout):
             if widget in self._childrens:
                 self._childrens.remove(widget)
             if widget in content.children:
-                content.remove_widget(widget)
+                content.remove_widget(widget, *args, **kwargs)
 
     def clear_widgets(self, children=None):
         if self.content:

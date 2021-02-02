@@ -618,8 +618,8 @@ class ActionView(BoxLayout):
         if self.overflow_group:
             self.overflow_group.use_separator = value
 
-    def remove_widget(self, widget):
-        super(ActionView, self).remove_widget(widget)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(ActionView, self).remove_widget(widget, *args, **kwargs)
         if isinstance(widget, ActionOverflow):
             for item in widget.list_action_item:
                 if item in self._list_action_items:

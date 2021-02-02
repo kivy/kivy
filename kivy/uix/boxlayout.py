@@ -326,6 +326,6 @@ class BoxLayout(Layout):
         widget.fbind('pos_hint', self._trigger_layout)
         return super(BoxLayout, self).add_widget(widget, *args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         widget.funbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).remove_widget(widget)
+        return super(BoxLayout, self).remove_widget(widget, *args, **kwargs)

@@ -1000,7 +1000,7 @@ class ScreenManager(FloatLayout):
         if self.current is None:
             self.current = widget.name
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager uses remove_widget only for removing Screens.')

@@ -652,7 +652,7 @@ class Carousel(StencilView):
         else:
             self.slides.append(widget)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         # XXX be careful, the widget.parent refer to the RelativeLayout
         # added in add_widget(). But it will break if RelativeLayout
         # implementation change.
@@ -663,9 +663,10 @@ class Carousel(StencilView):
                 self.index = max(0, self.index - 1)
             container = widget.parent
             slides.remove(widget)
-            super(Carousel, self).remove_widget(container)
+            super(Carousel, self).remove_widget(container, *args, **kwargs)
             container.remove_widget(widget)
-        super(Carousel, self).remove_widget(widget)
+            return
+        super(Carousel, self).remove_widget(widget, *args, **kwargs)
 
     def clear_widgets(self, children=None):
         # `children` must be a list of slides or None

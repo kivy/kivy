@@ -269,10 +269,10 @@ class AccordionItem(FloatLayout):
             return super(AccordionItem, self).add_widget(*args, **kwargs)
         return self.container.add_widget(*args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, *args, **kwargs):
         if self.container:
-            self.container.remove_widget(widget)
-        super(AccordionItem, self).remove_widget(widget)
+            self.container.remove_widget(*args, **kwargs)
+        super(AccordionItem, self).remove_widget(*args, **kwargs)
 
     def on_collapse(self, instance, value):
         accordion = self.accordion

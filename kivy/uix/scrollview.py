@@ -1157,10 +1157,10 @@ class ScrollView(StencilView):
                     size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         canvas = self.canvas
         self.canvas = self.canvas_viewport
-        super(ScrollView, self).remove_widget(widget)
+        super(ScrollView, self).remove_widget(widget, *args, **kwargs)
         self.canvas = canvas
         if widget is self._viewport:
             self._viewport = None

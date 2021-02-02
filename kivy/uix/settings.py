@@ -874,8 +874,8 @@ class ContentPanel(ScrollView):
         else:
             self.container.add_widget(*args, **kwargs)
 
-    def remove_widget(self, widget):
-        self.container.remove_widget(widget)
+    def remove_widget(self, *args, **kwargs):
+        self.container.remove_widget(*args, **kwargs)
 
 
 class Settings(BoxLayout):

@@ -563,8 +563,8 @@ class RecycleView(RecycleViewBehavior, ScrollView):
                 not self.layout_manager):
             self.layout_manager = widget
 
-    def remove_widget(self, widget):
-        super(RecycleView, self).remove_widget(widget)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).remove_widget(widget, *args, **kwargs)
         if self.layout_manager == widget:
             self.layout_manager = None
 
