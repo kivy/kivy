@@ -76,8 +76,8 @@ class ScatterLayout(Scatter):
     def remove_widget(self, *args, **kwargs):
         self.content.remove_widget(*args, **kwargs)
 
-    def clear_widgets(self, children=None):
-        self.content.clear_widgets(children)
+    def clear_widgets(self, *args, **kwargs):
+        self.content.clear_widgets(*args, **kwargs)
 
 
 class ScatterPlaneLayout(ScatterPlane):

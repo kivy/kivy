@@ -576,9 +576,9 @@ class TabbedPanel(GridLayout):
             if widget in content.children:
                 content.remove_widget(widget, *args, **kwargs)
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, *args, **kwargs):
         if self.content:
-            self.content.clear_widgets(children)
+            self.content.clear_widgets(*args, **kwargs)
 
     def on_strip_image(self, instance, value):
         if not self._tab_layout:

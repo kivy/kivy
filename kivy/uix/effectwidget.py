@@ -764,9 +764,9 @@ class EffectWidget(RelativeLayout):
         super(EffectWidget, self).remove_widget(*args, **kwargs)
         self.canvas = c
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, *args, **kwargs):
         # Clear widgets from our Fbo instead of the normal canvas
         c = self.canvas
         self.canvas = self.fbo
-        super(EffectWidget, self).clear_widgets(children)
+        super(EffectWidget, self).clear_widgets(*args, **kwargs)
         self.canvas = c

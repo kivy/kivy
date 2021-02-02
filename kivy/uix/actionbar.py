@@ -475,8 +475,8 @@ class ActionGroup(ActionItem, Button):
             item.inside_group = True
             self._dropdown.add_widget(item)
 
-    def clear_widgets(self, children=None):
-        self._dropdown.clear_widgets(children)
+    def clear_widgets(self, *args, **kwargs):
+        self._dropdown.clear_widgets(*args, **kwargs)
 
 
 class ActionOverflow(ActionGroup):

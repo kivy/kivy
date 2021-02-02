@@ -1020,7 +1020,7 @@ class ScreenManager(FloatLayout):
         widget.unbind(name=self._screen_name_changed)
         self.screens.remove(widget)
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, children=None, *args, **kwargs):
         '''
         .. versionchanged:: 2.1.0
             Renamed argument `screens` to `children`.

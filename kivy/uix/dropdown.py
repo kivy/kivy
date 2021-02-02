@@ -291,10 +291,10 @@ class DropDown(ScrollView):
             return self.container.remove_widget(*args, **kwargs)
         return super(DropDown, self).remove_widget(*args, **kwargs)
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, *args, **kwargs):
         if self.container:
-            return self.container.clear_widgets(children)
-        return super(DropDown, self).clear_widgets(children)
+            return self.container.clear_widgets(*args, **kwargs)
+        return super(DropDown, self).clear_widgets(*args, **kwargs)
 
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)

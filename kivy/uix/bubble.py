@@ -230,9 +230,9 @@ class Bubble(GridLayout):
         else:
             content.remove_widget(widget, *args, **kwargs)
 
-    def clear_widgets(self, children=None):
+    def clear_widgets(self, *args, **kwargs):
         if self.content:
-            self.content.clear_widgets(children)
+            self.content.clear_widgets(*args, **kwargs)
 
     def on_show_arrow(self, instance, value):
         self._arrow_img.opacity = int(value)
