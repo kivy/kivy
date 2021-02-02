@@ -266,12 +266,14 @@ class AccordionItem(FloatLayout):
 
     def add_widget(self, *args, **kwargs):
         if self.container is None:
-            return super(AccordionItem, self).add_widget(*args, **kwargs)
-        return self.container.add_widget(*args, **kwargs)
+            super(AccordionItem, self).add_widget(*args, **kwargs)
+            return
+        self.container.add_widget(*args, **kwargs)
 
     def remove_widget(self, *args, **kwargs):
         if self.container:
             self.container.remove_widget(*args, **kwargs)
+            return
         super(AccordionItem, self).remove_widget(*args, **kwargs)
 
     def on_collapse(self, instance, value):
@@ -373,8 +375,7 @@ class Accordion(Widget):
         if not isinstance(widget, AccordionItem):
             raise AccordionException('Accordion accept only AccordionItem')
         widget.accordion = self
-        ret = super(Accordion, self).add_widget(widget, *args, **kwargs)
-        return ret
+        super(Accordion, self).add_widget(widget, *args, **kwargs)
 
     def select(self, instance):
         if instance not in self.children:
