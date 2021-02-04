@@ -281,20 +281,20 @@ class DropDown(ScrollView):
     def on_select(self, data):
         pass
 
-    def add_widget(self, *largs):
+    def add_widget(self, *args, **kwargs):
         if self.container:
-            return self.container.add_widget(*largs)
-        return super(DropDown, self).add_widget(*largs)
+            return self.container.add_widget(*args, **kwargs)
+        return super(DropDown, self).add_widget(*args, **kwargs)
 
-    def remove_widget(self, *largs):
+    def remove_widget(self, *args, **kwargs):
         if self.container:
-            return self.container.remove_widget(*largs)
-        return super(DropDown, self).remove_widget(*largs)
+            return self.container.remove_widget(*args, **kwargs)
+        return super(DropDown, self).remove_widget(*args, **kwargs)
 
-    def clear_widgets(self):
+    def clear_widgets(self, *args, **kwargs):
         if self.container:
-            return self.container.clear_widgets()
-        return super(DropDown, self).clear_widgets()
+            return self.container.clear_widgets(*args, **kwargs)
+        return super(DropDown, self).clear_widgets(*args, **kwargs)
 
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)

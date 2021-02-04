@@ -121,7 +121,7 @@ class Sandbox(FloatLayout):
 
     @sandbox
     def clear_widgets(self, *args, **kwargs):
-        self._container.clear_widgets()
+        self._container.clear_widgets(*args, **kwargs)
 
     @sandbox
     def on_size(self, *args):

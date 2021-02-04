@@ -1145,25 +1145,22 @@ class ScrollView(StencilView):
     def _change_bar_color(self, inst, value):
         self._bar_color = value
 
-    #
-    # Private
-    #
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, *args, **kwargs):
         if self._viewport:
             raise Exception('ScrollView accept only one widget')
         canvas = self.canvas
         self.canvas = self.canvas_viewport
-        super(ScrollView, self).add_widget(widget, index)
+        super(ScrollView, self).add_widget(widget, *args, **kwargs)
         self.canvas = canvas
         self._viewport = widget
         widget.bind(size=self._trigger_update_from_scroll,
                     size_hint_min=self._trigger_update_from_scroll)
         self._trigger_update_from_scroll()
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         canvas = self.canvas
         self.canvas = self.canvas_viewport
-        super(ScrollView, self).remove_widget(widget)
+        super(ScrollView, self).remove_widget(widget, *args, **kwargs)
         self.canvas = canvas
         if widget is self._viewport:
             self._viewport = None

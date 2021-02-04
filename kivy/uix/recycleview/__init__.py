@@ -557,14 +557,14 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def restore_viewport(self):
         pass
 
-    def add_widget(self, widget, *largs):
-        super(RecycleView, self).add_widget(widget, *largs)
+    def add_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).add_widget(widget, *args, **kwargs)
         if (isinstance(widget, RecycleLayoutManagerBehavior) and
                 not self.layout_manager):
             self.layout_manager = widget
 
-    def remove_widget(self, widget, *largs):
-        super(RecycleView, self).remove_widget(widget, *largs)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).remove_widget(widget, *args, **kwargs)
         if self.layout_manager == widget:
             self.layout_manager = None
 
