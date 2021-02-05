@@ -64,7 +64,7 @@ You can call a function or a method every X times per second using
 function named my_callback 30 times per second::
 
     def my_callback(dt):
-        print 'My callback is called', dt
+        print('My callback is called', dt)
     event = Clock.schedule_interval(my_callback, 1 / 30.)
 
 You have multiple ways of unscheduling a previously scheduled event. One, is
@@ -84,9 +84,9 @@ unscheduled::
         global count
         count += 1
         if count == 10:
-            print 'Last call of my callback, bye bye !'
+            print('Last call of my callback, bye bye !')
             return False
-        print 'My callback is called'
+        print('My callback is called')
     Clock.schedule_interval(my_callback, 1 / 30.)
 
 
@@ -97,7 +97,7 @@ Using :meth:`~kivy.clock.Clock.schedule_once`, you can call a function "later",
 like in the next frame, or in X seconds::
 
     def my_callback(dt):
-        print 'My callback is called !'
+        print('My callback is called !')
     Clock.schedule_once(my_callback, 1)
 
 This will call ``my_callback`` in one second. The second argument is the amount
@@ -117,7 +117,7 @@ inside the callback itself::
 
 
     def my_callback(dt):
-        print 'My callback is called !'
+        print('My callback is called !')
         Clock.schedule_once(my_callback, 1)
     Clock.schedule_once(my_callback, 1)
 
@@ -188,7 +188,7 @@ See the following example::
             self.dispatch('on_test', value)
 
         def on_test(self, *args):
-            print "I am dispatched", args
+            print("I am dispatched", args)
 
 
 Attaching callbacks
@@ -205,7 +205,7 @@ the arguments that the event emits. For this, it's usually safest to accept the
 Example::
 
     def my_callback(value, *args):
-        print "Hello, I got an event!", args
+        print("Hello, I got an event!", args)
 
 
     ev = MyEventDispatcher()
@@ -283,7 +283,7 @@ For example, consider the following code:
             return super(CustomBtn, self).on_touch_down(touch)
 
         def on_pressed(self, instance, pos):
-            print ('pressed at {pos}'.format(pos=pos))
+            print('pressed at {pos}'.format(pos=pos))
 
 In the code above at line 3::
 
@@ -315,7 +315,7 @@ to continue as it would normally have occurred.
 Finally on line 11::
 
     def on_pressed(self, instance, pos):
-        print ('pressed at {pos}'.format(pos=pos))
+        print('pressed at {pos}'.format(pos=pos))
 
 We define an `on_pressed` function that will be called by the property whenever the
 property value is changed.
@@ -349,7 +349,7 @@ For example, consider the following code:
             self.add_widget(Button(text='btn 2'))
 
         def btn_pressed(self, instance, pos):
-            print ('pos: printed from root widget: {pos}'.format(pos=.pos))
+            print('pos: printed from root widget: {pos}'.format(pos=.pos))
 
 If you run the code as is, you will notice two print statements in the console.
 One from the `on_pressed` event that is called inside the `CustomBtn` class and
@@ -375,7 +375,7 @@ function is defined. You can use an in-line function as follows:
     cb = CustomBtn()
 
     def _local_func(instance, pos):
-        print ('pos: printed from root widget: {pos}'.format(pos=pos))
+        print('pos: printed from root widget: {pos}'.format(pos=pos))
 
     cb.bind(pressed=_local_func)
     self.add_widget(cb)
@@ -408,7 +408,7 @@ use to copy and paste into an editor to experiment.
             self.add_widget(Button(text='btn 2'))
 
         def btn_pressed(self, instance, pos):
-            print ('pos: printed from root widget: {pos}'.format(pos=pos))
+            print('pos: printed from root widget: {pos}'.format(pos=pos))
 
     class CustomBtn(Widget):
 
@@ -423,7 +423,7 @@ use to copy and paste into an editor to experiment.
             return super(CustomBtn, self).on_touch_down(touch)
 
         def on_pressed(self, instance, pos):
-            print ('pressed at {pos}'.format(pos=pos))
+            print('pressed at {pos}'.format(pos=pos))
 
     class TestApp(App):
 

@@ -178,7 +178,7 @@ class UtilsTest(unittest.TestCase):
     def fib_100(self):
         """ return 100th Fibonacci number
         This uses modern view of F sub 1 = 0, F sub 2 = 1. """
-        # print "calculating..."
+        # print("calculating...")
         a, b = 0, 1
         for n in range(2, 101):
             a, b = b, a + b

@@ -1386,7 +1386,7 @@ cdef class SmoothLine(Line):
             osin1 = sin(a1) * owidth
             ocos2 = cos(a2) * owidth
             osin2 = sin(a2) * owidth
-            print 'angle diff', ad_angle
+            print('angle diff', ad_angle)
             '''
             #l = width
             #ol = owidth
@@ -1411,7 +1411,7 @@ cdef class SmoothLine(Line):
                     bx + cos(la2) * width,
                     by + sin(la2) * width,
                     &rx, &ry) == 0:
-                    #print 'ERROR LINE INTERSECTION 1'
+                    # print('ERROR LINE INTERSECTION 1')
                     pass
 
                 l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
@@ -1426,7 +1426,7 @@ cdef class SmoothLine(Line):
                     bx + cos(ra2) * owidth,
                     by + sin(ra2) * owidth,
                     &rx, &ry) == 0:
-                    #print 'ERROR LINE INTERSECTION 2'
+                    # print('ERROR LINE INTERSECTION 2')
                     pass
 
                 ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
@@ -1538,7 +1538,7 @@ cdef class SmoothLine(Line):
             tindices[17] = i7
             tindices = tindices + 18
 
-        #print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
+        # print('tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short))
 
 
         self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
