@@ -308,6 +308,98 @@ class LangTestCase(unittest.TestCase):
         assert root.text == 'é 😊'
         os.close(fd)
 
+    def test_bind_fstring(self):
+        from kivy.lang import Builder
+        label = Builder.load_string(dedent('''
+        <TestLabel@Label>:
+            text: f'{self.pos}|{self.size}'
+        TestLabel:
+        '''))
+        assert label.text == '[0, 0]|[100, 100]'
+        label.pos = 150, 200
+        assert label.text == '[150, 200]|[100, 100]'
+
+    def test_bind_fstring_reference(self):
+        from kivy.lang import Builder
+        root = Builder.load_string(dedent('''
+        FloatLayout:
+            Label:
+                id: original
+                text: 'perfect'
+            Label:
+                id: duplicate
+                text: f'{original.text}'
+        '''))
+        assert root.ids.duplicate.text == 'perfect'
+        root.ids.original.text = 'new text'
+        assert root.ids.duplicate.text == 'new text'
+
+    def test_bind_fstring_expressions(self):
+        from kivy.lang import Builder
+        root = Builder.load_string(dedent('''
+        FloatLayout:
+            Label:
+                id: original
+                text: 'perfect'
+            Label:
+                id: target1
+                text: f"{' '.join(p.upper() for p in original.text)}"
+            Label:
+                id: target2
+                text: f"{''.join(sorted({p.upper() for p in original.text}))}"
+            Label:
+                id: target3
+                text: f"{'odd' if len(original.text) % 2 else 'even'}"
+            Label:
+                id: target4
+                text: f"{original.text[len(original.text) // 2:]}"
+            Label:
+                id: target5
+                text: f"{not len(original.text) % 2}"
+            Label:
+                id: target6
+                text: f"{original.text}" + " some text"
+        '''))
+        assert root.ids.target1.text == 'P E R F E C T'
+        assert root.ids.target2.text == 'CEFPRT'
+        assert root.ids.target3.text == 'odd'
+        assert root.ids.target4.text == 'fect'
+        assert root.ids.target5.text == 'False'
+        assert root.ids.target6.text == 'perfect some text'
+        root.ids.original.text = 'new text'
+        assert root.ids.target1.text == 'N E W   T E X T'
+        assert root.ids.target2.text == ' ENTWX'
+        assert root.ids.target3.text == 'even'
+        assert root.ids.target4.text == 'text'
+        assert root.ids.target5.text == 'True'
+        assert root.ids.target6.text == 'new text some text'
+
+    def test_bind_fstring_expressions_should_not_bind(self):
+        from kivy.lang import Builder
+        root = Builder.load_string(dedent('''
+        FloatLayout:
+            Label:
+                id: original
+                text: 'perfect'
+            Label:
+                id: target1
+                text: f"{' '.join([original.text for _ in range(2)])}"
+            Label:
+                id: target2
+                text: f"{original.text.upper()}"
+            Label:
+                id: target3
+                text: f"{sum(obj.width for obj in root.children)}"
+        '''))
+        assert root.ids.target1.text == ' '
+        assert root.ids.target2.text == ''
+        assert root.ids.target3.text == '400'
+        root.ids.original.text = 'new text'
+        root.ids.original.width = 0
+        assert root.ids.target1.text == ' '
+        assert root.ids.target2.text == ''
+        assert root.ids.target3.text == '400'
+
 
 if __name__ == '__main__':
     unittest.main()
