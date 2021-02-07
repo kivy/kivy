@@ -7,6 +7,7 @@ import unittest
 import os
 from weakref import proxy
 from functools import partial
+from textwrap import dedent
 
 
 class BaseClass(object):
@@ -76,9 +77,9 @@ class LangTestCase(unittest.TestCase):
         Builder = self.import_builder()
         from kivy.lang import ParserException
         try:
-            Builder.load_string('''#:kivy 1.0
+            Builder.load_string(dedent('''#:kivy 1.0
             <TLangClass>:
-            ''')
+            '''))
             self.fail('Invalid indentation.')
         except ParserException:
             pass
@@ -99,12 +100,12 @@ class LangTestCase(unittest.TestCase):
 
     def test_references(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
-    textinput: textinput
-    TLangClass2:
-        id: textinput
-        ''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+            textinput: textinput
+            TLangClass2:
+                id: textinput
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
 
@@ -113,16 +114,16 @@ class LangTestCase(unittest.TestCase):
 
     def test_references_with_template(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-[Item@TLangClass3]:
-    title: ctx.title
-<TLangClass>:
-    textinput: textinput
-    Item:
-        title: 'bleh'
-    TLangClass2:
-        id: textinput
-        ''')
+        Builder.load_string(dedent('''
+        [Item@TLangClass3]:
+            title: ctx.title
+        <TLangClass>:
+            textinput: textinput
+            Item:
+                title: 'bleh'
+            TLangClass2:
+                id: textinput
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
 
@@ -131,16 +132,16 @@ class LangTestCase(unittest.TestCase):
 
     def test_references_with_template_case_2(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-[Item@TLangClass3]:
-    title: ctx.title
-<TLangClass>:
-    textinput: textinput
-    TLangClass2:
-        id: textinput
-        Item:
-            title: 'bleh'
-        ''')
+        Builder.load_string(dedent('''
+        [Item@TLangClass3]:
+            title: ctx.title
+        <TLangClass>:
+            textinput: textinput
+            TLangClass2:
+                id: textinput
+                Item:
+                    title: 'bleh'
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
 
@@ -149,18 +150,18 @@ class LangTestCase(unittest.TestCase):
 
     def test_references_with_template_case_3(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-[Item@TLangClass3]:
-    title: ctx.title
-<TLangClass>:
-    textinput: textinput
-    TLangClass2:
-        Item:
-            title: 'bleh'
-        TLangClass2:
+        Builder.load_string(dedent('''
+        [Item@TLangClass3]:
+            title: ctx.title
+        <TLangClass>:
+            textinput: textinput
             TLangClass2:
-                id: textinput
-        ''')
+                Item:
+                    title: 'bleh'
+                TLangClass2:
+                    TLangClass2:
+                        id: textinput
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
 
@@ -169,13 +170,13 @@ class LangTestCase(unittest.TestCase):
 
     def test_with_multiline(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
-    on_press:
-        print('hello world')
-        print('this is working !')
-        self.a = 1
-''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+            on_press:
+                print('hello world')
+                print('this is working !')
+                self.a = 1
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
@@ -186,13 +187,13 @@ class LangTestCase(unittest.TestCase):
 
     def test_with_eight_spaces(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
-        on_press:
-                print('hello world')
-                print('this is working !')
-                self.a = 1
-''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+                on_press:
+                        print('hello world')
+                        print('this is working !')
+                        self.a = 1
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
@@ -203,13 +204,13 @@ class LangTestCase(unittest.TestCase):
 
     def test_with_one_space(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
- on_press:
-  print('hello world')
-  print('this is working !')
-  self.a = 1
-''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+         on_press:
+          print('hello world')
+          print('this is working !')
+          self.a = 1
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
@@ -220,13 +221,13 @@ class LangTestCase(unittest.TestCase):
 
     def test_with_two_spaces(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
-  on_press:
-    print('hello world')
-    print('this is working !')
-    self.a = 1
-''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+          on_press:
+            print('hello world')
+            print('this is working !')
+            self.a = 1
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
         wid.a = 0
@@ -237,11 +238,11 @@ class LangTestCase(unittest.TestCase):
 
     def test_property_trailingspace(self):
         Builder = self.import_builder()
-        Builder.load_string('''
-<TLangClass>:
-    text : 'original'
-    on_press : self.text = 'changed'
-''')
+        Builder.load_string(dedent('''
+        <TLangClass>:
+            text : 'original'
+            on_press : self.text = 'changed'
+        '''))
         wid = TLangClass()
         Builder.apply(wid)
 
@@ -263,18 +264,18 @@ class LangTestCase(unittest.TestCase):
         class MyWidget(Widget):
             cheese = MyObject()
 
-        Builder.load_string('''
-<MyWidget>:
-    x: 55
-    y: self.width + 10
-    height: self.cheese.value
-    width: 44
+        Builder.load_string(dedent('''
+        <MyWidget>:
+            x: 55
+            y: self.width + 10
+            height: self.cheese.value
+            width: 44
 
-<MySecondWidget@Widget>:
-    x: 55
-    Widget:
-        x: 23
-''')
+        <MySecondWidget@Widget>:
+            x: 55
+            Widget:
+                x: 23
+        '''))
 
         w = MyWidget(x=22, height=12, y=999)
         self.assertEqual(w.x, 22)
@@ -299,11 +300,10 @@ class LangTestCase(unittest.TestCase):
         from tempfile import mkstemp
         from kivy.lang import Builder
         fd, name = mkstemp()
-        os.write(fd, '''
-
-Label:
-    text: 'é 😊'
-'''.encode('utf8'))
+        os.write(fd, dedent('''
+        Label:
+            text: 'é 😊'
+        ''').encode('utf8'))
         root = Builder.load_file(name)
         assert root.text == 'é 😊'
         os.close(fd)
