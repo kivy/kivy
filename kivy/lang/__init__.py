@@ -176,6 +176,12 @@ the value can use the values of other properties using reserved keywords.
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
+
+.. versionchanged:: 2.1.0
+
+    f-strings are now parsed in value expressions, allowing to bind to the
+    properties that they contain.
+
 .. kv-lang-ids:
 
 ids
