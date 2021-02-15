@@ -564,7 +564,7 @@ cdef class Property:
                 raise e
 
         ps.value = value
-        self.dispatch(obj)
+        self._dispatch(obj, ps)
         return True
 
     cpdef get(self, EventDispatcher obj):
@@ -602,6 +602,9 @@ cdef class Property:
         '''
         return x
 
+    cdef _dispatch(self, EventDispatcher obj, PropertyStorage ps):
+        ps.observers.dispatch(obj, ps.value, None, None, 0)
+
     cpdef dispatch(self, EventDispatcher obj):
         '''Dispatch the value change to all observers.
 
@@ -619,7 +622,7 @@ cdef class Property:
 
         '''
         cdef PropertyStorage ps = self.get_property_storage(obj)
-        ps.observers.dispatch(obj, ps.value, None, None, 0)
+        self._dispatch(obj, ps)
 
 
 cdef class NumericProperty(Property):
@@ -1420,7 +1423,7 @@ cdef class ReferenceListProperty(Property):
                     [prop.get(obj) for prop in p],
                     update_properties=False)
 
-        self.dispatch(obj)
+        self._dispatch(obj, ps)
 
     cdef convert(self, EventDispatcher obj, value, PropertyStorage property_storage):
         tp = type(value)
@@ -1459,7 +1462,7 @@ cdef class ReferenceListProperty(Property):
         except AttributeError:
             ps.value.__setitem__(slice(len(value)), value,
                     update_properties=False)
-        self.dispatch(obj)
+        self._dispatch(obj, ps)
         return True
 
     cpdef setitem(self, EventDispatcher obj, key, value):
@@ -1478,7 +1481,7 @@ cdef class ReferenceListProperty(Property):
             res = prop.set(obj, value)
         ps.stop_event = 0
         if res:
-            self.dispatch(obj)
+            self._dispatch(obj, ps)
 
     cpdef get(self, EventDispatcher obj):
         cdef ReferenceListPropertyStorage ps = self.get_property_storage(obj)
@@ -1627,7 +1630,7 @@ cdef class AliasProperty(Property):
             if self.use_cache:
                 ps.alias_initial = 0
                 ps.value = dvalue
-            self.dispatch(obj)
+            self._dispatch(obj, ps)
 
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         return True
@@ -1648,12 +1651,11 @@ cdef class AliasProperty(Property):
                 if ps.alias_initial:
                     ps.alias_initial = 0
                 ps.value = ps.getter(obj)
-            self.dispatch(obj)
+            self._dispatch(obj, ps)
         elif self.force_dispatch:
-            self.dispatch(obj)
+            self._dispatch(obj, ps)
 
-    cpdef dispatch(self, EventDispatcher obj):
-        cdef AliasPropertyStorage ps = self.get_property_storage(obj)
+    cdef _dispatch(self, EventDispatcher obj, PropertyStorage ps):
         ps.observers.dispatch(obj, self.get(obj), None, None, 0)
 
 
@@ -2103,7 +2105,7 @@ cdef class ConfigParserProperty(Property):
                 if self.config:
                     self.config.set(self.section, self.key, value)
                     self.config.write()
-                self.dispatch(obj)
+                self._dispatch(obj, ps)
                 return True
 
         try:
@@ -2126,7 +2128,7 @@ cdef class ConfigParserProperty(Property):
         if self.config is not None:
             self.config.set(self.section, self.key, value)
             self.config.write()
-        self.dispatch(obj)
+        self._dispatch(obj, ps)
         return True
 
     def set_config(self, config):

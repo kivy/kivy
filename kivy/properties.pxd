@@ -36,6 +36,7 @@ cdef class Property:
     cdef check(self, EventDispatcher obj, x, PropertyStorage property_storage)
     cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage)
     cpdef dispatch(self, EventDispatcher obj)
+    cdef _dispatch(self, EventDispatcher obj, PropertyStorage ps)
 
 
 cdef class NumericPropertyStorage(PropertyStorage):
