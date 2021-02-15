@@ -85,6 +85,44 @@ def test_kv_widget_creation(kivy_benchmark):
     kivy_benchmark(MyWidget)
 
 
+@pytest.mark.parametrize('test_component', ['create', 'set'])
+def test_complex_kv_widget(kivy_benchmark, test_component):
+    from kivy.lang import Builder
+    from kivy.uix.widget import Widget
+
+    class MyWidget(Widget):
+        pass
+
+    Builder.load_string("""
+<MyWidget>:
+    width: 1
+    height: '{}dp'.format(self.width + 1)
+    x: self.height + 1
+    y: self.x + 1
+    size_hint_min: self.size_hint
+    size_hint_max_y: self.size_hint_min_y
+    size_hint_max_x: self.size_hint_min_x
+    opacity: sum(self.size_hint_min) + sum(self.size_hint_max)
+""")
+
+    # create one just so we don't incur loading cost
+    widget = MyWidget()
+    w = 0
+    sh = 0
+
+    def set_value():
+        nonlocal w, sh
+        w += 1
+        sh += 1
+        widget.width = w
+        widget.size_hint = sh, sh
+
+    if test_component == 'create':
+        kivy_benchmark(MyWidget)
+    else:
+        kivy_benchmark(set_value)
+
+
 def get_event_class(name, args, kwargs):
     from kivy.event import EventDispatcher
     import kivy.properties
