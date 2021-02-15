@@ -19,11 +19,14 @@ cdef class Property:
     cdef int deprecated
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cdef PropertyStorage create_property_storage(self)
-    cpdef link(self, EventDispatcher obj, str name)
+    cdef inline PropertyStorage get_property_storage(self, EventDispatcher obj)
+    cpdef link_name(self, EventDispatcher obj, str name)
+    cpdef PropertyStorage link_eagerly(self, EventDispatcher obj)
+    cpdef PropertyStorage link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
     cpdef bind(self, EventDispatcher obj, observer)
     cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=*, dict kwargs=*)
-    cpdef unbind(self, EventDispatcher obj, observer)
+    cpdef unbind(self, EventDispatcher obj, observer, int stop_on_first=*)
     cpdef funbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind_uid(self, EventDispatcher obj, object uid)
     cdef compare_value(self, a, b)
@@ -106,6 +109,7 @@ cdef class AliasPropertyStorage(PropertyStorage):
 cdef class AliasProperty(Property):
     cdef object getter
     cdef object setter
+    cdef int watch_before_use
     cdef list bind_objects
     cdef int use_cache
     cdef public int rebind
