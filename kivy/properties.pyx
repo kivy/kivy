@@ -716,7 +716,7 @@ cdef class NumericProperty(Property):
             ps.original_num = x
             return x
         if tp is str:
-            return self.parse_str(obj, x, ps)
+            return self.parse_str(obj, x)
 
         if tp is tuple or tp is list:
             if len(x) != 2:
@@ -1424,12 +1424,12 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
-        tp = type(value)
-        if tp is not list and tp is not tuple:
-            raise ValueError('%s.%s must be a list or a tuple' % (
+        try:
+            return list(value)
+        except Exception as e:
+            raise ValueError('%s.%s must be a list or a tuple type' % (
                 obj.__class__.__name__,
-                self.name))
-        return list(value)
+                self.name)) from e
 
     cdef check(self, EventDispatcher obj, value):
         cdef ReferenceListPropertyStorage ps = self.get_property_storage(obj)
@@ -1772,53 +1772,54 @@ cdef class VariableListProperty(Property):
         # reset here, it'll be changed in parse is we use anything that is not px
         ps.uses_scaling = 0
         try:
-            if tp is tuple or tp is list:
-                original = list(x)
-                l = len(x)
-                if l == 1:
-                    y = self._convert_numeric(obj, x[0])
-                    if self.length == 4:
-                        return [y, y, y, y]
-                    elif self.length == 2:
-                        return [y, y]
-                elif l == 2:
-                    if x[1] in NUMERIC_FORMATS:
-                        # defaultvalue is a list or tuple representing one value
-                        y = self._convert_numeric(obj, x)
-                        if self.length == 4:
-                            return [y, y, y, y]
-                        elif self.length == 2:
-                            return [y, y]
-                    else:
-                        y = self._convert_numeric(obj, x[0])
-                        z = self._convert_numeric(obj, x[1])
-                        if self.length == 4:
-                            return [y, z, y, z]
-                        elif self.length == 2:
-                            return [y, z]
-                elif l == 4:
-                    if self.length == 4:
-                        return [self._convert_numeric(obj, y) for y in x]
-                    else:
-                        err = '%s.%s must have 1 or 2 components (got %r)'
-                        raise ValueError(err % (obj.__class__.__name__,
-                            self.name, x))
-                else:
-                    if self.length == 4:
-                        err = '%s.%s must have 1, 2 or 4 components (got %r)'
-                    elif self.length == 2:
-                        err = '%s.%s must have 1 or 2 components (got %r)'
-                    raise ValueError(err % (obj.__class__.__name__, self.name, x))
-            elif tp is int or tp is long or tp is float or tp is str:
+            if tp is int or tp is long or tp is float or isinstance(x, str):
                 y = self._convert_numeric(obj, x)
+                if self.length == 4:
+                    return [y, y, y, y]
+                return [y, y]
+
+            try:
+                original = list(x)
+            except Exception as e:
+                raise ValueError('%s.%s has an invalid format (got %r)' % (
+                    obj.__class__.__name__,
+                    self.name, x)) from e
+
+            l = len(original)
+            if l == 1:
+                y = self._convert_numeric(obj, original[0])
                 if self.length == 4:
                     return [y, y, y, y]
                 elif self.length == 2:
                     return [y, y]
+            elif l == 2:
+                if original[1] in NUMERIC_FORMATS:
+                    # defaultvalue is a list or tuple representing one value
+                    y = self._convert_numeric(obj, original)
+                    if self.length == 4:
+                        return [y, y, y, y]
+                    elif self.length == 2:
+                        return [y, y]
+                else:
+                    y = self._convert_numeric(obj, original[0])
+                    z = self._convert_numeric(obj, original[1])
+                    if self.length == 4:
+                        return [y, z, y, z]
+                    elif self.length == 2:
+                        return [y, z]
+            elif l == 4:
+                if self.length == 4:
+                    return [self._convert_numeric(obj, y) for y in original]
+                else:
+                    err = '%s.%s must have 1 or 2 components (got %r)'
+                    raise ValueError(err % (obj.__class__.__name__,
+                        self.name, x))
             else:
-                raise ValueError('%s.%s has an invalid format (got %r)' % (
-                    obj.__class__.__name__,
-                    self.name, x))
+                if self.length == 4:
+                    err = '%s.%s must have 1, 2 or 4 components (got %r)'
+                elif self.length == 2:
+                    err = '%s.%s must have 1 or 2 components (got %r)'
+                raise ValueError(err % (obj.__class__.__name__, self.name, x))
         except BaseException:
             # restore to previous because we won't update the value
             ps.uses_scaling = uses_scaling
@@ -1835,16 +1836,17 @@ cdef class VariableListProperty(Property):
             return x
         if tp is str:
             return self.parse_str(obj, x)
-        if tp is tuple or tp is list:
+
+        try:
             if len(x) != 2:
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], x[1])
-        else:
+        except Exception as e:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
-                self.name, x))
+                self.name, x)) from e
 
     cdef float parse_str(self, EventDispatcher obj, value) except *:
         return self.parse_list(obj, value[:-2], value[-2:])
