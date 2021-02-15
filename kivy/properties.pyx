@@ -396,14 +396,23 @@ cdef class Property:
         return PropertyStorage.__new__(PropertyStorage)
 
     cdef PropertyStorage get_property_storage(self, EventDispatcher obj):
-        cdef PropertyStorage ps = obj.__storage[self._name]
+        cdef PropertyStorage ps = obj.__storage.get(self._name)
         if ps is None:
             self.link(obj, self._name)
             self.link_deps(obj, self._name)
             ps = obj.__storage[self._name]
         return ps
 
-    cpdef link_name(self, EventDispatcher obj, str name):
+    def __set_name__(self, owner, name):
+        if name == 'touch_down' or name == 'touch_move' or name == 'touch_up':
+            raise Exception('The property <%s> has a forbidden name' % name)
+
+        if owner not in cache_properties_per_cls:
+            cache_properties_per_cls[owner] = {}
+        cache_properties_per_cls[owner][name] = self
+        self._name = name
+
+    cpdef set_name(self, EventDispatcher obj, str name):
         cdef PropertyStorage d
         # if for some reason we previously associated this prop with this
         # object, but now we are renaming the prop (why?), re-use the old storage
@@ -421,7 +430,7 @@ cdef class Property:
             # if it was already there, leave it
             obj.__storage[name] = None
 
-        self._name = name
+        self.__set_name__(obj.__class__, name)
 
     cpdef PropertyStorage link_eagerly(self, EventDispatcher obj):
         return None
@@ -447,10 +456,10 @@ cdef class Property:
         '''
         cdef PropertyStorage d
         if not self._name:
-            # support old API that didn't have link_name
-            self.link_name(obj, name)
+            # support old API that didn't have set_name
+            self.set_name(obj, name)
 
-        d = obj.__storage[name]
+        d = obj.__storage.get(name)
         # if we already have an object for this prop, don't create it again
         if d is not None:
             return d

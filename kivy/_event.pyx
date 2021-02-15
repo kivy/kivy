@@ -27,6 +27,7 @@ from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
+cdef dict cache_properties_per_cls = {}
 cdef dict cache_events = {}
 cdef dict cache_events_handlers = {}
 
@@ -159,7 +160,6 @@ cdef class EventDispatcher(ObjectWithUid):
 
     def __cinit__(self, *largs, **kwargs):
         global cache_properties
-        cdef dict cp = cache_properties
         cdef dict attrs_found
         cdef list attrs
         cdef Property attr
@@ -171,24 +171,16 @@ cdef class EventDispatcher(ObjectWithUid):
 
         __cls__ = self.__class__
 
-        if __cls__ not in cp:
-            attrs_found = cp[__cls__] = {}
-            attrs = dir(__cls__)
-            for k in attrs:
-                uattr = getattr(__cls__, k, None)
-                if not isinstance(uattr, Property):
-                    continue
-                if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
-                    raise Exception('The property <%s> has a forbidden name' % k)
-                attrs_found[k] = uattr
+        # the props are filled in by Property.__set_name__
+        if __cls__ not in cache_properties:
+            attrs_found = cache_properties[__cls__] = {
+                name: prop
+                for cls in [__cls__] + list(_get_bases(self.__class__))
+                for name, prop in cache_properties_per_cls.get(cls, {}).items()
+            }
         else:
-            attrs_found = cp[__cls__]
-
+            attrs_found = cache_properties[__cls__]
         self.__properties = attrs_found
-
-        # associate all props with their names
-        for k, attr in attrs_found.items():
-            attr.link_name(self, k)
 
         # now that they have their names, we can link those that need it now
         for k, attr in attrs_found.items():
@@ -879,7 +871,7 @@ cdef class EventDispatcher(ObjectWithUid):
             prop = cls(*largs, **kwargs)
 
         self.__properties[name] = prop
-        prop.link_name(self, name)
+        prop.set_name(self, name)
         prop.link_eagerly(self)
         setattr(self.__class__, name, prop)
 
@@ -911,7 +903,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef str name
         for name, prop in kwargs.items():
             self.__properties[name] = prop
-            prop.link_name(self, name)
+            prop.set_name(self, name)
             prop.link_eagerly(self)
             setattr(self.__class__, name, prop)
 

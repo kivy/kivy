@@ -1,4 +1,5 @@
-from kivy._event cimport EventDispatcher, EventObservers, BoundCallback
+from kivy._event cimport EventDispatcher, EventObservers, BoundCallback, \
+    cache_properties_per_cls
 from kivy._metrics cimport dpi2px, pixel_scale_observers
 
 cdef class PropertyStorage:
@@ -20,7 +21,7 @@ cdef class Property:
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cdef PropertyStorage create_property_storage(self)
     cdef inline PropertyStorage get_property_storage(self, EventDispatcher obj)
-    cpdef link_name(self, EventDispatcher obj, str name)
+    cpdef set_name(self, EventDispatcher obj, str name)
     cpdef PropertyStorage link_eagerly(self, EventDispatcher obj)
     cpdef PropertyStorage link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
