@@ -33,8 +33,8 @@ cdef class Property:
     cdef compare_value(self, a, b)
     cpdef set(self, EventDispatcher obj, value)
     cpdef get(self, EventDispatcher obj)
-    cdef check(self, EventDispatcher obj, x)
-    cdef convert(self, EventDispatcher obj, x)
+    cdef check(self, EventDispatcher obj, x, PropertyStorage property_storage)
+    cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage)
     cpdef dispatch(self, EventDispatcher obj)
 
 
@@ -44,8 +44,10 @@ cdef class NumericPropertyStorage(PropertyStorage):
 
 
 cdef class NumericProperty(Property):
-    cdef float parse_str(self, EventDispatcher obj, value) except *
-    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
+    cdef float parse_str(
+            self, EventDispatcher obj, value, NumericPropertyStorage ps) except *
+    cdef float parse_list(
+            self, EventDispatcher obj, value, ext, NumericPropertyStorage ps) except *
 
 cdef class StringProperty(Property):
     pass
@@ -124,9 +126,13 @@ cdef class VariableListPropertyStorage(PropertyStorage):
 
 cdef class VariableListProperty(Property):
     cdef public int length
-    cdef _convert_numeric(self, EventDispatcher obj, x)
-    cdef float parse_str(self, EventDispatcher obj, value) except *
-    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
+    cdef _convert_numeric(self, EventDispatcher obj, x, VariableListPropertyStorage ps)
+    cdef float parse_str(
+            self, EventDispatcher obj, value, VariableListPropertyStorage ps
+    ) except *
+    cdef float parse_list(
+            self, EventDispatcher obj, value, ext, VariableListPropertyStorage ps
+    ) except *
 
 
 cdef class ConfigParserProperty(Property):
