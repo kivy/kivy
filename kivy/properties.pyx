@@ -694,7 +694,8 @@ cdef class NumericProperty(Property):
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) not in (int, float, long):
+        tp = type(value)
+        if tp is not int and tp is not float and tp is not long:
             raise ValueError('%s.%s accept only int/float/long (got %r)' % (
                 obj.__class__.__name__,
                 self.name, value))
@@ -714,6 +715,8 @@ cdef class NumericProperty(Property):
             ps.numeric_fmt = 'px'
             ps.original_num = x
             return x
+        if tp is str:
+            return self.parse_str(obj, x, ps)
 
         if tp is tuple or tp is list:
             if len(x) != 2:
@@ -721,8 +724,6 @@ cdef class NumericProperty(Property):
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], x[1])
-        elif isinstance(x, str):
-            return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
@@ -773,6 +774,7 @@ cdef class StringProperty(Property):
             raise ValueError('%s.%s accept only str' % (
                 obj.__class__.__name__,
                 self.name))
+
 
 cdef inline void observable_list_dispatch(object self) except *:
     cdef Property prop = self.prop
@@ -912,6 +914,7 @@ cdef class ListProperty(Property):
         if value is not None:
             value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
+
 
 cdef inline void observable_dict_dispatch(object self) except *:
     cdef Property prop = self.prop
@@ -1068,18 +1071,19 @@ cdef class ObjectProperty(Property):
         `baseclass` parameter added.
     '''
     def __init__(self, defaultvalue=None, rebind=False, **kw):
-        self.baseclass = kw.get('baseclass', object)
+        self.baseclass = kw.get('baseclass')
         super(ObjectProperty, self).__init__(defaultvalue, **kw)
         self.rebind = rebind
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if not isinstance(value, self.baseclass):
+        if self.baseclass is not None and not isinstance(value, self.baseclass):
             raise ValueError('{}.{} accept only object based on {}'.format(
                 obj.__class__.__name__,
                 self.name,
                 self.baseclass.__name__))
+
 
 cdef class BooleanProperty(Property):
     '''Property that represents only a boolean value.
@@ -1420,7 +1424,8 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
 
     cdef convert(self, EventDispatcher obj, value):
-        if not isinstance(value, (list, tuple)):
+        tp = type(value)
+        if tp is not list and tp is not tuple:
             raise ValueError('%s.%s must be a list or a tuple' % (
                 obj.__class__.__name__,
                 self.name))
@@ -1767,7 +1772,7 @@ cdef class VariableListProperty(Property):
         # reset here, it'll be changed in parse is we use anything that is not px
         ps.uses_scaling = 0
         try:
-            if isinstance(x, (list, tuple)):
+            if tp is tuple or tp is list:
                 original = list(x)
                 l = len(x)
                 if l == 1:
@@ -1804,7 +1809,7 @@ cdef class VariableListProperty(Property):
                     elif self.length == 2:
                         err = '%s.%s must have 1 or 2 components (got %r)'
                     raise ValueError(err % (obj.__class__.__name__, self.name, x))
-            elif tp is int or tp is long or tp is float or isinstance(x, str):
+            elif tp is int or tp is long or tp is float or tp is str:
                 y = self._convert_numeric(obj, x)
                 if self.length == 4:
                     return [y, y, y, y]
@@ -1828,14 +1833,14 @@ cdef class VariableListProperty(Property):
         tp = type(x)
         if tp is int or tp is float or tp is long:
             return x
+        if tp is str:
+            return self.parse_str(obj, x)
         if tp is tuple or tp is list:
             if len(x) != 2:
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
             return self.parse_list(obj, x[0], x[1])
-        elif isinstance(x, str):
-            return self.parse_str(obj, x)
         else:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
@@ -2199,7 +2204,7 @@ cdef class ColorProperty(Property):
             return x
         cdef object color = x
         try:
-            if isinstance(x, str):
+            if type(x) is str:
                 color = self.parse_str(obj, x)
             color = self.parse_list(obj, color)
         except (ValueError, TypeError) as e:
