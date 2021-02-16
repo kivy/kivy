@@ -1168,3 +1168,101 @@ def test_property_rename_duplicate():
     assert counter2 == 2
     assert event.a == 14
     assert event.b == 14
+
+
+def test_override_prop_inheritance():
+    from kivy.event import EventDispatcher
+    from kivy.properties import ObjectProperty, AliasProperty
+    counter = 0
+
+    class Parent(EventDispatcher):
+
+        prop = ObjectProperty()
+
+    class Child(Parent):
+
+        def inc(self, *args):
+            nonlocal counter
+            counter += 1
+            return counter
+
+        prop = AliasProperty(inc)
+
+    parent = Parent()
+    child = Child()
+
+    parent.prop = 44
+    assert parent.prop == 44
+    assert counter == 0
+    assert child.prop == 1
+    assert counter == 1
+    assert parent.prop == 44
+    assert isinstance(parent.property('prop'), ObjectProperty)
+    assert isinstance(child.property('prop'), AliasProperty)
+
+
+@pytest.mark.parametrize('by_val', [True, False])
+def test_manually_create_property(by_val):
+    from kivy.event import EventDispatcher
+    from kivy.properties import StringProperty
+
+    class Event(EventDispatcher):
+        pass
+
+    event = Event()
+    assert not hasattr(event, 'a')
+    if by_val:
+        event.create_property('a', 'hello')
+    else:
+        event.apply_property(a=StringProperty('hello'))
+    args = 0
+
+    def callback(obj, val):
+        nonlocal args
+        args = obj, val
+
+    event.fbind('a', callback)
+    assert event.a == 'hello'
+    event.a = 'bye'
+    assert event.a == 'bye'
+    assert args == (event, 'bye')
+
+    event2 = Event()
+    assert event2.a == 'hello'
+    event2.fbind('a', callback)
+    event2.a = 'goodbye'
+    assert event2.a == 'goodbye'
+    assert args == (event2, 'goodbye')
+
+
+def test_inherit_property():
+    from kivy.event import EventDispatcher
+    from kivy.properties import StringProperty
+
+    class Event(EventDispatcher):
+
+        a = StringProperty('hello')
+
+    class Event2(Event):
+
+        b = StringProperty('hello2')
+
+    event = Event2()
+    args = 0
+
+    def callback(obj, val):
+        nonlocal args
+        args = obj, val
+
+    event.fbind('a', callback)
+    event.fbind('b', callback)
+    assert event.a == 'hello'
+    assert event.b == 'hello2'
+
+    event.a = 'bye'
+    assert event.a == 'bye'
+    assert args == (event, 'bye')
+
+    event.b = 'goodbye'
+    assert event.b == 'goodbye'
+    assert args == (event, 'goodbye')
