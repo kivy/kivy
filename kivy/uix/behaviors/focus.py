@@ -531,7 +531,9 @@ class FocusBehavior(object):
         key was consumed.
         '''
         if keycode[1] == 'tab':  # deal with cycle
-            if ['shift'] == modifiers:
+            if {'ctrl', 'alt', 'meta', 'super', 'compose'} & modifiers:
+                return False
+            if 'shift' in modifiers:
                 next = self.get_focus_previous()
             else:
                 next = self.get_focus_next()
