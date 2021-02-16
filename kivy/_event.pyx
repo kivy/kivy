@@ -31,14 +31,6 @@ cdef dict cache_properties_per_cls = {}
 cdef dict cache_events = {}
 cdef dict cache_events_handlers = {}
 
-def _get_bases(cls):
-    for base in cls.__bases__:
-        if base.__name__ == 'object':
-            break
-        yield base
-        for cbase in _get_bases(base):
-            yield cbase
-
 
 cdef class ObjectWithUid(object):
     '''
@@ -171,11 +163,13 @@ cdef class EventDispatcher(ObjectWithUid):
 
         __cls__ = self.__class__
 
-        # the props are filled in by Property.__set_name__
+        # the props are filled in by Property.__set_name__. If we have properties
+        # with same name declared in different sub-classes, the one soonest in
+        # the mro wins, so we must compile props in reverse mro order so earliest wins
         if __cls__ not in cache_properties:
             attrs_found = cache_properties[__cls__] = {
                 name: prop
-                for cls in [__cls__] + list(_get_bases(self.__class__))
+                for cls in reversed(__cls__.__mro__)
                 for name, prop in cache_properties_per_cls.get(cls, {}).items()
             }
         else:
@@ -194,9 +188,8 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef list events
         cdef basestring event
         if __cls__ not in ce:
-            classes = [__cls__] + list(_get_bases(self.__class__))
             events = []
-            for cls in classes:
+            for cls in __cls__.__mro__:
                 if not hasattr(cls, '__events__'):
                     continue
                 for event in cls.__events__:
@@ -574,7 +567,7 @@ cdef class EventDispatcher(ObjectWithUid):
             prop = self.__properties.get(name)
             if prop is None:
                 return 0
-            prop.fbind(self, func, kwargs.pop('ref', False), largs, kwargs)
+            return prop.fbind(self, func, kwargs.pop('ref', False), largs, kwargs)
 
     def funbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fbind`.
