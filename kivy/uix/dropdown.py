@@ -321,7 +321,7 @@ class DropDown(ScrollView):
         # coordinate system
         win = self._win
         widget = self.attach_to
-        if not widget or not win:
+        if not widget or not widget.parent or not win:
             return
         wx, wy = widget.to_window(*widget.pos)
         wright, wtop = widget.to_window(widget.right, widget.top)
