@@ -978,53 +978,60 @@ class ScreenManager(FloatLayout):
         if screen == self.current_screen:
             self.current = name
 
-    def add_widget(self, screen):
-        if not isinstance(screen, Screen):
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `screen` to `widget`.
+        '''
+        if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager accepts only Screen widget.')
-        if screen.manager:
-            if screen.manager is self:
+        if widget.manager:
+            if widget.manager is self:
                 raise ScreenManagerException(
                     'Screen already managed by this ScreenManager (are you '
                     'calling `switch_to` when you should be setting '
                     '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
-        screen.manager = self
-        screen.bind(name=self._screen_name_changed)
-        self.screens.append(screen)
+        widget.manager = self
+        widget.bind(name=self._screen_name_changed)
+        self.screens.append(widget)
         if self.current is None:
-            self.current = screen.name
+            self.current = widget.name
 
-    def remove_widget(self, *l):
-        screen = l[0]
-        if not isinstance(screen, Screen):
+    def remove_widget(self, widget, *args, **kwargs):
+        if not isinstance(widget, Screen):
             raise ScreenManagerException(
                 'ScreenManager uses remove_widget only for removing Screens.')
 
-        if screen not in self.screens:
+        if widget not in self.screens:
             return
 
-        if self.current_screen == screen:
+        if self.current_screen == widget:
             other = next(self)
-            if screen.name == other:
+            if widget.name == other:
                 self.current = None
-                screen.parent.real_remove_widget(screen)
+                widget.parent.real_remove_widget(widget)
             else:
                 self.current = other
 
-        screen.manager = None
-        screen.unbind(name=self._screen_name_changed)
-        self.screens.remove(screen)
+        widget.manager = None
+        widget.unbind(name=self._screen_name_changed)
+        self.screens.remove(widget)
 
-    def clear_widgets(self, screens=None):
-        if screens is None:
-            screens = self.screens
-
-        # iterate over a copy of screens, as self.remove_widget
-        # modifies self.screens in place
-        for screen in screens[:]:
-            self.remove_widget(screen)
+    def clear_widgets(self, children=None, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `screens` to `children`.
+        '''
+        if children is None:
+            # iterate over a copy of screens, as self.remove_widget
+            # modifies self.screens in place
+            children = self.screens[:]
+        remove_widget = self.remove_widget
+        for widget in children:
+            remove_widget(widget)
 
     def real_add_widget(self, screen, *args):
         # ensure screen is removed from its previous parent

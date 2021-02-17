@@ -20,6 +20,7 @@ from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
 from weakref import proxy
+from threading import get_ident
 
 
 cdef int _need_reset_gl = 1
@@ -53,6 +54,11 @@ cdef class Instruction(ObjectWithUid):
         if kwargs.get('noadd'):
             self.flags |= GI_NO_REMOVE
             return
+
+        if verify_gl_main_thread and get_ident() != initialized_tid:
+            raise TypeError("Cannot create graphics instruction outside "
+                            "the main Kivy thread")
+
         self.parent = getActiveCanvas()
         if self.parent:
             self.parent.add(self)
@@ -74,6 +80,12 @@ cdef class Instruction(ObjectWithUid):
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
+
+    cpdef flag_data_update(self):
+        if verify_gl_main_thread and get_ident() != initialized_tid:
+            raise TypeError("Cannot change graphics instruction outside "
+                            "the main Kivy thread")
+        self.flag_update()
 
     cdef void flag_update_done(self):
         self.flags &= ~GI_NEEDS_UPDATE
@@ -121,7 +133,7 @@ cdef class Instruction(ObjectWithUid):
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instructions <Instruction>`. Allows for the adding and
+    '''Group of :class:`Instruction`. Allows for the adding and
     removing of graphics instructions. It can be used directly as follows::
 
         blue = InstructionGroup()
@@ -171,20 +183,20 @@ cdef class InstructionGroup(Instruction):
         '''Add a new :class:`Instruction` to our list.
         '''
         c.radd(self)
-        self.flag_update()
+        self.flag_data_update()
         return
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` into our list at index.
         '''
         c.rinsert(self, index)
-        self.flag_update()
+        self.flag_data_update()
 
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
         c.rremove(self)
-        self.flag_update()
+        self.flag_data_update()
 
     def indexof(self, Instruction c):
         cdef int i
@@ -332,7 +344,7 @@ cdef class VertexInstruction(Instruction):
             self.tex_coords = tex.tex_coords
         else:
             self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def source(self):
@@ -404,7 +416,7 @@ cdef class VertexInstruction(Instruction):
         cdef int index
         for index in xrange(8):
             self._tex_coords[index] = tc[index]
-        self.flag_update()
+        self.flag_data_update()
 
     cdef void build(self):
         pass
@@ -474,7 +486,7 @@ cdef class Callback(Instruction):
 
         .. versionadded:: 1.0.4
         '''
-        self.flag_update()
+        self.flag_data_update()
 
     cdef int apply(self) except -1:
         cdef RenderContext rcx
@@ -542,7 +554,7 @@ cdef class Callback(Instruction):
         if self._reset_context == ivalue:
             return
         self._reset_context = ivalue
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def callback(self):
@@ -555,7 +567,7 @@ cdef class Callback(Instruction):
         if self.func == func:
             return
         self.func = func
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class CanvasBase(InstructionGroup):
@@ -645,18 +657,18 @@ cdef class Canvas(CanvasBase):
             c.radd(self)
         else:
             c.rinsert(self, -1)
-        self.flag_update()
+        self.flag_data_update()
 
     cpdef remove(self, Instruction c):
         c.rremove(self)
-        self.flag_update()
+        self.flag_data_update()
 
     def ask_update(self):
         '''Inform the canvas that we'd like it to update on the next frame.
         This is useful when you need to trigger a redraw due to some value
         having changed for example.
         '''
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def before(self):
@@ -719,7 +731,7 @@ cdef class Canvas(CanvasBase):
     @opacity.setter
     def opacity(self, value):
         self._opacity = value
-        self.flag_update()
+        self.flag_data_update()
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
@@ -938,7 +950,7 @@ cdef class RenderContext(Canvas):
         cdef cvalue = int(bool(value))
         if self._use_parent_projection != cvalue:
             self._use_parent_projection = cvalue
-            self.flag_update()
+            self.flag_data_update()
 
     @property
     def use_parent_modelview(self):
@@ -961,7 +973,7 @@ cdef class RenderContext(Canvas):
         cdef cvalue = int(bool(value))
         if self._use_parent_modelview != cvalue:
             self._use_parent_modelview = cvalue
-            self.flag_update()
+            self.flag_data_update()
 
     @property
     def use_parent_frag_modelview(self):
@@ -978,7 +990,7 @@ cdef class RenderContext(Canvas):
         cdef cvalue = int(bool(value))
         if self._use_parent_frag_modelview != cvalue:
             self._use_parent_frag_modelview = cvalue
-            self.flag_update()
+            self.flag_data_update()
 
 
 cdef RenderContext ACTIVE_CONTEXT = None

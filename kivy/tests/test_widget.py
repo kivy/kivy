@@ -30,6 +30,36 @@ class WidgetTestCase(unittest.TestCase):
         except WidgetException:
             pass
 
+    def test_clear_widgets(self):
+        root = self.root
+        self.assertEqual(root.children, [])
+
+        c1 = self.cls()
+        c2 = self.cls()
+        c3 = self.cls()
+        root.add_widget(c1, index=0)
+        root.add_widget(c2, index=1)
+        root.add_widget(c3, index=2)
+        self.assertEqual(root.children, [c1, c2, c3])
+
+        root.clear_widgets([c2])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets([])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets()
+        self.assertEqual(root.children, [])
+
+    def test_clear_widgets_children(self):
+        root = self.root
+        for _ in range(10):
+            root.add_widget(self.cls())
+        self.assertEqual(len(root.children), 10)
+
+        root.clear_widgets(root.children)
+        self.assertEqual(root.children, [])
+
     def test_position(self):
         wid = self.root
         wid.x = 50
@@ -82,9 +112,9 @@ class WidgetTestCase(unittest.TestCase):
         wid.export_to_png(join(tmp, 'b.png'), scale=.5)
         wid.export_to_png(join(tmp, 'c.png'), scale=2)
 
-        CoreImage(join(tmp, 'a.png')).size == (200, 100)
-        CoreImage(join(tmp, 'b.png')).size == (100, 50)
-        CoreImage(join(tmp, 'c.png')).size == (400, 200)
+        self.assertEqual(CoreImage(join(tmp, 'a.png')).size, (200, 100))
+        self.assertEqual(CoreImage(join(tmp, 'b.png')).size, (100, 50))
+        self.assertEqual(CoreImage(join(tmp, 'c.png')).size, (400, 200))
         rmtree(tmp)
 
         self.root.remove_widget(wid)

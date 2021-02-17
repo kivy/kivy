@@ -72,12 +72,13 @@ to :meth:`select_with_touch` to pass on the touch events::
                 return True
             return False
 
-        def add_widget(self, widget):
+        def add_widget(self, widget, *args, **kwargs):
             """ Override the adding of widgets so we can bind and catch their
             *on_touch_down* events. """
             widget.bind(on_touch_down=self.button_touch_down,
                         on_touch_up=self.button_touch_up)
-            return super(SelectableGrid, self).add_widget(widget)
+            return super(SelectableGrid, self)\
+                .add_widget(widget, *args, **kwargs)
 
         def button_touch_down(self, button, touch):
             """ Use collision detection to select buttons when the touch occurs

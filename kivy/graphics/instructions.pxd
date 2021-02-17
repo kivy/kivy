@@ -31,6 +31,7 @@ cdef class Instruction(ObjectWithUid):
         cpdef flag_update(self, int do_parent=?, list _instrs=?)
     ELSE:
         cpdef flag_update(self, int do_parent=?)
+    cpdef flag_data_update(self)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
     cdef void reload(self) except *

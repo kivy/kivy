@@ -103,12 +103,9 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-# Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
 if sys.platform == 'darwin':
-    if sys.maxsize > 2 ** 32:
-        osx_arch = 'x86_64'
-    else:
-        osx_arch = 'i386'
+    from platform import machine
+    osx_arch = machine()
 
 
 # Detect Python for android project (http://github.com/kivy/python-for-android)
@@ -427,8 +424,8 @@ elif platform == 'darwin':
         if osx_arch == "i386":
             print("Warning: building with frameworks fail on i386")
         else:
-            print("OSX framework used, force to x86_64 only")
-            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", "-arch x86_64")
+            print(f"OSX framework used, force to {osx_arch} only")
+            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", f"-arch {osx_arch}")
             print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
 
 # detect gstreamer, only on desktop
@@ -815,7 +812,9 @@ sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     '_clock.pyx': {},
     'weakproxy.pyx': {},
-    'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
+    'properties.pyx': merge(
+        base_flags, {'depends': ['_event.pxd', '_metrics.pxd']}),
+    '_metrics.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': merge(base_flags, gl_flags_base),
     'graphics/context.pyx': merge(base_flags, gl_flags_base),
     'graphics/compiler.pyx': merge(base_flags, gl_flags_base),

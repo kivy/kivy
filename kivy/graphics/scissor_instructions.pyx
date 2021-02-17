@@ -118,7 +118,7 @@ cdef class ScissorPush(Instruction):
     def x(self, value):
         self._x = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def y(self):
@@ -128,7 +128,7 @@ cdef class ScissorPush(Instruction):
     def y(self, value):
         self._y = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def width(self):
@@ -138,7 +138,7 @@ cdef class ScissorPush(Instruction):
     def width(self, value):
         self._width = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def height(self):
@@ -148,7 +148,7 @@ cdef class ScissorPush(Instruction):
     def height(self, value):
         self._height = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def pos(self):
@@ -158,7 +158,7 @@ cdef class ScissorPush(Instruction):
     def pos(self, value):
         self._x, self._y = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def size(self):
@@ -168,7 +168,7 @@ cdef class ScissorPush(Instruction):
     def size(self, value):
         self._width, self._height = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     def __init__(self, **kwargs):
         self._x, self._y = kwargs.pop(

@@ -642,11 +642,11 @@ class Carousel(StencilView):
             super(Carousel, self).on_touch_down(touch)
             return
 
-    def add_widget(self, widget, index=0, canvas=None):
+    def add_widget(self, widget, index=0, *args, **kwargs):
         container = RelativeLayout(
             size=self.size, x=self.x - self.width, y=self.y)
         container.add_widget(widget)
-        super(Carousel, self).add_widget(container, index, canvas)
+        super(Carousel, self).add_widget(container, index, *args, **kwargs)
         if index != 0:
             self.slides.insert(index - len(self.slides), widget)
         else:
@@ -663,13 +663,18 @@ class Carousel(StencilView):
                 self.index = max(0, self.index - 1)
             container = widget.parent
             slides.remove(widget)
-            super(Carousel, self).remove_widget(container)
-            return container.remove_widget(widget, *args, **kwargs)
-        return super(Carousel, self).remove_widget(widget, *args, **kwargs)
+            super(Carousel, self).remove_widget(container, *args, **kwargs)
+            container.remove_widget(widget)
+            return
+        super(Carousel, self).remove_widget(widget, *args, **kwargs)
 
-    def clear_widgets(self):
-        for slide in self.slides[:]:
-            self.remove_widget(slide)
+    def clear_widgets(self, children=None, *args, **kwargs):
+        # `children` must be a list of slides or None
+        if children is None:
+            children = self.slides[:]
+        remove_widget = self.remove_widget
+        for widget in children:
+            remove_widget(widget)
         super(Carousel, self).clear_widgets()
 
 

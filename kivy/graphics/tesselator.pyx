@@ -36,7 +36,7 @@ is possible that the tesselator won't work. In that case, it can return
 False::
 
     if not tess.tesselate():
-        print "Tesselator didn't work :("
+        print("Tesselator didn't work :(")
         return
 
 After the tessellation, you have multiple ways to iterate over the result. The
@@ -54,7 +54,7 @@ Or, you can get the "raw" result, with just polygons and x/y coordinates with
 :meth:`Tesselator.vertices`::
 
     for vertices in tess.vertices:
-        print "got polygon", vertices
+        print("got polygon", vertices)
 
 """
 

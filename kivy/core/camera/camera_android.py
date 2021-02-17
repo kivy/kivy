@@ -50,7 +50,10 @@ class CameraAndroid(CameraBase):
         params = self._android_camera.getParameters()
         width, height = self._resolution
         params.setPreviewSize(width, height)
-        params.setFocusMode('continuous-picture')
+        supported_focus_modes = self._android_camera.getParameters() \
+            .getSupportedFocusModes()
+        if supported_focus_modes.contains('continuous-picture'):
+            params.setFocusMode('continuous-picture')
         self._android_camera.setParameters(params)
         # self._android_camera.setDisplayOrientation()
         self.fps = 30.

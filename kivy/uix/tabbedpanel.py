@@ -201,7 +201,7 @@ class TabbedPanelItem(TabbedPanelHeader):
     .. versionadded:: 1.5.0
     '''
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, *args, **kwargs):
         self.content = widget
         if not self.parent:
             return
@@ -209,13 +209,13 @@ class TabbedPanelItem(TabbedPanelHeader):
         if panel.current_tab == self:
             panel.switch_to(self)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, *args, **kwargs):
         self.content = None
         if not self.parent:
             return
         panel = self.parent.tabbed_panel
         if panel.current_tab == self:
-            panel.remove_widget(widget)
+            panel.remove_widget(*args, **kwargs)
 
 
 class TabbedPanelStrip(GridLayout):
@@ -500,6 +500,12 @@ class TabbedPanel(GridLayout):
 
         If used with `do_scroll=True`, it scrolls
         to the header's tab too.
+
+        :meth:`switch_to` cannot be called from within the
+        :class:`TabbedPanel` or its subclass' ``__init__`` method.
+        If that is required, use the ``Clock`` to schedule it. See `discussion
+        <https://github.com/kivy/kivy/issues/3493#issuecomment-121567969>`_
+        for full example.
         '''
         header_content = header.content
         self._current_tab.state = 'normal'
@@ -527,7 +533,7 @@ class TabbedPanel(GridLayout):
             self_tabs.width = self_default_tab.width
         self._reposition_tabs()
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, *args, **kwargs):
         content = self.content
         if content is None:
             return
@@ -535,24 +541,24 @@ class TabbedPanel(GridLayout):
         if parent:
             parent.remove_widget(widget)
         if widget in (content, self._tab_layout):
-            super(TabbedPanel, self).add_widget(widget, index)
+            super(TabbedPanel, self).add_widget(widget, *args, **kwargs)
         elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
-            self_tabs.add_widget(widget, index)
+            self_tabs.add_widget(widget, *args, **kwargs)
             widget.group = '__tab%r__' % self_tabs.uid
             self.on_tab_width()
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
             self._childrens.append(widget)
             content.disabled = self.current_tab.disabled
-            content.add_widget(widget, index)
+            content.add_widget(widget, *args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         content = self.content
         if content is None:
             return
         if widget in (content, self._tab_layout):
-            super(TabbedPanel, self).remove_widget(widget)
+            super(TabbedPanel, self).remove_widget(widget, *args, **kwargs)
         elif isinstance(widget, TabbedPanelHeader):
             if not (self.do_default_tab and widget is self._default_tab):
                 self_tabs = self._tab_strip
@@ -568,16 +574,11 @@ class TabbedPanel(GridLayout):
             if widget in self._childrens:
                 self._childrens.remove(widget)
             if widget in content.children:
-                content.remove_widget(widget)
+                content.remove_widget(widget, *args, **kwargs)
 
-    def clear_widgets(self, **kwargs):
-        content = self.content
-        if content is None:
-            return
-        if kwargs.get('do_super', False):
-            super(TabbedPanel, self).clear_widgets()
-        else:
-            content.clear_widgets()
+    def clear_widgets(self, *args, **kwargs):
+        if self.content:
+            self.content.clear_widgets(*args, **kwargs)
 
     def on_strip_image(self, instance, value):
         if not self._tab_layout:
@@ -700,7 +701,7 @@ class TabbedPanel(GridLayout):
         tabs.bind(width=self._partial_update_scrollview)
 
         # remove all widgets from the tab_strip
-        self.clear_widgets(do_super=True)
+        super(TabbedPanel, self).clear_widgets()
         tab_height = self.tab_height
 
         widget_list = []

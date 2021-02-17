@@ -231,7 +231,7 @@ class Splitter(BoxLayout):
         _strp.disabled = self.disabled
         self.bind(disabled=_strp.setter('disabled'))
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, index=0, *args, **kwargs):
         if self._container or not widget:
             return Exception('Splitter accepts only one Child')
         self._container = widget
@@ -244,15 +244,15 @@ class Splitter(BoxLayout):
         index = 0
         if sz_frm in ('r', 'b'):
             index = 1
-        super(Splitter, self).add_widget(widget, index)
+        super(Splitter, self).add_widget(widget, index, *args, **kwargs)
         self.on_sizable_from(self, self.sizable_from)
 
-    def remove_widget(self, widget, *largs):
-        super(Splitter, self).remove_widget(widget)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(Splitter, self).remove_widget(widget, *args, **kwargs)
         if widget == self._container:
             self._container = None
 
-    def clear_widgets(self):
+    def clear_widgets(self, *args, **kwargs):
         self.remove_widget(self._container)
 
     def strip_down(self, instance, touch):

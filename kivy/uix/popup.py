@@ -210,14 +210,14 @@ class Popup(ModalView):
 
     _container = ObjectProperty(None)
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, *args, **kwargs):
         if self._container:
             if self.content:
                 raise PopupException(
                     'Popup can have only one widget as content')
             self.content = widget
         else:
-            super(Popup, self).add_widget(widget)
+            super(Popup, self).add_widget(widget, *args, **kwargs)
 
     def on_content(self, instance, value):
         if self._container:

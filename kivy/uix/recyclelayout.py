@@ -11,7 +11,9 @@ RecycleLayout
 
 from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
 from kivy.uix.layout import Layout
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import (
+    ObjectProperty, StringProperty, ReferenceListProperty, NumericProperty
+)
 from kivy.factory import Factory
 
 __all__ = ('RecycleLayout', )
@@ -22,19 +24,152 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
     RecycleLayout provides the default layout for RecycleViews.
     """
 
-    default_size = ObjectProperty((100, 100))
-    '''size as in w, h. They each can be None.
+    default_width = NumericProperty(100, allownone=True)
+    '''Default width for items
+
+    :attr:`default_width` is a NumericProperty and default to 100
     '''
+    default_height = NumericProperty(100, allownone=True)
+    '''Default height for items
+
+    :attr:`default_height` is a :class:`~kivy.properties.NumericProperty` and
+    default to 100.
+    '''
+    default_size = ReferenceListProperty(default_width, default_height)
+    '''size (width, height). Each value can be None.
+
+    :attr:`default_size` is an :class:`~kivy.properties.ReferenceListProperty`
+    to [:attr:`default_width`, :attr:`default_height`].
+    '''
+    default_size_hint_x = NumericProperty(None, allownone=True)
+    '''Default size_hint_x for items
+
+    :attr:`default_size_hint_x` is a :class:`~kivy.properties.NumericProperty`
+    and default to None.
+    '''
+    default_size_hint_y = NumericProperty(None, allownone=True)
+    '''Default size_hint_y for items
+
+    :attr:`default_size_hint_y` is a :class:`~kivy.properties.NumericProperty`
+    and default to None.
+    '''
+    default_size_hint = ReferenceListProperty(
+        default_size_hint_x, default_size_hint_y
+    )
+    '''size (width, height). Each value can be None.
+
+    :attr:`default_size_hint` is an
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x`, :attr:`default_size_hint_y`].
+    '''
+
     key_size = StringProperty(None, allownone=True)
-    default_size_hint = ObjectProperty((None, None))
+    '''If set, which key in the dict should be used to set the size property of
+    the item.
+
+    :attr:`key_size` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
+    '''
     key_size_hint = StringProperty(None, allownone=True)
-    default_size_hint_min = ObjectProperty((None, None))
+    '''If set, which key in the dict should be used to set the size_hint
+    property of the item.
+
+    :attr:`key_size_hint` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     key_size_hint_min = StringProperty(None, allownone=True)
-    default_size_hint_max = ObjectProperty((None, None))
+    '''If set, which key in the dict should be used to set the size_hint_min
+    property of the item.
+
+    :attr:`key_size_hint_min` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+    default_size_hint_x_min = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_x_min of items
+
+    :attr:`default_pos_hint_x_min` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_y_min = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_y_min of items
+
+    :attr:`default_pos_hint_y_min` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_min = ReferenceListProperty(
+        default_size_hint_x_min,
+        default_size_hint_y_min
+    )
+    '''Default value for size_hint_min of items
+
+    :attr:`default_size_min` is a
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x_min`, :attr:`default_size_hint_y_min`].
+    '''
+
     key_size_hint_max = StringProperty(None, allownone=True)
+    '''If set, which key in the dict should be used to set the size_hint_max
+    property of the item.
+
+    :attr:`key_size_hint_max` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+    default_size_hint_x_max = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_x_max of items
+
+    :attr:`default_pos_hint_x_max` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_y_max = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_y_max of items
+
+    :attr:`default_pos_hint_y_max` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_max = ReferenceListProperty(
+        default_size_hint_x_max,
+        default_size_hint_y_max
+    )
+    '''Default value for size_hint_max of items
+
+    :attr:`default_size_max` is a
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x_max`, :attr:`default_size_hint_y_max`].
+    '''
+
     default_pos_hint = ObjectProperty({})
+    '''Default pos_hint value for items
+
+    :attr:`default_pos_hint` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
+    '''
     key_pos_hint = StringProperty(None, allownone=True)
-    initial_size = ObjectProperty((100, 100))
+    '''If set, which key in the dict should be used to set the pos_hint of
+    items.
+
+    :attr:`key_pos_hint` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    initial_width = NumericProperty(100)
+    '''Initial width for the items.
+
+    :attr:`initial_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 100.
+    '''
+    initial_height = NumericProperty(100)
+    '''Initial height for the items.
+
+    :attr:`initial_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 100.
+    '''
+    initial_size = ReferenceListProperty(initial_width, initial_height)
+    '''Initial size of items
+
+    :attr:`initial_size` is a :class:`~kivy.properties.ReferenceListProperty`
+    to [:attr:`initial_width`, :attr:`initial_height`].
+    '''
 
     view_opts = []
 

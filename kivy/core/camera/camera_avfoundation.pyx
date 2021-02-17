@@ -49,10 +49,19 @@ class CameraAVFoundation(CameraBase):
         self._framerate = 30
         super(CameraAVFoundation, self).__init__(**kwargs)
 
+    def __del__(self):
+        self._release_camera()
+
     def init_camera(self):
         cdef _AVStorage storage = <_AVStorage>self._storage
         storage.camera = avf_camera_init(
             self._index, self.resolution[0], self.resolution[1])
+
+    def _release_camera(self):
+        cdef _AVStorage storage = <_AVStorage>self._storage
+        if storage.camera != NULL:
+            avf_camera_deinit(storage.camera)
+            storage.camera = NULL
 
     @property
     def _scheduled_rate(self):

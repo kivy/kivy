@@ -683,12 +683,17 @@ class Widget(WidgetBase):
         .. versionchanged:: 1.8.0
             The `children` argument can be used to specify the children you
             want to remove.
-        '''
+        .. versionchanged:: 2.1.0
 
-        if not children:
-            children = self.children
+            Specifying an empty ``children`` list leaves the widgets unchanged.
+            Previously it was treated like ``None`` and all children were
+            removed.
+        '''
+        if children is None or children is self.children:
+            children = self.children[:]
+
         remove_widget = self.remove_widget
-        for child in children[:]:
+        for child in children:
             remove_widget(child)
 
     def export_to_png(self, filename, *args, **kwargs):
@@ -720,7 +725,7 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.11.0
         '''
-        self.export_as_image().save(filename, flipped=False)
+        self.export_as_image(*args, **kwargs).save(filename, flipped=False)
 
     def export_as_image(self, *args, **kwargs):
         '''Return an core :class:`~kivy.core.image.Image` of the actual

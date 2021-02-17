@@ -1010,9 +1010,9 @@ class FileChooser(FileChooserController):
 
         self.fbind('view_mode', self.trigger_update_view)
 
-    def add_widget(self, widget, **kwargs):
+    def add_widget(self, widget, *args, **kwargs):
         if widget is self._progress:
-            super(FileChooser, self).add_widget(widget, **kwargs)
+            super(FileChooser, self).add_widget(widget, *args, **kwargs)
         elif hasattr(widget, 'VIEWNAME'):
             name = widget.VIEWNAME + 'view'
             screen = Screen(name=name)

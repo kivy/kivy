@@ -684,7 +684,9 @@ class WindowBase(EventDispatcher):
                                 bind=('_size', 'softinput_mode',
                                       'keyboard_height'),
                                 cache=True)
-    '''Real size of the window ignoring rotation.
+    '''Real size of the window ignoring rotation. If the density is
+    not 1, the :attr:`system_size` is the :attr:`size` devided by
+    density.
 
     .. versionadded:: 1.0.9
 
@@ -692,8 +694,8 @@ class WindowBase(EventDispatcher):
     '''
 
     def _get_effective_size(self):
-        '''On density=1 and non-ios displays, return system_size, else
-        return scaled / rotated size.
+        '''On density=1 and non-ios displays, return :attr:`system_size`,
+        else return scaled / rotated :attr:`size`.
 
         Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
         '''
@@ -890,7 +892,6 @@ class WindowBase(EventDispatcher):
         return cls.__instance
 
     def __init__(self, **kwargs):
-
         force = kwargs.pop('force', False)
 
         # don't init window 2 times,
@@ -989,8 +990,17 @@ class WindowBase(EventDispatcher):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
+        # because Window is created as soon as imported, if we bound earlier,
+        # metrics would be imported when dp is set during window creation.
+        # Instead, don't process dpi changes until everything is set
+        self.fbind('dpi', self._reset_metrics_dpi)
+
         # mark as initialized
         self.initialized = True
+
+    def _reset_metrics_dpi(self, *args):
+        from kivy.metrics import Metrics
+        Metrics.reset_dpi()
 
     def _bind_create_window(self):
         for prop in (
@@ -1472,9 +1482,7 @@ class WindowBase(EventDispatcher):
         from kivy.graphics.transformation import Matrix
         from math import radians
 
-        w, h = self.system_size
-        if self._density != 1:
-            w, h = self.size
+        w, h = self._get_effective_size()
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
@@ -1820,17 +1828,15 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    @reify
-    def dpi(self):
-        '''Return the DPI of the screen. If the implementation doesn't support
-        any DPI lookup, it will just return 96.
+    dpi = NumericProperty(96.)
+    '''Return the DPI of the screen as computed by the window. If the
+    implementation doesn't support DPI lookup, it's 96.
 
-        .. warning::
+    .. warning::
 
-            This value is not cross-platform. Use
-            :attr:`kivy.base.EventLoop.dpi` instead.
-        '''
-        return 96.
+        This value is not cross-platform. Use
+        :attr:`kivy.metrics.Metrics.dpi` instead.
+    '''
 
     def configure_keyboards(self):
         # Configure how to provide keyboards (virtual or not)
@@ -1912,7 +1918,9 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(self, callback, target, input_type='text'):
+    def request_keyboard(
+            self, callback, target, input_type='text', keyboard_suggestions=True
+    ):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
@@ -1945,6 +1953,13 @@ class WindowBase(EventDispatcher):
                     `input_type` is currently only honored on mobile devices.
 
                 .. versionadded:: 1.8.0
+
+            `keyboard_suggestions`: bool
+                If True provides auto suggestions on top of keyboard.
+                This will only work if input_type is set to `text`, `url`,
+                `mail` or `address`.
+
+                .. versionadded:: 2.1.0
 
         :Return:
             An instance of :class:`Keyboard` containing the callback, target,
