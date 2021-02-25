@@ -36,6 +36,7 @@ class SoundAndroidPlayer(Sound):
 
     def __init__(self, **kwargs):
         self._mediaplayer = None
+        self._completion_listener = None
         super(SoundAndroidPlayer, self).__init__(**kwargs)
 
     def load(self):
@@ -49,6 +50,8 @@ class SoundAndroidPlayer(Sound):
         else:
             self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         self._mediaplayer.setDataSource(self.source)
+        self._completion_listener = OnCompletionListener(self._completion_callback)
+        self._mediaplayer.setOnCompletionListener(self._completion_listener)
         self._mediaplayer.prepare()
 
     def unload(self):
@@ -82,6 +85,9 @@ class SoundAndroidPlayer(Sound):
         if self._mediaplayer:
             volume = float(volume)
             self._mediaplayer.setVolume(volume, volume)
+
+    def _completion_callback(self):
+        super(SoundAndroidPlayer, self).stop()
 
     def _get_length(self):
         if self._mediaplayer:
