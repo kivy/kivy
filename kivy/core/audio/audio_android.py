@@ -50,7 +50,9 @@ class SoundAndroidPlayer(Sound):
         else:
             self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         self._mediaplayer.setDataSource(self.source)
-        self._completion_listener = OnCompletionListener(self._completion_callback)
+        self._completion_listener = OnCompletionListener(
+            self._completion_callback
+        )
         self._mediaplayer.setOnCompletionListener(self._completion_listener)
         self._mediaplayer.prepare()
 
