@@ -253,8 +253,9 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.clear_graphics(EventLoop.window)
 
     def create_hover(self, etype, win):
-        width, height = win.system_size
-        args = (win.mouse_pos[0] / width, win.mouse_pos[1] / height)
+        x_max, y_max = win.system_size[0] - 1, win.system_size[1] - 1
+        args = (win.mouse_pos[0] / x_max if x_max > 0 else 0.0,
+                win.mouse_pos[1] / y_max if y_max > 0 else 0.0)
         hover = self.hover_event
         if hover:
             hover.move(args)
