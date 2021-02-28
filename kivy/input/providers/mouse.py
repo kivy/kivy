@@ -81,8 +81,8 @@ Color = Ellipse = None
 class MouseMotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
+        self.multitouch_sim = False
         super().__init__(*args, **kwargs)
-        self.multitouch_sim = None
 
     def depack(self, args):
         self.sx, self.sy = args[:2]
