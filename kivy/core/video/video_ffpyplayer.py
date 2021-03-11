@@ -53,7 +53,7 @@ except:
     raise
 
 
-from threading import Thread
+from threading import Thread, Event
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
@@ -109,6 +109,7 @@ class VideoFFPy(VideoBase):
         self._next_frame = None
         self._seek_queue = []
         self._ffplayer_need_quit = False
+        self._ev_trigger = Event()
         self._trigger = Clock.create_trigger(self._redraw)
 
         super(VideoFFPy, self).__init__(**kwargs)
@@ -156,6 +157,7 @@ class VideoFFPy(VideoBase):
     @mainthread
     def _change_state(self, state):
         self._state = state
+        self._ev_trigger.set()
 
     def _redraw(self, *args):
         if not self._ffplayer:
@@ -252,7 +254,10 @@ class VideoFFPy(VideoBase):
         # we got all the informations, now, get the frames :)
         self._change_state('playing')
 
+        ev_trigger = self._ev_trigger
         while not self._ffplayer_need_quit:
+            ev_trigger.clear()
+
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
@@ -300,10 +305,10 @@ class VideoFFPy(VideoBase):
                 frame, val = ffplayer.get_frame()
 
             if val == 'eof':
-                sleep(0.2)
                 if not did_dispatch_eof:
                     self._do_eos()
                     did_dispatch_eof = True
+                self._ev_trigger.wait(.2)
             elif val == 'paused':
                 did_dispatch_eof = False
                 sleep(0.2)
@@ -320,6 +325,7 @@ class VideoFFPy(VideoBase):
         if self._ffplayer is None:
             return
         self._seek_queue.append((percent, precise,))
+        self._ev_trigger.set()
 
     def stop(self):
         self.unload()
@@ -328,11 +334,13 @@ class VideoFFPy(VideoBase):
         if self._ffplayer and self._state != 'paused':
             self._ffplayer.toggle_pause()
             self._state = 'paused'
+            self._ev_trigger.set()
 
     def play(self):
         if self._ffplayer and self._state == 'paused':
             self._ffplayer.toggle_pause()
             self._state = 'playing'
+            self._ev_trigger.set()
             return
 
         self.load()
@@ -359,6 +367,7 @@ class VideoFFPy(VideoBase):
         self.unload()
 
     def unload(self):
+        self._ev_trigger.set()
         if self._trigger is not None:
             self._trigger.cancel()
         self._ffplayer_need_quit = True
