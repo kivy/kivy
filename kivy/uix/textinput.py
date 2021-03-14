@@ -3082,19 +3082,20 @@ class TextInput(FocusBehavior, Widget):
         if cursor_row >= len(self._lines) or self.canvas is None:
             return
 
-        cursor_pos = self.cursor_pos
+        cursor_col = self.cursor_col
         txt = self._lines[cursor_row]
+        pre = txt[:cursor_col]
+        suf = txt[cursor_col:]
 
         kw = self._get_line_options()
         rct = self._lines_rects[cursor_row]
 
-        lbl = text = None
+        lbl = None
         if value:
             lbl = MarkupLabel(
-                text=txt + "[b]{}[/b]".format(value), **kw)
+                text="{}[b]{}[/b]{}".format(pre, value, suf), **kw)
         else:
-            lbl = Label(**kw)
-            text = txt
+            lbl = Label(text=txt, **kw)
 
         lbl.refresh()
 

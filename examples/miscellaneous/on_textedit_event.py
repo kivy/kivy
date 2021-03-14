@@ -18,9 +18,29 @@ class TextInputIME(TextInput):
     def __init__(self, **kwargs):
         super(TextInputIME, self).__init__(**kwargs)
         EventLoop.window.bind(on_textedit=self._on_textedit)
+        self._editing = None
 
-    def _on_textedit(self, window, text):
+    def _on_textedit(self, window, text, start, length):
         self.testtext = text
+        if len(text):
+            self._editing = True
+        else:
+            self._editing = False
+
+        if length:
+            end = start + length
+            text = "[u]{}[/u]({})[u]{}[/u]".format(
+                text[:start], text[start:end], text[end:])
+        else:
+            text = "[u]{}[/u]".format(text)
+        self.suggestion_text = text
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        # IME consumes it all
+        if self._editing:
+            return True
+        super(TextInputIME, self).keyboard_on_key_down(
+            window, keycode, text, modifiers)
 
 
 class MainWidget(Widget):
