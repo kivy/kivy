@@ -424,7 +424,7 @@ class ImageLoader(object):
                 afn += '.atlas'
             afn = resource_find(afn)
             if not afn:
-                raise Exception('Unable to found %r atlas' % afn)
+                raise Exception('Unable to find %r atlas' % afn)
             atlas = Atlas(afn)
             Cache.append('kv.atlas', rfn, atlas)
             # first time, fill our texture cache.

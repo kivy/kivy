@@ -246,7 +246,7 @@ class Recorder(EventDispatcher):
             EventLoop.remove_input_provider(self)
             return
         if not exists(self.filename):
-            Logger.error('Recorder: Unable to found %r file, play aborted.' % (
+            Logger.error('Recorder: Unable to find %r file, play aborted.' % (
                 self.filename))
             return
 
