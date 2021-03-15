@@ -245,7 +245,7 @@ cdef class _WindowSDL2Storage:
                 status = ''
                 if vsync not in (0, 1):
                     res = SDL_GL_SetSwapInterval(1)
-                    status = ', trying fallback to 1: ' + 'failed' if res == -1 else 'succeeded'
+                    status = ', trying fallback to 1: ' + ('failed' if res == -1 else 'succeeded')
 
                 Logger.debug('WindowSDL: requested vsync failed' + status)
 
