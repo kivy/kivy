@@ -320,13 +320,14 @@ class DropDown(ScrollView):
         # calculate the coordinate of the attached widget in the window
         # coordinate system
         win = self._win
+        if not win:
+            return
         widget = self.attach_to
-        if not widget or not widget.parent or not win:
+        if not widget or not widget.get_parent_window():
             return
         wx, wy = widget.to_window(*widget.pos)
         wright, wtop = widget.to_window(widget.right, widget.top)
 
-        # set width and x
         if self.auto_width:
             self.width = wright - wx
 
@@ -357,7 +358,6 @@ class DropDown(ScrollView):
             # none of both top/bottom have enough place to display the
             # widget at the current size. Take the best side, and fit to
             # it.
-
             if h_top < h_bottom:
                 self.top = self.height = wy
             else:
