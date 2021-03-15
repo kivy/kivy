@@ -228,9 +228,9 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.clear_graphics(EventLoop.window)
 
     def on_mouse_motion(self, win, x, y, modifiers):
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
+        width, height = win.system_size
+        rx = x / (width - 1.0)
+        ry = 1.0 - y / (height - 1.0)
         if self.current_drag:
             cur = self.current_drag
             cur.move([rx, ry])
@@ -245,9 +245,9 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
             return
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
+        width, height = win.system_size
+        rx = x / (width - 1.0)
+        ry = 1.0 - y / (height - 1.0)
         new_me = self.find_touch(rx, ry)
         if new_me:
             self.current_drag = new_me

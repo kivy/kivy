@@ -355,27 +355,32 @@ class MotionEvent(MotionEventBase):
 
     def scale_for_screen(self, w, h, p=None, rotation=0,
                          smode='None', kheight=0):
-        '''Scale position for the screen
+        '''Scale position for the screen.
+
+        .. versionchanged:: 2.1.0
+            Max value for `x`, `y` and `z` is changed respectively to `w` - 1,
+            `h` - 1 and `p` - 1.
         '''
+        x_max, y_max = w - 1.0, h - 1.0
         sx, sy = self.sx, self.sy
         if rotation == 0:
-            self.x = sx * float(w)
-            self.y = sy * float(h)
+            self.x = sx * x_max
+            self.y = sy * y_max
         elif rotation == 90:
             sx, sy = sy, 1 - sx
-            self.x = sx * float(h)
-            self.y = sy * float(w)
+            self.x = sx * y_max
+            self.y = sy * x_max
         elif rotation == 180:
             sx, sy = 1 - sx, 1 - sy
-            self.x = sx * float(w)
-            self.y = sy * float(h)
+            self.x = sx * x_max
+            self.y = sy * y_max
         elif rotation == 270:
             sx, sy = 1 - sy, sx
-            self.x = sx * float(h)
-            self.y = sy * float(w)
+            self.x = sx * y_max
+            self.y = sy * x_max
 
-        if p:
-            self.z = self.sz * float(p)
+        if p is not None:
+            self.z = self.sz * (p - 1.0)
 
         if smode:
             if smode == 'pan':
