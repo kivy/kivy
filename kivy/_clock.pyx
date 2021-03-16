@@ -742,6 +742,8 @@ cdef class CyClockBase(object):
     cpdef get_before_frame_events(self):
         '''Returns the list of :class:`ClockEvent` instances that are scheduled
         to be called before the next frame (``-1`` timeout).
+
+        .. versionadded:: 2.1.0
         '''
         cdef list events = []
         cdef ClockEvent ev
