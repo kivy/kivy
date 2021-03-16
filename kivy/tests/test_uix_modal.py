@@ -3,12 +3,13 @@ from math import isclose
 
 
 def modal_app():
+    """ test app factory function. """
     from kivy.app import App
     from kivy.uix.button import Button
     from kivy.uix.modalview import ModalView
 
     class ModalButton(Button):
-
+        """ button used as root widget to test touch. """
         modal = None
 
         def on_touch_down(self, touch):
@@ -26,8 +27,7 @@ def modal_app():
     class TestApp(UnitKivyApp, App):
         def build(self):
             root = ModalButton()
-            root.modal = self.modal_view = ModalView(
-                size_hint=(.2, .5), auto_dismiss=True)
+            root.modal = ModalView(size_hint=(.2, .5))
             return root
 
     return TestApp()
@@ -36,16 +36,16 @@ def modal_app():
 @async_run(app_cls_func=modal_app)
 async def test_modal_app(kivy_app):
     await kivy_app.wait_clock_frames(2)
-    modal = kivy_app.modal_view
     button = kivy_app.root
+    modal = button.modal
     modal._anim_duration = 0
     assert modal._window is None
 
     # just press button
     async for _ in kivy_app.do_touch_down_up(widget=button):
-        pass
+        assert modal._window is None
     async for _ in kivy_app.do_touch_drag(widget=button, dx=button.width / 4):
-        pass
+        assert modal._window is None
 
     # open modal
     modal.open()
