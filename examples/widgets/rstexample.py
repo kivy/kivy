@@ -25,7 +25,7 @@ Inline Markup
 
 .. _top:
 
-Internal crossreferences, like example_, or bottom_.
+Internal cross-references, like example_, or bottom_.
 
 Image
 -----
