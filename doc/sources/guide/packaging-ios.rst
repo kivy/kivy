@@ -140,7 +140,7 @@ called libpython. This means all binary modules are loaded beforehand, so
 nothing is dynamically loaded.
 
 Have you already submitted a Kivy application to the App store?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, check:
 
