@@ -60,8 +60,8 @@ def send_report(dict_report):
                 "content": "\n".join(dict_report['Configuration']),
                 "type": 'text'
             },
-            "Input Availablity.txt": {
-                "content": "\n".join(dict_report['InputAvailablity']),
+            "Input Availability.txt": {
+                "content": "\n".join(dict_report['InputAvailability']),
                 "type": 'text'
             },
             "Environ.txt": {
@@ -168,7 +168,7 @@ title('Input availability')
 from kivy.input.factory import MotionEventFactory
 for x in MotionEventFactory.list():
     report.append(x)
-report_dict['InputAvailablity'] = report
+report_dict['InputAvailability'] = report
 report = []
 
 '''
@@ -193,7 +193,7 @@ report = []
 print('\n'.join(report_dict['Global'] + report_dict['OpenGL'] +
                 report_dict['Core'] + report_dict['Libraries'] +
                 report_dict['Configuration'] +
-                report_dict['InputAvailablity'] +
+                report_dict['InputAvailability'] +
                 report_dict['Environ'] + report_dict['Options']))
 print('\n')
 print('\n')

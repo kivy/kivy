@@ -405,7 +405,7 @@ class VKeyboard(Scatter):
             self.background_key_layer = Canvas()
             self.active_keys_layer = Canvas()
 
-    def on_disabled(self, intance, value):
+    def on_disabled(self, instance, value):
         self.refresh_keys()
 
     def _update_layout_mode(self, *l):

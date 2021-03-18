@@ -1143,7 +1143,7 @@ class WindowBase(EventDispatcher):
     :class:`~kivy.config.Config`.
     '''
 
-    def on_shape_image(self, instane, value):
+    def on_shape_image(self, instance, value):
         if self.initialized:
             self._set_shape(
                 shape_image=value, mode=self.shape_mode,
@@ -1160,7 +1160,7 @@ class WindowBase(EventDispatcher):
     defaults to True.
     '''
 
-    def on_shape_cutoff(self, instane, value):
+    def on_shape_cutoff(self, instance, value):
         self._set_shape(
             shape_image=self.shape_image, mode=self.shape_mode,
             cutoff=value, color_key=self.shape_color_key
@@ -1225,7 +1225,7 @@ class WindowBase(EventDispatcher):
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
     '''
-    def on_shape_color_key(self, instane, value):
+    def on_shape_color_key(self, instance, value):
         self._set_shape(
             shape_image=self.shape_image, mode=self.shape_mode,
             cutoff=self.shape_cutoff, color_key=value

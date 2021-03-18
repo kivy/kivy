@@ -101,7 +101,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             node.background_color = (1, 1, 1, 1)
             super(SelectableGrid, self).deselect_node(node)
 
-        def on_selected_nodes(self, gird, nodes):
+        def on_selected_nodes(self, grid, nodes):
             print("Selected nodes = {0}".format(nodes))
 
 
