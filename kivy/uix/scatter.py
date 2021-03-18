@@ -283,7 +283,7 @@ class Scatter(Widget):
         scale = p1.distance(p2)
 
         # XXX float calculation are not accurate, and then, scale can be
-        # throwed again even with only the position change. So to
+        # thrown again even with only the position change. So to
         # prevent anything wrong with scale, just avoid to dispatch it
         # if the scale "visually" didn't change. #947
         # Remove this ugly hack when we'll be Python 3 only.
@@ -419,7 +419,7 @@ class Scatter(Widget):
 
         :Parameters:
             `trans`: :class:`~kivy.graphics.transformation.Matrix`.
-                Transformation matix to be applied to the scatter widget.
+                Transformation matrix to be applied to the scatter widget.
             `anchor`: tuple, defaults to (0, 0).
                 The point to use as the origin of the transformation
                 (uses local widget space).
@@ -515,7 +515,7 @@ class Scatter(Widget):
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
 
-        # if the touch isnt on the widget we do nothing
+        # if the touch isn't on the widget we do nothing
         if not self.do_collide_after_children:
             if not self.collide_point(x, y):
                 return False
@@ -575,7 +575,7 @@ class Scatter(Widget):
     def on_transform_with_touch(self, touch):
         '''
         Called when a touch event has transformed the scatter widget.
-        By default this does nothing, but can be overriden by derived
+        By default this does nothing, but can be overridden by derived
         classes that need to react to transformations caused by user
         input.
 
@@ -602,7 +602,7 @@ class Scatter(Widget):
 
     def on_touch_up(self, touch):
         x, y = touch.x, touch.y
-        # if the touch isnt on the widget we do nothing, just try children
+        # if the touch isn't on the widget we do nothing, just try children
         if not touch.grab_current == self:
             touch.push()
             touch.apply_transform_2d(self.to_local)

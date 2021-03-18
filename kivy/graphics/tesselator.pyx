@@ -119,7 +119,7 @@ cdef int TESS_UNDEF = ~(<int>0)
 
 
 cdef class Tesselator:
-    """Tesselator class. See module for more informations about the usage.
+    """Tesselator class. See module for more information about the usage.
     """
     def __cinit__(self):
         self.tess = tessNewTess(NULL)

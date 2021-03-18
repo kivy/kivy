@@ -679,7 +679,7 @@ class EffectWidget(RelativeLayout):
         fbind('background_color', self._refresh_background_color)
 
         self.refresh_fbo_setup()
-        self._refresh_background_color()  # In case thi was changed in kwargs
+        self._refresh_background_color()  # In case this was changed in kwargs
 
     def _refresh_background_color(self, *args):
         self._background_color.rgba = self.background_color

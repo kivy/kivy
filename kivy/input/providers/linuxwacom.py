@@ -262,7 +262,7 @@ else:
                 Logger.exception('Unable to open %s' % input_fn)
                 return
 
-            # get the controler name (EVIOCGNAME)
+            # get the controller name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
                                       " " * 256).split('\x00')[0]
             Logger.info('LinuxWacom: using <%s>' % device_name)

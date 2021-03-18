@@ -27,7 +27,7 @@ class AppTest(GraphicUnitTest):
         a = App()
         data_dir = a.user_data_dir
         if not os.path.exists(data_dir):
-            raise Exception("user_data_dir didnt exists")
+            raise Exception("user_data_dir does not exist")
 
 
 def basic_app():

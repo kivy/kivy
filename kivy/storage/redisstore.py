@@ -40,7 +40,7 @@ if 'KIVY_DOC' not in os.environ:
 
 class RedisStore(AbstractStore):
     '''Store implementation using a Redis database.
-    See the :mod:`kivy.storage` module documentation for more informations.
+    See the :mod:`kivy.storage` module documentation for more information.
     '''
 
     prefix = StringProperty('store')

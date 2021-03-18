@@ -249,7 +249,7 @@ class VideoFFPy(VideoBase):
         if self._ffplayer_need_quit:
             return
 
-        # we got all the informations, now, get the frames :)
+        # we got all the information, now, get the frames :)
         self._change_state('playing')
 
         while not self._ffplayer_need_quit:

@@ -48,7 +48,7 @@ provider currently implements it).
 .. warning:: This feature requires the Pango text provider.
 
 Font contexts can be created automatically by :class:`kivy.uix.label.Label` or
-:class:`kivy.uix.textinput.TextInput`; if a non-existant context is used in
+:class:`kivy.uix.textinput.TextInput`; if a non-existent context is used in
 one of these classes, it will be created automatically, or if a font file is
 specified without a context (this creates an isolated context, without
 support for fallback).

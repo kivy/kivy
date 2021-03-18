@@ -685,7 +685,7 @@ class WindowBase(EventDispatcher):
                                       'keyboard_height'),
                                 cache=True)
     '''Real size of the window ignoring rotation. If the density is
-    not 1, the :attr:`system_size` is the :attr:`size` devided by
+    not 1, the :attr:`system_size` is the :attr:`size` divided by
     density.
 
     .. versionadded:: 1.0.9

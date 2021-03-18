@@ -317,7 +317,7 @@ class Widget(WidgetBase):
     .. versionchanged:: 1.0.9
         Everything related to event properties has been moved to the
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
-        when contructing a simple class without subclassing :class:`Widget`.
+        when constructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
         The constructor now accepts on_* arguments to automatically bind

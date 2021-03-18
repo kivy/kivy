@@ -559,7 +559,7 @@ except (OSError, ImportError, AttributeError):
     # ImportError: ctypes is not available on python-for-android.
     # AttributeError: ctypes is now available on python-for-android, but
     #   "undefined symbol: clock_gettime". CF #3797
-    # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
+    # OSError: if the libc cannot be read (like with buildbot: invalid ELF
     # header)
 
     def _usleep(microseconds, obj=None):
@@ -656,7 +656,7 @@ class ClockBaseBehavior(object):
 
     @property
     def frames(self):
-        '''Number of internal frames (not necessarily drawed) from the start of
+        '''Number of internal frames (not necessarily drawn) from the start of
         the clock.
 
         .. versionadded:: 1.8.0
@@ -1102,9 +1102,9 @@ def triggered(timeout=0, interval=False):
     timeout, through the method :meth:`CyClockBase.create_trigger`. Subsequent
     calls to the decorated function (while the timeout is active) are ignored.
 
-    It can be helpful when an expensive funcion (i.e. call to a server) can be
+    It can be helpful when an expensive function (i.e. call to a server) can be
     triggered by different methods. Setting a proper timeout will delay the
-    calling and only one of them wil be triggered.
+    calling and only one of them will be triggered.
 
         @triggered(timeout, interval=False)
         def callback(id):

@@ -247,7 +247,7 @@ class TreeViewNode(object):
     even_color = ColorProperty([0.5, 0.5, 0.5, 0.1])
     '''Background color of even nodes when the node is not selected.
 
-    :attr:`bg_color` is a :class:`~kivy.properties.ColorProperty` ans defaults
+    :attr:`bg_color` is a :class:`~kivy.properties.ColorProperty` and defaults
     to [.5, .5, .5, .1].
 
     .. versionchanged:: 2.0.0

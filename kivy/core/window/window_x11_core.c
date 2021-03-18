@@ -210,7 +210,7 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 	}
 
 	if ( CWOR ){
-        // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to controll
+        // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to control
         // the window properly. To (as an example) make the window stay above you need the cooperation of
         // the WM and mustn't set CWOR.
         attr_mask |= CWOverrideRedirect;

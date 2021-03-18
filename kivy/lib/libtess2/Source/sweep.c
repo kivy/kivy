@@ -400,7 +400,7 @@ static void AddRightEdges( TESStesselator *tess, ActiveRegion *regUp,
 static void SpliceMergeVertices( TESStesselator *tess, TESShalfEdge *e1,
 								TESShalfEdge *e2 )
 /*
-* Two vertices with idential coordinates are combined into one.
+* Two vertices with identical coordinates are combined into one.
 * e1->Org is kept, while e2->Org is discarded.
 */
 {
@@ -891,7 +891,7 @@ static void ConnectRightVertex( TESStesselator *tess, ActiveRegion *regUp,
 static void ConnectLeftDegenerate( TESStesselator *tess,
 								  ActiveRegion *regUp, TESSvertex *vEvent )
 /*
-* The event vertex lies exacty on an already-processed edge or vertex.
+* The event vertex lies exactly on an already-processed edge or vertex.
 * Adding the new vertex involves splicing it into the already-processed
 * part of the mesh.
 */

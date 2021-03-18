@@ -7,7 +7,7 @@ This module forces the mapping of some keys to functions:
 * Shift + F11: Switches between portrait and landscape on desktops
 * F12: Take a screenshot
 
-Note: this does't work if the application requests the keyboard beforehand.
+Note: this doesn't work if the application requests the keyboard beforehand.
 
 Usage
 -----

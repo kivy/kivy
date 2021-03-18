@@ -501,7 +501,7 @@ class Carousel(StencilView):
         elif _offset > min_move * extent:
             new_offset = extent
 
-        # if new_offset is 0, it wasnt enough to go next/prev
+        # if new_offset is 0, it wasn't enough to go next/prev
         dur = self.anim_move_duration
         if new_offset == 0:
             dur = self.anim_cancel_duration

@@ -155,7 +155,7 @@ class PageLayout(Layout):
         half_border = border / 2.
         page = self.children[-p - 1]
         if touch.ud['page'] == 'previous':
-            # move next page upto right edge
+            # move next page up to right edge
             if p < len(self.children) - 1:
                 self.children[-p - 2].x = min(
                     self.right - self.border * (1 - (touch.sx - touch.osx)),
@@ -170,14 +170,14 @@ class PageLayout(Layout):
                     self.right - b_right),
                     self.x + b_left)
 
-            # move previous page left edge upto left border
+            # move previous page left edge up to left border
             if p > 1:
                 self.children[-p].x = min(
                     self.x + half_border * (touch.sx - touch.osx),
                     self.x + half_border)
 
         elif touch.ud['page'] == 'next':
-            # move current page upto left edge
+            # move current page up to left edge
             if p >= 1:
                 self.children[-p - 1].x = max(
                     self.x + half_border * (1 - (touch.osx - touch.sx)),
@@ -192,7 +192,7 @@ class PageLayout(Layout):
                     self.x + b_left),
                     self.right - b_right)
 
-            # move second next page upto right border
+            # move second next page up to right border
             if p < len(self.children) - 2:
                 self.children[-p - 3].x = max(
                     self.right + half_border * (touch.sx - touch.osx),
