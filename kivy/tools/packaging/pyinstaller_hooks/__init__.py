@@ -108,7 +108,7 @@ if 'KIVY_DOC' not in environ:
         (kivy.kivy_modules_dir,
          os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir)))
     ]
-'''List of datas to be included by pyinstaller.
+'''List of data to be included by pyinstaller.
 '''
 
 

@@ -2100,10 +2100,10 @@ cdef class ColorProperty(Property):
     - a string in the format #rrggbb or #rrggbbaa
     - a string representing color name (eg. 'red', 'yellow', 'green')
 
-    Object :obj:`~kivy.utils.colormap` is used to retreive color from color
+    Object :obj:`~kivy.utils.colormap` is used to retrieve color from color
     name and names definitions can be found at this
     `link <https://www.w3.org/TR/SVG11/types.html#ColorKeywords>`_. Color can
-    be assinged in different formats, but it will be returned as
+    be assigned in different formats, but it will be returned as
     :class:`~kivy.properties.ObservableList` of 4 float elements with values
     between 0-1.
 

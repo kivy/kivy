@@ -188,7 +188,7 @@ cdef class Shader:
 
     cdef void reload(self):
         # Note that we don't free previous created shaders. The current reload
-        # is called only when the gl context is reseted. If we do it, we might
+        # is called only when the gl context is reset. If we do it, we might
         # free newly created shaders (id collision)
         cgl.glUseProgram(0)
 
@@ -584,7 +584,7 @@ cdef class Shader:
         if not self.is_linked():
             self._success = 0
             self.process_message('program', self.get_program_log(self.program))
-            raise Exception('Shader didnt link, check info log.')
+            raise Exception('Shader did not link, check info log.')
         self._success = 1
         return 0
 
@@ -625,7 +625,7 @@ cdef class Shader:
         cgl.glGetProgramInfoLog(shader, 2048, &length, msg)
         # XXX don't use the msg[:length] as a string directly, or the unicode
         # will fail on shitty driver. Ie, some Intel drivers return a static
-        # unitialized string of length 40, with just a content of "Success.\n\0"
+        # uninitialized string of length 40, with just a content of "Success.\n\0"
         # Trying to decode data after \0 will just fail. So use bytes, and
         # convert only the part before \0.
         # XXX Also, we cannot use directly msg as a python string, as some

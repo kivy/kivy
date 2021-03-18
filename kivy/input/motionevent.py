@@ -173,7 +173,7 @@ class MotionEvent(MotionEventBase):
                            'px', 'py', 'pz', 'pos')
 
         #: Uniq ID of the touch. You can safely use this property, it will be
-        #: never the same accross all existing touches.
+        #: never the same across all existing touches.
         self.uid = MotionEvent.__uniq_id
 
         #: Device used for creating this touch

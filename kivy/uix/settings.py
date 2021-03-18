@@ -609,7 +609,7 @@ class SettingTitle(Label):
 
 
 class SettingsPanel(GridLayout):
-    '''This class is used to contruct panel settings, for use with a
+    '''This class is used to construct panel settings, for use with a
     :class:`Settings` instance or subclass.
     '''
 

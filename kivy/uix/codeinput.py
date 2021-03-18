@@ -188,7 +188,7 @@ class CodeInput(CodeNavigationBehavior, TextInput):
         except IndexError:
             return ''
 
-    # overriden to prevent cursor position off screen
+    # overridden to prevent cursor position off screen
     def _cursor_offset(self):
         '''Get the cursor x offset on the current line
         '''

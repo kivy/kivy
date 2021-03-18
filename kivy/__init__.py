@@ -351,7 +351,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # Can be overriden in command line
+    # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             environ.get('KIVY_NO_ARGS', "false") not in ('true', '1', 'yes')):

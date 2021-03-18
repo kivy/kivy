@@ -17,7 +17,7 @@ Load an SVG as a graphics instruction::
         svg = Svg("image.svg")
 
 There is no widget that can display Svg directly, you have to make your own for
-now. Check the `examples/svg` for more informations.
+now. Check the `examples/svg` for more information.
 '''
 
 __all__ = ("Svg", )
@@ -363,7 +363,7 @@ class RadialGradient(Gradient):
 
 
 cdef class Svg(RenderContext):
-    """Svg class. See module for more informations about the usage.
+    """Svg class. See module for more information about the usage.
     """
 
     def __init__(self, source=None, anchor_x=0, anchor_y=0,
@@ -1145,7 +1145,7 @@ cdef class Svg(RenderContext):
         self.last_mesh.add_triangle_strip(vertices, vindex, count, mode)
 
     cdef void push_line_mesh(self, float[:] path, fill, Matrix transform, float width):
-        # Tentative to use smooth line, doesn't work completly yet.
+        # Tentative to use smooth line, doesn't work completely yet.
         # Caps and joint are missing
         cdef int index, vindex = 0, odd = 0, i
         cdef float ax, ay, bx, _by, r = 0, g = 0, b = 0, a = 0

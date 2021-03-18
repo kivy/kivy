@@ -226,7 +226,7 @@ class ScrollView(StencilView):
     touch the left side of the ScrollView. If 1, the content's right side will
     touch the right side.
 
-    This property is controled by :class:`ScrollView` only if
+    This property is controlled by :class:`ScrollView` only if
     :attr:`do_scroll_x` is True.
 
     :attr:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
@@ -238,7 +238,7 @@ class ScrollView(StencilView):
     touch the bottom side of the ScrollView. If 1, the content's top side will
     touch the top side.
 
-    This property is controled by :class:`ScrollView` only if
+    This property is controlled by :class:`ScrollView` only if
     :attr:`do_scroll_y` is True.
 
     :attr:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
@@ -477,7 +477,7 @@ class ScrollView(StencilView):
     |                     | content directly.                              |
     +---------------------+------------------------------------------------+
     | ['bars']            | Content is scrolled by dragging or swiping the |
-    |                     | scoll bars.                                    |
+    |                     | scroll bars.                                   |
     +---------------------+------------------------------------------------+
     | ['bars', 'content'] | Content is scrolled by either of the above     |
     |                     | methods.                                       |

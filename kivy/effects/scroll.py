@@ -25,7 +25,7 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 
 class ScrollEffect(KineticEffect):
-    '''ScrollEffect class. See the module documentation for more informations.
+    '''ScrollEffect class. See the module documentation for more information.
     '''
 
     drag_threshold = NumericProperty('20sp')

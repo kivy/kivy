@@ -427,7 +427,7 @@ class ColorPicker(RelativeLayout):
         ev()
 
     def _update_clr(self, dt):
-        # to prevent interaction between hsv/rgba, we work internaly using rgba
+        # to prevent interaction between hsv/rgba, we work internally using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
             text = min(255, max(0, float(text)))

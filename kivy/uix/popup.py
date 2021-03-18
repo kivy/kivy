@@ -90,7 +90,7 @@ Popup Events
 There are two events available: `on_open` which is raised when the popup is
 opening, and `on_dismiss` which is raised when the popup is closed.
 For `on_dismiss`, you can prevent the
-popup from closing by explictly returning True from your callback::
+popup from closing by explicitly returning True from your callback::
 
     def my_callback(instance):
         print('Popup', instance, 'is being dismissed but is prevented!')

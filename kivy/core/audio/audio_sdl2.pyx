@@ -24,7 +24,7 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
     Sequenced format support changed with mixer v2.0.2. If mixer is
     linked with one of libmodplug or libmikmod, format support for
     both libraries is assumed. This will work perfectly with formats
-    upported by both libraries, but if you were to try to load an
+    supported by both libraries, but if you were to try to load an
     obscure format (like `apun` file with mikmod only), it will fail.
 
     * Kivy <= 1.10.0: will fail to build with mixer >= 2.0.2

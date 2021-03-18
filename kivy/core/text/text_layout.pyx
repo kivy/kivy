@@ -458,7 +458,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
         '''----------------- we now a non-empty line ------------------------
         what we do is given the current text in this real line if we can fit
         another word, add it. Otherwise add it to a new line. But if a single
-        word doen't fit on a single line, just split the word itself into
+        word doesn't fit on a single line, just split the word itself into
         multiple lines'''
 
         # s is idx in line of start of this actual line, e is idx of

@@ -1139,7 +1139,7 @@ cdef class Texture:
         .. versionchanged:: 1.8.0
 
             Parameter `flipped` added, defaults to True. All the OpenGL Texture
-            are readed from bottom / left, it need to be flipped before saving.
+            are read from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
 
         .. versionchanged:: 1.11.0

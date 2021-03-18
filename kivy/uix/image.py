@@ -163,7 +163,7 @@ class Image(Widget):
     '''
 
     keep_data = BooleanProperty(False)
-    '''If True, the underlaying _coreimage will store the raw image data.
+    '''If True, the underlying _coreimage will store the raw image data.
     This is useful when performing pixel based collision detection.
 
     .. versionadded:: 1.3.0
@@ -209,7 +209,7 @@ class Image(Widget):
         w, h = self.size
         tw, th = self.texture.size
 
-        # ensure that the width is always maximized to the containter width
+        # ensure that the width is always maximized to the container width
         if self.allow_stretch:
             if not self.keep_ratio:
                 return [w, h]

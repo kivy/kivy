@@ -300,7 +300,7 @@ class GridLayout(Layout):
             return None
 
     def on_children(self, instance, value):
-        # if that makes impossible to construct things with deffered method,
+        # if that makes impossible to construct things with deferred method,
         # migrate this test in do_layout, and/or issue a warning.
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
@@ -326,7 +326,7 @@ class GridLayout(Layout):
         current_rows = self.rows
 
         # if no cols or rows are set, we can't calculate minimum size.
-        # the grid must be contrained at least on one side
+        # the grid must be constrained at least on one side
         if not current_cols and not current_rows:
             Logger.warning('%r have no cols or rows set, '
                            'layout is not triggered.' % self)

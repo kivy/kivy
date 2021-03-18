@@ -19,7 +19,7 @@ cdef extern from "EGL/egl.h":
 
     ctypedef struct EGL_DISPMANX_WINDOW_T:
         DISPMANX_ELEMENT_HANDLE_T element
-        int width   #/* This is necessary because dispmanx elements are not queriable. */
+        int width   #/* This is necessary because dispmanx elements are not queryable. */
         int height
 
     EGLint eglGetError()

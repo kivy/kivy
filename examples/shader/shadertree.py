@@ -6,7 +6,7 @@ This example is an experimentation to show how we can use shader for a tree
 subset. Here, we made a ShaderTreeWidget, different than the ShaderWidget
 in the plasma.py example.
 
-The ShaderTree widget create a Frambuffer, render his children on it, and
+The ShaderTree widget create a Framebuffer, render his children on it, and
 render the Framebuffer with a specific Shader.
 With this way, you can apply cool effect on your widgets :)
 

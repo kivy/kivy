@@ -64,7 +64,7 @@ cdef class Line(VertexInstruction):
         `dashes`: list of ints
             List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
             would create a line with the first dash length 2 then an offset of 4 then
-            a dash lenght of 1 then an offset of 6 and so on. Defaults to ``[]``.
+            a dash length of 1 then an offset of 6 and so on. Defaults to ``[]``.
             Changing this makes it dashed and overrides `dash_length` and `dash_offset`.
         `width`: float
             Width of the line, defaults to 1.0.
@@ -759,7 +759,7 @@ cdef class Line(VertexInstruction):
 
         List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
         would create a line with the first dash length 2 then an offset of 4 then
-        a dash lenght of 1 then an offset of 6 and so on.
+        a dash length of 1 then an offset of 6 and so on.
 
         .. versionadded:: 1.11.0
         '''
