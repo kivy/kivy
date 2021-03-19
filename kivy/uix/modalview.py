@@ -79,8 +79,8 @@ __all__ = ('ModalView', )
 from kivy.animation import Animation
 from kivy.core.window import Window
 from kivy.properties import (
-    StringProperty, BooleanProperty, NumericProperty, ListProperty,
-    ColorProperty)
+    StringProperty, BooleanProperty, ObjectProperty, NumericProperty,
+    ListProperty, ColorProperty)
 from kivy.uix.anchorlayout import AnchorLayout
 
 
@@ -170,6 +170,8 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
+    _window = ObjectProperty(allownone=True, rebind=True)
+
     _is_open = BooleanProperty(False)
 
     _touch_started_inside = None
@@ -189,14 +191,14 @@ class ModalView(AnchorLayout):
             view.open(animation=False)
 
         """
+        self._window = Window
         self._is_open = True
         self.dispatch('on_pre_open')
-        main_win = Window
-        main_win.add_widget(self)
-        main_win.bind(
+        Window.add_widget(self)
+        Window.bind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
-        self.center = main_win.center
+        self.center = Window.center
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
@@ -269,12 +271,12 @@ class ModalView(AnchorLayout):
     def _real_remove_widget(self):
         if not self._is_open:
             return
-        main_win = Window
-        main_win.remove_widget(self)
-        main_win.unbind(
+        Window.remove_widget(self)
+        Window.unbind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self._is_open = False
+        self._window = None
 
     def on_pre_open(self):
         """ default pre-open event handler. """

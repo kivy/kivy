@@ -498,7 +498,7 @@
         Color:
             rgba: root.overlay_color[:3] + [root.overlay_color[-1] * self._anim_alpha]
         Rectangle:
-            size: root.get_root_window().size if root.get_root_window() else (0, 0)
+            size: self._window.size if self._window else (0, 0)
 
         Color:
             rgba: root.background_color
