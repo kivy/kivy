@@ -79,8 +79,8 @@ __all__ = ('ModalView', )
 from kivy.animation import Animation
 from kivy.core.window import Window
 from kivy.properties import (
-    StringProperty, BooleanProperty, ObjectProperty, NumericProperty,
-    ListProperty, ColorProperty)
+    StringProperty, BooleanProperty, NumericProperty, ListProperty,
+    ColorProperty)
 from kivy.uix.anchorlayout import AnchorLayout
 
 
@@ -170,7 +170,7 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
-    _window = ObjectProperty(allownone=True, rebind=True)
+    _is_open = BooleanProperty(False)
 
     _touch_started_inside = None
 
@@ -189,13 +189,14 @@ class ModalView(AnchorLayout):
             view.open(animation=False)
 
         """
-        self._window = Window
+        self._is_open = True
         self.dispatch('on_pre_open')
-        self._window.add_widget(self)
-        self._window.bind(
+        main_win = Window
+        main_win.add_widget(self)
+        main_win.bind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
-        self.center = self._window.center
+        self.center = main_win.center
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
@@ -221,7 +222,7 @@ class ModalView(AnchorLayout):
             view.dismiss(animation=False)
 
         """
-        if self._window is None:
+        if not self._is_open:
             return
         self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
@@ -234,8 +235,8 @@ class ModalView(AnchorLayout):
             self._real_remove_widget()
 
     def _align_center(self, *_args):
-        if self._window:
-            self.center = self._window.center
+        if self._is_open:
+            self.center = Window.center
 
     def on_touch_down(self, touch):
         """ touch down event handler. """
@@ -262,17 +263,18 @@ class ModalView(AnchorLayout):
 
     def on__anim_alpha(self, _instance, value):
         """ animation progress callback. """
-        if value == 0 and self._window is not None:
+        if value == 0 and self._is_open:
             self._real_remove_widget()
 
     def _real_remove_widget(self):
-        if self._window is None:
+        if not self._is_open:
             return
-        self._window.remove_widget(self)
-        self._window.unbind(
+        main_win = Window
+        main_win.remove_widget(self)
+        main_win.unbind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
-        self._window = None
+        self._is_open = False
 
     def on_pre_open(self):
         """ default pre-open event handler. """
