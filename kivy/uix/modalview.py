@@ -72,6 +72,13 @@ returning `True` from your callback::
     keyboard if the :attr:`ModalView.auto_dismiss` property is True (the
     default).
 
+.. versionchanged:: 2.1.0
+    Removed `attach_to` property. In contrary to :attr:`DropDown.attach_to`
+    it had no influence on the positioning of a `ModalView` instance; it got
+    only used to determine the main window, which results in any case as
+    :data:`kivy.core.window.Window`. Simply remove it from your project code
+    if you update an old project to the Kivy version 2.1.0 or higher.
+
 """
 
 __all__ = ('ModalView', )
