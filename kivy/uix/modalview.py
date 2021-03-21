@@ -72,13 +72,6 @@ returning `True` from your callback::
     keyboard if the :attr:`ModalView.auto_dismiss` property is True (the
     default).
 
-.. versionchanged:: 2.1.0
-    Removed `attach_to` property. In contrary to :attr:`DropDown.attach_to`
-    it had no influence on the positioning of a `ModalView` instance; it got
-    only used to determine the main window, which results in any case as
-    :data:`kivy.core.window.Window`. Simply remove it from your project code
-    if you update an old project to the Kivy version 2.1.0 or higher.
-
 """
 
 __all__ = ('ModalView', )
@@ -112,14 +105,28 @@ class ModalView(AnchorLayout):
     .. versionchanged:: 2.0.0
         Added property 'overlay_color'.
 
+    .. versionchanged:: 2.1.0
+        Marked `attach_to` property as deprecated.
+
     """
 
-    auto_dismiss = BooleanProperty()
+    # noinspection PyArgumentEqualDefault
+    auto_dismiss = BooleanProperty(True)
     '''This property determines if the view is automatically
     dismissed when the user clicks outside it.
 
     :attr:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    # noinspection PyArgumentEqualDefault
+    attach_to = ObjectProperty(None, deprecated=True)
+    '''If a widget is set on attach_to, the view will attach to the nearest
+    parent window of the widget. If none is found, it will attach to the
+    main/global Window.
+
+    :attr:`attach_to` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     background_color = ColorProperty([1, 1, 1, 1])
@@ -173,7 +180,8 @@ class ModalView(AnchorLayout):
 
     # Internals properties used for graphical representation.
 
-    _anim_alpha = NumericProperty()
+    # noinspection PyArgumentEqualDefault
+    _anim_alpha = NumericProperty(0)
 
     _anim_duration = NumericProperty(.1)
 
@@ -190,7 +198,7 @@ class ModalView(AnchorLayout):
         super(ModalView, self).__init__(**kwargs)
 
     def open(self, *_args, **kwargs):
-        """ attach this view to the main window.
+        """Display the modal in the Window.
 
         When the view is opened, it will be faded in with an animation. If you
         don't want the animation, use::
@@ -198,6 +206,8 @@ class ModalView(AnchorLayout):
             view.open(animation=False)
 
         """
+        if self._is_open:
+            return
         self._window = Window
         self._is_open = True
         self.dispatch('on_pre_open')
@@ -209,9 +219,9 @@ class ModalView(AnchorLayout):
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
-            a = Animation(_anim_alpha=1., d=self._anim_duration)
-            a.bind(on_complete=lambda *_args: self.dispatch('on_open'))
-            a.start(self)
+            ani = Animation(_anim_alpha=1., d=self._anim_duration)
+            ani.bind(on_complete=lambda *_args: self.dispatch('on_open'))
+            ani.start(self)
         else:
             self._anim_alpha = 1.
             self.dispatch('on_open')
@@ -251,13 +261,13 @@ class ModalView(AnchorLayout):
         """ touch down event handler. """
         self._touch_started_inside = self.collide_point(*touch.pos)
         if not self.auto_dismiss or self._touch_started_inside:
-            super(ModalView, self).on_touch_down(touch)
+            super().on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
         """ touch moved event handler. """
         if not self.auto_dismiss or self._touch_started_inside:
-            super(ModalView, self).on_touch_move(touch)
+            super().on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
@@ -266,7 +276,7 @@ class ModalView(AnchorLayout):
         if self.auto_dismiss and self._touch_started_inside is False:
             self.dismiss()
         else:
-            super(ModalView, self).on_touch_up(touch)
+            super().on_touch_up(touch)
         self._touch_started_inside = None
         return True
 
@@ -278,8 +288,8 @@ class ModalView(AnchorLayout):
     def _real_remove_widget(self):
         if not self._is_open:
             return
-        Window.remove_widget(self)
-        Window.unbind(
+        self._window.remove_widget(self)
+        self._window.unbind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self._is_open = False
@@ -287,19 +297,15 @@ class ModalView(AnchorLayout):
 
     def on_pre_open(self):
         """ default pre-open event handler. """
-        pass
 
     def on_open(self):
         """ default open event handler. """
-        pass
 
     def on_pre_dismiss(self):
         """ default pre-dismiss event handler. """
-        pass
 
     def on_dismiss(self):
         """ default dismiss event handler. """
-        pass
 
     def _handle_keyboard(self, _window, key, *_args):
         if key == 27 and self.auto_dismiss:
