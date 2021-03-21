@@ -308,7 +308,9 @@ for importer, modname, package in _packages:
             format(package, modname, str(e)))
 
 # Don't go further if we generate documentation
-if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
+if any(name in sys.argv[0] for name in (
+        'sphinx-build', 'autobuild.py', 'sphinx'
+)):
     environ['KIVY_DOC'] = '1'
 if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
