@@ -77,7 +77,6 @@ returning `True` from your callback::
 __all__ = ('ModalView', )
 
 from kivy.animation import Animation
-from kivy.core.window import Window
 from kivy.properties import (
     StringProperty, BooleanProperty, ObjectProperty, NumericProperty,
     ListProperty, ColorProperty)
@@ -119,7 +118,6 @@ class ModalView(AnchorLayout):
     defaults to True.
     '''
 
-    # noinspection PyArgumentEqualDefault
     attach_to = ObjectProperty(None, deprecated=True)
     '''If a widget is set on attach_to, the view will attach to the nearest
     parent window of the widget. If none is found, it will attach to the
@@ -180,7 +178,6 @@ class ModalView(AnchorLayout):
 
     # Internals properties used for graphical representation.
 
-    # noinspection PyArgumentEqualDefault
     _anim_alpha = NumericProperty(0)
 
     _anim_duration = NumericProperty(.1)
@@ -206,6 +203,7 @@ class ModalView(AnchorLayout):
             view.open(animation=False)
 
         """
+        from kivy.core.window import Window
         if self._is_open:
             return
         self._window = Window
@@ -255,7 +253,7 @@ class ModalView(AnchorLayout):
 
     def _align_center(self, *_args):
         if self._is_open:
-            self.center = Window.center
+            self.center = self._window.center
 
     def on_touch_down(self, touch):
         """ touch down event handler. """
@@ -316,6 +314,7 @@ class ModalView(AnchorLayout):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
+    from kivy.core.window import Window
     from kivy.uix.label import Label
     from kivy.uix.gridlayout import GridLayout
 
