@@ -361,7 +361,7 @@ class MotionEvent(MotionEventBase):
             Max value for `x`, `y` and `z` is changed respectively to `w` - 1,
             `h` - 1 and `p` - 1.
         '''
-        x_max, y_max = w - 1.0, h - 1.0
+        x_max, y_max = max(0.0, w - 1.0), max(0.0, h - 1.0)
         sx, sy = self.sx, self.sy
         if rotation == 0:
             self.x = sx * x_max
@@ -380,7 +380,7 @@ class MotionEvent(MotionEventBase):
             self.y = sy * x_max
 
         if p is not None:
-            self.z = self.sz * (p - 1.0)
+            self.z = self.sz * max(0.0, p - 1.0)
 
         if smode:
             if smode == 'pan':
