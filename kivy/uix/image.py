@@ -176,7 +176,7 @@ class Image(Widget):
     if you want animation don't start on init you can just set `durations` to
     None explicitly).
 
-    .. versionadded:: 2.0.0
+    .. versionadded:: 2.1.0
 
     :attr:`durations` is a :class:`~kivy.properties.ListProperty` and
     defaults to None.
@@ -185,7 +185,7 @@ class Image(Widget):
     anim_delay = NumericProperty(0.25)
     '''Delay the animation if the image is sequenced (like an animated gif).
     Used only if `auto_anim_delay` is False and no `durations`.
-    If anim_delay is set to -1, the animation will be stopped.
+    If :attr:`anim_delay` is set to -1, the animation will be stopped.
     If you want change using `durations` during animation on using
     'anim_delay`, set `durations` to None and then set `anim_delay` property
     again(if you want set `anim_delay` to the same value as already in
@@ -214,7 +214,7 @@ class Image(Widget):
     If you want autofill ``durations`` during animation, call the
     self.fill_durations_default() function.
 
-    .. versionadded:: 2.0.0
+    .. versionadded:: 2.1.0
 
     :attr:`auto_anim_delay` is a :class:`~kivy.properties.BooleanProperty`
      and defaults to True.

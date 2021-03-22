@@ -332,7 +332,7 @@ class ImageLoaderBase(object):
     def durations(self):
         '''Get the durations list (for animated image)
 
-        .. versionadded:: 2.0.0
+        .. versionadded:: 2.1.0
         '''
         if self._textures is None:
             self.populate()
@@ -496,7 +496,7 @@ class Image(EventDispatcher):
         been introduced. New methods for handling sequenced animation have been
         added.
 
-    .. versionchanged:: 2.0.0
+    .. versionchanged:: 2.1.0
 
         `durations` attribute has been added. An animated image can have a
         variable delay.
@@ -537,14 +537,14 @@ class Image(EventDispatcher):
             manually set. I.e. used only if ``durations`` is empty/None.
             If you want autofill ``durations`` during animation, call the
             self.fill_durations_default() function.
-            .. versionadded:: 2.0.0
+            .. versionadded:: 2.1.0
         `durations`: list of int or float
             Delay the animation if the image is a sequence (like an animated
             gif). Set if frame delay is variable, not constant.
             When ``auto_anim_delay`` is True and ``durations`` is not set, then
             ``durations`` is set automatically. To reset and stop animation
             just set it to None during the animation.
-            .. versionadded:: 2.0.0
+            .. versionadded:: 2.1.0
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
@@ -804,14 +804,14 @@ class Image(EventDispatcher):
     def on_durations_done(self, *largs):
         '''This event is fired when the durations load from GIF-file.
 
-        .. versionadded:: 2.0.0
+        .. versionadded:: 2.1.0
         '''
         pass
 
     def fill_durations_default(self):
         '''Fill durations with durations from source image
 
-        .. versionadded:: 2.0.0
+        .. versionadded:: 2.1.0
         '''
         imgcount = len(self.image.textures)
 
