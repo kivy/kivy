@@ -3093,8 +3093,7 @@ class TextInput(FocusBehavior, Widget):
             lbl = MarkupLabel(
                 text=txt + "[b]{}[/b]".format(value), **kw)
         else:
-            lbl = Label(**kw)
-            text = txt
+            lbl = Label(text=txt, **kw)
 
         lbl.refresh()
 
@@ -3469,24 +3468,39 @@ if __name__ == '__main__':
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
+    class AutoCompleteTextInput(TextInput):
+        words = (
+            'kivy', 'pythonforandroid', 'plyer', 'pyjnius', 'pyobjus', 'garden',
+        )
+
+        def on_text(self, instance, text, *args):
+            word = text.split('\n')[-1].split(' ')[-1].lower()
+            if len(word) < 3:
+                return
+
+            for suggestion in self.words:
+                if suggestion.startswith(word):
+                    s = suggestion[len(word):]
+                    self.suggestion_text = s
+                    self.write_tab = bool(s)
+                    return
+
+        def insert_text(self, substring, from_undo=False):
+            if substring == '\t':
+                substring = self.suggestion_text
+            return super().insert_text(substring, from_undo=from_undo)
+
     class TextInputApp(App):
-
         def build(self):
-
-            Builder.load_string('''
-<TextInput>
-    on_text:
-        self.suggestion_text = ''
-        self.suggestion_text = 'ion_text'
-
-''')
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True, use_bubble=True,
-                                  use_handles=True)
-            # textinput.text = __doc__
+            textinput = AutoCompleteTextInput(
+                multiline=True, use_bubble=True, use_handles=True
+            )
             root.add_widget(textinput)
-            textinput2 = TextInput(multiline=False, text='monoline textinput',
-                                   size_hint=(1, None), height=30)
+            textinput2 = AutoCompleteTextInput(
+                multiline=False, text='monoline textinput',
+                size_hint=(1, None), height=30
+            )
             root.add_widget(textinput2)
             return root
 
