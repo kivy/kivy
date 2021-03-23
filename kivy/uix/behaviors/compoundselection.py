@@ -129,11 +129,11 @@ __all__ = ('CompoundSelectionBehavior', )
 from time import time
 from os import environ
 
-from kivy.config import Config
 from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 
 
 if 'KIVY_DOC' not in environ:
+    from kivy.config import Config
     _is_desktop = Config.getboolean('kivy', 'desktop')
 else:
     _is_desktop = False
