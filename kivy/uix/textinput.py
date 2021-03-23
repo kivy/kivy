@@ -3061,46 +3061,6 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
-    suggestion_text = StringProperty('')
-    '''Shows a suggestion text at the end of the current line.
-    The feature is useful for text autocompletion, and it does not implement
-    validation (accepting the suggested text on enter etc.).
-    This can also be used by the IME to setup the current word being edited.
-
-    .. versionadded:: 1.9.0
-
-    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty` and
-    defaults to `''`.
-    '''
-
-    def on_suggestion_text(self, instance, value):
-        global MarkupLabel
-        if not MarkupLabel:
-            from kivy.core.text.markup import MarkupLabel
-
-        cursor_row = self.cursor_row
-        if cursor_row >= len(self._lines) or self.canvas is None:
-            return
-
-        cursor_pos = self.cursor_pos
-        txt = self._lines[cursor_row]
-
-        kw = self._get_line_options()
-        rct = self._lines_rects[cursor_row]
-
-        lbl = text = None
-        if value:
-            lbl = MarkupLabel(
-                text=txt + "[b]{}[/b]".format(value), **kw)
-        else:
-            lbl = Label(text=txt, **kw)
-
-        lbl.refresh()
-
-        self._lines_labels[cursor_row] = lbl.texture
-        rct.size = lbl.size
-        self._update_graphics()
-
     def get_sel_from(self):
         return self._selection_from
 
@@ -3468,36 +3428,14 @@ if __name__ == '__main__':
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
-    class AutoCompleteTextInput(TextInput):
-        words = (
-            'kivy', 'pythonforandroid', 'plyer', 'pyjnius', 'pyobjus', 'garden',
-        )
-
-        def on_text(self, instance, text, *args):
-            word = text.split('\n')[-1].split(' ')[-1].lower()
-            if len(word) < 3:
-                return
-
-            for suggestion in self.words:
-                if suggestion.startswith(word):
-                    s = suggestion[len(word):]
-                    self.suggestion_text = s
-                    self.write_tab = bool(s)
-                    return
-
-        def insert_text(self, substring, from_undo=False):
-            if substring == '\t':
-                substring = self.suggestion_text
-            return super().insert_text(substring, from_undo=from_undo)
-
     class TextInputApp(App):
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = AutoCompleteTextInput(
+            textinput = TextInput(
                 multiline=True, use_bubble=True, use_handles=True
             )
             root.add_widget(textinput)
-            textinput2 = AutoCompleteTextInput(
+            textinput2 = TextInput(
                 multiline=False, text='monoline textinput',
                 size_hint=(1, None), height=30
             )
