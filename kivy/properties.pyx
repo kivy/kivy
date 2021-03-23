@@ -628,6 +628,25 @@ cdef class Property:
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value.
 
+    It only accepts the int or float numeric data type or a string that can be
+    converted to a number as shown below. For other numeric types use ObjectProperty
+    or use errorhandler to convert it to an int/float.
+
+    It does not support numpy numbers so they must be manually converted to int/float.
+    E.g. ``widget.num = np.arange(4)[0]`` will raise an exception. Numpy arrays are not
+    supported at all, even by ObjectProperty because their comparision does not return
+    a bool. But if you must use a Kivy property, use a ObjectProperty with ``comparator``
+    set to ``np.array_equal``. E.g.::
+
+        >>> class A(EventDispatcher):
+        ...     data = ObjectProperty(comparator=np.array_equal)
+        >>> a = A()
+        >>> a.bind(data=print)
+        >>> a.data = np.arange(2)
+        <__main__.A object at 0x000001C839B50208> [0 1]
+        >>> a.data = np.arange(3)
+        <__main__.A object at 0x000001C839B50208> [0 1 2]
+
     :Parameters:
         `defaultvalue`: int or float, defaults to 0
             Specifies the default value of the property.
@@ -698,8 +717,8 @@ cdef class NumericProperty(Property):
         if Property.check(self, obj, value, property_storage):
             return True
         tp = type(value)
-        if tp is not int and tp is not float and tp is not long:
-            raise ValueError('%s.%s accept only int/float/long (got %r)' % (
+        if tp is not int and tp is not float:
+            raise ValueError('%s.%s accept only int/float (got %r)' % (
                 obj.__class__.__name__,
                 self.name, value))
 
@@ -714,7 +733,7 @@ cdef class NumericProperty(Property):
             return x
 
         tp = type(x)
-        if tp is int or tp is float or tp is long:
+        if tp is int or tp is float:
             ps.numeric_fmt = 'px'
             ps.original_num = x
             return x
@@ -728,7 +747,9 @@ cdef class NumericProperty(Property):
                     self.name, x))
             return self.parse_list(obj, x[0], x[1], ps)
         else:
-            raise ValueError('%s.%s has an invalid format (got %r)' % (
+            raise ValueError(
+                '%s.%s has an invalid format (got %r). Consider using ObjectProperty'
+                'or use errorhandler to convert to a number' % (
                 obj.__class__.__name__,
                 self.name, x))
 
@@ -772,7 +793,7 @@ cdef class StringProperty(Property):
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):
             return True
-        if not isinstance(value, str):
+        if type(value) is not str:
             raise ValueError('%s.%s accept only str' % (
                 obj.__class__.__name__,
                 self.name))
@@ -1097,14 +1118,6 @@ cdef class BooleanProperty(Property):
 
     def __init__(self, defaultvalue=True, **kw):
         super(BooleanProperty, self).__init__(defaultvalue, **kw)
-
-    cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
-        if Property.check(self, obj, value, property_storage):
-            return True
-        if not isinstance(value, object):
-            raise ValueError('%s.%s accept only bool' % (
-                obj.__class__.__name__,
-                self.name))
 
 cdef class BoundedNumericProperty(Property):
     '''Property that represents a numeric value within a minimum bound and/or
@@ -1752,8 +1765,8 @@ cdef class VariableListProperty(Property):
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):
             return True
-        if type(value) not in (int, float, long, list, tuple, str):
-            err = '%s.%s accepts only int/float/long/list/tuple/str (got %r)'
+        if type(value) not in (int, float, list, tuple, str):
+            err = '%s.%s accepts only int/float/list/tuple/str (got %r)'
             raise ValueError(err % (obj.__class__.__name__, self.name, value))
 
     cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage):
@@ -1773,7 +1786,7 @@ cdef class VariableListProperty(Property):
         # reset here, it'll be changed in parse is we use anything that is not px
         ps.uses_scaling = 0
         try:
-            if tp is int or tp is long or tp is float or isinstance(x, str):
+            if tp is int or tp is float or tp is str:
                 y = self._convert_numeric(obj, x, ps)
                 if self.length == 4:
                     return [y, y, y, y]
@@ -1834,7 +1847,7 @@ cdef class VariableListProperty(Property):
     cdef _convert_numeric(
             self, EventDispatcher obj, x, VariableListPropertyStorage ps):
         tp = type(x)
-        if tp is int or tp is float or tp is long:
+        if tp is int or tp is float:
             return x
         if tp is str:
             return self.parse_str(obj, x, ps)
