@@ -287,11 +287,14 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__event_stack[event_type] = EventObservers.__new__(
                 EventObservers, 1, 0)
 
-    def unregister_event_types(self, event_type):
+    def unregister_event_type(self, event_type):
         '''Unregister an event type in the dispatcher.
+
+        .. versionchanged:: 2.1.0
+            Method renamed from `unregister_event_types` to
+            `unregister_event_type`.
         '''
-        if event_type in self.__event_stack:
-            del self.__event_stack[event_type]
+        self.__event_stack.pop(event_type, None)
 
     def is_event_type(self, event_type):
         '''Return True if the event_type is already registered.
