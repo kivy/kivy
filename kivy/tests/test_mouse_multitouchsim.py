@@ -12,7 +12,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # flip, because the mouse provider uses system's
         # raw one and it's changed to bottom-left origin
         # with Window's system_size[1] for 'mouse_pos'
-        return win.height - y
+        return win.height - 1.0 - y
 
     def mouse_init(self, on_demand=False, disabled=False, scatter=False):
         # prepare MouseMotionEventProvider
@@ -309,7 +309,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
 
         # right button up
@@ -349,7 +349,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )
         self.assertEqual(
             ellipse.pos,
-            (40, self.correct_y(win, win.height - 40))
+            (40, 40)
         )  # bounding box from Rectangle, R=10 -> 20 width
 
         # the dot is removed after the touch is released
@@ -455,16 +455,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         ].ud.get('_drawelement')[1].proxy_ref
 
         # check ellipse's position
-        self.assertEqual(
-            ellipse.pos[0], 0
-        )  # bounding box from Rectangle, R=10 -> 20 width
+        self.assertAlmostEqual(ellipse.pos[0], 0, delta=0.0001)
+        # bounding box from Rectangle, R=10 -> 20 width
         # almost equal because the correct_y uses the same
         # float - float, which returns decimal garbage
-        self.assertAlmostEqual(
-            ellipse.pos[1],
-            self.correct_y(win, win.height),
-            delta=0.0001
-        )
+        self.assertAlmostEqual(ellipse.pos[1], 0, delta=0.0001)
 
         win.dispatch(
             'on_mouse_move',
@@ -474,7 +469,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # the red dot moves when the touch is moving
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
         win.dispatch(
             'on_mouse_up',
@@ -484,7 +479,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
         self.assertEqual(mouse.counter, 1)
         # because the red dot is removed by the left button

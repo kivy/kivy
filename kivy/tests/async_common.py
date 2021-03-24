@@ -29,8 +29,8 @@ class AsyncUnitTestTouch(UnitTestTouch):
     def touch_move(self, x, y):
         win = self.eventloop.window
         self.move({
-            "x": x / float(win.width),
-            "y": y / float(win.height)
+            "x": x / (win.width - 1.0),
+            "y": y / (win.height - 1.0)
         })
         self.eventloop._dispatch_input("update", self)
 

@@ -420,8 +420,8 @@ class UnitTestTouch(MotionEvent):
         super(UnitTestTouch, self).__init__(
             # device, (tuio) id, args
             self.__class__.__name__, 99, {
-                "x": x / float(win.width),
-                "y": y / float(win.height),
+                "x": x / (win.width - 1.0),
+                "y": y / (win.height - 1.0),
             }
         )
 
@@ -431,8 +431,8 @@ class UnitTestTouch(MotionEvent):
     def touch_move(self, x, y):
         win = self.eventloop.window
         self.move({
-            "x": x / float(win.width),
-            "y": y / float(win.height)
+            "x": x / (win.width - 1.0),
+            "y": y / (win.height - 1.0)
         })
         self.eventloop.post_dispatch_input("update", self)
 

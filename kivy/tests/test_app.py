@@ -1,4 +1,5 @@
 import os.path
+from math import isclose
 from textwrap import dedent
 
 from kivy.app import App
@@ -93,7 +94,8 @@ async def test_drag_app(kivy_app):
             pos=(100, 100), target_pos=(200, 200)):
         pass
 
-    assert tuple(scatter.pos) == (100, 100)
+    assert isclose(scatter.x, 100)
+    assert isclose(scatter.y, 100)
 
 
 def text_app():
