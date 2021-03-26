@@ -1014,7 +1014,7 @@ class MultistrokeGesture(object):
             all the desired stroke orders.
         '''
         # Seed with index of each stroke
-        self._order = [i for i in xrange(0, len(self.strokes))]
+        self._order = list(xrange(0, len(self.strokes)))
 
         # Prepare ._orders
         self._orders = []

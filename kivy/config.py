@@ -469,7 +469,7 @@ class ConfigParser(PythonConfigParser, object):
         # "get()", but we internally store them in ascii.
         # with codecs.open(filename, 'r', encoding='utf-8') as f:
         #    self.readfp(f)
-        old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
+        old_vals = {sect: dict(self.items(sect)) for sect in
                     self.sections()}
         PythonConfigParser.read(self, filename)
 
