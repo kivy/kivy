@@ -154,14 +154,7 @@ if __name__ == '__main__':
     from kivy.uix.button import Button
 
     class TestButton(Button):
-
-        def on_touch_up(self, touch):
-            # raise Exception('fdfdfdfdfdfdfd')
-            return super(TestButton, self).on_touch_up(touch)
-
-        def on_touch_down(self, touch):
-            # raise Exception('')
-            return super(TestButton, self).on_touch_down(touch)
+        pass
 
     s = Sandbox()
     with s:

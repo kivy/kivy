@@ -246,9 +246,6 @@ class TuioMotionEvent(MotionEvent):
 class Tuio2dCurMotionEvent(TuioMotionEvent):
     '''A 2dCur TUIO touch.'''
 
-    def __init__(self, device, id, args):
-        super(Tuio2dCurMotionEvent, self).__init__(device, id, args)
-
     def depack(self, args):
         self.is_touch = True
         if len(args) < 5:
@@ -275,9 +272,6 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
 class Tuio2dObjMotionEvent(TuioMotionEvent):
     '''A 2dObj TUIO object.
     '''
-
-    def __init__(self, device, id, args):
-        super(Tuio2dObjMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
         self.is_touch = True
@@ -310,9 +304,6 @@ class Tuio2dBlbMotionEvent(TuioMotionEvent):
     /tuio/2Dobj set s i x y a       X Y A m r
     /tuio/2Dblb set s   x y a w h f X Y A m r
     '''
-
-    def __init__(self, device, id, args):
-        super(Tuio2dBlbMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
         self.is_touch = True
