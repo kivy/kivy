@@ -66,7 +66,7 @@ class ImageLoaderFFPy(ImageLoaderBase):
             if frame is None:
                 break
             images.append(frame)
-        if not len(images):
+        if not images:
             raise Exception('No image found in {}'.format(filename))
 
         w, h = images[0].get_size()

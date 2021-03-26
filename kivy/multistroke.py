@@ -619,7 +619,7 @@ class Recognizer(EventDispatcher):
         if isinstance(strokes, Candidate):
             return strokes
 
-        if (not isinstance(strokes, list) or not len(strokes) or not
+        if (not isinstance(strokes, list) or not strokes or not
                 isinstance(strokes[0], list)):
             raise MultistrokeError('recognize() needs strokes= '
                                    'list or Candidate')
@@ -1291,7 +1291,7 @@ class Candidate(object):
 # -----------------------------------------------------------------------------
 def resample(points, n):
     # Resample a path to `n` points
-    if not len(points) or not n or n < 2:
+    if not points or not n or n < 2:
         raise MultistrokeError('resample() called with invalid arguments')
 
     interval = path_length(points) / (n - 1)
