@@ -62,7 +62,6 @@ def start(win, ctx):
     # late import to avoid breaking module loading
     from kivy.input.postproc import kivy_postproc_modules
     kivy_postproc_modules['fps'] = StatsInput()
-    global _ctx
     ctx.label = Label(text='FPS: 0.0')
     ctx.inputstats = 0
     ctx.stats = []
