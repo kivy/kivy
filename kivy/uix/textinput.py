@@ -2482,9 +2482,8 @@ class TextInput(FocusBehavior, Widget):
                     self.copy()
             elif key == 27:
                 self.focus = False
-            return True
 
-        if text and not is_interesting_key:
+        elif text and not is_interesting_key:
 
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
