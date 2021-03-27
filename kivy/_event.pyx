@@ -13,6 +13,7 @@ handlers.
 
 __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
+cimport cython
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
 
@@ -24,6 +25,7 @@ from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
+from kivy.utils import deprecated
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -286,6 +288,12 @@ cdef class EventDispatcher(ObjectWithUid):
         if event_type not in self.__event_stack:
             self.__event_stack[event_type] = EventObservers.__new__(
                 EventObservers, 1, 0)
+
+    @deprecated(msg='Deprecated in 2.1.0, use unregister_event_type instead. '
+                    'Will be removed after two releases')
+    @cython.binding(True)
+    def unregister_event_types(self, event_type):
+        self.unregister_event_type(event_type)
 
     def unregister_event_type(self, event_type):
         '''Unregister an event type in the dispatcher.
