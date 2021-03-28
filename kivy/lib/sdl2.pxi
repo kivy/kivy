@@ -711,6 +711,8 @@ cdef extern from "SDL_ttf.h":
     cdef TTF_Font *  TTF_OpenFontIndex( char *file, int ptsize, long index)
     cdef TTF_Font *  TTF_OpenFontRW(SDL_RWops *src, int freesrc, int ptsize)
     cdef TTF_Font *  TTF_OpenFontIndexRW(SDL_RWops *src, int freesrc, int ptsize, long index)
+    cdef int TTF_SetDirection(int direction)
+    cdef int TTF_SetScript(int script)
     #Set and retrieve the font style
     ##define TTF_STYLE_NORMAL    0x00
     ##define TTF_STYLE_BOLD      0x01
@@ -1051,3 +1053,19 @@ cdef extern from "SDL_syswm.h":
         _wm_info info
 
     cdef SDL_bool SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinfo *info)
+
+
+cdef extern from "hb.h":
+    IF USE_HARFBUZZ:
+        int hb_direction_from_string(const char *str, int len)
+        int hb_script_from_string(const char *str, int len)
+
+        ctypedef enum hb_direction_t:
+            HB_DIRECTION_INVALID
+            HB_DIRECTION_LTR
+            HB_DIRECTION_RTL
+            HB_DIRECTION_TTB
+            HB_DIRECTION_BTT
+
+        ctypedef enum hb_script_t:
+            HB_SCRIPT_INVALID

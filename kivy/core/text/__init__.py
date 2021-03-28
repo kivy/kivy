@@ -177,14 +177,23 @@ class LabelBase(object):
         `font_features`: str, defaults to None
             OpenType font features in CSS format (Pango only)
         `base_direction`: str, defaults to None (auto)
-            Text direction, one of `None`, `'ltr'`, `'rtl'`, `'weak_ltr'`,
-            or `'weak_rtl'` (Pango only)
-        `text_language`: str, defaults to None (user locale)
-            RFC-3066 format language tag as a string (Pango only)
+            Text direction, one of `None`, `'ltr'`, `'rtl'`
+            (SDL2+HarfBuzz or Pango). `'weak_ltr'`, or
+            `'weak_rtl'` (Pango only)
+        `text_language`: str, defaults to None.
+            For the Pango text provider it is the RFC-3066 format string
+            language tag and defaults to user locale. For SDL2+HarfBuzz it is
+            the much stricter 4-letter ISO 15924 code.
+        `outline_color`: tuple, defaults to (0, 0, 0)
+            Color of the outline.
+
+    .. versionchanged:: 2.1.0
+        ``base_direction`` and ``text_language`` SDL2+HarfBuzz support was
+        added.
 
     .. versionchanged:: 1.10.1
         `font_context`, `font_family`, `font_features`, `base_direction`
-        and `text_language` were added.
+        and `text_language` were added with Pango only support.
 
     .. versionchanged:: 1.10.0
         `outline_width` and `outline_color` were added.

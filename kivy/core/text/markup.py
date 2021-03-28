@@ -8,6 +8,9 @@ Text Markup
 
     Added `font_context`, `font_features` and `text_language` (Pango only)
 
+.. versionchanged:: 2.1.0
+    ``text_language`` and ``base_direction`` SDL2+HarfBuzz support added.
+
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.
 
@@ -54,8 +57,16 @@ The following tags are available:
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
 ``[text_language=<str>][/text_language]``
-    Language of the text, this is an RFC-3066 format language tag (as string),
-    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection,
+    Language of the text. Requires either the Pango text provider or
+    SDL2+HarfBuzz.
+
+    For the Pango text provider this is a RFC-3066 format
+    language tag (as string), for example "en_US", "zh_CN", "fr" or "ja".
+    For the SDL2+HarfBuzz text provider it is the much stricter 4-letter
+    ISO 15924 code, e.g. ``"Cyrl"``. Use the string "None" to revert to
+    default (or locale detection for Pango).
+
+    This can impact font selection,
     metrics and rendering. For example, the same bytes of text can look
     different for `ur` and `ar` languages, though both use Arabic script.
     Use the string `'none'` to revert to locale detection. Pango only.

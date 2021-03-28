@@ -14,6 +14,9 @@ from kivy.compat import PY2
 cdef dict sdl2_cache = {}
 cdef list sdl2_cache_order = []
 
+cdef str last_base_direction = ''
+cdef str last_text_language = ''
+
 cdef class _TTFContainer:
     cdef TTF_Font* font
     def __cinit__(self):
@@ -64,6 +67,12 @@ cdef class _SurfaceContainer:
         c.g = <int>(color[1] * 255)
         c.b = <int>(color[2] * 255)
         bytes_text = <bytes>text.encode('utf-8')
+
+        IF USE_HARFBUZZ:
+            # this must be set every time before rendering as it's a global
+            # value
+            _set_font_direction(container.options['base_direction'] or 'lrt')
+            _set_font_script(container.options['text_language'] or 'Zzzz')
 
         hinting = container.options['font_hinting']
         if hinting == 'normal':
@@ -205,6 +214,13 @@ def _get_extents(container, text):
     outline_width = container.options['outline_width']
     if font == NULL:
         return 0, 0
+
+    IF USE_HARFBUZZ:
+        # this must be set every time before rendering as it's a global
+        # value
+        _set_font_direction(container.options['base_direction'] or 'lrt')
+        _set_font_script(container.options['text_language'] or 'Zzzz')
+
     if not PY2:
         text = text.encode('utf-8')
     bytes_text = <bytes>text
@@ -220,3 +236,40 @@ def _get_fontdescent(container):
 
 def _get_fontascent(container):
     return TTF_FontAscent(_get_font(container))
+
+
+cdef _set_font_direction(str direction):
+    global last_base_direction
+    if direction == last_base_direction:
+        return
+
+    IF USE_HARFBUZZ:
+        cdef bytes d = direction.encode('ascii')
+        cdef unsigned int val = hb_direction_from_string(d, len(d))
+        if val == HB_DIRECTION_INVALID:
+            raise ValueError(f'Invalid direction {direction}')
+        TTF_SetDirection(val)
+    ELSE:
+        if direction != 'ltr':
+            raise ValueError(f'Invalid direction {direction} without harfbuzz')
+
+    last_base_direction = direction
+
+
+cdef _set_font_script(str script):
+    global last_text_language
+    if script == last_text_language:
+        return
+
+    IF USE_HARFBUZZ:
+        cdef bytes s = script.encode('ascii')
+        cdef unsigned int val = hb_script_from_string(s, len(s))
+
+        if val == HB_SCRIPT_INVALID:
+            raise ValueError(f'Unknown script tag {script}')
+        TTF_SetScript(val)
+    ELSE:
+        if script != 'Zzzz':
+            raise ValueError(f'Invalid script {script} without harfbuzz')
+
+    last_text_language = script

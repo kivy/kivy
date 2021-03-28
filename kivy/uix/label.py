@@ -166,10 +166,19 @@ The following tags are available:
 ``[sup][/sup]``
     Display the text at a superscript position relative to the text before it.
 ``[text_language=<str>][/text_language]``
-    Language of the text, this is an RFC-3066 format language tag (as string),
-    for example "en_US", "zh_CN", "fr" or "ja". This can impact font selection
-    and metrics. Use the string "None" to revert to locale detection.
-    Pango only.
+    Language of the text. Requires either the Pango text provider or
+    SDL2+HarfBuzz.
+
+    For the Pango text provider this is a RFC-3066 format
+    language tag (as string), for example "en_US", "zh_CN", "fr" or "ja".
+    For the SDL2+HarfBuzz text provider it is the much stricter 4-letter
+    ISO 15924 code, e.g. ``"Cyrl"``. Use the string "None" to revert to
+    default (or locale detection for Pango).
+
+    This can impact font selection,
+    metrics and rendering. For example, the same bytes of text can look
+    different for `ur` and `ar` languages, though both use Arabic script.
+    Use the string `'none'` to revert to locale detection. Pango only.
 
 If you want to render the markup text with a [ or ] or & character, you need to
 escape them. We created a simple syntax::
@@ -497,16 +506,18 @@ class Label(Widget):
     defaults to (None, None), meaning no size restriction by default.
     '''
 
-    base_direction = OptionProperty(None,
-                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
-                     allownone=True)
+    base_direction = OptionProperty(
+        None, options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+        allownone=True)
     '''Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,
-    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
-    "weak_rtl".
+    "ltr" (left to right), "rtl" (right to left).
+
+    With the pango backend, "weak_ltr" and "weak_rtl" are also allowed.
 
     .. note::
-        This feature requires the Pango text provider.
+        This feature requires either the Pango text provider or
+        SDL2+HarfBuzz.
 
     .. note::
         Weak modes are currently not implemented in Kivy text layout, and
@@ -514,21 +525,36 @@ class Label(Widget):
 
     .. versionadded:: 1.11.0
 
+    .. versionchanged:: 2.1.0
+        SDL2+HarfBuzz support added.
+
     :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to None (autodetect RTL if possible, otherwise LTR).
     '''
 
     text_language = StringProperty(None, allownone=True)
-    '''Language of the text, if None Pango will determine it from locale.
-    This is an RFC-3066 format language tag (as a string), for example
-    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
-    and rendering. For example, the same bytes of text can look different
-    for `ur` and `ar` languages, though both use Arabic script.
+    '''Language of the text.
+
+    For the Pango text provider this is a RFC-3066 format
+    language tag (as string), for example "en_US", "zh_CN", "fr" or "ja".
+    For the SDL2+HarfBuzz text provider it is the much stricter 4-letter
+    ISO 15924 code, e.g. ``"Cyrl"``.
+
+    If None Pango will determine it from locale and SDL2+HarfBuzz will use
+    the default.
+
+    This can impact font selection,
+    metrics and rendering. For example, the same bytes of text can look
+    different for `ur` and `ar` languages, though both use Arabic script.
 
     .. note::
-        This feature requires the Pango text provider.
+        This feature requires either the Pango text provider or
+        SDL2+HarfBuzz.
 
     .. versionadded:: 1.11.0
+
+    .. versionchanged:: 2.1.0
+        SDL2+HarfBuzz support added.
 
     :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.

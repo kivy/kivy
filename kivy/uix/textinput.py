@@ -3221,11 +3221,12 @@ class TextInput(FocusBehavior, Widget):
                      allownone=True)
     '''Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,
-    "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
-    "weak_rtl".
+    "ltr" (left to right), or "rtl" (right to left). With the Pango backend
+    "weak_ltr" and "weak_rtl" are also supported.
 
     .. note::
-        This feature requires the Pango text provider.
+        This feature requires either the Pango or SDL2+HarfBuzz text
+        providers.
 
     .. note::
         Weak modes are currently not implemented in Kivy text layout, and
@@ -3233,21 +3234,36 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionadded:: 1.10.1
 
+    .. versionchanged:: 2.1.0
+        SDL2+HarfBuzz support added.
+
     :attr:`base_direction` is an :class:`~kivy.properties.OptionProperty` and
     defaults to None (autodetect RTL if possible, otherwise LTR).
     '''
 
     text_language = StringProperty(None, allownone=True)
-    '''Language of the text, if None Pango will determine it from locale.
-    This is an RFC-3066 format language tag (as a string), for example
-    "en_US", "zh_CN", "fr" or "ja". This can impact font selection, metrics
-    and rendering. For example, the same bytes of text can look different
-    for `ur` and `ar` languages, though both use Arabic script.
+    '''Language of the text.
+
+    For the Pango text provider this is a RFC-3066 format
+    language tag (as string), for example "en_US", "zh_CN", "fr" or "ja".
+    For the SDL2+HarfBuzz text provider it is the much stricter 4-letter
+    ISO 15924 code, e.g. ``"Cyrl"``.
+
+    If None Pango will determine it from locale and SDL2+HarfBuzz will use
+    the default.
+
+    This can impact font selection,
+    metrics and rendering. For example, the same bytes of text can look
+    different for `ur` and `ar` languages, though both use Arabic script.
 
     .. note::
-        This feature requires the Pango text provider.
+        This feature requires either the Pango text provider or
+        SDL2+HarfBuzz.
 
-    .. versionadded:: 1.10.1
+    .. versionadded:: 1.11.0
+
+    .. versionchanged:: 2.1.0
+        SDL2+HarfBuzz support added.
 
     :attr:`text_language` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.

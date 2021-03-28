@@ -95,6 +95,18 @@ def get_isolated_env_paths():
     return includes, libs
 
 
+def merge(d1, *args):
+    d1 = deepcopy(d1)
+    for d2 in args:
+        for key, value in d2.items():
+            value = deepcopy(value)
+            if key in d1:
+                d1[key].extend(value)
+            else:
+                d1[key] = value
+    return d1
+
+
 # -----------------------------------------------------------------------------
 # Determine on which platform we are
 
@@ -144,6 +156,7 @@ c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
+c_options['use_harfbuzz'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
 c_options['use_android'] = False
@@ -482,7 +495,11 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
 # works if we forced the options or in autodetection
 sdl2_flags = {}
 if platform == 'win32' and c_options['use_sdl2'] is None:
+    # on windows the assumption is that we'll have it, and that if we don't
+    # we'll turn it off below when we check for headers. We also assume that
+    # if harfbuzz is found, it means sdl2 is either > 2.0.15 or from main
     c_options['use_sdl2'] = True
+    c_options['use_harfbuzz'] = True
 
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
@@ -490,6 +507,9 @@ if c_options['use_sdl2'] or (
     sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        # todo: re-evaluate after next sdl_ttf release for harfbuzz support
+        c_options['use_harfbuzz'] = False
+
         sdl2_valid = True
         sdl2_flags = {
             'extra_link_args': [
@@ -527,6 +547,21 @@ if c_options['use_sdl2'] or (
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
 
+# if we haven't set it, check if we can use harfbuzz
+if c_options['use_sdl2'] and c_options['use_harfbuzz'] is None \
+        and platform not in ('android', 'ios'):
+    # 2.0.15 is last version without harfbuzz API. If sdl2 dist is compiled
+    # without it it's not an issue for us as it'll just error in runtime
+    harf_flags = pkgconfig('harfbuzz')
+    if 'libraries' in pkgconfig('SDL2_ttf > 2.0.15') and \
+            'libraries' in harf_flags:
+        print('HarfBuzz found via pkg-config')
+        c_options['use_harfbuzz'] = True
+        sdl2_flags = merge(sdl2_flags, harf_flags)
+
+if not c_options['use_sdl2']:
+    c_options['use_harfbuzz'] = False
+
 
 # -----------------------------------------------------------------------------
 # declare flags
@@ -550,18 +585,6 @@ class CythonExtension(Extension):
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources
         self.sources = args[1]
-
-
-def merge(d1, *args):
-    d1 = deepcopy(d1)
-    for d2 in args:
-        for key, value in d2.items():
-            value = deepcopy(value)
-            if key in d1:
-                d1[key].extend(value)
-            else:
-                d1[key] = value
-    return d1
 
 
 def determine_base_flags():
@@ -692,6 +715,7 @@ def determine_sdl2():
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
     if sdl2_flags and not sdl2_path and platform == 'darwin':
+        # currently there's no harfbuzz on darwin frameworks
         return sdl2_flags
 
     includes, _ = get_isolated_env_paths()
@@ -708,7 +732,15 @@ def determine_sdl2():
             sdl_inc = join(include, 'SDL2')
             if isdir(sdl_inc):
                 sdl2_paths.append(sdl_inc)
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
+
+            harf_inc = join(include, 'harfbuzz')
+            if isdir(harf_inc):
+                sdl2_paths.append(harf_inc)
+
+        for d in ['/usr/local/include/SDL2', '/usr/include/SDL2',
+                  '/usr/local/include/harfbuzz', '/usr/include/harfbuzz']:
+            if isdir(d):
+                sdl2_paths.append(d)
 
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
@@ -738,7 +770,19 @@ def determine_sdl2():
 
     if not can_compile:
         c_options['use_sdl2'] = False
+        c_options['use_harfbuzz'] = False
         return {}
+
+    if c_options['use_harfbuzz']:
+        for d in flags['include_dirs']:
+            fn = join(d, 'hb.h')
+            if exists(fn):
+                flags['libraries'].append('harfbuzz')
+                print('HarfBuzz: found header at {}'.format(fn))
+                break
+        else:
+            print('HarfBuzz: unable to find header')
+            c_options['use_harfbuzz'] = False
 
     return flags
 
