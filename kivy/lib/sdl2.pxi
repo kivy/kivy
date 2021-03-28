@@ -1055,8 +1055,8 @@ cdef extern from "SDL_syswm.h":
     cdef SDL_bool SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinfo *info)
 
 
-cdef extern from "hb.h":
-    IF USE_HARFBUZZ:
+IF USE_HARFBUZZ:
+    cdef extern from "hb.h":
         int hb_direction_from_string(const char *str, int len)
         int hb_script_from_string(const char *str, int len)
 
