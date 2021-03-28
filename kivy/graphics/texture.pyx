@@ -59,7 +59,7 @@ For example, to blit immutable bytes data::
     buf = [int(x * 255 / size) for x in range(size)]
 
     # then, convert the array to a ubyte string
-    buf = b''.join(map(chr, buf))
+    buf = bytes(buf)
 
     # then blit the buffer
     texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
