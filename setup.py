@@ -466,22 +466,24 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
                     '-framework', 'GStreamer'],
                 'include_dirs': [join(f_path, 'Headers')]}
     elif platform == 'win32':
-        gst_flags = pkgconfig('gstreamer-1.0')
-        if 'libraries' in gst_flags:
-            print('GStreamer found via pkg-config')
-            gstreamer_valid = True
-            c_options['use_gstreamer'] = True
-        else:
-            _includes = get_isolated_env_paths()[0] + [get_paths()['include']]
-            for include_dir in _includes:
-                if exists(join(include_dir, 'gst', 'gst.h')):
-                    print('GStreamer found via gst.h')
-                    gstreamer_valid = True
-                    c_options['use_gstreamer'] = True
-                    gst_flags = {
-                        'libraries':
-                            ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
-                    break
+        # first find by header because pkg-config can be finicky on msys
+        _includes = get_isolated_env_paths()[0] + [get_paths()['include']]
+        for include_dir in _includes:
+            if exists(join(include_dir, 'gst', 'gst.h')):
+                print('GStreamer found via gst.h')
+                gstreamer_valid = True
+                c_options['use_gstreamer'] = True
+                gst_flags = {
+                    'libraries':
+                        ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
+                break
+
+        if not gstreamer_valid:
+            gst_flags = pkgconfig('gstreamer-1.0')
+            if 'libraries' in gst_flags:
+                print('GStreamer found via pkg-config')
+                gstreamer_valid = True
+                c_options['use_gstreamer'] = True
 
     if not gstreamer_valid:
         # use pkg-config approach instead
