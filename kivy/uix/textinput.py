@@ -2016,14 +2016,13 @@ class TextInput(FocusBehavior, Widget):
         # This is the first step of graphics, the second is the selection.
 
         self.canvas.clear()
-        add = self.canvas.add
 
-        lh = self.line_height
-        dy = lh + self.line_spacing
+        line_height = self.line_height
+        dy = line_height + self.line_spacing
 
         # adjust view if the cursor is going outside the bounds
-        sx = self.scroll_x
-        sy = self.scroll_y
+        scroll_x = self.scroll_x
+        scroll_y = self.scroll_y
 
         # draw labels
         if not self._lines or (
@@ -2035,96 +2034,42 @@ class TextInput(FocusBehavior, Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
+
         padding_left, padding_top, padding_right, padding_bottom = self.padding
         x = self.x + padding_left
-        y = self.top - padding_top + sy
+        y = self.top - padding_top + scroll_y
         miny = self.y + padding_bottom
         maxy = self.top - padding_top
         halign = self.halign
         base_dir = self.base_direction
-        find_base_dir = Label.find_base_direction
+        
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         fst_visible_ln = None
+        viewport_pos = scroll_x, 0
         for line_num, value in enumerate(lines):
             if miny < y < maxy + dy:
                 if fst_visible_ln is None:
                     fst_visible_ln = line_num
 
-                texture = labels[line_num]
-                size = list(texture.size)
-                texcoords = texture.tex_coords[:]
-
-                # compute coordinate
-                viewport_pos = sx, 0
-                viewport_width = self.width - padding_left - padding_right
-                viewport_height = self.height - padding_top - padding_bottom
-                texture_width, texture_height = size
-                oh, ow = tch, tcw = texcoords[1:3]
-
-                # adjust size/texcoord according to viewport
-                if viewport_pos:
-                    tcx, tcy = viewport_pos
-                    tcx = tcx / texture_width * ow
-                    tcy = tcy / texture_height * oh
-                else:
-                    tcx, tcy = 0, 0
-
-                if texture_width - viewport_pos[0] < viewport_width:
-                    tcw = tcw - tcx
-                    size[0] = tcw * size[0]
-                elif viewport_width < texture_width:
-                    tcw = (viewport_width / texture_width) * tcw
-                    size[0] = viewport_width
-
-                if viewport_height < texture_height:
-                    tch = (viewport_height / texture_height) * tch
-                    size[1] = viewport_height
-
-                # cropping
-                mlh = lh
-                if y > maxy:
-                    viewport_height = (maxy - y + lh)
-                    tch = (viewport_height / float(lh)) * oh
-                    tcy = oh - tch
-                    size[1] = viewport_height
-                if y - lh < miny:
-                    diff = miny - (y - lh)
-                    y += diff
-                    viewport_height = lh - diff
-                    tch = (viewport_height / float(lh)) * oh
-                    size[1] = viewport_height
-
-                top_left_corner = tcx, tcy + tch
-                top_right_corner = tcx + tcw, tcy + tch
-                bottom_right_corner = tcx + tcw, tcy
-                bottom_left_corner = tcx, tcy
-
-                texcoords = (
-                    top_left_corner
-                    + top_right_corner
-                    + bottom_right_corner
-                    + bottom_left_corner
+                y = self._draw_line(
+                    value,
+                    line_num,
+                    labels[line_num],
+                    viewport_pos,
+                    padding_left,
+                    padding_right,
+                    padding_top,
+                    padding_bottom,
+                    line_height,
+                    miny,
+                    maxy,
+                    x,
+                    y,
+                    base_dir,
+                    halign,
+                    rects,
                 )
-
-                # Horizontal alignment
-                xoffset = 0
-                if not base_dir:
-                    base_dir = self._resolved_base_dir = find_base_dir(value)
-                    if base_dir and halign == 'auto':
-                        auto_halign_r = 'rtl' in base_dir
-                if halign == 'center':
-                    xoffset = int((viewport_width - size[0]) / 2.)
-                elif halign == 'right' or auto_halign_r:
-                    xoffset = max(0, int(viewport_width - size[0]))
-
-                # add rectangle.
-                r = rects[line_num]
-                r.pos = int(xoffset + x), int(y - mlh)
-                r.size = size
-                r.texture = texture
-                r.tex_coords = texcoords
-                add(r)
             elif y <= miny:
                 line_num -= 1
                 break
@@ -2137,6 +2082,100 @@ class TextInput(FocusBehavior, Widget):
             self._visible_lines_range = 0, 0
 
         self._update_graphics_selection()
+
+    def _draw_line(
+        self,
+        value,
+        line_num,
+        texture,
+        viewport_pos,
+        padding_left,
+        padding_right,
+        padding_top,
+        padding_bottom,
+        line_height,
+        miny,
+        maxy,
+        x,
+        y,
+        base_dir,
+        halign,
+        rects,
+    ):
+        size = list(texture.size)
+        texcoords = texture.tex_coords[:]
+
+        # compute coordinate
+        viewport_width = self.width - padding_left - padding_right
+        viewport_height = self.height - padding_top - padding_bottom
+        texture_width, texture_height = size
+        original_height, original_width = tch, tcw = texcoords[1:3]
+
+        # adjust size/texcoord according to viewport
+        if viewport_pos:
+            tcx, tcy = viewport_pos
+            tcx = tcx / texture_width * original_width
+            tcy = tcy / texture_height * original_height
+        else:
+            tcx, tcy = 0, 0
+
+        if texture_width - viewport_pos[0] < viewport_width:
+            tcw = tcw - tcx
+            size[0] = tcw * size[0]
+        elif viewport_width < texture_width:
+            tcw = (viewport_width / texture_width) * tcw
+            size[0] = viewport_width
+
+        if viewport_height < texture_height:
+            tch = (viewport_height / texture_height) * tch
+            size[1] = viewport_height
+
+        # cropping
+        mlh = line_height
+        if y > maxy:
+            viewport_height = (maxy - y + line_height)
+            tch = (viewport_height / float(line_height)) * original_height
+            tcy = original_height - tch
+            size[1] = viewport_height
+        if y - line_height < miny:
+            diff = miny - (y - line_height)
+            y += diff
+            viewport_height = line_height - diff
+            tch = (viewport_height / float(line_height)) * original_height
+            size[1] = viewport_height
+
+        top_left_corner = tcx, tcy + tch
+        top_right_corner = tcx + tcw, tcy + tch
+        bottom_right_corner = tcx + tcw, tcy
+        bottom_left_corner = tcx, tcy
+
+        texcoords = (
+            top_left_corner
+            + top_right_corner
+            + bottom_right_corner
+            + bottom_left_corner
+        )
+
+        # Horizontal alignment
+        xoffset = 0
+        if not base_dir:
+            base_dir = self._resolved_base_dir = Label.find_base_direction(value)
+            if base_dir and halign == 'auto':
+                auto_halign_r = 'rtl' in base_dir
+        if halign == 'center':
+            xoffset = int((viewport_width - size[0]) / 2.)
+        elif halign == 'right' or auto_halign_r:
+            xoffset = max(0, int(viewport_width - size[0]))
+
+        # add rectangle
+        r = rects[line_num]
+        r.pos = int(xoffset + x), int(y - mlh)
+        r.size = size
+        r.texture = texture
+        r.tex_coords = texcoords
+        self.canvas.add(r)
+
+        return y
 
     def _update_graphics_selection(self):
         if not self._selection:
