@@ -708,7 +708,10 @@ class ScrollView(StencilView):
 
         # check if touch is in bar_x(horizontal) or bar_y(vertical)
         # width_enable_overscroll or vp.width > self.width
-        width_scrollable = (self.always_overscroll and self.do_scroll_x) or vp.width > self.width
+        width_scrollable = (
+            (self.always_overscroll and self.do_scroll_x)
+            or vp.width > self.width
+        )
         height_scrollable = (self.always_overscroll and self.do_scroll_y) or vp.height > self.height
 
         d = {'bottom': touch.y - self.y - self.bar_margin,
