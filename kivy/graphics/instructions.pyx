@@ -55,7 +55,8 @@ cdef class Instruction(ObjectWithUid):
             self.flags |= GI_NO_REMOVE
             return
 
-        if verify_gl_main_thread and get_ident() != initialized_tid:
+        if verify_gl_main_thread and initialized_tid \
+                and get_ident() != initialized_tid:
             raise TypeError("Cannot create graphics instruction outside "
                             "the main Kivy thread")
 
@@ -82,7 +83,8 @@ cdef class Instruction(ObjectWithUid):
             self.flags |= GI_NEEDS_UPDATE
 
     cpdef flag_data_update(self):
-        if verify_gl_main_thread and get_ident() != initialized_tid:
+        if verify_gl_main_thread and initialized_tid \
+                and get_ident() != initialized_tid:
             raise TypeError("Cannot change graphics instruction outside "
                             "the main Kivy thread")
         self.flag_update()
