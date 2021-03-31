@@ -655,7 +655,7 @@ class TextInput(FocusBehavior, Widget):
             if count >= index:
                 return index - i, row
             i = count
-        return index, row
+        return int(index), int(row)
 
     def select_text(self, start, end):
         ''' Select a portion of text displayed in this TextInput.
@@ -1335,7 +1335,7 @@ class TextInput(FocusBehavior, Widget):
                 cursor_x = i
                 break
 
-        return cursor_x, cursor_y
+        return int(cursor_x), int(cursor_y)
 
     #
     # Selection control
@@ -1356,29 +1356,31 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly:
             return
         self._hide_handles(EventLoop.window)
-        scrl_x = self.scroll_x
-        scrl_y = self.scroll_y
+        scroll_x = self.scroll_x
+        scroll_y = self.scroll_y
         cc, cr = self.cursor
         if not self._selection:
             return
         text = self.text
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
-        self.cursor = cursor = self.get_cursor_from_index(a)
-        start = cursor
-        finish = self.get_cursor_from_index(b)
-        cur_line = self._lines[start[1]][:start[0]] +\
-            self._lines[finish[1]][finish[0]:]
+        a, b = sorted((self._selection_from, self._selection_to))
+
+        self.cursor = (start_col, start_row) = self.get_cursor_from_index(a)
+        end_col, end_row = self.get_cursor_from_index(b)
+
+        cur_line = (
+            self._lines[start_row][:start_col]
+            + self._lines[end_row][end_col:]
+        )
         lines, lineflags = self._split_smart(cur_line)
-        len_lines = len(lines)
-        if start[1] == finish[1]:
-            self._set_line_text(start[1], cur_line)
+
+        if start_row == end_row:
+            self._set_line_text(start_row, cur_line)
         else:
-            self._refresh_text_from_property('del', start[1], finish[1], lines,
-                                             lineflags, len_lines)
-        self.scroll_x = scrl_x
-        self.scroll_y = scrl_y
+            self._refresh_text_from_property(
+                'del', start_row, end_row, lines, lineflags, len(lines)
+            )
+        self.scroll_x = scroll_x
+        self.scroll_y = scroll_y
         # handle undo and redo for delete selection
         self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
@@ -3424,9 +3426,11 @@ class TextInput(FocusBehavior, Widget):
     defaults to None.
     '''
 
-    base_direction = OptionProperty(None,
-                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
-                     allownone=True)
+    base_direction = OptionProperty(
+        None,
+        options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+        allownone=True
+    )
     '''Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,
     "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
@@ -3526,15 +3530,20 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def _get_min_height(self):
-        return (len(self._lines) * (self.line_height + self.line_spacing) +
-                self.padding[1] + self.padding[3])
+        return (
+            len(self._lines) * (self.line_height + self.line_spacing)
+            + self.padding[1]
+            + self.padding[3]
+        )
 
-    minimum_height = AliasProperty(_get_min_height,
-                                   bind=('_lines', 'line_spacing', 'padding',
-                                         'font_size', 'font_name', 'password',
-                                         'font_context', 'hint_text',
-                                         'line_height'),
-                                   cache=True)
+    minimum_height = AliasProperty(
+        _get_min_height,
+        bind=(
+            '_lines', 'line_spacing', 'padding', 'font_size', 'font_name',
+            'password', 'font_context', 'hint_text', 'line_height'
+        ),
+        cache=True
+    )
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0
