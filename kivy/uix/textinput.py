@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 '''
 Text Input
 ==========
@@ -598,20 +597,26 @@ class TextInput(FocusBehavior, Widget):
         if not cursor:
             cursor = self.cursor
         try:
-            l = self._lines
-            if len(l) == 0:
+            lines = self._lines
+            if not lines:
                 return 0
-            lf = self._lines_flags
-            index, cr = cursor
-            for row in range(cr):
-                if row >= len(l):
-                    continue
-                index += len(l[row])
-                if lf[row] & FL_IS_LINEBREAK:
+
+            flags = self._lines_flags
+            index, cursor_row = cursor
+
+            for _, line, flag in zip(
+                range(min(cursor_row, len(lines))),
+                lines,
+                flags
+            ):
+                index += len(line)
+                if flag & FL_IS_LINEBREAK:
                     index += 1
-            if lf[cr] & FL_IS_LINEBREAK:
+
+            if flags[cursor_row] & FL_IS_LINEBREAK:
                 index += 1
             return index
+
         except IndexError:
             return 0
 
