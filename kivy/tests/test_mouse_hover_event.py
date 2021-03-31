@@ -1,4 +1,3 @@
-from kivy.input.providers.mouse import MouseMotionEventProvider
 from kivy.tests.common import GraphicUnitTest
 
 
@@ -15,6 +14,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.motion_event = None
         self.touch_event = None
         self.button_widget = None
+        from kivy.input.providers.mouse import MouseMotionEventProvider
         self.mouse = mouse = MouseMotionEventProvider('mouse', '')
         from kivy.base import EventLoop
         win = EventLoop.window

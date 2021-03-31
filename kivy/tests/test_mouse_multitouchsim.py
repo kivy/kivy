@@ -1,7 +1,4 @@
 from kivy.tests.common import GraphicUnitTest
-from kivy.input.providers.mouse import (
-    MouseMotionEventProvider as Mouse
-)
 
 
 class MultitouchSimulatorTestCase(GraphicUnitTest):
@@ -32,7 +29,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             mode = 'disable_multitouch'
         else:
             mode = ''
-        mouse = Mouse('unittest', mode)
+        from kivy.input.providers.mouse import MouseMotionEventProvider
+        mouse = MouseMotionEventProvider('unittest', mode)
         mouse.is_touch = True
 
         # defaults from ME, it's missing because we use
