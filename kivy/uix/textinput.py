@@ -141,9 +141,6 @@ Control + r     redo
 '''
 
 
-__all__ = ('TextInput', )
-
-
 import re
 import sys
 import math
@@ -174,6 +171,9 @@ from kivy.uix.image import Image
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, OptionProperty, \
     ListProperty, ObjectProperty, VariableListProperty, ColorProperty
+
+__all__ = ('TextInput', )
+
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -748,8 +748,10 @@ class TextInput(FocusBehavior, Widget):
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
 
-            start, finish, lines,\
-                lineflags, len_lines = self._get_line_from_cursor(row, new_text)
+            (
+                start, finish, lines, lineflags, len_lines
+            ) = self._get_line_from_cursor(row, new_text)
+
             # calling trigger here could lead to wrong cursor positioning
             # and repeating of text when keys are added rapidly in a automated
             # fashion. From Android Keyboard for example.
@@ -1150,7 +1152,7 @@ class TextInput(FocusBehavior, Widget):
             row = max(row - 1, 0)
             col = min(len(self._lines[row]), col)
 
-        return col, row 
+        return col, row
 
     def _move_cursor_down(self, col, row, control, alt):
         if self.multiline and control:
@@ -1602,7 +1604,9 @@ class TextInput(FocusBehavior, Widget):
         self._update_selection()
         self._show_cut_copy_paste(
             (
-                instance.right if instance is self._handle_left else instance.x,
+                instance.right
+                if instance is self._handle_left
+                else instance.x,
                 instance.top + self.line_height
             ),
             EventLoop.window
@@ -1745,7 +1749,9 @@ class TextInput(FocusBehavior, Widget):
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.fbind('parent', self._show_cut_copy_paste, pos, win, True)
 
-            hide_ = lambda *args: self._hide_cut_copy_paste(win)
+            def hide_(*args):
+                return self._hide_cut_copy_paste(win)
+
             self.bind(
                 focus=hide_,
                 cursor_pos=hide_,
@@ -1780,8 +1786,10 @@ class TextInput(FocusBehavior, Widget):
             # bubble beyond right of window
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (win_size[0] - bubble_hw,
-                             (t_pos[1]) - (lh + ls + inch(.25)))
+                bubble_pos = (
+                    win_size[0] - bubble_hw,
+                    (t_pos[1]) - (lh + ls + inch(.25))
+                )
                 bubble.arrow_pos = 'top_right'
             else:
                 bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
@@ -1789,8 +1797,10 @@ class TextInput(FocusBehavior, Widget):
         else:
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (bubble_pos[0],
-                             (t_pos[1]) - (lh + ls + inch(.25)))
+                bubble_pos = (
+                    bubble_pos[0],
+                    (t_pos[1]) - (lh + ls + inch(.25))
+                )
                 bubble.arrow_pos = 'top_mid'
             else:
                 bubble.arrow_pos = 'bottom_mid'
@@ -2091,13 +2101,13 @@ class TextInput(FocusBehavior, Widget):
         """
         Update all the graphics according to the current internal values.
         """
-        
+
         # This is a little bit complex, because we have to :
         #     - handle scroll_x
         #     - handle padding
         #     - create rectangle for the lines matching the viewport
         #     - crop the texture coordinates to match the viewport
-        
+
         # This is the first step of graphics, the second is the selection.
 
         self.canvas.clear()
@@ -2127,7 +2137,7 @@ class TextInput(FocusBehavior, Widget):
         maxy = self.top - padding_top
         halign = self.halign
         base_dir = self.base_direction
-        
+
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         fst_visible_ln = None
@@ -2236,7 +2246,9 @@ class TextInput(FocusBehavior, Widget):
         # Horizontal alignment
         xoffset = 0
         if not base_dir:
-            base_dir = self._resolved_base_dir = Label.find_base_direction(value)
+            base_dir = self._resolved_base_dir = Label.find_base_direction(
+                value
+            )
             if base_dir and halign == 'auto':
                 auto_halign_r = 'rtl' in base_dir
         if halign == 'center':
