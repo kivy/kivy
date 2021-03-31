@@ -712,7 +712,10 @@ class ScrollView(StencilView):
             (self.always_overscroll and self.do_scroll_x)
             or vp.width > self.width
         )
-        height_scrollable = (self.always_overscroll and self.do_scroll_y) or vp.height > self.height
+        height_scrollable = (
+            (self.always_overscroll and self.do_scroll_y)
+            or vp.height > self.height
+        )
 
         d = {'bottom': touch.y - self.y - self.bar_margin,
              'top': self.top - touch.y - self.bar_margin,
