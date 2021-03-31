@@ -2518,13 +2518,15 @@ class TextInput(FocusBehavior, Widget):
         yield text[oldindex:]
 
     def _split_smart(self, text):
-        # Do a "smart" split. If autowidth or autosize is set,
-        # we are not doing smart split, just a split on line break.
-        # Otherwise, we are trying to split as soon as possible, to prevent
-        # overflow on the widget.
+        """
+        Do a "smart" split. If not multiline, or if wrap is set,
+        we are not doing smart split, just a split on line break.
+        Otherwise, we are trying to split as soon as possible, to prevent
+        overflow on the widget.
+        """
 
         # depend of the options, split the text on line, or word
-        if not self.multiline:
+        if not self.multiline or not self.do_wrap:
             lines = text.split(u'\n')
             lines_flags = [0] + [FL_IS_LINEBREAK] * (len(lines) - 1)
             return lines, lines_flags
@@ -2896,6 +2898,16 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`multiline` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    do_wrap = BooleanProperty(True)
+    '''If True, and the text is multiline, then lines larger than the width of
+    the widget will wrap around to the next line, avoiding the need for
+    horizontal scrolling. Disabling this option ensure one line is always
+    displayed as one line.
+
+    :attr:`do_wrap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to True.
     '''
 
     password = BooleanProperty(False)
