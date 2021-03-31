@@ -146,6 +146,7 @@ __all__ = ('TextInput', )
 
 import re
 import sys
+import math
 from os import environ
 from weakref import ref
 from itertools import chain, islice
@@ -2284,31 +2285,35 @@ class TextInput(FocusBehavior, Widget):
         maxy = top - padding_top + dy
 
         self.canvas.remove_group('selection')
+        first_visible_line = math.floor(self.scroll_y / dy)
+        last_visible_line = math.ceil((self.scroll_y + maxy - miny) / dy)
+        width_minus_padding = width - (padding_right + padding_left)
+
         for line_num, rect in enumerate(
-            islice(rects, selection_start_row, selection_end_row + 1),
+            islice(
+                rects,
+                max(selection_start_row, first_visible_line),
+                min(selection_end_row + 1, last_visible_line),
+            ),
             start=selection_start_row
         ):
-            if y < miny :
-                # we went under the bottom of the textinput, we can stop
-                break
-            if y <= maxy:
-                draw_selection(
-                    rect.pos,
-                    rect.size,
-                    line_num,
-                    (selection_start_col, selection_start_row),
-                    (selection_end_col, selection_end_row),
-                    lines,
-                    get_text_width,
-                    tab_width,
-                    label_cached,
-                    width,
-                    padding_left,
-                    padding_right,
-                    x,
-                    canvas_add,
-                    selection_color
-                )
+            draw_selection(
+                rect.pos,
+                rect.size,
+                line_num,
+                (selection_start_col, selection_start_row),
+                (selection_end_col, selection_end_row),
+                lines,
+                get_text_width,
+                tab_width,
+                label_cached,
+                width_minus_padding,
+                padding_left,
+                padding_right,
+                x,
+                canvas_add,
+                selection_color
+            )
             y -= dy
         self._position_handles('both')
 
@@ -2323,7 +2328,7 @@ class TextInput(FocusBehavior, Widget):
         get_text_width,
         tab_width,
         label_cached,
-        width,
+        width_minus_padding,
         padding_left,
         padding_right,
         x,
@@ -2338,13 +2343,13 @@ class TextInput(FocusBehavior, Widget):
             return
         x, y = pos
         w, h = size
-        x1 = x
-        x2 = x + w
+        beg = x
+        end = x + w
 
         if line_num == selection_start_row:
             line = lines[line_num]
-            x1 -= self.scroll_x
-            x1 += get_text_width(
+            beg -= self.scroll_x
+            beg += get_text_width(
                 line[:selection_start_col],
                 tab_width,
                 label_cached
@@ -2352,24 +2357,22 @@ class TextInput(FocusBehavior, Widget):
 
         if line_num == selection_end_row:
             line = lines[line_num]
-            x2 = (x - self.scroll_x) + get_text_width(
+            end = (x - self.scroll_x) + get_text_width(
                 line[:selection_end_col],
                 tab_width,
                 label_cached
             )
 
-        width_minus_padding = width - (padding_right + padding_left)
-
-        if x1 > x + width_minus_padding:
+        beg = boundary(beg, x, x + width_minus_padding)
+        end = boundary(end, x, x + width_minus_padding)
+        if beg == end:
             return
 
-        x1 = max(x1, x)
-        x2 = min(x2, x + width_minus_padding)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(
             Rectangle(
-                pos=(x1, y),
-                size=(x2 - x1, h),
+                pos=(beg, y),
+                size=(end - beg, h),
                 group='selection'
             )
         )
