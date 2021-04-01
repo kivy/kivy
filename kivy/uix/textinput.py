@@ -2204,6 +2204,11 @@ class TextInput(FocusBehavior, Widget):
             tcx, tcy = viewport_pos
             tcx = tcx / texture_width * original_width
             tcy = tcy / texture_height * original_height
+
+            if texture_width < viewport_pos[0]:
+                # text on this line is not visible because of horizontal
+                # scrolling
+                return y
         else:
             tcx, tcy = 0, 0
 
