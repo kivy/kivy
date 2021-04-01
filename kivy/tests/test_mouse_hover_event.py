@@ -52,13 +52,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.etype = etype
         self.motion_event = event
 
-    def on_touch_down(self, _, touch):
-        self.touch_event = touch
-
-    def on_touch_move(self, _, touch):
-        self.touch_event = touch
-
-    def on_touch_up(self, _, touch):
+    def on_any_touch_event(self, _, touch):
         self.touch_event = touch
 
     def to_relative_pos(self, win, x, y):
@@ -79,9 +73,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win = EventLoop.window
         if with_window_children:
             from kivy.uix.button import Button
-            button = Button(on_touch_down=self.on_touch_down,
-                            on_touch_move=self.on_touch_move,
-                            on_touch_up=self.on_touch_up)
+            button = Button(on_touch_down=self.on_any_touch_event,
+                            on_touch_move=self.on_any_touch_event,
+                            on_touch_up=self.on_any_touch_event)
             self.button_widget = button
             win.add_widget(button)
         return win, self.mouse
