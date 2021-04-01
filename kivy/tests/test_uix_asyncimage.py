@@ -43,7 +43,7 @@ class AsyncImageTestCase(GraphicUnitTest):
         # bind to 'on_load' because there are various
         # steps where the image is (re)loaded, but
         # the event is triggered only at the end
-        image.bind(on_load=lambda *_args, **kwargs: event.set())
+        image.bind(on_load=lambda *args, **kwargs: event.set())
         image.source = source
         self.wait_for_event_or_timeout(event)
         self.render(image)
