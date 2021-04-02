@@ -186,11 +186,6 @@
             pos: self.pos
             size: self.size
             source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
-        StencilPush:
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse:
         Color:
             rgba:
                 (self.cursor_color
@@ -201,13 +196,6 @@
             size: root.cursor_width, -self._cursor_visual_height
         Color:
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
-
-    canvas.after:
-        StencilUnUse:
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop:
 
 <TextInputCutCopyPaste>:
     but_cut: cut.__self__

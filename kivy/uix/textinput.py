@@ -2206,10 +2206,6 @@ class TextInput(FocusBehavior, Widget):
             tcx = tcx / texture_width * original_width
             tcy = tcy / texture_height * original_height
 
-            if texture_width < viewport_pos[0]:
-                # text on this line is not visible because of horizontal
-                # scrolling
-                return y
         else:
             tcx, tcy = 0, 0
 
@@ -2236,6 +2232,10 @@ class TextInput(FocusBehavior, Widget):
             viewport_height = line_height - diff
             tch = (viewport_height / float(line_height)) * original_height
             size[1] = viewport_height
+
+        if tcw < 0:
+            # nothing to show
+            return y
 
         top_left_corner = tcx, tcy + tch
         top_right_corner = tcx + tcw, tcy + tch
@@ -2519,6 +2519,7 @@ class TextInput(FocusBehavior, Widget):
                         label_len += ld
                     else:
                         break
+
                 except:
                     # exception happen when we tried to render the text
                     # reduce it...
@@ -2959,6 +2960,8 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`do_wrap` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to True.
+
+    versionadded:: 2.1.0
     '''
 
     password = BooleanProperty(False)
