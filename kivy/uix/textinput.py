@@ -530,7 +530,8 @@ class TextInput(FocusBehavior, Widget):
             305: 'ctrl_L',
             306: 'ctrl_R',
             308: 'alt_L',
-            307: 'alt_R'}
+            307: 'alt_R'
+        }
 
         super().__init__(**kwargs)
 
@@ -2212,7 +2213,7 @@ class TextInput(FocusBehavior, Widget):
         else:
             tcx, tcy = 0, 0
 
-        if texture_width - viewport_pos[0] < viewport_width:
+        if texture_width - tcx < viewport_width:
             tcw = tcw - tcx
             size[0] = tcw * size[0]
         elif viewport_width < texture_width:
@@ -2427,12 +2428,21 @@ class TextInput(FocusBehavior, Widget):
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
         if halign == 'center':
             row_width = self._get_row_width(self.cursor_row)
-            x = left + int((viewport_width - row_width) / 2) \
-                     + cursor_offset - self.scroll_x
+            x = (
+                left
+                + (viewport_width - row_width) // 2
+                + cursor_offset
+                - self.scroll_x
+            )
         elif halign == 'right' or auto_halign_r:
             row_width = self._get_row_width(self.cursor_row)
-            x = left + viewport_width - row_width \
-                     + cursor_offset - self.scroll_x
+            x = (
+                left
+                + viewport_width
+                - row_width
+                + cursor_offset
+                - self.scroll_x
+            )
         else:
             x = left + cursor_offset - self.scroll_x
 
@@ -2470,7 +2480,8 @@ class TextInput(FocusBehavior, Widget):
                 'anchor_y': 'top',
                 'padding_x': 0,
                 'padding_y': 0,
-                'padding': (0, 0)}
+                'padding': (0, 0)
+            }
             self._label_cached = Label(**kw)
         return self._line_options
 
@@ -2615,10 +2626,13 @@ class TextInput(FocusBehavior, Widget):
         displayed_str, internal_str, internal_action, scale = key
 
         # handle deletion
-        if (self._selection and
-                internal_action in (None, 'del', 'backspace', 'enter')):
-            if internal_action != 'enter' or self.multiline:
-                self.delete_selection()
+        if (
+            self._selection
+            and internal_action in (None, 'del', 'backspace', 'enter')
+            and (internal_action != 'enter' or self.multiline)
+        ):
+            self.delete_selection()
+
         elif internal_action == 'del':
             # Move cursor one char to the right. If that was successful,
             # do a backspace (effectively deleting char right of cursor)
@@ -2626,35 +2640,45 @@ class TextInput(FocusBehavior, Widget):
             self.do_cursor_movement('cursor_right')
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
+
         elif internal_action == 'backspace':
             self.do_backspace()
 
         # handle action keys and text insertion
         if internal_action is None:
             self.insert_text(displayed_str)
+
         elif internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
                 self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
+
         elif internal_action == 'ctrl_L':
             self._ctrl_l = True
+
         elif internal_action == 'ctrl_R':
             self._ctrl_r = True
+
         elif internal_action == 'alt_L':
             self._alt_l = True
+
         elif internal_action == 'alt_R':
             self._alt_r = True
+
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
-            self.do_cursor_movement(internal_action,
-                                    self._ctrl_l or self._ctrl_r,
-                                    self._alt_l or self._alt_r)
+            self.do_cursor_movement(
+                internal_action,
+                self._ctrl_l or self._ctrl_r,
+                self._alt_l or self._alt_r
+            )
             if self._selection and not self._selection_finished:
                 self._selection_to = self.cursor_index()
                 self._update_selection()
             else:
                 self.cancel_selection()
+
         elif internal_action == 'enter':
             if self.multiline:
                 self.insert_text(u'\n')
@@ -2662,6 +2686,7 @@ class TextInput(FocusBehavior, Widget):
                 self.dispatch('on_text_validate')
                 if self.text_validate_unfocus:
                     self.focus = False
+
         elif internal_action == 'escape':
             self.focus = False
 
@@ -2680,15 +2705,16 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        # Keycodes on OS X:
         key, _ = keycode
         win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
         modifiers = set(modifiers) - {'capslock', 'numlock'}
-        is_shortcut = (modifiers == {'ctrl'} or (
-            _is_osx and modifiers == {'meta'}))
-        is_interesting_key = key in list(self.interesting_keys.keys()) + [27]
+        is_shortcut = (
+            modifiers == {'ctrl'}
+            or _is_osx and modifiers == {'meta'}
+        )
+        is_interesting_key = key in self.interesting_keys.keys()
 
         if (
             not self.write_tab
@@ -2696,16 +2722,10 @@ class TextInput(FocusBehavior, Widget):
         ):
             return True
 
-        if not self._editable:
-            # duplicated but faster testing for non-editable keys
-            if text and not is_interesting_key:
-                if is_shortcut and key == ord('c'):
-                    self.copy()
-            elif key == 27:
-                self.focus = False
+        if text and is_shortcut and not is_interesting_key:
+            self._handle_shortcut(key)
 
-        elif text and not is_interesting_key:
-
+        elif self._editable and text and not is_interesting_key:
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
             win.remove_widget(self._handle_middle)
@@ -2729,52 +2749,11 @@ class TextInput(FocusBehavior, Widget):
 
             _command = self._command
             if _command and first_char == 2:
-                from_undo = True
-                _command, data = _command.split(':')
-                self._command = ''
-                if self._selection:
-                    self.delete_selection()
-                if _command == 'DEL':
-                    count = int(data)
-                    if not count:
-                        self.delete_selection(from_undo=True)
-                    end = self.cursor_index()
-                    self._selection_from = max(end - count, 0)
-                    self._selection_to = end
-                    self._selection = True
-                    self.delete_selection(from_undo=True)
-                    return
-                elif _command == 'INSERT':
-                    self.insert_text(data, from_undo)
-                elif _command == 'INSERTN':
-                    from_undo = False
-                    self.insert_text(data, from_undo)
-                elif _command == 'SELWORD':
-                    self.dispatch('on_double_tap')
-                elif _command == 'SEL':
-                    if data == '0':
-                        Clock.schedule_once(lambda dt: self.cancel_selection())
-                elif _command == 'CURCOL':
-                    self.cursor = int(data), self.cursor_row
+                self._handle_command(_command)
                 return
 
-            if is_shortcut:
-                if key == ord('x'):  # cut selection
-                    self._cut(self.selection_text)
-                elif key == ord('c'):  # copy selection
-                    self.copy()
-                elif key == ord('v'):  # paste clipboard content
-                    self.paste()
-                elif key == ord('a'):  # select all
-                    self.select_all()
-                elif key == ord('z'):  # undo
-                    self.do_undo()
-                elif key == ord('r'):  # redo
-                    self.do_redo()
             else:
-                is_sdl2 = (EventLoop.window.__class__.__module__ ==
-                           'kivy.core.window.window_sdl2')
-                if is_sdl2:
+                if EventLoop.window.managed_textinput:
                     # we expect to get managed key input via on_textinput
                     return
                 if self._selection:
@@ -2799,8 +2778,57 @@ class TextInput(FocusBehavior, Widget):
             key = (None, None, k, 1)
             self._key_down(key)
 
+    def _handle_command(self, command):
+        from_undo = True
+        command, data = command.split(':')
+        self._command = ''
+        if self._selection:
+            self.delete_selection()
+        if command == 'DEL':
+            count = int(data)
+            if not count:
+                self.delete_selection(from_undo=True)
+            end = self.cursor_index()
+            self._selection_from = max(end - count, 0)
+            self._selection_to = end
+            self._selection = True
+            self.delete_selection(from_undo=True)
+            return
+        elif command == 'INSERT':
+            self.insert_text(data, from_undo)
+        elif command == 'INSERTN':
+            from_undo = False
+            self.insert_text(data, from_undo)
+        elif command == 'SELWORD':
+            self.dispatch('on_double_tap')
+        elif command == 'SEL':
+            if data == '0':
+                Clock.schedule_once(lambda dt: self.cancel_selection())
+        elif command == 'CURCOL':
+            self.cursor = int(data), self.cursor_row
+
+    def _handle_shortcut(self, key):
+        # actions that can be done in readonly
+        if key == ord('a'):  # select all
+            self.select_all()
+        elif key == ord('c'):  # copy selection
+            self.copy()
+
+        if not self._editable:
+            return
+
+        # actions that can be done only if editable
+        if key == ord('x'):  # cut selection
+            self._cut(self.selection_text)
+        elif key == ord('v'):  # paste clipboard content
+            self.paste()
+        elif key == ord('z'):  # undo
+            self.do_undo()
+        elif key == ord('r'):  # redo
+            self.do_redo()
+
     def keyboard_on_key_up(self, window, keycode):
-        key, key_str = keycode
+        key = keycode[0]
         k = self.interesting_keys.get(key)
         if k:
             key = (None, None, k, 1)
