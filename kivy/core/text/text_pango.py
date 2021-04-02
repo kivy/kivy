@@ -74,7 +74,6 @@ Known limitations
 
 __all__ = ('LabelPango', )
 
-from types import MethodType
 from os.path import isfile
 from kivy.resources import resource_find
 from kivy.core.text import LabelBase, FontContextManagerBase
@@ -97,11 +96,11 @@ class LabelPango(LabelBase):
 
     _font_family_support = True
 
-    def __init__(self, *largs, **kwargs):
-        self.get_extents = MethodType(kpango_get_extents, self)
-        self.get_ascent = MethodType(kpango_get_ascent, self)
-        self.get_descent = MethodType(kpango_get_descent, self)
-        super(LabelPango, self).__init__(*largs, **kwargs)
+    get_extents = kpango_get_extents
+
+    get_ascent = kpango_get_ascent
+
+    get_descent = kpango_get_descent
 
     find_base_direction = staticmethod(kpango_find_base_dir)
 

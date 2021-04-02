@@ -231,10 +231,18 @@ def _get_extents(container, text):
         TTF_SetFontOutline(font, 0)
     return w, h
 
+
 def _get_fontdescent(container):
+    # we don't set direction/script because it doesn't seem to be affected by
+    # them: https://github.com/libsdl-org/SDL_ttf/blob/
+    # 9517474d772fe6ea5d848b6a59744c6f60755022/SDL_ttf.c#L2734
     return TTF_FontDescent(_get_font(container))
 
+
 def _get_fontascent(container):
+    # we don't set direction/script because it doesn't seem to be affected by
+    # them: https://github.com/libsdl-org/SDL_ttf/blob/
+    # 9517474d772fe6ea5d848b6a59744c6f60755022/SDL_ttf.c#L2729
     return TTF_FontAscent(_get_font(container))
 
 
