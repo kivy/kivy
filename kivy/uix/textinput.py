@@ -2770,6 +2770,7 @@ class TextInput(FocusBehavior, Widget):
             self.focus = False
             return True
         elif key == 9:  # tab
+            self.delete_selection()
             self.insert_text(u'\t')
             return True
 
