@@ -11,6 +11,8 @@ include '../../lib/sdl2.pxi'
 from kivy.core.image import ImageData
 from kivy.compat import PY2
 
+cimport cython
+
 cdef dict sdl2_cache = {}
 cdef list sdl2_cache_order = []
 
@@ -208,6 +210,8 @@ cdef TTF_Font *_get_font(self) except *:
 
     return ttfc.font
 
+
+@cython.binding(True)
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
     cdef int w, h
@@ -232,6 +236,7 @@ def _get_extents(container, text):
     return w, h
 
 
+@cython.binding(True)
 def _get_fontdescent(container):
     # we don't set direction/script because it doesn't seem to be affected by
     # them: https://github.com/libsdl-org/SDL_ttf/blob/
@@ -239,6 +244,7 @@ def _get_fontdescent(container):
     return TTF_FontDescent(_get_font(container))
 
 
+@cython.binding(True)
 def _get_fontascent(container):
     # we don't set direction/script because it doesn't seem to be affected by
     # them: https://github.com/libsdl-org/SDL_ttf/blob/

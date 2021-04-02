@@ -648,6 +648,7 @@ cdef class KivyPangoRenderer:
             PyMem_Free(self.pixels)
 
 
+@cython.binding(True)
 def kpango_get_extents(kivylabel, text):
     if text is None:  # text='' needs to return size
         return 0, 0
@@ -667,6 +668,7 @@ def kpango_get_extents(kivylabel, text):
     return w, h
 
 
+@cython.binding(True)
 def kpango_get_ascent(kivylabel):
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_or_create_cc_from_options(options)
@@ -679,6 +681,7 @@ def kpango_get_ascent(kivylabel):
     return cc.ascent
 
 
+@cython.binding(True)
 def kpango_get_descent(kivylabel):
     cdef dict options = kivylabel.options
     cdef ContextContainer cc = _get_or_create_cc_from_options(options)
