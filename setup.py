@@ -62,13 +62,14 @@ def getoutput(cmd, env=None):
 
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    lenviron = None
+    lenviron = environ
     pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
     if isdir(pconfig):
         lenviron = environ.copy()
-        lenviron['PKG_CONFIG_PATH'] = '{};{}'.format(
-            environ.get('PKG_CONFIG_PATH', ''), pconfig)
+        lenviron['PKG_CONFIG_PATH'] = \
+            f"{environ.get('PKG_CONFIG_PATH', '')}{os.pathsep}{pconfig}"
+
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
     results = getoutput(cmd, lenviron).split()
     for token in results:
@@ -537,6 +538,7 @@ if c_options['use_sdl2'] or (
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
+            sdl2_flags = {}
             print('SDL2 frameworks not found, fallback on pkg-config')
         else:
             c_options['use_sdl2'] = True
@@ -548,6 +550,8 @@ if c_options['use_sdl2'] or (
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
+        else:
+            sdl2_flags = {}
 
 # if we haven't set it, check if we can use harfbuzz
 if c_options['use_sdl2'] and c_options['use_harfbuzz'] is None \
@@ -555,10 +559,12 @@ if c_options['use_sdl2'] and c_options['use_harfbuzz'] is None \
     # 2.0.15 is last version without harfbuzz API. If sdl2 dist is compiled
     # without it it's not an issue for us as it'll just error in runtime
     harf_flags = pkgconfig('harfbuzz')
-    if 'libraries' in pkgconfig('SDL2_ttf > 2.0.15') and \
-            'libraries' in harf_flags:
+    pkg_sdl = pkgconfig('SDL2_ttf > 2.0.15')
+
+    if 'libraries' in pkg_sdl and 'libraries' in harf_flags:
         print('HarfBuzz found via pkg-config')
         c_options['use_harfbuzz'] = True
+        assert sdl2_flags
         sdl2_flags = merge(sdl2_flags, harf_flags)
 
 if not c_options['use_sdl2']:
@@ -716,9 +722,10 @@ def determine_sdl2():
 
     sdl2_path = environ.get('KIVY_SDL2_PATH', None)
 
-    if sdl2_flags and not sdl2_path and platform == 'darwin':
-        # currently there's no harfbuzz on darwin frameworks
+    if sdl2_flags and not sdl2_path:
+        # we already have it
         return sdl2_flags
+    # fallback to manual header/lib discovery
 
     includes, _ = get_isolated_env_paths()
 
@@ -747,9 +754,7 @@ def determine_sdl2():
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
-    flags['library_dirs'] = (
-        sdl2_paths if sdl2_paths else
-        ['/usr/local/lib/'])
+    flags['library_dirs'] = sdl2_paths if sdl2_paths else ['/usr/local/lib/']
 
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
