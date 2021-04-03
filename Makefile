@@ -110,12 +110,12 @@ test:
 test-to-txt:
 	# Run tests and save output to 'coverage.txt'.
 	-rm -rf kivy/tests/build
-	env KIVY_NO_ARGS=1 $(PYTEST) --cov-report term-missing --cov=kivy kivy/tests > coverage.txt
+	env KIVY_NO_ARGS=1 $(PYTEST) kivy/tests > coverage.txt
 
 test-to-xml:
 	# Run tests and save output to 'coverage.xml'.
 	-rm -rf kivy/tests/build
-	env KIVY_NO_ARGS=1 $(PYTEST) --cov-report xml --cov-report term-missing --cov=kivy kivy/tests
+	env KIVY_NO_ARGS=1 $(PYTEST) --cov-report xml kivy/tests
 
 cover:
 	# Note: This option does not currently support the missing lines analysis.
