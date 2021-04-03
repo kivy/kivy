@@ -204,9 +204,10 @@ to recompile.
 
 To run the test suite, simply run::
 
-    pytest kivy/tests
+    sh run_tests.sh
 
-or in bash or Linux::
+You can edit `run_tests.sh` file to generate more detailed test output if
+required. In bash or Linux, you can also do::
 
     make test
 
