@@ -2,7 +2,7 @@
 # =================
 # Run Kivy Tests
 # =================
-# When running tests, we have 3 useful options. Comment and uncomment as
+# When running tests, we have 4 useful options. Comment and uncomment as
 # desired.
 
 # 1. Print test output
@@ -15,3 +15,6 @@ pytest --cov-report term-missing --cov=kivy kivy/tests/
 
 # 3. Print test output and save to 'coverage.txt'
 # pytest --cov-report term-missing --cov=kivy kivy/tests/ > coverage.txt
+
+# 4. Print test output and save to 'coverage.xml'
+# pytest --cov-report xml --cov-report term-missing --cov=kivy kivy/tests/
