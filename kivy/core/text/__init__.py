@@ -306,7 +306,7 @@ class LabelBase(object):
         '''
 
         if font_regular is None:
-            raise valueError("font_regular cannot be None")
+            raise ValueError("font_regular cannot be None")
 
         fonts = []
 
