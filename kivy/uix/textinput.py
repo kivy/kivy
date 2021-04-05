@@ -2209,29 +2209,29 @@ class TextInput(FocusBehavior, Widget):
         else:
             tcx, tcy = 0, 0
 
-        if texture_width - tcx < viewport_width:
+        if texture_width * (1 - tcx) < viewport_width:
             tcw = tcw - tcx
-            size[0] = tcw * size[0]
+            texture_width = tcw * texture_width
         elif viewport_width < texture_width:
             tcw = (viewport_width / texture_width) * tcw
-            size[0] = viewport_width
+            texture_width = viewport_width
 
         if viewport_height < texture_height:
             tch = (viewport_height / texture_height) * tch
-            size[1] = viewport_height
+            texture_height = viewport_height
 
         # cropping
         if y > maxy:
             viewport_height = (maxy - y + line_height)
-            tch = (viewport_height / float(line_height)) * original_height
+            tch = (viewport_height / line_height) * original_height
             tcy = original_height - tch
-            size[1] = viewport_height
+            texture_height = viewport_height
         if y - line_height < miny:
             diff = miny - (y - line_height)
             y += diff
             viewport_height = line_height - diff
-            tch = (viewport_height / float(line_height)) * original_height
-            size[1] = viewport_height
+            tch = (viewport_height / line_height) * original_height
+            texture_height = viewport_height
 
         if tcw < 0:
             # nothing to show
@@ -2252,22 +2252,24 @@ class TextInput(FocusBehavior, Widget):
         # Horizontal alignment
         xoffset = 0
         if not base_dir:
-            base_dir = self._resolved_base_dir = Label.find_base_direction(
-                value
-            )
+            base_dir = self._resolved_base_dir = Label.find_base_direction(value)  # noqa
             if base_dir and halign == 'auto':
                 auto_halign_r = 'rtl' in base_dir
         if halign == 'center':
-            xoffset = int((viewport_width - size[0]) / 2.)
+            xoffset = int((viewport_width - texture_width) / 2.)
         elif halign == 'right' or auto_halign_r:
-            xoffset = max(0, int(viewport_width - size[0]))
+            xoffset = max(0, int(viewport_width - texture_width))
 
         # add rectangle
         rect = rects[line_num]
         rect.pos = int(xoffset + x), int(y - line_height)
-        rect.size = size
+        rect.size = texture_width, texture_height
         rect.texture = texture
         rect.tex_coords = texcoords
+        # useful to debug rectangle sizes
+        # self.canvas.add(Color(0, .5, 0, .5, mode='rgba'))
+        # self.canvas.add(Rectangle(pos=rect.pos, size=rect.size))
+        # self.canvas.add(Color())
         self.canvas.add(rect)
 
         return y
@@ -3018,25 +3020,26 @@ class TextInput(FocusBehavior, Widget):
         offset = self.cursor_offset()
 
         # if offset is outside the current bounds, readjust
-        if offset > viewport_width + sx:
-            self.scroll_x = offset - viewport_width
-        if offset < sx:
+        if offset >= viewport_width + sx - 1:
+            self.scroll_x = offset - viewport_width + 1
+        if offset < sx + 1:
             self.scroll_x = offset
 
         # do the same for Y
         # this algo try to center the cursor as much as possible
         dy = self.line_height + self.line_spacing
         offsety = cr * dy
-        sy = self.scroll_y
+        
         padding_top = self.padding[1]
         padding_bottom = self.padding[3]
         viewport_height = self.height - padding_top - padding_bottom - dy
-        if offsety > viewport_height + sy:
-            sy = offsety - viewport_height
-        if offsety < sy:
-            sy = offsety
-        self.scroll_y = sy
 
+        sy = self.scroll_y
+        if offsety > viewport_height + sy:
+            self.scroll_y = offsety - viewport_height
+        if offsety < sy:
+            self.scroll_y = offsety
+        
         if self._cursor == cursor:
             return
 
