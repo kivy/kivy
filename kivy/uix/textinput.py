@@ -151,7 +151,7 @@ from itertools import chain, islice
 from kivy.animation import Animation
 from kivy.base import EventLoop
 from kivy.cache import Cache
-from kivy.clock import Clock
+from kivy.clock import Clock, triggered
 from kivy.config import Config
 from kivy.core.window import Window
 from kivy.metrics import inch
@@ -3013,6 +3013,16 @@ class TextInput(FocusBehavior, Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
+        self._adjust_viewport(cc, cr)
+
+        if self._cursor == cursor:
+            return
+
+        self._cursor = cursor
+        return True
+
+    @triggered(timeout=-1)
+    def _adjust_viewport(self, cc, cr):
         padding_left = self.padding[0]
         padding_right = self.padding[2]
         viewport_width = self.width - padding_left - padding_right
@@ -3020,16 +3030,16 @@ class TextInput(FocusBehavior, Widget):
         offset = self.cursor_offset()
 
         # if offset is outside the current bounds, readjust
-        if offset >= viewport_width + sx - 1:
-            self.scroll_x = offset - viewport_width + 1
-        if offset < sx + 1:
+        if offset - sx >= viewport_width:
+            self.scroll_x = offset - viewport_width
+        elif offset < sx + 1:
             self.scroll_x = offset
 
         # do the same for Y
         # this algo try to center the cursor as much as possible
         dy = self.line_height + self.line_spacing
         offsety = cr * dy
-        
+
         padding_top = self.padding[1]
         padding_bottom = self.padding[3]
         viewport_height = self.height - padding_top - padding_bottom - dy
