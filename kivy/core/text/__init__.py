@@ -305,7 +305,7 @@ class LabelBase(object):
         fn_regular will be used instead.
         '''
 
-        if font_regular is None:
+        if fn_regular is None:
             raise ValueError("font_regular cannot be None")
 
         fonts = []
