@@ -12,6 +12,7 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
+from collections import defaultdict
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
@@ -922,6 +923,7 @@ class WindowBase(EventDispatcher):
             return
 
         self.initialized = False
+        self.event_managers = defaultdict(list)
         self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
@@ -1046,6 +1048,18 @@ class WindowBase(EventDispatcher):
         EventLoop.set_window(self)
         Modules.register_window(self)
         EventLoop.add_event_listener(self)
+
+    def register_event_manager(self, manager):
+        for type_id in manager.type_ids:
+            self.event_managers[type_id].insert(0, manager)
+        manager.window = self
+        manager.start()
+
+    def unregister_event_manager(self, manager):
+        for type_id in manager.type_ids:
+            self.event_managers[type_id].remove(manager)
+        manager.stop()
+        manager.window = None
 
     def mainloop(self):
         '''Called by the EventLoop every frame after it idles.
@@ -1540,6 +1554,11 @@ class WindowBase(EventDispatcher):
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 The Motion Event currently dispatched.
         '''
+        accepted = False
+        for manager in self.event_managers[me.type_id][:]:
+            accepted = accepted or manager.update(etype, me)
+        if accepted:
+            return
         if me.is_touch:
             # TODO: Use me.push/me.pop methods because `me` is transformed
             # Clock execution of partial ScrollView._on_touch_up method and

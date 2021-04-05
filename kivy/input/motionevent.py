@@ -92,6 +92,8 @@ from copy import copy
 from time import time
 from kivy.vector import Vector
 
+ME_IGNORE_COLLISION = 1
+
 
 class EnhancedDictionary(dict):
 
@@ -157,19 +159,24 @@ class MotionEvent(MotionEventBase):
          'is_triple_tap', 'triple_tap_time',
          'ud')
 
-    def __init__(self, device, id, args, is_touch=False):
+    def __init__(self, device, id, args, is_touch=False, type_id=None):
         if self.__class__ == MotionEvent:
             raise NotImplementedError('class MotionEvent is abstract')
         MotionEvent.__uniq_id += 1
 
-        #: True if the Motion Event is a Touch.
+        #: True if the MotionEvent is a touch.
         self.is_touch = is_touch
+
+        #: String to identify type of event ('touch', 'hover', 'keyboard' etc.)
+        self.type_id = type_id
+
+        self.flags = 0
 
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos')
+                           'px', 'py', 'pz', 'pos', 'flags')
 
         #: Uniq ID of the touch. You can safely use this property, it will be
         #: never the same across all existing touches.
