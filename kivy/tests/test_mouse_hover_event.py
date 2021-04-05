@@ -5,9 +5,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
     '''Tests hover event from `MouseMotionEventProvider`.
     '''
 
-    framecount = 3
-    '''Must be equal of max number of `self.advance_frame` in test method.'''
-
     def setUp(self):
         super().setUp()
         self.etype = None
@@ -163,6 +160,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
 
     def test_with_full_cycle_with_cursor_events(self):
         win, mouse = self.get_providers()
+        self.framecount = 2
         # Test begin event
         win.dispatch('on_cursor_enter')
         x, y = win.mouse_pos
@@ -179,6 +177,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
 
     def test_with_full_cycle_with_mouse_pos_and_on_close_event(self):
         win, mouse = self.get_providers()
+        self.framecount = 2
         # Test begin event
         x, y = win.mouse_pos = (5.0, 5.0)
         self.advance_frames(1)
