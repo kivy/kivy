@@ -112,7 +112,7 @@ class VideoFFPy(VideoBase):
         self._seek_queue = []
         self._trigger = Clock.create_trigger(self._redraw)
         self._stop_request = threading.Event()
-        self._idle = threading.Event()
+        self._no_idle = threading.Event()
 
         super(VideoFFPy, self).__init__(**kwargs)
 
@@ -219,15 +219,17 @@ class VideoFFPy(VideoBase):
     def _next_frame_run(self):
         ffplayer = self._ffplayer
         trigger = self._trigger
+        no_idle = self._no_idle
+        stop_request = self._stop_request
         did_dispatch_eof = False
         seek_queue = self._seek_queue
 
         # fast path, if the source video is yuv420p, we'll use a glsl shader
         # for buffer conversion to rgba
-        while not self._stop_request.is_set():
+        while not stop_request.is_set():
             src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
             if not src_pix_fmt:
-                self._idle.wait(0.005)
+                no_idle.wait(0.005)
                 continue
 
             if src_pix_fmt == 'yuv420p':
@@ -236,13 +238,13 @@ class VideoFFPy(VideoBase):
             self._ffplayer.toggle_pause()
             break
 
-        if self._stop_request.is_set():
+        if stop_request.is_set():
             return
 
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         s = time.perf_counter()
-        while not self._stop_request.is_set():
+        while not stop_request.is_set():
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
@@ -250,15 +252,15 @@ class VideoFFPy(VideoBase):
             #     -> trigger event indicating loading failed
             if time.perf_counter() - s > 10.:
                 break
-            self._idle.wait(0.005)
+            no_idle.wait(0.005)
 
-        if self._stop_request.is_set():
+        if stop_request.is_set():
             return
 
         # we got all the informations, now, get the frames :)
         self._change_state('playing')
 
-        while not self._stop_request.is_set():
+        while not stop_request.is_set():
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
@@ -290,7 +292,7 @@ class VideoFFPy(VideoBase):
                             break
                         # Wait for next frame:
                         if frame is None:
-                            self._idle.wait(0.005)
+                            no_idle.wait(0.005)
                             continue
                         # Wait until we skipped enough frames:
                         to_skip -= 1
@@ -307,14 +309,14 @@ class VideoFFPy(VideoBase):
 
             if val == 'eof':
                 # XXX: what's the reason for waiting here 0.2 seconds?
-                self._idle.wait(0.2)
+                no_idle.wait(0.2)
                 if not did_dispatch_eof:
                     self._do_eos()
                     did_dispatch_eof = True
             elif val == 'paused':
                 did_dispatch_eof = False
                 # XXX: what's the reason for waiting here 0.2 seconds?
-                self._idle.wait(0.2)
+                no_idle.wait(0.2)
             else:
                 did_dispatch_eof = False
                 if frame:
@@ -322,7 +324,7 @@ class VideoFFPy(VideoBase):
                     trigger()
                 else:
                     val = val if val else (1 / 30.)
-                self._idle.wait(val)
+                no_idle.wait(val)
 
     def seek(self, percent, precise=True):
         if self._ffplayer is None:
@@ -364,7 +366,7 @@ class VideoFFPy(VideoBase):
 
         # Clear runner thread control events
         self._stop_request.clear()
-        self._idle.clear()
+        self._no_idle.clear()
 
         # Initialize and start runner thread
         self._thread = threading.Thread(
@@ -380,7 +382,7 @@ class VideoFFPy(VideoBase):
         if self._trigger is not None:
             self._trigger.cancel()
         self._stop_request.set()
-        self._idle.set()
+        self._no_idle.set()
         if self._thread:
             self._thread.join()
             self._thread = None
