@@ -225,9 +225,15 @@ class VideoFFPy(VideoBase):
         did_dispatch_eof = False
         seek_queue = self._seek_queue
 
+        def ensure_idle():
+            # clear idle event if set by state change
+            if no_idle.is_set():
+                no_idle.clear()
+
         # fast path, if the source video is yuv420p, we'll use a glsl shader
         # for buffer conversion to rgba
         while not stop_request.is_set():
+            ensure_idle()
             src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
             if not src_pix_fmt:
                 no_idle.wait(0.005)
@@ -246,6 +252,7 @@ class VideoFFPy(VideoBase):
         # sure metadata is available.
         s = time.perf_counter()
         while not stop_request.is_set():
+            ensure_idle()
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
@@ -262,9 +269,8 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not stop_request.is_set():
-            # clear idle event if set by state change
-            if no_idle.is_set():
-                no_idle.clear()
+            ensure_idle()
+
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
