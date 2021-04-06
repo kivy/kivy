@@ -234,6 +234,7 @@ class VideoFFPy(VideoBase):
         # for buffer conversion to rgba
         while not stop_request.is_set():
             ensure_idle()
+
             src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
             if not src_pix_fmt:
                 no_idle.wait(0.005)
@@ -253,6 +254,7 @@ class VideoFFPy(VideoBase):
         s = time.perf_counter()
         while not stop_request.is_set():
             ensure_idle()
+
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
@@ -318,10 +320,10 @@ class VideoFFPy(VideoBase):
                 frame, val = ffplayer.get_frame()
 
             if val == 'eof':
-                no_idle.wait(0.2)
                 if not did_dispatch_eof:
                     self._do_eos()
                     did_dispatch_eof = True
+                no_idle.wait(0.2)
             elif val == 'paused':
                 did_dispatch_eof = False
                 no_idle.wait(0.2)
