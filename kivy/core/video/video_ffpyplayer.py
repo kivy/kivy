@@ -53,7 +53,6 @@ except:
     raise
 
 
-from threading import Thread
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
@@ -61,15 +60,18 @@ from kivy.graphics import Rectangle, BindTexture
 from kivy.graphics.texture import Texture
 from kivy.graphics.fbo import Fbo
 from kivy.weakmethod import WeakMethod
+import threading
 import time
 
 Logger.info('VideoFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
-logger_func = {'quiet': Logger.critical, 'panic': Logger.critical,
-               'fatal': Logger.critical, 'error': Logger.error,
-               'warning': Logger.warning, 'info': Logger.info,
-               'verbose': Logger.debug, 'debug': Logger.debug}
+logger_func = {
+    'quiet': Logger.critical, 'panic': Logger.critical,
+    'fatal': Logger.critical, 'error': Logger.error,
+    'warning': Logger.warning, 'info': Logger.info,
+    'verbose': Logger.debug, 'debug': Logger.debug
+}
 
 
 def _log_callback(message, level):
@@ -108,8 +110,9 @@ class VideoFFPy(VideoBase):
         self._thread = None
         self._next_frame = None
         self._seek_queue = []
-        self._ffplayer_need_quit = False
         self._trigger = Clock.create_trigger(self._redraw)
+        self._stop_request = threading.Event()
+        self._idle = threading.Event()
 
         super(VideoFFPy, self).__init__(**kwargs)
 
@@ -188,8 +191,10 @@ class VideoFFPy(VideoBase):
                 fbo['tex_v'] = 2
                 self._texture = fbo.texture
             else:
-                self._texture = Texture.create(size=self._size,
-                                                colorfmt='rgba')
+                self._texture = Texture.create(
+                    size=self._size,
+                    colorfmt='rgba'
+                )
 
             # XXX FIXME
             # self.texture.add_reload_observer(self.reload_buffer)
@@ -213,17 +218,16 @@ class VideoFFPy(VideoBase):
 
     def _next_frame_run(self):
         ffplayer = self._ffplayer
-        sleep = time.sleep
         trigger = self._trigger
         did_dispatch_eof = False
         seek_queue = self._seek_queue
 
         # fast path, if the source video is yuv420p, we'll use a glsl shader
         # for buffer conversion to rgba
-        while not self._ffplayer_need_quit:
+        while not self._stop_request.is_set():
             src_pix_fmt = ffplayer.get_metadata().get('src_pix_fmt')
             if not src_pix_fmt:
-                sleep(0.005)
+                self._idle.wait(0.005)
                 continue
 
             if src_pix_fmt == 'yuv420p':
@@ -232,27 +236,29 @@ class VideoFFPy(VideoBase):
             self._ffplayer.toggle_pause()
             break
 
-        if self._ffplayer_need_quit:
+        if self._stop_request.is_set():
             return
 
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         s = time.perf_counter()
-        while not self._ffplayer_need_quit:
+        while not self._stop_request.is_set():
             if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
                 break
             # XXX if will fail later then?
+            #     -> unload resources and return
+            #     -> trigger event indicating loading failed
             if time.perf_counter() - s > 10.:
                 break
-            sleep(0.005)
+            self._idle.wait(0.005)
 
-        if self._ffplayer_need_quit:
+        if self._stop_request.is_set():
             return
 
-        # we got all the information, now, get the frames :)
+        # we got all the informations, now, get the frames :)
         self._change_state('playing')
 
-        while not self._ffplayer_need_quit:
+        while not self._stop_request.is_set():
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
@@ -284,7 +290,7 @@ class VideoFFPy(VideoBase):
                             break
                         # Wait for next frame:
                         if frame is None:
-                            sleep(0.005)
+                            self._idle.wait(0.005)
                             continue
                         # Wait until we skipped enough frames:
                         to_skip -= 1
@@ -300,13 +306,15 @@ class VideoFFPy(VideoBase):
                 frame, val = ffplayer.get_frame()
 
             if val == 'eof':
-                sleep(0.2)
+                # XXX: what's the reason for waiting here 0.2 seconds?
+                self._idle.wait(0.2)
                 if not did_dispatch_eof:
                     self._do_eos()
                     did_dispatch_eof = True
             elif val == 'paused':
                 did_dispatch_eof = False
-                sleep(0.2)
+                # XXX: what's the reason for waiting here 0.2 seconds?
+                self._idle.wait(0.2)
             else:
                 did_dispatch_eof = False
                 if frame:
@@ -314,7 +322,7 @@ class VideoFFPy(VideoBase):
                     trigger()
                 else:
                     val = val if val else (1 / 30.)
-                sleep(val)
+                self._idle.wait(val)
 
     def seek(self, percent, precise=True):
         if self._ffplayer is None:
@@ -344,15 +352,25 @@ class VideoFFPy(VideoBase):
             'volume': self._volume,
         }
         self._ffplayer = MediaPlayer(
-                self._filename, callback=self._player_callback,
-                thread_lib='SDL',
-                loglevel='info', ff_opts=ff_opts)
+            self._filename,
+            callback=self._player_callback,
+            thread_lib='SDL',
+            loglevel='info',
+            ff_opts=ff_opts
+        )
 
         # Disabled as an attempt to fix kivy issue #6210
         # self._ffplayer.set_volume(self._volume)
 
-        self._thread = Thread(target=self._next_frame_run, name='Next frame')
-        self._thread.daemon = True
+        # Clear runner thread control events
+        self._stop_request.clear()
+        self._idle.clear()
+
+        # Initialize and start runner thread
+        self._thread = threading.Thread(
+            target=self._next_frame_run,
+            name='Next frame'
+        )
         self._thread.start()
 
     def load(self):
@@ -361,13 +379,14 @@ class VideoFFPy(VideoBase):
     def unload(self):
         if self._trigger is not None:
             self._trigger.cancel()
-        self._ffplayer_need_quit = True
+        self._stop_request.set()
+        self._idle.set()
         if self._thread:
             self._thread.join()
             self._thread = None
         if self._ffplayer:
+            self._ffplayer.close_player()
             self._ffplayer = None
         self._next_frame = None
         self._size = (0, 0)
         self._state = ''
-        self._ffplayer_need_quit = False
