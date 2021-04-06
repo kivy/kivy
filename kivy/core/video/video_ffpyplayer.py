@@ -117,13 +117,13 @@ class VideoFFPy(VideoBase):
 
     def __del__(self):
         self.unload()
-    
+
     def _wakeup_thread(self):
         try:
             self._wakeup_queue.put(None, False)
         except Empty:
             pass
-    
+
     def _wait_for_wakeup(self, timeout):
         try:
             self._wakeup_queue.get(True, timeout)
@@ -373,7 +373,7 @@ class VideoFFPy(VideoBase):
                 self._state = 'playing'
                 self._wakeup_thread()
             return
-        
+
         # we're now either in limbo state waiting for thread to setup,
         # or no thread has been started
         if self._state == 'playing':
