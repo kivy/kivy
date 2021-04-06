@@ -43,6 +43,8 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         # Restore method `on_close` to window
         win.on_close = self.old_on_close
         self.old_on_close = None
+        # Clear all motion events from EventLoop.touches
+        del EventLoop.touches[:]
         super().tearDown(fake)
 
     def on_motion(self, _, etype, event):
