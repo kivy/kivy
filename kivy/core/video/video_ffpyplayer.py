@@ -256,8 +256,6 @@ class VideoFFPy(VideoBase):
 
         ev_trigger = self._ev_trigger
         while not self._ffplayer_need_quit:
-            ev_trigger.clear()
-
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
@@ -306,6 +304,7 @@ class VideoFFPy(VideoBase):
 
             if val == 'eof':
                 if not did_dispatch_eof:
+                    ev_trigger.clear()
                     self._do_eos()
                     did_dispatch_eof = True
                 self._ev_trigger.wait(.2)
