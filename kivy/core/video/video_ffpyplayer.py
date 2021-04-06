@@ -159,6 +159,7 @@ class VideoFFPy(VideoBase):
     @mainthread
     def _change_state(self, state):
         self._state = state
+        self._no_idle.set()
 
     def _redraw(self, *args):
         if not self._ffplayer:
@@ -261,6 +262,9 @@ class VideoFFPy(VideoBase):
         self._change_state('playing')
 
         while not stop_request.is_set():
+            # clear idle event if set by state change
+            if no_idle.is_set():
+                no_idle.clear()
             seek_happened = False
             if seek_queue:
                 vals = seek_queue[:]
@@ -308,14 +312,12 @@ class VideoFFPy(VideoBase):
                 frame, val = ffplayer.get_frame()
 
             if val == 'eof':
-                # XXX: what's the reason for waiting here 0.2 seconds?
                 no_idle.wait(0.2)
                 if not did_dispatch_eof:
                     self._do_eos()
                     did_dispatch_eof = True
             elif val == 'paused':
                 did_dispatch_eof = False
-                # XXX: what's the reason for waiting here 0.2 seconds?
                 no_idle.wait(0.2)
             else:
                 did_dispatch_eof = False
@@ -330,6 +332,7 @@ class VideoFFPy(VideoBase):
         if self._ffplayer is None:
             return
         self._seek_queue.append((percent, precise,))
+        self._no_idle.set()
 
     def stop(self):
         self.unload()
@@ -338,11 +341,13 @@ class VideoFFPy(VideoBase):
         if self._ffplayer and self._state != 'paused':
             self._ffplayer.toggle_pause()
             self._state = 'paused'
+            self._no_idle.set()
 
     def play(self):
         if self._ffplayer and self._state == 'paused':
             self._ffplayer.toggle_pause()
             self._state = 'playing'
+            self._no_idle.set()
             return
 
         self.load()
