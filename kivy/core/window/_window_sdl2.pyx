@@ -245,7 +245,7 @@ cdef class _WindowSDL2Storage:
                 status = ''
                 if vsync not in (0, 1):
                     res = SDL_GL_SetSwapInterval(1)
-                    status = ', trying fallback to 1: ' + 'failed' if res == -1 else 'succeeded'
+                    status = ', trying fallback to 1: ' + ('failed' if res == -1 else 'succeeded')
 
                 Logger.debug('WindowSDL: requested vsync failed' + status)
 
@@ -266,7 +266,7 @@ cdef class _WindowSDL2Storage:
 
     def set_system_cursor(self, str name):
         # prevent the compiler to not be happy because of
-        # an unitialized value (return False in Cython is not a direct
+        # an uninitialized value (return False in Cython is not a direct
         # return 0 in C)
         cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_ARROW
         if name == 'arrow':

@@ -15,7 +15,7 @@ Unable to get a Window, abort.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If Kivy cannot instantiate a Window core provider (mostly SDL2), you'll see
-this. The underlaying issue depends on many things:
+this. The underlying issue depends on many things:
 
 - Check your installation. Twice.
 - Check that your graphics driver support OpenGL 2.1 at the minimum. Otherwise, Kivy can't run.
@@ -25,7 +25,7 @@ this. The underlaying issue depends on many things:
 - Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
 - Check your PATH to ensure that other programs in it don't provide the same dlls as Kivy/Python, or bad stuff can happen.
 
-  - This commonly happens if some other program that uses similar dependecies as Kivy adds itself to the ``PATH`` so that Kivy's dependecies clash with theirs.
+  - This commonly happens if some other program that uses similar dependencies as Kivy adds itself to the ``PATH`` so that Kivy's dependencies clash with theirs.
   - Please read `this <https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them>`_ and `this <https://www.digitalcitizen.life/simple-questions-what-are-environment-variables>`_ for more details on ``PATH``.
   - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_.
   - But ensure that you're launching it from the identical environment that you start Python.

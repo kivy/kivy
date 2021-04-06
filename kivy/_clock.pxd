@@ -114,6 +114,7 @@ cdef class CyClockBase(object):
     cpdef _process_events_before_frame(self)
     cpdef get_min_timeout(self)
     cpdef get_events(self)
+    cpdef get_before_frame_events(self)
     cpdef _process_clock_ended_del_safe_events(self)
     cpdef _process_clock_ended_callbacks(self)
 

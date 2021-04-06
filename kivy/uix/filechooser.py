@@ -124,7 +124,7 @@ if platform == 'win':
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cant check if a file is hidden or not')
+        Logger.error('filechooser: we cannot check if a file is hidden or not')
 
 
 def alphanumeric_folders_first(files, filesystem):

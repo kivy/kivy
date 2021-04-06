@@ -743,7 +743,7 @@ class TabbedPanel(GridLayout):
                     tab_list = (Widget(), Widget(), scrl_v)
                 widget_list = (tab_layout, self_content)
         elif pos_letter == 'l' or pos_letter == 'r':
-            # left ot right positions
+            # left or right positions
             # one row containing the tab_strip and the content
             self.cols = 2
             self.rows = 1

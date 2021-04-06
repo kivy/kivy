@@ -101,7 +101,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             node.background_color = (1, 1, 1, 1)
             super(SelectableGrid, self).deselect_node(node)
 
-        def on_selected_nodes(self, gird, nodes):
+        def on_selected_nodes(self, grid, nodes):
             print("Selected nodes = {0}".format(nodes))
 
 
@@ -129,11 +129,11 @@ __all__ = ('CompoundSelectionBehavior', )
 from time import time
 from os import environ
 
-from kivy.config import Config
 from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 
 
 if 'KIVY_DOC' not in environ:
+    from kivy.config import Config
     _is_desktop = Config.getboolean('kivy', 'desktop')
 else:
     _is_desktop = False
@@ -255,7 +255,7 @@ class CompoundSelectionBehavior(object):
     '''
 
     text_entry_timeout = NumericProperty(1.)
-    '''When typing characters in rapid sucession (i.e. the time difference since
+    '''When typing characters in rapid succession (i.e. the time difference since
     the last character is less than :attr:`text_entry_timeout`), the keys get
     concatenated and the combined text is passed as the key argument of
     :meth:`goto_node`.

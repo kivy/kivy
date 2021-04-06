@@ -1,7 +1,4 @@
 from kivy.tests.common import GraphicUnitTest
-from kivy.input.providers.mouse import (
-    MouseMotionEventProvider as Mouse
-)
 
 
 class MultitouchSimulatorTestCase(GraphicUnitTest):
@@ -12,7 +9,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # flip, because the mouse provider uses system's
         # raw one and it's changed to bottom-left origin
         # with Window's system_size[1] for 'mouse_pos'
-        return win.height - y
+        return win.height - 1.0 - y
 
     def mouse_init(self, on_demand=False, disabled=False, scatter=False):
         # prepare MouseMotionEventProvider
@@ -32,7 +29,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             mode = 'disable_multitouch'
         else:
             mode = ''
-        mouse = Mouse('unittest', mode)
+        from kivy.input.providers.mouse import MouseMotionEventProvider
+        mouse = MouseMotionEventProvider('unittest', mode)
         mouse.is_touch = True
 
         # defaults from ME, it's missing because we use
@@ -63,6 +61,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             10, self.correct_y(win, 10),
             'right', {}
         )
+        event_id = next(iter(mouse.touches))
         self.assertEqual(mouse.counter, 1)
 
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
@@ -78,7 +77,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         elif 'on_demand' in kwargs and 'scatter' in kwargs:
             self.assertIn(
                 'multitouch_sim',
-                mouse.touches['mouse1'].profile
+                mouse.touches[event_id].profile
             )
             self.assertTrue(mouse.multitouch_on_demand)
 
@@ -90,18 +89,18 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # without ME dispatch, on_touch_down was not
             # called == multitouch_sim is False
             self.advance_frames(1)  # initialize stuff
-            wid.on_touch_down(mouse.touches['mouse1'])
-            wid.on_touch_up(mouse.touches['mouse1'])
-            self.assertTrue(mouse.touches['mouse1'].multitouch_sim)
+            wid.on_touch_down(mouse.touches[event_id])
+            wid.on_touch_up(mouse.touches[event_id])
+            self.assertTrue(mouse.touches[event_id].multitouch_sim)
 
         elif 'disabled' in kwargs:
             self.assertIsNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot isn't present
 
         else:
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         # XXX right button up
@@ -120,9 +119,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         # because the red dot is removed by the left button
         if 'disabled' not in kwargs:
-            self.assertIn('mouse1', mouse.touches)
+            self.assertIn(event_id, mouse.touches)
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         # button is down on the previous dot's position
@@ -140,7 +139,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         if 'disabled' in kwargs:
             # the right click is ignored, test ends here
             self.assertNotIn(
-                'mouse1', mouse.touches
+                event_id, mouse.touches
             )
             # cleanup!
             # remove mouse provider
@@ -149,12 +148,12 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             return
         else:
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         # ellipse proxy (<3 #1318 Instruction.proxy_ref)
         dot_proxy = mouse.touches[
-            'mouse1'
+            event_id
         ].ud.get('_drawelement')[1].proxy_ref
 
         # the dot is removed after the touch is released
@@ -178,14 +177,14 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 print(dot_proxy)
 
             self.assertEqual(mouse.counter, 1)
-            self.assertNotIn('mouse1', mouse.touches)
+            self.assertNotIn(event_id, mouse.touches)
             self.assertEqual(mouse.touches, {})
 
         elif button == 'right':
             self.assertEqual(mouse.counter, 1)
-            self.assertIn('mouse1', mouse.touches)
+            self.assertIn(event_id, mouse.touches)
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         self.render(wid)
@@ -215,6 +214,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             10, self.correct_y(win, 10),
             'right', {}
         )
+        event_id = next(iter(mouse.touches))
         self.assertEqual(mouse.counter, 1)
 
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
@@ -237,7 +237,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # on_demand works after the touch is up
             self.assertIn(
                 'multitouch_sim',
-                mouse.touches['mouse1'].profile
+                mouse.touches[event_id].profile
             )
             self.assertTrue(mouse.multitouch_on_demand)
 
@@ -249,9 +249,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # without ME dispatch, on_touch_down was not
             # called == multitouch_sim is False
             self.advance_frames(1)  # initialize stuff
-            wid.on_touch_down(mouse.touches['mouse1'])
-            wid.on_touch_up(mouse.touches['mouse1'])
-            self.assertTrue(mouse.touches['mouse1'].multitouch_sim)
+            wid.on_touch_down(mouse.touches[event_id])
+            wid.on_touch_up(mouse.touches[event_id])
+            self.assertTrue(mouse.touches[event_id].multitouch_sim)
 
             win.dispatch(
                 'on_mouse_up',
@@ -259,10 +259,10 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 'right', {}
             )
             color = mouse.touches[
-                'mouse1'
+                event_id
             ].ud.get('_drawelement')[0].proxy_ref
             ellipse = mouse.touches[
-                'mouse1'
+                event_id
             ].ud.get('_drawelement')[1].proxy_ref
             win.dispatch(
                 'on_mouse_down',
@@ -272,12 +272,12 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         elif 'disabled' in kwargs:
             self.assertIsNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot isn't present
 
         else:
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         # do NOT make any hard refs to '_drawelement'
@@ -285,7 +285,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # the right click doesn't draw the red dot
             # the instructions aren't present, test ends
             self.assertIsNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot isn't present
             # cleanup!
             # remove mouse provider
@@ -295,10 +295,10 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         else:
             color = mouse.touches[
-                'mouse1'
+                event_id
             ].ud.get('_drawelement')[0].proxy_ref
             ellipse = mouse.touches[
-                'mouse1'
+                event_id
             ].ud.get('_drawelement')[1].proxy_ref
 
         # the red dot moves when the touch is moving
@@ -309,7 +309,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
 
         # right button up
@@ -321,9 +321,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         self.assertEqual(mouse.counter, 1)
 
         # because the red dot is removed by the left button
-        self.assertIn('mouse1', mouse.touches)
+        self.assertIn(event_id, mouse.touches)
         self.assertIsNotNone(
-            mouse.touches['mouse1'].ud.get('_drawelement')
+            mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot is present
 
         # the dot is at (11, 11), but the touch is in
@@ -338,7 +338,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # no new one was created
         self.assertEqual(mouse.counter, 1)
         self.assertIsNotNone(
-            mouse.touches['mouse1'].ud.get('_drawelement')
+            mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot is present
 
         # the red dot moves when the touch is moving
@@ -349,7 +349,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )
         self.assertEqual(
             ellipse.pos,
-            (40, self.correct_y(win, win.height - 40))
+            (40, 40)
         )  # bounding box from Rectangle, R=10 -> 20 width
 
         # the dot is removed after the touch is released
@@ -363,11 +363,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         self.assertEqual(mouse.counter, 1)
 
         if button == 'left':
-            self.assertNotIn('mouse1', mouse.touches)
+            self.assertNotIn(event_id, mouse.touches)
         elif button == 'right':
-            self.assertIn('mouse1', mouse.touches)
+            self.assertIn(event_id, mouse.touches)
             self.assertIsNotNone(
-                mouse.touches['mouse1'].ud.get('_drawelement')
+                mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
         self.render(wid)
@@ -395,6 +395,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             10, self.correct_y(win, 10),
             'left', {}
         )
+        event_id = next(iter(mouse.touches))
         win.dispatch(
             'on_mouse_move',
             11, self.correct_y(win, 11),
@@ -402,7 +403,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )
         self.assertEqual(mouse.counter, 1)
         self.assertIsNone(
-            mouse.touches['mouse1'].ud.get('_drawelement')
+            mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot isn't present
 
         # left button up
@@ -414,7 +415,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # after the releasing the touch disappears,
         # but the counter remains
         self.assertEqual(mouse.counter, 1)
-        self.assertNotIn('mouse1', mouse.touches)
+        self.assertNotIn(event_id, mouse.touches)
 
         self.advance_frames(1)
         self.render(wid)
@@ -441,30 +442,26 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             10, self.correct_y(win, 10),
             'right', {}
         )
+        event_id = next(iter(mouse.touches))
         self.assertEqual(mouse.counter, 1)
         self.assertIsNotNone(
-            mouse.touches['mouse1'].ud.get('_drawelement')
+            mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot is present
 
         # do NOT make any hard refs to '_drawelement'
         color = mouse.touches[
-            'mouse1'
+            event_id
         ].ud.get('_drawelement')[0].proxy_ref
         ellipse = mouse.touches[
-            'mouse1'
+            event_id
         ].ud.get('_drawelement')[1].proxy_ref
 
         # check ellipse's position
-        self.assertEqual(
-            ellipse.pos[0], 0
-        )  # bounding box from Rectangle, R=10 -> 20 width
+        self.assertAlmostEqual(ellipse.pos[0], 0, delta=0.0001)
+        # bounding box from Rectangle, R=10 -> 20 width
         # almost equal because the correct_y uses the same
         # float - float, which returns decimal garbage
-        self.assertAlmostEqual(
-            ellipse.pos[1],
-            self.correct_y(win, win.height),
-            delta=0.0001
-        )
+        self.assertAlmostEqual(ellipse.pos[1], 0, delta=0.0001)
 
         win.dispatch(
             'on_mouse_move',
@@ -474,7 +471,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # the red dot moves when the touch is moving
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
         win.dispatch(
             'on_mouse_up',
@@ -484,13 +481,13 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         self.assertEqual(
             ellipse.pos,
-            (1, self.correct_y(win, win.height - 1))
+            (1, 1)
         )  # bounding box from Rectangle, R=10 -> 20 width
         self.assertEqual(mouse.counter, 1)
         # because the red dot is removed by the left button
-        self.assertIn('mouse1', mouse.touches)
+        self.assertIn(event_id, mouse.touches)
         self.assertIsNotNone(
-            mouse.touches['mouse1'].ud.get('_drawelement')
+            mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot is present
 
         self.render(wid)

@@ -1,11 +1,11 @@
-'''
+"""
 ModalView
 =========
 
 .. versionadded:: 1.4.0
 
 The :class:`ModalView` widget is used to create modal views. By default, the
-view will cover the whole "parent" window.
+view will cover the whole "main" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your view to be fullscreen, either use size hints with values lower than
@@ -32,7 +32,7 @@ the ModalView instance::
 
     view.dismiss()
 
-Both :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That
+Both :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bind-able. That
 means you can directly bind the function to an action, e.g. to a button's
 on_press ::
 
@@ -51,10 +51,12 @@ on_press ::
 ModalView Events
 ----------------
 
-There are two events available: `on_open` which is raised when the view is
-opening, and `on_dismiss` which is raised when the view is closed.
-For `on_dismiss`, you can prevent the view from closing by explictly returning
-True from your callback. ::
+There are four events available: `on_pre_open` and `on_open` which are raised
+when the view is opening; `on_pre_dismiss` and `on_dismiss` which are raised
+when the view is closed.
+
+For `on_dismiss`, you can prevent the view from closing by explicitly
+returning `True` from your callback::
 
     def my_callback(instance):
         print('ModalView', instance, 'is being dismissed, but is prevented!')
@@ -70,19 +72,19 @@ True from your callback. ::
     keyboard if the :attr:`ModalView.auto_dismiss` property is True (the
     default).
 
-'''
+"""
 
 __all__ = ('ModalView', )
 
-from kivy.logger import Logger
 from kivy.animation import Animation
+from kivy.properties import (
+    StringProperty, BooleanProperty, ObjectProperty, NumericProperty,
+    ListProperty, ColorProperty)
 from kivy.uix.anchorlayout import AnchorLayout
-from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
-    NumericProperty, ListProperty, ColorProperty
 
 
 class ModalView(AnchorLayout):
-    '''ModalView class. See module documentation for more information.
+    """ModalView class. See module documentation for more information.
 
     :Events:
         `on_pre_open`:
@@ -102,8 +104,12 @@ class ModalView(AnchorLayout):
     .. versionchanged:: 2.0.0
         Added property 'overlay_color'.
 
-    '''
+    .. versionchanged:: 2.1.0
+        Marked `attach_to` property as deprecated.
 
+    """
+
+    # noinspection PyArgumentEqualDefault
     auto_dismiss = BooleanProperty(True)
     '''This property determines if the view is automatically
     dismissed when the user clicks outside it.
@@ -112,7 +118,7 @@ class ModalView(AnchorLayout):
     defaults to True.
     '''
 
-    attach_to = ObjectProperty(None)
+    attach_to = ObjectProperty(None, deprecated=True)
     '''If a widget is set on attach_to, the view will attach to the nearest
     parent window of the widget. If none is found, it will attach to the
     main/global Window.
@@ -176,7 +182,9 @@ class ModalView(AnchorLayout):
 
     _anim_duration = NumericProperty(.1)
 
-    _window = ObjectProperty(None, allownone=True, rebind=True)
+    _window = ObjectProperty(allownone=True, rebind=True)
+
+    _is_open = BooleanProperty(False)
 
     _touch_started_inside = None
 
@@ -186,70 +194,52 @@ class ModalView(AnchorLayout):
         self._parent = None
         super(ModalView, self).__init__(**kwargs)
 
-    def _search_window(self):
-        # get window to attach to
-        window = None
-        if self.attach_to is not None:
-            window = self.attach_to.get_parent_window()
-            if not window:
-                window = self.attach_to.get_root_window()
-        if not window:
-            from kivy.core.window import Window
-            window = Window
-        return window
-
-    def open(self, *largs, **kwargs):
-        '''Show the view window from the :attr:`attach_to` widget. If set, it
-        will attach to the nearest window. If the widget is not attached to any
-        window, the view will attach to the global
-        :class:`~kivy.core.window.Window`.
+    def open(self, *_args, **kwargs):
+        """Display the modal in the Window.
 
         When the view is opened, it will be faded in with an animation. If you
         don't want the animation, use::
 
             view.open(animation=False)
 
-        '''
-        if self._window is not None:
-            Logger.warning('ModalView: you can only open once.')
+        """
+        from kivy.core.window import Window
+        if self._is_open:
             return
-        # search window
-        self._window = self._search_window()
-        if not self._window:
-            Logger.warning('ModalView: cannot open view, no window found.')
-            return
+        self._window = Window
+        self._is_open = True
         self.dispatch('on_pre_open')
-        self._window.add_widget(self)
-        self._window.bind(
+        Window.add_widget(self)
+        Window.bind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
-        self.center = self._window.center
+        self.center = Window.center
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
-            a = Animation(_anim_alpha=1., d=self._anim_duration)
-            a.bind(on_complete=lambda *x: self.dispatch('on_open'))
-            a.start(self)
+            ani = Animation(_anim_alpha=1., d=self._anim_duration)
+            ani.bind(on_complete=lambda *_args: self.dispatch('on_open'))
+            ani.start(self)
         else:
             self._anim_alpha = 1.
             self.dispatch('on_open')
 
-    def dismiss(self, *largs, **kwargs):
-        '''Close the view if it is open. If you really want to close the
-        view, whatever the on_dismiss event returns, you can use the *force*
-        argument:
-        ::
+    def dismiss(self, *_args, **kwargs):
+        """ Close the view if it is open.
+
+        If you really want to close the view, whatever the on_dismiss
+        event returns, you can use the *force* keyword argument::
 
             view = ModalView()
             view.dismiss(force=True)
 
         When the view is dismissed, it will be faded out before being
-        removed from the parent. If you don't want animation, use::
+        removed from the parent. If you don't want this animation, use::
 
             view.dismiss(animation=False)
 
-        '''
-        if self._window is None:
+        """
+        if not self._is_open:
             return
         self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
@@ -261,56 +251,61 @@ class ModalView(AnchorLayout):
             self._anim_alpha = 0
             self._real_remove_widget()
 
-    def _align_center(self, *l):
-        if self._window:
+    def _align_center(self, *_args):
+        if self._is_open:
             self.center = self._window.center
 
     def on_touch_down(self, touch):
+        """ touch down event handler. """
         self._touch_started_inside = self.collide_point(*touch.pos)
         if not self.auto_dismiss or self._touch_started_inside:
-            super(ModalView, self).on_touch_down(touch)
+            super().on_touch_down(touch)
         return True
 
     def on_touch_move(self, touch):
+        """ touch moved event handler. """
         if not self.auto_dismiss or self._touch_started_inside:
-            super(ModalView, self).on_touch_move(touch)
+            super().on_touch_move(touch)
         return True
 
     def on_touch_up(self, touch):
+        """ touch up event handler. """
         # Explicitly test for False as None occurs when shown by on_touch_down
         if self.auto_dismiss and self._touch_started_inside is False:
             self.dismiss()
         else:
-            super(ModalView, self).on_touch_up(touch)
+            super().on_touch_up(touch)
         self._touch_started_inside = None
         return True
 
-    def on__anim_alpha(self, instance, value):
-        if value == 0 and self._window is not None:
+    def on__anim_alpha(self, _instance, value):
+        """ animation progress callback. """
+        if value == 0 and self._is_open:
             self._real_remove_widget()
 
     def _real_remove_widget(self):
-        if self._window is None:
+        if not self._is_open:
             return
         self._window.remove_widget(self)
         self._window.unbind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
+        self._is_open = False
         self._window = None
 
     def on_pre_open(self):
-        pass
+        """ default pre-open event handler. """
 
     def on_open(self):
-        pass
+        """ default open event handler. """
 
     def on_pre_dismiss(self):
-        pass
+        """ default pre-dismiss event handler. """
 
     def on_dismiss(self):
-        pass
+        """ default dismiss event handler. """
 
-    def _handle_keyboard(self, window, key, *largs):
+    def _handle_keyboard(self, _window, key, *_args):
         if key == 27 and self.auto_dismiss:
             self.dismiss()
             return True
@@ -319,27 +314,22 @@ class ModalView(AnchorLayout):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
+    from kivy.core.window import Window
     from kivy.uix.label import Label
     from kivy.uix.gridlayout import GridLayout
-    from kivy.core.window import Window
 
     # add view
     content = GridLayout(cols=1)
     content.add_widget(Label(text='This is a hello world'))
-    view = ModalView(size_hint=(None, None), size=(256, 256),
-                     auto_dismiss=True)
+    view = ModalView(size_hint=(None, None), size=(256, 256))
     view.add_widget(content)
-
-    def open_view(btn):
-        view.open()
 
     layout = GridLayout(cols=3)
     for x in range(9):
-        btn = Button(text='click me %s' % x)
+        btn = Button(text=f"click me {x}")
         btn.bind(on_release=view.open)
         layout.add_widget(btn)
     Window.add_widget(layout)
 
     view.open()
-
     runTouchApp()

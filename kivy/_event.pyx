@@ -13,6 +13,7 @@ handlers.
 
 __all__ = ('EventDispatcher', 'ObjectWithUid', 'Observable')
 
+cimport cython
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
 
@@ -24,19 +25,13 @@ from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
+from kivy.utils import deprecated
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
+cdef dict cache_properties_per_cls = {}
 cdef dict cache_events = {}
 cdef dict cache_events_handlers = {}
-
-def _get_bases(cls):
-    for base in cls.__bases__:
-        if base.__name__ == 'object':
-            break
-        yield base
-        for cbase in _get_bases(base):
-            yield cbase
 
 
 cdef class ObjectWithUid(object):
@@ -159,11 +154,10 @@ cdef class EventDispatcher(ObjectWithUid):
 
     def __cinit__(self, *largs, **kwargs):
         global cache_properties
-        cdef dict cp = cache_properties
         cdef dict attrs_found
         cdef list attrs
         cdef Property attr
-        cdef basestring k
+        cdef str k
 
         self.__event_stack = {}
         self.__storage = {}
@@ -171,30 +165,22 @@ cdef class EventDispatcher(ObjectWithUid):
 
         __cls__ = self.__class__
 
-        if __cls__ not in cp:
-            attrs_found = cp[__cls__] = {}
-            attrs = dir(__cls__)
-            for k in attrs:
-                uattr = getattr(__cls__, k, None)
-                if not isinstance(uattr, Property):
-                    continue
-                if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
-                    raise Exception('The property <%s> has a forbidden name' % k)
-                attrs_found[k] = uattr
+        # the props are filled in by Property.__set_name__. If we have properties
+        # with same name declared in different sub-classes, the one soonest in
+        # the mro wins, so we must compile props in reverse mro order so earliest wins
+        if __cls__ not in cache_properties:
+            attrs_found = cache_properties[__cls__] = {
+                name: prop
+                for cls in reversed(__cls__.__mro__)
+                for name, prop in cache_properties_per_cls.get(cls, {}).items()
+            }
         else:
-            attrs_found = cp[__cls__]
-
-        # First loop, link all the properties storage to our instance
-        for k in attrs_found:
-            attr = attrs_found[k]
-            attr.link(self, k)
-
-        # Second loop, resolve all the references
-        for k in attrs_found:
-            attr = attrs_found[k]
-            attr.link_deps(self, k)
-
+            attrs_found = cache_properties[__cls__]
         self.__properties = attrs_found
+
+        # now that they have their names, we can link those that need it now
+        for k, attr in attrs_found.items():
+            attr.link_eagerly(self)
 
         # Automatic registration of event types (instead of calling
         # self.register_event_type)
@@ -202,11 +188,10 @@ cdef class EventDispatcher(ObjectWithUid):
         # If not done yet, discover __events__ on all the baseclasses
         cdef dict ce = cache_events
         cdef list events
-        cdef basestring event
+        cdef str event
         if __cls__ not in ce:
-            classes = [__cls__] + list(_get_bases(self.__class__))
             events = []
-            for cls in classes:
+            for cls in __cls__.__mro__:
                 if not hasattr(cls, '__events__'):
                     continue
                 for event in cls.__events__:
@@ -234,7 +219,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 EventObservers, 1, 0)
 
     def __init__(self, **kwargs):
-        cdef basestring func, name, key
+        cdef str func, name, key
         cdef dict properties
         cdef dict prop_args
 
@@ -264,7 +249,7 @@ cdef class EventDispatcher(ObjectWithUid):
         for key, value in prop_args.items():
             setattr(self, key, value)
 
-    def register_event_type(self, basestring event_type):
+    def register_event_type(self, event_type):
         '''Register an event type with the dispatcher.
 
         Registering event types allows the dispatcher to validate event handler
@@ -304,13 +289,22 @@ cdef class EventDispatcher(ObjectWithUid):
             self.__event_stack[event_type] = EventObservers.__new__(
                 EventObservers, 1, 0)
 
-    def unregister_event_types(self, basestring event_type):
-        '''Unregister an event type in the dispatcher.
-        '''
-        if event_type in self.__event_stack:
-            del self.__event_stack[event_type]
+    @deprecated(msg='Deprecated in 2.1.0, use unregister_event_type instead. '
+                    'Will be removed after two releases')
+    @cython.binding(True)
+    def unregister_event_types(self, event_type):
+        self.unregister_event_type(event_type)
 
-    def is_event_type(self, basestring event_type):
+    def unregister_event_type(self, event_type):
+        '''Unregister an event type in the dispatcher.
+
+        .. versionchanged:: 2.1.0
+            Method renamed from `unregister_event_types` to
+            `unregister_event_type`.
+        '''
+        self.__event_stack.pop(event_type, None)
+
+    def is_event_type(self, event_type):
         '''Return True if the event_type is already registered.
 
         .. versionadded:: 1.0.4
@@ -432,7 +426,7 @@ cdef class EventDispatcher(ObjectWithUid):
         the decorator (``my_decorator`` here) must use `wraps <https://docs.python.org/3/library/functools.html#functools.wraps>`_ internally.
         '''
         cdef EventObservers observers
-        cdef PropertyStorage ps
+        cdef Property prop
 
         for key, value in kwargs.iteritems():
             assert callable(value), '{!r} is not callable'.format(value)
@@ -443,8 +437,8 @@ cdef class EventDispatcher(ObjectWithUid):
                 # convert the handler to a weak method
                 observers.bind(WeakMethod(value), value, 1)
             else:
-                ps = self.__storage[key]
-                ps.observers.bind(WeakMethod(value), value, 1)
+                prop = self.__properties[key]
+                prop.bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions with similar usage as
@@ -461,7 +455,7 @@ cdef class EventDispatcher(ObjectWithUid):
             and you should use :meth:`funbind` instead.
         '''
         cdef EventObservers observers
-        cdef PropertyStorage ps
+        cdef Property prop
 
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
@@ -471,8 +465,8 @@ cdef class EventDispatcher(ObjectWithUid):
                 # it's a ref, and stop on first match
                 observers.unbind(value, 1)
             else:
-                ps = self.__storage[key]
-                ps.observers.unbind(value, 1)
+                prop = self.__properties[key]
+                prop.unbind(self, value, 1)
 
     def fbind(self, name, func, *largs, **kwargs):
         '''A method for advanced, and typically faster binding. This method is
@@ -570,7 +564,7 @@ cdef class EventDispatcher(ObjectWithUid):
             The `ref` keyword argument has been added.
         '''
         cdef EventObservers observers
-        cdef PropertyStorage ps
+        cdef Property prop
 
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
@@ -581,13 +575,10 @@ cdef class EventDispatcher(ObjectWithUid):
                     return observers.fbind(func, largs, kwargs, 0)
             return 0
         else:
-            ps = self.__storage.get(name)
-            if ps is None:
+            prop = self.__properties.get(name)
+            if prop is None:
                 return 0
-            if kwargs.pop('ref', False):
-                return ps.observers.fbind(WeakMethod(func), largs, kwargs, 1)
-            else:
-                return ps.observers.fbind(func, largs, kwargs, 0)
+            return prop.fbind(self, func, kwargs.pop('ref', False), largs, kwargs)
 
     def funbind(self, name, func, *largs, **kwargs):
         '''Similar to :meth:`fbind`.
@@ -607,16 +598,16 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionadded:: 1.9.0
         '''
         cdef EventObservers observers
-        cdef PropertyStorage ps
+        cdef Property prop
 
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
                 observers.funbind(func, largs, kwargs)
         else:
-            ps = self.__storage.get(name)
-            if ps is not None:
-                ps.observers.funbind(func, largs, kwargs)
+            prop = self.__properties.get(name)
+            if prop is not None:
+                prop.funbind(self, func, largs, kwargs)
 
     def unbind_uid(self, name, uid):
         '''Uses the uid returned by :meth:`fbind` to unbind the callback.
@@ -641,16 +632,16 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionadded:: 1.9.0
         '''
         cdef EventObservers observers
-        cdef PropertyStorage ps
+        cdef Property prop
 
         if name[:3] == 'on_':
             observers = self.__event_stack.get(name)
             if observers is not None:
                 observers.unbind_uid(uid)
         else:
-            ps = self.__storage.get(name)
-            if ps is not None:
-                ps.observers.unbind_uid(uid)
+            prop = self.__properties.get(name)
+            if prop is not None:
+                prop.unbind_uid(self, uid)
 
     def get_property_observers(self, name, args=False):
         ''' Returns a list of methods that are bound to the property/event
@@ -680,13 +671,15 @@ cdef class EventDispatcher(ObjectWithUid):
         .. versionchanged:: 1.9.0
             `args` has been added.
         '''
+        cdef Property prop
         cdef PropertyStorage ps
         cdef EventObservers observers
 
         if name[:3] == 'on_':
             observers = self.__event_stack[name]
         else:
-            ps = self.__storage[name]
+            prop = self.__properties[name]
+            ps = prop.get_property_storage(self)
             observers = ps.observers
         return list(observers) if args else [item[0] for item in observers]
 
@@ -698,7 +691,7 @@ cdef class EventDispatcher(ObjectWithUid):
         '''
         return self.__event_stack.keys()
 
-    def dispatch(self, basestring event_type, *largs, **kwargs):
+    def dispatch(self, event_type, *largs, **kwargs):
         '''Dispatch an event across all the handlers added in bind/fbind().
         As soon as a handler returns True, the dispatching stops.
 
@@ -710,7 +703,7 @@ cdef class EventDispatcher(ObjectWithUid):
             with :meth:`bind`.
 
         :Parameters:
-            `event_type`: basestring
+            `event_type`: str
                 the event name to dispatch.
 
         .. versionchanged:: 1.9.0
@@ -725,12 +718,12 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
-    def dispatch_generic(self, basestring event_type, *largs, **kwargs):
+    def dispatch_generic(self, event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
         return self.dispatch_children(event_type, *largs, **kwargs)
 
-    def dispatch_children(self, basestring event_type, *largs, **kwargs):
+    def dispatch_children(self, event_type, *largs, **kwargs):
         for child in self.children[:]:
             if child.dispatch_generic(event_type, *largs, **kwargs):
                 return True
@@ -812,12 +805,7 @@ cdef class EventDispatcher(ObjectWithUid):
         if __cls__ in cache_properties:
             return cache_properties[__cls__]
 
-        cdef dict ret, p
-        ret = {}
-        p = self.__properties
-        for x in self.__storage:
-            ret[x] = p[x]
-        return ret
+        return dict(self.__properties)
 
     def create_property(self, str name, value=None, default_value=True, *largs, **kwargs):
         '''Create a new property at runtime.
@@ -886,9 +874,9 @@ cdef class EventDispatcher(ObjectWithUid):
         else:
             prop = cls(*largs, **kwargs)
 
-        prop.link(self, name)
-        prop.link_deps(self, name)
         self.__properties[name] = prop
+        prop.set_name(self, name)
+        prop.link_eagerly(self)
         setattr(self.__class__, name, prop)
 
         if not default_value:
@@ -918,9 +906,9 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef Property prop
         cdef str name
         for name, prop in kwargs.items():
-            prop.link(self, name)
-            prop.link_deps(self, name)
             self.__properties[name] = prop
+            prop.set_name(self, name)
+            prop.link_eagerly(self)
             setattr(self.__class__, name, prop)
 
     @property

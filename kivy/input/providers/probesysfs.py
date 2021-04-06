@@ -237,7 +237,7 @@ else:
 
                 provider = MotionEventFactory.get(self.provider)
                 if provider is None:
-                    Logger.info('ProbeSysfs: unable to found provider %s' %
+                    Logger.info('ProbeSysfs: Unable to find provider %s' %
                                 self.provider)
                     Logger.info('ProbeSysfs: fallback on hidinput')
                     provider = MotionEventFactory.get('hidinput')

@@ -13,7 +13,7 @@ Scissor instructions clip your drawing area into a rectangular region.
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats.
 
-The following code will draw a circle ontop of our widget while clipping
+The following code will draw a circle on top of our widget while clipping
 the circle so it does not expand beyond the widget borders.
 
 .. code-block:: python

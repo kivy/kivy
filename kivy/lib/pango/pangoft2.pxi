@@ -354,7 +354,7 @@ cdef extern from "pango/pango-layout.h" nogil:
     void pango_layout_set_height(PangoLayout *layout, int height)
     int pango_layout_get_height(PangoLayout *layout)
     void pango_layout_set_spacing(PangoLayout *layout, int spacing)
-    int pango_layout_get_spacing(PangoLayout *laout)
+    int pango_layout_get_spacing(PangoLayout *layout)
     void pango_layout_set_indent(PangoLayout *layout, int indent)
     int pango_layout_get_indent(PangoLayout *layout)
     void pango_layout_set_justify(PangoLayout *layout, gboolean justify)

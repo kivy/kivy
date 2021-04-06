@@ -487,8 +487,8 @@ Let's start with a little example: a Python file named `main.py`:
 
 In this example, we are creating a Controller class with 2 properties:
 
-    * ``info`` for receving some text
-    * ``label_wid`` for receving the label widget
+    * ``info`` for receiving some text
+    * ``label_wid`` for receiving the label widget
 
 In addition, we are creating a ``do_action()`` method that will use both of
 these properties. It will change the ``info`` text and change text in the
@@ -525,7 +525,7 @@ are 3 things going on here:
     3. Creating a custom callback in the ``Button`` using the ``Controller``'s
        ``on_press`` method.
 
-        * ``root`` and ``self`` are reserved keywords, useable anywhere.
+        * ``root`` and ``self`` are reserved keywords, usable anywhere.
           ``root`` represents the top widget in the rule and ``self`` represents
           the current widget.
 

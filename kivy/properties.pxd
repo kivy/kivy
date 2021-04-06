@@ -1,4 +1,5 @@
-from kivy._event cimport EventDispatcher, EventObservers, BoundCallback
+from kivy._event cimport EventDispatcher, EventObservers, BoundCallback, \
+    cache_properties_per_cls
 from kivy._metrics cimport dpi2px, pixel_scale_observers
 
 cdef class PropertyStorage:
@@ -19,19 +20,23 @@ cdef class Property:
     cdef int deprecated
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cdef PropertyStorage create_property_storage(self)
-    cpdef link(self, EventDispatcher obj, str name)
+    cdef inline PropertyStorage get_property_storage(self, EventDispatcher obj)
+    cpdef set_name(self, EventDispatcher obj, str name)
+    cpdef PropertyStorage link_eagerly(self, EventDispatcher obj)
+    cpdef PropertyStorage link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
     cpdef bind(self, EventDispatcher obj, observer)
     cpdef fbind(self, EventDispatcher obj, observer, int ref, tuple largs=*, dict kwargs=*)
-    cpdef unbind(self, EventDispatcher obj, observer)
+    cpdef unbind(self, EventDispatcher obj, observer, int stop_on_first=*)
     cpdef funbind(self, EventDispatcher obj, observer, tuple largs=*, dict kwargs=*)
     cpdef unbind_uid(self, EventDispatcher obj, object uid)
     cdef compare_value(self, a, b)
     cpdef set(self, EventDispatcher obj, value)
     cpdef get(self, EventDispatcher obj)
-    cdef check(self, EventDispatcher obj, x)
-    cdef convert(self, EventDispatcher obj, x)
+    cdef check(self, EventDispatcher obj, x, PropertyStorage property_storage)
+    cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage)
     cpdef dispatch(self, EventDispatcher obj)
+    cdef _dispatch(self, EventDispatcher obj, PropertyStorage ps)
 
 
 cdef class NumericPropertyStorage(PropertyStorage):
@@ -40,8 +45,10 @@ cdef class NumericPropertyStorage(PropertyStorage):
 
 
 cdef class NumericProperty(Property):
-    cdef float parse_str(self, EventDispatcher obj, value) except *
-    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
+    cdef float parse_str(
+            self, EventDispatcher obj, value, NumericPropertyStorage ps) except *
+    cdef float parse_list(
+            self, EventDispatcher obj, value, ext, NumericPropertyStorage ps) except *
 
 cdef class StringProperty(Property):
     pass
@@ -106,6 +113,7 @@ cdef class AliasPropertyStorage(PropertyStorage):
 cdef class AliasProperty(Property):
     cdef object getter
     cdef object setter
+    cdef int watch_before_use
     cdef list bind_objects
     cdef int use_cache
     cdef public int rebind
@@ -119,9 +127,13 @@ cdef class VariableListPropertyStorage(PropertyStorage):
 
 cdef class VariableListProperty(Property):
     cdef public int length
-    cdef _convert_numeric(self, EventDispatcher obj, x)
-    cdef float parse_str(self, EventDispatcher obj, value) except *
-    cdef float parse_list(self, EventDispatcher obj, value, ext) except *
+    cdef _convert_numeric(self, EventDispatcher obj, x, VariableListPropertyStorage ps)
+    cdef float parse_str(
+            self, EventDispatcher obj, value, VariableListPropertyStorage ps
+    ) except *
+    cdef float parse_list(
+            self, EventDispatcher obj, value, ext, VariableListPropertyStorage ps
+    ) except *
 
 
 cdef class ConfigParserProperty(Property):

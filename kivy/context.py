@@ -70,7 +70,7 @@ class Context(dict):
             object.__setattr__(_contexts[name]['proxy'], '_obj', instance)
 
     def pop(self):
-        # After poping context from stack. Update proxy's _obj with
+        # After popping context from stack. Update proxy's _obj with
         # instances in current context
         _context_stack.pop(-1)
         for name, instance in get_current_context().items():

@@ -139,8 +139,8 @@ We managed to merge the app binary with all the libraries into a single binary,
 called libpython. This means all binary modules are loaded beforehand, so
 nothing is dynamically loaded.
 
-Have you already submited a Kivy application to the App store?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Have you already submitted a Kivy application to the App store?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, check:
 

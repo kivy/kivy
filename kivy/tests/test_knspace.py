@@ -188,9 +188,9 @@ BoxLayout:
         # this could actually be none rather than raising, depending
         # on when the class was instantiated. So if this fails, change the
         # test to assert is none.
-        self.assertRaises(AttributeError, lambda: knspace.widget3)
+        self.assertIsNone(knspace.widget3)
         grandchild.parent = child2
-        self.assertRaises(AttributeError, lambda: grandchild.widget3)
+        self.assertIsNone(grandchild.widget3)
 
     def test_fork_binding(self):
         from kivy.lang import Builder

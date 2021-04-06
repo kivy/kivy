@@ -148,7 +148,7 @@ Avoiding binaries
 There might be a way how to avoid this licensing process by avoiding creating
 a distribution with third-party stuff completely. With Python you can create
 a module, which is only your code with ``__main__.py`` + ``setup.py`` that only
-lists required depencies.
+lists required dependencies.
 
 This way, you can still distribute your app - your *code* - and you might not
 need to care about other licenses. The combination of your code and the

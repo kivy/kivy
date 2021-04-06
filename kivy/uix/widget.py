@@ -317,7 +317,7 @@ class Widget(WidgetBase):
     .. versionchanged:: 1.0.9
         Everything related to event properties has been moved to the
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
-        when contructing a simple class without subclassing :class:`Widget`.
+        when constructing a simple class without subclassing :class:`Widget`.
 
     .. versionchanged:: 1.5.0
         The constructor now accepts on_* arguments to automatically bind
@@ -1100,7 +1100,7 @@ class Widget(WidgetBase):
 
     right = AliasProperty(get_right, set_right,
                           bind=('x', 'width'),
-                          cache=True)
+                          cache=True, watch_before_use=False)
     '''Right position of the widget.
 
     :attr:`right` is an :class:`~kivy.properties.AliasProperty` of
@@ -1115,7 +1115,7 @@ class Widget(WidgetBase):
 
     top = AliasProperty(get_top, set_top,
                         bind=('y', 'height'),
-                        cache=True)
+                        cache=True, watch_before_use=False)
     '''Top position of the widget.
 
     :attr:`top` is an :class:`~kivy.properties.AliasProperty` of
@@ -1130,7 +1130,7 @@ class Widget(WidgetBase):
 
     center_x = AliasProperty(get_center_x, set_center_x,
                              bind=('x', 'width'),
-                             cache=True)
+                             cache=True, watch_before_use=False)
     '''X center position of the widget.
 
     :attr:`center_x` is an :class:`~kivy.properties.AliasProperty` of
@@ -1145,7 +1145,7 @@ class Widget(WidgetBase):
 
     center_y = AliasProperty(get_center_y, set_center_y,
                              bind=('y', 'height'),
-                             cache=True)
+                             cache=True, watch_before_use=False)
     '''Y center position of the widget.
 
     :attr:`center_y` is an :class:`~kivy.properties.AliasProperty` of
@@ -1455,7 +1455,7 @@ class Widget(WidgetBase):
         for c in self.children:
             c.dec_disabled(count)
 
-    disabled = AliasProperty(get_disabled, set_disabled)
+    disabled = AliasProperty(get_disabled, set_disabled, watch_before_use=False)
     '''Indicates whether this widget can interact with input or not.
 
     :attr:`disabled` is an :class:`~kivy.properties.AliasProperty` and

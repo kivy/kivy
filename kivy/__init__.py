@@ -308,7 +308,9 @@ for importer, modname, package in _packages:
             format(package, modname, str(e)))
 
 # Don't go further if we generate documentation
-if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
+if any(name in sys.argv[0] for name in (
+        'sphinx-build', 'autobuild.py', 'sphinx'
+)):
     environ['KIVY_DOC'] = '1'
 if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
@@ -351,7 +353,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # Can be overriden in command line
+    # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             environ.get('KIVY_NO_ARGS', "false") not in ('true', '1', 'yes')):

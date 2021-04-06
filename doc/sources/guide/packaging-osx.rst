@@ -56,14 +56,14 @@ Complete guide
      To use Python 3, ``brew install python3`` and replace ``pip`` with
      ``pip3`` in the guide below.
 
-#. (Re)install your dependencies with ``--build-bottle`` to make sure they can
+#. (Re)install your dependencies with ``--build-from-source`` to make sure they can
    be used on other machines::
 
-    $ brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
+    $ brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
 
    .. note::
        If your project depends on GStreamer or other additional libraries
-       (re)install them with ``--build-bottle`` as described
+       (re)install them with ``--build-from-source`` as described
        `below <additional libraries_>`_.
 
 #. Install Cython and Kivy:
@@ -137,7 +137,7 @@ GStreamer
 ^^^^^^^^^
 If your project depends on GStreamer::
 
-    $ brew reinstall --build-bottle gstreamer gst-plugins-{base,good,bad,ugly}
+    $ brew reinstall --build-from-source gstreamer gst-plugins-{base,good,bad,ugly}
 
 .. note::
     If your Project needs Ogg Vorbis support be sure to add the
@@ -147,7 +147,7 @@ If you are using Python from Homebrew you will also need the following step
 until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_
 gets merged::
 
-    $ brew reinstall --with-python --build-bottle https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+    $ brew reinstall --with-python --build-from-source https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
 
 
 Using PyInstaller without Homebrew

@@ -140,6 +140,6 @@ class PangoFontContextManager(FontContextManagerBase):
                 filename = resource_find('{}.ttf'.format(filename))
         if filename and isfile(filename):
             return kpango_font_context_add_font(font_context, filename)
-        raise Exception("FontContextManager: Attempt to add non-existant "
+        raise Exception("FontContextManager: Attempt to add non-existent "
                         "font file: '{}' to context '{}'"
                         .format(filename, font_context))

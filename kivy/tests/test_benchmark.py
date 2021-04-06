@@ -13,6 +13,15 @@ def kivy_benchmark(benchmark, kivy_clock):
     from kivy.utils import platform
     import kivy
     from kivy.core.gl import glGetString, GL_VENDOR, GL_RENDERER, GL_VERSION
+    from kivy.context import Context
+    from kivy.clock import ClockBase
+    from kivy.factory import FactoryBase, Factory
+    from kivy.lang.builder import BuilderBase, Builder
+
+    context = Context(init=False)
+    context['Clock'] = ClockBase()
+    context['Factory'] = FactoryBase.create_from(Factory)
+    context['Builder'] = BuilderBase.create_from(Builder)
 
     for category in list(Cache._objects.keys()):
         if category not in Cache._categories:
@@ -32,7 +41,11 @@ def kivy_benchmark(benchmark, kivy_clock):
     benchmark.extra_info['gl_renderer'] = str(glGetString(GL_RENDERER))
     benchmark.extra_info['gl_version'] = str(glGetString(GL_VERSION))
 
-    yield benchmark
+    context.push()
+    try:
+        yield benchmark
+    finally:
+        context.pop()
 
 
 def test_event_dispatcher_creation(kivy_benchmark):
@@ -50,6 +63,64 @@ def test_widget_creation(kivy_benchmark):
     # create one just so we don't incur loading cost
     w = Widget()
     kivy_benchmark(Widget)
+
+
+def test_kv_widget_creation(kivy_benchmark):
+    from kivy.lang import Builder
+    from kivy.uix.widget import Widget
+
+    class MyWidget(Widget):
+        pass
+
+    Builder.load_string("""
+<MyWidget>:
+    width: 55
+    height: 37
+    x: self.width + 5
+    y: self.height + 32
+""")
+
+    # create one just so we don't incur loading cost
+    w = MyWidget()
+    kivy_benchmark(MyWidget)
+
+
+@pytest.mark.parametrize('test_component', ['create', 'set'])
+def test_complex_kv_widget(kivy_benchmark, test_component):
+    from kivy.lang import Builder
+    from kivy.uix.widget import Widget
+
+    class MyWidget(Widget):
+        pass
+
+    Builder.load_string("""
+<MyWidget>:
+    width: 1
+    height: '{}dp'.format(self.width + 1)
+    x: self.height + 1
+    y: self.x + 1
+    size_hint_min: self.size_hint
+    size_hint_max_y: self.size_hint_min_y
+    size_hint_max_x: self.size_hint_min_x
+    opacity: sum(self.size_hint_min) + sum(self.size_hint_max)
+""")
+
+    # create one just so we don't incur loading cost
+    widget = MyWidget()
+    w = 0
+    sh = 0
+
+    def set_value():
+        nonlocal w, sh
+        w += 1
+        sh += 1
+        widget.width = w
+        widget.size_hint = sh, sh
+
+    if test_component == 'create':
+        kivy_benchmark(MyWidget)
+    else:
+        kivy_benchmark(set_value)
 
 
 def get_event_class(name, args, kwargs):
@@ -122,7 +193,9 @@ def test_property_creation(kivy_benchmark, name, args, kwargs):
     ('AliasProperty', (0,), {}, 1, 0),
     ('ReferenceListProperty', ((1, 2),), {}, (3, 4), (1, 2)),
 ])
-def test_property_set(kivy_benchmark, name, args, kwargs, val, reset_val):
+@pytest.mark.parametrize('exclude_first', [True, False])
+def test_property_set(
+        kivy_benchmark, name, args, kwargs, val, reset_val, exclude_first):
     event_cls = get_event_class(name, args, kwargs)
 
     # create one just so we don't incur loading cost
@@ -132,6 +205,8 @@ def test_property_set(kivy_benchmark, name, args, kwargs, val, reset_val):
         e.a = reset_val
         e.a = val
 
+    if exclude_first:
+        set_property()
     kivy_benchmark(set_property)
 
 
@@ -195,3 +270,23 @@ def test_random_label_create(kivy_benchmark, n, name, tick):
         if tick == 'tick':
             Clock.tick()
     kivy_benchmark(make_labels)
+
+
+def test_parse_kv(kivy_benchmark):
+    from kivy.lang import Builder
+    suffix = 0
+
+    def parse_kv():
+        nonlocal suffix
+        Builder.load_string(f"""
+<MyWidget{suffix}>:
+    width: 55
+    height: 37
+    x: self.width + 5
+    y: self.height + 32
+""")
+        suffix += 1
+
+    # create one just so we don't incur loading cost
+    parse_kv()
+    kivy_benchmark(parse_kv)

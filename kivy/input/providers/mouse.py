@@ -80,23 +80,31 @@ Color = Ellipse = None
 
 class MouseMotionEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        self.multitouch_sim = False
+        super().__init__(*args, **kwargs)
+
     def depack(self, args):
-        profile = self.profile
-        # don't overwrite previous profile
-        if not profile:
-            profile.extend(('pos', 'button'))
-        self.is_touch = True
         self.sx, self.sy = args[:2]
-        if len(args) >= 3:
-            self.button = args[2]
-        if len(args) == 4:
-            self.multitouch_sim = args[3]
-            profile.append('multitouch_sim')
-        super(MouseMotionEvent, self).depack(args)
+        profile = self.profile
+        if self.is_touch:
+            # don't overwrite previous profile
+            if not profile:
+                profile.extend(('pos', 'button'))
+            if len(args) >= 3:
+                self.button = args[2]
+            if len(args) == 4:
+                self.multitouch_sim = args[3]
+                profile.append('multitouch_sim')
+        else:
+            if not profile:
+                profile.append('pos')
+        super().depack(args)
 
     #
     # Create automatically touch on the surface.
     #
+
     def update_graphics(self, win, create=False):
         global Color, Ellipse
         de = self.ud.get('_drawelement', None)
@@ -140,7 +148,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
-
+        self.hover_event = None
         # split arguments
         args = args.split(',')
         for arg in args:
@@ -160,19 +168,31 @@ class MouseMotionEventProvider(MotionEventProvider):
         '''Start the mouse provider'''
         if not EventLoop.window:
             return
-        EventLoop.window.bind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+        fbind = EventLoop.window.fbind
+        fbind('on_mouse_down', self.on_mouse_press)
+        fbind('on_mouse_move', self.on_mouse_motion)
+        fbind('on_mouse_up', self.on_mouse_release)
+        fbind('mouse_pos', self.begin_or_update_hover_event)
+        fbind('system_size', self.update_hover_event)
+        fbind('on_cursor_enter', self.begin_hover_event)
+        fbind('on_cursor_leave', self.end_hover_event)
+        fbind('on_close', self.end_hover_event)
+        fbind('on_rotate', self.update_hover_event)
 
     def stop(self):
         '''Stop the mouse provider'''
         if not EventLoop.window:
             return
-        EventLoop.window.unbind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
+        funbind = EventLoop.window.funbind
+        funbind('on_mouse_down', self.on_mouse_press)
+        funbind('on_mouse_move', self.on_mouse_motion)
+        funbind('on_mouse_up', self.on_mouse_release)
+        funbind('mouse_pos', self.begin_or_update_hover_event)
+        funbind('system_size', self.update_hover_event)
+        funbind('on_cursor_enter', self.begin_hover_event)
+        funbind('on_cursor_leave', self.end_hover_event)
+        funbind('on_close', self.end_hover_event)
+        funbind('on_rotate', self.update_hover_event)
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -196,16 +216,21 @@ class MouseMotionEventProvider(MotionEventProvider):
                 return t
         return False
 
-    def create_touch(self, rx, ry, is_double_tap, do_graphics, button):
+    def create_event_id(self):
         self.counter += 1
-        id = 'mouse' + str(self.counter)
+        return self.device + str(self.counter)
+
+    def create_touch(self, rx, ry, is_double_tap, do_graphics, button):
+        event_id = self.create_event_id()
         args = [rx, ry, button]
         if do_graphics:
             args += [not self.multitouch_on_demand]
-        self.current_drag = cur = MouseMotionEvent(self.device, id=id,
-                                                   args=args)
+        self.current_drag = cur = MouseMotionEvent(
+            self.device, event_id, args,
+            is_touch=True
+        )
         cur.is_double_tap = is_double_tap
-        self.touches[id] = cur
+        self.touches[event_id] = cur
         if do_graphics:
             # only draw red circle if multitouch is not disabled, and
             # if the multitouch_on_demand feature is not enable
@@ -227,10 +252,30 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.waiting_event.append(('end', cur))
         cur.clear_graphics(EventLoop.window)
 
+    def create_hover(self, etype, win):
+        x_max, y_max = win.system_size[0] - 1, win.system_size[1] - 1
+        args = (
+            win.mouse_pos[0] / win._density / x_max if x_max > 0 else 0.0,
+            win.mouse_pos[1] / win._density / y_max if y_max > 0 else 0.0
+        )
+        hover = self.hover_event
+        if hover:
+            hover.move(args)
+        else:
+            self.hover_event = hover = MouseMotionEvent(
+                self.device,
+                self.create_event_id(),
+                args
+            )
+        if etype == 'end':
+            hover.update_time_end()
+            self.hover_event = None
+        self.waiting_event.append((etype, hover))
+
     def on_mouse_motion(self, win, x, y, modifiers):
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
+        x_max, y_max = win.system_size[0] - 1.0, win.system_size[1] - 1.0
+        rx = x / x_max if x_max > 0 else 0.0
+        ry = 1.0 - (y / y_max if y_max > 0 else 0.0)
         if self.current_drag:
             cur = self.current_drag
             cur.move([rx, ry])
@@ -245,9 +290,9 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
             return
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
+        x_max, y_max = win.system_size[0] - 1.0, win.system_size[1] - 1.0
+        rx = x / x_max if x_max > 0 else 0.0
+        ry = 1.0 - (y / y_max if y_max > 0 else 0.0)
         new_me = self.find_touch(rx, ry)
         if new_me:
             self.current_drag = new_me
@@ -292,6 +337,22 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.remove_touch(self.alt_touch)
             self.alt_touch = None
         return True
+
+    def begin_or_update_hover_event(self, win, *args):
+        etype = 'update' if self.hover_event else 'begin'
+        self.create_hover(etype, win)
+
+    def begin_hover_event(self, win, *args):
+        if not self.hover_event:
+            self.create_hover('begin', win)
+
+    def update_hover_event(self, win, *args):
+        if self.hover_event:
+            self.create_hover('update', win)
+
+    def end_hover_event(self, win, *args):
+        if self.hover_event:
+            self.create_hover('end', win)
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''

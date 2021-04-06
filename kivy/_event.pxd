@@ -1,5 +1,7 @@
 from cpython.ref cimport PyObject
 
+cdef dict cache_properties_per_cls
+
 cdef class ObjectWithUid(object):
     cdef readonly int uid
 

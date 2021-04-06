@@ -32,7 +32,7 @@ Buildozer
 ---------
 
 Buildozer is a tool that automates the entire build process. It
-downloads and sets up all the prequisites for python-for-android,
+downloads and sets up all the prerequisites for python-for-android,
 including the android SDK and NDK, then builds an apk that can be
 automatically pushed to the device. 
 

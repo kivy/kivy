@@ -54,7 +54,7 @@ from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
-    '''Class used for tbe graphical representation of a
+    '''Class used for the graphical representation of a
     :class:`kivy.uix.splitter.SplitterStripe`.
     '''
     pass

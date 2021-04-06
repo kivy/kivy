@@ -34,7 +34,7 @@ Instruction = None
 
 # delayed calls are canvas expression triggered during an loop. It is one
 # directional linked list of args to call call_fn with. Each element is a list
-# whos last element points to the next list of args to execute when
+# whose last element points to the next list of args to execute when
 # Builder.sync is called.
 _delayed_start = None
 
@@ -294,7 +294,7 @@ class BuilderBase(object):
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
 
-            `encoding`: File charcter encoding. Defaults to utf-8,
+            `encoding`: File character encoding. Defaults to utf-8,
         '''
 
         filename = resource_find(filename) or filename
