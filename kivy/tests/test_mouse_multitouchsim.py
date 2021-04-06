@@ -4,6 +4,11 @@ from kivy.tests.common import GraphicUnitTest
 class MultitouchSimulatorTestCase(GraphicUnitTest):
     framecount = 0
 
+    def tearDown(self, fake=False):
+        from kivy.base import EventLoop
+        del EventLoop.touches[:]
+        super().tearDown(fake)
+
     # helper methods
     def correct_y(self, win, y):
         # flip, because the mouse provider uses system's
