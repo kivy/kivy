@@ -287,6 +287,7 @@ class VideoFFPy(VideoBase):
                     accurate=precise
                 )
                 seek_happened = True
+                did_dispatch_eof = False
                 self._next_frame = None
 
             # Get next frame if paused:
@@ -409,6 +410,9 @@ class VideoFFPy(VideoBase):
             name='Next frame',
             args=(ffplayer, )
         )
+        # todo: remove
+        self._thread.daemon = True
+
         # start in playing mode, but _ffplayer isn't set until ready. We're
         # now in a limbo state
         self._state = 'playing'
@@ -418,8 +422,8 @@ class VideoFFPy(VideoBase):
         self.unload()
 
     def unload(self):
-        if self._trigger is not None:
-            self._trigger.cancel()
+        # no need to call self._trigger.cancel() because _ffplayer is set
+        # to None below, and it's not safe to call clock stuff from __del__
 
         # if thread is still alive, set it to exit and wake it
         self._wakeup_thread()
