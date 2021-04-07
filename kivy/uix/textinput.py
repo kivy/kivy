@@ -2049,8 +2049,10 @@ class TextInput(FocusBehavior, Widget):
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
-        self.cursor = self.get_cursor_from_index(self.cursor_index()
-                                                 if cursor is None else cursor)
+        self.cursor = self.get_cursor_from_index(
+            self.cursor_index() if cursor is None else cursor
+        )
+
         # if we back to a new line, reset the scroll, otherwise, the effect is
         # ugly
         if self.cursor_row != row:
@@ -2121,8 +2123,10 @@ class TextInput(FocusBehavior, Widget):
         scroll_y = self.scroll_y
 
         # draw labels
-        if not self._lines or (
-                not self._lines[0] and len(self._lines) == 1):
+        if (
+            not self._lines
+            or (not self._lines[0] and len(self._lines) == 1)
+        ):
             rects = self._hint_text_rects
             labels = self._hint_text_labels
             lines = self._hint_text_lines
@@ -3700,22 +3704,82 @@ class TextInput(FocusBehavior, Widget):
 
 
 if __name__ == '__main__':
+    from textwrap import dedent
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
+    
+    KV = dedent(r'''
+    #:set font_size '20dp'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '10dp'
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            text: 'monoline'
+
+        TextInput:
+            size_hint_y: None
+            font_size: font_size
+            height: self.minimum_height
+            multiline: False
+            password: True
+            password_mask: '•'
+            text: 'password'
+
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            readonly: True
+            text: 'readonly'
+
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            disabled: True
+            text: 'disabled'
+
+        TextInput:
+            font_size: font_size
+            hint_text: 'normal with hint text'
+
+        TextInput:
+            font_size: font_size
+            text: 'default'
+
+        TextInput:
+            font_size: font_size
+            text: 'bubble & handles'
+            use_bubble: True
+            use_handles: True
+
+        TextInput:
+            font_size: font_size
+            text: 'no wrap'
+            do_wrap: False
+
+        TextInput:
+            font_size: font_size
+            text: 'multiline\nreadonly'
+            disabled: app.time % 5 < 2.5
+    ''')
 
     class TextInputApp(App):
+        time = NumericProperty()
         def build(self):
-            root = BoxLayout(orientation='vertical')
-            textinput = TextInput(
-                multiline=True, use_bubble=True, use_handles=True
-            )
-            root.add_widget(textinput)
-            textinput2 = TextInput(
-                multiline=False, text='monoline textinput',
-                size_hint=(1, None), height=30
-            )
-            root.add_widget(textinput2)
-            return root
+            Clock.schedule_interval(self.update_time, 0)
+            return Builder.load_string(KV)
+
+        def update_time(self, dt):
+            self.time += dt
 
     TextInputApp().run()
