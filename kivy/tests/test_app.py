@@ -1,3 +1,4 @@
+from os import name
 import os.path
 from math import isclose
 from textwrap import dedent
@@ -29,6 +30,19 @@ class AppTest(GraphicUnitTest):
         data_dir = a.user_data_dir
         if not os.path.exists(data_dir):
             raise Exception("user_data_dir does not exist")
+
+    def test_directory(self):
+        a = App()
+        if not os.path.exists(a.directory):
+            raise Exception("directory does not exist")
+
+    def test_name(self):
+        class NameTest(App):
+            pass
+
+        a = NameTest()
+        if a.name != 'nametest':
+            raise Exception("name does not exist")
 
 
 def basic_app():
