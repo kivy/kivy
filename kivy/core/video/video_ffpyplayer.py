@@ -54,7 +54,7 @@ except:
 
 
 from threading import Thread
-from queue import Queue, Empty
+from queue import Queue, Empty, Full
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
@@ -121,7 +121,7 @@ class VideoFFPy(VideoBase):
     def _wakeup_thread(self):
         try:
             self._wakeup_queue.put(None, False)
-        except Empty:
+        except Full:
             pass
 
     def _wait_for_wakeup(self, timeout):
