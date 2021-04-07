@@ -3047,14 +3047,8 @@ class TextInput(FocusBehavior, Widget):
         sy = self.scroll_y
         if offsety > viewport_height + sy:
             self.scroll_y = offsety - viewport_height
-        if offsety < sy:
+        elif offsety < sy:
             self.scroll_y = offsety
-        
-        if self._cursor == cursor:
-            return
-
-        self._cursor = cursor
-        return True
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
     '''Tuple of (col, row) values indicating the current cursor position.
