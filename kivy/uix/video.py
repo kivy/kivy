@@ -56,9 +56,9 @@ class Video(Image):
     defaults to None.
 
     .. versionchanged:: 2.1.0
-        While the use of ``source`` is the historical way for defining
+        While the use of :attr:`source` is the historical way for defining
         video source and stays supported for backward compatibility, it is
-        recommended to use ``video_source`` instead.
+        recommended to use :attr:`video_source` instead.
     '''
 
     video_source = StringProperty(None, allownone=True)
@@ -74,7 +74,7 @@ class Video(Image):
     '''Filename / source of a preview image displayed before video starts.
 
     :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
-    defaults to None. If None/empty string and :attr:`source ` is a
+    defaults to None. If None/empty string and :attr:`source` is a
     filename, that will be used for the preview filename.
     Otherwise, :attr:`source` will be set to :attr:`preview_source`.
 
@@ -180,7 +180,7 @@ class Video(Image):
         self._video = None
         super(Video, self).__init__(**kwargs)
         self.fbind('video_source', self._trigger_video_load)
-        self.fbind('preview_source', self._bc_video_load)
+        self.fbind('preview_source', self._update_source_from_preview)
         if self.preview_source:
             self.source = self.preview_source
 
@@ -213,7 +213,7 @@ class Video(Image):
             raise Exception('Video not loaded.')
         self._video.seek(percent, precise=precise)
 
-    def _bc_video_load(self, inst, val):
+    def _update_source_from_preview(self, inst, val):
         self.source = self.preview_source
 
     def _trigger_video_load(self, *largs):
