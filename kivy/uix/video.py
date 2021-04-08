@@ -214,7 +214,7 @@ class Video(Image):
         self._video.seek(percent, precise=precise)
 
     def _bc_video_load(self, inst, val):
-        self.video_source = val
+        self.source = self.preview_source
 
     def _trigger_video_load(self, *largs):
         ev = self._video_load_event
