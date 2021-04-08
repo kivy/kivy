@@ -43,7 +43,6 @@ from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
                              OptionProperty, StringProperty)
-from kivy.logger import Logger
 
 
 class Video(Image):
@@ -57,8 +56,9 @@ class Video(Image):
     defaults to None.
 
     .. versionchanged:: 2.1.0
-        The use of ``source`` property is deprecated. Use ``video_source``
-        instead.
+        While the use of ``source`` is the historical way for defining
+        video source and stays supported for backward compatibility, it is
+        recommended to use ``video_source`` instead.
     '''
 
     video_source = StringProperty(None)
@@ -173,10 +173,6 @@ class Video(Image):
     def __init__(self, **kwargs):
         # B/C case source is given. use it as video source
         if 'source' in kwargs:
-            Logger.warning(
-                'The use of ``source`` property is deprecated. '
-                'Please use ``video_source`` instead.'
-            )
             kwargs['video_source'] = kwargs['source']
         # Case preview is given
         if 'preview_source' in kwargs:
@@ -217,10 +213,6 @@ class Video(Image):
         self._video.seek(percent, precise=precise)
 
     def _bc_video_load(self, inst, val):
-        Logger.warning(
-            'The use of ``source`` property is deprecated. '
-            'Please use ``video_source`` instead.'
-        )
         self.video_source = val
 
     def _trigger_video_load(self, *largs):
