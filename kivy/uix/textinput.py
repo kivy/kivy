@@ -177,9 +177,11 @@ __all__ = ('TextInput', )
 
 if 'KIVY_DOC' in environ:
     def triggered(*_, **__):
-        def func(*args, **kwargs):
-            return func(*args, **kwargs)
-        return func
+        def decorator_func(func):
+            def decorated_func(*args, **kwargs):
+                return func(*args, **kwargs)
+            return decorated_func
+        return decorator_func
 else:
     from kivy.clock import triggered
 
