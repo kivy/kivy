@@ -175,6 +175,13 @@ from kivy.properties import StringProperty, NumericProperty, \
 __all__ = ('TextInput', )
 
 
+if 'KIVY_DOC' in environ:
+    def triggered(*_):
+        def func(*args, **kwargs):
+            return func(*args, **kwargs)
+        return func
+
+
 Cache_register = Cache.register
 Cache_append = Cache.append
 Cache_get = Cache.get
@@ -3708,7 +3715,7 @@ if __name__ == '__main__':
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
-    
+
     KV = dedent(r'''
     #:set font_size '20dp'
 
@@ -3775,6 +3782,7 @@ if __name__ == '__main__':
 
     class TextInputApp(App):
         time = NumericProperty()
+
         def build(self):
             Clock.schedule_interval(self.update_time, 0)
             return Builder.load_string(KV)
