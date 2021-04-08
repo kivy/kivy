@@ -32,10 +32,40 @@ from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
                              OptionProperty)
+from kivy.logger import Logger
 
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+    '''
+
+    source = StringProperty(None)
+    '''Filename / source of your video.
+
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+
+    .. versionchanged:: 2.1.0
+        The use of ``source`` property is deprecated. Use ``video_source``
+        instead.
+    '''
+
+    video_source = StringProperty(None)
+    '''Filename / source of your video.
+
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+
+    .. versionadded:: 2.1.0
+    '''
+
+    preview_source = StringProperty(None)
+    '''Filename / source of a preview image displayed before video starts.
+
+    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+
+    .. versionadded:: 2.1.0
     '''
 
     state = OptionProperty('stop', options=('play', 'pause', 'stop'))
@@ -130,13 +160,25 @@ class Video(Image):
     _video_load_event = None
 
     def __init__(self, **kwargs):
+        # B/C case source is given. use it as video source
+        if 'source' in kwargs:
+            Logger.warning(
+                'The use of ``source`` property is deprecated. '
+                'Please use ``video_source`` instead.'
+            )
+            kwargs['video_source'] = kwargs['source']
+        # Case preview is given
+        if 'preview_source' in kwargs:
+            kwargs['source'] = kwargs['preview_source']
+
         self._video = None
         super(Video, self).__init__(**kwargs)
-        self.fbind('source', self._trigger_video_load)
+        self.fbind('video_source', self._trigger_video_load)
+        self.fbind('source', self._bc_video_load)
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
-        if self.source:
+        if self.video_source:
             self._trigger_video_load()
 
     def seek(self, percent, precise=True):
@@ -163,6 +205,13 @@ class Video(Image):
             raise Exception('Video not loaded.')
         self._video.seek(percent, precise=precise)
 
+    def _bc_video_load(self, inst, val):
+        Logger.warning(
+            'The use of ``source`` property is deprecated. '
+            'Please use ``video_source`` instead.'
+        )
+        self.video_source = val
+
     def _trigger_video_load(self, *largs):
         ev = self._video_load_event
         if ev is None:
@@ -174,11 +223,11 @@ class Video(Image):
         if CoreVideo is None:
             return
         self.unload()
-        if not self.source:
+        if not self.video_source:
             self._video = None
             self.texture = None
         else:
-            filename = self.source
+            filename = self.video_source
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
