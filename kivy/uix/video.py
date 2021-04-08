@@ -16,18 +16,22 @@ the video is loaded (when the texture is created)::
 
     def on_position_change(instance, value):
         print('The position in the video is', value)
+
     def on_duration_change(instance, value):
         print('The duration of the video is', value)
+
     video = Video(video_source='PandaSneezes.avi')
-    video.bind(position=on_position_change,
-               duration=on_duration_change)
+    video.bind(
+        position=on_position_change,
+        duration=on_duration_change
+    )
 
 One can define a preview image which gets displayed until the video is
 started/loaded by passing ``preview_image`` to the constructor::
 
     video = Video(
         video_source='PandaSneezes.avi',
-        preview_source='PandaSneezes_priview.png'
+        preview_source='PandaSneezes_preview.png'
     )
 '''
 
