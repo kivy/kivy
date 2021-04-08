@@ -49,7 +49,7 @@ class Video(Image):
     '''Video class. See module documentation for more information.
     '''
 
-    source = StringProperty(None)
+    source = StringProperty(None, allownone=True)
     '''Filename / source of your video.
 
     :attr:`source` is a :class:`~kivy.properties.StringProperty` and
@@ -61,7 +61,7 @@ class Video(Image):
         recommended to use ``video_source`` instead.
     '''
 
-    video_source = StringProperty(None)
+    video_source = StringProperty(None, allownone=True)
     '''Filename / source of your video.
 
     :attr:`video_source` is a :class:`~kivy.properties.StringProperty` and
@@ -70,7 +70,7 @@ class Video(Image):
     .. versionadded:: 2.1.0
     '''
 
-    preview_source = StringProperty(None)
+    preview_source = StringProperty(None, allownone=True)
     '''Filename / source of a preview image displayed before video starts.
 
     :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
