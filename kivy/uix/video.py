@@ -196,10 +196,10 @@ class Video(Image):
         super(Video, self).__init__(**kwargs)
 
         # Unbind texture_update on superclass to prevent updating texture
-        # automatically once source gets set.
+        # automatically once source gets set on instance of this class.
         self.funbind('source', self.texture_update)
 
-        # Bind video loading if video_source or source property gets set
+        # Bind video loading if video_source or source property gets set.
         self.fbind('video_source', self._trigger_video_load)
         self.fbind('source', self._bc_video_load)
 
@@ -234,6 +234,12 @@ class Video(Image):
 
     def _bc_video_load(self, inst, val):
         # B/C video loading behavior if source gets set on instance
+
+        # Since we unbound the ``update_texture`` function from ``Image``
+        # on ``source`` change, we need to update the texture manually to
+        # ensure corrent B/C behavior when setting ``source`` property on
+        # instance.
+        self.set_texture_from_resource(val)
         self.video_source = val
 
     def _trigger_video_load(self, *largs):
