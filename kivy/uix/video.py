@@ -227,7 +227,7 @@ class Video(Image):
         if CoreVideo is None:
             return
         self.unload()
-        if not self.video_source:
+        if not self.source and not self.video_source:
             self._video = None
             self.texture = None
         else:
