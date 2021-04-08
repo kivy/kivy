@@ -186,7 +186,7 @@ class Video(Image):
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
-        if self.video_source:
+        if self.source or self.video_source:
             self._trigger_video_load()
 
     def seek(self, percent, precise=True):
