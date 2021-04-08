@@ -74,7 +74,9 @@ class Video(Image):
     '''Filename / source of a preview image displayed before video starts.
 
     :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
-    defaults to None.
+    defaults to None. If None/empty string and :attr:`source ` is a
+    filename, that will be used for the preview filename.
+    Otherwise, :attr:`source` will be set to :attr:`preview_source`.
 
     .. versionadded:: 2.1.0
     '''
