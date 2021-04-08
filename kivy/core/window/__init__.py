@@ -353,6 +353,11 @@ class WindowBase(EventDispatcher):
     A list of Kivy gl backend names that may not be used with this window.
     """
 
+    managed_textinput = False
+    """
+    True if this Window class uses `on_textinput` to insert text, internal.
+    """
+
     children = ListProperty([])
     '''List of the children of this window.
 
