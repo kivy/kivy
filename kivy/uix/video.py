@@ -173,11 +173,8 @@ class Video(Image):
     _video_load_event = None
 
     def __init__(self, **kwargs):
-        # B/C case source is given. use it as video source
-        if 'source' in kwargs:
-            kwargs['video_source'] = kwargs['source']
         # Case preview is given
-        if 'preview_source' in kwargs:
+        if kwargs.get('preview_source'):
             kwargs['source'] = kwargs['preview_source']
 
         self._video = None
