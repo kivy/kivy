@@ -33,6 +33,14 @@ started/loaded by passing ``preview_image`` to the constructor::
         video_source='PandaSneezes.avi',
         preview_source='PandaSneezes_preview.png'
     )
+
+One can display the placeholder image when the video stops by reacting on eos::
+
+    def on_eos_change(self, inst, val):
+        if val and self.preview_source:
+            self.set_texture_from_resource(self.preview_source)
+
+    video.bind(eos=on_eos_change)
 '''
 
 __all__ = ('Video', )
@@ -67,6 +75,13 @@ class Video(Image):
     :attr:`video_source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
 
+    Internally the widget uses :attr:`video_source` for referencing the video
+    source.
+
+    B/C compatibility to :attr:`source` is kept by setting :attr:`video_source`
+    when :attr:`source` gets set, thus also keeps the behavior with reloading
+    the video sane if this attribute gets changed on an instance of this class
+
     .. versionadded:: 2.1.0
     '''
 
@@ -74,9 +89,9 @@ class Video(Image):
     '''Filename / source of a preview image displayed before video starts.
 
     :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
-    defaults to None. If None/empty string and :attr:`source` is a
-    filename, that will be used for the preview filename.
-    Otherwise, :attr:`source` will be set to :attr:`preview_source`.
+    defaults to None.
+
+    If set, it gets displayed until the video is loaded/started.
 
     .. versionadded:: 2.1.0
     '''
@@ -173,20 +188,24 @@ class Video(Image):
     _video_load_event = None
 
     def __init__(self, **kwargs):
-        # Case preview is given
-        if kwargs.get('preview_source'):
-            kwargs['source'] = kwargs['preview_source']
+        # Case source is given. Use it as video_source if not present
+        if kwargs.get('source') and not kwargs.get('video_source'):
+            kwargs['video_source'] = kwargs['source']
 
         self._video = None
         super(Video, self).__init__(**kwargs)
+
+        # Unbind texture_update on superclass to prevent updating texture
+        # automatically once source gets set.
+        self.funbind('source', self.texture_update)
+
+        # Bind video loading if video_source or source property gets set
         self.fbind('video_source', self._trigger_video_load)
-        self.fbind('preview_source', self._update_source_from_preview)
-        if self.preview_source:
-            self.source = self.preview_source
+        self.fbind('source', self._bc_video_load)
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
-        if self.source or self.video_source:
+        if self.video_source:
             self._trigger_video_load()
 
     def seek(self, percent, precise=True):
@@ -213,10 +232,14 @@ class Video(Image):
             raise Exception('Video not loaded.')
         self._video.seek(percent, precise=precise)
 
-    def _update_source_from_preview(self, inst, val):
-        self.source = self.preview_source
+    def _bc_video_load(self, inst, val):
+        # B/C video loading behavior if source gets set on instance
+        self.video_source = val
 
     def _trigger_video_load(self, *largs):
+        # Display preview image if set
+        if self.preview_source:
+            self.set_texture_from_resource(self.preview_source)
         ev = self._video_load_event
         if ev is None:
             ev = self._video_load_event = Clock.schedule_once(
@@ -227,11 +250,11 @@ class Video(Image):
         if CoreVideo is None:
             return
         self.unload()
-        if not self.source and not self.video_source:
+        if not self.video_source:
             self._video = None
             self.texture = None
         else:
-            filename = self.video_source or self.source
+            filename = self.video_source
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
