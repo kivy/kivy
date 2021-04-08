@@ -151,7 +151,7 @@ from itertools import chain, islice
 from kivy.animation import Animation
 from kivy.base import EventLoop
 from kivy.cache import Cache
-from kivy.clock import Clock, triggered
+from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import Window
 from kivy.metrics import inch
@@ -176,10 +176,12 @@ __all__ = ('TextInput', )
 
 
 if 'KIVY_DOC' in environ:
-    def triggered(*_):
+    def triggered(*_, **__):
         def func(*args, **kwargs):
             return func(*args, **kwargs)
         return func
+else:
+    from kivy.clock import triggered
 
 
 Cache_register = Cache.register
