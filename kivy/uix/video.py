@@ -18,10 +18,17 @@ the video is loaded (when the texture is created)::
         print('The position in the video is', value)
     def on_duration_change(instance, value):
         print('The duration of the video is', value)
-    video = Video(source='PandaSneezes.avi')
+    video = Video(video_source='PandaSneezes.avi')
     video.bind(position=on_position_change,
                duration=on_duration_change)
 
+One can define a preview image which gets displayed until the video is
+started/loaded by passing ``preview_image`` to the constructor::
+
+    video = Video(
+        video_source='PandaSneezes.avi',
+        preview_source='PandaSneezes_priview.png'
+    )
 '''
 
 __all__ = ('Video', )
@@ -53,7 +60,7 @@ class Video(Image):
     video_source = StringProperty(None)
     '''Filename / source of your video.
 
-    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`video_source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
 
     .. versionadded:: 2.1.0
@@ -62,7 +69,7 @@ class Video(Image):
     preview_source = StringProperty(None)
     '''Filename / source of a preview image displayed before video starts.
 
-    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
 
     .. versionadded:: 2.1.0
@@ -72,10 +79,10 @@ class Video(Image):
     '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
-        video = Video(source='movie.mkv', state='play')
+        video = Video(video_source='movie.mkv', state='play')
 
         # create the video, and start later
-        video = Video(source='movie.mkv')
+        video = Video(video_source='movie.mkv')
         # and later
         video.state = 'play'
 
@@ -92,10 +99,10 @@ class Video(Image):
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
-        video = Video(source='movie.mkv', play=True)
+        video = Video(video_source='movie.mkv', play=True)
 
         # create the video, and start later
-        video = Video(source='movie.mkv')
+        video = Video(video_source='movie.mkv')
         # and later
         video.play = True
 
