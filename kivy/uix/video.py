@@ -20,25 +20,25 @@ the video is loaded (when the texture is created)::
     def on_duration_change(instance, value):
         print('The duration of the video is', value)
 
-    video = Video(video_source='PandaSneezes.avi')
+    video = Video(source='PandaSneezes.avi')
     video.bind(
         position=on_position_change,
         duration=on_duration_change
     )
 
 One can define a preview image which gets displayed until the video is
-started/loaded by passing ``preview_image`` to the constructor::
+started/loaded by passing ``preview`` to the constructor::
 
     video = Video(
-        video_source='PandaSneezes.avi',
-        preview_source='PandaSneezes_preview.png'
+        source='PandaSneezes.avi',
+        preview='PandaSneezes_preview.png'
     )
 
 One can display the placeholder image when the video stops by reacting on eos::
 
     def on_eos_change(self, inst, val):
-        if val and self.preview_source:
-            self.set_texture_from_resource(self.preview_source)
+        if val and self.preview:
+            self.set_texture_from_resource(self.preview)
 
     video.bind(eos=on_eos_change)
 '''
@@ -57,38 +57,10 @@ class Video(Image):
     '''Video class. See module documentation for more information.
     '''
 
-    source = StringProperty(None, allownone=True)
-    '''Filename / source of your video.
-
-    :attr:`source` is a :class:`~kivy.properties.StringProperty` and
-    defaults to None.
-
-    .. versionchanged:: 2.1.0
-        While the use of :attr:`source` is the historical way for defining
-        video source and stays supported for backward compatibility, it is
-        recommended to use :attr:`video_source` instead.
-    '''
-
-    video_source = StringProperty(None, allownone=True)
-    '''Filename / source of your video.
-
-    :attr:`video_source` is a :class:`~kivy.properties.StringProperty` and
-    defaults to None.
-
-    Internally the widget uses :attr:`video_source` for referencing the video
-    source.
-
-    B/C compatibility to :attr:`source` is kept by setting :attr:`video_source`
-    when :attr:`source` gets set, thus also keeps the behavior with reloading
-    the video sane if this attribute gets changed on an instance of this class
-
-    .. versionadded:: 2.1.0
-    '''
-
-    preview_source = StringProperty(None, allownone=True)
+    preview = StringProperty(None, allownone=True)
     '''Filename / source of a preview image displayed before video starts.
 
-    :attr:`preview_source` is a :class:`~kivy.properties.StringProperty` and
+    :attr:`preview` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
 
     If set, it gets displayed until the video is loaded/started.
@@ -100,10 +72,10 @@ class Video(Image):
     '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
-        video = Video(video_source='movie.mkv', state='play')
+        video = Video(source='movie.mkv', state='play')
 
         # create the video, and start later
-        video = Video(video_source='movie.mkv')
+        video = Video(source='movie.mkv')
         # and later
         video.state = 'play'
 
@@ -120,10 +92,10 @@ class Video(Image):
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
-        video = Video(video_source='movie.mkv', play=True)
+        video = Video(source='movie.mkv', play=True)
 
         # create the video, and start later
-        video = Video(video_source='movie.mkv')
+        video = Video(source='movie.mkv')
         # and later
         video.play = True
 
@@ -188,25 +160,20 @@ class Video(Image):
     _video_load_event = None
 
     def __init__(self, **kwargs):
-        # Case source is given. Use it as video_source if not present
-        if kwargs.get('source') and not kwargs.get('video_source'):
-            kwargs['video_source'] = kwargs['source']
-
         self._video = None
         super(Video, self).__init__(**kwargs)
-
-        # Unbind texture_update on superclass to prevent updating texture
-        # automatically once source gets set on instance of this class.
-        self.funbind('source', self.texture_update)
-
-        # Bind video loading if video_source or source property gets set.
-        self.fbind('video_source', self._trigger_video_load)
-        self.fbind('source', self._bc_video_load)
+        self.fbind('source', self._trigger_video_load)
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
-        if self.video_source:
+        if self.source:
             self._trigger_video_load()
+
+    def texture_update(self, *largs):
+        if self.preview:
+            self.set_texture_from_resource(self.preview)
+        else:
+            self.set_texture_from_resource(self.source)
 
     def seek(self, percent, precise=True):
         '''Change the position to a percentage (strictly, a proportion)
@@ -232,20 +199,7 @@ class Video(Image):
             raise Exception('Video not loaded.')
         self._video.seek(percent, precise=precise)
 
-    def _bc_video_load(self, inst, val):
-        # B/C video loading behavior if source gets set on instance
-
-        # Since we unbound the ``update_texture`` function from ``Image``
-        # on ``source`` change, we need to update the texture manually to
-        # ensure corrent B/C behavior when setting ``source`` property on
-        # instance.
-        self.set_texture_from_resource(val)
-        self.video_source = val
-
     def _trigger_video_load(self, *largs):
-        # Display preview image if set
-        if self.preview_source:
-            self.set_texture_from_resource(self.preview_source)
         ev = self._video_load_event
         if ev is None:
             ev = self._video_load_event = Clock.schedule_once(
@@ -256,11 +210,11 @@ class Video(Image):
         if CoreVideo is None:
             return
         self.unload()
-        if not self.video_source:
+        if not self.source:
             self._video = None
             self.texture = None
         else:
-            filename = self.video_source
+            filename = self.source
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
