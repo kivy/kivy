@@ -180,7 +180,9 @@ class Video(Image):
         self._video = None
         super(Video, self).__init__(**kwargs)
         self.fbind('video_source', self._trigger_video_load)
-        self.fbind('source', self._bc_video_load)
+        self.fbind('preview_source', self._bc_video_load)
+        if self.preview_source:
+            self.source = self.preview_source
 
         if "eos" in kwargs:
             self.options["eos"] = kwargs["eos"]
