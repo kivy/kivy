@@ -231,7 +231,7 @@ class Video(Image):
             self._video = None
             self.texture = None
         else:
-            filename = self.video_source
+            filename = self.video_source or self.source
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
