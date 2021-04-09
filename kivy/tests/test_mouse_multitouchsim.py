@@ -110,6 +110,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # multitouch_on_demand is the circle drawn after
         # the touch is released (in on_mouse_release)
         win.dispatch(
+            'on_mouse_move',
+            10, self.correct_y(win, 10),
+            {}
+        )
+        win.dispatch(
             'on_mouse_up',
             10, self.correct_y(win, 10),
             'right', {}
@@ -159,6 +164,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # the dot is removed after the touch is released
         # when right - touch is preserved -> dot remains
         # when left  - touch is destroyed -> dot removed
+        win.dispatch(
+            'on_mouse_move',
+            10, self.correct_y(win, 10),
+            {}
+        )
         win.dispatch(
             'on_mouse_up',
             10, self.correct_y(win, 10),
