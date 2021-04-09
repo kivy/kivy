@@ -83,6 +83,7 @@ __all__ = ('MouseMotionEventProvider', )
 from kivy.base import EventLoop
 from collections import deque
 from kivy.logger import Logger
+from kivy.input import ME_TYPE_TOUCH, ME_TYPE_HOVER
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
@@ -281,7 +282,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             args += [not self.multitouch_on_demand]
         self.current_drag = touch = MouseMotionEvent(
             self.device, event_id, args,
-            is_touch=True
+            is_touch=True,
+            type_id=ME_TYPE_TOUCH
         )
         touch.is_double_tap = is_double_tap
         self.touches[event_id] = touch
@@ -316,7 +318,10 @@ class MouseMotionEventProvider(MotionEventProvider):
             hover.move(args)
         else:
             self.hover_event = hover = MouseMotionEvent(
-                self.device, self.create_event_id(), args
+                self.device,
+                self.create_event_id(),
+                args,
+                type_id=ME_TYPE_HOVER
             )
         if etype == 'end':
             hover.update_time_end()
