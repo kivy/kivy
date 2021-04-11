@@ -264,6 +264,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             self.assertTrue(mouse.touches[event_id].multitouch_sim)
 
             win.dispatch(
+                'on_mouse_move',
+                10, self.correct_y(win, 10),
+                {}
+            )
+            win.dispatch(
                 'on_mouse_up',
                 10, self.correct_y(win, 10),
                 'right', {}
