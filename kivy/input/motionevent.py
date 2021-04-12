@@ -92,8 +92,6 @@ from copy import copy
 from time import time
 from kivy.vector import Vector
 
-ME_IGNORE_COLLISION = 1
-
 
 class EnhancedDictionary(dict):
 
