@@ -3,6 +3,7 @@ from kivy.config import ConfigParser
 
 
 def test_configparser_callbacks():
+    """Test that the ConfigParser handles callbacks."""
     def callback():
         pass
 
@@ -14,3 +15,10 @@ def test_configparser_callbacks():
 
     config.remove_callback(callback, 'section', 'key')
     assert len(config._callbacks) == 0
+
+
+def test_configparser_read():
+    """Test that the ConfigParser can read a config file."""
+    config = ConfigParser()
+    config.read('kivy/tests/data/test.ini')
+    assert config.get('section', 'key') == 'value'
