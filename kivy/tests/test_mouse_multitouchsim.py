@@ -258,9 +258,6 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 10, self.correct_y(win, 10),
                 'right', {}
             )
-            color = mouse.touches[
-                event_id
-            ].ud.get('_drawelement')[0].proxy_ref
             ellipse = mouse.touches[
                 event_id
             ].ud.get('_drawelement')[1].proxy_ref
@@ -294,9 +291,6 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             return
 
         else:
-            color = mouse.touches[
-                event_id
-            ].ud.get('_drawelement')[0].proxy_ref
             ellipse = mouse.touches[
                 event_id
             ].ud.get('_drawelement')[1].proxy_ref
@@ -449,9 +443,6 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )  # the red dot is present
 
         # do NOT make any hard refs to '_drawelement'
-        color = mouse.touches[
-            event_id
-        ].ud.get('_drawelement')[0].proxy_ref
         ellipse = mouse.touches[
             event_id
         ].ud.get('_drawelement')[1].proxy_ref
