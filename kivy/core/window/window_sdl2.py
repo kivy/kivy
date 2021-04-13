@@ -149,6 +149,8 @@ class WindowSDL(WindowBase):
 
     _do_resize_ev = None
 
+    managed_textinput = True
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()

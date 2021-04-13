@@ -16,12 +16,31 @@ the video is loaded (when the texture is created)::
 
     def on_position_change(instance, value):
         print('The position in the video is', value)
+
     def on_duration_change(instance, value):
         print('The duration of the video is', value)
-    video = Video(source='PandaSneezes.avi')
-    video.bind(position=on_position_change,
-               duration=on_duration_change)
 
+    video = Video(source='PandaSneezes.avi')
+    video.bind(
+        position=on_position_change,
+        duration=on_duration_change
+    )
+
+One can define a preview image which gets displayed until the video is
+started/loaded by passing ``preview`` to the constructor::
+
+    video = Video(
+        source='PandaSneezes.avi',
+        preview='PandaSneezes_preview.png'
+    )
+
+One can display the placeholder image when the video stops by reacting on eos::
+
+    def on_eos_change(self, inst, val):
+        if val and self.preview:
+            self.set_texture_from_resource(self.preview)
+
+    video.bind(eos=on_eos_change)
 '''
 
 __all__ = ('Video', )
@@ -31,11 +50,22 @@ from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-                             OptionProperty)
+                             OptionProperty, StringProperty)
 
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+    '''
+
+    preview = StringProperty(None, allownone=True)
+    '''Filename / source of a preview image displayed before video starts.
+
+    :attr:`preview` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+
+    If set, it gets displayed until the video is loaded/started.
+
+    .. versionadded:: 2.1.0
     '''
 
     state = OptionProperty('stop', options=('play', 'pause', 'stop'))
@@ -138,6 +168,12 @@ class Video(Image):
             self.options["eos"] = kwargs["eos"]
         if self.source:
             self._trigger_video_load()
+
+    def texture_update(self, *largs):
+        if self.preview:
+            self.set_texture_from_resource(self.preview)
+        else:
+            self.set_texture_from_resource(self.source)
 
     def seek(self, percent, precise=True):
         '''Change the position to a percentage (strictly, a proportion)
