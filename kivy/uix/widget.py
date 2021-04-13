@@ -718,10 +718,10 @@ class Widget(WidgetBase):
             remove_widget(child)
 
     def _update_motion_filter(self, child_widget, child_motion_filter):
-        old_events = set()
+        old_events = []
         for event, widgets in self.motion_filter.items():
             if child_widget in widgets:
-                old_events.add(event)
+                old_events.append(event)
         for event in old_events:
             if event not in child_motion_filter:
                 self.unregister_for_motion_event(event, child_widget)
@@ -729,18 +729,41 @@ class Widget(WidgetBase):
             if event not in old_events:
                 self.register_for_motion_event(event, child_widget)
 
+    def _find_index_in_motion_filter(self, event, widget):
+        if widget is self:
+            return 0
+        a_index = self.children.index(widget)
+        if a_index == 0:
+            if self.motion_filter[event][0] is self:
+                return 1
+            return 0
+        index = -1
+        for m_widget in self.motion_filter[event]:
+            if m_widget is self or self.children.index(m_widget) < a_index:
+                index += 1
+        return index + 1
+
     def register_for_motion_event(self, event, widget=None):
+        # Can be called multiple times with same arguments
         a_widget = self if widget is None else widget
-        if event not in self.motion_filter:
-            self.motion_filter[event] = {a_widget}
+        motion_filter = self.motion_filter
+        if event in motion_filter:
+            if a_widget in motion_filter[event]:
+                return
+            index = self._find_index_in_motion_filter(event, a_widget)
+            motion_filter[event].insert(index, a_widget)
         else:
-            self.motion_filter[event].add(a_widget)
+            motion_filter[event] = [a_widget]
 
     def unregister_for_motion_event(self, event, widget=None):
+        # Can be called multiple times with same arguments
         a_widget = self if widget is None else widget
-        self.motion_filter[event].discard(a_widget)
-        if not self.motion_filter[event]:
-            del self.motion_filter[event]
+        motion_filter = self.motion_filter
+        if event in motion_filter:
+            if a_widget in motion_filter[event]:
+                motion_filter[event].remove(a_widget)
+                if not motion_filter[event]:
+                    del motion_filter[event]
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
