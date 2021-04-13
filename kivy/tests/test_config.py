@@ -22,3 +22,11 @@ def test_configparser_read():
     config = ConfigParser()
     config.read('kivy/tests/data/test.ini')
     assert config.get('section', 'key') == 'value'
+
+
+def test_configparser_setdefaults():
+    """Test the setdefaults method works as expected."""
+    config = ConfigParser()
+    config.setdefaults('section', {'test': '1'})
+
+    assert config.get('section', 'test') == '1'
