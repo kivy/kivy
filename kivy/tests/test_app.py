@@ -41,8 +41,7 @@ class AppTest(GraphicUnitTest):
             pass
 
         a = NameTest()
-        if a.name != 'nametest':
-            raise Exception("name does not exist")
+        assert a.name == 'nametest'
 
 
 def basic_app():
