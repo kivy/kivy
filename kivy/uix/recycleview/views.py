@@ -1,8 +1,14 @@
-'''The adapter part of the RecycleView which together with the layout is the
+'''
+RecycleView Views
+=================
+
+.. versionadded:: 1.10.0
+
+The adapter part of the RecycleView which together with the layout is the
 view part of the model-view-controller pattern.
 
 The view module handles converting the data to a view using the adapter class
-which is then displayed by the layout. A view is any Widget based class.
+which is then displayed by the layout. A view can be any Widget based class.
 However, inheriting from RecycleDataViewBehavior adds methods for converting
 the data to a view.
 
@@ -11,10 +17,13 @@ TODO:
 
 '''
 
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import ObjectProperty
 from kivy.event import EventDispatcher
-from kivy.factory import Factory
 from collections import defaultdict
+
+__all__ = (
+    'RecycleDataViewBehavior', 'RecycleKVIDsDataViewBehavior',
+    'RecycleDataAdapter')
 
 _view_base_cache = {}
 '''Cache whose keys are classes and values is a boolean indicating whether the
@@ -29,6 +38,7 @@ Each key is a class whose value is the list of the instances of that class.
 _cache_count = 0
 # maximum number of items in the class cache
 _max_cache_size = 1000
+
 
 def _clean_cache():
     '''Trims _cached_views cache to half the size of `_max_cache_size`.
@@ -66,8 +76,7 @@ class RecycleDataViewBehavior(object):
             if key not in sizing_attrs:
                 setattr(self, key, value)
 
-    def refresh_view_layout(self, rv, index, pos, pos_hint, size, size_hint,
-                            viewport):
+    def refresh_view_layout(self, rv, index, layout, viewport):
         '''Called when the view's size is updated by the layout manager,
         :class:`RecycleLayoutManagerBehavior`.
 
@@ -85,9 +94,7 @@ class RecycleDataViewBehavior(object):
             will force a refresh. Useful when data changed and we don't want
             to layout further since it'll be overwritten again soon.
         '''
-        self.size_hint = size_hint
-        self.pos_hint = pos_hint
-        w, h = size
+        w, h = layout.pop('size')
         if w is None:
             if h is not None:
                 self.height = h
@@ -95,11 +102,51 @@ class RecycleDataViewBehavior(object):
             if h is None:
                 self.width = w
             else:
-                self.size = size
-        self.pos = pos
+                self.size = w, h
+
+        for name, value in layout.items():
+            setattr(self, name, value)
 
     def apply_selection(self, rv, index, is_selected):
         pass
+
+
+class RecycleKVIDsDataViewBehavior(RecycleDataViewBehavior):
+    """Similar to :class:`RecycleDataViewBehavior`, except that the data keys
+    can signify properties of an object named with an id in the root KV rule.
+
+    E.g. given a KV rule::
+
+        <MyRule@RecycleKVIDsDataViewBehavior+BoxLayout>:
+            Label:
+                id: name
+            Label:
+                id: value
+
+    Then setting the data list with
+    ``rv.data = [{'name.text': 'Kivy user', 'value.text': '12'}]`` would
+    automatically set the corresponding labels.
+
+    So, if the key doesn't have a period, the named property of the root widget
+    will be set to the corresponding value. If there is a period, the named
+    property of the widget with the id listed before the period will be set to
+    the corresponding value.
+
+    .. versionadded:: 2.0.0
+    """
+
+    def refresh_view_attrs(self, rv, index, data):
+        sizing_attrs = RecycleDataAdapter._sizing_attrs
+        for key, value in data.items():
+            if key not in sizing_attrs:
+                name, *ids = key.split('.')
+                if ids:
+                    if len(ids) != 1:
+                        raise ValueError(
+                            f'Data key "{key}" has more than one period')
+                    setattr(self.ids[name], ids[0], value)
+                else:
+                    setattr(self, name, value)
 
 
 class RecycleDataAdapter(EventDispatcher):
@@ -115,8 +162,8 @@ class RecycleDataAdapter(EventDispatcher):
           This occurs when the view is not currently displayed but the data has
           not changed. These views are stored in :attr:`dirty_views`.
         * Finally the view can be dead which occurs when the data changes and
-        the view was not updated or when a view is just created. Such views are
-        typically added to the internal cache.
+          the view was not updated or when a view is just created. Such views
+          are typically added to the internal cache.
 
     Typically what happens is that the layout manager lays out the data
     and then asks for views, using :meth:`set_visible_views,` for some specific
@@ -138,9 +185,21 @@ class RecycleDataAdapter(EventDispatcher):
     # items whose attrs, except for pos/size is still accurate
     dirty_views = defaultdict(dict)
 
-    _sizing_attrs = {'size', 'width', 'height', 'size_hint', 'size_hint_x',
-                     'size_hint_y', 'pos', 'x', 'y', 'center', 'center_x',
-                     'center_y', 'pos_hint'}
+    _sizing_attrs = {
+        'size', 'width', 'height', 'size_hint', 'size_hint_x', 'size_hint_y',
+        'pos', 'x', 'y', 'center', 'center_x', 'center_y', 'pos_hint',
+        'size_hint_min', 'size_hint_min_x', 'size_hint_min_y', 'size_hint_max',
+        'size_hint_max_x', 'size_hint_max_y'}
+
+    def __init__(self, **kwargs):
+        """
+        Fix for issue https://github.com/kivy/kivy/issues/5913:
+        Scrolling RV A, then Scrolling RV B, content of A and B seemed
+        to be getting mixed up
+        """
+        self.views = {}
+        self.dirty_views = defaultdict(dict)
+        super(RecycleDataAdapter, self).__init__(**kwargs)
 
     def attach_recycleview(self, rv):
         '''Associates a :class:`~kivy.uix.recycleview.RecycleViewBehavior`
@@ -231,11 +290,10 @@ class RecycleDataAdapter(EventDispatcher):
                 if key not in sizing_attrs:
                     setattr(view, key, value)
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         '''Updates the sizing information of the view.
 
-        viewport` is in coordinates of the layout manager.
+        viewport is in coordinates of the layout manager.
 
         This method calls :meth:`RecycleDataViewBehavior.refresh_view_attrs`
         if the view inherits from :class:`RecycleDataViewBehavior`. See that
@@ -250,12 +308,9 @@ class RecycleDataAdapter(EventDispatcher):
 
         if _view_base_cache[view.__class__]:
             view.refresh_view_layout(
-                self.recycleview, index, pos, pos_hint, size, size_hint,
-                viewport)
+                self.recycleview, index, layout, viewport)
         else:
-            view.size_hint = size_hint
-            view.pos_hint = pos_hint
-            w, h = size
+            w, h = layout.pop('size')
             if w is None:
                 if h is not None:
                     view.height = h
@@ -263,8 +318,10 @@ class RecycleDataAdapter(EventDispatcher):
                 if h is None:
                     view.width = w
                 else:
-                    view.size = size
-            view.pos = pos
+                    view.size = w, h
+
+            for name, value in layout.items():
+                setattr(view, name, value)
 
     def make_view_dirty(self, view, index):
         '''(internal) Used to flag this view as dirty, ready to be used for

@@ -1,4 +1,6 @@
 import unittest
+from tempfile import mkdtemp
+from shutil import rmtree
 
 
 class WidgetTestCase(unittest.TestCase):
@@ -27,6 +29,36 @@ class WidgetTestCase(unittest.TestCase):
             self.fail()
         except WidgetException:
             pass
+
+    def test_clear_widgets(self):
+        root = self.root
+        self.assertEqual(root.children, [])
+
+        c1 = self.cls()
+        c2 = self.cls()
+        c3 = self.cls()
+        root.add_widget(c1, index=0)
+        root.add_widget(c2, index=1)
+        root.add_widget(c3, index=2)
+        self.assertEqual(root.children, [c1, c2, c3])
+
+        root.clear_widgets([c2])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets([])
+        self.assertEqual(root.children, [c1, c3])
+
+        root.clear_widgets()
+        self.assertEqual(root.children, [])
+
+    def test_clear_widgets_children(self):
+        root = self.root
+        for _ in range(10):
+            root.add_widget(self.cls())
+        self.assertEqual(len(root.children), 10)
+
+        root.clear_widgets(root.children)
+        self.assertEqual(root.children, [])
 
     def test_position(self):
         wid = self.root
@@ -64,3 +96,25 @@ class WidgetTestCase(unittest.TestCase):
         self.assertEqual(wid.collide_point(100, 100), True)
         self.assertEqual(wid.collide_point(200, 0), False)
         self.assertEqual(wid.collide_point(500, 500), False)
+
+    # Currently rejected with a Shader didn't link, but work alone.
+    @unittest.skip("Doesn't work with testsuite, but work alone")
+    def test_export_to_png(self):
+        from kivy.core.image import Image as CoreImage
+        from kivy.uix.button import Button
+        from os.path import join
+
+        wid = Button(text='test', size=(200, 100), size_hint=(None, None))
+        self.root.add_widget(wid)
+
+        tmp = mkdtemp()
+        wid.export_to_png(join(tmp, 'a.png'))
+        wid.export_to_png(join(tmp, 'b.png'), scale=.5)
+        wid.export_to_png(join(tmp, 'c.png'), scale=2)
+
+        self.assertEqual(CoreImage(join(tmp, 'a.png')).size, (200, 100))
+        self.assertEqual(CoreImage(join(tmp, 'b.png')).size, (100, 50))
+        self.assertEqual(CoreImage(join(tmp, 'c.png')).size, (400, 200))
+        rmtree(tmp)
+
+        self.root.remove_widget(wid)

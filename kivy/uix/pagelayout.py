@@ -2,17 +2,24 @@
 PageLayout
 ==========
 
+.. image:: images/pagelayout.gif
+    :align: right
+
 The :class:`PageLayout` class is used to create a simple multi-page
 layout, in a way that allows easy flipping from one page to another using
 borders.
 
-:class:`PageLayout` does not currently honor
-:attr:`~kivy.uix.widget.Widget.size_hint` or
+:class:`PageLayout` does not currently honor the
+:attr:`~kivy.uix.widget.Widget.size_hint`,
+:attr:`~kivy.uix.widget.Widget.size_hint_min`,
+:attr:`~kivy.uix.widget.Widget.size_hint_max`, or
 :attr:`~kivy.uix.widget.Widget.pos_hint` properties.
 
 .. versionadded:: 1.8.0
 
-Example::
+Example:
+
+.. code-block:: kv
 
     PageLayout:
         Button:
@@ -32,7 +39,7 @@ widgets on that page.
 __all__ = ('PageLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, DictProperty
 from kivy.animation import Animation
 
 
@@ -56,11 +63,20 @@ class PageLayout(Layout):
     '''
 
     swipe_threshold = NumericProperty(.5)
-    '''The thresold used to trigger swipes as percentage of the widget
+    '''The threshold used to trigger swipes as ratio of the widget
     size.
 
     :data:`swipe_threshold` is a :class:`~kivy.properties.NumericProperty`
     and defaults to .5.
+    '''
+
+    anim_kwargs = DictProperty({'d': .5, 't': 'in_quad'})
+    '''The animation kwargs used to construct the animation
+
+    :data:`anim_kwargs` is a :class:`~kivy.properties.DictProperty`
+    and defaults to {'d': .5, 't': 'in_quad'}.
+
+    .. versionadded:: 1.11.0
     '''
 
     def __init__(self, **kwargs):
@@ -85,7 +101,6 @@ class PageLayout(Layout):
         right = self.right
         width = self.width - border
         for i, c in enumerate(reversed(self.children)):
-            not i or i == l_children
 
             if i < p:
                 x = x_parent
@@ -110,7 +125,7 @@ class PageLayout(Layout):
             Animation(
                 x=x,
                 y=y_parent,
-                d=.5, t='in_quad').start(c)
+                **self.anim_kwargs).start(c)
 
     def on_touch_down(self, touch):
         if (
@@ -140,7 +155,7 @@ class PageLayout(Layout):
         half_border = border / 2.
         page = self.children[-p - 1]
         if touch.ud['page'] == 'previous':
-            # move next page upto right edge
+            # move next page up to right edge
             if p < len(self.children) - 1:
                 self.children[-p - 2].x = min(
                     self.right - self.border * (1 - (touch.sx - touch.osx)),
@@ -155,14 +170,14 @@ class PageLayout(Layout):
                     self.right - b_right),
                     self.x + b_left)
 
-            # move previous page left edge upto left border
+            # move previous page left edge up to left border
             if p > 1:
                 self.children[-p].x = min(
                     self.x + half_border * (touch.sx - touch.osx),
                     self.x + half_border)
 
         elif touch.ud['page'] == 'next':
-            # move current page upto left edge
+            # move current page up to left edge
             if p >= 1:
                 self.children[-p - 1].x = max(
                     self.x + half_border * (1 - (touch.osx - touch.sx)),
@@ -177,7 +192,7 @@ class PageLayout(Layout):
                     self.x + b_left),
                     self.right - b_right)
 
-            # move second next page upto right border
+            # move second next page up to right border
             if p < len(self.children) - 2:
                 self.children[-p - 3].x = max(
                     self.right + half_border * (touch.sx - touch.osx),

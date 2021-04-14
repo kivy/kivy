@@ -17,7 +17,7 @@ DEF LINE_MODE_BEZIER = 5
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
 import itertools
 
-cdef float PI = 3.1415926535
+cdef float PI = <float>3.1415926535
 
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4, double *px, double *py):
@@ -42,11 +42,11 @@ cdef class Line(VertexInstruction):
     for optimal results:
 
     #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
-       OpenGL will be used. :attr:`dash_length` and :attr:`dash_offset` will
+       OpenGL will be used. :attr:`dash_length`, :attr:`dash_offset`, and :attr:`dashes` will
        work, while properties for cap and joint have no meaning here.
     #. If the :attr:`width` is greater than 1.0, then a custom drawing method,
-       based on triangulation, will be used. :attr:`dash_length` and
-       :attr:`dash_offset` do not work in this mode.
+       based on triangulation, will be used. :attr:`dash_length`,
+       :attr:`dash_offset`, and :attr:`dashes` do not work in this mode.
        Additionally, if the current color has an alpha less than 1.0, a
        stencil will be used internally to draw the line.
 
@@ -59,8 +59,13 @@ cdef class Line(VertexInstruction):
         `dash_length`: int
             Length of a segment (if dashed), defaults to 1.
         `dash_offset`: int
-            Offset between the end of a segment and the begining of the
+            Offset between the end of a segment and the beginning of the
             next one, defaults to 0. Changing this makes it dashed.
+        `dashes`: list of ints
+            List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
+            would create a line with the first dash length 2 then an offset of 4 then
+            a dash length of 1 then an offset of 6 and so on. Defaults to ``[]``.
+            Changing this makes it dashed and overrides `dash_length` and `dash_offset`.
         `width`: float
             Width of the line, defaults to 1.0.
         `cap`: str, defaults to 'round'
@@ -101,6 +106,9 @@ cdef class Line(VertexInstruction):
     .. versionchanged:: 1.4.1
         `bezier`, `bezier_precision` have been added.
 
+    .. versionchanged:: 1.11.0
+        `dashes` have been added
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -108,6 +116,7 @@ cdef class Line(VertexInstruction):
     cdef int _bezier_precision
     cdef int _joint
     cdef list _points
+    cdef list _dash_list
     cdef float _width
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
@@ -122,9 +131,10 @@ cdef class Line(VertexInstruction):
     cdef tuple _mode_args
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
+        super(Line, self).__init__(**kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else []
+        self.dashes = kwargs.get('dashes', [])
         self.batch.set_mode('line_strip')
         self._dash_length = kwargs.get('dash_length') or 1
         self._dash_offset = kwargs.get('dash_offset') or 0
@@ -202,13 +212,16 @@ cdef class Line(VertexInstruction):
 
     cdef void build_legacy(self):
         cdef int i
-        cdef long count = len(self.points) / 2
+        cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
+        cdef int length = 0
+        cdef int position = 0
+        cdef int val
 
         if count < 2:
             self.batch.clear_data()
@@ -219,7 +232,30 @@ cdef class Line(VertexInstruction):
             count += 1
 
         self.batch.set_mode('line_strip')
-        if self._dash_offset != 0:
+
+        if self._dash_list:
+            length = sum(self._dash_list)
+            if texture is None or texture._width != length \
+                or texture._height != 1:
+                self.texture = texture = Texture.create(size=(length, 1))
+                texture.wrap = 'repeat'
+
+            # create a buffer to fill our texture
+            buf = <char *>malloc(4 * length)
+            memset(buf, 0, 4 * length)
+
+            for idx, val in enumerate(self._dash_list):
+                if idx % 2 == 0:
+                    memset(buf + position, 255, val * 4)
+                position += val * 4
+
+            p_str = buf[:position]
+            try:
+                self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            finally:
+                free(buf)
+        elif self._dash_offset != 0:
+            length = self._dash_length + self._dash_offset
             if texture is None or texture._width != \
                 (self._dash_length + self._dash_offset) or \
                 texture._height != 1:
@@ -234,8 +270,10 @@ cdef class Line(VertexInstruction):
             memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
             p_str = buf[:(self._dash_length + self._dash_offset) * 4]
 
-            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
-            free(buf)
+            try:
+                self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            finally:
+                free(buf)
 
         elif texture is not None:
             self.texture = None
@@ -250,12 +288,11 @@ cdef class Line(VertexInstruction):
             raise MemoryError('indices')
 
         tex_x = 0
-        for i in xrange(count):
-            if self._dash_offset != 0 and i > 0:
-                tex_x += sqrt(
+        for i in range(count):
+            if (self._dash_offset != 0 or self._dash_list) and i > 0:
+                tex_x += <float>(sqrt(
                         pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
-                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
-                                self._dash_length + self._dash_offset)
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / length)
 
                 vertices[i].s0 = tex_x
                 vertices[i].t0 = 0
@@ -271,14 +308,14 @@ cdef class Line(VertexInstruction):
 
     cdef void build_extended(self):
         cdef int i, j
-        cdef long count = len(self.points) / 2
+        cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
         cdef int cap
         cdef char *buf = NULL
-        cdef Texture texture = self.texture
+        self.texture = None
 
         self._bxmin = 999999999
         self._bymin = 999999999
@@ -298,7 +335,7 @@ cdef class Line(VertexInstruction):
         self.batch.set_mode('triangles')
         cdef unsigned long vertices_count = (count - 1) * 4
         cdef unsigned long indices_count = (count - 1) * 6
-        cdef unsigned int iv = 0, ii = 0
+        cdef unsigned int iv = 0, ii = 0, siv = 0
 
         if self._joint == LINE_JOINT_BEVEL:
             indices_count += (count - 2) * 3
@@ -329,10 +366,10 @@ cdef class Line(VertexInstruction):
         cdef double ax, ay, bx, _by, cx, cy, angle, a1, a2
         cdef double x1, y1, x2, y2, x3, y3, x4, y4
         cdef double sx1, sy1, sx4, sy4, sangle
-        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
+        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle = 0, pangle2
         cdef double w = self._width
         cdef double ix, iy
-        cdef unsigned int piv, pii2, piv2
+        cdef unsigned int piv, pii2, piv2, skip = 0
         cdef double jangle
         angle = sangle = 0
         piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
@@ -346,7 +383,11 @@ cdef class Line(VertexInstruction):
             bx = p[i * 2 + 2]
             _by = p[i * 2 + 3]
 
-            if i > 0 and self._joint != LINE_JOINT_NONE:
+            if (ax, ay) == (bx, _by):
+                skip += 1
+                continue
+
+            if i - skip > 0 and self._joint != LINE_JOINT_NONE:
                 pcx = cx
                 pcy = cy
                 px1 = x1
@@ -384,7 +425,7 @@ cdef class Line(VertexInstruction):
             x3 = bx + cos2
             y3 = _by + sin2
 
-            if i == 0:
+            if i - skip == 0:
                 sx1 = x1
                 sy1 = y1
                 sx4 = x4
@@ -399,29 +440,29 @@ cdef class Line(VertexInstruction):
             indices[ii + 5] = iv + 3
             ii += 6
 
-            vertices[iv].x = x1
-            vertices[iv].y = y1
+            vertices[iv].x = <float>x1
+            vertices[iv].y = <float>y1
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = x2
-            vertices[iv].y = y2
+            vertices[iv].x = <float>x2
+            vertices[iv].y = <float>y2
             vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = x3
-            vertices[iv].y = y3
+            vertices[iv].x = <float>x3
+            vertices[iv].y = <float>y3
             vertices[iv].s0 = 1
             vertices[iv].t0 = 1
             iv += 1
-            vertices[iv].x = x4
-            vertices[iv].y = y4
+            vertices[iv].x = <float>x4
+            vertices[iv].y = <float>y4
             vertices[iv].s0 = 0
             vertices[iv].t0 = 1
             iv += 1
 
             # joint generation
-            if i == 0 or self._joint == LINE_JOINT_NONE:
+            if i - skip == 0 or self._joint == LINE_JOINT_NONE:
                 continue
 
             # calculate the angle of the previous and current segment
@@ -443,8 +484,8 @@ cdef class Line(VertexInstruction):
                 continue
 
             if self._joint == LINE_JOINT_BEVEL:
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if jangle < 0:
@@ -459,8 +500,8 @@ cdef class Line(VertexInstruction):
                 iv += 1
 
             elif self._joint == LINE_JOINT_MITER:
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if jangle < 0:
@@ -468,8 +509,8 @@ cdef class Line(VertexInstruction):
                         vertices_count -= 2
                         indices_count -= 6
                         continue
-                    vertices[iv + 1].x = ix
-                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].x = <float>ix
+                    vertices[iv + 1].y = <float>iy
                     vertices[iv + 1].s0 = 0
                     vertices[iv + 1].t0 = 0
                     indices[ii] = iv
@@ -485,8 +526,8 @@ cdef class Line(VertexInstruction):
                         vertices_count -= 2
                         indices_count -= 6
                         continue
-                    vertices[iv + 1].x = ix
-                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].x = <float>ix
+                    vertices[iv + 1].y = <float>iy
                     vertices[iv + 1].s0 = 0
                     vertices[iv + 1].t0 = 0
                     indices[ii] = iv
@@ -497,8 +538,6 @@ cdef class Line(VertexInstruction):
                     indices[ii + 5] = iv + 1
                     ii += 6
                     iv += 2
-
-
 
             elif self._joint == LINE_JOINT_ROUND:
 
@@ -518,19 +557,19 @@ cdef class Line(VertexInstruction):
                     pivstart = piv
                     pivend = piv2 + 2
                 siv = iv
-                vertices[iv].x = ax
-                vertices[iv].y = ay
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 iv += 1
                 for j in xrange(0, self._joint_precision - 1):
-                    vertices[iv].x = ax - cos(a0 - step * j) * w
-                    vertices[iv].y = ay - sin(a0 - step * j) * w
+                    vertices[iv].x = <float>(ax - cos(a0 - step * j) * w)
+                    vertices[iv].y = <float>(ay - sin(a0 - step * j) * w)
                     vertices[iv].s0 = 0
                     vertices[iv].t0 = 0
                     if j == 0:
                         indices[ii] = siv
-                        indices[ii + 1] = pivstart
+                        indices[ii + 1] = <unsigned short>pivstart
                         indices[ii + 2] = iv
                     else:
                         indices[ii] = siv
@@ -540,17 +579,17 @@ cdef class Line(VertexInstruction):
                     ii += 3
                 indices[ii] = siv
                 indices[ii + 1] = iv - 1
-                indices[ii + 2] = pivend
+                indices[ii + 2] = <unsigned short>pivend
                 ii += 3
 
         # caps
         if cap == LINE_CAP_SQUARE:
-            vertices[iv].x = x2 + cos(angle) * w
-            vertices[iv].y = y2 + sin(angle) * w
+            vertices[iv].x = <float>(x2 + cos(angle) * w)
+            vertices[iv].y = <float>(y2 + sin(angle) * w)
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
-            vertices[iv + 1].x = x3 + cos(angle) * w
-            vertices[iv + 1].y = y3 + sin(angle) * w
+            vertices[iv + 1].x = <float>(x3 + cos(angle) * w)
+            vertices[iv + 1].y = <float>(y3 + sin(angle) * w)
             vertices[iv + 1].s0 = 0
             vertices[iv + 1].t0 = 0
             indices[ii] = piv + 1
@@ -561,12 +600,12 @@ cdef class Line(VertexInstruction):
             indices[ii + 5] = iv + 1
             ii += 6
             iv += 2
-            vertices[iv].x = sx1 - cos(sangle) * w
-            vertices[iv].y = sy1 - sin(sangle) * w
+            vertices[iv].x = <float>(sx1 - cos(sangle) * w)
+            vertices[iv].y = <float>(sy1 - sin(sangle) * w)
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
-            vertices[iv + 1].x = sx4 - cos(sangle) * w
-            vertices[iv + 1].y = sy4 - sin(sangle) * w
+            vertices[iv + 1].x = <float>(sx4 - cos(sangle) * w)
+            vertices[iv + 1].y = <float>(sy4 - sin(sangle) * w)
             vertices[iv + 1].s0 = 0
             vertices[iv + 1].t0 = 0
             indices[ii] = 0
@@ -587,14 +626,14 @@ cdef class Line(VertexInstruction):
             siv = iv
             cx = p[0]
             cy = p[1]
-            vertices[iv].x = cx
-            vertices[iv].y = cy
+            vertices[iv].x = <float>cx
+            vertices[iv].y = <float>cy
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
             for i in xrange(0, self._cap_precision - 1):
-                vertices[iv].x = cx + cos(a1 + step * i) * w
-                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].x = <float>(cx + cos(a1 + step * i) * w)
+                vertices[iv].y = <float>(cy + sin(a1 + step * i) * w)
                 vertices[iv].s0 = 1
                 vertices[iv].t0 = 1
                 if i == 0:
@@ -619,14 +658,14 @@ cdef class Line(VertexInstruction):
             siv = iv
             cx = p[-2]
             cy = p[-1]
-            vertices[iv].x = cx
-            vertices[iv].y = cy
+            vertices[iv].x = <float>cx
+            vertices[iv].y = <float>cy
             vertices[iv].s0 = 0
             vertices[iv].t0 = 0
             iv += 1
             for i in xrange(0, self._cap_precision - 1):
-                vertices[iv].x = cx + cos(a1 + step * i) * w
-                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].x = <float>(cx + cos(a1 + step * i) * w)
+                vertices[iv].y = <float>(cy + sin(a1 + step * i) * w)
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 if i == 0:
@@ -644,16 +683,22 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
+        while ii < indices_count:
+            # make all the remaining indices point to the last vertice
+            indices[ii] = siv
+            ii += 1
+
         # compute bbox
-        for i in xrange(vertices_count):
-            if vertices[i].x < self._bxmin:
-                self._bxmin = vertices[i].x
-            if vertices[i].x > self._bxmax:
-                self._bxmax = vertices[i].x
-            if vertices[i].y < self._bymin:
-                self._bymin = vertices[i].y
-            if vertices[i].y > self._bymax:
-                self._bymax = vertices[i].y
+        cdef unsigned long iul
+        for iul in xrange(vertices_count):
+            if vertices[iul].x < self._bxmin:
+                self._bxmin = vertices[iul].x
+            if vertices[iul].x > self._bxmax:
+                self._bxmax = vertices[iul].x
+            if vertices[iul].y < self._bymin:
+                self._bymin = vertices[iul].y
+            if vertices[iul].y > self._bymax:
+                self._bymax = vertices[iul].y
 
         self.batch.set_data(vertices, <int>vertices_count,
                            indices, <int>indices_count)
@@ -678,7 +723,8 @@ cdef class Line(VertexInstruction):
             else:
                 self._points = list(points)
 
-            self.flag_update()
+            self._mode = LINE_MODE_POINTS
+            self.flag_data_update()
 
     property dash_length:
         '''Property for getting/setting the length of the dashes in the curve
@@ -692,7 +738,7 @@ cdef class Line(VertexInstruction):
             if value < 0:
                 raise GraphicException('Invalid dash_length value, must be >= 0')
             self._dash_length = value
-            self.flag_update()
+            self.flag_data_update()
 
     property dash_offset:
         '''Property for getting/setting the offset between the dashes in the curve
@@ -706,7 +752,23 @@ cdef class Line(VertexInstruction):
             if value < 0:
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
-            self.flag_update()
+            self.flag_data_update()
+
+    property dashes:
+        '''Property for getting/setting ``dashes``.
+
+        List of [ON length, offset, ON length, offset, ...]. E.g. ``[2,4,1,6,8,2]``
+        would create a line with the first dash length 2 then an offset of 4 then
+        a dash length of 1 then an offset of 6 and so on.
+
+        .. versionadded:: 1.11.0
+        '''
+        def __get__(self):
+            return self._dash_list
+
+        def __set__(self, value):
+            self._dash_list = list(value)
+            self.flag_data_update()
 
     property width:
         '''Determine the width of the line, defaults to 1.0.
@@ -720,7 +782,7 @@ cdef class Line(VertexInstruction):
             if value <= 0:
                 raise GraphicException('Invalid width value, must be > 0')
             self._width = value
-            self.flag_update()
+            self.flag_data_update()
 
     property cap:
         '''Determine the cap of the line, defaults to 'round'. Can be one of
@@ -745,7 +807,7 @@ cdef class Line(VertexInstruction):
                 self._cap = LINE_CAP_ROUND
             else:
                 self._cap = LINE_CAP_NONE
-            self.flag_update()
+            self.flag_data_update()
 
     property joint:
         '''Determine the join of the line, defaults to 'round'. Can be one of
@@ -775,7 +837,7 @@ cdef class Line(VertexInstruction):
                 self._joint = LINE_JOINT_MITER
             else:
                 self._joint = LINE_JOINT_NONE
-            self.flag_update()
+            self.flag_data_update()
 
     property cap_precision:
         '''Number of iteration for drawing the "round" cap, defaults to 10.
@@ -791,7 +853,7 @@ cdef class Line(VertexInstruction):
             if value < 1:
                 raise GraphicException('Invalid cap_precision value, must be >= 1')
             self._cap_precision = int(value)
-            self.flag_update()
+            self.flag_data_update()
 
     property joint_precision:
         '''Number of iteration for drawing the "round" joint, defaults to 10.
@@ -807,7 +869,7 @@ cdef class Line(VertexInstruction):
             if value < 1:
                 raise GraphicException('Invalid joint_precision value, must be >= 1')
             self._joint_precision = int(value)
-            self.flag_update()
+            self.flag_data_update()
 
     property close:
         '''If True, the line will be closed.
@@ -820,7 +882,7 @@ cdef class Line(VertexInstruction):
 
         def __set__(self, value):
             self._close = int(bool(value))
-            self.flag_update()
+            self.flag_data_update()
 
     property ellipse:
         '''Use this property to build an ellipse, without calculating the
@@ -832,9 +894,9 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom left of the ellipse
         * width and height represent the size of the ellipse
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the ellipse or not.
 
@@ -861,7 +923,7 @@ cdef class Line(VertexInstruction):
                         '{0} instead of 4, 6 or 7.'.format(len(args)))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_ELLIPSE
-            self.flag_update()
+            self.flag_data_update()
 
     cdef void prebuild_ellipse(self):
         cdef double x, y, w, h, angle_start = 0, angle_end = 360
@@ -906,7 +968,7 @@ cdef class Line(VertexInstruction):
 
 
     property circle:
-        '''Use this property to build a circle, without calculate the
+        '''Use this property to build a circle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
@@ -915,9 +977,9 @@ cdef class Line(VertexInstruction):
         * center_x and center_y represent the center of the circle
         * radius represent the radius of the circle
         * (optional) angle_start and angle_end are in degree. The default
-            value is 0 and 360.
+          value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-            value is calculated from the range between angle.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` the circle or not.
 
@@ -944,7 +1006,7 @@ cdef class Line(VertexInstruction):
                         '{0} instead of 3, 5 or 6.'.format(len(args)))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_CIRCLE
-            self.flag_update()
+            self.flag_data_update()
 
     cdef void prebuild_circle(self):
         cdef double x, y, r, angle_start = 0, angle_end = 360
@@ -969,9 +1031,9 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
-        
+
         segmentpoints = segments * 2
-        
+
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
@@ -989,8 +1051,7 @@ cdef class Line(VertexInstruction):
         '''Use this property to build a rectangle, without calculating the
         :attr:`points`. You can only set this property, not get it.
 
-        The argument must be a tuple of (x, y, width, height)
-        angle_end, segments):
+        The argument must be a tuple of (x, y, width, height):
 
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
@@ -1013,7 +1074,7 @@ cdef class Line(VertexInstruction):
                         '{0} instead of 4.'.format(len(args)))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_RECTANGLE
-            self.flag_update()
+            self.flag_data_update()
 
     cdef void prebuild_rectangle(self):
         cdef double x, y, width, height
@@ -1048,7 +1109,7 @@ cdef class Line(VertexInstruction):
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
         * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the numper of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
 
         The line is automatically closed.
 
@@ -1067,15 +1128,15 @@ cdef class Line(VertexInstruction):
                         '{0} not in (5, 6, 8, 9)'.format(len(args)))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_ROUNDED_RECTANGLE
-            self.flag_update()
+            self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
         cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
         cdef resolution = 30
-        cdef int l = len(self._mode_args)
+        cdef int l = <int>len(self._mode_args)
 
         self._points = []
-        a = -PI
+        a = <float>-PI
         x, y, w, h = self._mode_args [:4]
 
         if l == 5:
@@ -1150,7 +1211,7 @@ cdef class Line(VertexInstruction):
                         'Invalid bezier value: {0!r}'.format(args))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_BEZIER
-            self.flag_update()
+            self.flag_data_update()
 
     cdef void prebuild_bezier(self):
         cdef double x, y, l
@@ -1191,7 +1252,7 @@ cdef class Line(VertexInstruction):
             if value < 1:
                 raise GraphicException('Invalid bezier_precision value, must be >= 1')
             self._bezier_precision = int(value)
-            self.flag_update()
+            self.flag_data_update()
 
 
 cdef class SmoothLine(Line):
@@ -1216,7 +1277,7 @@ cdef class SmoothLine(Line):
 
     def __init__(self, **kwargs):
         Line.__init__(self, **kwargs)
-        self._owidth = kwargs.get("overdraw_width") or 1.2
+        self._owidth = kwargs.get("overdraw_width") or <float>1.2
         self.batch.set_mode("triangles")
         self.texture = self.premultiplied_texture()
 
@@ -1252,23 +1313,23 @@ cdef class SmoothLine(Line):
     cdef void build_smooth(self):
         cdef:
             list p = self.points
-            float width = max(0, (self._width - 1.))
-            float owidth = width + self._owidth
+            double width = max(0, (self._width - 1.))
+            double owidth = width + self._owidth
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
             double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
-            float cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
-            long index, vindex, vcount, icount, iv, ii, max_vindex, count
-            unsigned short i0, i1, i2, i3, i4, i5, i6, i7
+            double cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
+            long index, icount, iv, ii, max_vindex, count
+            unsigned short i0, i1, i2, i3, i4, i5, i6, i7, vindex, vcount
 
         iv = vindex = 0
-        count = len(p) / 2
+        count = <long>int(len(p) / 2.)
         if count < 2:
             self.batch.clear_data()
             return
 
-        vcount = count * 4
+        vcount = <unsigned short>(count * 4)
         icount = (count - 1) * 18
         if self._close:
             icount += 18
@@ -1325,7 +1386,7 @@ cdef class SmoothLine(Line):
             osin1 = sin(a1) * owidth
             ocos2 = cos(a2) * owidth
             osin2 = sin(a2) * owidth
-            print 'angle diff', ad_angle
+            print('angle diff', ad_angle)
             '''
             #l = width
             #ol = owidth
@@ -1350,10 +1411,10 @@ cdef class SmoothLine(Line):
                     bx + cos(la2) * width,
                     by + sin(la2) * width,
                     &rx, &ry) == 0:
-                    #print 'ERROR LINE INTERSECTION 1'
+                    # print('ERROR LINE INTERSECTION 1')
                     pass
 
-                l = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+                l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
                 if line_intersection(
                     ox + cos(ra1) * owidth,
@@ -1365,10 +1426,10 @@ cdef class SmoothLine(Line):
                     bx + cos(ra2) * owidth,
                     by + sin(ra2) * owidth,
                     &rx, &ry) == 0:
-                    #print 'ERROR LINE INTERSECTION 2'
+                    # print('ERROR LINE INTERSECTION 2')
                     pass
 
-                ol = sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+                ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
             last_angle = angle
 
@@ -1404,23 +1465,23 @@ cdef class SmoothLine(Line):
             ox2 = ax + ocos2
             oy2 = ay + osin2
 
-            vertices[iv].x = x1
-            vertices[iv].y = y1
+            vertices[iv].x = <float>x1
+            vertices[iv].y = <float>y1
             vertices[iv].s0 = 0.5
             vertices[iv].t0 = 0.25
             iv += 1
-            vertices[iv].x = x2
-            vertices[iv].y = y2
+            vertices[iv].x = <float>x2
+            vertices[iv].y = <float>y2
             vertices[iv].s0 = 0.5
             vertices[iv].t0 = 0.75
             iv += 1
-            vertices[iv].x = ox1
-            vertices[iv].y = oy1
+            vertices[iv].x = <float>ox1
+            vertices[iv].y = <float>oy1
             vertices[iv].s0 = 1
             vertices[iv].t0 = 0
             iv += 1
-            vertices[iv].x = ox2
-            vertices[iv].y = oy2
+            vertices[iv].x = <float>ox2
+            vertices[iv].y = <float>oy2
             vertices[iv].s0 = 1
             vertices[iv].t0 = 1
             iv += 1
@@ -1477,13 +1538,13 @@ cdef class SmoothLine(Line):
             tindices[17] = i7
             tindices = tindices + 18
 
-        #print 'tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short)
+        # print('tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short))
 
 
         self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
 
-        #free(vertices)
-        #free(indices)
+        free(vertices)
+        free(indices)
 
 
     property overdraw_width:
@@ -1496,5 +1557,5 @@ cdef class SmoothLine(Line):
             if value <= 0:
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
-            self.flag_update()
+            self.flag_data_update()
 

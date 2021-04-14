@@ -2,9 +2,17 @@
 RecycleBoxLayout
 ================
 
+.. versionadded:: 1.10.0
+
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
+
+The RecycleBoxLayout is designed to provide a
+:class:`~kivy.uix.boxlayout.BoxLayout` type layout when used with the
+:class:`~kivy.uix.recycleview.RecycleView` widget. Please refer to the
+:mod:`~kivy.uix.recycleview` module documentation for more information.
+
 """
 
 from kivy.uix.recyclelayout import RecycleLayout
@@ -36,9 +44,14 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         remove_view = self.remove_view
 
         for (index, widget, (w, h), (wn, hn), (shw, shh), (shnw, shnh),
-             ph, phn) in changed:
-            if horizontal and (shw != shnw or w != wn) or (shh != shnh or
-                                                           h != hn):
+             (shw_min, shh_min), (shwn_min, shhn_min), (shw_max, shh_max),
+             (shwn_max, shhn_max), ph, phn) in changed:
+            if (horizontal and
+                (shw != shnw or w != wn or shw_min != shwn_min or
+                 shw_max != shwn_max) or
+                not horizontal and
+                (shh != shnh or h != hn or shh_min != shhn_min or
+                 shh_max != shhn_max)):
                 return True
 
             remove_view(widget, index)
@@ -78,7 +91,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                         xo = posx - (w / 2.)
                 opt['pos'] = [xo, yo]
 
-        return relayout
+        return False
 
     def compute_layout(self, data, flags):
         super(RecycleBoxLayout, self).compute_layout(data, flags)
@@ -98,7 +111,8 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         view_opts = self.view_opts
         n = len(view_opts)
         for i, x, y, w, h in self._iterate_layout(
-                [(opt['size'], opt['size_hint'], opt['pos_hint']) for
+                [(opt['size'], opt['size_hint'], opt['pos_hint'],
+                  opt['size_hint_min'], opt['size_hint_max']) for
                  opt in reversed(view_opts)]):
             opt = view_opts[n - i - 1]
             shw, shh = opt['size_hint']
@@ -136,7 +150,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         x, y = pos
 
         if self.orientation == 'horizontal':
-            if x >= calc_pos[-1]:
+            if x >= calc_pos[-1] or len(calc_pos) == 1:
                 return len(calc_pos) - 1
 
             ix = 0
@@ -145,7 +159,7 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                     return ix
                 ix += 1
         else:
-            if y >= calc_pos[-1]:
+            if y >= calc_pos[-1] or len(calc_pos) == 1:
                 return 0
 
             iy = 0

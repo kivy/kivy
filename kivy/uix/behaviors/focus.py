@@ -57,11 +57,9 @@ effect. To initialize focus, you can use the 'on_parent' event::
     from kivy.app import App
     from kivy.uix.textinput import TextInput
 
-
     class MyTextInput(TextInput):
         def on_parent(self, widget, parent):
             self.focus = True
-
 
     class SampleApp(App):
         def build(self):
@@ -69,7 +67,7 @@ effect. To initialize focus, you can use the 'on_parent' event::
 
     SampleApp().run()
 
-If you are using a :class:`~kivy.uix.popup`, you can use the 'on_enter' event.
+If you are using a :class:`~kivy.uix.popup`, you can use the 'on_open' event.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
@@ -78,8 +76,6 @@ documentation.
 
     This code is still experimental, and its API is subject to change in a
     future version.
-
-.
 '''
 
 __all__ = ('FocusBehavior', )
@@ -137,7 +133,7 @@ class FocusBehavior(object):
             self.focus = False    # this'll unbind
             if self._keyboard:  # remove assigned keyboard from dict
                 del keyboards[keyboard]
-        if value and not value in keyboards:
+        if value and value not in keyboards:
             keyboards[value] = None
         self._keyboard = value
         self.focus = focus
@@ -226,8 +222,8 @@ class FocusBehavior(object):
     :attr:`~kivy.core.window.WindowBase.softinput_mode` property to determine
     how the keyboard display is handled.
 
-    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    False.
+    :attr:`focus` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to False.
     '''
 
     focused = focus
@@ -239,6 +235,17 @@ class FocusBehavior(object):
     .. warning::
         :attr:`focused` is an alias of :attr:`focus` and will be removed in
         2.0.0.
+    '''
+
+    keyboard_suggestions = BooleanProperty(True)
+    '''If True provides auto suggestions on top of keyboard.
+    This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
+    `address`.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True
     '''
 
     def _set_on_focus_next(self, instance, value):
@@ -257,8 +264,8 @@ class FocusBehavior(object):
         if value is None or value is StopIteration:
             return
         if not isinstance(value, FocusBehavior):
-            raise ValueError('focus_next accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+            raise ValueError('focus_next accepts only objects based on'
+                             ' FocusBehavior, or the `StopIteration` class.')
         value.focus_previous = self
 
     focus_next = ObjectProperty(None, allownone=True)
@@ -299,7 +306,7 @@ class FocusBehavior(object):
             return
         if not isinstance(value, FocusBehavior):
             raise ValueError('focus_previous accepts only objects based'
-                             ' on FocusBehavior, or the `StopIteration` class.')
+                             'on FocusBehavior, or the `StopIteration` class.')
         value.focus_next = self
 
     focus_previous = ObjectProperty(None, allownone=True)
@@ -383,7 +390,7 @@ class FocusBehavior(object):
             self.focus = False
 
     def _on_focus(self, instance, value, *largs):
-        if self.is_focusable and self.keyboard_mode == 'auto':
+        if self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
             else:
@@ -392,9 +399,12 @@ class FocusBehavior(object):
     def _ensure_keyboard(self):
         if self._keyboard is None:
             self._requested_keyboard = True
-            keyboard = self._keyboard =\
-                EventLoop.window.request_keyboard(
-                    self._keyboard_released, self, input_type=self.input_type)
+            keyboard = self._keyboard = EventLoop.window.request_keyboard(
+                self._keyboard_released,
+                self,
+                input_type=self.input_type,
+                keyboard_suggestions=self.keyboard_suggestions,
+            )
             keyboards = FocusBehavior._keyboards
             if keyboard not in keyboards:
                 keyboards[keyboard] = None
@@ -464,7 +474,7 @@ class FocusBehavior(object):
 
     def _get_focus_next(self, focus_dir):
         current = self
-        walk_tree = 'walk' if focus_dir is 'focus_next' else 'walk_reverse'
+        walk_tree = 'walk' if focus_dir == 'focus_next' else 'walk_reverse'
 
         while 1:
             # if we hit a focusable, walk through focus_xxx
@@ -477,7 +487,7 @@ class FocusBehavior(object):
 
             # hit unfocusable, walk widget tree
             itr = getattr(current, walk_tree)(loopback=True)
-            if focus_dir is 'focus_next':
+            if focus_dir == 'focus_next':
                 next(itr)  # current is returned first  when walking forward
             for current in itr:
                 if isinstance(current, FocusBehavior):
@@ -490,6 +500,20 @@ class FocusBehavior(object):
                     return current
             else:
                 return None
+
+    def get_focus_next(self):
+        '''Returns the next focusable widget using either :attr:`focus_next`
+           or the :attr:`children` similar to the order when tabbing forwards
+           with the ``tab`` key.
+        '''
+        return self._get_focus_next('focus_next')
+
+    def get_focus_previous(self):
+        '''Returns the previous focusable widget using either
+           :attr:`focus_previous` or the :attr:`children` similar to the
+           order when ``tab`` + ``shift`` key are triggered together.
+        '''
+        return self._get_focus_next('focus_previous')
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
@@ -507,10 +531,12 @@ class FocusBehavior(object):
         key was consumed.
         '''
         if keycode[1] == 'tab':  # deal with cycle
-            if ['shift'] == modifiers:
-                next = self._get_focus_next('focus_previous')
+            if {'ctrl', 'alt', 'meta', 'super', 'compose'} & modifiers:
+                return False
+            if 'shift' in modifiers:
+                next = self.get_focus_previous()
             else:
-                next = self._get_focus_next('focus_next')
+                next = self.get_focus_next()
             if next:
                 self.focus = False
 

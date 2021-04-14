@@ -4,7 +4,6 @@ __all__ = ('AnimatedButton')
 from kivy.factory import Factory
 from kivy.uix.label import Label
 from kivy.uix.image import Image
-from kivy.graphics import *
 from kivy.properties import StringProperty, OptionProperty, \
                             ObjectProperty, BooleanProperty
 
@@ -27,26 +26,26 @@ class AnimatedButton(Label):
 
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        #borderImage.border by default is ...
+        # borderImage.border by default is ...
         self.border = (16, 16, 16, 16)
-        #Image to display depending on state
+        # Image to display depending on state
         self.img = Image(
             source=self.background_normal,
             allow_stretch=self.allow_stretch,
             keep_ratio=self.keep_ratio,
             mipmap=True)
 
-        #reset animation if anim_delay is changed
+        # reset animation if anim_delay is changed
         def anim_reset(*l):
             self.img.anim_delay = self.anim_delay
 
         self.bind(anim_delay=anim_reset)
         self.anim_delay = .1
-        #update self.texture when image.texture changes
+        # update self.texture when image.texture changes
         self.img.bind(texture=self.on_tex_changed)
         self.on_tex_changed()
 
-        #update image source when background image is changed
+        # update image source when background image is changed
         def background_changed(*l):
             self.img.source = self.background_normal
             self.anim_delay = .1
@@ -96,5 +95,6 @@ class AnimatedButton(Label):
 
     def on_release(self):
         pass
+
 
 Factory.register('AnimatedButton', cls=AnimatedButton)

@@ -13,7 +13,7 @@ from os.path import join, exists
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.properties import ListProperty, StringProperty, \
-        NumericProperty, BooleanProperty
+        NumericProperty, BooleanProperty, AliasProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
@@ -36,7 +36,6 @@ class MutableTextInput(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and touch.is_double_tap:
             self.edit()
-            return True
         return super(MutableTextInput, self).on_touch_down(touch)
 
     def edit(self):
@@ -46,6 +45,8 @@ class MutableTextInput(FloatLayout):
 
     def view(self):
         self.clear_widgets()
+        if not self.text:
+            self.w_label.text = "Double tap/click to edit"
         self.add_widget(self.w_label)
 
     def check_focus_and_view(self, textinput):
@@ -62,7 +63,7 @@ class NoteView(Screen):
 
 
 class NoteListItem(BoxLayout):
-
+    note_content = StringProperty()
     note_title = StringProperty()
     note_index = NumericProperty()
 
@@ -71,11 +72,14 @@ class Notes(Screen):
 
     data = ListProperty()
 
-    def args_converter(self, row_index, item):
-        return {
-            'note_index': row_index,
+    def _get_data_for_widgets(self):
+        return [{
+            'note_index': index,
             'note_content': item['content'],
             'note_title': item['title']}
+            for index, item in enumerate(self.data)]
+
+    data_for_widgets = AliasProperty(_get_data_for_widgets, bind=['data'])
 
 
 class NoteApp(App):
@@ -92,12 +96,12 @@ class NoteApp(App):
     def load_notes(self):
         if not exists(self.notes_fn):
             return
-        with open(self.notes_fn, 'rb') as fd:
+        with open(self.notes_fn) as fd:
             data = json.load(fd)
         self.notes.data = data
 
     def save_notes(self):
-        with open(self.notes_fn, 'wb') as fd:
+        with open(self.notes_fn, 'w') as fd:
             json.dump(self.notes.data, fd)
 
     def del_note(self, note_index):
@@ -153,6 +157,7 @@ class NoteApp(App):
     @property
     def notes_fn(self):
         return join(self.user_data_dir, 'notes.json')
+
 
 if __name__ == '__main__':
     NoteApp().run()

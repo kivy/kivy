@@ -21,14 +21,11 @@ Path control
 
 .. versionadded:: 1.0.7
 
-You can control the default directories where config files, modules,
-extensions, and kivy data are located.
+You can control the default directories where config files, modules
+and kivy data are located.
 
 KIVY_DATA_DIR
     Location of the Kivy data, defaults to `<kivy path>/data`
-
-KIVY_EXTS_DIR
-    Location of the Kivy extensions, defaults to `<kivy path>/extensions`
 
 KIVY_MODULES_DIR
     Location of the Kivy modules, defaults to `<kivy path>/modules`
@@ -65,7 +62,7 @@ KIVY_USE_DEFAULTCONFIG
     If this name is found in environ, Kivy will not read the user config file.
 
 KIVY_NO_CONFIG
-    If set, no configuration file will be read or writen to. This also applies
+    If set, no configuration file will be read or written to. This also applies
     to the user configuration directory.
 
 KIVY_NO_FILELOG
@@ -75,15 +72,36 @@ KIVY_NO_CONSOLELOG
     If set, logs will be not print to the console
 
 KIVY_NO_ARGS
-    If set, the argument passed in command line will not be parsed and used by Kivy.
-    Ie, you can safely make a script or an app with your own arguments without
-    requiring the `--` delimiter::
+    If set to one of ('true', '1', 'yes'), the argument passed in command line
+    will not be parsed and used by Kivy. Ie, you can safely make a script or an
+    app with your own arguments without requiring the `--` delimiter::
 
         import os
         os.environ["KIVY_NO_ARGS"] = "1"
         import kivy
 
     .. versionadded:: 1.9.0
+
+KCFG_section_key
+    If a such format environment name is detected, it will be mapped
+    to the Config object. They are loaded only once when `kivy` is
+    imported. The behavior can be disabled using `KIVY_NO_ENV_CONFIG`.
+
+    ::
+
+        import os
+        os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+        import kivy
+        # during import it will map it to:
+        # Config.set("kivy", "log_level", "warning")
+
+    .. versionadded:: 1.11.0
+
+KIVY_NO_ENV_CONFIG
+    If set, no environment key will be mapped to configuration object.
+    If unset, any `KCFG_section_key=value` will be mapped to Config.
+
+    .. versionadded:: 1.11.0
 
 Restrict core to specific implementation
 ----------------------------------------
@@ -105,12 +123,12 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: pygst, gstplayer, pyglet, ffpyplayer, null
+    Values: gstplayer, ffpyplayer, ffmpeg, null
 
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, pygst, ffpyplayer, pygame
+    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
@@ -120,7 +138,7 @@ KIVY_IMAGE
 KIVY_CAMERA
     Implementation to use for reading camera
 
-    Values: videocapture, avfoundation, pygst, opencv
+    Values: avfoundation, android, opencv
 
 KIVY_SPELLING
     Implementation to use for spelling
@@ -154,6 +172,15 @@ KIVY_METRICS_FONTSCALE
 Graphics
 --------
 
+KIVY_GL_BACKEND
+    The OpenGL backend to use. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GL_DEBUG
+    Whether to log OpenGL calls. See :mod:`~kivy.graphics.cgl`.
+
+KIVY_GRAPHICS
+    Whether to use OpenGL ES2. See :mod:`~kivy.graphics.cgl`.
+
 KIVY_GLES_LIMITS
     Whether the GLES2 restrictions are enforced (the default, or if set to
     1). If set to false, Kivy will not be truly GLES2 compatible.
@@ -186,3 +213,22 @@ KIVY_BCM_DISPMANX_ID
     - 4: DISPMANX_ID_FORCE_LCD
     - 5: DISPMANX_ID_FORCE_TV
     - 6: DISPMANX_ID_FORCE_OTHER
+
+KIVY_BCM_DISPMANX_LAYER
+    Change the default Raspberry Pi dispmanx layer. Default value is 0.
+
+    .. versionadded:: 1.10.1
+
+Event Loop
+----------
+
+KIVY_EVENTLOOP
+    Which async library should be used when the app is run in an asynchronous
+    manner. See :mod:`kivy.app` for example usage.
+
+    ``'asyncio'``: When the app is run in an asynchronous manner and the standard
+        library asyncio package should be used. The default if not set.
+    ``'trio'``: When the app is run in an asynchronous manner and the `trio`
+        package should be used.
+
+    .. versionadded:: 2.0.0

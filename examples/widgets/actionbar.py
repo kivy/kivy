@@ -11,10 +11,10 @@ ActionBar:
             with_previous: False
         ActionOverflow:
         ActionButton:
-            text: 'Btn0'
             icon: 'atlas://data/images/defaulttheme/audio-volume-high'
         ActionButton:
-            text: 'Btn1'
+            important: True
+            text: 'Important'
         ActionButton:
             text: 'Btn2'
         ActionButton:
@@ -30,4 +30,3 @@ ActionBar:
             ActionButton:
                 text: 'Btn7'
 '''))
-

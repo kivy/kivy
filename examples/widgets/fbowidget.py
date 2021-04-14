@@ -54,18 +54,18 @@ class FboFloatLayout(FloatLayout):
         self.texture = self.fbo.texture
         super(FboFloatLayout, self).__init__(**kwargs)
 
-    def add_widget(self, *largs):
-        # trick to attach graphics instructino to fbo instead of canvas
+    def add_widget(self, *args, **kwargs):
+        # trick to attach graphics instruction to fbo instead of canvas
         canvas = self.canvas
         self.canvas = self.fbo
-        ret = super(FboFloatLayout, self).add_widget(*largs)
+        ret = super(FboFloatLayout, self).add_widget(*args, **kwargs)
         self.canvas = canvas
         return ret
 
-    def remove_widget(self, *largs):
+    def remove_widget(self, *args, **kwargs):
         canvas = self.canvas
         self.canvas = self.fbo
-        super(FboFloatLayout, self).remove_widget(*largs)
+        super(FboFloatLayout, self).remove_widget(*args, **kwargs)
         self.canvas = canvas
 
     def on_size(self, instance, value):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             # test with FboFloatLayout or FloatLayout
             # comment/uncomment to test it
             root = FboFloatLayout()
-            #root = FloatLayout()
+            # root = FloatLayout()
 
             # this part of creation can be slow. try to optimize the loop a
             # little bit.

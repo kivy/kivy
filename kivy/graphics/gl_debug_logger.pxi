@@ -1,16 +1,13 @@
 from kivy.logger import Logger
-include "config.pxi"
+include "../include/config.pxi"
 
-IF USE_OPENGL_DEBUG:
-    cimport kivy.graphics.c_opengl_debug as c_opengl
-ELIF USE_OPENGL_MOCK:
-    cimport kivy.graphics.c_opengl_mock as c_opengl
-ELSE:
-    cimport kivy.graphics.c_opengl as c_opengl
+from kivy.graphics.cgl cimport cgl
+import os
+cdef int env_debug_gl = "DEBUG_GL" in os.environ
 
 cdef inline void log_gl_error(str note):
-    IF DEBUG_GL:
-        ret = c_opengl.glGetError()
+    if env_debug_gl:
+        ret = cgl.glGetError()
         if ret:
             Logger.error("OpenGL Error: {note} {ret1} / {ret2}".format(
                 note=note, ret1=ret, ret2=hex(ret)))

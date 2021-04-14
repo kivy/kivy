@@ -5,8 +5,8 @@ IOS Prerequisites
 
 The following guide assumes:
 
-    * XCode 5.1 or above
-    * OS X 10.9 or above
+    * XCode 10.x or above
+    * MacOS 10.12 or above
 
 Your experience may vary with different versions.
 
@@ -26,7 +26,7 @@ guide for more information.
 Homebrew
 --------
 
-We use the `Homebrew <http://brew.sh/>`_ package mananger for OSX to install
+We use the `Homebrew <http://brew.sh/>`_ package manager for OSX to install
 some of the dependencies and tools used by Kivy. It's a really helpful tool
 and is an Open Source project hosted on
 `Github <https://github.com/Homebrew/homebrew>`_.
@@ -36,13 +36,13 @@ Operating Systems), this process can be error prone and cause
 failures in the build process. The **Missing requirement: <pkg> is not
 installed!** message is typically such an error.
 
-The first thing is to ensure you have run the following commands::
+The first thing is to ensure you have run the following commands:
 
-    brew install autoconf automake libtool pkg-config mercurial
-    brew link libtool
-    brew link mercurial
-    sudo easy_install pip
-    sudo pip install cython
+.. parsed-literal::
+
+    $ brew install autoconf automake libtool pkg-config
+    $ brew link libtool
+    $ pip install |cython_install|
 
 If you still receive build errors, check your Homebrew is in a healthy state::
 
@@ -52,7 +52,7 @@ For further help, please refer to the
 `Homebrew wiki <https://github.com/Homebrew/homebrew/wiki>`_.
 
 The last, final and desperate step to get things working might be to remove
-Homebrew altogether, get the lastest version, install that and then re-install
+Homebrew altogether, get the latest version, install that and then re-install
 the dependencies.
 
     `How to Uninstall and Remove Homebrew for Mac OSX

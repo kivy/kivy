@@ -271,6 +271,7 @@ def annotate(pre, post, callable, words):
         state = not state
         i += random.randint(1, 7)
 
+
 annotate('[size={0}]{1}', '{0}[/size]', partial(random.randint, 8, 24), words)
 annotate('[b]{1}', '{0}[/b]', str, words)
 annotate('[i]{1}', '{0}[/i]', str, words)

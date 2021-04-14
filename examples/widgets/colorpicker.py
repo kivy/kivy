@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.graphics import Color, Point
+from kivy.graphics import Color, Point, GraphicException
 
 from math import sqrt
 from os import walk
@@ -120,7 +120,7 @@ def calculate_points(x1, y1, x2, y2, steps=5):
     dy = y2 - y1
     dist = sqrt(dx * dx + dy * dy)
     if dist < steps:
-        return None
+        return
     o = []
     m = dist / steps
     for i in range(1, int(m)):
@@ -148,7 +148,7 @@ class Picture(Scatter):
     def on_touch_down(self, touch):
         _app = self._app
         if (_app.color_mode[0] == 'c' or
-            not self.collide_point(*touch.pos)):
+                not self.collide_point(*touch.pos)):
             return super(Picture, self).on_touch_down(touch)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
@@ -200,9 +200,9 @@ class MainRootWidget(BoxLayout):
 
     def on_parent(self, instance, parent):
         if parent:
-            _dir = join(dirname(__file__), 'lists/fruit_images/')
+            _dir = join(dirname(__file__), '../demo/pictures/images/')
             for image in list(walk(_dir))[0][2]:
-                if image.find('512') > -1:
+                if image.find('jpg') > -1:
                     self.client_area.add_widget(Picture(source=_dir + image))
 
 
@@ -228,6 +228,7 @@ class MainApp(App):
     def handle_clear(self):
         if self.current_image:
             self.current_image.canvas.after.clear()
+
 
 if __name__ == '__main__':
     MainApp().run()

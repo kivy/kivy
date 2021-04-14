@@ -1,6 +1,6 @@
 '''
-Url Request
-===========
+UrlRequest
+==========
 
 .. versionadded:: 1.0.8
 
@@ -29,22 +29,20 @@ to the request will be accessible as the parameter called "result" on
 the callback function of the on_success event.
 
 
-Example of fetching weather in Paris::
+Example of fetching JSON::
 
-    def got_weather(req, results):
-        for key, value in results['weather'][0].items():
-            print(key, ': ', value)
+    def got_json(req, result):
+        for key, value in req.resp_headers.items():
+            print('{}: {}'.format(key, value))
 
-    req = UrlRequest(
-        'http://api.openweathermap.org/data/2.5/weather?q=Paris,fr',
-        got_weather)
+    req = UrlRequest('https://httpbin.org/headers', got_json)
 
 Example of Posting data (adapted from httplib example)::
 
     import urllib
 
     def bug_posted(req, result):
-        print('Our bug is posted !')
+        print('Our bug is posted!')
         print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
@@ -58,11 +56,13 @@ If you want a synchronous request, you can call the wait() method.
 
 '''
 
+from base64 import b64encode
 from collections import deque
-from threading import Thread
+from threading import Thread, Event
 from json import loads
 from time import sleep
 from kivy.compat import PY2
+from kivy.config import Config
 
 if PY2:
     from httplib import HTTPConnection
@@ -87,6 +87,7 @@ except ImportError:
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
+from kivy.utils import platform
 
 
 # list to save UrlRequest and prevent GC on un-referenced objects
@@ -114,9 +115,13 @@ class UrlRequest(Thread):
         Parameter `ca_file` added.
         Parameter `verify` added.
 
-    .. versionchanged:: 1.9.2
+    .. versionchanged:: 1.10.0
 
         Parameters `proxy_host`, `proxy_port` and `proxy_headers` added.
+
+    .. versionchanged:: 1.11.0
+
+        Parameters `on_cancel` added.
 
     :Parameters:
         `url`: str
@@ -135,6 +140,9 @@ class UrlRequest(Thread):
             download. `total_size` might be -1 if no Content-Length has been
             reported in the http response.
             This callback will be called after each `chunk_size` is read.
+        `on_cancel`: callback(request)
+            Callback function to call if user requested to cancel the download
+            operation via the .cancel() method.
         `req_body`: str, defaults to None
             Data to sent in the request. If it's not None, a POST will be done
             instead of a GET.
@@ -178,7 +186,8 @@ class UrlRequest(Thread):
                  req_body=None, req_headers=None, chunk_size=8192,
                  timeout=None, method=None, decode=True, debug=False,
                  file_path=None, ca_file=None, verify=True, proxy_host=None,
-                 proxy_port=None, proxy_headers=None):
+                 proxy_port=None, proxy_headers=None, user_agent=None,
+                 on_cancel=None, cookies=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -188,6 +197,7 @@ class UrlRequest(Thread):
         self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.on_cancel = WeakMethod(on_cancel) if on_cancel else None
         self.decode = decode
         self.file_path = file_path
         self._debug = debug
@@ -200,11 +210,19 @@ class UrlRequest(Thread):
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
-        self.ca_file = ca_file
         self.verify = verify
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
+        self._cancel_event = Event()
+        self._user_agent = user_agent
+        self._cookies = cookies
+
+        if platform in ['android', 'ios']:
+            import certifi
+            self.ca_file = ca_file or certifi.where()
+        else:
+            self.ca_file = ca_file
 
         #: Url of the request
         self.url = url
@@ -224,7 +242,23 @@ class UrlRequest(Thread):
         q = self._queue.appendleft
         url = self.url
         req_body = self.req_body
-        req_headers = self.req_headers
+        req_headers = self.req_headers or {}
+
+        user_agent = self._user_agent
+        cookies = self._cookies
+
+        if user_agent:
+            req_headers.setdefault('User-Agent', user_agent)
+
+        elif (
+            Config.has_section('network')
+            and 'useragent' in Config.items('network')
+        ):
+            useragent = Config.get('network', 'useragent')
+            req_headers.setdefault('User-Agent', useragent)
+
+        if cookies:
+            req_headers.setdefault("Cookie", cookies)
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
@@ -233,7 +267,10 @@ class UrlRequest(Thread):
         except Exception as e:
             q(('error', None, e))
         else:
-            q(('success', resp, result))
+            if not self._cancel_event.is_set():
+                q(('success', resp, result))
+            else:
+                q(('killed', None, None))
 
         # using trigger can result in a missed on_success event
         self._trigger_result()
@@ -246,6 +283,25 @@ class UrlRequest(Thread):
         # ok, authorize the GC to clean us.
         if self in g_requests:
             g_requests.remove(self)
+
+    def _parse_url(self, url):
+        parse = urlparse(url)
+        host = parse.hostname
+        port = parse.port
+        userpass = None
+
+        # append user + pass to hostname if specified
+        if parse.username and parse.password:
+            userpass = {
+                "Authorization": "Basic {}".format(b64encode(
+                    "{}:{}".format(
+                        parse.username,
+                        parse.password
+                    ).encode('utf-8')
+                ).decode('utf-8'))
+            }
+
+        return host, port, userpass, parse
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -266,17 +322,15 @@ class UrlRequest(Thread):
                 id(self), headers))
 
         # parse url
-        parse = urlparse(url)
+        host, port, userpass, parse = self._parse_url(url)
+        if userpass and not headers:
+            headers = userpass
+        elif userpass and headers:
+            key = list(userpass.keys())[0]
+            headers[key] = userpass[key]
 
         # translate scheme to connection class
         cls = self.get_connection_for_scheme(parse.scheme)
-
-        # correctly determine host/port
-        port = None
-        host = parse.netloc.split(':')
-        if len(host) > 1:
-            port = int(host[1])
-        host = host[0]
 
         # reconstruct path to pass on the request
         path = parse.path
@@ -292,7 +346,8 @@ class UrlRequest(Thread):
         if timeout is not None:
             args['timeout'] = timeout
 
-        if ca_file is not None and hasattr(ssl, 'create_default_context'):
+        if (ca_file is not None and hasattr(ssl, 'create_default_context') and
+                parse.scheme == 'https'):
             ctx = ssl.create_default_context(cafile=ca_file)
             ctx.verify_mode = ssl.CERT_REQUIRED
             args['context'] = ctx
@@ -355,6 +410,8 @@ class UrlRequest(Thread):
                     if report_progress:
                         q(('progress', resp, (bytes_so_far, total_size)))
                         trigger()
+                    if self._cancel_event.is_set():
+                        break
                 return bytes_so_far, result
 
             if file_path is not None:
@@ -363,7 +420,7 @@ class UrlRequest(Thread):
             else:
                 bytes_so_far, result = get_chunks()
 
-            # ensure that restults are dispatched for the last chunk,
+            # ensure that results are dispatched for the last chunk,
             # avoid trigger
             if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
@@ -406,10 +463,13 @@ class UrlRequest(Thread):
         if content_type is not None:
             ct = content_type.split(';')[0]
             if ct == 'application/json':
+                if isinstance(result, bytes):
+                    result = result.decode('utf-8')
                 try:
                     return loads(result)
                 except:
                     return result
+
         return result
 
     def _dispatch_result(self, dt):
@@ -420,11 +480,22 @@ class UrlRequest(Thread):
             except IndexError:
                 return
             if resp:
+                # Small workaround in order to prevent the situation mentioned
+                # in the comment below
+                final_cookies = ""
+                parsed_headers = []
+                for key, value in resp.getheaders():
+                    if key == "Set-Cookie":
+                        final_cookies += "{};".format(value)
+                    else:
+                        parsed_headers.append((key, value))
+                parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+
                 # XXX usage of dict can be dangerous if multiple headers
                 # are set even if it's invalid. But it look like it's ok
                 # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
-                self._resp_headers = dict(resp.getheaders())
+                self._resp_headers = dict(parsed_headers)
                 self._resp_status = resp.status
             if result == 'success':
                 status_class = resp.status // 100
@@ -483,6 +554,14 @@ class UrlRequest(Thread):
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
+
+            elif result == 'killed':
+                if self._debug:
+                    Logger.debug('UrlRequest: Cancelled by user')
+                if self.on_cancel:
+                    func = self.on_cancel()
+                    if func:
+                        func(self)
 
             else:
                 assert(0)
@@ -544,6 +623,15 @@ class UrlRequest(Thread):
             self._dispatch_result(delay)
             sleep(delay)
 
+    def cancel(self):
+        '''Cancel the current request. It will be aborted, and the result
+        will not be dispatched. Once cancelled, the callback on_cancel will
+        be called.
+
+        .. versionadded:: 1.11.0
+        '''
+        self._cancel_event.set()
+
 
 if __name__ == '__main__':
 
@@ -557,12 +645,14 @@ if __name__ == '__main__':
         pprint('Got an error:')
         pprint(error)
 
-    req = UrlRequest('http://en.wikipedia.org/w/api.php?format'
+    Clock.start_clock()
+    req = UrlRequest('https://en.wikipedia.org/w/api.php?format'
         '=json&action=query&titles=Kivy&prop=revisions&rvprop=content',
         on_success, on_error)
     while not req.is_finished:
         sleep(1)
         Clock.tick()
+    Clock.stop_clock()
 
     print('result =', req.result)
     print('error =', req.error)

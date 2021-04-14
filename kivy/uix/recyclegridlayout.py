@@ -2,21 +2,25 @@
 RecycleGridLayout
 =================
 
+.. versionadded:: 1.10.0
+
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
+
+The RecycleGridLayout is designed to provide a
+:class:`~kivy.uix.gridlayout.GridLayout` type layout when used with the
+:class:`~kivy.uix.recycleview.RecycleView` widget. Please refer to the
+:mod:`~kivy.uix.recycleview` module documentation for more information.
 """
 
+import itertools
+chain_from_iterable = itertools.chain.from_iterable
 from kivy.uix.recyclelayout import RecycleLayout
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.gridlayout import GridLayout, GridLayoutException, nmax, nmin
 from collections import defaultdict
 
 __all__ = ('RecycleGridLayout', )
-
-def nmax(*args):
-    # merge into one list
-    args = [x for x in args if x is not None]
-    return max(args)
 
 
 class RecycleGridLayout(RecycleLayout, GridLayout):
@@ -34,14 +38,19 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
     def _fill_rows_cols_sizes(self):
         cols, rows = self._cols, self._rows
         cols_sh, rows_sh = self._cols_sh, self._rows_sh
+        cols_sh_min, rows_sh_min = self._cols_sh_min, self._rows_sh_min
+        cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
         self._cols_count = cols_count = [defaultdict(int) for _ in cols]
         self._rows_count = rows_count = [defaultdict(int) for _ in rows]
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
-        for i, opt in enumerate(self.view_opts):
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
+        has_bound_y = has_bound_x = False
+        for opt, (col, row) in zip(self.view_opts, idx_iter):
             (shw, shh), (w, h) = opt['size_hint'], opt['size']
-            row, col = divmod(i, n_cols)
+            shw_min, shh_min = opt['size_hint_min']
+            shw_max, shh_max = opt['size_hint_max']
+
             if shw is None:
                 cols_count[col][w] += 1
             if shh is None:
@@ -52,28 +61,47 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                 cols[col] = nmax(cols[col], w)
             else:
                 cols_sh[col] = nmax(cols_sh[col], shw)
+                if shw_min is not None:
+                    has_bound_x = True
+                    cols_sh_min[col] = nmax(cols_sh_min[col], shw_min)
+                if shw_max is not None:
+                    has_bound_x = True
+                    cols_sh_max[col] = nmin(cols_sh_max[col], shw_max)
 
             if shh is None:
                 rows[row] = nmax(rows[row], h)
             else:
                 rows_sh[row] = nmax(rows_sh[row], shh)
+                if shh_min is not None:
+                    has_bound_y = True
+                    rows_sh_min[row] = nmax(rows_sh_min[row], shh_min)
+                if shh_max is not None:
+                    has_bound_y = True
+                    rows_sh_max[row] = nmin(rows_sh_max[row], shh_max)
+        self._has_hint_bound_x = has_bound_x
+        self._has_hint_bound_y = has_bound_y
 
     def _update_rows_cols_sizes(self, changed):
         cols_count, rows_count = self._cols_count, self._rows_count
         cols, rows = self._cols, self._rows
         remove_view = self.remove_view
-        n_cols = len(cols_count)
+        n_cols = len(cols)
+        n_rows = len(rows)
+        orientation = self.orientation
 
         # this can be further improved to reduce re-comp, but whatever...
-        for index, widget, (w, h), (wn, hn), sh, shn, _, _ in changed:
-            if sh != shn:
+        for index, widget, (w, h), (wn, hn), sh, shn, sh_min, shn_min, \
+                sh_max, shn_max, _, _ in changed:
+            if sh != shn or sh_min != shn_min or sh_max != shn_max:
                 return True
-            elif (sh[0] is not None and w != wn or
-                  sh[1] is not None and h != hn):
+            elif (sh[0] is not None and w != wn and
+                  (h == hn or sh[1] is not None) or
+                  sh[1] is not None and h != hn and
+                  (w == wn or sh[0] is not None)):
                 remove_view(widget, index)
-            else:
-                row, col = divmod(index, n_cols)
-
+            else:  # size hint is None, so check if it can be resized inplace
+                col, row = self._calculate_idx_from_a_view_idx(
+                    n_cols, n_rows, index)
                 if w != wn:
                     col_w = cols[col]
                     cols_count[col][w] -= 1
@@ -180,26 +208,48 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                     break
                 iy += 1
 
-        # gridlayout counts from left to right, top to down
-        iy = len(rows) - iy - 1
-        return iy * len(cols) + ix
+        if not self._fills_from_left_to_right:
+            ix = len(cols) - ix - 1
+        if self._fills_from_top_to_bottom:
+            iy = len(rows) - iy - 1
+        return (iy * len(cols) + ix) if self._fills_row_first else \
+            (ix * len(rows) + iy)
 
     def compute_visible_views(self, data, viewport):
         if self._cols_pos is None:
             return []
         x, y, w, h = viewport
-        # gridlayout counts from left to right, top to down
+        right = x + w
+        top = y + h
         at_idx = self.get_view_index_at
-        bl = at_idx((x, y))
-        br = at_idx((x + w, y))
-        tl = at_idx((x, y + h))
+        tl, tr, bl, br = sorted((
+            at_idx((x, y)),
+            at_idx((right, y)),
+            at_idx((x, top)),
+            at_idx((right, top)),
+        ))
+
         n = len(data)
-
+        if len({tl, tr, bl, br}) < 4:
+            # visible area is one row/column
+            return range(min(n, tl), min(n, br + 1))
         indices = []
-        row = len(self._cols)
-        if row:
+        stride = len(self._cols) if self._fills_row_first else len(self._rows)
+        if stride:
             x_slice = br - bl + 1
-            for s in range(tl, bl + 1, row):
-                indices.extend(range(min(s, n), min(n, s + x_slice)))
-
+            indices = chain_from_iterable(
+                range(min(s, n), min(n, s + x_slice))
+                for s in range(tl, bl + 1, stride))
         return indices
+
+    def _calculate_idx_from_a_view_idx(self, n_cols, n_rows, view_idx):
+        '''returns a tuple of (column-index, row-index) from a view-index'''
+        if self._fills_row_first:
+            row_idx, col_idx = divmod(view_idx, n_cols)
+        else:
+            col_idx, row_idx = divmod(view_idx, n_rows)
+        if not self._fills_from_left_to_right:
+            col_idx = n_cols - col_idx - 1
+        if not self._fills_from_top_to_bottom:
+            row_idx = n_rows - row_idx - 1
+        return (col_idx, row_idx, )

@@ -4,17 +4,20 @@
  * by Mathieu Virbel
  *
  * TODO:
- * - enable the provider for iOS, and test it!
  * - add interface for setting some capabilities as focus/exposure/...
- *
  * I've let the code concerning caps, even if it's not yet used. uncomment
  * WITH_CAMERA_CAPS to compile with it.
  */
 
 //#define WITH_CAMERA_CAPS
 
+
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/NSException.h>
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#import <UIKit/UIKit.h>
+#endif
 
 #ifdef WITH_CAMERA_CAPS
 typedef enum {
@@ -39,6 +42,14 @@ public:
     int height;
 };
 
+class CameraMetadata {
+public:
+    CameraMetadata();
+    ~CameraMetadata();
+    char *type;
+    char *data;
+};
+
 
 @interface CaptureDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {
@@ -57,6 +68,62 @@ public:
 
 @end
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+/* AVCaptureMetadataOutput is not available on MacOS */
+@interface MetadataDelegate : NSObject <AVCaptureMetadataOutputObjectsDelegate>
+{
+    CameraMetadata* metadata;
+    int newMetadata;
+}
+- (void)captureOutput:(AVCaptureOutput *)output
+didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
+       fromConnection:(AVCaptureConnection *)connection;
+- (CameraMetadata*)getOutput;
+- (bool)haveNewMetadata;
+- (void)setNewMetadata:(bool)newMetadata;
+@end
+
+@implementation MetadataDelegate
+
+- (id)init {
+    [super init];
+    metadata = NULL;
+    newMetadata = 0;
+    return self;
+}
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput
+didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
+fromConnection:(AVCaptureConnection *)connection{
+    for (AVMetadataObject *object in metadataObjects) {
+        if ([object.type isEqualToString:AVMetadataObjectTypeQRCode]){
+            AVMetadataMachineReadableCodeObject *codeObject = (AVMetadataMachineReadableCodeObject *)object;
+            if (metadata == NULL)
+            {
+                metadata = new CameraMetadata();
+            }
+            NSString *stringValue = codeObject.stringValue ? codeObject.stringValue : @"Unable to decode";
+            metadata->type = (char *)"AVMetadataMachineReadableCodeObject";
+            metadata->data = (char *)[stringValue UTF8String];
+            NSLog(@"Code: %@", stringValue);
+            newMetadata = 1;
+        }
+    }
+}
+
+-(CameraMetadata*) getOutput {
+    return metadata;
+}
+
+-(bool)haveNewMetadata {
+    return newMetadata == 1;
+}
+-(void)setNewMetadata:(bool)status{
+    newMetadata = status;
+}
+
+@end
+#endif
 
 class Camera {
 
@@ -65,8 +132,14 @@ public:
     ~Camera();
     bool grabFrame(double timeOut);
     CameraFrame* retrieveFrame();
+    CameraMetadata* retrieveMetadata();
     int startCaptureDevice();
     void stopCaptureDevice();
+    bool attemptFrameRateSelection(int desiredFrameRate);
+    bool attemptCapturePreset(NSString *preset);
+    bool attemptStartMetadataAnalysis();
+    bool haveNewMetadata();
+    bool setVideoOrientation(int orientation);
 
 #ifdef WITH_CAMERA_CAPS
     double getProperty(int property_id);
@@ -80,6 +153,11 @@ private:
     AVCaptureVideoDataOutput    *mCaptureDecompressedVideoOutput;
     AVCaptureDevice             *mCaptureDevice;
     CaptureDelegate             *capture;
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    /* AVCaptureMetadataOutput is not available on MacOS */
+    AVCaptureMetadataOutput     *mMetadataOutput;
+    MetadataDelegate            *metadata;
+    #endif
 
     int cameraNum;
     int width;
@@ -104,6 +182,22 @@ CameraFrame::~CameraFrame() {
     }
 }
 
+CameraMetadata::CameraMetadata() {
+    type = NULL;
+    data = NULL;
+}
+
+CameraMetadata::~CameraMetadata() {
+    if (type != NULL) {
+        free(type);
+        type = NULL;
+    }
+    if (data != NULL) {
+        free(data);
+        data = NULL;
+    }
+}
+
 Camera::Camera(int _cameraNum, int _width, int _height) {
     mCaptureSession = nil;
     mCaptureDeviceInput = nil;
@@ -120,28 +214,53 @@ Camera::Camera(int _cameraNum, int _width, int _height) {
 }
 
 Camera::~Camera() {
-    stopCaptureDevice();
+    if(started){
+        stopCaptureDevice();
+    }
 }
 
 bool Camera::grabFrame(double timeOut) {
-
+    
     NSAutoreleasePool* localpool = [[NSAutoreleasePool alloc] init];
+    bool haveFrame = false;
     double sleepTime = 0.005;
     double total = 0;
     NSDate *loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
-    [capture updateImage];
-    while (![capture updateImage] && (total += sleepTime)<=timeOut &&
+    haveFrame = [capture updateImage];
+    while (!haveFrame && (total += sleepTime)<=timeOut &&
             [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-            beforeDate:loopUntil])
+            beforeDate:loopUntil]){
+        haveFrame = [capture updateImage];
         loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
+    }
 
     [localpool drain];
 
-    return total <= timeOut;
+    return haveFrame;
 }
 
 CameraFrame* Camera::retrieveFrame() {
     return [capture getOutput];
+}
+
+CameraMetadata* Camera::retrieveMetadata() {
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        [metadata setNewMetadata: 0];
+        return [metadata getOutput];
+    #else
+        CameraMetadata* metadata = new CameraMetadata();
+        metadata->type = (char*) "NoMetadata";
+        metadata->data = (char*) "PlatformUnsupported";
+        return metadata;
+    #endif
+}
+
+bool Camera::haveNewMetadata() {
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        return [metadata haveNewMetadata];
+    #else
+        return false;
+    #endif
 }
 
 void Camera::stopCaptureDevice() {
@@ -158,6 +277,52 @@ void Camera::stopCaptureDevice() {
     [localpool drain];
 }
 
+bool Camera::attemptFrameRateSelection(int desiredFrameRate){
+    bool isFPSSupported = NO;
+    AVCaptureDeviceFormat *currentFormat = [mCaptureDevice activeFormat];
+    for ( AVFrameRateRange *range in currentFormat.videoSupportedFrameRateRanges ) {
+        if ( range.maxFrameRate >= desiredFrameRate && range.minFrameRate <= desiredFrameRate )        {
+            isFPSSupported = YES;
+            break;
+        }
+    }
+
+    if( isFPSSupported ) {
+        if ( [mCaptureDevice lockForConfiguration:NULL] ) {
+            mCaptureDevice.activeVideoMaxFrameDuration = CMTimeMake( 1, desiredFrameRate );
+            mCaptureDevice.activeVideoMinFrameDuration = CMTimeMake( 1, desiredFrameRate );
+            [mCaptureDevice unlockForConfiguration];
+        }
+    } else {
+        NSLog(@"Selected FPS (%d) not available on this platform.", desiredFrameRate);
+    }
+    return isFPSSupported;
+}
+
+bool Camera::attemptCapturePreset(NSString *preset){
+    // See available presets: https://developer.apple.com/documentation/avfoundation/avcapturesessionpreset
+    if([mCaptureSession canSetSessionPreset: preset]){
+        [mCaptureSession setSessionPreset: preset];
+        return true;
+    }
+    NSLog(@"Selected preset (%@) not available on this platform", preset);
+    return false;
+}
+
+bool Camera::attemptStartMetadataAnalysis(){
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        /* AVCaptureMetadataOutput is not available on MacOS */
+        [mCaptureSession addOutput:mMetadataOutput];
+        [mMetadataOutput setMetadataObjectsDelegate:metadata
+                             queue:dispatch_get_main_queue()];
+        [mMetadataOutput setMetadataObjectTypes: @[AVMetadataObjectTypeQRCode]];
+        return true;
+    #else
+        NSLog(@"Metadata Analysis not available on this platform.");
+        return false;
+    #endif
+}
+
 int Camera::startCaptureDevice() {
     NSError* error;
     NSArray *devices;
@@ -170,6 +335,7 @@ int Camera::startCaptureDevice() {
     capture = [[CaptureDelegate alloc] init];
 
     devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
     if ([devices count] == 0) {
         NSLog(@"AV Foundation didn't find any attached Video Input Devices!\n");
         [localpool drain];
@@ -186,6 +352,7 @@ int Camera::startCaptureDevice() {
     } else {
         device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo]  ;
     }
+
     mCaptureDevice = device;
 
     if (device) {
@@ -193,18 +360,26 @@ int Camera::startCaptureDevice() {
         mCaptureDeviceInput = [[AVCaptureDeviceInput alloc] initWithDevice:device error:&error] ;
         mCaptureSession = [[AVCaptureSession alloc] init] ;
 
+        #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        /* AVCaptureMetadataOutput is not available on MacOS */
+        metadata = [[MetadataDelegate alloc] init];
+        mMetadataOutput = [[AVCaptureMetadataOutput alloc] init];
+        #endif
+
         mCaptureDecompressedVideoOutput = [[AVCaptureVideoDataOutput alloc] init];
 
         dispatch_queue_t queue = dispatch_queue_create("cameraQueue", NULL);
         [mCaptureDecompressedVideoOutput setSampleBufferDelegate:capture queue:queue];
         dispatch_release(queue);
 
-
         NSDictionary *pixelBufferOptions ;
         if (width > 0 && height > 0) {
             pixelBufferOptions = [NSDictionary dictionaryWithObjectsAndKeys:
+                #if TARGET_OS_OSX
+                // On MacOS, we have the chance to resize the image to the height + width the user provided.
                 [NSNumber numberWithDouble:1.0*width], (id)kCVPixelBufferWidthKey,
                 [NSNumber numberWithDouble:1.0*height], (id)kCVPixelBufferHeightKey,
+                #endif
                 [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA],
                 (id)kCVPixelBufferPixelFormatTypeKey,
                 nil];
@@ -214,25 +389,33 @@ int Camera::startCaptureDevice() {
                 (id)kCVPixelBufferPixelFormatTypeKey,
                 nil];
         }
-
-        //TODO: add new interface for setting fps and capturing resolution.
         [mCaptureDecompressedVideoOutput setVideoSettings:pixelBufferOptions];
         mCaptureDecompressedVideoOutput.alwaysDiscardsLateVideoFrames = YES;
 
-#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-        mCaptureDecompressedVideoOutput.minFrameDuration = CMTimeMake(1, 30);
-#endif
+        // Attempt to set framerate to 30 FPS
+        attemptFrameRateSelection(30);
 
-        //Slow. 1280*720 for iPhone4, iPod back camera. 640*480 for front camera
-        //mCaptureSession.sessionPreset = AVCaptureSessionPresetHigh; // fps ~= 5 slow for OpenCV
-
-        mCaptureSession.sessionPreset = AVCaptureSessionPresetMedium; //480*360
-        if (width == 0) width = 480;
-        if (height == 0) height = 360;
+        /* By default, We're using the AVCaptureSessionPresetHigh preset for capturing frames on both iOS and MacOS.
+           The user can override these settings by calling the attemptCapturePreset() function
+        */
+        attemptCapturePreset(@"AVCaptureSessionPresetHigh");
 
         [mCaptureSession addInput:mCaptureDeviceInput];
         [mCaptureSession addOutput:mCaptureDecompressedVideoOutput];
-        [mCaptureSession startRunning];
+
+        AVCaptureConnection *conn = [mCaptureDecompressedVideoOutput connectionWithMediaType:AVMediaTypeVideo];
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        /* By default, on iOS, We select the correct AVCaptureVideoOrientation based on device orientation */
+        AVCaptureVideoOrientation default_orientation = (AVCaptureVideoOrientation)[[UIDevice currentDevice] orientation];
+#else
+        AVCaptureVideoOrientation default_orientation = AVCaptureVideoOrientationLandscapeRight;
+#endif
+        [conn setVideoOrientation:default_orientation];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [mCaptureSession startRunning];
+        });
         [localpool drain];
 
         started = 1;
@@ -241,6 +424,13 @@ int Camera::startCaptureDevice() {
 
     [localpool drain];
     return 0;
+}
+
+bool Camera::setVideoOrientation(int orientation) {
+    AVCaptureConnection *conn = [mCaptureDecompressedVideoOutput connectionWithMediaType:AVMediaTypeVideo];
+    if([conn isVideoOrientationSupported]){
+        [conn setVideoOrientation:(AVCaptureVideoOrientation) orientation];
+    }
 }
 
 #ifdef WITH_CAMERA_CAPS
@@ -440,20 +630,25 @@ fromConnection:(AVCaptureConnection *)connection{
     size_t height = CVPixelBufferGetHeight(pixels);
     size_t rowsize = CVPixelBufferGetBytesPerRow(pixels);
 
-    //NSLog(@"updateImage() ! width=%lu height=%lu rowsize=%lu\n",
-    //        width, height, rowsize);
+    /*
+    NSLog(@"updateImage() ! width=%lu height=%lu rowsize=%lu\n",
+            width, height, rowsize);
+    */
 
     if (rowsize != 0) {
 
         if (image == NULL)
             image = new CameraFrame((int)width, (int)height);
 
+        image->width = width;
+        image->height = height;
+        image->rowsize = (unsigned int)rowsize;
+
         if (image->datasize != width * height * sizeof(char) * 4) {
             image->datasize = (unsigned int)(width * height * sizeof(char) * 4);
             if (image->data != NULL)
                 free(image->data);
             image->data = (char *)malloc(image->datasize);
-            image->rowsize = (unsigned int)rowsize;
         }
 
         if (image->rowsize == width * 4)
@@ -501,8 +696,8 @@ void avf_camera_deinit(camera_t camera) {
     delete (Camera *)(camera);
 }
 
-void avf_camera_update(camera_t camera) {
-    ((Camera *)camera)->grabFrame(0);
+bool avf_camera_update(camera_t camera) {
+    return ((Camera *)camera)->grabFrame(0);
 }
 
 void avf_camera_get_image(camera_t camera, int *width, int *height, int *rowsize, char **data) {
@@ -515,5 +710,33 @@ void avf_camera_get_image(camera_t camera, int *width, int *height, int *rowsize
     *height = frame->height;
     *rowsize = frame->rowsize;
     *data = frame->data;
+}
+
+bool avf_camera_attempt_framerate_selection(camera_t camera, int fps){
+    return ((Camera *)camera)->attemptFrameRateSelection(fps);
+}
+
+bool avf_camera_attempt_capture_preset(camera_t camera, char *preset){
+    NSString *capture_preset = [NSString stringWithUTF8String:preset];
+    NSLog(@"Preset: %@", capture_preset);
+    return ((Camera *)camera)->attemptCapturePreset(capture_preset);
+}
+
+bool avf_camera_attempt_start_metadata_analysis(camera_t camera){
+    return ((Camera *)camera)->attemptStartMetadataAnalysis();
+}
+
+void avf_camera_get_metadata(camera_t camera, char **metatype, char **data) {
+    CameraMetadata *metadata = ((Camera *)camera)->retrieveMetadata();
+    *metatype = metadata->type;
+    *data = metadata->data;
+}
+
+bool avf_camera_have_new_metadata(camera_t camera){
+    return ((Camera *)camera)->haveNewMetadata();
+}
+
+bool avf_camera_set_video_orientation(camera_t camera, int orientation){
+    return ((Camera *)camera)->setVideoOrientation(orientation);
 }
 

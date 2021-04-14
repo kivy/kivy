@@ -109,13 +109,13 @@ class VectorTestCase(unittest.TestCase):
 
     def test_truediv_twovectors(self):
         finalVector = truediv(Vector(6, 6), Vector(2., 2.))
-        self.assertEqual(finalVector.x, 3.)
-        self.assertEqual(finalVector.y, 3.)
+        self.assertAlmostEqual(finalVector.x, 3.)
+        self.assertAlmostEqual(finalVector.y, 3.)
 
     def test_truediv_scalar(self):
         finalVector = truediv(Vector(6, 6), 2.)
-        self.assertEqual(finalVector.x, 3.)
-        self.assertEqual(finalVector.y, 3.)
+        self.assertAlmostEqual(finalVector.x, 3.)
+        self.assertAlmostEqual(finalVector.y, 3.)
 
     def test_div_inplace(self):
         finalVector = Vector(6, 6)
@@ -174,8 +174,8 @@ class VectorTestCase(unittest.TestCase):
 
     def test_normalize(self):
         vector = Vector(88, 33).normalize()
-        self.assertEqual(vector.x, 0.93632917756904444)
-        self.assertEqual(vector.y, 0.3511234415883917)
+        self.assertAlmostEqual(vector.x, 0.93632917756904444)
+        self.assertAlmostEqual(vector.y, 0.3511234415883917)
         self.assertAlmostEqual(vector.length(), 1.0)
 
     def test_normalize_zerovector(self):
@@ -190,13 +190,13 @@ class VectorTestCase(unittest.TestCase):
 
     def test_angle(self):
         result = Vector(100, 0).angle((0, 100))
-        self.assertEqual(result, -90.0)
+        self.assertAlmostEqual(result, -90.0)
 
     def test_rotate(self):
         v = Vector(100, 0)
         v = v.rotate(45)
-        self.assertEqual(v.x, 70.710678118654755)
-        self.assertEqual(v.y, 70.710678118654741)
+        self.assertAlmostEqual(v.x, 70.710678118654755)
+        self.assertAlmostEqual(v.y, 70.710678118654741)
 
     def test_(self):
         a = (98, 28)
@@ -204,8 +204,8 @@ class VectorTestCase(unittest.TestCase):
         c = (10, -5)
         d = (20, 88)
         result = Vector.line_intersection(a, b, c, d)
-        self.assertEqual(result.x, 15.25931928687196)
-        self.assertEqual(result.y, 43.911669367909241)
+        self.assertAlmostEqual(result.x, 15.25931928687196)
+        self.assertAlmostEqual(result.y, 43.911669367909241)
 
     def test_inbbox(self):
         bmin = (0, 0)
@@ -214,3 +214,43 @@ class VectorTestCase(unittest.TestCase):
         self.assertTrue(result)
         result = Vector.in_bbox((647, -10), bmin, bmax)
         self.assertFalse(result)
+
+    def test_intersection_roundingerror(self):
+        # ref #2983, #5568
+
+        v1 = (25.0, 200.0)
+        v2 = (25.0, 400.0)
+        v3 = (36.75, 300.0)
+        result = [25.0, 300.0]
+
+        def almost(a, b):
+            # 300.0 sometimes is 299.9.. or 300.1.. however
+            # we just want to know that it's really close
+            self.assertIsNotNone(a)
+            self.assertIsNotNone(b)
+            self.assertAlmostEqual(a[0], b[0], places=0)
+            self.assertAlmostEqual(a[1], b[1], places=0)
+
+        for i in range(1, 100):
+            st = "6.4" + "9" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "6.1" + "1" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "6.4" + "4" * i
+            v = (float(st), 300.0)
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+        for i in range(1, 100):
+            st = "300.4" + "9" * i
+            v = (6.5, float(st))
+            almost(result, Vector.segment_intersection(v1, v2, v3, v))
+
+
+if __name__ == '__main__':
+    unittest.main()

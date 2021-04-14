@@ -70,14 +70,14 @@ class ScatterLayout(Scatter):
     def update_size(self, instance, size):
         self.content.size = size
 
-    def add_widget(self, *l):
-        self.content.add_widget(*l)
+    def add_widget(self, *args, **kwargs):
+        self.content.add_widget(*args, **kwargs)
 
-    def remove_widget(self, *l):
-        self.content.remove_widget(*l)
+    def remove_widget(self, *args, **kwargs):
+        self.content.remove_widget(*args, **kwargs)
 
-    def clear_widgets(self):
-        self.content.clear_widgets()
+    def clear_widgets(self, *args, **kwargs):
+        self.content.clear_widgets(*args, **kwargs)
 
 
 class ScatterPlaneLayout(ScatterPlane):

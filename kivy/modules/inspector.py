@@ -54,35 +54,22 @@ To remove the Inspector, you can do the following::
 
 __all__ = ('start', 'stop', 'create_inspector')
 
-import kivy
-kivy.require('1.0.9')
-
 import weakref
 from functools import partial
 from itertools import chain
+
 from kivy.animation import Animation
 from kivy.logger import Logger
-from kivy.uix.widget import Widget
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.textinput import TextInput
-from kivy.uix.image import Image
-from kivy.uix.treeview import TreeViewNode, TreeView
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.modalview import ModalView
-from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix
-from kivy.graphics.context_instructions import Transform
 from kivy.graphics.transformation import Matrix
-from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
-    NumericProperty, StringProperty, OptionProperty, \
-    ReferenceListProperty, AliasProperty, VariableListProperty
-from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.lang import Builder
-
+from kivy.factory import Factory
+from kivy.weakproxy import WeakProxy
+from kivy.properties import (
+    ObjectProperty, BooleanProperty, ListProperty,
+    NumericProperty, StringProperty, OptionProperty,
+    ReferenceListProperty, AliasProperty, VariableListProperty
+)
 
 Builder.load_string('''
 <Inspector>:
@@ -236,18 +223,18 @@ Builder.load_string('''
 ''')
 
 
-class TreeViewProperty(BoxLayout, TreeViewNode):
+class TreeViewProperty(Factory.BoxLayout, Factory.TreeViewNode):
 
     widget_ref = ObjectProperty(None, allownone=True)
 
     def _get_widget(self):
         wr = self.widget_ref
         if wr is None:
-            return None
+            return
         wr = wr()
         if wr is None:
             self.widget_ref = None
-            return None
+            return
         return wr
     widget = AliasProperty(_get_widget, None, bind=('widget_ref', ))
 
@@ -258,11 +245,11 @@ class TreeViewProperty(BoxLayout, TreeViewNode):
     refresh = BooleanProperty(False)
 
 
-class TreeViewWidget(Label, TreeViewNode):
+class TreeViewWidget(Factory.Label, Factory.TreeViewNode):
     widget = ObjectProperty(None)
 
 
-class WidgetTree(TreeView):
+class WidgetTree(Factory.TreeView):
     selected_widget = ObjectProperty(None, allownone=True)
 
     __events__ = ('on_select_widget',)
@@ -280,7 +267,7 @@ class WidgetTree(TreeView):
                     return node
             except ReferenceError:
                 pass
-        return None
+        return
 
     def update_selected_widget(self, widget):
         if widget:
@@ -316,7 +303,7 @@ class WidgetTree(TreeView):
         self.parent.scroll_to(node)
 
 
-class Inspector(FloatLayout):
+class Inspector(Factory.FloatLayout):
 
     widget = ObjectProperty(None, allownone=True)
 
@@ -336,22 +323,24 @@ class Inspector(FloatLayout):
 
     at_bottom = BooleanProperty(True)
 
+    _update_widget_tree_ev = None
+
     def __init__(self, **kwargs):
         self.win = kwargs.pop('win', None)
         super(Inspector, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
         with self.canvas.before:
-            self.gcolor = Color(1, 0, 0, .25)
-            PushMatrix()
-            self.gtransform = Transform(Matrix())
-            self.grect = Rectangle(size=(0, 0))
-            PopMatrix()
+            self.gcolor = Factory.Color(1, 0, 0, .25)
+            Factory.PushMatrix()
+            self.gtransform = Factory.Transform(Matrix())
+            self.grect = Factory.Rectangle(size=(0, 0))
+            Factory.PopMatrix()
         Clock.schedule_interval(self.update_widget_graphics, 0)
 
     def on_touch_down(self, touch):
         ret = super(Inspector, self).on_touch_down(touch)
-        if (('button' not in touch.profile or touch.button == 'left')
-                and not ret and self.inspect_enabled):
+        if (('button' not in touch.profile or touch.button == 'left') and
+                not ret and self.inspect_enabled):
             self.highlight_at(*touch.pos)
             if touch.is_double_tap:
                 self.inspect_enabled = False
@@ -373,7 +362,7 @@ class Inspector(FloatLayout):
         return ret
 
     def on_window_children(self, win, children):
-        if self.avoid_bring_to_top:
+        if self.avoid_bring_to_top or not self.activated:
             return
         self.avoid_bring_to_top = True
         win.remove_widget(self)
@@ -386,8 +375,11 @@ class Inspector(FloatLayout):
         # modalviews before others
         win_children = self.win.children
         children = chain(
-            (c for c in reversed(win_children) if isinstance(c, ModalView)),
-            (c for c in reversed(win_children) if not isinstance(c, ModalView))
+            (c for c in win_children if isinstance(c, Factory.ModalView)),
+            (
+                c for c in reversed(win_children)
+                if not isinstance(c, Factory.ModalView)
+            )
         )
         for child in children:
             if child is self:
@@ -405,7 +397,7 @@ class Inspector(FloatLayout):
         if self.widget_info and info:
             self.show_widget_info()
 
-    def update_widget_graphics(self, *l):
+    def update_widget_graphics(self, *largs):
         if not self.activated:
             return
         if self.widget is None:
@@ -475,11 +467,16 @@ class Inspector(FloatLayout):
             else:
                 Animation(y=self.height - 60, t='out_quad', d=.3).start(
                     self.layout)
-            Clock.schedule_interval(self.update_widget_tree, 1)
+            ev = self._update_widget_tree_ev
+            if ev is None:
+                ev = self._update_widget_tree_ev = Clock.schedule_interval(
+                    self.update_widget_tree, 1)
+            else:
+                ev()
             self.update_widget_tree()
 
     def animation_close(self, instance, value):
-        if self.activated is False:
+        if not self.activated:
             self.inspect_enabled = False
             self.win.remove_widget(self)
             self.content.clear_widgets()
@@ -487,8 +484,11 @@ class Inspector(FloatLayout):
             for node in list(treeview.iterate_all_nodes()):
                 node.widget_ref = None
                 treeview.remove_node(node)
+
             self._window_node = None
-            Clock.unschedule(self.update_widget_tree)
+            if self._update_widget_tree_ev is not None:
+                self._update_widget_tree_ev.cancel()
+
             widgettree = self.widgettree
             for node in list(widgettree.iterate_all_nodes()):
                 widgettree.remove_node(node)
@@ -520,7 +520,10 @@ class Inspector(FloatLayout):
         keys = list(widget.properties().keys())
         keys.sort()
         node = None
-        wk_widget = weakref.ref(widget)
+        if type(widget) is WeakProxy:
+            wk_widget = widget.__ref__
+        else:
+            wk_widget = weakref.ref(widget)
         for key in keys:
             node = TreeViewProperty(key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
@@ -531,7 +534,7 @@ class Inspector(FloatLayout):
                 pass
             treeview.add_node(node)
 
-    def update_node_content(self, node, *l):
+    def update_node_content(self, node, *largs):
         node = node()
         if node is None:
             return
@@ -540,7 +543,8 @@ class Inspector(FloatLayout):
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and set(modifiers) & {'ctrl'} and not set(
+                modifiers) & {'shift', 'alt', 'meta'}:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
@@ -553,7 +557,7 @@ class Inspector(FloatLayout):
                 self.activated = False
                 return True
 
-    def show_property(self, instance, value, key=None, index=-1, *l):
+    def show_property(self, instance, value, key=None, index=-1, *largs):
         # normal call: (tree node, focus, )
         # nested call: (widget, prop value, prop key, index in dict/list)
         if value is False:
@@ -576,7 +580,7 @@ class Inspector(FloatLayout):
         dtype = None
 
         if isinstance(prop, AliasProperty) or nested:
-            # trying to resolve type dynamicly
+            # trying to resolve type dynamically
             if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):
@@ -585,22 +589,26 @@ class Inspector(FloatLayout):
                 dtype = 'list'
 
         if isinstance(prop, NumericProperty) or dtype == 'numeric':
-            content = TextInput(text=str(value) or '', multiline=False)
+            content = Factory.TextInput(text=str(value) or '', multiline=False)
             content.bind(text=partial(
                 self.save_property_numeric, widget, key, index))
         elif isinstance(prop, StringProperty) or dtype == 'string':
-            content = TextInput(text=value or '', multiline=True)
+            content = Factory.TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
         elif (isinstance(prop, ListProperty) or
               isinstance(prop, ReferenceListProperty) or
               isinstance(prop, VariableListProperty) or
               dtype == 'list'):
-            content = GridLayout(cols=1, size_hint_y=None)
+            content = Factory.GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for i, item in enumerate(value):
-                button = Button(text=repr(item), size_hint_y=None, height=44)
-                if isinstance(item, Widget):
+                button = Factory.Button(
+                    text=repr(item),
+                    size_hint_y=None,
+                    height=44
+                )
+                if isinstance(item, Factory.Widget):
                     button.bind(on_release=partial(self.highlight_widget, item,
                                                    False))
                 else:
@@ -608,10 +616,10 @@ class Inspector(FloatLayout):
                                                    item, key, i))
                 content.add_widget(button)
         elif isinstance(prop, OptionProperty):
-            content = GridLayout(cols=1, size_hint_y=None)
+            content = Factory.GridLayout(cols=1, size_hint_y=None)
             content.bind(minimum_height=content.setter('height'))
             for option in prop.options:
-                button = ToggleButton(
+                button = Factory.ToggleButton(
                     text=option,
                     state='down' if option == value else 'normal',
                     group=repr(content.uid), size_hint_y=None,
@@ -620,17 +628,17 @@ class Inspector(FloatLayout):
                     self.save_property_option, widget, key))
                 content.add_widget(button)
         elif isinstance(prop, ObjectProperty):
-            if isinstance(value, Widget):
-                content = Button(text=repr(value))
+            if isinstance(value, Factory.Widget):
+                content = Factory.Button(text=repr(value))
                 content.bind(on_release=partial(self.highlight_widget, value))
-            elif isinstance(value, Texture):
-                content = Image(texture=value)
+            elif isinstance(value, Factory.Texture):
+                content = Factory.Image(texture=value)
             else:
-                content = Label(text=repr(value))
+                content = Factory.Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
             state = 'down' if value else 'normal'
-            content = ToggleButton(text=key, state=state)
+            content = Factory.ToggleButton(text=key, state=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
                                             key, index))
 
@@ -666,7 +674,7 @@ class Inspector(FloatLayout):
         except:
             pass
 
-    def save_property_option(self, widget, key, instance, *l):
+    def save_property_option(self, widget, key, instance, *largs):
         try:
             setattr(widget, key, instance.text)
         except:
@@ -711,9 +719,9 @@ class Inspector(FloatLayout):
         self.widgettree.update_selected_widget(self.widget)
 
 
-def create_inspector(win, ctx, *l):
+def create_inspector(win, ctx, *largs):
     '''Create an Inspector instance attached to the *ctx* and bound to the
-    Windows :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
+    Window's :meth:`~kivy.core.window.WindowBase.on_keyboard` event for
     capturing the keyboard shortcut.
 
         :Parameters:
@@ -731,11 +739,15 @@ def create_inspector(win, ctx, *l):
 
 
 def start(win, ctx):
-    Clock.schedule_once(partial(create_inspector, win, ctx))
+    ctx.ev_late_create = Clock.schedule_once(
+        partial(create_inspector, win, ctx))
 
 
 def stop(win, ctx):
     '''Stop and unload any active Inspectors for the given *ctx*.'''
+    if hasattr(ctx, 'ev_late_create'):
+        ctx.ev_late_create.cancel()
+        del ctx.ev_late_create
     if hasattr(ctx, 'inspector'):
         win.unbind(children=ctx.inspector.on_window_children,
                    on_keyboard=ctx.inspector.keyboard_shortcut)

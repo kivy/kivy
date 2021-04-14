@@ -67,26 +67,37 @@ But it's up to you.
 
 __all__ = ('Fbo', )
 
-include "config.pxi"
+include "../include/config.pxi"
 include "opcodes.pxi"
 
 from os import environ
+from kivy.compat import PY2
 from kivy.logger import Logger
+from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
 
-from kivy.graphics.c_opengl cimport *
-IF USE_OPENGL_MOCK == 1:
-    from kivy.graphics.c_opengl_mock cimport *
-IF USE_OPENGL_DEBUG == 1:
-    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.cgl cimport *
+
 from kivy.graphics.instructions cimport RenderContext, Canvas
 from kivy.graphics.opengl import glReadPixels as py_glReadPixels
+from kivy.graphics.stencil_instructions cimport (
+    get_stencil_state, restore_stencil_state, reset_stencil_state)
 
 cdef list fbo_stack = []
 cdef list fbo_release_list = []
+
+# must be running GLES2 not just the headers
+cdef int IS_GLES_PLATFORM = USE_OPENGL_ES2
+if platform == "darwin":
+    IS_GLES_PLATFORM = 0
+
+
+# XXX OpenGL & GLES 3 symbol, but works and required on "GLES 2" on iOS
+# Adding it to headers can be complicated because it doesn't exists in gl2.h
+cdef int GL_DEPTH_STENCIL_ATTACHMENT = 0x821A
 
 
 cdef class Fbo(RenderContext):
@@ -124,19 +135,21 @@ cdef class Fbo(RenderContext):
             return 'Incomplete missing attachment'
         elif status == GL_FRAMEBUFFER_UNSUPPORTED:
             return 'Unsupported'
-        IF USE_OPENGL_ES2 == 0:
-            if status == 0x8219: #GL_FRAMEBUFFER_UNDEFINED
-                return 'Undefined framebuffer'
-            elif status == 0x8cdb: #GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
-                return 'Incomplete draw buffer'
-            elif status == 0x8cdc: #GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
-                return 'Incomplete read buffer'
-            elif status == 0x8d56: #GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
-                return 'Incomplete multisample'
-            elif status == 0x8da8: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
-                return 'Incomplete layer targets'
-            elif status == 0x8da9: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT
-                return 'Incomplete layer count'
+        elif status == GL_FRAMEBUFFER_UNDEFINED_OES:
+            return 'Undefined framebuffer'
+        elif status == 0x8219: #GL_FRAMEBUFFER_UNDEFINED
+            return 'Undefined framebuffer'
+        elif status == 0x8cdb: #GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
+            return 'Incomplete draw buffer'
+        elif status == 0x8cdc: #GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
+            return 'Incomplete read buffer'
+        elif status == 0x8d56: #GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+            return 'Incomplete multisample'
+        elif status == 0x8da8: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
+            return 'Incomplete layer targets'
+        elif status == 0x8da9: #GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT
+            return 'Incomplete layer count'
+
         return 'Unknown (status=%x)' % status
 
     cdef void raise_exception(self, str message, int status=0):
@@ -174,8 +187,11 @@ cdef class Fbo(RenderContext):
         self._texture = kwargs['texture']
         self.observers = []
 
-        if self._depthbuffer_attached and self._stencilbuffer_attached:
-            Logger.warning('Fbo: depth+stencil buffer support is experimental')
+        if IS_GLES_PLATFORM:
+            # on GLES/iOS, depthbuffer works with stencil enabled
+            # that's how openFrameworks did for all GLES platform in ofFbo.cpp
+            if self._depthbuffer_attached:
+                self._stencilbuffer_attached = True
 
         self.create_fbo()
 
@@ -191,6 +207,7 @@ cdef class Fbo(RenderContext):
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
         cdef GLint old_fid = 0
+        cdef GLint old_rid = 0
         cdef int status
         cdef int do_clear = 0
 
@@ -203,52 +220,60 @@ cdef class Fbo(RenderContext):
         self._texture.bind()
 
         # create framebuffer
-        glGenFramebuffers(1, &f_id)
+        cgl.glGenFramebuffers(1, &f_id)
         self.buffer_id = f_id
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
+        cgl.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
+        cgl.glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
-        # experimental depth+stencil renderbuffer
+        if self._depthbuffer_attached or self._stencilbuffer_attached:
+            cgl.glGetIntegerv(GL_RENDERBUFFER_BINDING, &old_rid)
+
+        # depth+stencil renderbuffer
         if self._depthbuffer_attached and self._stencilbuffer_attached:
-            glGenRenderbuffers(1, &f_id)
+            cgl.glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = self.stencilbuffer_id = f_id
-            glBindRenderbuffer(GL_RENDERBUFFER, f_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, f_id)
+            cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
                                   self._width, self._height)
-            glBindRenderbuffer(GL_RENDERBUFFER, 0)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                      GL_RENDERBUFFER, f_id)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                                      GL_RENDERBUFFER, f_id)
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
+
+            if IS_GLES_PLATFORM:
+                cgl.glFramebufferRenderbuffer(
+                    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER, f_id)
+            else:
+                cgl.glFramebufferRenderbuffer(
+                    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                    GL_RENDERBUFFER, f_id)
 
         # if we need depth, create a renderbuffer
         elif self._depthbuffer_attached:
-            glGenRenderbuffers(1, &f_id)
+            cgl.glGenRenderbuffers(1, &f_id)
             self.depthbuffer_id = f_id
-            glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
+            cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
                                   self._width, self._height)
-            glBindRenderbuffer(GL_RENDERBUFFER, 0)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
+            cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                       GL_RENDERBUFFER, self.depthbuffer_id)
 
         # if we need stencil, create a renderbuffer
         elif self._stencilbuffer_attached:
-            glGenRenderbuffers(1, &f_id)
+            cgl.glGenRenderbuffers(1, &f_id)
             self.stencilbuffer_id = f_id
-            glBindRenderbuffer(GL_RENDERBUFFER, self.stencilbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8,
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, self.stencilbuffer_id)
+            cgl.glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8,
                                   self._width, self._height)
-            glBindRenderbuffer(GL_RENDERBUFFER, 0)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+            cgl.glBindRenderbuffer(GL_RENDERBUFFER, old_rid)
+            cgl.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
                                       GL_RENDERBUFFER, self.stencilbuffer_id)
 
         # attach the framebuffer to our texture
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        cgl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 self._texture._target, self._texture._id, 0)
 
         # check the status of the framebuffer
-        status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        status = cgl.glCheckFramebufferStatus(GL_FRAMEBUFFER)
 
         if (status == GL_FRAMEBUFFER_UNSUPPORTED and
                 (self._stencilbuffer_attached ^ self._depthbuffer_attached)):
@@ -256,7 +281,7 @@ cdef class Fbo(RenderContext):
             Logger.warning('Fbo: unsupported mode; ' +
                            'attempting to create depth+stencil buffer instead')
             self._stencilbuffer_attached = self._depthbuffer_attached = True
-            glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
+            cgl.glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
             self.create_fbo()
             return
 
@@ -268,7 +293,7 @@ cdef class Fbo(RenderContext):
             self.clear_buffer()
 
         # unbind the framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
+        cgl.glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
 
         cdef Matrix projection_mat = Matrix()
         projection_mat.view_clip(0.0, self._width, 0.0, self._height, -1.0, 1.0, 0)
@@ -302,15 +327,19 @@ cdef class Fbo(RenderContext):
         if len(fbo_stack) == 0:
             # the very first time we're going to create it, fill with the
             # initial framebuffer
-            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
+            cgl.glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
             fbo_stack.append(old_fid)
         fbo_stack.append(self.buffer_id)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
+        cgl.glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
         # if asked, push the viewport
         if self._push_viewport:
-            glGetIntegerv(GL_VIEWPORT, <GLint *>self._viewport)
-            glViewport(0, 0, self._width, self._height)
+            cgl.glGetIntegerv(GL_VIEWPORT, <GLint *>self._viewport)
+            cgl.glViewport(0, 0, self._width, self._height)
+
+        # save stencil stack
+        self._stencil_state = get_stencil_state()
+        reset_stencil_state()
 
     cpdef release(self):
         '''Release the Framebuffer (unbind).
@@ -322,12 +351,15 @@ cdef class Fbo(RenderContext):
 
         # bind the latest fbo, or unbind it.
         fbo_stack.pop()
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo_stack[-1])
+        cgl.glBindFramebuffer(GL_FRAMEBUFFER, fbo_stack[-1])
 
         # if asked, restore the viewport
         if self._push_viewport:
-            glViewport(self._viewport[0], self._viewport[1],
-                       self._viewport[2], self._viewport[3])
+            cgl.glViewport(self._viewport[0], self._viewport[1],
+                           self._viewport[2], self._viewport[3])
+
+        # restore stencil stack
+        restore_stencil_state(self._stencil_state)
 
     cpdef clear_buffer(self):
         '''Clear the framebuffer with the :attr:`clear_color`.
@@ -340,17 +372,17 @@ cdef class Fbo(RenderContext):
             fbo.release()
 
         '''
-        glClearColor(self._clear_color[0], self._clear_color[1],
-                     self._clear_color[2], self._clear_color[3])
+        cgl.glClearColor(self._clear_color[0], self._clear_color[1],
+                         self._clear_color[2], self._clear_color[3])
         if self._depthbuffer_attached and self._stencilbuffer_attached:
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-                    GL_STENCIL_BUFFER_BIT)
+            cgl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                        GL_STENCIL_BUFFER_BIT)
         elif self._depthbuffer_attached:
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            cgl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         elif self._stencilbuffer_attached:
-            glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
+            cgl.glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
         else:
-            glClear(GL_COLOR_BUFFER_BIT)
+            cgl.glClear(GL_COLOR_BUFFER_BIT)
 
     cdef int apply(self) except -1:
         if self.flags & GI_NEEDS_UPDATE:
@@ -360,17 +392,18 @@ cdef class Fbo(RenderContext):
             self.flag_update_done()
         return 0
 
-    cdef void reload(self):
+    cdef void reload(self) except *:
         # recreate the framebuffer, without deleting it. the deletion is not
         # handled by us.
         self.create_fbo()
         self.flag_update()
         # notify observers
-        for callback in self.observers:
-            if callback.is_dead():
+        for callback in self.observers[:]:
+            method = callback()
+            if method is None:
                 self.observers.remove(callback)
                 continue
-            callback()(self)
+            method(self)
 
     def add_reload_observer(self, callback):
         '''Add a callback to be called after the whole graphics context has
@@ -392,68 +425,73 @@ cdef class Fbo(RenderContext):
 
         '''
         for cb in self.observers[:]:
-            if cb.is_dead() or cb() is callback:
+            method = cb()
+            if method is None or method is callback:
                 self.observers.remove(cb)
                 continue
 
 
-    property size:
+    @property
+    def size(self):
         '''Size of the framebuffer, in (width, height) format.
 
         If you change the size, the framebuffer content will be lost.
         '''
-        def __get__(self):
-            return (self._width, self._height)
-        def __set__(self, x):
-            cdef int w, h
-            w, h = x
-            if w == self._width and h == self._height:
-                return
-            self._width, self._height = x
-            self.delete_fbo()
-            self.create_fbo()
-            self.flag_update()
+        return (self._width, self._height)
 
-    property clear_color:
+    @size.setter
+    def size(self, x):
+        cdef int w, h
+        w, h = x
+        if w == self._width and h == self._height:
+            return
+        self._width, self._height = x
+        self.delete_fbo()
+        self.create_fbo()
+        self.flag_data_update()
+
+    @property
+    def clear_color(self):
         '''Clear color in (red, green, blue, alpha) format.
         '''
-        def __get__(self):
-            return (self._clear_color[0],
-                    self._clear_color[1],
-                    self._clear_color[2],
-                    self._clear_color[3])
-        def __set__(self, x):
-            x = list(x)
-            if len(x) != 4:
-                raise Exception('clear_color must be a list/tuple of 4 entry.')
-            self._clear_color[0] = x[0]
-            self._clear_color[1] = x[1]
-            self._clear_color[2] = x[2]
-            self._clear_color[3] = x[3]
+        return (self._clear_color[0],
+                self._clear_color[1],
+                self._clear_color[2],
+                self._clear_color[3])
 
-    property texture:
+    @clear_color.setter
+    def clear_color(self, x):
+        x = list(x)
+        if len(x) != 4:
+            raise Exception('clear_color must be a list/tuple of 4 entry.')
+        self._clear_color[0] = x[0]
+        self._clear_color[1] = x[1]
+        self._clear_color[2] = x[2]
+        self._clear_color[3] = x[3]
+
+    @property
+    def texture(self):
         '''Return the framebuffer texture
         '''
-        def __get__(self):
-            return self._texture
+        return self._texture
 
-    property pixels:
+    @property
+    def pixels(self):
         '''Get the pixels texture, in RGBA format only, unsigned byte. The
         origin of the image is at bottom left.
 
         .. versionadded:: 1.7.0
         '''
-        def __get__(self):
-            w, h = self._width, self._height
-            self.bind()
-            data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
-            self.release()
-            return data
+        w, h = self._width, self._height
+        self.bind()
+        data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.release()
+        return data
 
     cpdef get_pixel_color(self, int wx, int wy):
         """Get the color of the pixel with specified window
         coordinates wx, wy. It returns result in RGBA format.
- 
+
         .. versionadded:: 1.8.0
         """
         if wx > self._width or wy > self._height:
@@ -463,7 +501,5 @@ cdef class Fbo(RenderContext):
         self.bind()
         data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
         self.release()
-        raw_data = str(data)
-        
-        return [ord(i) for i in raw_data]
 
+        return [ord(i) if PY2 else i for i in data]

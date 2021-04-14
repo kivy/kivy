@@ -27,13 +27,13 @@ a widget, you can create all the instructions needed for drawing. If
         # Add a rectangle
         Rectangle(pos=(10, 10), size=(500, 500))
 
-The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
-the canvas object and will be used when the window is drawn.
+The instructions :class:`Color` and :class:`Rectangle` are automatically added
+to the canvas object and will be used when the window is drawn.
 
 .. note::
 
-    Kivy drawing instructions are not automatically relative to the widgets
-    position or size. You therefore you need to consider these factors when
+    Kivy drawing instructions are not automatically relative to the position
+    or size of the widget. You, therefore, need to consider these factors when
     drawing. In order to make your drawing instructions relative to the widget,
     the instructions need either to be
     declared in the :mod:`KvLang <kivy.lang>` or bound to pos and size changes.

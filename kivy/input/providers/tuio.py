@@ -39,13 +39,14 @@ You must add the provider before your application is run, like this::
 __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
            'Tuio2dObjMotionEvent')
 
-from kivy.lib import osc
+from kivy.logger import Logger
+
+from functools import partial
 from collections import deque
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
-from kivy.logger import Logger
 
 
 class TuioMotionEventProvider(MotionEventProvider):
@@ -96,14 +97,14 @@ class TuioMotionEventProvider(MotionEventProvider):
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
             err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
-            return None
+            return
         ipport = args[0].split(':')
         if len(ipport) != 2:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
             err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
             Logger.error(err)
-            return None
+            return
         self.ip, self.port = args[0].split(':')
         self.port = int(self.port)
         self.handlers = {}
@@ -131,20 +132,26 @@ class TuioMotionEventProvider(MotionEventProvider):
 
     def start(self):
         '''Start the TUIO provider'''
-        self.oscid = osc.listen(self.ip, self.port)
+        try:
+            from oscpy.server import OSCThreadServer
+        except ImportError:
+            Logger.info(
+                'Please install the oscpy python module to use the TUIO '
+                'provider.'
+            )
+            raise
+        self.oscid = osc = OSCThreadServer()
+        osc.listen(self.ip, self.port, default=True)
         for oscpath in TuioMotionEventProvider.__handlers__:
             self.touches[oscpath] = {}
-            osc.bind(self.oscid, self._osc_tuio_cb, oscpath)
+            osc.bind(oscpath, partial(self._osc_tuio_cb, oscpath))
 
     def stop(self):
         '''Stop the TUIO provider'''
-        osc.dontListen(self.oscid)
+        self.oscid.stop_all()
 
     def update(self, dispatch_fn):
         '''Update the TUIO provider (pop events from the queue)'''
-
-        # deque osc queue
-        osc.readQueue(self.oscid)
 
         # read the Queue with event
         while True:
@@ -155,43 +162,40 @@ class TuioMotionEventProvider(MotionEventProvider):
                 return
             self._update(dispatch_fn, value)
 
-    def _osc_tuio_cb(self, *incoming):
-        message = incoming[0]
-        oscpath, types, args = message[0], message[1], message[2:]
-        self.tuio_event_q.appendleft([oscpath, args, types])
+    def _osc_tuio_cb(self, oscpath, address, *args):
+        self.tuio_event_q.appendleft([oscpath, address, args])
 
     def _update(self, dispatch_fn, value):
-        oscpath, args, types = value
-        command = args[0]
+        oscpath, command, args = value
 
         # verify commands
-        if command not in ['alive', 'set']:
+        if command not in [b'alive', b'set']:
             return
 
         # move or create a new touch
-        if command == 'set':
-            id = args[1]
+        if command == b'set':
+            id = args[0]
             if id not in self.touches[oscpath]:
                 # new touch
                 touch = TuioMotionEventProvider.__handlers__[oscpath](
-                    self.device, id, args[2:])
+                    self.device, id, args[1:])
                 self.touches[oscpath][id] = touch
                 dispatch_fn('begin', touch)
             else:
                 # update a current touch
                 touch = self.touches[oscpath][id]
-                touch.move(args[2:])
+                touch.move(args[1:])
                 dispatch_fn('update', touch)
 
         # alive event, check for deleted touch
-        if command == 'alive':
-            alives = args[1:]
+        if command == b'alive':
+            alives = args
             to_delete = []
             for id in self.touches[oscpath]:
-                if not id in alives:
+                if id not in alives:
                     # touch up
                     touch = self.touches[oscpath][id]
-                    if not touch in to_delete:
+                    if touch not in to_delete:
                         to_delete.append(touch)
 
             for touch in to_delete:
@@ -326,7 +330,7 @@ class Tuio2dBlbMotionEvent(TuioMotionEvent):
 
 
 # registers
-TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
-TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
-TuioMotionEventProvider.register('/tuio/2Dblb', Tuio2dBlbMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dcur', Tuio2dCurMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dobj', Tuio2dObjMotionEvent)
+TuioMotionEventProvider.register(b'/tuio/2Dblb', Tuio2dBlbMotionEvent)
 MotionEventFactory.register('tuio', TuioMotionEventProvider)

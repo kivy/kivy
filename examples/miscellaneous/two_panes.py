@@ -43,5 +43,5 @@ class ExampleApp(App):
     def build(self):
         return MainWidget()
 
-ExampleApp().run()
 
+ExampleApp().run()

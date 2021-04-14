@@ -81,7 +81,10 @@ You can combine all the png's into one and generate the atlas file with::
     myatlas-0.png
 
 As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
-``myatlas-0.png`` is a new 256x256 .png composed of all your images.
+``myatlas-0.png`` is a new 256x256 .png composed of all your images. If the
+size you specify is not large enough to fit all of the source images, more
+atlas images will be created as required e.g. ``myatlas-1.png``,
+``myatlas-2.png`` etc.
 
 .. note::
 
@@ -92,7 +95,7 @@ As you can see, we get 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
     If you need path information included, you should include ``use_path`` as
     follows::
 
-        $ python -m kivy.atlas use_path myatlas 256 *.png
+        $ python -m kivy.atlas -- --use_path myatlas 256 *.png
 
     In which case the id for ``../images/button.png`` will be ``images_button``
 
@@ -234,7 +237,9 @@ class Atlas(EventDispatcher):
             `filenames`: list
                 List of filenames to put in the atlas.
             `size`: int or list (width, height)
-                Size of the atlas image.
+                Size of the atlas image. If the size is not large enough to
+                fit all of the source images, more atlas images will created
+                as required.
             `padding`: int, defaults to 2
                 Padding to put around each image.
 
@@ -346,7 +351,7 @@ class Atlas(EventDispatcher):
                     numoutimages += 1
 
         # now that we've figured out where everything goes, make the output
-        # images and blit the source images to the approriate locations
+        # images and blit the source images to the appropriate locations
         Logger.info('Atlas: create an {0}x{1} rgba image'.format(size_w,
                                                                  size_h))
         outimages = [Image.new('RGBA', (size_w, size_h))

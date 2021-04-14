@@ -82,30 +82,41 @@ class AnchorLayout(Layout):
         height = self.height
         anchor_x = self.anchor_x
         anchor_y = self.anchor_y
-        padding = self.padding
+        pad_left, pad_top, pad_right, pad_bottom = self.padding
 
         for c in self.children:
             x, y = _x, _y
-            w, h = c.size
-            if c.size_hint[0] is not None:
-                w = c.size_hint[0] * width - (padding[0] + padding[2])
-            if c.size_hint[1] is not None:
-                h = c.size_hint[1] * height - (padding[1] + padding[3])
+            cw, ch = c.size
+            shw, shh = c.size_hint
+            shw_min, shh_min = c.size_hint_min
+            shw_max, shh_max = c.size_hint_max
+
+            if shw is not None:
+                cw = shw * (width - pad_left - pad_right)
+                if shw_min is not None and cw < shw_min:
+                    cw = shw_min
+                elif shw_max is not None and cw > shw_max:
+                    cw = shw_max
+
+            if shh is not None:
+                ch = shh * (height - pad_top - pad_bottom)
+                if shh_min is not None and ch < shh_min:
+                    ch = shh_min
+                elif shh_max is not None and ch > shh_max:
+                    ch = shh_max
 
             if anchor_x == 'left':
-                x = x + padding[0]
-            if anchor_x == 'right':
-                x = x + width - (w + padding[2])
-            if self.anchor_x == 'center':
-                x = x + (width / 2) - (w / 2)
+                x = x + pad_left
+            elif anchor_x == 'right':
+                x = x + width - (cw + pad_right)
+            else:
+                x = x + (width - pad_right + pad_left - cw) / 2
             if anchor_y == 'bottom':
-                y = y + padding[1]
-            if anchor_y == 'top':
-                y = y + height - (h + padding[3])
-            if anchor_y == 'center':
-                y = y + (height / 2) - (h / 2)
+                y = y + pad_bottom
+            elif anchor_y == 'top':
+                y = y + height - (ch + pad_top)
+            else:
+                y = y + (height - pad_top + pad_bottom - ch) / 2
 
-            c.x = x
-            c.y = y
-            c.width = w
-            c.height = h
+            c.pos = x, y
+            c.size = cw, ch

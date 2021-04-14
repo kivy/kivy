@@ -16,12 +16,31 @@ the video is loaded (when the texture is created)::
 
     def on_position_change(instance, value):
         print('The position in the video is', value)
-    def on_duration_change(instance, value):
-        print('The duration of the video is', video)
-    video = Video(source='PandaSneezes.avi')
-    video.bind(position=on_position_change,
-               duration=on_duration_change)
 
+    def on_duration_change(instance, value):
+        print('The duration of the video is', value)
+
+    video = Video(source='PandaSneezes.avi')
+    video.bind(
+        position=on_position_change,
+        duration=on_duration_change
+    )
+
+One can define a preview image which gets displayed until the video is
+started/loaded by passing ``preview`` to the constructor::
+
+    video = Video(
+        source='PandaSneezes.avi',
+        preview='PandaSneezes_preview.png'
+    )
+
+One can display the placeholder image when the video stops by reacting on eos::
+
+    def on_eos_change(self, inst, val):
+        if val and self.preview:
+            self.set_texture_from_resource(self.preview)
+
+    video.bind(eos=on_eos_change)
 '''
 
 __all__ = ('Video', )
@@ -31,11 +50,22 @@ from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
 from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
-                             OptionProperty)
+                             OptionProperty, StringProperty)
 
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+    '''
+
+    preview = StringProperty(None, allownone=True)
+    '''Filename / source of a preview image displayed before video starts.
+
+    :attr:`preview` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+
+    If set, it gets displayed until the video is loaded/started.
+
+    .. versionadded:: 2.1.0
     '''
 
     state = OptionProperty('stop', options=('play', 'pause', 'stop'))
@@ -53,7 +83,7 @@ class Video(Image):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(False, deprecated=True)
     '''
     .. deprecated:: 1.4.0
         Use :attr:`state` instead.
@@ -127,6 +157,8 @@ class Video(Image):
     to {}.
     '''
 
+    _video_load_event = None
+
     def __init__(self, **kwargs):
         self._video = None
         super(Video, self).__init__(**kwargs)
@@ -137,36 +169,54 @@ class Video(Image):
         if self.source:
             self._trigger_video_load()
 
-    def seek(self, percent):
-        '''Change the position to a percentage of duration. Percentage
-        must be a value between 0-1.
+    def texture_update(self, *largs):
+        if self.preview:
+            self.set_texture_from_resource(self.preview)
+        else:
+            self.set_texture_from_resource(self.source)
+
+    def seek(self, percent, precise=True):
+        '''Change the position to a percentage (strictly, a proportion)
+           of duration.
+
+        :Parameters:
+            `percent`: float or int
+                Position to seek as a proportion of the total duration,
+                must be between 0-1.
+            `precise`: bool, defaults to True
+                Precise seeking is slower, but seeks to exact requested
+                percent.
 
         .. warning::
-
-            Calling seek() before the video is loaded has no impact.
+            Calling seek() before the video is loaded has no effect.
 
         .. versionadded:: 1.2.0
+
+        .. versionchanged:: 1.10.1
+            The `precise` keyword argument has been added.
         '''
         if self._video is None:
             raise Exception('Video not loaded.')
-        self._video.seek(percent)
+        self._video.seek(percent, precise=precise)
 
     def _trigger_video_load(self, *largs):
-        Clock.unschedule(self._do_video_load)
-        Clock.schedule_once(self._do_video_load, -1)
+        ev = self._video_load_event
+        if ev is None:
+            ev = self._video_load_event = Clock.schedule_once(
+                self._do_video_load, -1)
+        ev()
 
     def _do_video_load(self, *largs):
         if CoreVideo is None:
             return
-        if self._video:
-            self._video.stop()
+        self.unload()
         if not self.source:
             self._video = None
             self.texture = None
         else:
             filename = self.source
             # Check if filename is not url
-            if not '://' in filename:
+            if '://' not in filename:
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.volume = self.volume
@@ -189,7 +239,6 @@ class Video(Image):
             if self.eos:
                 self._video.stop()
                 self._video.position = 0.
-                self._video.eos = False
             self.eos = False
             self._video.play()
         elif value == 'pause':
@@ -197,7 +246,6 @@ class Video(Image):
         else:
             self._video.stop()
             self._video.position = 0
-            self._video.eos = False
 
     def _on_video_frame(self, *largs):
         video = self._video
@@ -230,6 +278,8 @@ class Video(Image):
             self._video.stop()
             self._video.unload()
             self._video = None
+        self.loaded = False
+
 
 if __name__ == '__main__':
     from kivy.app import App

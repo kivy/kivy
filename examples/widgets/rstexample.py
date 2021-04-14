@@ -8,7 +8,7 @@ And if i really want to write my code: &amp;bl; Hello world &amp;br;
 And video widget
 ----------------
 
-.. video:: softboy.mpg
+.. video:: cityCC0.mpg
 
 
 Inline Markup
@@ -25,7 +25,7 @@ Inline Markup
 
 .. _top:
 
-Internal crossreferences, like example_, or bottom_.
+Internal cross-references, like example_, or bottom_.
 
 Image
 -----
@@ -69,8 +69,8 @@ what
   Definition lists associate a term with a definition.
 
 how
-  The term is a one-line phrase, and the definition is one or more paragraphs or
-  body elements, indented relative to the term. Blank lines are not allowed
+  The term is a one-line phrase, and the definition is one or more paragraphs
+  or body elements, indented relative to the term. Blank lines are not allowed
   between term and definition.
 
 
@@ -122,6 +122,7 @@ from kivy.app import App
 class RstApp(App):
     def build(self):
         return RstDocument(text=__doc__)
+
 
 if __name__ == '__main__':
     RstApp().run()

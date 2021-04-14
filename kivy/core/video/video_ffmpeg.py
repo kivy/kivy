@@ -51,7 +51,7 @@ class VideoFFMpeg(VideoBase):
     def stop(self):
         self.unload()
 
-    def seek(self, percent):
+    def seek(self, percent, precise=True):
         if self._player is None:
             return
         self._player.seek(percent)
@@ -70,7 +70,7 @@ class VideoFFMpeg(VideoBase):
         player = self._player
         if player is None:
             return
-        if player.is_open is False:
+        if not player.is_open:
             self._do_eos()
             return
 
@@ -78,7 +78,7 @@ class VideoFFMpeg(VideoBase):
         if frame is None:
             return
 
-        # first time we got a frame, we know that video is readed now.
+        # first time we got a frame, we know that video is read now.
         if self._texture is None:
             self._texture = Texture.create(size=(
                 player.get_width(), player.get_height()),

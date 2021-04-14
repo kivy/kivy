@@ -1,54 +1,139 @@
 '''
-This is a extended unittest module for Kivy, to make unittest based on
-graphics with OpenGL context.
+This is a extended unittest module for Kivy, to make unittests based on
+graphics with an OpenGL context.
 
-The idea is to let user render a Widget tree, and after 1, 2 or x frame, a
-screenshot will be done, and be compared to the original one.
-If no screenshot exist for the current test, the very first one will be used.
+The idea is to render a Widget tree, and after 1, 2 or more frames, a
+screenshot will be made and be compared to the original one.
+If no screenshot exists for the current test, the very first one will be used.
 
-The screenshots lives in kivy/tests/results, in PNG format, 320x240.
+The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
+320x240 pixels.
 '''
 
-__all__ = ('GraphicUnitTest', )
+__all__ = (
+    'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
+    'requires_graphics', 'ensure_web_server')
 
 import unittest
 import logging
+import pytest
+import sys
+from functools import partial
 import os
+import threading
+from kivy.graphics.cgl import cgl_get_backend_name
+from kivy.input.motionevent import MotionEvent
 log = logging.getLogger('unittest')
 
+
 _base = object
-if not bool(int(os.environ.get('USE_OPENGL_MOCK', 0))):
+if 'mock' != cgl_get_backend_name():
+    # check what the gl backend might be, we can't know for sure
+    # what it'll be until actually initialized by the window.
     _base = unittest.TestCase
+
+make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
+http_server = None
+http_server_ready = threading.Event()
+kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
+
+
+def requires_graphics(func):
+    if 'mock' == cgl_get_backend_name():
+        return pytest.mark.skip(
+            reason='Skipping because gl backend is set to mock')(func)
+    return func
+
+
+def ensure_web_server(root=None):
+    if http_server is not None:
+        return True
+
+    if not root:
+        root = os.path.join(os.path.dirname(__file__), "..", "..")
+    need_chdir = sys.version_info.major == 3 and sys.version_info.minor <= 6
+    curr_dir = os.getcwd()
+
+    def _start_web_server():
+        global http_server
+        from http.server import SimpleHTTPRequestHandler
+        from socketserver import TCPServer
+
+        try:
+            if need_chdir:
+                os.chdir(root)
+                handler = SimpleHTTPRequestHandler
+            else:
+                handler = partial(SimpleHTTPRequestHandler, directory=root)
+
+            http_server = TCPServer(
+                ("", 8000), handler, bind_and_activate=False)
+            http_server.daemon_threads = True
+            http_server.allow_reuse_address = True
+            http_server.server_bind()
+            http_server.server_activate()
+            http_server_ready.set()
+            http_server.serve_forever()
+        except:
+            import traceback
+            traceback.print_exc()
+        finally:
+            http_server = None
+            http_server_ready.set()
+
+            if need_chdir:
+                os.chdir(curr_dir)
+
+    th = threading.Thread(target=_start_web_server)
+    th.daemon = True
+    th.start()
+    http_server_ready.wait()
+    if http_server is None:
+        raise Exception("Unable to start webserver")
 
 
 class GraphicUnitTest(_base):
+    framecount = 0
+
+    def _force_refresh(self, *largs):
+        # this prevent in some case to be stuck if the screen doesn't refresh
+        # and we wait for a number of self.framecount that never goes down
+        from kivy.base import EventLoop
+        win = EventLoop.window
+        if win and win.canvas:
+            win.canvas.ask_update()
 
     def render(self, root, framecount=1):
         '''Call rendering process using the `root` widget.
         The screenshot will be done in `framecount` frames.
         '''
         from kivy.base import runTouchApp
+        from kivy.clock import Clock
         self.framecount = framecount
-        runTouchApp(root)
+        try:
+            Clock.schedule_interval(self._force_refresh, 1)
+            runTouchApp(root)
+        finally:
+            Clock.unschedule(self._force_refresh)
 
         # reset for the next test, but nobody will know if it will be used :/
         if self.test_counter != 0:
             self.tearDown(fake=True)
             self.setUp()
 
-    def run(self, name):
+    def run(self, *args, **kwargs):
         '''Extend the run of unittest, to check if results directory have been
         found. If no results directory exists, the test will be ignored.
         '''
         from os.path import join, dirname, exists
         results_dir = join(dirname(__file__), 'results')
-        if not exists(results_dir):
+        if make_screenshots and not exists(results_dir):
             log.warning('No result directory found, cancel test.')
-            return
+            os.mkdir(results_dir)
         self.test_counter = 0
         self.results_dir = results_dir
         self.test_failed = False
-        return super(GraphicUnitTest, self).run(name)
+        return super(GraphicUnitTest, self).run(*args, **kwargs)
 
     def setUp(self):
         '''Prepare the graphic test, with:
@@ -70,11 +155,15 @@ class GraphicUnitTest(_base):
 
         # bind ourself for the later screenshot
         from kivy.core.window import Window
+        self.Window = Window
         Window.bind(on_flip=self.on_window_flip)
 
-        # ensure our window is correcly created
+        # ensure our window is correctly created
         Window.create_window()
+        Window.register()
+        Window.initialized = True
         Window.canvas.clear()
+        Window.close = lambda *s: True
 
     def on_window_flip(self, window):
         '''Internal method to be called when the window have just displayed an
@@ -94,9 +183,16 @@ class GraphicUnitTest(_base):
         from shutil import move, copy
 
         # don't save screenshot until we have enough frames.
-        #log.debug('framecount %d' % self.framecount)
-        self.framecount -= 1
+        # log.debug('framecount %d' % self.framecount)
+        # ! check if there is 'framecount', otherwise just
+        # ! assume zero e.g. if handling runTouchApp manually
+        self.framecount = getattr(self, 'framecount', 0) - 1
         if self.framecount > 0:
+            return
+
+        # don't create screenshots if not requested manually
+        if not make_screenshots:
+            EventLoop.stop()
             return
 
         reffn = None
@@ -144,11 +240,11 @@ class GraphicUnitTest(_base):
                 else:
                     log.info('Image discarded')
             else:
-                import pygame
-                s1 = pygame.image.load(tmpfn)
-                s2 = pygame.image.load(reffn)
-                sd1 = pygame.image.tostring(s1, 'RGB')
-                sd2 = pygame.image.tostring(s2, 'RGB')
+                from kivy.core.image import Image as CoreImage
+                s1 = CoreImage(tmpfn, keep_data=True)
+                sd1 = s1.image._data[0].data
+                s2 = CoreImage(reffn, keep_data=True)
+                sd2 = s2.image._data[0].data
                 if sd1 != sd2:
                     log.critical(
                         '%s at render() #%d, images are different.' % (
@@ -186,7 +282,7 @@ class GraphicUnitTest(_base):
                     fd.write('<td><img src="test_%s"/></td>' %
                              basename(reffn))
                 else:
-                    fd.write('<td>First time, no comparaison.</td>')
+                    fd.write('<td>First time, no comparison.</td>')
                 fd.write('<td><pre>%s</pre></td>' % sourcecode)
                 fd.write('</table></div>')
         finally:
@@ -203,6 +299,7 @@ class GraphicUnitTest(_base):
         '''
         from kivy.base import stopTouchApp
         from kivy.core.window import Window
+        from kivy.clock import Clock
         Window.unbind(on_flip=self.on_window_flip)
         stopTouchApp()
 
@@ -275,3 +372,136 @@ class GraphicUnitTest(_base):
         root.mainloop()
 
         return self.retval
+
+    def advance_frames(self, count):
+        '''Render the new frames and:
+
+        * tick the Clock
+        * dispatch input from all registered providers
+        * flush all the canvas operations
+        * redraw Window canvas if necessary
+        '''
+        from kivy.base import EventLoop
+        for i in range(count):
+            EventLoop.idle()
+
+
+class UnitTestTouch(MotionEvent):
+    '''Custom MotionEvent representing a single touch. Similar to `on_touch_*`
+    methods from the Widget class, this one introduces:
+
+    * touch_down
+    * touch_move
+    * touch_up
+
+    Create a new touch with::
+
+        touch = UnitTestTouch(x, y)
+
+    then you press it on the default position with::
+
+        touch.touch_down()
+
+    or move it or even release with these simple calls::
+
+        touch.touch_move(new_x, new_y)
+        touch.touch_up()
+    '''
+
+    def __init__(self, x, y):
+        '''Create a MotionEvent instance with X and Y of the first
+        position a touch is at.
+        '''
+
+        from kivy.base import EventLoop
+        self.eventloop = EventLoop
+        win = EventLoop.window
+
+        super(UnitTestTouch, self).__init__(
+            # device, (tuio) id, args
+            self.__class__.__name__, 99, {
+                "x": x / (win.width - 1.0),
+                "y": y / (win.height - 1.0),
+            }
+        )
+
+    def touch_down(self, *args):
+        self.eventloop.post_dispatch_input("begin", self)
+
+    def touch_move(self, x, y):
+        win = self.eventloop.window
+        self.move({
+            "x": x / (win.width - 1.0),
+            "y": y / (win.height - 1.0)
+        })
+        self.eventloop.post_dispatch_input("update", self)
+
+    def touch_up(self, *args):
+        self.eventloop.post_dispatch_input("end", self)
+
+    def depack(self, args):
+        # set MotionEvent to touch
+        self.is_touch = True
+
+        # set sx/sy properties to ratio (e.g. X / win.width)
+        self.sx = args['x']
+        self.sy = args['y']
+
+        # set profile to accept x, y and pos properties
+        self.profile = ['pos']
+
+        # run depack after we set the values
+        super(UnitTestTouch, self).depack(args)
+
+
+class UTMotionEvent(MotionEvent):
+    def depack(self, args):
+        self.is_touch = True
+        self.sx = args['x']
+        self.sy = args['y']
+        self.profile = ['pos']
+        super(UTMotionEvent, self).depack(args)
+
+
+def async_run(func=None, app_cls_func=None):
+    def inner_func(func):
+        if 'mock' == cgl_get_backend_name():
+            return pytest.mark.skip(
+                reason='Skipping because gl backend is set to mock')(func)
+
+        if sys.version_info[0] < 3 or sys.version_info[1] <= 5:
+            return pytest.mark.skip(
+                reason='Skipping because graphics tests are not supported on '
+                       'py3.5, only on py3.6+')(func)
+
+        if app_cls_func is not None:
+            func = pytest.mark.parametrize(
+                "kivy_app", [[app_cls_func], ], indirect=True)(func)
+
+        if kivy_eventloop == 'asyncio':
+            try:
+                import pytest_asyncio
+                return pytest.mark.asyncio(func)
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='KIVY_EVENTLOOP == "asyncio" but '
+                           '"pytest-asyncio" is not installed')(func)
+        elif kivy_eventloop == 'trio':
+            try:
+                import trio
+                from pytest_trio import trio_fixture
+                func._force_trio_fixture = True
+                return func
+            except ImportError:
+                return pytest.mark.skip(
+                    reason='KIVY_EVENTLOOP == "trio" but '
+                           '"pytest-trio" is not installed')(func)
+        else:
+            return pytest.mark.skip(
+                reason='KIVY_EVENTLOOP must be set to either of "asyncio" or '
+                       '"trio" to run async tests')(func)
+
+    if func is None:
+        return inner_func
+
+    return inner_func(func)

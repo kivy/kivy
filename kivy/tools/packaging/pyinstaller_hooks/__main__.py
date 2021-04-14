@@ -11,8 +11,8 @@ if args and args[0] == 'hook':
     lines = get_deps_all()['hiddenimports']
 
     for i, line in enumerate(lines):
-        if (i and
-            line[:line.rfind('.')] != lines[i - 1][:lines[i - 1].rfind('.')]):
+        if i and line[:line.rfind('.')] != \
+                 lines[i - 1][:lines[i - 1].rfind('.')]:
             formatted_lines.append('\n')
 
         if i == len(lines) - 1:

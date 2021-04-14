@@ -44,7 +44,7 @@ class Puzzle(Camera):
                 bx = x * bs
                 by = y * bs
                 subtexture = texture.get_region(bx, by, bs, bs)
-                #node = PuzzleNode(texture=subtexture,
+                # node = PuzzleNode(texture=subtexture,
                 #                  size=(bs, bs), pos=(bx, by))
                 node = Scatter(pos=(bx, by), size=(bs, bs))
                 with node.canvas:
@@ -93,5 +93,6 @@ class PuzzleApp(App):
         value = int((value + 5) / 10) * 10
         puzzle.blocksize = value
         instance.value = value
+
 
 PuzzleApp().run()

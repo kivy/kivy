@@ -54,12 +54,12 @@ def parse_color(text):
     '''
     value = [1, 1, 1, 1]
     if text.startswith('rgb'):
-        res = re.match('rgba?\((.*)\)', text)
+        res = re.match(r'rgba?\((.*)\)', text)
         if res:
             try:
                 # default r/g/b values to 1 if greater than 255 else x/255
                 value = [1 if int(x) > 255. else (int(x) / 255.)
-                         for x in re.split(',\ ?', res.groups()[0])]
+                         for x in re.split(', ?', res.groups()[0])]
                 if len(value) < 3:
                     # in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
@@ -103,7 +103,7 @@ def parse_bool(text):
 
 
 def parse_string(text):
-    '''Parse a string to a string (removing single and double quotes)'''
+    '''Parse a string to a string (removing single and double quotes).'''
     if len(text) >= 2 and text[0] in ('"', "'") and text[-1] in ('"', "'"):
         text = text[1:-1]
     return text.strip()
@@ -143,7 +143,7 @@ def parse_float4(text):
     elif len(value) == 2:
         return [value[0], value[1], value[0], value[1]]
     elif len(value) == 3:
-        # ambigous case!
+        # ambiguous case!
         return [value[0], value[1], value[0], value[2]]
     elif len(value) > 4:
         raise Exception('Too many values in %s' % text)

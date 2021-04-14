@@ -1,9 +1,10 @@
 
 from libc.stdlib cimport malloc, free
-from bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
-cimport bcm
+from .bcm cimport DISPMANX_ELEMENT_HANDLE_T, ElementHandle
+cimport kivy.lib.vidcore_lite.bcm as bcm
+import kivy.lib.vidcore_lite.bcm as bcm
 
-cdef extern from "/opt/vc/include/EGL/egl.h":
+cdef extern from "EGL/egl.h":
     ctypedef int EGLint ###maybe wrong
     ctypedef unsigned int EGLBoolean
     ctypedef unsigned int EGLenum
@@ -18,7 +19,7 @@ cdef extern from "/opt/vc/include/EGL/egl.h":
 
     ctypedef struct EGL_DISPMANX_WINDOW_T:
         DISPMANX_ELEMENT_HANDLE_T element
-        int width   #/* This is necessary because dispmanx elements are not queriable. */
+        int width   #/* This is necessary because dispmanx elements are not queryable. */
         int height
 
     EGLint eglGetError()

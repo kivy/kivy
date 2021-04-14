@@ -47,7 +47,7 @@ For example, let's use a JsonStore::
         print('tshirtmans index key is', item[0])
         print('his key value pairs are', str(item[1]))
 
-Because the data is persistant, you can check later to see if the key exists::
+Because the data is persistent, you can check later to see if the key exists::
 
     from kivy.storage.jsonstore import JsonStore
 
@@ -320,16 +320,16 @@ class AbstractStore(EventDispatcher):
         pass
 
     def store_get(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_put(self, key, value):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_exists(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_delete(self, key):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def store_find(self, filters):
         return []
@@ -343,6 +343,7 @@ class AbstractStore(EventDispatcher):
     def store_clear(self):
         for key in self.store_keys():
             self.store_delete(key)
+        self.store_sync()
 
     def store_get_async(self, key, callback):
         try:

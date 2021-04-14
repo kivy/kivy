@@ -69,13 +69,13 @@ class ProgressBar(Widget):
         self.value = value * self.max
 
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
-                                     bind=('value', 'max'))
+                                     bind=('value', 'max'), cache=True)
     '''Normalized value inside the range 0-1::
 
         >>> pb = ProgressBar(value=50, max=100)
         >>> pb.value
         50
-        >>> slider.value_normalized
+        >>> pb.value_normalized
         0.5
 
     :attr:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.

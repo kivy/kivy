@@ -27,6 +27,8 @@ Alternatively, you can save these settings permanently using
 restart the app for the changes to take effect. Note that this approach will
 effect all Kivy apps system wide.
 
+Please note that no underscores (`_`) are allowed in the section name.
+
 Usage of the Config object
 --------------------------
 
@@ -49,15 +51,46 @@ For information on configuring your :class:`~kivy.app.App`, please see the
     converted from ascii to unicode only when needed. The method get() returns
     utf-8 strings.
 
+Changing configuration with environment variables
+-------------------------------------------------
+
+Since 1.11.0, it is now possible to change the configuration using
+environment variables. They take precedence on the loaded config.ini.
+The format is::
+
+    KCFG_<section>_<key> = <value>
+
+For example:
+
+    KCFG_GRAPHICS_FULLSCREEN=auto ...
+    KCFG_KIVY_LOG_LEVEL=warning ...
+
+Or in your file before any kivy import:
+
+    import os
+    os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+
+If you don't want to map any environment variables, you can disable
+the behavior::
+
+    os.environ["KIVY_NO_ENV_CONFIG"] = "1"
+
+
 .. _configuration-tokens:
 
 Available configuration tokens
 ------------------------------
 
-.. |log_levels| replace:: 'debug', 'info', 'warning', 'error' or 'critical'
+.. |log_levels| replace::
+    'trace', 'debug', 'info', 'warning', 'error' or 'critical'
 
 :kivy:
 
+    `default_font`: list
+        Default fonts used for widgets displaying any text. It defaults to
+        ['Roboto', 'data/fonts/Roboto-Regular.ttf',
+        'data/fonts/Roboto-Italic.ttf', 'data/fonts/Roboto-Bold.ttf',
+        'data/fonts/Roboto-BoldItalic.ttf'].
     `desktop`: int, 0 or 1
         This option controls desktop OS specific features, such as enabling
         drag-able scroll-bar in scroll views, disabling of bubbles in
@@ -81,6 +114,8 @@ Available configuration tokens
         * 'systemanddock' - virtual docked keyboard plus input from real
           keyboard.
         * 'systemandmulti' - analogous.
+    `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
+        The clock type to use with kivy. See :mod:`kivy.clock`.
     `log_dir`: string
         Path of log directory.
     `log_enable`: int, 0 or 1
@@ -89,6 +124,15 @@ Available configuration tokens
         Set the minimum log level to use.
     `log_name`: string
         Format string to use for the filename of log file.
+
+    `log_maxfiles`: int
+        Keep log_maxfiles recent logfiles while purging the log directory. Set
+        'log_maxfiles' to -1 to disable logfile purging (eg keep all logfiles).
+
+        .. note::
+            You end up with 'log_maxfiles + 1' logfiles because the logger
+            adds a new one after purging.
+
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         pygame icon.
@@ -126,9 +170,11 @@ Available configuration tokens
 
 :graphics:
     `borderless`: int , one of 0 or 1
-        If set to `1`, removes the window border/decoration.
-    `window_state`: string , one of 'visible', 'hidden', 'maximized' \
+        If set to `1`, removes the window border/decoration. Window resizing
+        must also be disabled to hide the resizing border.
+    `window_state`: string , one of 'visible', 'hidden', 'maximized'
                     or 'minimized'
+
         Sets the window state, defaults to 'visible'. This option is available
         only for the SDL2 window provider and it should be used on desktop
         OSes.
@@ -180,15 +226,27 @@ Available configuration tokens
         `fullscreen` is set to `auto`.
     `minimum_width`: int
         Minimum width to restrict the window to. (sdl2 only)
-    `minimun_height`: int
+    `minimum_height`: int
         Minimum height to restrict the window to. (sdl2 only)
     `min_state_time`: float, defaults to .035
-        Minumim time for widgets to display a given visual state.
+        Minimum time for widgets to display a given visual state.
         This attrib is currently used by widgets like
         :class:`~kivy.uix.dropdown.DropDown` &
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
         make sure they display their current visual state for the given
         time.
+    `allow_screensaver`: int, one of 0 or 1, defaults to 1
+        Allow the device to show a screen saver, or to go to sleep
+        on mobile devices. Only works for the sdl2 window provider.
+    `vsync`: `none`, empty value, or integers
+        Whether vsync is enabled, currently only used with sdl2 window.
+        Possible values are `none` or empty value -- leaves it unchanged,
+        ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
+        ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
+        or ``-1`` failed. See ``SDL_GL_SetSwapInterval``.
+    `verify_gl_main_thread`: int, 1 or 0, defaults to 1
+        Whether to check if code that changes any gl instructions is
+        running outside the main thread and then raise an error.
 
 :input:
 
@@ -203,8 +261,8 @@ Available configuration tokens
 
     .. seealso::
 
-        Check the providers in kivy.input.providers for the syntax to use
-        inside the configuration file.
+        Check the providers in :mod:`kivy.input.providers` for the syntax to
+        use inside the configuration file.
 
 :widgets:
 
@@ -219,6 +277,10 @@ Available configuration tokens
         :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
+
+        .. deprecated:: 1.7.0
+            Please use
+            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
     `scroll_timeout`: int
         Default value of the
@@ -256,8 +318,15 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
-.. versionchanged:: 1.9.2
-    `min_state_time` has been added to the `graphics` section.
+.. versionchanged:: 2.1.0
+    `vsync` has been added to the graphics section.
+    `verify_gl_main_thread` has been added to the graphics section.
+
+.. versionchanged:: 1.10.0
+    `min_state_time`  and `allow_screensaver` have been added
+    to the `graphics` section.
+    `kivy_clock` has been added to the kivy section.
+    `default_font` has beed added to the kivy section.
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -304,7 +373,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 15
+KIVY_CONFIG_VERSION = 23
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -339,8 +408,8 @@ class ConfigParser(PythonConfigParser, object):
     .. versionadded:: 1.0.7
     '''
 
-    def __init__(self, name=''):
-        PythonConfigParser.__init__(self)
+    def __init__(self, name='', **kwargs):
+        PythonConfigParser.__init__(self, **kwargs)
         self._sections = OrderedDict()
         self.filename = None
         self._callbacks = []
@@ -398,7 +467,7 @@ class ConfigParser(PythonConfigParser, object):
         # a str() conversion -> fail.
         # Instead we currently to the conversion to utf-8 when value are
         # "get()", but we internally store them in ascii.
-        #with codecs.open(filename, 'r', encoding='utf-8') as f:
+        # with codecs.open(filename, 'r', encoding='utf-8') as f:
         #    self.readfp(f)
         old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
                     self.sections()}
@@ -425,9 +494,6 @@ class ConfigParser(PythonConfigParser, object):
         if not isinstance(value, string_types):
             # might be boolean, int, etc.
             e_value = str(value)
-        if PY2:
-            if isinstance(value, unicode):
-                e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret
@@ -483,6 +549,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
+        assert("_" not in section)
         if self.has_section(section):
             return
         self.add_section(section)
@@ -565,7 +632,11 @@ class ConfigParser(PythonConfigParser, object):
         '''
         try:
             config = ConfigParser._named_configs[name][0]
-            return config() if config else None
+            if config is not None:
+                config = config()
+                if config is not None:
+                    return config
+            del ConfigParser._named_configs[name]
         except KeyError:
             return None
 
@@ -616,7 +687,7 @@ class ConfigParser(PythonConfigParser, object):
             configs[value] = (ref(self), [])
             return
 
-        if config is not None:
+        if config is not None and config() is not None:
             raise ValueError('A parser named {} already exists'.format(value))
         for widget, prop in props:
             widget = widget()
@@ -655,6 +726,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.adddefaultsection('postproc')
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
+    Config.adddefaultsection('network')
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -691,7 +763,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'rotation', '0')
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
-            Config.setdefault('graphics', 'vsync', '1')
             Config.setdefault('graphics', 'width', '800')
 
             # input configuration
@@ -719,7 +790,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('postproc', 'retain_distance', '50')
             Config.setdefault('postproc', 'retain_time', '0')
 
-            # default configuration for keyboard repeatition
+            # default configuration for keyboard repetition
             Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
             Config.setdefault('widgets', 'keyboard_type', '')
             Config.setdefault('widgets', 'list_friction', '10')
@@ -727,7 +798,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
         elif version == 1:
-            Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
         elif version == 2:
@@ -794,8 +864,38 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 14:
             Config.setdefault('graphics', 'min_state_time', '.035')
 
-        # elif version == 1:
-        #    # add here the command for upgrading from configuration 0 to 1
+        elif version == 15:
+            Config.setdefault('kivy', 'kivy_clock', 'default')
+
+        elif version == 16:
+            Config.setdefault('kivy', 'default_font', [
+                'Roboto',
+                'data/fonts/Roboto-Regular.ttf',
+                'data/fonts/Roboto-Italic.ttf',
+                'data/fonts/Roboto-Bold.ttf',
+                'data/fonts/Roboto-BoldItalic.ttf'])
+
+        elif version == 17:
+            Config.setdefault('graphics', 'allow_screensaver', '1')
+
+        elif version == 18:
+            Config.setdefault('kivy', 'log_maxfiles', '100')
+
+        elif version == 19:
+            Config.setdefault('graphics', 'shaped', '0')
+            Config.setdefault(
+                'kivy', 'window_shape',
+                'data/images/defaultshape.png'
+            )
+
+        elif version == 20:
+            Config.setdefault('network', 'useragent', 'curl')
+
+        elif version == 21:
+            Config.setdefault('graphics', 'vsync', '')
+
+        elif version == 22:
+            Config.setdefault('graphics', 'verify_gl_main_thread', '1')
 
         else:
             # for future.
@@ -818,3 +918,40 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.write()
         except Exception as e:
             Logger.exception('Core: Error while saving default config file')
+
+    # Load configuration from env
+    if environ.get('KIVY_NO_ENV_CONFIG', '0') != '1':
+        for key, value in environ.items():
+            if not key.startswith("KCFG_"):
+                continue
+            try:
+                _, section, name = key.split("_", 2)
+            except ValueError:
+                Logger.warning((
+                    "Config: Environ `{}` invalid format, "
+                    "must be KCFG_section_name").format(key))
+                continue
+
+            # extract and check section
+            section = section.lower()
+            if not Config.has_section(section):
+                Logger.warning(
+                    "Config: Environ `{}`: unknown section `{}`".format(
+                        key, section))
+                continue
+
+            # extract and check the option name
+            name = name.lower()
+            sections_to_check = {
+                "kivy", "graphics", "widgets", "postproc", "network"}
+            if (section in sections_to_check and
+                    not Config.has_option(section, name)):
+                Logger.warning((
+                    "Config: Environ `{}` unknown `{}` "
+                    "option in `{}` section.").format(
+                        key, name, section))
+                # we don't avoid to set an unknown option, because maybe
+                # an external modules or widgets (in garden?) may want to
+                # save its own configuration here.
+
+            Config.set(section, name, value)

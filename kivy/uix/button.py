@@ -33,12 +33,21 @@ to the :attr:`Button.state` property::
     btn1 = Button(text='Hello world 1')
     btn1.bind(state=callback)
 
+Kv Example::
+
+    Button:
+        text: 'press me'
+        on_press: print("ouch! More gently please")
+        on_release: print("ahhh")
+        on_state:
+            print("my current state is {}".format(self.state))
+
 '''
 
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import StringProperty, ListProperty
+from kivy.properties import StringProperty, ListProperty, ColorProperty
 from kivy.uix.behaviors import ButtonBehavior
 
 
@@ -51,7 +60,7 @@ class Button(ButtonBehavior, Label):
 
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
     This acts as a *multiplier* to the texture colour. The default
@@ -62,7 +71,11 @@ class Button(ButtonBehavior, Label):
     .. versionadded:: 1.0.8
 
     The :attr:`background_color` is a
-    :class:`~kivy.properties.ListProperty` and defaults to [1, 1, 1, 1].
+    :class:`~kivy.properties.ColorProperty` and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background_normal = StringProperty(
@@ -116,7 +129,7 @@ class Button(ButtonBehavior, Label):
     graphics instruction. Used with :attr:`background_normal` and
     :attr:`background_down`. Can be used for custom backgrounds.
 
-    It must be a list of four values: (top, right, bottom, left). Read the
+    It must be a list of four values: (bottom, right, top, left). Read the
     BorderImage instruction for more information about how to use it.
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to

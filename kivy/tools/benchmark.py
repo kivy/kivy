@@ -2,6 +2,12 @@
 Benchmark
 =========
 
+This script performs and displays the results of a set of benchmarks. These
+provide a set of metrics mainly aimed at gauging the OpenGL performance of your
+system.
+
+It also provides more specs regarding your graphics card setup together with
+more comprehensive system information.
 '''
 
 from __future__ import print_function
@@ -110,7 +116,8 @@ class bench_button_creation:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 
@@ -144,7 +151,8 @@ class bench_button_creation_with_tick:
     def __init__(self):
         labels = []
         for x in xrange(10000):
-            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))),
+                         xrange(10))
             labels.append(''.join(button))
         self.labels = labels
 
@@ -160,6 +168,7 @@ if __name__ == '__main__':
 
     report = []
     report_newline = True
+    Clock.start_clock()
 
     def log(s, newline=True):
         global report_newline
@@ -185,7 +194,7 @@ if __name__ == '__main__':
     log('Kivy Benchmark v%s' % benchmark_version)
     log('=' * 70)
     log('')
-    log('System informations')
+    log('System information')
     log('-------------------')
 
     log('OS platform     : %s' % sys.platform)
@@ -197,7 +206,7 @@ if __name__ == '__main__':
     log('Install date    : %s' % ctime(os.path.getctime(kivy.__file__)))
 
     log('')
-    log('OpenGL informations')
+    log('OpenGL information')
     log('-------------------')
 
     from kivy.core.gl import glGetString, GL_VENDOR, GL_RENDERER, GL_VERSION
@@ -244,6 +253,7 @@ if __name__ == '__main__':
     log('')
     log('Result: %.6f' % clock_total)
     log('')
+    Clock.stop_clock()
 
 try:
     reply = input(

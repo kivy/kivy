@@ -1,4 +1,16 @@
+'''
+RecycleView Layouts
+===================
 
+.. versionadded:: 1.10.0
+
+The Layouts handle the presentation of views for the
+:class:`~kivy.uix.recycleview.RecycleView`.
+
+.. warning::
+    This module is highly experimental, its API may change in the future and
+    the documentation is not complete at this time.
+'''
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.properties import StringProperty, ObjectProperty
@@ -101,15 +113,15 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
         a view is displayed and it needs to be shown as selected or as not
         selected.
 
-        It is called when :meth:`select_node` or :meth:`dselect_node` is called
-        or when a view needs to be refreshed. Its function is purely to update
-        the view to reflect the selection state. So the function may be
+        It is called when :meth:`select_node` or :meth:`deselect_node` is
+        called or when a view needs to be refreshed. Its function is purely to
+        update the view to reflect the selection state. So the function may be
         called multiple times even if the selection state may not have changed.
 
         If the view is a instance of
         :class:`~kivy.uix.recycleview.views.RecycleDataViewBehavior`, its
         :meth:`~kivy.uix.recycleview.views.RecycleDataViewBehavior.\
-apply_selection` method will be called everything the view needs to refresh
+apply_selection` method will be called every time the view needs to refresh
         the selection state. Otherwise, the this method is responsible
         for applying the selection.
 
@@ -124,23 +136,23 @@ apply_selection` method will be called everything the view needs to refresh
         '''
         viewclass = view.__class__
         if viewclass not in _view_base_cache:
-            _view_base_cache[viewclass] = isinstance(view, RecycleDataViewBehavior)
+            _view_base_cache[viewclass] = isinstance(view,
+                                                     RecycleDataViewBehavior)
 
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         super(LayoutSelectionBehavior, self).refresh_view_layout(
-            index, pos, pos_hint, size, size_hint, view, viewport)
+            index, layout, view, viewport)
         self.apply_selection(index, view, index in self.selected_nodes)
 
 
 class RecycleLayoutManagerBehavior(object):
-    """A RecycleLayoutManagerBehavior is responsible for positioning views into the
-    :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new views
-    into the data when it becomes visible to the user, and removes them when
-    they leave the visible area.
+    """A RecycleLayoutManagerBehavior is responsible for positioning views into
+    the :attr:`RecycleView.data` within a :class:`RecycleView`. It adds new
+    views into the data when it becomes visible to the user, and removes them
+    when they leave the visible area.
     """
 
     viewclass = ObjectProperty(None)
@@ -194,13 +206,12 @@ class RecycleLayoutManagerBehavior(object):
         '''
         pass
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
+    def refresh_view_layout(self, index, layout, view, viewport):
         '''`See :meth:`~kivy.uix.recycleview.views.RecycleDataAdapter.\
 refresh_view_layout`.
         '''
         self.recycleview.view_adapter.refresh_view_layout(
-            index, pos, pos_hint, size, size_hint, view, viewport)
+            index, layout, view, viewport)
 
     def get_view_index_at(self, pos):
         """Return the view `index` on which position, `pos`, falls.

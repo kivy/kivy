@@ -14,7 +14,8 @@ if platform != 'linux':
 try:
     import subprocess
 
-    p = subprocess.Popen(['xclip', '-version'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['xclip', '-version'], stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL)
     p.communicate()
 except:
     raise
@@ -26,4 +27,3 @@ class ClipboardXclip(ClipboardExternalBase):
         pipe = {'std' + inout: subprocess.PIPE}
         return subprocess.Popen(
             ['xclip', '-' + inout, '-selection', selection], **pipe)
-

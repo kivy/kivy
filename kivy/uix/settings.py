@@ -61,8 +61,7 @@ settings. Here is an example::
             "title": "Fullscreen",
             "desc": "Set the window in windowed or fullscreen",
             "section": "graphics",
-            "key": "fullscreen",
-            "true": "auto"
+            "key": "fullscreen"
         }
     ]
 
@@ -149,7 +148,7 @@ that displays a json settings panel with some way to switch between
 panels. An instance will be automatically created by :class:`Settings`.
 
 Interface widgets may be anything you like, but *must* have a method
-add_panel that recieves newly created json settings panels for the
+add_panel that receives newly created json settings panels for the
 interface to display. See the documentation for
 :class:`InterfaceWithSidebar` for more information. They may
 optionally dispatch an on_close event, for instance if a close button
@@ -165,7 +164,7 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
            'SettingPath', 'SettingBoolean', 'SettingNumeric', 'SettingOptions',
            'SettingTitle', 'SettingsWithSidebar', 'SettingsWithSpinner',
            'SettingsWithTabbedPanel', 'SettingsWithNoMenu',
-           'InterfaceWithSidebar', 'ContentPanel')
+           'InterfaceWithSidebar', 'ContentPanel', 'MenuSidebar')
 
 import json
 import os
@@ -289,10 +288,10 @@ class SettingItem(FloatLayout):
         super(SettingItem, self).__init__(**kwargs)
         self.value = self.panel.get_value(self.section, self.key)
 
-    def add_widget(self, *largs):
+    def add_widget(self, *args, **kwargs):
         if self.content is None:
-            return super(SettingItem, self).add_widget(*largs)
-        return self.content.add_widget(*largs)
+            return super(SettingItem, self).add_widget(*args, **kwargs)
+        return self.content.add_widget(*args, **kwargs)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -446,6 +445,25 @@ class SettingPath(SettingItem):
     defaults to None.
     '''
 
+    show_hidden = BooleanProperty(False)
+    '''Whether to show 'hidden' filenames. What that means is
+    operating-system-dependent.
+
+    :attr:`show_hidden` is an :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+
+    .. versionadded:: 1.10.0
+    '''
+
+    dirselect = BooleanProperty(True)
+    '''Whether to allow selection of directories.
+
+    :attr:`dirselect` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to True.
+
+    .. versionadded:: 1.10.0
+    '''
+
     def on_panel(self, instance, value):
         if value is None:
             return
@@ -476,10 +494,11 @@ class SettingPath(SettingItem):
             width=popup_width)
 
         # create the filechooser
+        initial_path = self.value or os.getcwd()
         self.textinput = textinput = FileChooserListView(
-            path=self.value, size_hint=(1, 1), dirselect=True)
+            path=initial_path, size_hint=(1, 1),
+            dirselect=self.dirselect, show_hidden=self.show_hidden)
         textinput.bind(on_path=self._validate)
-        self.textinput = textinput
 
         # construct the content
         content.add_widget(textinput)
@@ -590,7 +609,7 @@ class SettingTitle(Label):
 
 
 class SettingsPanel(GridLayout):
-    '''This class is used to contruct panel settings, for use with a
+    '''This class is used to construct panel settings, for use with a
     :class:`Settings` instance or subclass.
     '''
 
@@ -610,8 +629,7 @@ class SettingsPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        if 'cols' not in kwargs:
-            self.cols = 1
+        kwargs.setdefault('cols', 1)
         super(SettingsPanel, self).__init__(**kwargs)
 
     def on_config(self, instance, value):
@@ -692,16 +710,17 @@ class InterfaceWithSidebar(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and the interface should provide a way to switch
-                      between panels.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and the interface should provide a way to
+                switch between panels.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel but isn't necessarily unique.
+            `uid`:
+                A unique int identifying the panel. It should be used to
+                identify and switch between panels.
 
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel but isn't necessarily
-                     unique.
-
-        :param uid: A unique int identifying the panel. It should be
-                    used to identify and switch between panels.
         '''
         self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
@@ -726,7 +745,7 @@ class InterfaceWithSpinner(BoxLayout):
     '''(internal) A reference to the sidebar menu widget.
 
     :attr:`menu` is an :class:`~kivy.properties.ObjectProperty` and
-    defauls to None.
+    defaults to None.
     '''
 
     content = ObjectProperty()
@@ -748,16 +767,16 @@ class InterfaceWithSpinner(BoxLayout):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and the interface should provide a way to switch
-                      between panels.
-
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel but may not
-                     be unique.
-
-        :param uid: A unique int identifying the panel. It should be
-                    used to identify and switch between panels.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and the interface should provide a way to
+                switch between panels.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel but may not be unique.
+            `uid`:
+                A unique int identifying the panel. It should be used to
+                identify and switch between panels.
 
         '''
         self.content.add_panel(panel, name, uid)
@@ -813,14 +832,15 @@ class ContentPanel(ScrollView):
         display. Any replacement for ContentPanel *must* implement
         this method.
 
-        :param panel: A :class:`SettingsPanel`. It should be stored
-                      and displayed when requested.
-
-        :param name: The name of the panel as a string. It
-                     may be used to represent the panel.
-
-        :param uid: A unique int identifying the panel. It should be
-                    stored and used to identify panels when switching.
+        :Parameters:
+            `panel`: :class:`SettingsPanel`
+                It should be stored and displayed when requested.
+            `name`:
+                The name of the panel as a string. It may be used to represent
+                the panel.
+            `uid`:
+                A unique int identifying the panel. It should be stored and
+                used to identify panels when switching.
 
         '''
         self.panels[uid] = panel
@@ -831,9 +851,12 @@ class ContentPanel(ScrollView):
         '''The uid of the currently displayed panel. Changing this will
         automatically change the displayed panel.
 
-        :param uid: A panel uid. It should be used to retrieve and
-                    display a settings panel that has previously been
-                    added with :meth:`add_panel`.
+        :Parameters:
+            `uid`:
+                A panel uid. It should be used to retrieve and display
+                a settings panel that has previously been added with
+                :meth:`add_panel`.
+
         '''
         uid = self.current_uid
         if uid in self.panels:
@@ -845,14 +868,14 @@ class ContentPanel(ScrollView):
             return True
         return False  # New uid doesn't exist
 
-    def add_widget(self, widget):
+    def add_widget(self, *args, **kwargs):
         if self.container is None:
-            super(ContentPanel, self).add_widget(widget)
+            super(ContentPanel, self).add_widget(*args, **kwargs)
         else:
-            self.container.add_widget(widget)
+            self.container.add_widget(*args, **kwargs)
 
-    def remove_widget(self, widget):
-        self.container.remove_widget(widget)
+    def remove_widget(self, *args, **kwargs):
+        self.container.remove_widget(*args, **kwargs)
 
 
 class Settings(BoxLayout):
@@ -942,7 +965,8 @@ class Settings(BoxLayout):
 
     def add_json_panel(self, title, config, filename=None, data=None):
         '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config` with the JSON definition `filename`.
+        `config` with the JSON definition `filename`. If `filename` is not set,
+        then the JSON definition is read from the `data` parameter instead.
 
         Check the :ref:`settings_json` section in the documentation for more
         information about JSON format and the usage of this function.
@@ -972,7 +996,7 @@ class Settings(BoxLayout):
 
         for setting in data:
             # determine the type and the class to use
-            if not 'type' in setting:
+            if 'type' not in setting:
                 raise ValueError('One setting are missing the "type" element')
             ttype = setting['type']
             cls = self._types.get(ttype)
@@ -1072,11 +1096,11 @@ class InterfaceWithNoMenu(ContentPanel):
     widget.
 
     '''
-    def add_widget(self, widget):
+    def add_widget(self, *args, **kwargs):
         if self.container is not None and len(self.container.children) > 0:
             raise Exception(
                 'ContentNoMenu cannot accept more than one settings panel')
-        super(InterfaceWithNoMenu, self).add_widget(widget)
+        super(InterfaceWithNoMenu, self).add_widget(*args, **kwargs)
 
 
 class InterfaceWithTabbedPanel(FloatLayout):
@@ -1157,7 +1181,7 @@ class MenuSidebar(FloatLayout):
     :attr:`~ContentPanel.current_uid` of a :class:`ContentPanel`.
 
     :attr:`selected_uid` is a
-    :class`~kivy.properties.NumericProperty` and defaults to 0.
+    :class:`~kivy.properties.NumericProperty` and defaults to 0.
 
     '''
 
@@ -1181,12 +1205,14 @@ class MenuSidebar(FloatLayout):
     def add_item(self, name, uid):
         '''This method is used to add new panels to the menu.
 
-        :param name: The name (a string) of the panel. It should be
-                     used to represent the panel in the menu.
-
-        :param uid: The name (an int) of the panel. It should be used
-                    internally to represent the panel and used to set
-                    self.selected_uid when the panel is changed.
+        :Parameters:
+            `name`:
+                The name (a string) of the panel. It should be used
+                to represent the panel in the menu.
+            `uid`:
+                The name (an int) of the panel. It should be used internally
+                to represent the panel and used to set self.selected_uid when
+                the panel is changed.
 
         '''
 

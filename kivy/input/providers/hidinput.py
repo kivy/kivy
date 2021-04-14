@@ -21,10 +21,14 @@ To fix that, you can add these options to the argument line:
 
 * invert_x : 1 to invert X axis
 * invert_y : 1 to invert Y axis
-* min_position_x : X minimum
-* max_position_x : X maximum
-* min_position_y : Y minimum
-* max_position_y : Y maximum
+* min_position_x : X relative minimum
+* max_position_x : X relative maximum
+* min_position_y : Y relative minimum
+* max_position_y : Y relative maximum
+* min_abs_x : X absolute minimum
+* min_abs_y : Y absolute minimum
+* max_abs_x : X absolute maximum
+* max_abs_y : Y absolute maximum
 * min_pressure : pressure minimum
 * max_pressure : pressure maximum
 * rotation : rotate the input coordinate (0, 90, 180, 270)
@@ -42,12 +46,12 @@ max_position_y=32768
     `rotation` configuration token added.
 
 '''
-
-__all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
-
 import os
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
+
+__all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
+
 # late imports
 Window = None
 Keyboard = None
@@ -68,11 +72,16 @@ class HIDMotionEvent(MotionEvent):
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
+        if 'button' in args:
+            self.button = args['button']
+            self.profile.append('button')
+
         super(HIDMotionEvent, self).depack(args)
 
     def __str__(self):
         return '<HIDMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
+
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -199,14 +208,14 @@ else:
         0x35: ('/', '?'),
         0x36: ('shift', ),
         0x56: ('pipe', ),
-        0x1d: ('ctrl', ),
+        0x1d: ('lctrl', ),
         0x7D: ('super', ),
         0x38: ('alt', ),
         0x39: ('spacebar', ),
         0x64: ('alt-gr', ),
         0x7e: ('super', ),
         0x7f: ('compose', ),
-        0x61: ('ctrl', ),
+        0x61: ('rctrl', ),
         0x45: ('numlock', ),
         0x47: ('numpad7', 'home'),
         0x4b: ('numpad4', 'left'),
@@ -299,6 +308,7 @@ else:
         'numpadmul': '*',
         'numpaddivide': '/',
         'numpadadd': '+',
+        'numpaddecimal': '.',
         'numpadsubstract': '-',
     }
 
@@ -312,6 +322,8 @@ else:
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
                    'min_pressure', 'max_pressure',
+                   'min_abs_x', 'max_abs_x',
+                   'min_abs_y', 'max_abs_y',
                    'invert_x', 'invert_y', 'rotation')
 
         def __init__(self, device, args):
@@ -380,7 +392,9 @@ else:
                 return
             self.uid = 0
             self.queue = collections.deque()
+            self.dispatch_queue = []
             self.thread = threading.Thread(
+                name=self.__class__.__name__,
                 target=self._thread_run,
                 kwargs=dict(
                     queue=self.queue,
@@ -392,7 +406,8 @@ else:
 
         def _thread_run(self, **kwargs):
             input_fn = kwargs.get('input_fn')
-            queue = kwargs.get('queue')
+            queue = self.queue
+            dispatch_queue = self.dispatch_queue
             device = kwargs.get('device')
             drs = kwargs.get('default_ranges').get
             touches = {}
@@ -443,6 +458,10 @@ else:
                 elif rotation == 270:
                     point[cy] += -value
 
+                # limit it to the screen area 0-1
+                point['x'] = min(1., max(0., point['x']))
+                point['y'] = min(1., max(0., point['y']))
+
             def process_as_multitouch(tv_sec, tv_usec, ev_type,
                                       ev_code, ev_value):
                 # sync event
@@ -487,35 +506,53 @@ else:
                         point['size_h'] = ev_value
 
             def process_as_mouse_or_keyboard(
-                tv_sec, tv_usec, ev_type, ev_code, ev_value):
-
+                    tv_sec, tv_usec, ev_type, ev_code, ev_value):
                 if ev_type == EV_SYN:
                     if ev_code == SYN_REPORT:
                         process([point])
+                        if ('button' in point and
+                                point['button'].startswith('scroll')):
+                            # for scrolls we need to remove it as there is
+                            # no up key
+                            del point['button']
+                            point['id'] += 1
+                            point['_avoid'] = True
+                            process([point])
+
                 elif ev_type == EV_REL:
                     if ev_code == 0:
                         assign_rel_coord(point,
-                            min(1., max(-1., ev_value / 1000.)),
-                            invert_x, 'xy')
+                                         min(1., max(-1., ev_value / 1000.)),
+                                         invert_x, 'xy')
                     elif ev_code == 1:
                         assign_rel_coord(point,
-                            min(1., max(-1., ev_value / 1000.)),
-                            invert_y, 'yx')
-                elif ev_code == ABS_X:
-                    val = normalize(ev_value,
-                                    range_min_abs_x,
-                                    range_max_abs_x)
-                    assign_coord(point, val, invert_x, 'xy')
-                elif ev_code == ABS_Y:
-                    val = 1. - normalize(ev_value,
-                                         range_min_abs_y,
-                                         range_max_abs_y)
-                    assign_coord(point, val, invert_y, 'yx')
-                elif ev_code == ABS_PRESSURE and ev_type != EV_KEY:
-                    point['pressure'] = normalize(ev_value,
-                                                  range_min_abs_pressure,
-                                                  range_max_abs_pressure)
-                elif ev_type == EV_KEY:
+                                         min(1., max(-1., ev_value / 1000.)),
+                                         invert_y, 'yx')
+                    elif ev_code == 8:  # Wheel
+                        # translates the wheel move to a button
+                        b = "scrollup" if ev_value < 0 else "scrolldown"
+                        if 'button' not in point:
+                            point['button'] = b
+                            point['id'] += 1
+                            if '_avoid' in point:
+                                del point['_avoid']
+
+                elif ev_type != EV_KEY:
+                    if ev_code == ABS_X:
+                        val = normalize(ev_value,
+                                        range_min_abs_x,
+                                        range_max_abs_x)
+                        assign_coord(point, val, invert_x, 'xy')
+                    elif ev_code == ABS_Y:
+                        val = 1. - normalize(ev_value,
+                                             range_min_abs_y,
+                                             range_max_abs_y)
+                        assign_coord(point, val, invert_y, 'yx')
+                    elif ev_code == ABS_PRESSURE:
+                        point['pressure'] = normalize(ev_value,
+                                                      range_min_abs_pressure,
+                                                      range_max_abs_pressure)
+                else:
                     buttons = {
                         272: 'left',
                         273: 'right',
@@ -541,39 +578,53 @@ else:
                                 point['id'] += 1
                                 point['_avoid'] = True
                     else:
+                        if not 0 <= ev_value <= 1:
+                            return
+
+                        if ev_code not in keyboard_keys:
+                            Logger.warn('HIDInput: unhandled HID code: {}'.
+                                        format(ev_code))
+                            return
+
+                        z = keyboard_keys[ev_code][-1 if 'shift' in
+                                                   Window._modifiers else 0]
+                        if z.lower() not in Keyboard.keycodes:
+                            # or if it is not in this LUT
+                            Logger.warn('HIDInput: unhandled character: {}'.
+                                        format(z))
+                            return
+
+                        keycode = Keyboard.keycodes[z.lower()]
+
                         if ev_value == 1:
-                            l = keyboard_keys[ev_code][-1
-                                if 'shift' in Window._modifiers else 0]
-                            if l == 'shift' or l == 'alt':
-                                Window._modifiers.append(l)
-                            Window.dispatch(
-                                'on_key_down',
-                                Keyboard.keycodes[l.lower()],
-                                ev_code, keys_str.get(l, l),
-                                Window._modifiers)
-                        if ev_value == 0:
-                            l = keyboard_keys[ev_code][-1
-                                if 'shift' in Window._modifiers else 0]
-                            Window.dispatch(
-                                'on_key_up',
-                                Keyboard.keycodes[l.lower()],
-                                ev_code,
-                                keys_str.get(l, l),
-                                Window._modifiers)
-                            if l == 'shift':
-                                Window._modifiers.remove('shift')
-                        # if ev_value == 2:
-                        #     Window.dispatch('on_key_down', ev_code)
+                            if z == 'shift' or z == 'alt':
+                                Window._modifiers.append(z)
+                            elif z.endswith('ctrl'):
+                                Window._modifiers.append('ctrl')
+
+                            dispatch_queue.append(('key_down', (
+                                keycode, ev_code,
+                                keys_str.get(z, z), Window._modifiers)))
+                        elif ev_value == 0:
+                            dispatch_queue.append(('key_up', (
+                                keycode, ev_code,
+                                keys_str.get(z, z), Window._modifiers)))
+                            if ((z == 'shift' or z == 'alt') and
+                                    (z in Window._modifiers)):
+                                Window._modifiers.remove(z)
+                            elif (z.endswith('ctrl') and
+                                  'ctrl' in Window._modifiers):
+                                Window._modifiers.remove('ctrl')
 
             def process(points):
                 if not is_multitouch:
-                    Window.mouse_pos = (
+                    dispatch_queue.append(('mouse_pos', (
                         points[0]['x'] * Window.width,
-                        points[0]['y'] * Window.height)
+                        points[0]['y'] * Window.height)))
 
                 actives = [args['id']
                            for args in points
-                           if 'id' in args and not '_avoid' in args]
+                           if 'id' in args and '_avoid' not in args]
                 for args in points:
                     tid = args['id']
                     try:
@@ -608,9 +659,9 @@ else:
             # open the input
             fd = open(input_fn, 'rb')
 
-            # get the controler name (EVIOCGNAME)
-            device_name = str(fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
-                                      " " * 256)).split('\x00')[0]
+            # get the controller name (EVIOCGNAME)
+            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                                      " " * 256).decode().strip()
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
@@ -701,7 +752,19 @@ else:
                         process_as_mouse_or_keyboard(*infos)
 
         def update(self, dispatch_fn):
-            # dispatch all event from threads
+            # dispatch all events from threads
+            dispatch_queue = self.dispatch_queue
+            n = len(dispatch_queue)
+            for name, args in dispatch_queue[:n]:
+                if name == 'mouse_pos':
+                    Window.mouse_pos = args
+                elif name == 'key_down':
+                    if not Window.dispatch('on_key_down', *args):
+                        Window.dispatch('on_keyboard', *args)
+                elif name == 'key_up':
+                    Window.dispatch('on_key_up', *args)
+            del dispatch_queue[:n]
+
             try:
                 while True:
                     event_type, touch = self.queue.popleft()
@@ -710,4 +773,3 @@ else:
                 pass
 
     MotionEventFactory.register('hidinput', HIDInputMotionEventProvider)
-

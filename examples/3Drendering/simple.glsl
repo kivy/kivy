@@ -19,7 +19,7 @@ varying vec4 normal_vec;
 varying vec4 vertex_pos;
 
 void main (void) {
-    //compute vertex position in eye_sapce and normalize normal vector
+    //compute vertex position in eye_space and normalize normal vector
     vec4 pos = modelview_mat * vec4(v_pos,1.0);
     vertex_pos = pos;
     normal_vec = vec4(v_normal,0.0);

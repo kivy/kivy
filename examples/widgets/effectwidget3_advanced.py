@@ -1,5 +1,5 @@
 '''
-This example demonstrates creating and usind an AdvancedEffectBase. In
+This example demonstrates creating and using an AdvancedEffectBase. In
 this case, we use it to efficiently pass the touch coordinates into the shader.
 '''
 
@@ -58,5 +58,6 @@ TouchWidget:
         allow_stretch: True
         keep_ratio: False
 ''')
+
 
 runTouchApp(root)

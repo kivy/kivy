@@ -1,0 +1,14 @@
+[build-system]
+requires = [
+    "setuptools", "wheel",
+    "cython>=0.24,<=0.29.21,!=0.27,!=0.27.2",
+    'kivy_deps.gstreamer_dev~=0.3.1; sys_platform == "win32"',
+    'kivy_deps.sdl2_dev~=0.3.1; sys_platform == "win32"',
+    'kivy_deps.glew_dev~=0.3.0; sys_platform == "win32"',
+    'kivy_deps.gstreamer~=0.3.1; sys_platform == "win32"',
+    'kivy_deps.sdl2~=0.3.1; sys_platform == "win32"',
+    'kivy_deps.glew~=0.3.0; sys_platform == "win32"',
+]
+
+[tool.pytest.ini_options]
+addopts = "--benchmark-skip --benchmark-warmup=on --benchmark-warmup-iterations=5 --benchmark-disable-gc --benchmark-name=short --benchmark-sort=mean --benchmark-group-by=fullfunc --benchmark-storage=.benchmarks-kivy --benchmark-save=kivy"

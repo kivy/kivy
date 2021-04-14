@@ -36,10 +36,10 @@ is possible that the tesselator won't work. In that case, it can return
 False::
 
     if not tess.tesselate():
-        print "Tesselator didn't work :("
+        print("Tesselator didn't work :(")
         return
 
-After the tesselation, you have multiple ways to iterate over the result. The
+After the tessellation, you have multiple ways to iterate over the result. The
 best approach is using :data:`Tesselator.meshes` to get a format directly usable
 for a :class:`~kivy.graphics.Mesh`::
 
@@ -54,7 +54,7 @@ Or, you can get the "raw" result, with just polygons and x/y coordinates with
 :meth:`Tesselator.vertices`::
 
     for vertices in tess.vertices:
-        print "got polygon", vertices
+        print("got polygon", vertices)
 
 """
 
@@ -119,7 +119,7 @@ cdef int TESS_UNDEF = ~(<int>0)
 
 
 cdef class Tesselator:
-    """Tesselator class. See module for more informations about the usage.
+    """Tesselator class. See module for more information about the usage.
     """
     def __cinit__(self):
         self.tess = tessNewTess(NULL)
@@ -149,7 +149,7 @@ cdef class Tesselator:
 
         cdata = <char *>&float_view[0]
         datasize = float_view.nbytes
-        self.add_contour_data(cdata, len(points) / 2)
+        self.add_contour_data(cdata, int(len(points) / 2.))
 
     cpdef int tesselate(
             self, int winding_rule=WINDING_ODD,
@@ -158,14 +158,17 @@ cdef class Tesselator:
         Compute all the contours added with :meth:`add_contour`, and generate
         polygons.
 
-        :param enum winding_rule: The winding rule classifies a region as inside
-            if its winding number belongs to the chosen category. Can be one of
-            WINDING_ODD, WINDING_NONZERO, WINDING_POSITIVE, WINDING_NEGATIVE,
-            WINDING_ABS_GEQ_TWO. Defaults to WINDING_ODD.
-        :param enum element_type: The result type, you can generate the
-            polygons with TYPE_POLYGONS, or the contours with
-            TYPE_BOUNDARY_CONTOURS. Defaults to TYPE_POLYGONS.
-        :return: 1 if the tesselation happenned, 0 otherwise.
+        :Parameters:
+            `winding_rule`: enum
+                The winding rule classifies a region as inside if its winding
+                number belongs to the chosen category. Can be one of
+                WINDING_ODD, WINDING_NONZERO, WINDING_POSITIVE,
+                WINDING_NEGATIVE, WINDING_ABS_GEQ_TWO. Defaults to WINDING_ODD.
+            `element_type`: enum
+                The result type, you can generate the polygons with
+                TYPE_POLYGONS, or the contours with TYPE_BOUNDARY_CONTOURS.
+                Defaults to TYPE_POLYGONS.
+        :return: 1 if the tessellation happened, 0 otherwise.
         :rtype: int
 
         """

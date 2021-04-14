@@ -37,17 +37,31 @@ Position hints are partially working, depending on the orientation:
 * If the orientation is `vertical`: `x`, `right` and `center_x` will be used.
 * If the orientation is `horizontal`: `y`, `top` and `center_y` will be used.
 
+Kv Example::
+
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: 'this on top'
+        Label:
+            text: 'this right aligned'
+            size_hint_x: None
+            size: self.texture_size
+            pos_hint: {'right': 1}
+        Label:
+            text: 'this on bottom'
+
 You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 
 .. note::
 
     The `size_hint` uses the available space after subtracting all the
     fixed-size widgets. For example, if you have a layout that is 800px
-    wide, and add three buttons like this:
+    wide, and add three buttons like this::
 
-    btn1 = Button(text='Hello', size=(200, 100), size_hint=(None, None))
-    btn2 = Button(text='Kivy', size_hint=(.5, 1))
-    btn3 = Button(text='World', size_hint=(.5, 1))
+        btn1 = Button(text='Hello', size=(200, 100), size_hint=(None, None))
+        btn2 = Button(text='Kivy', size_hint=(.5, 1))
+        btn3 = Button(text='World', size_hint=(.5, 1))
 
     The first button will be 200px wide as specified, the second and third
     will be 300px each, e.g. (800-200) * 0.5
@@ -101,7 +115,7 @@ class BoxLayout(Layout):
     minimum_width = NumericProperty(0)
     '''Automatically computed minimum width needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
@@ -110,7 +124,7 @@ class BoxLayout(Layout):
     minimum_height = NumericProperty(0)
     '''Automatically computed minimum height needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0. It is read only.
@@ -119,14 +133,13 @@ class BoxLayout(Layout):
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
     '''Automatically computed minimum size needed to contain all children.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`minimum_size` is a
     :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`minimum_width`, :attr:`minimum_height`) properties. It is read
     only.
     '''
-
 
     def __init__(self, **kwargs):
         super(BoxLayout, self).__init__(**kwargs)
@@ -150,52 +163,109 @@ class BoxLayout(Layout):
         padding_y = padding_top + padding_bottom
 
         # calculate maximum space used by size_hint
-        stretch_weight_x = 0.
-        stretch_weight_y = 0.
+        stretch_sum = 0.
+        has_bound = False
+        hint = [None] * len_children
+        # min size from all the None hint, and from those with sh_min
+        minimum_size_bounded = 0
         if orientation == 'horizontal':
-            minimum_size_x = padding_x + spacing * (len_children - 1)
             minimum_size_y = 0
-            for (w, h), (shw, shh), _ in sizes:
+            minimum_size_none = padding_x + spacing * (len_children - 1)
+
+            for i, ((w, h), (shw, shh), _, (shw_min, shh_min),
+                    (shw_max, _)) in enumerate(sizes):
                 if shw is None:
-                    minimum_size_x += w
+                    minimum_size_none += w
                 else:
-                    stretch_weight_x += shw
+                    hint[i] = shw
+                    if shw_min:
+                        has_bound = True
+                        minimum_size_bounded += shw_min
+                    elif shw_max is not None:
+                        has_bound = True
+                    stretch_sum += shw
+
                 if shh is None:
                     minimum_size_y = max(minimum_size_y, h)
+                elif shh_min:
+                    minimum_size_y = max(minimum_size_y, shh_min)
+
+            minimum_size_x = minimum_size_bounded + minimum_size_none
             minimum_size_y += padding_y
         else:
             minimum_size_x = 0
-            minimum_size_y = padding_y + spacing * (len_children - 1)
-            for (w, h), (shw, shh), _ in sizes:
+            minimum_size_none = padding_y + spacing * (len_children - 1)
+
+            for i, ((w, h), (shw, shh), _, (shw_min, shh_min),
+                    (_, shh_max)) in enumerate(sizes):
+                if shh is None:
+                    minimum_size_none += h
+                else:
+                    hint[i] = shh
+                    if shh_min:
+                        has_bound = True
+                        minimum_size_bounded += shh_min
+                    elif shh_max is not None:
+                        has_bound = True
+                    stretch_sum += shh
+
                 if shw is None:
                     minimum_size_x = max(minimum_size_x, w)
-                if shh is None:
-                    minimum_size_y += h
-                else:
-                    stretch_weight_y += shh
+                elif shw_min:
+                    minimum_size_x = max(minimum_size_x, shw_min)
+
+            minimum_size_y = minimum_size_bounded + minimum_size_none
             minimum_size_x += padding_x
 
         self.minimum_size = minimum_size_x, minimum_size_y
-        selfw = self.width
-        selfh = self.height
+        # do not move the w/h get above, it's likely to change on above line
         selfx = self.x
         selfy = self.y
 
         if orientation == 'horizontal':
-            x = padding_left
-            stretch_space = max(0.0, selfw - minimum_size_x)
-            for i, ((w, h), (shw, shh), pos_hint) in enumerate(
-                    reversed(sizes)):
-                cx = selfx + x
+            stretch_space = max(0.0, self.width - minimum_size_none)
+            dim = 0
+        else:
+            stretch_space = max(0.0, self.height - minimum_size_none)
+            dim = 1
+
+        if has_bound:
+            # make sure the size_hint_min/max are not violated
+            if stretch_space < 1e-9:
+                # there's no space, so just set to min size or zero
+                stretch_sum = stretch_space = 1.
+
+                for i, val in enumerate(sizes):
+                    sh = val[1][dim]
+                    if sh is None:
+                        continue
+
+                    sh_min = val[3][dim]
+                    if sh_min is not None:
+                        hint[i] = sh_min
+                    else:
+                        hint[i] = 0.  # everything else is zero
+            else:
+                # hint gets updated in place
+                self.layout_hint_with_bounds(
+                    stretch_sum, stretch_space, minimum_size_bounded,
+                    (val[3][dim] for val in sizes),
+                    (elem[4][dim] for elem in sizes), hint)
+
+        if orientation == 'horizontal':
+            x = padding_left + selfx
+            size_y = self.height - padding_y
+            for i, (sh, ((w, h), (_, shh), pos_hint, _, _)) in enumerate(
+                    zip(reversed(hint), reversed(sizes))):
                 cy = selfy + padding_bottom
 
-                if shw:
-                    w = stretch_space * shw / stretch_weight_x
+                if sh:
+                    w = max(0., stretch_space * sh / stretch_sum)
                 if shh:
-                    h = max(0, shh * (selfh - padding_y))
+                    h = max(0, shh * size_y)
 
                 for key, value in pos_hint.items():
-                    posy = value * (selfh - padding_y)
+                    posy = value * size_y
                     if key == 'y':
                         cy += posy
                     elif key == 'top':
@@ -203,24 +273,23 @@ class BoxLayout(Layout):
                     elif key == 'center_y':
                         cy += posy - (h / 2.)
 
-                yield len_children - i - 1, cx, cy, w, h
+                yield len_children - i - 1, x, cy, w, h
                 x += w + spacing
 
-        if orientation == 'vertical':
-            y = padding_bottom
-            stretch_space = max(0.0, selfh - minimum_size_y)
-            for i, ((w, h), (shw, shh), pos_hint) in enumerate(sizes):
-
+        else:
+            y = padding_bottom + selfy
+            size_x = self.width - padding_x
+            for i, (sh, ((w, h), (shw, _), pos_hint, _, _)) in enumerate(
+                    zip(hint, sizes)):
                 cx = selfx + padding_left
-                cy = selfy + y
 
-                if shh:
-                    h = stretch_space * shh / stretch_weight_y
+                if sh:
+                    h = max(0., stretch_space * sh / stretch_sum)
                 if shw:
-                    w = max(0, shw * (selfw - padding_x))
+                    w = max(0, shw * size_x)
 
                 for key, value in pos_hint.items():
-                    posx = value * (selfw - padding_x)
+                    posx = value * size_x
                     if key == 'x':
                         cx += posx
                     elif key == 'right':
@@ -228,7 +297,7 @@ class BoxLayout(Layout):
                     elif key == 'center_x':
                         cx += posx - (w / 2.)
 
-                yield i, cx, cy, w, h
+                yield i, cx, y, w, h
                 y += h + spacing
 
     def do_layout(self, *largs):
@@ -239,7 +308,8 @@ class BoxLayout(Layout):
             return
 
         for i, x, y, w, h in self._iterate_layout(
-                [(c.size, c.size_hint, c.pos_hint) for c in children]):
+                [(c.size, c.size_hint, c.pos_hint, c.size_hint_min,
+                  c.size_hint_max) for c in children]):
             c = children[i]
             c.pos = x, y
             shw, shh = c.size_hint
@@ -252,10 +322,10 @@ class BoxLayout(Layout):
                 else:
                     c.size = (w, h)
 
-    def add_widget(self, widget, index=0):
+    def add_widget(self, widget, *args, **kwargs):
         widget.fbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).add_widget(widget, index)
+        return super(BoxLayout, self).add_widget(widget, *args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, widget, *args, **kwargs):
         widget.funbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).remove_widget(widget)
+        return super(BoxLayout, self).remove_widget(widget, *args, **kwargs)

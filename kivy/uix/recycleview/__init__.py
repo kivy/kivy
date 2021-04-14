@@ -2,41 +2,264 @@
 RecycleView
 ===========
 
-A flexible view for providing a limited window into a large data set.
+.. versionadded:: 1.10.0
+
+The RecycleView provides a flexible model for viewing selected sections of
+large data sets. It aims to prevent the performance degradation that can occur
+when generating large numbers of widgets in order to display many data items.
 
 .. warning::
-    This module is highly experimental, its API may change in the future and
-    the documentation is not complete at this time.
+
+    Because :class:`RecycleView` reuses widgets, any state change to a single
+    widget will stay with that widget as it's reused, even if the
+    :attr:`~RecycleView.data` assigned to it by the :class:`RecycleView`
+    changes. Unless the complete state is tracked in :attr:`~RecycleView.data`
+    (see below).
+
+The view is generatad by processing the :attr:`~RecycleView.data`, essentially
+a list of dicts, and uses these dicts to generate instances of the
+:attr:`~RecycleView.viewclass` as required. Its design is based on the
+MVC (`Model-view-controller
+<https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller>`_)
+pattern.
+
+* Model: The model is formed by :attr:`~RecycleView.data` you pass in via a
+  list of dicts.
+* View: The View is split across layout and views and implemented using
+  adapters.
+* Controller: The controller determines the logical interaction and is
+  implemented by :class:`RecycleViewBehavior`.
+
+These are abstract classes and cannot be used directly. The default concrete
+implementations are the
+:class:`~kivy.uix.recycleview.datamodel.RecycleDataModel` for the model, the
+:class:`~kivy.uix.recyclelayout.RecycleLayout` for the view, and the
+:class:`RecycleView` for the controller.
+
+When a RecycleView is instantiated, it automatically creates the views and data
+classes. However, one must manually create the layout classes and add them to
+the RecycleView.
+
+A layout manager is automatically created as a
+:attr:`~RecycleViewBehavior.layout_manager` when added as the child of the
+RecycleView. Similarly when removed. A requirement is that the layout manager
+must be contained as a child somewhere within the RecycleView's widget tree so
+the view port can be found.
+
+A minimal example might look something like this::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.recycleview import RecycleView
 
 
-Data accepted: list of dict.
+    Builder.load_string('''
+    <RV>:
+        viewclass: 'Label'
+        RecycleBoxLayout:
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+    ''')
+
+    class RV(RecycleView):
+        def __init__(self, **kwargs):
+            super(RV, self).__init__(**kwargs)
+            self.data = [{'text': str(x)} for x in range(100)]
+
+
+    class TestApp(App):
+        def build(self):
+            return RV()
+
+    if __name__ == '__main__':
+        TestApp().run()
+
+In order to support selection in the view, you can add the required behaviours
+as follows::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.recycleview import RecycleView
+    from kivy.uix.recycleview.views import RecycleDataViewBehavior
+    from kivy.uix.label import Label
+    from kivy.properties import BooleanProperty
+    from kivy.uix.recycleboxlayout import RecycleBoxLayout
+    from kivy.uix.behaviors import FocusBehavior
+    from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+
+    Builder.load_string('''
+    <SelectableLabel>:
+        # Draw a background to indicate selection
+        canvas.before:
+            Color:
+                rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    <RV>:
+        viewclass: 'SelectableLabel'
+        SelectableRecycleBoxLayout:
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            multiselect: True
+            touch_multiselect: True
+    ''')
+
+
+    class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                     RecycleBoxLayout):
+        ''' Adds selection and focus behaviour to the view. '''
+
+
+    class SelectableLabel(RecycleDataViewBehavior, Label):
+        ''' Add selection support to the Label '''
+        index = None
+        selected = BooleanProperty(False)
+        selectable = BooleanProperty(True)
+
+        def refresh_view_attrs(self, rv, index, data):
+            ''' Catch and handle the view changes '''
+            self.index = index
+            return super(SelectableLabel, self).refresh_view_attrs(
+                rv, index, data)
+
+        def on_touch_down(self, touch):
+            ''' Add selection on touch down '''
+            if super(SelectableLabel, self).on_touch_down(touch):
+                return True
+            if self.collide_point(*touch.pos) and self.selectable:
+                return self.parent.select_with_touch(self.index, touch)
+
+        def apply_selection(self, rv, index, is_selected):
+            ''' Respond to the selection of items in the view. '''
+            self.selected = is_selected
+            if is_selected:
+                print("selection changed to {0}".format(rv.data[index]))
+            else:
+                print("selection removed for {0}".format(rv.data[index]))
+
+
+    class RV(RecycleView):
+        def __init__(self, **kwargs):
+            super(RV, self).__init__(**kwargs)
+            self.data = [{'text': str(x)} for x in range(100)]
+
+
+    class TestApp(App):
+        def build(self):
+            return RV()
+
+    if __name__ == '__main__':
+        TestApp().run()
+
+
+
+Please see the `examples/widgets/recycleview/basic_data.py` file for a more
+complete example.
+
+Viewclass State
+^^^^^^^^^^^^^^^
+
+Because the viewclass widgets are reused or instantiated as needed by the
+:class:`RecycleView`, the order and content of the widgets are mutable. So any
+state change to a single widget will stay with that widget, even when the data
+assigned to it from the :attr:`~RecycleView.data` dict changes, unless
+:attr:`~RecycleView.data` tracks those changes or they are manually refreshed
+when re-used.
+
+There are two methods for managing state changes in viewclass widgets:
+
+1. Store state in the RecycleView.data Model
+2. Generate state changes on-the-fly by catching :attr:`~RecycleView.data`
+   updates and manually refreshing.
+
+An example::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.recycleview import RecycleView
+    from kivy.uix.recycleview.views import RecycleDataViewBehavior
+    from kivy.properties import BooleanProperty, StringProperty
+
+    Builder.load_string('''
+    <StatefulLabel>:
+        active: stored_state.active
+        CheckBox:
+            id: stored_state
+            active: root.active
+            on_release: root.store_checkbox_state()
+        Label:
+            text: root.text
+        Label:
+            id: generate_state
+            text: root.generated_state_text
+
+    <RV>:
+        viewclass: 'StatefulLabel'
+        RecycleBoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+    ''')
+
+    class StatefulLabel(RecycleDataViewBehavior, BoxLayout):
+        text = StringProperty()
+        generated_state_text = StringProperty()
+        active = BooleanProperty()
+        index = 0
+
+        '''
+        To change a viewclass' state as the data assigned to it changes,
+        overload the refresh_view_attrs function (inherited from
+        RecycleDataViewBehavior)
+        '''
+        def refresh_view_attrs(self, rv, index, data):
+            self.index = index
+            if data['text'] == '0':
+                self.generated_state_text = "is zero"
+            elif int(data['text']) % 2 == 1:
+                self.generated_state_text = "is odd"
+            else:
+                self.generated_state_text = "is even"
+            super(StatefulLabel, self).refresh_view_attrs(rv, index, data)
+
+        '''
+        To keep state changes in the viewclass with associated data,
+        they can be explicitly stored in the RecycleView's data object
+        '''
+        def store_checkbox_state(self):
+            rv = App.get_running_app().rv
+            rv.data[self.index]['active'] = self.active
+
+    class RV(RecycleView, App):
+        def __init__(self, **kwargs):
+            super(RV, self).__init__(**kwargs)
+            self.data = [{'text': str(x), 'active': False} for x in range(10)]
+            App.get_running_app().rv = self
+
+        def build(self):
+            return self
+
+    if __name__ == '__main__':
+        RV().run()
 
 TODO:
     - Method to clear cached class instances.
     - Test when views cannot be found (e.g. viewclass is None).
     - Fix selection goto.
 
-
-It is made with the MVC pattern. M for model is implemented by ....
-V for views is split across layout and views and implemented by...
-C for controller is implemented by RecycleViewBehavior.
-
-These are abstract classes and cannot be used directly. The default concrete
-implementation is RecycleDataModel for M, RecycleLayout and ... for views,
-and RecycleView for C.
-
-When a RecycleView is instantiated it automatically creates the views and data
-classes. However, one must manually create the layout classes and add it to
-the RecycleView.
-
-A layout manager is automatically added as a layout manager when added as the
-child of the RecycleView. Similarly when removed. A requirement is that the
-layout manager must be a sub-child of the RecycleView so the view port can be
-found.
-
 .. warning::
     When views are re-used they may not trigger if the data remains the same.
 """
+
+__all__ = ('RecycleViewBehavior', 'RecycleView')
 
 from copy import deepcopy
 
@@ -52,10 +275,11 @@ from kivy.uix.recycleview.datamodel import RecycleDataModelBehavior, \
 
 
 class RecycleViewBehavior(object):
-    """RecycleViewBehavior is a flexible view for providing a limited window into
-    a large data set.
+    """RecycleViewBehavior provides a behavioral model upon which the
+    :class:`RecycleView` is built. Together, they offer an extensible and
+    flexible way to produce views with limited windows over large data sets.
 
-    See module documentation for more informations.
+    See the module documentation for more information.
     """
 
     # internals
@@ -128,38 +352,41 @@ class RecycleViewBehavior(object):
             lm.set_visible_views(indices, data, viewport)
 
     def refresh_from_data(self, *largs, **kwargs):
-        '''Should be called when data changes. Data changes typically indicate
-        that everything has to be recomputed since the source data changed.
+        """
+        This should be called when data changes. Data changes typically
+        indicate that everything should be recomputed since the source data
+        changed.
 
-        It is automatically bound to `'on_data_changed'` in
-        :class:`~kivy.uix.recycleview.datamodel.RecycleDataModelBehavior` and
-        therefore responds to and accept the keyword arguments of that event.
+        This method is automatically bound to the
+        :attr:`~RecycleDataModelBehavior.on_data_changed` method of the
+        :class:`~RecycleDataModelBehavior` class and
+        therefore responds to and accepts the keyword arguments of that event.
 
         It can be called manually to trigger an update.
-        '''
+        """
         self._refresh_flags['data'].append(kwargs)
         self._refresh_trigger()
 
     def refresh_from_layout(self, *largs, **kwargs):
-        '''Should be called when the layout changes or needs to change.
-        Typically called when the data has not been changed, but e.g. a layout
-        parameter has and therefore the layout needs to be recomputed.
-        '''
+        """
+        This should be called when the layout changes or needs to change. It is
+        typically called when a layout parameter has changed and therefore the
+        layout needs to be recomputed.
+        """
         self._refresh_flags['layout'].append(kwargs)
         self._refresh_trigger()
 
     def refresh_from_viewport(self, *largs):
-        '''Should be called when the viewport changes and the displayed data
-        must be updated. Typically neither the data nor the layout will be
-        recomputed.
-        '''
+        """
+        This should be called when the viewport changes and the displayed data
+        must be updated. Neither the data nor the layout will be recomputed.
+        """
         self._refresh_flags['viewport'] = True
         self._refresh_trigger()
 
     def _dispatch_prop_on_source(self, prop_name, *largs):
-        '''Dispatches the prop of this class when the view_adapter/layout_manager
-        property changes.
-        '''
+        # Dispatches the prop of this class when the
+        # view_adapter/layout_manager property changes.
         getattr(self.__class__, prop_name).dispatch(self)
 
     def _get_data_model(self):
@@ -187,7 +414,12 @@ class RecycleViewBehavior(object):
         return True
 
     data_model = AliasProperty(_get_data_model, _set_data_model)
-    """Data model responsible for keeping the data set. """
+    """
+    The Data model responsible for maintaining the data set.
+
+    data_model is an :class:`~kivy.properties.AliasProperty` that gets and sets
+    the current data model.
+    """
 
     def _get_view_adapter(self):
         return self._view_adapter
@@ -214,8 +446,13 @@ class RecycleViewBehavior(object):
         return True
 
     view_adapter = AliasProperty(_get_view_adapter, _set_view_adapter)
-    """Adapter responsible for providing views that represent items in a data
-    set."""
+    """
+    The adapter responsible for providing views that represent items in a data
+    set.
+
+    view_adapter is an :class:`~kivy.properties.AliasProperty` that gets and
+    sets the current view adapter.
+    """
 
     def _get_layout_manager(self):
         return self._layout_manager
@@ -234,22 +471,31 @@ class RecycleViewBehavior(object):
 
         if not isinstance(value, RecycleLayoutManagerBehavior):
             raise ValueError(
-                'Expected object based on RecycleLayoutManagerBehavior, got {}'.
-                format(value.__class__))
+                'Expected object based on RecycleLayoutManagerBehavior, '
+                'got {}'.format(value.__class__))
 
         self._layout_manager = value
         value.attach_recycleview(self)
         self.refresh_from_layout()
         return True
 
-    layout_manager = AliasProperty(
-        _get_layout_manager, _set_layout_manager)
-    """Layout manager responsible to position views within the recycleview
+    layout_manager = AliasProperty(_get_layout_manager, _set_layout_manager)
+    """
+    The Layout manager responsible for positioning views within the
+    :class:`RecycleView`.
+
+    layout_manager is an :class:`~kivy.properties.AliasProperty` that gets
+    and sets the layout_manger.
     """
 
 
 class RecycleView(RecycleViewBehavior, ScrollView):
+    """
+    RecycleView is a flexible view for providing a limited window
+    into a large data set.
 
+    See the module documentation for more information.
+    """
     def __init__(self, **kwargs):
         if self.data_model is None:
             kwargs.setdefault('data_model', RecycleDataModel())
@@ -311,14 +557,14 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def restore_viewport(self):
         pass
 
-    def add_widget(self, widget, *largs):
-        super(RecycleView, self).add_widget(widget, *largs)
+    def add_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).add_widget(widget, *args, **kwargs)
         if (isinstance(widget, RecycleLayoutManagerBehavior) and
                 not self.layout_manager):
             self.layout_manager = widget
 
-    def remove_widget(self, widget, *largs):
-        super(RecycleView, self).remove_widget(widget, *largs)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(RecycleView, self).remove_widget(widget, *args, **kwargs)
         if self.layout_manager == widget:
             self.layout_manager = None
 
@@ -326,34 +572,53 @@ class RecycleView(RecycleViewBehavior, ScrollView):
     def _get_data(self):
         d = self.data_model
         return d and d.data
+
     def _set_data(self, value):
         d = self.data_model
         if d is not None:
             d.data = value
+
     data = AliasProperty(_get_data, _set_data, bind=["data_model"])
-    """Set the data on the current view adapter
+    """
+    The data used by the current view adapter. This is a list of dicts whose
+    keys map to the corresponding property names of the
+    :attr:`~RecycleView.viewclass`.
+
+    data is an :class:`~kivy.properties.AliasProperty` that gets and sets the
+    data used to generate the views.
     """
 
     def _get_viewclass(self):
         a = self.layout_manager
         return a and a.viewclass
+
     def _set_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.viewclass = value
+
     viewclass = AliasProperty(_get_viewclass, _set_viewclass,
-        bind=["layout_manager"])
-    """Set the viewclass on the current layout_manager
+                              bind=["layout_manager"])
+    """
+    The viewclass used by the current layout_manager.
+
+    viewclass is an :class:`~kivy.properties.AliasProperty` that gets and sets
+    the class used to generate the individual items presented in the view.
     """
 
     def _get_key_viewclass(self):
         a = self.layout_manager
         return a and a.key_viewclass
+
     def _set_key_viewclass(self, value):
         a = self.layout_manager
         if a:
             a.key_viewclass = value
+
     key_viewclass = AliasProperty(_get_key_viewclass, _set_key_viewclass,
-        bind=["layout_manager"])
-    """Set the key viewclass on the current layout_manager
+                                  bind=["layout_manager"])
+    """
+    key_viewclass is an :class:`~kivy.properties.AliasProperty` that gets and
+    sets the key viewclass for the current
+    :attr:`~kivy.uix.recycleview.layout_manager`.
     """

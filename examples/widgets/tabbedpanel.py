@@ -45,5 +45,6 @@ class TabbedPanelApp(App):
     def build(self):
         return Test()
 
+
 if __name__ == '__main__':
     TabbedPanelApp().run()

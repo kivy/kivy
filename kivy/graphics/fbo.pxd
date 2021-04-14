@@ -1,6 +1,6 @@
-from c_opengl cimport GLuint, GLint
-from instructions cimport RenderContext, Canvas
-from texture cimport Texture
+from kivy.graphics.cgl cimport GLuint, GLint
+from kivy.graphics.instructions cimport RenderContext, Canvas
+from kivy.graphics.texture cimport Texture
 
 cdef class Fbo(RenderContext):
     cdef int _width
@@ -15,6 +15,7 @@ cdef class Fbo(RenderContext):
     cdef GLint _viewport[4]
     cdef Texture _texture
     cdef int _is_bound
+    cdef object _stencil_state
     cdef list observers
 
     cpdef clear_buffer(self)
@@ -27,4 +28,4 @@ cdef class Fbo(RenderContext):
     cdef int apply(self) except -1
     cdef void raise_exception(self, str message, int status=?)
     cdef str resolve_status(self, int status)
-    cdef void reload(self)
+    cdef void reload(self) except *

@@ -13,12 +13,12 @@ ShowcaseScreen:
         size_hint_y: None
         height: '48dp'
 
-    Widget
+    Widget:
+        on_parent: dropdown.dismiss()
 
     DropDown:
 
         id: dropdown
-        on_parent: self.dismiss()
         on_select: btn.text = 'Selected value: {}'.format(args[1])
 
         Button:

@@ -30,20 +30,33 @@ An example usage::
 
 __all__ = ('CheckBox', )
 
-from kivy.uix.widget import Widget
-from kivy.properties import BooleanProperty, StringProperty
+from kivy.properties import AliasProperty, StringProperty, ColorProperty
 from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.uix.widget import Widget
 
 
 class CheckBox(ToggleButtonBehavior, Widget):
     '''CheckBox class, see module documentation for more information.
     '''
 
-    active = BooleanProperty(False)
+    def _get_active(self):
+        return self.state == 'down'
+
+    def _set_active(self, value):
+        self.state = 'down' if value else 'normal'
+
+    active = AliasProperty(
+        _get_active, _set_active, bind=('state', ), cache=True)
     '''Indicates if the switch is active or inactive.
 
-    :attr:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
+    :attr:`active` is a boolean and reflects and sets whether the underlying
+    :attr:`~kivy.uix.button.Button.state` is 'down' (True) or 'normal' (False).
+    It is a :class:`~kivy.properties.AliasProperty`, which accepts boolean
+    values and defaults to False.
+
+    .. versionchanged:: 1.11.0
+
+        It changed from a BooleanProperty to a AliasProperty.
     '''
 
     background_checkbox_normal = StringProperty(
@@ -142,14 +155,43 @@ class CheckBox(ToggleButtonBehavior, Widget):
     'atlas://data/images/defaulttheme/checkbox_radio_disabled_on'.
     '''
 
-    def on_state(self, instance, value):
-        if value == 'down':
-            self.active = True
-        else:
-            self.active = False
+    color = ColorProperty([1, 1, 1, 1])
+    '''Color is used for tinting the default graphical representation
+    of checkbox and radio button (images).
 
-    def _toggle_active(self):
-        self._do_press()
+    Color is in the format (r, g, b, a).
 
-    def on_active(self, instance, value):
-        self.state = 'down' if value else 'normal'
+    .. versionadded:: 1.10.0
+
+    :attr:`color` is a
+    :class:`~kivy.properties.ColorProperty` and defaults to
+    '[1, 1, 1, 1]'.
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
+    '''
+
+    def __init__(self, **kwargs):
+        self.fbind('state', self._on_state)
+        super(CheckBox, self).__init__(**kwargs)
+
+    def _on_state(self, instance, value):
+        if self.group and self.state == 'down':
+            self._release_group(self)
+
+    def on_group(self, *largs):
+        super(CheckBox, self).on_group(*largs)
+        if self.active:
+            self._release_group(self)
+
+
+if __name__ == '__main__':
+    from random import uniform
+    from kivy.base import runTouchApp
+    from kivy.uix.gridlayout import GridLayout
+    x = GridLayout(cols=4)
+    for i in range(36):
+        r, g, b = [uniform(0.2, 1.0) for j in range(3)]
+        x.add_widget(CheckBox(group='1' if i % 2 else '', color=[r, g, b, 2]))
+    runTouchApp(x)

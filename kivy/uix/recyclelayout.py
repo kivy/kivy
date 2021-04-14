@@ -2,6 +2,8 @@
 RecycleLayout
 =============
 
+.. versionadded:: 1.10.0
+
 .. warning::
     This module is highly experimental, its API may change in the future and
     the documentation is not complete at this time.
@@ -9,22 +11,165 @@ RecycleLayout
 
 from kivy.uix.recycleview.layout import RecycleLayoutManagerBehavior
 from kivy.uix.layout import Layout
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import (
+    ObjectProperty, StringProperty, ReferenceListProperty, NumericProperty
+)
+from kivy.factory import Factory
 
 __all__ = ('RecycleLayout', )
 
 
 class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
+    """
+    RecycleLayout provides the default layout for RecycleViews.
+    """
 
-    default_size = ObjectProperty((100, 100))
-    '''size as in w, h. They each can be None.
+    default_width = NumericProperty(100, allownone=True)
+    '''Default width for items
+
+    :attr:`default_width` is a NumericProperty and default to 100
     '''
+    default_height = NumericProperty(100, allownone=True)
+    '''Default height for items
+
+    :attr:`default_height` is a :class:`~kivy.properties.NumericProperty` and
+    default to 100.
+    '''
+    default_size = ReferenceListProperty(default_width, default_height)
+    '''size (width, height). Each value can be None.
+
+    :attr:`default_size` is an :class:`~kivy.properties.ReferenceListProperty`
+    to [:attr:`default_width`, :attr:`default_height`].
+    '''
+    default_size_hint_x = NumericProperty(None, allownone=True)
+    '''Default size_hint_x for items
+
+    :attr:`default_size_hint_x` is a :class:`~kivy.properties.NumericProperty`
+    and default to None.
+    '''
+    default_size_hint_y = NumericProperty(None, allownone=True)
+    '''Default size_hint_y for items
+
+    :attr:`default_size_hint_y` is a :class:`~kivy.properties.NumericProperty`
+    and default to None.
+    '''
+    default_size_hint = ReferenceListProperty(
+        default_size_hint_x, default_size_hint_y
+    )
+    '''size (width, height). Each value can be None.
+
+    :attr:`default_size_hint` is an
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x`, :attr:`default_size_hint_y`].
+    '''
+
     key_size = StringProperty(None, allownone=True)
-    default_size_hint = ObjectProperty((None, None))
+    '''If set, which key in the dict should be used to set the size property of
+    the item.
+
+    :attr:`key_size` is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
+    '''
     key_size_hint = StringProperty(None, allownone=True)
+    '''If set, which key in the dict should be used to set the size_hint
+    property of the item.
+
+    :attr:`key_size_hint` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    key_size_hint_min = StringProperty(None, allownone=True)
+    '''If set, which key in the dict should be used to set the size_hint_min
+    property of the item.
+
+    :attr:`key_size_hint_min` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+    default_size_hint_x_min = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_x_min of items
+
+    :attr:`default_pos_hint_x_min` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_y_min = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_y_min of items
+
+    :attr:`default_pos_hint_y_min` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_min = ReferenceListProperty(
+        default_size_hint_x_min,
+        default_size_hint_y_min
+    )
+    '''Default value for size_hint_min of items
+
+    :attr:`default_size_min` is a
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x_min`, :attr:`default_size_hint_y_min`].
+    '''
+
+    key_size_hint_max = StringProperty(None, allownone=True)
+    '''If set, which key in the dict should be used to set the size_hint_max
+    property of the item.
+
+    :attr:`key_size_hint_max` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+    default_size_hint_x_max = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_x_max of items
+
+    :attr:`default_pos_hint_x_max` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_y_max = NumericProperty(None, allownone=True)
+    '''Default value for size_hint_y_max of items
+
+    :attr:`default_pos_hint_y_max` is a
+    :class:`~kivy.properties.NumericProperty` and defaults to None.
+    '''
+    default_size_hint_max = ReferenceListProperty(
+        default_size_hint_x_max,
+        default_size_hint_y_max
+    )
+    '''Default value for size_hint_max of items
+
+    :attr:`default_size_max` is a
+    :class:`~kivy.properties.ReferenceListProperty` to
+    [:attr:`default_size_hint_x_max`, :attr:`default_size_hint_y_max`].
+    '''
+
     default_pos_hint = ObjectProperty({})
+    '''Default pos_hint value for items
+
+    :attr:`default_pos_hint` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
+    '''
     key_pos_hint = StringProperty(None, allownone=True)
-    initial_size = ObjectProperty((100, 100))
+    '''If set, which key in the dict should be used to set the pos_hint of
+    items.
+
+    :attr:`key_pos_hint` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
+    initial_width = NumericProperty(100)
+    '''Initial width for the items.
+
+    :attr:`initial_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 100.
+    '''
+    initial_height = NumericProperty(100)
+    '''Initial height for the items.
+
+    :attr:`initial_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 100.
+    '''
+    initial_size = ReferenceListProperty(initial_width, initial_height)
+    '''Initial size of items
+
+    :attr:`initial_size` is a :class:`~kivy.properties.ReferenceListProperty`
+    to [:attr:`initial_width`, :attr:`initial_height`].
+    '''
 
     view_opts = []
 
@@ -47,6 +192,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             fbind('key_size', rv.refresh_from_data)
             fbind('default_size_hint', rv.refresh_from_data)
             fbind('key_size_hint', rv.refresh_from_data)
+            fbind('default_size_hint_min', rv.refresh_from_data)
+            fbind('key_size_hint_min', rv.refresh_from_data)
+            fbind('default_size_hint_max', rv.refresh_from_data)
+            fbind('key_size_hint_max', rv.refresh_from_data)
             fbind('default_pos_hint', rv.refresh_from_data)
             fbind('key_pos_hint', rv.refresh_from_data)
 
@@ -58,6 +207,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             funbind('key_size', rv.refresh_from_data)
             funbind('default_size_hint', rv.refresh_from_data)
             funbind('key_size_hint', rv.refresh_from_data)
+            funbind('default_size_hint_min', rv.refresh_from_data)
+            funbind('key_size_hint_min', rv.refresh_from_data)
+            funbind('default_size_hint_max', rv.refresh_from_data)
+            funbind('key_size_hint_max', rv.refresh_from_data)
             funbind('default_pos_hint', rv.refresh_from_data)
             funbind('key_pos_hint', rv.refresh_from_data)
         super(RecycleLayout, self).detach_recycleview()
@@ -73,8 +226,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                 return
             opt = self.view_opts[idx]
             if (instance.size == opt['size'] and
-                instance.size_hint == opt['size_hint'] and
-                instance.pos_hint == opt['pos_hint']):
+                    instance.size_hint == opt['size_hint'] and
+                    instance.size_hint_min == opt['size_hint_min'] and
+                    instance.size_hint_max == opt['size_hint_max'] and
+                    instance.pos_hint == opt['pos_hint']):
                 return
             self._size_needs_update = True
             rv.refresh_from_layout(view_size=True)
@@ -100,7 +255,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                         opts.insert(v, None)
                     elif k == 'modified':
                         start, stop, step = v.start, v.stop, v.step
-                        r = range (start, stop) if step == None else \
+                        r = range(start, stop) if step is None else \
                             range(start, stop, step)
                         for i in r:
                             opts[i] = None
@@ -115,6 +270,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         ph_def = self.default_pos_hint
         sh_key = self.key_size_hint
         sh_def = self.default_size_hint
+        sh_min_key = self.key_size_hint_min
+        sh_min_def = self.default_size_hint_min
+        sh_max_key = self.key_size_hint_max
+        sh_max_def = self.default_size_hint_max
         s_key = self.key_size
         s_def = self.default_size
         viewcls_def = self.viewclass
@@ -134,6 +293,18 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             sh = [item.get('size_hint_x', sh[0]),
                   item.get('size_hint_y', sh[1])]
 
+            sh_min = sh_min_def if sh_min_key is None else item.get(sh_min_key,
+                                                                    sh_min_def)
+            sh_min = item.get('size_hint_min', sh_min)
+            sh_min = [item.get('size_hint_min_x', sh_min[0]),
+                      item.get('size_hint_min_y', sh_min[1])]
+
+            sh_max = sh_max_def if sh_max_key is None else item.get(sh_max_key,
+                                                                    sh_max_def)
+            sh_max = item.get('size_hint_max', sh_max)
+            sh_max = [item.get('size_hint_max_x', sh_max[0]),
+                      item.get('size_hint_max_y', sh_max[1])]
+
             s = s_def if s_key is None else item.get(s_key, s_def)
             s = item.get('size', s)
             w, h = s = item.get('width', s[0]), item.get('height', s[1])
@@ -148,7 +319,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
 
             opts[i] = {
                 'size': [(iw if w is None else w), (ih if h is None else h)],
-                'size_hint': sh, 'pos': None, 'pos_hint': ph,
+                'size_hint': sh, 'size_hint_min': sh_min,
+                'size_hint_max': sh_max, 'pos': None, 'pos_hint': ph,
                 'viewclass': viewcls, 'width_none': w is None,
                 'height_none': h is None}
 
@@ -160,13 +332,19 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for widget, index in self.view_indices.items():
             opt = opts[index]
             s = opt['size']
-            w, h = sn = widget.size
+            w, h = sn = list(widget.size)
             sh = opt['size_hint']
-            shnw, shnh = shn = widget.size_hint
+            shnw, shnh = shn = list(widget.size_hint)
+            sh_min = opt['size_hint_min']
+            shn_min = list(widget.size_hint_min)
+            sh_max = opt['size_hint_max']
+            shn_max = list(widget.size_hint_max)
             ph = opt['pos_hint']
-            phn = widget.pos_hint
-            if s != sn or sh != shn or ph != phn:
-                changed.append((index, widget, s, sn, sh, shn, ph, phn))
+            phn = dict(widget.pos_hint)
+            if s != sn or sh != shn or ph != phn or sh_min != shn_min or \
+                    sh_max != shn_max:
+                changed.append((index, widget, s, sn, sh, shn, sh_min, shn_min,
+                                sh_max, shn_max, ph, phn))
                 if shnw is None:
                     if shnh is None:
                         opt['size'] = sn
@@ -175,6 +353,8 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
                 elif shnh is None:
                     opt['size'] = [s[0], h]
                 opt['size_hint'] = shn
+                opt['size_hint_min'] = shn_min
+                opt['size_hint_max'] = shn_max
                 opt['pos_hint'] = phn
 
         if [f for f in flags if not f]:  # need to redo everything
@@ -202,10 +382,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for index, widget in new:
             # make sure widget is added first so that any sizing updates
             # will be recorded
-            opt = view_opts[index]
-            refresh_view_layout(
-                index, opt['pos'], opt['pos_hint'], opt['size'],
-                opt['size_hint'], widget, viewport)
+            opt = view_opts[index].copy()
+            del opt['width_none']
+            del opt['height_none']
+            refresh_view_layout(index, opt, widget, viewport)
 
         # then add all the visible widgets, which binds size/size_hint
         add = self.add_widget
@@ -220,8 +400,10 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         for index, widget in new:
             opt = view_opts[index]
             if (changed or widget.size == opt['size'] and
-                widget.size_hint == opt['size_hint'] and
-                widget.pos_hint == opt['pos_hint']):
+                    widget.size_hint == opt['size_hint'] and
+                    widget.size_hint_min == opt['size_hint_min'] and
+                    widget.size_hint_max == opt['size_hint_max'] and
+                    widget.pos_hint == opt['pos_hint']):
                 continue
             changed = True
 
@@ -231,17 +413,21 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
             self._size_needs_update = True
             self.recycleview.refresh_from_layout(view_size=True)
 
-    def refresh_view_layout(self, index, pos, pos_hint, size, size_hint, view,
-                            viewport):
-        opt = self.view_opts[index]
-        w, h = size
-        shw, shh = size_hint
-        if shw is None and opt['width_none']:
+    def refresh_view_layout(self, index, layout, view, viewport):
+        opt = self.view_opts[index].copy()
+        width_none = opt.pop('width_none')
+        height_none = opt.pop('height_none')
+        opt.update(layout)
+
+        w, h = opt['size']
+        shw, shh = opt['size_hint']
+        if shw is None and width_none:
             w = None
-        if shh is None and opt['height_none']:
+        if shh is None and height_none:
             h = None
+        opt['size'] = w, h
         super(RecycleLayout, self).refresh_view_layout(
-            index, pos, pos_hint, (w, h), size_hint, view, viewport)
+            index, opt, view, viewport)
 
     def remove_views(self):
         super(RecycleLayout, self).remove_views()

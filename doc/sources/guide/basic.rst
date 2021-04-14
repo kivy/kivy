@@ -12,23 +12,16 @@ platform you're working on, they can be a pain to install. For
 Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
+Have a look at one of these pages for detailed installation instructions:
+
 * :ref:`installation_windows`
 * :ref:`installation_osx`
 * :ref:`installation_linux`
+* :ref:`installation_rpi`
 
-If you want to install everything yourself, ensure that you have at
-least `Cython <http://cython.org>`_ and `Pygame <http://pygame.org>`_. A
-typical pip installation looks like this::
+Alternatively, instructions for the development version can be found here:
 
-    pip install cython
-    pip install hg+http://bitbucket.org/pygame/pygame
-    pip install kivy
-
-The `development version <https://github.com/kivy/kivy>`_ can be
-installed with git::
-
-    git clone https://github.com/kivy/kivy
-    make
+* :ref:`installation`
 
 .. _quickstart:
 
@@ -130,29 +123,13 @@ Running the application
 -----------------------
 To run the application, follow the instructions for your operating system:
 
-    Linux
-        Follow the instructions for
-        :ref:`running a Kivy application on Linux <linux-run-app>`::
+For Windows, Linux, OS X, or the RPi. From the :ref:`terminal<command-line>`
+where you installed Kivy simply run::
 
-            $ python main.py
+    python main.py
 
-    Windows
-        Follow the instructions for
-        :ref:`running a Kivy application on Windows <windows-run-app>`::
-
-            $ python main.py
-            # or
-            C:\appdir>kivy.bat main.py
-
-    Mac OS X
-        Follow the instructions for
-        :ref:`running a Kivy application on OS X <osx-run-app>`::
-
-            $ kivy main.py
-
-    Android
-        Your application needs some complementary files to be able to run on
-        Android.  See :doc:`/guide/packaging-android` for further reference.
+For Android or iOS, your application needs some complementary files to be able to run.
+See :doc:`/guide/packaging-android` or See :doc:`/guide/packaging-ios` for further reference.
 
 A window should open, showing a single Label (with the Text 'Hello World') that
 covers the entire window's area. That's all there is to it.
@@ -205,7 +182,7 @@ at line 9::
 
     class LoginScreen(GridLayout):
 
-At line 12 in the class LoginScreen, we overload the method
+At line 12 in the class LoginScreen, we override the method
 :meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behavior::
 
@@ -242,17 +219,3 @@ anything. This is because widgets use size hinting by default.
 The code above doesn't handle the input from the user, does no validation or
 anything else. We will delve deeper into this and :class:`~kivy.widget.Widget`
 size and positioning in the coming sections.
-
-
-Platform specifics
-------------------
-
-Opening a Terminal application and setting the kivy environment variables.
-
-    On Windows, just double click the kivy.bat and a terminal will be opened
-    with all the required variables already set.
-
-    On nix* systems, open the terminal of your choice and if
-    kivy isn't installed globally::
-
-        export python=$PYTHONPATH:/path/to/kivy_installation

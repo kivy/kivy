@@ -93,14 +93,22 @@ from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
     BoundedNumericProperty, ReferenceListProperty, VariableListProperty, \
-    ObjectProperty, StringProperty
+    ObjectProperty, StringProperty, OptionProperty
 from math import ceil
+from itertools import accumulate, product, chain, islice
+from operator import sub
 
 
 def nmax(*args):
     # merge into one list
     args = [x for x in args if x is not None]
     return max(args)
+
+
+def nmin(*args):
+    # merge into one list
+    args = [x for x in args if x is not None]
+    return min(args)
 
 
 class GridLayoutException(Exception):
@@ -123,7 +131,7 @@ class GridLayout(Layout):
     '''
 
     padding = VariableListProperty([0, 0, 0, 0])
-    '''Padding between the layout box and it's children: [padding_left,
+    '''Padding between the layout box and its children: [padding_left,
     padding_top, padding_right, padding_bottom].
 
     padding also accepts a two argument form [padding_horizontal,
@@ -144,7 +152,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`cols` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     rows = BoundedNumericProperty(None, min=0, allownone=True)
@@ -155,7 +163,7 @@ class GridLayout(Layout):
         longer set this to a negative value.
 
     :attr:`rows` is a :class:`~kivy.properties.NumericProperty` and defaults to
-    0.
+    None.
     '''
 
     col_default_width = NumericProperty(0)
@@ -245,6 +253,27 @@ class GridLayout(Layout):
     only.
     '''
 
+    orientation = OptionProperty('lr-tb', options=(
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt',
+        'bt-rl'))
+    '''Orientation of the layout.
+
+    :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'lr-tb'.
+
+    Valid orientations are 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt' and 'bt-rl'.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        'lr' means Left to Right.
+        'rl' means Right to Left.
+        'tb' means Top to Bottom.
+        'bt' means Bottom to Top.
+    '''
+
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         super(GridLayout, self).__init__(**kwargs)
@@ -262,6 +291,7 @@ class GridLayout(Layout):
         fbind('children', update)
         fbind('size', update)
         fbind('pos', update)
+        fbind('orientation', update)
 
     def get_max_widgets(self):
         if self.cols and self.rows:
@@ -270,12 +300,24 @@ class GridLayout(Layout):
             return None
 
     def on_children(self, instance, value):
-        # if that makes impossible to construct things with deffered method,
+        # if that makes impossible to construct things with deferred method,
         # migrate this test in do_layout, and/or issue a warning.
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
             raise GridLayoutException(
                 'Too many children in GridLayout. Increase rows/cols!')
+
+    @property
+    def _fills_row_first(self):
+        return self.orientation[0] in 'lr'
+
+    @property
+    def _fills_from_left_to_right(self):
+        return 'lr' in self.orientation
+
+    @property
+    def _fills_from_top_to_bottom(self):
+        return 'tb' in self.orientation
 
     def _init_rows_cols_sizes(self, count):
         # the goal here is to calculate the minimum size of every cols/rows
@@ -284,11 +326,12 @@ class GridLayout(Layout):
         current_rows = self.rows
 
         # if no cols or rows are set, we can't calculate minimum size.
-        # the grid must be contrained at least on one side
+        # the grid must be constrained at least on one side
         if not current_cols and not current_rows:
             Logger.warning('%r have no cols or rows set, '
                            'layout is not triggered.' % self)
             return
+
         if current_cols is None:
             current_cols = int(ceil(count / float(current_rows)))
         elif current_rows is None:
@@ -297,39 +340,67 @@ class GridLayout(Layout):
         current_cols = max(1, current_cols)
         current_rows = max(1, current_rows)
 
+        self._has_hint_bound_x = False
+        self._has_hint_bound_y = False
+        self._cols_min_size_none = 0.  # min size from all the None hint
+        self._rows_min_size_none = 0.  # min size from all the None hint
         self._cols = cols = [self.col_default_width] * current_cols
-        self._cols_sh = cols_sh = [None] * current_cols
+        self._cols_sh = [None] * current_cols
+        self._cols_sh_min = [None] * current_cols
+        self._cols_sh_max = [None] * current_cols
         self._rows = rows = [self.row_default_height] * current_rows
-        self._rows_sh = rows_sh = [None] * current_rows
+        self._rows_sh = [None] * current_rows
+        self._rows_sh_min = [None] * current_rows
+        self._rows_sh_max = [None] * current_rows
 
         # update minimum size from the dicts
-        # FIXME index might be outside the bounds ?
-        for index, value in self.cols_minimum.items():
-            cols[index] = value
-        for index, value in self.rows_minimum.items():
-            rows[index] = value
+        items = (i for i in self.cols_minimum.items() if i[0] < len(cols))
+        for index, value in items:
+            cols[index] = max(value, cols[index])
+
+        items = (i for i in self.rows_minimum.items() if i[0] < len(rows))
+        for index, value in items:
+            rows[index] = max(value, rows[index])
         return True
 
     def _fill_rows_cols_sizes(self):
         cols, rows = self._cols, self._rows
         cols_sh, rows_sh = self._cols_sh, self._rows_sh
+        cols_sh_min, rows_sh_min = self._cols_sh_min, self._rows_sh_min
+        cols_sh_max, rows_sh_max = self._cols_sh_max, self._rows_sh_max
 
         # calculate minimum size for each columns and rows
-        n_cols = len(cols)
-        for i, child in enumerate(reversed(self.children)):
+        has_bound_y = has_bound_x = False
+        idx_iter = self._create_idx_iter(len(cols), len(rows))
+        for child, (col, row) in zip(reversed(self.children), idx_iter):
             (shw, shh), (w, h) = child.size_hint, child.size
-            row, col = divmod(i, n_cols)
+            shw_min, shh_min = child.size_hint_min
+            shw_max, shh_max = child.size_hint_max
 
             # compute minimum size / maximum stretch needed
             if shw is None:
                 cols[col] = nmax(cols[col], w)
             else:
                 cols_sh[col] = nmax(cols_sh[col], shw)
+                if shw_min is not None:
+                    has_bound_x = True
+                    cols_sh_min[col] = nmax(cols_sh_min[col], shw_min)
+                if shw_max is not None:
+                    has_bound_x = True
+                    cols_sh_max[col] = nmin(cols_sh_max[col], shw_max)
 
             if shh is None:
                 rows[row] = nmax(rows[row], h)
             else:
                 rows_sh[row] = nmax(rows_sh[row], shh)
+                if shh_min is not None:
+                    has_bound_y = True
+                    rows_sh_min[row] = nmax(rows_sh_min[row], shh_min)
+                if shh_max is not None:
+                    has_bound_y = True
+                    rows_sh_max[row] = nmin(rows_sh_max[row], shh_max)
+        self._has_hint_bound_x = has_bound_x
+        self._has_hint_bound_y = has_bound_y
 
     def _update_minimum_size(self):
         # calculate minimum width/height needed, starting from padding +
@@ -337,11 +408,49 @@ class GridLayout(Layout):
         l, t, r, b = self.padding
         spacing_x, spacing_y = self.spacing
         cols, rows = self._cols, self._rows
+
         width = l + r + spacing_x * (len(cols) - 1)
+        self._cols_min_size_none = sum(cols) + width
+        # we need to subtract for the sh_max/min the already guaranteed size
+        # due to having a None in the col. So sh_min gets smaller by that size
+        # since it's already covered. Similarly for sh_max, because if we
+        # already exceeded the max, the subtracted max will be zero, so
+        # it won't get larger
+        if self._has_hint_bound_x:
+            cols_sh_min = self._cols_sh_min
+            cols_sh_max = self._cols_sh_max
+
+            for i, (c, sh_min, sh_max) in enumerate(
+                    zip(cols, cols_sh_min, cols_sh_max)):
+                if sh_min is not None:
+                    width += max(c, sh_min)
+                    cols_sh_min[i] = max(0., sh_min - c)
+                else:
+                    width += c
+
+                if sh_max is not None:
+                    cols_sh_max[i] = max(0., sh_max - c)
+        else:
+            width = self._cols_min_size_none
+
         height = t + b + spacing_y * (len(rows) - 1)
-        # then add the cell size
-        width += sum(cols)
-        height += sum(rows)
+        self._rows_min_size_none = sum(rows) + height
+        if self._has_hint_bound_y:
+            rows_sh_min = self._rows_sh_min
+            rows_sh_max = self._rows_sh_max
+
+            for i, (r, sh_min, sh_max) in enumerate(
+                    zip(rows, rows_sh_min, rows_sh_max)):
+                if sh_min is not None:
+                    height += max(r, sh_min)
+                    rows_sh_min[i] = max(0., sh_min - r)
+                else:
+                    height += r
+
+                if sh_max is not None:
+                    rows_sh_max[i] = max(0., sh_max - r)
+        else:
+            height = self._rows_min_size_none
 
         # finally, set the minimum size
         self.minimum_size = (width, height)
@@ -359,14 +468,24 @@ class GridLayout(Layout):
         else:
             cols = self._cols
             cols_sh = self._cols_sh
-            cols_weigth = sum([x for x in cols_sh if x])
-            strech_w = max(0, selfw - self.minimum_width)
-            for index, col_stretch in enumerate(cols_sh):
-                # if the col don't have strech information, nothing to do
-                if not col_stretch:
-                    continue
-                # add to the min width whatever remains from size_hint
-                cols[index] += strech_w * col_stretch / cols_weigth
+            cols_sh_min = self._cols_sh_min
+            cols_weight = float(sum((x for x in cols_sh if x is not None)))
+            stretch_w = max(0., selfw - self._cols_min_size_none)
+
+            if stretch_w > 1e-9:
+                if self._has_hint_bound_x:
+                    # fix the hints to be within bounds
+                    self.layout_hint_with_bounds(
+                        cols_weight, stretch_w,
+                        sum((c for c in cols_sh_min if c is not None)),
+                        cols_sh_min, self._cols_sh_max, cols_sh)
+
+                for index, col_stretch in enumerate(cols_sh):
+                    # if the col don't have stretch information, nothing to do
+                    if not col_stretch:
+                        continue
+                    # add to the min width whatever remains from size_hint
+                    cols[index] += stretch_w * col_stretch / cols_weight
 
         # same algo for rows
         if self.row_force_default:
@@ -377,35 +496,80 @@ class GridLayout(Layout):
         else:
             rows = self._rows
             rows_sh = self._rows_sh
-            rows_weigth = sum([x for x in rows_sh if x])
-            strech_h = max(0, selfh - self.minimum_height)
-            for index in range(len(rows)):
-                # if the row don't have strech information, nothing to do
-                row_stretch = rows_sh[index]
-                if not row_stretch:
-                    continue
-                # add to the min height whatever remains from size_hint
-                rows[index] += strech_h * row_stretch / rows_weigth
+            rows_sh_min = self._rows_sh_min
+            rows_weight = float(sum((x for x in rows_sh if x is not None)))
+            stretch_h = max(0., selfh - self._rows_min_size_none)
+
+            if stretch_h > 1e-9:
+                if self._has_hint_bound_y:
+                    # fix the hints to be within bounds
+                    self.layout_hint_with_bounds(
+                        rows_weight, stretch_h,
+                        sum((r for r in rows_sh_min if r is not None)),
+                        rows_sh_min, self._rows_sh_max, rows_sh)
+
+                for index, row_stretch in enumerate(rows_sh):
+                    # if the row don't have stretch information, nothing to do
+                    if not row_stretch:
+                        continue
+                    # add to the min height whatever remains from size_hint
+                    rows[index] += stretch_h * row_stretch / rows_weight
 
     def _iterate_layout(self, count):
-        selfx = self.x
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
+        orientation = self.orientation
+        padding = self.padding
         spacing_x, spacing_y = self.spacing
 
-        i = count - 1
-        y = self.top - padding_top
         cols = self._cols
-        for row_height in self._rows:
-            x = selfx + padding_left
-            for col_width in cols:
-                if i < 0:
-                    break
+        if self._fills_from_left_to_right:
+            x_iter = accumulate(chain(
+                (self.x + padding[0], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(cols, len(cols) - 1)
+                ),
+            ))
+        else:
+            x_iter = accumulate(chain(
+                (self.right - padding[2] - cols[-1], ),
+                (
+                    col_width + spacing_x
+                    for col_width in islice(reversed(cols), 1, None)
+                ),
+            ), sub)
+            cols = reversed(cols)
 
-                yield i, x, y - row_height, col_width, row_height
-                i = i - 1
-                x = x + col_width + spacing_x
-            y -= row_height + spacing_y
+        rows = self._rows
+        if self._fills_from_top_to_bottom:
+            y_iter = accumulate(chain(
+                (self.top - padding[1] - rows[0], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(rows, 1, None)
+                ),
+            ), sub)
+        else:
+            y_iter = accumulate(chain(
+                (self.y + padding[3], ),
+                (
+                    row_height + spacing_y
+                    for row_height in islice(reversed(rows), len(rows) - 1)
+                ),
+            ))
+            rows = reversed(rows)
+
+        if self._fills_row_first:
+            for i, (y, x), (row_height, col_width) in zip(
+                    reversed(range(count)),
+                    product(y_iter, x_iter),
+                    product(rows, cols)):
+                yield i, x, y, col_width, row_height
+        else:
+            for i, (x, y), (col_width, row_height) in zip(
+                    reversed(range(count)),
+                    product(x_iter, y_iter),
+                    product(cols, rows)):
+                yield i, x, y, col_width, row_height
 
     def do_layout(self, *largs):
         children = self.children
@@ -421,6 +585,27 @@ class GridLayout(Layout):
             c = children[i]
             c.pos = x, y
             shw, shh = c.size_hint
+            shw_min, shh_min = c.size_hint_min
+            shw_max, shh_max = c.size_hint_max
+
+            if shw_min is not None:
+                if shw_max is not None:
+                    w = max(min(w, shw_max), shw_min)
+                else:
+                    w = max(w, shw_min)
+            else:
+                if shw_max is not None:
+                    w = min(w, shw_max)
+
+            if shh_min is not None:
+                if shh_max is not None:
+                    h = max(min(h, shh_max), shh_min)
+                else:
+                    h = max(h, shh_min)
+            else:
+                if shh_max is not None:
+                    h = min(h, shh_max)
+
             if shw is None:
                 if shh is not None:
                     c.height = h
@@ -429,3 +614,16 @@ class GridLayout(Layout):
                     c.width = w
                 else:
                     c.size = (w, h)
+
+    def _create_idx_iter(self, n_cols, n_rows):
+        col_indices = range(n_cols) if self._fills_from_left_to_right \
+            else range(n_cols - 1, -1, -1)
+        row_indices = range(n_rows) if self._fills_from_top_to_bottom \
+            else range(n_rows - 1, -1, -1)
+
+        if self._fills_row_first:
+            return (
+                (col_index, row_index)
+                for row_index, col_index in product(row_indices, col_indices))
+        else:
+            return product(col_indices, row_indices)

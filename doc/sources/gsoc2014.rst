@@ -211,7 +211,7 @@ Enhancements to Toolchain
     - https://github.com/kivy/Buildozer
     - https://github.com/kivy/buildozer/tree/master/buildozer/targets
   Expected Outcome:
-    Running `buildoer deb debug` or `buildozer deb release` should result in a .deb
+    Running `buildozer deb debug` or `buildozer deb release` should result in a .deb
     package that can be directly be used to install on the target machine,
     or the equivalent for other package and binary formats.
 
@@ -231,8 +231,8 @@ Enhancements to Toolchain
       already been going on.
     - Unit tests for the new sdl2 backends making sure apps work the same
       on SDL2 as on other backends.
-    - Performace testing. Looking at the difference between SDL2 and other providers
-      to ascertain wether sdl2 could be used as the default provider giving it priority
+    - Performance testing. Looking at the difference between SDL2 and other providers
+      to ascertain whether sdl2 could be used as the default provider giving it priority
   References:
     https://github.com/kivy/kivy/tree/sdl2-support
   Expected Outcome:

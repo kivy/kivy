@@ -12,7 +12,8 @@ try:
 except ImportError:
     import pickle
 
-from os.path import exists
+import errno
+from os.path import exists, abspath, dirname
 from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 
@@ -36,6 +37,14 @@ class DictStore(AbstractStore):
         if self.filename is None:
             return
         if not exists(self.filename):
+            folder = abspath(dirname(self.filename))
+            if not exists(folder):
+                not_found = IOError(
+                    "The folder '{}' doesn't exist!"
+                    "".format(folder)
+                )
+                not_found.errno = errno.ENOENT
+                raise not_found
             return
         with open(self.filename, 'rb') as fd:
             data = fd.read()
@@ -86,4 +95,4 @@ class DictStore(AbstractStore):
         return len(self._data)
 
     def store_keys(self):
-        return self._data.keys()
+        return list(self._data.keys())

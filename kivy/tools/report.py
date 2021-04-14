@@ -9,6 +9,7 @@ for help during the debugging process.
 
 import os
 import sys
+import platform as plf
 from time import ctime
 from configparser import ConfigParser
 from io import StringIO
@@ -59,8 +60,8 @@ def send_report(dict_report):
                 "content": "\n".join(dict_report['Configuration']),
                 "type": 'text'
             },
-            "Input Availablity.txt": {
-                "content": "\n".join(dict_report['InputAvailablity']),
+            "Input Availability.txt": {
+                "content": "\n".join(dict_report['InputAvailability']),
                 "type": 'text'
             },
             "Environ.txt": {
@@ -81,8 +82,9 @@ def send_report(dict_report):
 # Start output debugging
 # ----------------------------------------------------------
 
+
 title('Global')
-report.append('OS platform     : %s' % sys.platform)
+report.append('OS platform     : %s | %s' % (plf.platform(), plf.machine()))
 report.append('Python EXE      : %s' % sys.executable)
 report.append('Python Version  : %s' % sys.version)
 report.append('Python API      : %s' % sys.api_version)
@@ -98,7 +100,11 @@ from kivy.core.window import Window
 report.append('GL Vendor: %s' % gl.glGetString(gl.GL_VENDOR))
 report.append('GL Renderer: %s' % gl.glGetString(gl.GL_RENDERER))
 report.append('GL Version: %s' % gl.glGetString(gl.GL_VERSION))
-ext = gl.glGetString(gl.GL_EXTENSIONS)
+ext = None
+try:
+    gl.glGetString(gl.GL_EXTENSIONS)
+except AttributeError:
+    pass
 if ext is None:
     report.append('GL Extensions: %s' % ext)
 else:
@@ -129,23 +135,23 @@ title('Libraries')
 
 def testimport(libname):
     try:
-        l = __import__(libname)
-        report.append('%-20s exist at %s' % (libname, l.__file__))
+        lib = __import__(libname)
+        report.append('%-20s exist at %s' % (libname, lib.__file__))
     except ImportError:
         report.append('%-20s is missing' % libname)
 
-for x in (
-    'gst',
-    'pygame',
-    'pygame.midi',
-    'pyglet',
-    'videocapture',
-    'squirtle',
-    'PIL',
-    'opencv',
-    'opencv.cv',
-    'opencv.highgui',
-    'cython'):
+
+for x in ('gst',
+          'pygame',
+          'pygame.midi',
+          'squirtle',
+          'PIL',
+          'sdl2',
+          'glew',
+          'opencv',
+          'opencv.cv',
+          'opencv.highgui',
+          'cython'):
     testimport(x)
 report_dict['Libraries'] = report
 report = []
@@ -162,7 +168,7 @@ title('Input availability')
 from kivy.input.factory import MotionEventFactory
 for x in MotionEventFactory.list():
     report.append(x)
-report_dict['InputAvailablity'] = report
+report_dict['InputAvailability'] = report
 report = []
 
 '''
@@ -187,12 +193,13 @@ report = []
 print('\n'.join(report_dict['Global'] + report_dict['OpenGL'] +
                 report_dict['Core'] + report_dict['Libraries'] +
                 report_dict['Configuration'] +
-                report_dict['InputAvailablity'] +
+                report_dict['InputAvailability'] +
                 report_dict['Environ'] + report_dict['Options']))
-print()
-print()
+print('\n')
+print('\n')
 
 try:
+    print('The report will be sent as an anonymous gist.')
     reply = input(
         'Do you accept to send report to https://gist.github.com/ (Y/n) : ')
 except EOFError:
@@ -203,11 +210,11 @@ if reply.lower().strip() in ('', 'y'):
 
     paste_url = send_report(report_dict)
 
-    print()
-    print()
+    print('\n')
+    print('\n')
     print('REPORT posted at %s' % paste_url)
-    print()
-    print()
+    print('\n')
+    print('\n')
 else:
     print('No report posted.')
 

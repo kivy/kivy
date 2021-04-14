@@ -2,10 +2,18 @@
 Logger object
 =============
 
-Differents logging levels are available : trace, debug, info, warning, error
-and critical.
+The Kivy `Logger` class provides a singleton logger instance. This instance
+exposes a standard Python
+`logger <https://docs.python.org/3/library/logging.html>`_ object but adds
+some convenient features.
 
-Examples of usage::
+All the standard logging levels are available : `trace`, `debug`, `info`,
+`warning`, `error` and `critical`.
+
+Example Usage
+-------------
+
+Use the `Logger` as you would a standard Python logger. ::
 
     from kivy.logger import Logger
 
@@ -17,9 +25,9 @@ Examples of usage::
     except Exception:
         Logger.exception('Something happened!')
 
-The message passed to the logger is split into two parts, separated by a colon
-(:). The first part is used as a title, and the second part is used as the
-message. This way, you can "categorize" your message easily.::
+The message passed to the logger is split into two parts separated by a colon
+(:). The first part is used as a title and the second part is used as the
+message. This way, you can "categorize" your messages easily. ::
 
     Logger.info('Application: This is a test')
 
@@ -27,7 +35,30 @@ message. This way, you can "categorize" your message easily.::
 
     [INFO   ] [Application ] This is a test
 
-Logger configuration
+You can change the logging level at any time using the `setLevel` method. ::
+
+    from kivy.logger import Logger, LOG_LEVELS
+
+    Logger.setLevel(LOG_LEVELS["debug"])
+
+
+Features
+--------
+
+Although you are free to use standard python loggers, the Kivy `Logger` offers
+some solid benefits and useful features. These include:
+
+* simplied usage (single instance, simple configuration, works by default)
+* color-coded output
+* output to `stdout` by default
+* message categorization via colon separation
+* access to log history even if logging is disabled
+* built-in handling of various cross-platform considerations
+
+Kivys' logger was designed to be used with kivy apps and makes logging from
+Kivy apps more convenient.
+
+Logger Configuration
 --------------------
 
 The Logger can be controlled via the Kivy configuration file::
@@ -37,11 +68,12 @@ The Logger can be controlled via the Kivy configuration file::
     log_enable = 1
     log_dir = logs
     log_name = kivy_%y-%m-%d_%_.txt
+    log_maxfiles = 100
 
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
 
-Logger history
+Logger History
 --------------
 
 Even if the logger is not enabled, you still have access to the last 100
@@ -56,18 +88,27 @@ messages::
 import logging
 import os
 import sys
-import kivy
-from kivy.compat import PY2
+import copy
 from random import randint
 from functools import partial
+import pathlib
 
-__all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
+import kivy
+
+
+__all__ = (
+    'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
+
+try:
+    PermissionError
+except NameError:  # Python 2
+    PermissionError = OSError, IOError
 
 Logger = None
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
 
-#These are the sequences need to get colored ouput
+# These are the sequences need to get colored output
 RESET_SEQ = "\033[0m"
 COLOR_SEQ = "\033[1;%dm"
 BOLD_SEQ = "\033[1m"
@@ -82,6 +123,7 @@ def formatter_message(message, use_color=True):
     else:
         message = message.replace("$RESET", "").replace("$BOLD", "")
     return message
+
 
 COLORS = {
     'TRACE': MAGENTA,
@@ -105,40 +147,44 @@ class FileHandler(logging.Handler):
     history = []
     filename = 'log.txt'
     fd = None
+    log_dir = ''
+    encoding = 'utf-8'
 
-    def purge_logs(self, directory):
-        '''Purge log is called randomly to prevent the log directory from being
-        filled by lots and lots of log files.
-        You've a chance of 1 in 20 that purge log will be fired.
-        '''
-        if randint(0, 20) != 0:
+    def purge_logs(self):
+        """Purge logs which exceed the maximum amount of log files,
+        starting with the oldest creation timestamp (or edit-timestamp on Linux)
+        """
+
+        if not self.log_dir:
             return
 
-        # Use config ?
-        maxfiles = 100
+        from kivy.config import Config
+        maxfiles = Config.getint("kivy", "log_maxfiles")
 
-        print('Purge log fired. Analysing...')
-        join = os.path.join
-        unlink = os.unlink
+        # Get path to log directory
+        log_dir = pathlib.Path(self.log_dir)
 
-        # search all log files
-        l = [join(directory, x) for x in os.listdir(directory)]
-        if len(l) > maxfiles:
-            # get creation time on every files
-            l = [{'fn': x, 'ctime': os.path.getctime(x)} for x in l]
+        if maxfiles < 0:  # No log file limit set
+            return
 
-            # sort by date
-            l = sorted(l, key=lambda x: x['ctime'])
+        Logger.info("Logger: Purge log fired. Processing...")
 
-            # get the oldest (keep last maxfiles)
-            l = l[:-maxfiles]
-            print('Purge %d log files' % len(l))
+        # Get all files from log directory and corresponding creation timestamps
+        files = [(item, item.stat().st_ctime)
+                 for item in log_dir.iterdir() if item.is_file()]
+        # Sort files by ascending timestamp
+        files.sort(key=lambda x: x[1])
 
-            # now, unlink every files in the list
-            for filename in l:
-                unlink(filename['fn'])
+        for file, _ in files[:(-maxfiles or len(files))]:
+            # More log files than allowed maximum,
+            # delete files, starting with oldest creation timestamp
+            # (or edit-timestamp on Linux)
+            try:
+                file.unlink()
+            except (PermissionError, FileNotFoundError) as e:
+                Logger.info(f"Logger: Skipped file {file}, {repr(e)}")
 
-        print('Purge finished!')
+        Logger.info("Logger: Purge finished!")
 
     def _configure(self, *largs, **kwargs):
         from time import strftime
@@ -153,8 +199,7 @@ class FileHandler(logging.Handler):
             _dir = os.path.join(_dir, log_dir)
         if not os.path.exists(_dir):
             os.makedirs(_dir)
-
-        self.purge_logs(_dir)
+        self.log_dir = _dir
 
         pattern = log_name.replace('%_', '@@NUMBER@@')
         pattern = os.path.join(_dir, strftime(pattern))
@@ -169,11 +214,11 @@ class FileHandler(logging.Handler):
 
         if FileHandler.filename == filename and FileHandler.fd is not None:
             return
-        FileHandler.filename = filename
-        if FileHandler.fd is not None:
-            FileHandler.fd.close()
-        FileHandler.fd = open(filename, 'w')
 
+        FileHandler.filename = filename
+        if FileHandler.fd not in (None, False):
+            FileHandler.fd.close()
+        FileHandler.fd = open(filename, 'w', encoding=FileHandler.encoding)
         Logger.info('Logger: Record log in %s' % filename)
 
     def _write_message(self, record):
@@ -183,22 +228,8 @@ class FileHandler(logging.Handler):
         msg = self.format(record)
         stream = FileHandler.fd
         fs = "%s\n"
-        stream.write('[%-18s] ' % record.levelname)
-        if PY2:
-            try:
-                if (isinstance(msg, unicode) and
-                    getattr(stream, 'encoding', None)):
-                    ufs = u'%s\n'
-                    try:
-                        stream.write(ufs % msg)
-                    except UnicodeEncodeError:
-                        stream.write((ufs % msg).encode(stream.encoding))
-                else:
-                    stream.write(fs % msg)
-            except UnicodeError:
-                stream.write(fs % msg.encode("UTF-8"))
-        else:
-            stream.write(fs % msg)
+        stream.write('[%-7s] ' % record.levelname)
+        stream.write(fs % msg)
         stream.flush()
 
     def emit(self, message):
@@ -220,6 +251,8 @@ class FileHandler(logging.Handler):
                 Config.add_callback(self._configure, 'kivy', 'log_name')
             except Exception:
                 # deactivate filehandler...
+                if FileHandler.fd not in (None, False):
+                    FileHandler.fd.close()
                 FileHandler.fd = False
                 Logger.exception('Error while activating FileHandler logger')
                 return
@@ -237,6 +270,14 @@ class LoggerHistory(logging.Handler):
     def emit(self, message):
         LoggerHistory.history = [message] + LoggerHistory.history[:100]
 
+    @classmethod
+    def clear_history(cls):
+        del cls.history[:]
+
+    def flush(self):
+        super(LoggerHistory, self).flush()
+        self.clear_history()
+
 
 class ColoredFormatter(logging.Formatter):
 
@@ -245,6 +286,9 @@ class ColoredFormatter(logging.Formatter):
         self.use_color = use_color
 
     def format(self, record):
+        """Apply terminal color code to the record"""
+        # deepcopy so we do not mess up the record for other formatters
+        record = copy.deepcopy(record)
         try:
             msg = record.msg.split(':', 1)
             if len(msg) == 2:
@@ -297,11 +341,15 @@ class LogFile(object):
     def flush(self):
         return
 
+    def isatty(self):
+        return False
+
 
 def logger_config_update(section, key, value):
     if LOG_LEVELS.get(value) is None:
         raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
     Logger.setLevel(level=LOG_LEVELS.get(value))
+
 
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
@@ -313,8 +361,10 @@ logging.root = Logger
 
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
+file_log_handler = None
 if 'KIVY_NO_FILELOG' not in os.environ:
-    Logger.addHandler(FileHandler())
+    file_log_handler = FileHandler()
+    Logger.addHandler(file_log_handler)
 
 # Use the custom handler instead of streaming one.
 if 'KIVY_NO_CONSOLELOG' not in os.environ:
@@ -322,12 +372,30 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
         use_color = (
-            os.name != 'nt' and
-            os.environ.get('KIVY_BUILD') not in ('android', 'ios') and
-            os.environ.get('TERM') in (
-                'xterm', 'rxvt', 'rxvt-unicode', 'xterm-256color'))
-        color_fmt = formatter_message(
-            '[%(levelname)-18s] %(message)s', use_color)
+            (
+                os.environ.get("WT_SESSION") or
+                os.environ.get("COLORTERM") == 'truecolor' or
+                os.environ.get('PYCHARM_HOSTED') == '1' or
+                os.environ.get('TERM') in (
+                    'rxvt',
+                    'rxvt-256color',
+                    'rxvt-unicode',
+                    'rxvt-unicode-256color',
+                    'xterm',
+                    'xterm-256color',
+                )
+            ) and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
+        )
+        if not use_color:
+            # No additional control characters will be inserted inside the
+            # levelname field, 7 chars will fit "WARNING"
+            color_fmt = formatter_message(
+                '[%(levelname)-7s] %(message)s', use_color)
+        else:
+            # levelname field width need to take into account the length of the
+            # color control codes (7+4 chars for bold+color, and reset)
+            color_fmt = formatter_message(
+                '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)
@@ -335,6 +403,3 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
 
 # install stderr handlers
 sys.stderr = LogFile('stderr', Logger.warning)
-
-#: Kivy history handler
-LoggerHistory = LoggerHistory

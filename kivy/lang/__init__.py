@@ -116,6 +116,7 @@ instance.
   multiple of the number of spaces used on the first indented line. Spaces
   are encouraged: mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
+- Keep class names capitalized to avoid syntax errors.
 - The `canvas` property is special: you can put graphics instructions in it
   to create a graphical representation of the current class.
 
@@ -139,7 +140,7 @@ return the root widget defined in your kv file/string. They will also add any
 class and template definitions to the :class:`~kivy.factory.Factory` for later
 usage.
 
-Value Expressions, on_property Expressions, ids and Reserved Keywords
+Value Expressions, on_property Expressions, ids, and Reserved Keywords
 ---------------------------------------------------------------------
 
 When you specify a property's value, the value is evaluated as a Python
@@ -163,17 +164,25 @@ the value can use the values of other properties using reserved keywords.
 
     app
         This keyword always refers to your app instance. It's equivalent
-        to a call to :meth:`kivy.app.App.get_running_app` in Python.::
+        to a call to :meth:`kivy.app.App.get_running_app` in Python. ::
 
             Label:
                 text: app.name
 
     args
         This keyword is available in on_<action> callbacks. It refers to the
-        arguments passed to the callback.::
+        arguments passed to the callback. ::
 
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
+
+
+.. versionchanged:: 2.1.0
+
+    f-strings are now parsed in value expressions, allowing to bind to the
+    properties that they contain.
+
+.. kv-lang-ids:
 
 ids
 ~~~
@@ -189,10 +198,10 @@ Class definitions may contain ids which can be used as a keywords:::
 Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
 widget, and not the widget itself. The widget itself can be accessed
-with `id.__self__` (`btn1.__self__` in this case).
+with `<id>.__self__` (`btn1.__self__` in this case).
 
 When the kv file is processed, weakrefs to all the widgets tagged with ids are
-added to the root widgets `ids` dictionary. In other words, following on from
+added to the root widget's `ids` dictionary. In other words, following on from
 the example above, the buttons state could also be accessed as follows:
 
 .. code-block:: python
@@ -207,10 +216,10 @@ Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
 these ids may not be available during the inner widget's `__init__` function.
 
-Valid expressons
-~~~~~~~~~~~~~~~~
+Valid expressions
+~~~~~~~~~~~~~~~~~
 
-There are two places that accept python statments in a kv file:
+There are two places that accept python statements in a kv file:
 after a property, which assigns to the property the result of the expression
 (such as the text of a button as shown above) and after a on_property, which
 executes the statement when the property is updated (such as on_state).
@@ -221,9 +230,9 @@ span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
 ``text: self.state and ('up' if self.state == 'normal' else 'down')``.
 
-In the latter case, multiple single line statements are valid including
-multi-line statements that escape their newline, as long as they don't
-add an indentation level.
+In the latter case, multiple single line statements are valid, including
+those that escape their newline, as long as they don't add an indentation
+level.
 
 Examples of valid statements are:
 
@@ -311,6 +320,16 @@ constraint::
         alpha: self.a.b[self.c.d]
         beta: self.alpha.e.f
 
+In addition, properties in python f-strings are also not yet supported::
+
+    <FStringExample>:
+        text: f"I want to use {self.a} in property"
+
+Instead, the ``format()`` method should be used::
+
+    <FormatStringExample>:
+        text: "I want to use {} in property".format(self.a)
+
 
 Graphical Instructions
 ----------------------
@@ -392,7 +411,7 @@ The syntax looks like:
     <NewWidget@ButtonBehavior+Label>:
         # kv code here ...
 
-The `@` character is used to seperate your class name from the classes you want
+The `@` character is used to separate your class name from the classes you want
 to subclass. The Python equivalent would have been:
 
 .. code-block:: python
@@ -454,7 +473,7 @@ In Python, you can create an instance of the dynamic class as follows:
 
 .. note::
 
-    Using dynamic classes, a child class can be declared before it's parent.
+    Using dynamic classes, a child class can be declared before its parent.
     This however, leads to the unintuitive situation where the parent
     properties/methods override those of the child. Be careful if you choose
     to do this.
@@ -527,7 +546,7 @@ Template example
 Most of time, when you are creating a screen in the kv lang, you use a lot of
 redefinitions. In our example, we'll create a Toolbar, based on a
 BoxLayout, and put in a few :class:`~kivy.uix.image.Image` widgets that
-will react to the *on_touch_down* event.:
+will react to the *on_touch_down* event.
 
 .. code-block:: kv
 
@@ -620,6 +639,8 @@ When you are creating a context:
 Template definitions also replace any similarly named definitions in their
 entirety and thus do not support inheritance.
 
+.. _redefining-style:
+
 Redefining a widget's style
 ---------------------------
 
@@ -654,9 +675,9 @@ without any of the instructions inherited from the Label.
 Redefining a widget's property style
 ------------------------------------
 
-Similar to :ref:`Redefining a widget's style`, sometimes we would like to
-inherit from a widget, keep all its KV defined styles, except for the style
-applied to a specific property. For example, we would
+Similar to :ref:`redefining style <redefining-style>`, sometimes we
+would like to inherit from a widget, keep all its KV defined styles, except for
+the style applied to a specific property. For example, we would
 like to inherit from a :class:`~kivy.uix.button.Button`, but we would also
 like to set our own `state_image`, rather then relying on the
 `background_normal` and `background_down` values. We can achieve this by
@@ -668,7 +689,6 @@ In myapp.py:
 .. code-block:: python
 
     class MyWidget(Button):
-
         new_background = StringProperty('my_background.png')
 
 and in my.kv:
@@ -855,8 +875,9 @@ will first be unloaded and then reloaded again. For example:
 '''
 
 
-from kivy.lang.builder import Observable, Builder, BuilderBase, BuilderException
+from kivy.lang.builder import (Observable, Builder, BuilderBase,
+                               BuilderException)
 from kivy.lang.parser import Parser, ParserException, global_idmap
 
-__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException', 'Parser',
-           'ParserException', 'global_idmap')
+__all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException',
+           'Parser', 'ParserException', 'global_idmap')

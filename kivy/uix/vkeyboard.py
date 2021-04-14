@@ -117,13 +117,14 @@ from kivy.config import Config
 from kivy.uix.scatter import Scatter
 from kivy.uix.label import Label
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty, \
-    BooleanProperty, DictProperty, OptionProperty, ListProperty
+    BooleanProperty, DictProperty, OptionProperty, ListProperty, ColorProperty
 from kivy.logger import Logger
 from kivy.graphics import Color, BorderImage, Canvas
 from kivy.core.image import Image
 from kivy.resources import resource_find
 from kivy.clock import Clock
 
+from io import open
 from os.path import join, splitext, basename
 from os import listdir
 from json import loads
@@ -224,25 +225,40 @@ class VKeyboard(Scatter):
     to [2, 2, 2, 2]
     '''
 
-    background_color = ListProperty([1, 1, 1, 1])
+    font_size = NumericProperty(20.)
+    '''font_size, specifies the size of the text on the virtual keyboard keys.
+    It should be kept within limits to ensure the text does not extend beyond
+    the bounds of the key or become too small to read.
+
+    .. versionadded:: 1.10.0
+
+    :attr:`font_size` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 20.
+    '''
+
+    background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a). If a background is
     set, the color will be combined with the background texture.
 
-    :attr:`background_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     background = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
-    :attr:`background` a :class:`~kivy.properties.StringProperty` and defaults
-    to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
+    :attr:`background` is a :class:`~kivy.properties.StringProperty` and
+    defaults to :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
     background_disabled = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_disabled_background')
-    '''Filename of the background image when vkeyboard is disabled.
+    '''Filename of the background image when the vkeyboard is disabled.
 
     .. versionadded:: 1.8.0
 
@@ -252,12 +268,16 @@ class VKeyboard(Scatter):
 
     '''
 
-    key_background_color = ListProperty([1, 1, 1, 1])
+    key_background_color = ColorProperty([1, 1, 1, 1])
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
 
-    :attr:`key_background_color` is a :class:`~kivy.properties.ListProperty`
+    :attr:`key_background_color` is a :class:`~kivy.properties.ColorProperty`
     and defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     key_background_normal = StringProperty(
@@ -265,7 +285,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when no touches are active
     on the widget.
 
-    :attr:`key_background_normal` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_normal` is a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
@@ -277,7 +297,7 @@ class VKeyboard(Scatter):
 
     .. versionadded:: 1.8.0
 
-    :attr:`key_disabled_background_normal` a
+    :attr:`key_disabled_background_normal` is a
     :class:`~kivy.properties.StringProperty` and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
 
@@ -288,7 +308,7 @@ class VKeyboard(Scatter):
     '''Filename of the key background image for use when a touch is active
     on the widget.
 
-    :attr:`key_background_down` a :class:`~kivy.properties.StringProperty`
+    :attr:`key_background_down` is a :class:`~kivy.properties.StringProperty`
     and defaults to
     :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
@@ -319,9 +339,11 @@ class VKeyboard(Scatter):
     have_shift = BooleanProperty(False)
     have_special = BooleanProperty(False)
     active_keys = DictProperty({})
-    font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
     repeat_touch = ObjectProperty(allownone=True)
+
+    _start_repeat_key_ev = None
+    _repeat_key_ev = None
 
     __events__ = ('on_key_down', 'on_key_up', 'on_textinput')
 
@@ -383,7 +405,7 @@ class VKeyboard(Scatter):
             self.background_key_layer = Canvas()
             self.active_keys_layer = Canvas()
 
-    def on_disabled(self, intance, value):
+    def on_disabled(self, instance, value):
         self.refresh_keys()
 
     def _update_layout_mode(self, *l):
@@ -433,7 +455,7 @@ class VKeyboard(Scatter):
         available_layouts = self.available_layouts
         if fn[-5:] != '.json':
             return
-        with open(fn, 'r') as fd:
+        with open(fn, 'r', encoding='utf-8') as fd:
             json_content = fd.read()
             layout = loads(json_content)
         available_layouts[name] = layout
@@ -548,7 +570,7 @@ class VKeyboard(Scatter):
         texture = Image(background, mipmap=True).texture
 
         with self.active_keys_layer:
-            Color(1, 1, 1)
+            Color(*self.key_background_color)
             for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
                 BorderImage(texture=texture, pos=pos, size=size,
@@ -631,8 +653,6 @@ class VKeyboard(Scatter):
         layout_mode = self.layout_mode
 
         # draw background
-        w, h = self.size
-
         background = resource_find(self.background_disabled
                                    if self.disabled else
                                    self.background)
@@ -643,7 +663,7 @@ class VKeyboard(Scatter):
             BorderImage(texture=texture, size=self.size,
                         border=self.background_border)
 
-        # XXX seperate drawing the keys and the fonts to avoid
+        # XXX separate drawing the keys and the fonts to avoid
         # XXX reloading the texture each time
 
         # first draw keys without the font
@@ -652,23 +672,21 @@ class VKeyboard(Scatter):
                                    self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
         with self.background_key_layer:
+            Color(*self.key_background_color)
             for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
-                        BorderImage(texture=texture, pos=pos, size=size,
-                                    border=self.key_border)
+                    BorderImage(texture=texture, pos=pos, size=size,
+                                border=self.key_border)
 
         # then draw the text
-        # calculate font_size
-        font_size = int(w) / 46
-        # draw
         for line_nb in range(1, layout_rows + 1):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
                 text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
-                l = Label(text=text, font_size=font_size, pos=pos, size=size,
-                          font_name=self.font_name)
-                self.add_widget(l)
+                z = Label(text=text, font_size=self.font_size, pos=pos,
+                           size=size, font_name=self.font_name)
+                self.add_widget(z)
                 key_nb += 1
 
     def on_key_down(self, *largs):
@@ -750,7 +768,9 @@ class VKeyboard(Scatter):
         if special_char is not None:
             # Do not repeat special keys
             if special_char in ('capslock', 'shift', 'layout', 'special'):
-                Clock.unschedule(self._start_repeat_key)
+                if self._start_repeat_key_ev is not None:
+                    self._start_repeat_key_ev.cancel()
+                    self._start_repeat_key_ev = None
                 self.repeat_touch = None
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
@@ -811,7 +831,7 @@ class VKeyboard(Scatter):
         return ret
 
     def _start_repeat_key(self, *kwargs):
-        Clock.schedule_interval(self._repeat_key, 0.05)
+        self._repeat_key_ev = Clock.schedule_interval(self._repeat_key, 0.05)
 
     def _repeat_key(self, *kwargs):
         self.process_key_on(self.repeat_touch)
@@ -826,7 +846,8 @@ class VKeyboard(Scatter):
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
             if self.repeat_touch is None:
-                Clock.schedule_once(self._start_repeat_key, 0.5)
+                self._start_repeat_key_ev = Clock.schedule_once(
+                    self._start_repeat_key, 0.5)
             self.repeat_touch = touch
 
             self.process_key_on(touch)
@@ -840,9 +861,13 @@ class VKeyboard(Scatter):
         if touch.grab_current is self:
             self.process_key_up(touch)
 
-            Clock.unschedule(self._start_repeat_key)
+            if self._start_repeat_key_ev is not None:
+                self._start_repeat_key_ev.cancel()
+                self._start_repeat_key_ev = None
             if touch == self.repeat_touch:
-                Clock.unschedule(self._repeat_key)
+                if self._repeat_key_ev is not None:
+                    self._repeat_key_ev.cancel()
+                    self._repeat_key_ev = None
                 self.repeat_touch = None
 
         return super(VKeyboard, self).on_touch_up(touch)

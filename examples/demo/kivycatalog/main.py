@@ -34,8 +34,8 @@ from kivy.clock import Clock
 
 CATALOG_ROOT = os.path.dirname(__file__)
 
-#Config.set('graphics', 'width', '1024')
-#Config.set('graphics', 'height', '768')
+# Config.set('graphics', 'width', '1024')
+# Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
@@ -81,7 +81,7 @@ class KivyRenderTextInput(CodeInput):
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
-        if text and not key in (list(self.interesting_keys.keys()) + [27]):
+        if text and key not in (list(self.interesting_keys.keys()) + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('s'):
@@ -114,6 +114,7 @@ class Catalog(BoxLayout):
     '''
     language_box = ObjectProperty()
     screen_manager = ObjectProperty()
+    _change_kv_ev = None
 
     def __init__(self, **kwargs):
         self._previously_parsed_text = ''
@@ -130,7 +131,8 @@ class Catalog(BoxLayout):
         child = self.screen_manager.current_screen.children[0]
         with open(child.kv_file, 'rb') as file:
             self.language_box.text = file.read().decode('utf8')
-        Clock.unschedule(self.change_kv)
+        if self._change_kv_ev is not None:
+            self._change_kv_ev.cancel()
         self.change_kv()
         # reset undo/redo history
         self.language_box.reset_undo()
@@ -142,8 +144,11 @@ class Catalog(BoxLayout):
             if txt == child.previous_text:
                 return
             child.previous_text = txt
-            Clock.unschedule(self.change_kv)
-            Clock.schedule_once(self.change_kv, 2)
+            if self._change_kv_ev is not None:
+                self._change_kv_ev.cancel()
+            if self._change_kv_ev is None:
+                self._change_kv_ev = Clock.create_trigger(self.change_kv, 2)
+            self._change_kv_ev()
 
     def change_kv(self, *largs):
         '''Called when the update button is clicked. Needs to update the
@@ -165,7 +170,7 @@ class Catalog(BoxLayout):
             self.show_error(e)
 
     def show_error(self, e):
-        self.info_label.text = str(e)
+        self.info_label.text = str(e).encode('utf-8')
         self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)

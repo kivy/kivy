@@ -26,6 +26,7 @@ def _log_callback(message, level):
     if message:
         logger_func[level]('ffpyplayer: {}'.format(message))
 
+
 if not get_log_callback():
     set_log_callback(_log_callback)
 

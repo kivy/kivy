@@ -28,12 +28,24 @@ Example::
         pos_hint={'center_x': .5, 'center_y': .5})
 
     def show_selected_value(spinner, text):
-        print('The spinner', spinner, 'have text', text)
+        print('The spinner', spinner, 'has text', text)
 
     spinner.bind(text=show_selected_value)
 
     runTouchApp(spinner)
 
+
+Kv Example::
+
+    FloatLayout:
+        Spinner:
+            size_hint: None, None
+            size: 100, 44
+            pos_hint: {'center': (.5, .5)}
+            text: 'Home'
+            values: 'Home', 'Work', 'Other', 'Custom'
+            on_text:
+                print("The spinner {} has text {}".format(self, self.text))
 '''
 
 __all__ = ('Spinner', 'SpinnerOption')
@@ -70,7 +82,7 @@ class Spinner(Button):
     Setting it to True will cause the spinner to update its :attr:`text`
     property every time attr:`values` are changed.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`text_autoupdate` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -104,8 +116,8 @@ class Spinner(Button):
     defaults to :class:`~kivy.uix.dropdown.DropDown`.
 
     .. versionchanged:: 1.8.0
-        If you set a string, the :class:`~kivy.factory.Factory` will be used to
-        resolve the class.
+        If set to a string, the :class:`~kivy.factory.Factory` will be used to
+        resolve the class name.
 
     '''
 
@@ -117,13 +129,13 @@ class Spinner(Button):
 
     .. versionadded:: 1.4.0
     '''
-    
+
     sync_height = BooleanProperty(False)
     '''Each element in a dropdown list uses a default/user-supplied height.
     Set to True to propagate the Spinner's height value to each dropdown
     list element.
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 1.10.0
 
     :attr:`sync_height` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
@@ -138,7 +150,7 @@ class Spinner(Button):
         fbind('dropdown_cls', build_dropdown)
         fbind('option_cls', build_dropdown)
         fbind('values', self._update_dropdown)
-        fbind('size', self._update_dropdown)
+        fbind('size', self._update_dropdown_size)
         fbind('text_autoupdate', self._update_dropdown)
         build_dropdown()
 
@@ -155,6 +167,20 @@ class Spinner(Button):
         self._dropdown.bind(on_select=self._on_dropdown_select)
         self._dropdown.bind(on_dismiss=self._close_dropdown)
         self._update_dropdown()
+
+    def _update_dropdown_size(self, *largs):
+        if not self.sync_height:
+            return
+        dp = self._dropdown
+        if not dp:
+            return
+
+        container = dp.container
+        if not container:
+            return
+        h = self.height
+        for item in container.children[:]:
+            item.height = h
 
     def _update_dropdown(self, *largs):
         dp = self._dropdown
@@ -177,7 +203,8 @@ class Spinner(Button):
                 self.text = ''
 
     def _toggle_dropdown(self, *largs):
-        self.is_open = not self.is_open
+        if self.values:
+            self.is_open = not self.is_open
 
     def _close_dropdown(self, *largs):
         self.is_open = False

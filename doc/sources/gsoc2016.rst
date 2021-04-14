@@ -1,0 +1,291 @@
+Google Summer of Code - 2016
+============================
+
+Introduction
+------------
+Kivy is a cross-platform, business friendly, GPU accelerated open source 
+Python library for rapid development of applications that make use of 
+innovative user interfaces, such as multi-touch apps.
+
+The Kivy Organization oversees several major projects:
+
+* The `Kivy <https://github.com/kivy/kivy>`_ GUI Library
+* The `Python-For-Android <https://github.com/kivy/python-for-android>`_ 
+  compilation tool.
+* The `Kivy-iOS <https://github.com/kivy/kivy-ios>`_ compilation tool.
+* The `PyJNIus <https://github.com/kivy/pyjnius>`_ library for interfacing with 
+  Java from Python.
+* The `PyOBJus <https://github.com/kivy/pyobjus>`_ library for interfacing with 
+  Objective-C from Python.
+* The `Plyer <https://github.com/kivy/plyer>`_ platform-independent Python 
+  wrapper for platform dependent APIs.
+* `Buildozer <https://github.com/kivy/buildozer>`_ - A generic Python packager 
+  for Android, iOS, and desktop.
+* `KivEnt <https://github.com/kivy/kivent>`_ - A 2d Game Engine that provides
+  optimized methods of handling large amounts of dynamic visual data.
+* `Kivy Designer <https://github.com/kivy/kivy-designer>`_ - A graphical GUI
+  designer for Kivy built in Kivy.
+
+Altogether, these projects allow the user to create applications for every 
+major operating system that make use of any native APIs present. Our goal is to 
+enable development of Python applications that run everywhere off the same 
+codebase and make use of platform dependent APIs and features that users of 
+specific operating systems have come to expect. 
+
+Depending on which project you choose you may need to know Cython, OpenGL ES2, 
+Java, Objective-C, or C in addition to Python. We make heavy use of Cython and 
+OpenGL for computational and graphics performance where it matters, and the 
+other languages are typically involved in accessing OS or provider level APIs.
+
+We are hoping to participate in Google Summer of Code 2016. This page showcases 
+some ideas for GSoC projects and corresponding guidelines for students 
+contributing to the Kivy Framework.
+
+Requirements
+------------
+
+It is assumed that the incoming student meets some basic requirements as 
+highlighted here:
+
+* Intermediate level familiarity with Python.
+* Comfortable with git and github (Kivy and its sister projects are all managed 
+  on github) If you have never used github before you may be interested in this 
+  `tutorial <https://guides.github.com/activities/hello-world/>`_.
+* Comfortable with event driven programming.
+* Has suitable tools/environment for Kivy or the sister project you are going 
+  to work on. For example to be able to work on PyOBJus you would need access 
+  to an iOS device, OS X with Xcode and a developer license, to work on PyJNIus 
+  you would need an Android device, and to work on plyer you would need access 
+  to hardware for both platforms.
+
+  
+Additional desired skills may be listed with specific projects.
+
+Familiarize yourself with the 
+`contribution guide <http://kivy.org/docs/contribute.html>`_ 
+We can help you get up to speed, however students demonstrating ability in 
+advance will be given preference.
+
+How to get started
+------------------
+
+For Kivy, the easiest way is to follow the installation instructions for the 
+development version for your specific platform:
+
+http://kivy.org/docs/installation/installation.html#development-version
+
+For the rest it's usually sufficient to install the relevant project from git 
+and add it to your PYTHONPATH.
+
+e.g. for PyJNIus::
+
+    git clone http://github.com/kivy/pyjnius
+    export PYTHONPATH=/path/to/pyjnius:$PYTHONPATH
+
+
+Project Ideas
+--------------
+Here are some prospective ideas sourced from the Kivy development team, if 
+none of these projects interest you come talk to us in #kivy-dev about a 
+project idea of your own.
+
+Beginner Projects
+~~~~~~~~~~~~~~~~~
+These projects should be suitable for anyone with a college level familiarity
+with Python and require little knowledge of platform specifics.
+
+Intermediate Projects
+~~~~~~~~~~~~~~~~~~~~~
+These projects may involve cursory level knowledge of several OS level details,
+some OpenGL interaction, or other topics that may be a bit out of the
+wheelhouse of the average Pythonista. 
+
+**Plyer:**
+
+  Description:
+    Plyer is a platform-independent Python API to use features 
+    commonly found on the desktop and mobile platforms supported by 
+    Kivy. The idea is to provide a stable API to the user for 
+    accessing features of their desktop or mobile device.
+    
+    The student would replace some `.java` code currently in the p4a
+    project to a more appropriate place in Plyer. In addition, the 
+    student would work on improving access to platform specific 
+    features through Plyer, including accessibility, Bluetooth Low Energy,
+    accessing and editing contacts, sharing, NFC, in-app browser,
+    Wi-Fi (enable, disable, access to Wi-Fi services (Wi-Fi direct,
+    network accessibility, current IP info on network etc.),
+    Camera capture (video), camera display, Google Play integration,
+    launch phone call interface, sms interface, geolocation, 
+    interaction with notifications, internationalization (I18N),
+    and all the missing platform implementations from existing features.
+    
+    Under the hood you'll use PyJNIus on Android, PyOBJus on OS X and 
+    iOS, ctypes on Windows, and native APIs on Linux. This probably 
+    would also include improving PyOBJus and PyJNIus to handle 
+    interfaces that they can't right now.
+    
+  References:
+    - https://github.com/kivy/plyer
+    - https://github.com/kivy/pyjnius
+    - https://github.com/kivy/pyobjus
+    - https://github.com/kivy/python-for-android
+    - https://github.com/kivy/kivy-ios
+  Expected outcome:
+    A successful outcome would include moving the Java/PyOBJus code
+    from p4a/kivy-ios to plyer and implementing some or all
+    of the new facades to be decided with the student.
+    
+  - **Mentors**: Akshay Arora, Ryan Pessa
+  - **Requirements**: Access to Linux, Windows, OS X, iOS device,  
+    Android device.
+  - **Task level**: Intermediate
+  - **Desired Skills**: Familiarity with PyJNIus, PyOBJus.
+
+
+Advanced Projects
+~~~~~~~~~~~~~~~~~
+These projects may involve very in-depth knowledge of Kivy's existing 
+internals, the hairy details of cross-platform compilation, or other fairly 
+advanced topics. If you are comfortable with the internals of Python, working 
+with C code, and using Cython to build your own C extensions these projects 
+may appeal to you.
+
+
+**Kivent: Tiled Integration**
+
+  Description:
+    KivEnt is a modular entity-component based game engine built on top of
+    Kivy. KivEnt provides a highly performant approach to building games in
+    Python that avoids some of the worst overhead of Python using specialized
+    Cython constructs.
+
+    The student would work to finish creating a fully functional Tiled module
+    that supports the full range of map types Tiled supports: hex, square, and
+    isometric square tiles. This task will likely involve writing both logic
+    and rendering game systems. In addition, the student will be responsible
+    for completing an MIT licensed tmx (the tiled file format) loader for use
+    in KivEnt. 
+
+  References:
+    - http://www.mapeditor.org/
+    - https://github.com/kivy/kivent
+  Expected Outcome:
+    A successful outcome involves a new kivent_tiled module being released for
+    the KivEnt game engine.
+
+  - **Mentors**: Jacob Kovac, Gabriel Pettier
+  - **Requirements**: Access to at least one Kivy platform.
+  - **Task level**: Advanced
+  - **Desired Skills**: Familiarity with Cython, Python, and game dev related
+    math concepts.
+
+**Python for Android: New features**
+
+  Description:
+    Python for Android is a project to create your own Python distribution 
+    including the modules you want, and create an APK including Python, libs,
+    and your application.
+
+    This tool was recently rewritten to provide a new, easier to use and
+    extended interface.
+
+    The student would work to help bring this new toolchain to
+    feature parity with the old toolchain and improve it with new features
+    like:: custom splash screen support including animation, ability to
+    fully customize AndroiManifest.xml, and work on known missing stuff
+    (linked below). 
+
+  References:
+    - https://github.com/kivy/python-for-android#known-missing-stuff-from-p4a
+  Expected Outcome:
+    A successful outcome involves the new p4a toolchain being at feature parity
+    with the old toolchain, including extra functionality as outlined above.
+
+  - **Mentors**: Alexander Taylor, Ryan Pessa
+  - **Requirements**: Access to Linux and Android.
+  - **Task level**: Advanced
+  - **Desired Skills**: Familiarity with Cython, Python and PyJNIus
+
+
+
+How to Contact devs
+-------------------
+All communication must happen via public channels, private emails
+and IRC messages are discouraged.
+
+Ask your questions on the Kivy Users forum https://groups.google.com/group/kivy-users
+or send a mail at kivy-users@googlegroups.com
+
+Make sure to join the kivy-dev user group too: 
+https://groups.google.com/forum/#!forum/kivy-dev.
+
+You can also try to contact us on IRC (online chat), to get the IRC handles of 
+the devs mentioned above visit https://kivy.org/#aboutus.
+
+Make sure to read the `IRC rules <https://kivy.org/docs/contact.html>`_ before 
+connecting. `Connect to webchat <http://webchat.freenode.net/?nick=kvuser_GSOC_.&channels=kivy&uio=d4>`_.
+
+
+Most of our developers are located in Europe, India, and North America so keep 
+in mind typical waking hours for these areas.
+
+
+How to be a good student
+------------------------
+
+If you want to participate as a student and want to maximize your chances of 
+being accepted, start talking to us today and try fixing some smaller problems 
+to get used to our workflow. If we know you can work well with us, you will 
+have much better chances of being selected.
+
+Here's a checklist:
+
+* Make sure to read through the website and at least skim the documentation.
+* Look at the source code.
+* Read our contribution guidelines.
+* Make a contribution! Kivy would like to see how you engage with the 
+  development process. Take a look at the issue tracker for a Kivy project 
+  that interests you and submit a Pull Request. It can be a simple bug or a 
+  documentation change. We are looking to get a feel for how you work, not 
+  evaluating your capabilities. Don't worry about trying to pick something 
+  to impress us.
+* Pick an idea that you think is interesting from the ideas list or come up 
+  with your own idea.
+* Do some research **yourself**. GSoC is about give and take, not just one 
+  sided interaction. It is about you trying to achieve agreed upon goals with 
+  our support. The main driving force in this should be, obviously, yourself. 
+  Many students pop up and ask what they should do. You should base that 
+  decision on your interests and your skills. Show us you're serious about it 
+  and take the initiative.
+* Write a draft 
+  `proposal <https://wiki.python.org/moin/SummerOfCode/ApplicationTemplate2016>`_
+  about what you want to do. Include what you understand the current state of
+  the project to be, what you would like to improve, how, etc. 
+* Discuss that proposal with us in a timely manner. Get feedback.
+* Be patient! Especially on IRC. We will try to get to you if we're available. 
+  If not, send an email and just wait. Most questions are already answered in 
+  the docs or somewhere else and can be found with some research. Your 
+  questions should reflect that you've actually thought through what you're 
+  asking and done some rudimentary research.
+* Most of all don't forget to have fun and interact with the community. The 
+  community is as big a part of Open Source as the code itself.
+  
+What to expect if you are chosen
+--------------------------------
+
+* All students should join the #kivy and the #kivy-dev irc channels daily, 
+  this is how the development team communicates both internally and with the 
+  users. 
+* You and your mentors will agree on two week milestones for the duration of 
+  the summer. 
+* Development will occur in your fork of the master branch of Kivy, we expect 
+  you to submit at least one PR a week from your branch into a branch reserved 
+  for you in the primary repo. This will be your forum for reporting progress 
+  as well as documenting any struggles you may have encountered.
+* Missing 2 weekly PR or 2 milestones will result in your failure unless there 
+  have been extenuating circumstances. If something comes up, please inform 
+  your mentors as soon as possible. If a milestone seems out of reach we will 
+  work with you to reevaluate the goals.
+* Your changes will be merged into master once the project has been completed 
+  and we have thoroughly tested on every platform that is relevant.

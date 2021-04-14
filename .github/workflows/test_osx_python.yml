@@ -1,0 +1,47 @@
+name: OSX Unittests
+
+on: [push, pull_request]
+
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  KIVY_GL_BACKEND: 'mock'
+  CC: clang
+  CXX: clang
+  FFLAGS: '-ff2c'
+  USE_SDL2: 1
+  USE_GSTREAMER: 1
+
+jobs:
+  unit_test:
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - name: Cache OSX deps
+      uses: actions/cache@v2
+      with:
+        path: osx-cache
+        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+    - name: Cache OSX gst-devel deps
+      uses: actions/cache@v2
+      with:
+        path: osx-cache-gst-devel
+        key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
+    - name: Install dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        source .ci/osx_versions.sh
+        source .ci/osx_ci.sh
+        install_kivy_test_run_sys_deps
+        install_kivy_test_run_pip_deps
+    - name: Install Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        install_kivy
+    - name: Test Kivy
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy

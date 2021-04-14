@@ -8,7 +8,7 @@ __all__ = ('WindowEglRpi', )
 
 from kivy.logger import Logger
 from kivy.core.window import WindowBase
-from kivy.base import EventLoop
+from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.lib.vidcore_lite import bcm, egl
 from os import environ
 
@@ -25,6 +25,9 @@ from os import environ
 class WindowEglRpi(WindowBase):
 
     _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
+    _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
+
+    gl_backends_ignored = ['sdl2']
 
     def create_window(self):
         bcm.host_init()
@@ -42,7 +45,8 @@ class WindowEglRpi(WindowBase):
         src = bcm.Rect(0, 0, w << 16, h << 16)
         display = egl.bcm_display_open(self._rpi_dispmanx_id)
         update = egl.bcm_update_start(0)
-        element = egl.bcm_element_add(update, display, 0, dst, src)
+        element = egl.bcm_element_add(
+            update, display, self._rpi_dispmanx_layer, dst, src)
         self.win = egl.NativeWindow(element, w, h)
         egl.bcm_update_submit_sync(update)
 
@@ -78,23 +82,5 @@ class WindowEglRpi(WindowBase):
         egl.Terminate(self.egl_info[0])
 
     def flip(self):
-        egl.SwapBuffers(self.egl_info[0], self.egl_info[1])
-
-    def _mainloop(self):
-        EventLoop.idle()
-
-    def mainloop(self):
-        while not EventLoop.quit and EventLoop.status == 'started':
-            try:
-                self._mainloop()
-            except BaseException as inst:
-                raise
-                '''
-                # use exception manager first
-                r = ExceptionManager.handle_exception(inst)
-                if r == ExceptionManager.RAISE:
-                    #stopTouchApp()
-                    raise
-                else:
-                    pass
-                '''
+        if not EventLoop.quit:
+            egl.SwapBuffers(self.egl_info[0], self.egl_info[1])

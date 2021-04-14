@@ -25,7 +25,7 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 
 class ScrollEffect(KineticEffect):
-    '''ScrollEffect class. See the module documentation for more informations.
+    '''ScrollEffect class. See the module documentation for more information.
     '''
 
     drag_threshold = NumericProperty('20sp')
@@ -76,7 +76,7 @@ class ScrollEffect(KineticEffect):
 
     displacement = NumericProperty(0)
     '''Cumulative distance of the movement during the interaction. This is used
-    to determine if the movemenent is a drag (more than :attr:`drag_threshold`)
+    to determine if the movement is a drag (more than :attr:`drag_threshold`)
     or not.
 
     :attr:`displacement` is a :class:`~kivy.properties.NumericProperty` and

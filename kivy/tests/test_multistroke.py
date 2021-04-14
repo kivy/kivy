@@ -1,3 +1,4 @@
+import pytest
 import unittest
 import kivy.multistroke
 from kivy.multistroke import Recognizer, MultistrokeGesture
@@ -54,6 +55,10 @@ class MultistrokeTestCase(unittest.TestCase):
             orientation_sensitive=False)
         self.Nbound = MultistrokeGesture('N', [NGesture],
             orientation_sensitive=True)
+
+    @pytest.fixture(autouse=True)
+    def set_clock(self, kivy_clock):
+        self.kivy_clock = kivy_clock
 
 # -----------------------------------------------------------------------------
 # Recognizer scheduling
@@ -162,10 +167,10 @@ class MultistrokeTestCase(unittest.TestCase):
 
         best_score = 0
         gdb = Recognizer(db=[self.Tbound, self.Ninvar])
-        r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.1)
+        r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.4)
         Clock.tick()  # matches Tbound in this tick
         self.assertEqual(best_score, 0)
-        sleep(0.11)
+        sleep(0.4)
         Clock.tick()  # should match Ninv, but times out (got T)
         self.assertEqual(r.status, 'timeout')
         self.assertEqual(r.progress, .5)
@@ -179,13 +184,13 @@ class MultistrokeTestCase(unittest.TestCase):
 
         best_score = 0
         gdb = Recognizer(db=[self.Tbound, self.Ninvar, self.Tinvar])
-        r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.2)
+        r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.8)
 
         Clock.tick()  # matches Tbound in this tick
         self.assertEqual(best_score, 0)
-        sleep(0.1)
+        sleep(0.4)
         Clock.tick()  # matches Ninvar in this tick
-        sleep(0.1)
+        sleep(0.4)
         Clock.tick()  # should match Tinvar, but times out
         self.assertEqual(r.status, 'timeout')
         self.assertEqual(r.progress, 2 / 3.)

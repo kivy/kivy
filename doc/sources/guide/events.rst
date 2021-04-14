@@ -19,10 +19,10 @@ Introduction to the Event Dispatcher
 ------------------------------------
 
 One of the most important base classes of the framework is the
-:class:`~kivy.event.EventDispatcher` class. This class allows you to register 
+:class:`~kivy.event.EventDispatcher` class. This class allows you to register
 event types, and to dispatch them to interested parties (usually other event
 dispatchers). The :class:`~kivy.uix.widget.Widget`,
-:class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` classes are 
+:class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` classes are
 examples of event dispatchers.
 
 EventDispatcher objects depend on the main loop to generate and
@@ -64,15 +64,19 @@ You can call a function or a method every X times per second using
 function named my_callback 30 times per second::
 
     def my_callback(dt):
-        print 'My callback is called', dt
-    Clock.schedule_interval(my_callback, 1 / 30.)
+        print('My callback is called', dt)
+    event = Clock.schedule_interval(my_callback, 1 / 30.)
 
-You have two ways of unscheduling a previously scheduled event. The first would be
-to use :meth:`~kivy.clock.Clock.unschedule`::
+You have multiple ways of unscheduling a previously scheduled event. One, is
+to use :meth:`~kivy.clock.ClockEvent.cancel` or :meth:`~kivy.clock.Clock.unschedule`::
 
-    Clock.unschedule(my_callback)
+    event.cancel()
 
-Or, you can return False in your callback, and your event will be automatically
+or::
+
+    Clock.unschedule(event)
+
+Alternatively, you can return False in your callback, and your event will be automatically
 unscheduled::
 
     count = 0
@@ -80,9 +84,9 @@ unscheduled::
         global count
         count += 1
         if count == 10:
-            print 'Last call of my callback, bye bye !'
+            print('Last call of my callback, bye bye !')
             return False
-        print 'My callback is called'
+        print('My callback is called')
     Clock.schedule_interval(my_callback, 1 / 30.)
 
 
@@ -93,7 +97,7 @@ Using :meth:`~kivy.clock.Clock.schedule_once`, you can call a function "later",
 like in the next frame, or in X seconds::
 
     def my_callback(dt):
-        print 'My callback is called !'
+        print('My callback is called !')
     Clock.schedule_once(my_callback, 1)
 
 This will call ``my_callback`` in one second. The second argument is the amount
@@ -113,7 +117,7 @@ inside the callback itself::
 
 
     def my_callback(dt):
-        print 'My callback is called !'
+        print('My callback is called !')
         Clock.schedule_once(my_callback, 1)
     Clock.schedule_once(my_callback, 1)
 
@@ -130,16 +134,20 @@ every second.
 Trigger events
 ~~~~~~~~~~~~~~
 
-If you want to schedule a function to be called only once for the next frame,
-like a trigger, you might be tempted to achieve that like so::
+Sometimes you may want to schedule a function to be called only once for the next 
+frame, preventing duplicate calls. You might be tempted to achieve that like so::
 
-    Clock.unschedule(my_callback)
-    Clock.schedule_once(my_callback, 0)
+    # First, schedule once.
+    event = Clock.schedule_once(my_callback, 0)
+    
+    # Then, in another place you will have to unschedule first
+    # to avoid duplicate call. Then you can schedule again.
+    Clock.unschedule(event)
+    event = Clock.schedule_once(my_callback, 0)
 
 This way of programming a trigger is expensive, since you'll always call
-unschedule, whether or not you've even scheduled it. In addition, unschedule
-needs to iterate the weakref list of the Clock in order to find your callback
-and remove it. Use a trigger instead::
+unschedule, even if the event has already completed. In addition, a new event is
+created every time. Use a trigger instead::
 
     trigger = Clock.create_trigger(my_callback)
     # later
@@ -180,7 +188,7 @@ See the following example::
             self.dispatch('on_test', value)
 
         def on_test(self, *args):
-            print "I am dispatched", args
+            print("I am dispatched", args)
 
 
 Attaching callbacks
@@ -197,7 +205,7 @@ the arguments that the event emits. For this, it's usually safest to accept the
 Example::
 
     def my_callback(value, *args):
-        print "Hello, I got an event!", args
+        print("Hello, I got an event!", args)
 
 
     ev = MyEventDispatcher()
@@ -233,12 +241,12 @@ Declaration of a Property
 -------------------------
 
 To declare properties, you must declare them at the class level. The class will then do
-the work to instantiate the real attributes when your object is created. These properties 
+the work to instantiate the real attributes when your object is created. These properties
 are not attributes: they are mechanisms for creating events based on your
 attributes::
 
     class MyWidget(Widget):
-    
+
         text = StringProperty('')
 
 
@@ -265,17 +273,17 @@ For example, consider the following code:
    :linenos:
 
     class CustomBtn(Widget):
-    
+
         pressed = ListProperty([0, 0])
-    
+
         def on_touch_down(self, touch):
             if self.collide_point(*touch.pos):
                 self.pressed = touch.pos
                 return True
             return super(CustomBtn, self).on_touch_down(touch)
-    
+
         def on_pressed(self, instance, pos):
-            print ('pressed at {pos}'.format(pos=pos))
+            print('pressed at {pos}'.format(pos=pos))
 
 In the code above at line 3::
 
@@ -294,20 +302,20 @@ At Line 5::
         return super(CustomBtn, self).on_touch_down(touch)
 
 We override the :meth:`on_touch_down` method of the Widget class. Here, we check
-for collision of the `touch` with our widget. 
+for collision of the `touch` with our widget.
 
 If the touch falls inside of our widget, we change the value of `pressed` to touch.pos
 and return True, indicating that we have consumed the touch and don't want it to
 propagate any further.
 
 Finally, if the touch falls outside our widget, we call the original event
-using `super(...)` and return the result. This allows the touch event propagation 
-to continue as it would normally have occured.
+using `super(...)` and return the result. This allows the touch event propagation
+to continue as it would normally have occurred.
 
 Finally on line 11::
 
     def on_pressed(self, instance, pos):
-        print ('pressed at {pos}'.format(pos=pos))
+        print('pressed at {pos}'.format(pos=pos))
 
 We define an `on_pressed` function that will be called by the property whenever the
 property value is changed.
@@ -331,7 +339,7 @@ For example, consider the following code:
    :linenos:
 
     class RootWidget(BoxLayout):
-    
+
         def __init__(self, **kwargs):
             super(RootWidget, self).__init__(**kwargs)
             self.add_widget(Button(text='btn 1'))
@@ -339,9 +347,9 @@ For example, consider the following code:
             cb.bind(pressed=self.btn_pressed)
             self.add_widget(cb)
             self.add_widget(Button(text='btn 2'))
-    
+
         def btn_pressed(self, instance, pos):
-            print ('pos: printed from root widget: {pos}'.format(pos=.pos))
+            print('pos: printed from root widget: {pos}'.format(pos=.pos))
 
 If you run the code as is, you will notice two print statements in the console.
 One from the `on_pressed` event that is called inside the `CustomBtn` class and
@@ -351,24 +359,24 @@ The reason that both functions are called is simple. Binding doesn't mean
 overriding. Having both of these functions is redundant and you should generally
 only use one of the methods of listening/reacting to property changes.
 
-You should also take note of the parameters that are passed to the 
+You should also take note of the parameters that are passed to the
 `on_<property_name>` event or the function bound to the property.
 
 .. code-block:: python
 
     def btn_pressed(self, instance, pos):
 
-The first parameter is `self`, which is the instance of the class where this 
+The first parameter is `self`, which is the instance of the class where this
 function is defined. You can use an in-line function as follows:
 
 .. code-block:: python
    :linenos:
 
     cb = CustomBtn()
-    
+
     def _local_func(instance, pos):
-        print ('pos: printed from root widget: {pos}'.format(pos=.pos))
-    
+        print('pos: printed from root widget: {pos}'.format(pos=pos))
+
     cb.bind(pressed=_local_func)
     self.add_widget(cb)
 
@@ -400,7 +408,7 @@ use to copy and paste into an editor to experiment.
             self.add_widget(Button(text='btn 2'))
 
         def btn_pressed(self, instance, pos):
-            print ('pos: printed from root widget: {pos}'.format(pos=pos))
+            print('pos: printed from root widget: {pos}'.format(pos=pos))
 
     class CustomBtn(Widget):
 
@@ -415,7 +423,7 @@ use to copy and paste into an editor to experiment.
             return super(CustomBtn, self).on_touch_down(touch)
 
         def on_pressed(self, instance, pos):
-            print ('pressed at {pos}'.format(pos=pos))
+            print('pressed at {pos}'.format(pos=pos))
 
     class TestApp(App):
 
@@ -446,12 +454,15 @@ Consider the following code.
 .. code-block:: python
    :linenos:
 
-    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
-        'cursor', 'padding', 'pos', 'size', 'focus',
-        'scroll_x', 'scroll_y'))
+    cursor_pos = AliasProperty(_get_cursor_pos, None,
+                               bind=('cursor', 'padding', 'pos', 'size',
+                                     'focus', 'scroll_x', 'scroll_y',
+                                     'line_height', 'line_spacing'),
+                               cache=True)
     '''Current position of the cursor, in (x, y).
 
-    :attr:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    :attr:`cursor_pos` is an :class:`~kivy.properties.AliasProperty`,
+    read-only.
     '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the

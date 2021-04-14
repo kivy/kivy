@@ -6,7 +6,7 @@ This application records gestures and attempts to match them. You should
 see a black drawing surface with some buttons across the bottom. As you
 make a gesture on the drawing surface, the gesture will be added to
 the history and a match will be attempted. If you go to the history tab,
-name the gesture, and add it to the database, then simliar gestures in the
+name the gesture, and add it to the database, then similar gestures in the
 future will be recognized. You can load and save databases of gestures
 in .kg files.
 
@@ -14,7 +14,7 @@ This demonstration code spans many files, with this being the primary file.
 The information pop-up ('No match') comes from the file helpers.py.
 The history pane is managed in the file historymanager.py and described
 in the file historymanager.kv. The database pane and storage is managed in
-the file gestureDatabase.py and the described in the file gestureDatabase.kv.
+the file gesturedatabase.py and the described in the file gesturedatabase.kv.
 The general logic of the sliders and buttons are in the file
 settings.py and described in settings.kv. but the actual settings pane is
 described in the file multistroke.kv and managed from this file.

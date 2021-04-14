@@ -5,12 +5,24 @@ PIL: PIL image loader
 __all__ = ('ImageLoaderPIL', )
 
 try:
-    from PIL import Image as PILImage
-except:
     import Image as PILImage
+except ImportError:
+    # for python3
+    from PIL import Image as PILImage
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+
+try:
+    # Pillow
+    PILImage.frombytes
+    PILImage.Image.tobytes
+except AttributeError:
+    # PIL
+    # monkey patch frombytes and tobytes methods, refs:
+    # https://github.com/kivy/kivy/issues/5460
+    PILImage.frombytes = PILImage.frombuffer
+    PILImage.Image.tobytes = PILImage.Image.tostring
 
 
 class ImageLoaderPIL(ImageLoaderBase):
@@ -21,7 +33,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     Support for GIF animation added.
 
     Gif animation has a lot of issues(transparency/color depths... etc).
-    In order to keep it simple, what is implimented here is what is
+    In order to keep it simple, what is implemented here is what is
     natively supported by the PIL library.
 
     As a general rule, try to use gifs that have no transparency.
@@ -31,8 +43,10 @@ class ImageLoaderPIL(ImageLoaderBase):
     '''
 
     @staticmethod
-    def can_save():
-        return True
+    def can_save(fmt, is_bytesio):
+        if is_bytesio:
+            return False
+        return fmt in ImageLoaderPIL.extensions()
 
     @staticmethod
     def can_load_memory():
@@ -41,13 +55,8 @@ class ImageLoaderPIL(ImageLoaderBase):
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''
-        # See http://www.pythonware.com/library/pil/handbook/index.htm
-        return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
-                'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
-                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
-                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
-                'xv')
+        PILImage.init()
+        return tuple((ext_with_dot[1:] for ext_with_dot in PILImage.EXTENSION))
 
     def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.
@@ -101,8 +110,9 @@ class ImageLoaderPIL(ImageLoaderBase):
         return list(self._img_read(im))
 
     @staticmethod
-    def save(filename, width, height, fmt, pixels, flipped=False):
-        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+    def save(filename, width, height, pixelfmt, pixels, flipped=False,
+             imagefmt=None):
+        image = PILImage.frombytes(pixelfmt.upper(), (width, height), pixels)
         if flipped:
             image = image.transpose(PILImage.FLIP_TOP_BOTTOM)
         image.save(filename)

@@ -20,7 +20,6 @@ from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir
-from kivy.compat import PY2, iteritems, iterkeys
 from kivy.context import register_context
 from kivy.resources import resource_find
 from kivy._event import Observable, EventDispatcher
@@ -30,18 +29,12 @@ __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
 
 trace = Logger.trace
 
-# class types to check with isinstance
-if PY2:
-    _cls_type = (type, types.ClassType)
-else:
-    _cls_type = (type, )
-
 # late import
 Instruction = None
 
 # delayed calls are canvas expression triggered during an loop. It is one
 # directional linked list of args to call call_fn with. Each element is a list
-# whos last element points to the next list of args to execute when
+# whose last element points to the next list of args to execute when
 # Builder.sync is called.
 _delayed_start = None
 
@@ -67,12 +60,12 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 def call_fn(args, instance, v):
     element, key, value, rule, idmap = args
     if __debug__:
-        trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
+        trace('Lang: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
     rule.count += 1
     e_value = eval(value, idmap)
     if __debug__:
-        trace('Builder: call_fn => value=%r' % (e_value, ))
+        trace('Lang: call_fn => value=%r' % (e_value, ))
     setattr(element, key, e_value)
 
 
@@ -226,7 +219,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                         was_bound = True
                     else:
                         append([f.proxy_ref, val, None, None])
-                elif not isinstance(f, _cls_type):
+                elif not isinstance(f, type):
                     append([getattr(f, 'proxy_ref', f), val, None, None])
                 else:
                     append([f, val, None, None])
@@ -253,6 +246,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                                '{}: {}'.format(e.__class__.__name__, e),
                                cause=tb)
 
+
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
     kv file, merging the results into its internal rules, templates, etc.
@@ -261,18 +255,37 @@ class BuilderBase(object):
     that you can use to load other kv files in addition to the default ones.
     '''
 
-    _match_cache = {}
-    _match_name_cache = {}
-
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self._match_cache = {}
+        self._match_name_cache = {}
         self.files = []
         self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
 
-    def load_file(self, filename, **kwargs):
+    @classmethod
+    def create_from(cls, builder):
+        """Creates a instance of the class, and initializes to the state of
+        ``builder``.
+
+        :param builder: The builder to initialize from.
+        :return: A new instance of this class.
+        """
+        obj = cls()
+        obj._match_cache = copy(builder._match_cache)
+        obj._match_name_cache = copy(builder._match_name_cache)
+        obj.files = copy(builder.files)
+        obj.dynamic_classes = copy(builder.dynamic_classes)
+        obj.templates = copy(builder.templates)
+        obj.rules = list(builder.rules)
+        assert not builder.rulectx
+        obj.rulectx = dict(builder.rulectx)
+
+        return obj
+
+    def load_file(self, filename, encoding='utf8', **kwargs):
         '''Insert a file into the language builder and return the root widget
         (if defined) of the kv file.
 
@@ -280,23 +293,17 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+
+            `encoding`: File character encoding. Defaults to utf-8,
         '''
+
         filename = resource_find(filename) or filename
         if __debug__:
-            trace('Builder: load file %s' % filename)
-        with open(filename, 'r') as fd:
-            kwargs['filename'] = filename
+            trace('Lang: load file %s, using %s encoding', filename, encoding)
+
+        kwargs['filename'] = filename
+        with open(filename, 'r', encoding=encoding) as fd:
             data = fd.read()
-
-            # remove bom ?
-            if PY2:
-                if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-                    raise ValueError('Unsupported UTF16 for kv files.')
-                if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-                    raise ValueError('Unsupported UTF32 for kv files.')
-                if data.startswith(codecs.BOM_UTF8):
-                    data = data[len(codecs.BOM_UTF8):]
-
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
@@ -311,6 +318,7 @@ class BuilderBase(object):
             template invocation.
         '''
         # remove rules and templates
+        filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
         self._clear_matchcache()
         templates = {}
@@ -318,6 +326,7 @@ class BuilderBase(object):
             if y[2] != filename:
                 templates[x] = y
         self.templates = templates
+
         if filename in self.files:
             self.files.remove(filename)
 
@@ -332,7 +341,25 @@ class BuilderBase(object):
             `rulesonly`: bool, defaults to False
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
+            `filename`: str, defaults to None
+                If specified, the filename used to index the kv rules.
+
+        The filename parameter can be used to unload kv strings in the same way
+        as you unload kv files. This can be achieved using pseudo file names
+        e.g.::
+
+            Build.load_string("""
+                <MyRule>:
+                    Label:
+                        text="Hello"
+            """, filename="myrule.kv")
+
+        can be unloaded via::
+
+            Build.unload_file("myrule.kv")
+
         '''
+
         kwargs.setdefault('rulesonly', False)
         self._current_filename = fn = kwargs.get('filename', None)
 
@@ -358,7 +385,7 @@ class BuilderBase(object):
                                  is_template=True, warn=True)
 
             # register all the dynamic classes
-            for name, baseclasses in iteritems(parser.dynamic_classes):
+            for name, baseclasses in parser.dynamic_classes.items():
                 Factory.register(name, baseclasses=baseclasses, filename=fn,
                                  warn=True)
 
@@ -375,14 +402,24 @@ class BuilderBase(object):
                 self.files.append(fn)
 
             if parser.root:
-                widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
+                widget = Factory.get(parser.root.name)(__no_builder=True)
+                rule_children = []
+                widget.apply_class_lang_rules(
+                    root=widget, rule_children=rule_children)
+                self._apply_rule(
+                    widget, parser.root, parser.root,
+                    rule_children=rule_children)
+
+                for child in rule_children:
+                    child.dispatch('on_kv_post', widget)
+                widget.dispatch('on_kv_post', widget)
                 return widget
         finally:
             self._current_filename = None
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
+
         .. versionadded:: 1.0.5
 
         With templates, you can construct custom widgets from a kv lang
@@ -411,47 +448,110 @@ class BuilderBase(object):
         self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
         return widget
 
-    def apply_rules(self, widget, rule_name, ignored_consts=set()):
-        '''Search all the rules that match `rule_name` widget
+    def apply_rules(
+            self, widget, rule_name, ignored_consts=set(), rule_children=None,
+            dispatch_kv_post=False):
+        '''Search all the rules that match the name `rule_name`
         and apply them to `widget`.
 
-        .. versionadded:: 1.9.2
+        .. versionadded:: 1.10.0
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget to whom the matching rules should be applied to.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match_rule_name(rule_name)
         if __debug__:
-            trace('Builder: Found %d rules for %s' % (len(rules), rule_name))
+            trace('Lang: Found %d rules for %s' % (len(rules), rule_name))
         if not rules:
             return
-        for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
 
-    def apply(self, widget, ignored_consts=set()):
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
+        for rule in rules:
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
+
+    def apply(self, widget, ignored_consts=set(), rule_children=None,
+              dispatch_kv_post=False):
         '''Search all the rules that match the widget and apply them.
 
-        `ignored_consts` is a set or list type whose elements are property
-        names for which constant KV rules (i.e. those that don't create
-        bindings) of that widget will not be applied. This allows e.g. skipping
-        constant rules that overwrite a value initialized in python.
+        :Parameters:
+
+            `widget`: :class:`~kivy.uix.widget.Widget`
+                The widget whose class rules should be applied to this widget.
+            `ignored_consts`: set
+                A set or list type whose elements are property names for which
+                constant KV rules (i.e. those that don't create bindings) of
+                that widget will not be applied. This allows e.g. skipping
+                constant rules that overwrite a value initialized in python.
+            `rule_children`: list
+                If not ``None``, it should be a list that will be populated
+                with all the widgets created by the kv rules being applied.
+
+                .. versionchanged:: 1.11.0
+
+            `dispatch_kv_post`: bool
+                Normally the class `Widget` dispatches the `on_kv_post` event
+                to widgets created during kv rule application.
+                But if the rules are manually applied by calling :meth:`apply`,
+                that may not happen, so if this is `True`, we will dispatch the
+                `on_kv_post` event where needed after applying the rules to
+                `widget` (we won't dispatch it for `widget` itself).
+
+                Defaults to False.
+
+                .. versionchanged:: 1.11.0
         '''
         rules = self.match(widget)
         if __debug__:
-            trace('Builder: Found %d rules for %s' % (len(rules), widget))
+            trace('Lang: Found %d rules for %s' % (len(rules), widget))
         if not rules:
             return
+
+        if dispatch_kv_post:
+            rule_children = rule_children if rule_children is not None else []
         for rule in rules:
-            self._apply_rule(widget, rule, rule, ignored_consts=ignored_consts)
+            self._apply_rule(
+                widget, rule, rule, ignored_consts=ignored_consts,
+                rule_children=rule_children)
+        if dispatch_kv_post:
+            for w in rule_children:
+                w.dispatch('on_kv_post', widget)
 
     def _clear_matchcache(self):
-        BuilderBase._match_cache = {}
-        BuilderBase._match_name_cache = {}
+        self._match_cache.clear()
+        self._match_name_cache.clear()
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
-                    ignored_consts=set()):
+                    ignored_consts=set(), rule_children=None):
         # widget: the current instantiated widget
         # rule: the current rule
         # rootrule: the current root rule (for children of a rule)
@@ -480,7 +580,7 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in iterkeys(_ids):
+            for _key in _ids.keys():
                 if _ids[_key] == _root:
                     # skip on self
                     continue
@@ -559,8 +659,13 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                self.apply(child)
-                self._apply_rule(child, crule, rootrule)
+                child.apply_class_lang_rules(
+                    root=rctx['ids']['root'], rule_children=rule_children)
+                self._apply_rule(
+                    child, crule, rootrule, rule_children=rule_children)
+
+                if rule_children is not None:
+                    rule_children.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
@@ -593,11 +698,11 @@ class BuilderBase(object):
                             rctx['ids'])
                         # if there's a rule
                         if (widget_set != widget or bound or
-                            key not in ignored_consts):
+                                key not in ignored_consts):
                             setattr(widget_set, key, value)
                     else:
                         if (widget_set != widget or
-                            key not in ignored_consts):
+                                key not in ignored_consts):
                             setattr(widget_set, key, value)
 
         except Exception as e:
@@ -622,9 +727,9 @@ class BuilderBase(object):
                     idmap.update(rctx['ids'])
                     idmap['self'] = widget_set.proxy_ref
                     if not widget_set.fbind(key, custom_callback, crule,
-                                                idmap):
+                                            idmap):
                         raise AttributeError(key)
-                    #hack for on_parent
+                    # hack for on_parent
                     if crule.name == 'on_parent':
                         Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
@@ -641,8 +746,8 @@ class BuilderBase(object):
     def match(self, widget):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_cache
-        k = (widget.__class__, widget.id, tuple(widget.cls))
+        cache = self._match_cache
+        k = (widget.__class__, tuple(widget.cls))
         if k in cache:
             return cache[k]
         rules = []
@@ -657,7 +762,7 @@ class BuilderBase(object):
     def match_rule_name(self, rule_name):
         '''Return a list of :class:`ParserRule` objects matching the widget.
         '''
-        cache = BuilderBase._match_name_cache
+        cache = self._match_name_cache
         rule_name = str(rule_name)
         k = rule_name.lower()
         if k in cache:
@@ -700,10 +805,10 @@ class BuilderBase(object):
         instead of the widget itself, because Builder is using it in the
         widget destructor.
 
-        This effectively clearls all the KV rules associated with this widget.
+        This effectively clears all the KV rules associated with this widget.
         For example:
 
-    .. code-block:: python
+        .. code-block:: python
 
             >>> w = Builder.load_string(\'''
             ... Widget:
@@ -826,8 +931,9 @@ class BuilderBase(object):
                     prule.ctx, prule.line,
                     '{}: {}'.format(e.__class__.__name__, e), cause=tb)
 
+
 #: Main instance of a :class:`BuilderBase`.
-Builder = register_context('Builder', BuilderBase)
+Builder: BuilderBase = register_context('Builder', BuilderBase)
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
@@ -837,7 +943,7 @@ if 'KIVY_PROFILE_LANG' in environ:
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
-        for prop, prp in iteritems(rule.properties):
+        for prop, prp in rule.properties.items():
             if prp.line != index:
                 continue
             yield prp
@@ -863,7 +969,11 @@ if 'KIVY_PROFILE_LANG' in environ:
             '</style>']
         files = set([x[1].ctx.filename for x in Builder.rules])
         for fn in files:
-            lines = open(fn).readlines()
+            try:
+                with open(fn) as f:
+                    lines = f.readlines()
+            except (IOError, TypeError) as e:
+                continue
             html += ['<h2>', fn, '</h2>', '<table>']
             count = 0
             for index, line in enumerate(lines):

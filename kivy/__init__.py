@@ -20,15 +20,13 @@ See http://kivy.org for more information.
 '''
 
 __all__ = (
-    'require',
+    'require', 'parse_kivy_version',
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
-    'kivy_config_fn', 'kivy_usermodules_dir',
+    'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_config_fn', 'kivy_usermodules_dir', 'kivy_examples_dir'
 )
-
-__version__ = '1.9.2-dev0'
 
 import sys
 import shutil
@@ -36,8 +34,11 @@ from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
+import re
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
+from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
+    _kivy_git_hash, _kivy_build_date
 
 # internals for post-configuration
 __kivy_post_configuration = []
@@ -54,6 +55,31 @@ if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     '''
     Logger.critical(r)
 
+if sys.version_info[0] == 2:
+    Logger.critical(
+        'Unsupported Python version detected!: Kivy 2.0.0 and higher does not '
+        'support Python 2. Please upgrade to Python 3, or downgrade Kivy to '
+        '1.11.0 - the last Kivy release that still supports Python 2.')
+
+
+def parse_kivy_version(version):
+    """Parses the kivy version as described in :func:`require` into a 3-tuple
+    of ([x, y, z], 'rc|a|b|dev|post', 'N') where N is the tag revision. The
+    last two elements may be None.
+    """
+    m = re.match(
+        '^([0-9]+)\\.([0-9]+)\\.([0-9]+?)(rc|a|b|\\.dev|\\.post)?([0-9]+)?$',
+        version)
+    if m is None:
+        raise Exception('Revision format must be X.Y.Z[-tag]')
+
+    major, minor, micro, tag, tagrev = m.groups()
+    if tag == '.dev':
+        tag = 'dev'
+    if tag == '.post':
+        tag = 'post'
+    return [int(major), int(minor), int(micro)], tag, tagrev
+
 
 def require(version):
     '''Require can be used to check the minimum version required to run a Kivy
@@ -67,14 +93,14 @@ def require(version):
 
     The Kivy version string is built like this::
 
-        X.Y.Z[-tag[-tagrevision]]
+        X.Y.Z[tag[tagrevision]]
 
         X is the major version
         Y is the minor version
         Z is the bugfixes revision
 
-    The tag is optional, but may be one of 'dev', 'alpha', or 'beta'.
-    The tagrevision is the revision of the tag.
+    The tag is optional, but may be one of '.dev', '.post', 'a', 'b', or 'rc'.
+    The tagrevision is the revision number of the tag.
 
     .. warning::
 
@@ -85,35 +111,13 @@ def require(version):
 
     '''
 
-    def parse_version(version):
-        # check for tag
-        tag = None
-        tagrev = None
-        if '-' in version:
-            l = version.split('-')
-            if len(l) == 2:
-                version, tag = l
-            elif len(l) == 3:
-                version, tag, tagrev = l
-            else:
-                raise Exception('Revision format must be X.Y.Z[-tag]')
-
-        # check x y z
-        l = version.split('.')
-        if len(l) != 3:
-            raise Exception('Revision format must be X.Y.Z[-tag]')
-        return [int(x) for x in l], tag, tagrev
-
     # user version
-    revision, tag, tagrev = parse_version(version)
+    revision, tag, tagrev = parse_kivy_version(version)
     # current version
-    sysrevision, systag, systagrev = parse_version(__version__)
+    sysrevision, systag, systagrev = parse_kivy_version(__version__)
 
-    # ensure that the required version don't contain tag, except dev
-    if tag not in (None, 'dev'):
-        raise Exception('Revision format must not have any tag except "dev"')
-    if tag == 'dev' and systag != 'dev':
-        Logger.warning('Application requested a -dev version of Kivy. '
+    if tag and not systag:
+        Logger.warning('Application requested a dev version of Kivy. '
                        '(You have %s, but the application requires %s)' % (
                            __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
@@ -144,7 +148,8 @@ def get_includes():
     .. versionadded:: 1.9.1
     '''
     root_dir = dirname(__file__)
-    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat')]
+    return [join(root_dir, 'graphics'), join(root_dir, 'tools', 'gles_compat'),
+            join(root_dir, 'include')]
 
 
 def kivy_register_post_configuration(callback):
@@ -158,6 +163,9 @@ def kivy_register_post_configuration(callback):
 
 def kivy_usage():
     '''Kivy Usage: %s [OPTION...]::
+
+            Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
+            disable Kivy's argument parser.
 
         -h, --help
             Prints this help message.
@@ -196,14 +204,13 @@ kivy_options = {
     'window': ('egl_rpi', 'sdl2', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'sdl2', 'pygame', 'sdlttf'),
     'video': (
-        'gstplayer', 'ffmpeg', 'ffpyplayer', 'gi', 'pygst', 'pyglet',
-        'null'),
+        'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio': (
-        'gstplayer', 'pygame', 'gi', 'pygst', 'ffpyplayer', 'sdl2',
+        'gstplayer', 'pygame', 'ffpyplayer', 'sdl2',
         'avplayer'),
-    'image': ('tex', 'imageio', 'dds', 'gif', 'sdl2', 'pygame', 'pil', 'ffpy'),
-    'camera': ('opencv', 'gi', 'pygst', 'videocapture', 'avfoundation',
-               'android'),
+    'image': ('tex', 'imageio', 'dds', 'sdl2', 'pygame', 'pil', 'ffpy', 'gif'),
+    'camera': ('opencv', 'gi', 'avfoundation',
+               'android', 'picamera'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
@@ -230,9 +237,6 @@ kivy_base_dir = dirname(sys.modules[__name__].__file__)
 
 kivy_modules_dir = environ.get('KIVY_MODULES_DIR',
                                join(kivy_base_dir, 'modules'))
-#: Kivy extension directory
-kivy_exts_dir = environ.get('KIVY_EXTS_DIR',
-                            join(kivy_base_dir, 'extensions'))
 #: Kivy data directory
 kivy_data_dir = environ.get('KIVY_DATA_DIR',
                             join(kivy_base_dir, 'data'))
@@ -249,26 +253,68 @@ kivy_home_dir = ''
 kivy_config_fn = ''
 #: Kivy user modules directory
 kivy_usermodules_dir = ''
-#: Kivy user extensions directory
-kivy_userexts_dir = ''
+#: Kivy examples directory
+kivy_examples_dir = ''
+for examples_dir in (
+        join(dirname(dirname(__file__)), 'examples'),
+        join(sys.exec_prefix, 'share', 'kivy-examples'),
+        join(sys.prefix, 'share', 'kivy-examples'),
+        '/usr/share/kivy-examples', '/usr/local/share/kivy-examples',
+        expanduser('~/.local/share/kivy-examples')):
+    if exists(examples_dir):
+        kivy_examples_dir = examples_dir
+        break
 
 # if there are deps, import them so they can do their magic.
-import kivy.deps
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    try:
-        importer.find_module(modname).load_module(modname)
-    except ImportError as e:
-        Logger.warning("deps: Error importing dependency: {}".format(str(e)))
+_packages = []
+try:
+    from kivy import deps as old_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(old_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy.deps'))
+        else:
+            _packages.append((importer, modname, 'kivy.deps'))
+except ImportError:
+    pass
 
+try:
+    import kivy_deps
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
+        if not ispkg:
+            continue
+        if modname.startswith('gst'):
+            _packages.insert(0, (importer, modname, 'kivy_deps'))
+        else:
+            _packages.append((importer, modname, 'kivy_deps'))
+except ImportError:
+    pass
+
+_logging_msgs = []
+for importer, modname, package in _packages:
+    try:
+        mod = importer.find_module(modname).load_module(modname)
+
+        version = ''
+        if hasattr(mod, '__version__'):
+            version = ' {}'.format(mod.__version__)
+        _logging_msgs.append(
+            'deps: Successfully imported "{}.{}"{}'.
+            format(package, modname, version))
+    except ImportError as e:
+        Logger.warning(
+            'deps: Error importing dependency "{}.{}": {}'.
+            format(package, modname, str(e)))
 
 # Don't go further if we generate documentation
-if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
+if any(name in sys.argv[0] for name in (
+        'sphinx-build', 'autobuild.py', 'sphinx'
+)):
     environ['KIVY_DOC'] = '1'
 if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
-if any('nosetests' in arg for arg in sys.argv):
+if any(('nosetests' in arg or 'pytest' in arg) for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
 if any('pyinstaller' in arg.lower() for arg in sys.argv):
     environ['KIVY_PACKAGING'] = '1'
@@ -284,9 +330,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif platform == 'ios':
             user_home_dir = join(expanduser('~'), 'Documents')
         kivy_home_dir = join(user_home_dir, '.kivy')
+
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    kivy_userexts_dir = join(kivy_home_dir, 'extensions')
     icon_dir = join(kivy_home_dir, 'icon')
 
     if 'KIVY_NO_CONFIG' not in environ:
@@ -294,8 +340,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             mkdir(kivy_home_dir)
         if not exists(kivy_usermodules_dir):
             mkdir(kivy_usermodules_dir)
-        if not exists(kivy_userexts_dir):
-            mkdir(kivy_userexts_dir)
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
@@ -309,11 +353,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # Can be overrided in command line
+    # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
-            'KIVY_NO_ARGS' not in environ):
-        # save sys argv, otherwize, gstreamer use it and display help..
+            environ.get('KIVY_NO_ARGS', "false") not in ('true', '1', 'yes')):
+        # save sys argv, otherwise, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 
@@ -331,14 +375,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         mp_fork = None
         try:
-            mp_fork = opts['multiprocessing-fork']
+            for opt, arg in opts:
+                if opt == '--multiprocessing-fork':
+                    mp_fork = True
+                    break
         except:
             pass
 
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
         if mp_fork is not None:
-            sys.argv = sys.argv + ['--multiprocessing-fork']
+            # Needs to be first opt for support_freeze to work
+            sys.argv.insert(1, '--multiprocessing-fork')
+
     else:
         opts = []
         args = []
@@ -361,14 +410,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
         elif opt in ('-c', '--config'):
-            l = arg.split(':', 2)
-            if len(l) == 2:
-                Config.set(l[0], l[1], '')
-            elif len(l) == 3:
-                Config.set(l[0], l[1], l[2])
+            ol = arg.split(':', 2)
+            if len(ol) == 2:
+                Config.set(ol[0], ol[1], '')
+            elif len(ol) == 3:
+                Config.set(ol[0], ol[1], ol[2])
             else:
                 raise Exception('Invalid --config value')
-            if l[0] == 'kivy' and l[1] == 'log_level':
+            if ol[0] == 'kivy' and ol[1] == 'log_level':
                 level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
                 Logger.setLevel(level=level)
         elif opt in ('-k', '--fake-fullscreen'):
@@ -426,5 +475,18 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if platform == 'android':
         Config.set('input', 'androidtouch', 'android')
 
-Logger.info('Kivy: v%s' % (__version__))
+for msg in _logging_msgs:
+    Logger.info(msg)
+
+if not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
+    Logger.info('Kivy: v%s, git-%s, %s' % (
+        __version__, _kivy_git_hash[:7], _kivy_build_date))
+else:
+    Logger.info('Kivy: v%s' % __version__)
+Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
+Logger.info('Python: Interpreter at "{}"'.format(sys.executable))
+
+from kivy.logger import file_log_handler
+if file_log_handler is not None:
+    file_log_handler.purge_logs()

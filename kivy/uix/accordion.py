@@ -107,7 +107,7 @@ class AccordionItem(FloatLayout):
     '''
 
     title = StringProperty('')
-    '''Title string of the item. The title might be used in conjuction with the
+    '''Title string of the item. The title might be used in conjunction with the
     `AccordionItemTitle` template. If you are using a custom template, you can
     use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
@@ -173,7 +173,7 @@ class AccordionItem(FloatLayout):
     '''
 
     collapse_alpha = NumericProperty(1.)
-    '''Value between 0 and 1 to indicate how much the item is collasped (1) or
+    '''Value between 0 and 1 to indicate how much the item is collapsed (1) or
     whether it is selected (0). It's mostly used for animation.
 
     :attr:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty` and
@@ -264,15 +264,17 @@ class AccordionItem(FloatLayout):
         fbind('title_args', trigger_title)
         trigger_title()
 
-    def add_widget(self, widget):
+    def add_widget(self, *args, **kwargs):
         if self.container is None:
-            return super(AccordionItem, self).add_widget(widget)
-        return self.container.add_widget(widget)
+            super(AccordionItem, self).add_widget(*args, **kwargs)
+            return
+        self.container.add_widget(*args, **kwargs)
 
-    def remove_widget(self, widget):
+    def remove_widget(self, *args, **kwargs):
         if self.container:
-            self.container.remove_widget(widget)
-        super(AccordionItem, self).remove_widget(widget)
+            self.container.remove_widget(*args, **kwargs)
+            return
+        super(AccordionItem, self).remove_widget(*args, **kwargs)
 
     def on_collapse(self, instance, value):
         accordion = self.accordion
@@ -282,13 +284,14 @@ class AccordionItem(FloatLayout):
             self.accordion.select(self)
         collapse_alpha = float(value)
         if self._anim_collapse:
-            self._anim_collapse.stop()
+            self._anim_collapse.stop(self)
             self._anim_collapse = None
         if self.collapse_alpha != collapse_alpha:
             self._anim_collapse = Animation(
                 collapse_alpha=collapse_alpha,
                 t=accordion.anim_func,
-                d=accordion.anim_duration).start(self)
+                d=accordion.anim_duration)
+            self._anim_collapse.start(self)
 
     def on_collapse_alpha(self, instance, value):
         self.accordion._trigger_layout()
@@ -368,13 +371,11 @@ class Accordion(Widget):
         fbind('pos', update)
         fbind('min_space', update)
 
-    def add_widget(self, widget, *largs):
+    def add_widget(self, widget, *args, **kwargs):
         if not isinstance(widget, AccordionItem):
             raise AccordionException('Accordion accept only AccordionItem')
-
         widget.accordion = self
-        ret = super(Accordion, self).add_widget(widget, *largs)
-        return ret
+        super(Accordion, self).add_widget(widget, *args, **kwargs)
 
     def select(self, instance):
         if instance not in self.children:
@@ -433,6 +434,7 @@ class Accordion(Widget):
                 child.height = child_space
                 y += child_space
 
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button
@@ -445,10 +447,10 @@ if __name__ == '__main__':
         if x == 0:
             item.add_widget(Button(text='Content %d' % x))
         elif x == 1:
-            l = BoxLayout(orientation='vertical')
-            l.add_widget(Button(text=str(x), size_hint_y=None, height=35))
-            l.add_widget(Label(text='Content %d' % x))
-            item.add_widget(l)
+            z = BoxLayout(orientation='vertical')
+            z.add_widget(Button(text=str(x), size_hint_y=None, height=35))
+            z.add_widget(Label(text='Content %d' % x))
+            item.add_widget(z)
         else:
             item.add_widget(Label(text='This is a big content\n' * 20))
         acc.add_widget(item)

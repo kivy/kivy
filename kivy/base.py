@@ -3,13 +3,10 @@
 Kivy Base
 =========
 
-This module contains core Kivy functionality and is not intended for end users.
-Feel free to look though it, but calling any of these methods directly may well
-result in unpredicatable behavior.
-
-Event loop management
----------------------
-
+This module contains the Kivy core functionality and is not intended for end
+users. Feel free to look through it, but bare in mind that calling any of
+these methods directly may result in an unpredictable behavior as the calls
+access directly the event loop of an application.
 '''
 
 __all__ = (
@@ -19,10 +16,12 @@ __all__ = (
     'ExceptionManagerBase',
     'ExceptionManager',
     'runTouchApp',
+    'async_runTouchApp',
     'stopTouchApp',
 )
 
 import sys
+import os
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.utils import platform
@@ -41,20 +40,24 @@ class ExceptionHandler(object):
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
-                Logger.exception('Exception catched by ExceptionHandler')
+                Logger.exception('Exception caught by ExceptionHandler')
                 return ExceptionManager.PASS
 
         ExceptionManager.add_handler(E())
 
-    All exceptions will be set to PASS, and logged to the console!
+    Then, all exceptions will be set to PASS, and logged to the console!
     '''
 
-    def __init__(self):
-        pass
-
     def handle_exception(self, exception):
-        '''Handle one exception, defaults to returning
-        ExceptionManager.STOP.
+        '''Called by :class:`ExceptionManagerBase` to handle a exception.
+
+        Defaults to returning :attr:`ExceptionManager.RAISE` that re-raises the
+        exception. Return :attr:`ExceptionManager.PASS` to indicate that the
+        exception was handled and should be ignored.
+
+        This may be called multiple times with the same exception, if
+        :attr:`ExceptionManager.RAISE` is returned as the exception bubbles
+        through multiple kivy exception handling levels.
         '''
         return ExceptionManager.RAISE
 
@@ -63,7 +66,11 @@ class ExceptionManagerBase:
     '''ExceptionManager manages exceptions handlers.'''
 
     RAISE = 0
+    """The exception should be re-raised.
+    """
     PASS = 1
+    """The exception should be ignored as it was handled by the handler.
+    """
 
     def __init__(self):
         self.handlers = []
@@ -71,16 +78,17 @@ class ExceptionManagerBase:
 
     def add_handler(self, cls):
         '''Add a new exception handler to the stack.'''
-        if not cls in self.handlers:
+        if cls not in self.handlers:
             self.handlers.append(cls)
 
     def remove_handler(self, cls):
-        '''Remove a exception handler from the stack.'''
+        '''Remove the exception handler from the stack.'''
         if cls in self.handlers:
             self.handlers.remove(cls)
 
     def handle_exception(self, inst):
-        '''Called when an exception occured in the runTouchApp() main loop.'''
+        '''Called when an exception occurred in the :func:`runTouchApp`
+        main loop.'''
         ret = self.policy
         for handler in self.handlers:
             r = handler.handle_exception(inst)
@@ -88,8 +96,12 @@ class ExceptionManagerBase:
                 ret = r
         return ret
 
+
 #: Instance of a :class:`ExceptionManagerBase` implementation.
-ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
+ExceptionManager: ExceptionManagerBase = register_context(
+    'ExceptionManager', ExceptionManagerBase)
+"""The :class:`ExceptionManagerBase` instance that handles kivy exceptions.
+"""
 
 
 class EventLoopBase(EventDispatcher):
@@ -105,6 +117,7 @@ class EventLoopBase(EventDispatcher):
         self.input_events = []
         self.postproc_modules = []
         self.status = 'idle'
+        self.stopping = False
         self.input_providers = []
         self.input_providers_autoremove = []
         self.event_listeners = []
@@ -147,7 +160,7 @@ class EventLoopBase(EventDispatcher):
     def add_event_listener(self, listener):
         '''Add a new event listener for getting touch events.
         '''
-        if not listener in self.event_listeners:
+        if listener not in self.event_listeners:
             self.event_listeners.append(listener)
 
     def remove_event_listener(self, listener):
@@ -157,10 +170,11 @@ class EventLoopBase(EventDispatcher):
             self.event_listeners.remove(listener)
 
     def start(self):
-        '''Must be called only once before run().
+        '''Must be called only once before :meth:`EventLoopBase.run()`.
         This starts all configured input providers.'''
         self.status = 'started'
         self.quit = False
+        Clock.start_clock()
         for provider in self.input_providers:
             provider.start()
         self.dispatch('on_start')
@@ -174,7 +188,7 @@ class EventLoopBase(EventDispatcher):
 
     def stop(self):
         '''Stop all input providers and call callbacks registered using
-        EventLoop.add_stop_callback().'''
+        `EventLoop.add_stop_callback()`.'''
 
         # XXX stop in reverse order that we started them!! (like push
         # pop), very important because e.g. wm_touch and WM_PEN both
@@ -189,6 +203,8 @@ class EventLoopBase(EventDispatcher):
         # ensure any restart will not break anything later.
         self.input_events = []
 
+        Clock.stop_clock()
+        self.stopping = False
         self.status = 'stopped'
         self.dispatch('on_stop')
 
@@ -203,10 +219,21 @@ class EventLoopBase(EventDispatcher):
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
 
+    def remove_android_splash(self, *args):
+        '''Remove android presplash in SDL2 bootstrap.'''
+        try:
+            from android import remove_presplash
+            remove_presplash()
+        except ImportError:
+            Logger.warning(
+                'Base: Failed to import "android" module. '
+                'Could not remove android presplash.')
+            return
+
     def post_dispatch_input(self, etype, me):
-        '''This function is called by dispatch_input() when we want to dispatch
-        an input event. The event is dispatched to all listeners and if
-        grabbed, it's dispatched to grabbed widgets.
+        '''This function is called by :meth:`EventLoopBase.dispatch_input()`
+        when we want to dispatch an input event. The event is dispatched to
+        all listeners and if grabbed, it's dispatched to grabbed widgets.
         '''
         # update available list
         if etype == 'begin':
@@ -234,9 +261,7 @@ class EventLoopBase(EventDispatcher):
             root_window = wid.get_root_window()
             if wid != root_window and root_window is not None:
                 me.push()
-                w, h = root_window.system_size
-                if platform == 'ios' or root_window._density != 1:
-                    w, h = root_window.size
+                w, h = root_window._get_effective_size()
                 kheight = root_window.keyboard_height
                 smode = root_window.softinput_mode
                 me.scale_for_screen(w, h, rotation=root_window.rotation,
@@ -295,11 +320,11 @@ class EventLoopBase(EventDispatcher):
         self.input_events.append(ev)
 
     def dispatch_input(self):
-        '''Called by idle() to read events from input providers, pass events to
-        postproc, and dispatch final events.
+        '''Called by :meth:`EventLoopBase.idle()` to read events from input
+        providers, pass events to postproc, and dispatch final events.
         '''
 
-        # first, aquire input events
+        # first, acquire input events
         for provider in self.input_providers:
             provider.update(dispatch_fn=self._dispatch_input)
 
@@ -314,6 +339,39 @@ class EventLoopBase(EventDispatcher):
         while input_events:
             post_dispatch_input(*pop(0))
 
+    def mainloop(self):
+        while not self.quit and self.status == 'started':
+            try:
+                self.idle()
+                if self.window:
+                    self.window.mainloop()
+            except BaseException as inst:
+                # use exception manager first
+                r = ExceptionManager.handle_exception(inst)
+                if r == ExceptionManager.RAISE:
+                    stopTouchApp()
+                    raise
+                else:
+                    pass
+
+    async def async_mainloop(self):
+        while not self.quit and self.status == 'started':
+            try:
+                await self.async_idle()
+                if self.window:
+                    self.window.mainloop()
+            except BaseException as inst:
+                # use exception manager first
+                r = ExceptionManager.handle_exception(inst)
+                if r == ExceptionManager.RAISE:
+                    stopTouchApp()
+                    raise
+                else:
+                    pass
+
+        Logger.info("Window: exiting mainloop and closing.")
+        self.close()
+
     def idle(self):
         '''This function is called after every frame. By default:
 
@@ -327,21 +385,65 @@ class EventLoopBase(EventDispatcher):
         Clock.tick()
 
         # read and dispatch input from providers
-        self.dispatch_input()
+        if not self.quit:
+            self.dispatch_input()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
         # tick before draw
-        Clock.tick_draw()
+        if not self.quit:
+            Clock.tick_draw()
 
         # flush all the canvas operation
-        Builder.sync()
+        if not self.quit:
+            Builder.sync()
 
-        window = self.window
-        if window and window.canvas.needs_redraw:
-            window.dispatch('on_draw')
-            window.dispatch('on_flip')
+        if not self.quit:
+            window = self.window
+            if window and window.canvas.needs_redraw:
+                window.dispatch('on_draw')
+                window.dispatch('on_flip')
+
+        # don't loop if we don't have listeners !
+        if len(self.event_listeners) == 0:
+            Logger.error('Base: No event listeners have been created')
+            Logger.error('Base: Application will leave')
+            self.exit()
+            return False
+
+        return self.quit
+
+    async def async_idle(self):
+        '''Identical to :meth:`idle`, but instead used when running
+        within an async event loop.
+        '''
+
+        # update dt
+        await Clock.async_tick()
+
+        # read and dispatch input from providers
+        if not self.quit:
+            self.dispatch_input()
+
+        # flush all the canvas operation
+        if not self.quit:
+            Builder.sync()
+
+        # tick before draw
+        if not self.quit:
+            Clock.tick_draw()
+
+        # flush all the canvas operation
+        if not self.quit:
+            Builder.sync()
+
+        if not self.quit:
+            window = self.window
+            if window and window.canvas.needs_redraw:
+                window.dispatch('on_draw')
+                window.dispatch('on_flip')
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
@@ -379,56 +481,15 @@ class EventLoopBase(EventDispatcher):
         after all input providers have been started.'''
         pass
 
+
 #: EventLoop instance
 EventLoop = EventLoopBase()
 
 
-def _run_mainloop():
-    '''If no window has been created, this will be the executed mainloop.'''
-    while True:
-        try:
-            EventLoop.run()
-            stopTouchApp()
-            break
-        except BaseException as inst:
-            # use exception manager first
-            r = ExceptionManager.handle_exception(inst)
-            if r == ExceptionManager.RAISE:
-                stopTouchApp()
-                raise
-            else:
-                pass
-
-
-def runTouchApp(widget=None, slave=False):
-    '''Static main function that starts the application loop.
-    You can access some magic via the following arguments:
-
-    :Parameters:
-        `<empty>`
-            To make dispatching work, you need at least one
-            input listener. If not, application will leave.
-            (MTWindow act as an input listener)
-
-        `widget`
-            If you pass only a widget, a MTWindow will be created
-            and your widget will be added to the window as the root
-            widget.
-
-        `slave`
-            No event dispatching is done. This will be your job.
-
-        `widget + slave`
-            No event dispatching is done. This will be your job but
-            we try to get the window (must be created by you beforehand)
-            and add the widget to it. Very usefull for embedding Kivy
-            in another toolkit. (like Qt, check kivy-designed)
-
-    '''
-
+def _runTouchApp_prepare(widget=None):
     from kivy.input import MotionEventFactory, kivy_postproc_modules
 
-    # Ok, we got one widget, and we are not in slave mode
+    # Ok, we got one widget, and we are not in embedded mode
     # so, user don't create the window, let's create it for him !
     if widget:
         EventLoop.ensure_window()
@@ -465,11 +526,11 @@ def runTouchApp(widget=None, slave=False):
     Logger.info('Base: Start application main loop')
     EventLoop.start()
 
-    # we are in a slave mode, don't do dispatching.
-    if slave:
-        return
+    # remove presplash on the next frame
+    if platform == 'android':
+        Clock.schedule_once(EventLoop.remove_android_splash)
 
-    # in non-slave mode, they are 2 issues
+    # in non-embedded mode, there are 2 issues
     #
     # 1. if user created a window, call the mainloop from window.
     #    This is due to glut, it need to be called with
@@ -477,23 +538,86 @@ def runTouchApp(widget=None, slave=False):
     #    So, we are executing the dispatching function inside
     #    a redisplay event.
     #
-    # 2. if no window is created, we are dispatching event lopp
+    # 2. if no window is created, we are dispatching event loop
     #    ourself (previous behavior.)
     #
+
+
+def runTouchApp(widget=None, embedded=False):
+    '''Static main function that starts the application loop.
+    You can access some magic via the following arguments:
+
+    See :mod:`kivy.app` for example usage.
+
+    :Parameters:
+        `<empty>`
+            To make dispatching work, you need at least one
+            input listener. If not, application will leave.
+            (MTWindow act as an input listener)
+
+        `widget`
+            If you pass only a widget, a MTWindow will be created
+            and your widget will be added to the window as the root
+            widget.
+
+        `embedded`
+            No event dispatching is done. This will be your job.
+
+        `widget + embedded`
+            No event dispatching is done. This will be your job but
+            we try to get the window (must be created by you beforehand)
+            and add the widget to it. Very useful for embedding Kivy
+            in another toolkit. (like Qt, check kivy-designed)
+
+    '''
+    _runTouchApp_prepare(widget=widget)
+
+    # we are in embedded mode, don't do dispatching.
+    if embedded:
+        return
+
     try:
-        if EventLoop.window is None:
-            _run_mainloop()
-        else:
-            EventLoop.window.mainloop()
+        EventLoop.mainloop()
+    finally:
+        stopTouchApp()
+
+
+async def async_runTouchApp(widget=None, embedded=False, async_lib=None):
+    '''Identical to :func:`runTouchApp` but instead it is a coroutine
+    that can be run in an existing async event loop.
+
+    ``async_lib`` is the async library to use. See :mod:`kivy.app` for details
+    and example usage.
+
+    .. versionadded:: 2.0.0
+    '''
+    if async_lib is not None:
+        Clock.init_async_lib(async_lib)
+    _runTouchApp_prepare(widget=widget)
+
+    # we are in embedded mode, don't do dispatching.
+    if embedded:
+        return
+
+    try:
+        await EventLoop.async_mainloop()
     finally:
         stopTouchApp()
 
 
 def stopTouchApp():
-    '''Stop the current application by leaving the main loop'''
+    '''Stop the current application by leaving the main loop.
+
+    See :mod:`kivy.app` for example usage.
+    '''
     if EventLoop is None:
         return
+    if EventLoop.status in ('stopped', 'closed'):
+        return
     if EventLoop.status != 'started':
+        if not EventLoop.stopping:
+            EventLoop.stopping = True
+            Clock.schedule_once(lambda dt: stopTouchApp(), 0)
         return
     Logger.info('Base: Leaving application in progress...')
     EventLoop.close()

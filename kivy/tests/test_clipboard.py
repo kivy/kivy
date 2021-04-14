@@ -1,7 +1,7 @@
-import unittest
+from kivy.tests.common import GraphicUnitTest
 
 
-class ClipboardTestCase(unittest.TestCase):
+class ClipboardTestCase(GraphicUnitTest):
 
     def setUp(self):
         from kivy.core.clipboard import Clipboard
@@ -11,6 +11,7 @@ class ClipboardTestCase(unittest.TestCase):
         if 'UTF8_STRING' in clippy_types:
             cliptype = 'UTF8_STRING'
         self._cliptype = cliptype
+        super(ClipboardTestCase, self).setUp()
 
     def test_clipboard_not_dummy(self):
         clippy = self._clippy
@@ -28,7 +29,14 @@ class ClipboardTestCase(unittest.TestCase):
     def test_clipboard_copy(self):
         clippy = self._clippy
         try:
-            clippy.copy("Hello World")
+            clippy.copy(u"Hello World")
         except:
             self.fail(
                 'Can not get put data to clipboard')
+
+    def test_clipboard_copy_paste(self):
+        clippy = self._clippy
+        txt1 = u"Hello 1"
+        clippy.copy(txt1)
+        ret = clippy.paste()
+        self.assertEqual(txt1, ret)

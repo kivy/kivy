@@ -58,6 +58,31 @@ can directly bind the function to an action, e.g. to a button's on_press::
     # open the popup
     popup.open()
 
+Same thing in KV language only with :class:`Factory`:
+
+.. code-block:: kv
+
+    #:import Factory kivy.factory.Factory
+    <MyPopup@Popup>:
+        auto_dismiss: False
+        Button:
+            text: 'Close me!'
+            on_release: root.dismiss()
+
+    Button:
+        text: 'Open popup'
+        on_release: Factory.MyPopup().open()
+
+.. note::
+
+    Popup is a special widget. Don't try to add it as a child to any other
+    widget. If you do, Popup will be handled like an ordinary widget and
+    won't be created hidden in the background.
+
+    .. code-block:: kv
+
+        BoxLayout:
+            MyPopup:  # bad!
 
 Popup Events
 ------------
@@ -65,7 +90,7 @@ Popup Events
 There are two events available: `on_open` which is raised when the popup is
 opening, and `on_dismiss` which is raised when the popup is closed.
 For `on_dismiss`, you can prevent the
-popup from closing by explictly returning True from your callback::
+popup from closing by explicitly returning True from your callback::
 
     def my_callback(instance):
         print('Popup', instance, 'is being dismissed but is prevented!')
@@ -78,9 +103,10 @@ popup from closing by explictly returning True from your callback::
 
 __all__ = ('Popup', 'PopupException')
 
+from kivy.core.text import DEFAULT_FONT
 from kivy.uix.modalview import ModalView
 from kivy.properties import (StringProperty, ObjectProperty, OptionProperty,
-                             NumericProperty, ListProperty)
+                             NumericProperty, ColorProperty)
 
 
 class PopupException(Exception):
@@ -118,8 +144,8 @@ class Popup(ModalView):
     defaults to '14sp'.
     '''
 
-    title_align = OptionProperty('left',
-                                 options=['left', 'center', 'right', 'justify'])
+    title_align = OptionProperty(
+        'left', options=['left', 'center', 'right', 'justify'])
     '''Horizontal alignment of the title.
 
     .. versionadded:: 1.9.0
@@ -128,13 +154,14 @@ class Popup(ModalView):
     defaults to 'left'. Available options are left, center, right and justify.
     '''
 
-    title_font = StringProperty('Roboto')
+    title_font = StringProperty(DEFAULT_FONT)
     '''Font used to render the title text.
 
     .. versionadded:: 1.9.0
 
     :attr:`title_font` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'Roboto'.
+    defaults to 'Roboto'. This value is taken
+    from :class:`~kivy.config.Config`.
     '''
 
     content = ObjectProperty(None)
@@ -144,22 +171,30 @@ class Popup(ModalView):
     to None.
     '''
 
-    title_color = ListProperty([1, 1, 1, 1])
+    title_color = ColorProperty([1, 1, 1, 1])
     '''Color used by the Title.
 
     .. versionadded:: 1.8.0
 
-    :attr:`title_color` is a :class:`~kivy.properties.ListProperty` and
+    :attr:`title_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
-    separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
+    separator_color = ColorProperty([47 / 255., 167 / 255., 212 / 255., 1.])
     '''Color used by the separator between title and content.
 
     .. versionadded:: 1.1.0
 
-    :attr:`separator_color` is a :class:`~kivy.properties.ListProperty` and
-    defaults to [47 / 255., 167 / 255., 212 / 255., 1.]
+    :attr:`separator_color` is a :class:`~kivy.properties.ColorProperty` and
+    defaults to [47 / 255., 167 / 255., 212 / 255., 1.].
+
+    .. versionchanged:: 2.0.0
+        Changed from :class:`~kivy.properties.ListProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     separator_height = NumericProperty('2dp')
@@ -175,14 +210,14 @@ class Popup(ModalView):
 
     _container = ObjectProperty(None)
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, *args, **kwargs):
         if self._container:
             if self.content:
                 raise PopupException(
                     'Popup can have only one widget as content')
             self.content = widget
         else:
-            super(Popup, self).add_widget(widget)
+            super(Popup, self).add_widget(widget, *args, **kwargs)
 
     def on_content(self, instance, value):
         if self._container:

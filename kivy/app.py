@@ -169,9 +169,9 @@ user in order to adapt or reload your UI. You can then overload the
             if config is self.config:
                 token = (section, key)
                 if token == ('section1', 'key1'):
-                    print('Our key1 have been changed to', value)
+                    print('Our key1 has been changed to', value)
                 elif token == ('section1', 'key2'):
-                    print('Our key2 have been changed to', value)
+                    print('Our key2 has been changed to', value)
 
 The Kivy configuration panel is added by default to the settings
 instance. If you don't want this panel, you can declare your Application as
@@ -284,9 +284,9 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned (default case), then :meth:`App.on_stop` is
-       called.
-    #. Otherwise the application will sleep until the OS resumes our App
+    #. If False is returned, then :meth:`App.on_stop` is called.
+    #. If True is returned (default case), the application will sleep until
+       the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
@@ -308,28 +308,122 @@ Here is a simple example of how on_pause() should be used::
     Both `on_pause` and `on_stop` must save important data because after
     `on_pause` is called, `on_resume` may not be called at all.
 
+Asynchronous app
+----------------
+
+In addition to running an app normally,
+Kivy can be run within an async event loop such as provided by the standard
+library asyncio package or the trio package (highly recommended).
+
+Background
+~~~~~~~~~~
+
+Normally, when a Kivy app is run, it blocks the thread that runs it until the
+app exits. Internally, at each clock iteration it executes all the app
+callbacks, handles graphics and input, and idles by sleeping for any remaining
+time.
+
+To be able to run asynchronously, the Kivy app may not sleep, but instead must
+release control of the running context to the asynchronous event loop running
+the Kivy app. We do this when idling by calling the appropriate functions of
+the async package being used instead of sleeping.
+
+Async configuration
+~~~~~~~~~~~~~~~~~~~
+
+To run a Kivy app asynchronously, either the :func:`async_runTouchApp` or
+:meth:`App.async_run` coroutine must be scheduled to run in the event loop of
+the async library being used.
+
+The environmental variable ``KIVY_EVENTLOOP`` or the ``async_lib`` parameter in
+:func:`async_runTouchApp` and :meth:`App.async_run` set the async
+library that Kivy uses internally when the app is run with
+:func:`async_runTouchApp` and :meth:`App.async_run`. It can be set to one of
+`"asyncio"` when the standard library `asyncio` is used, or `"trio"` if the
+trio library is used. If the environment variable is not set and ``async_lib``
+is not provided, the stdlib ``asyncio`` is used.
+
+:meth:`~kivy.clock.ClockBaseBehavior.init_async_lib` can also be directly
+called to set the async library to use, but it may only be called before the
+app has begun running with :func:`async_runTouchApp` or :meth:`App.async_run`.
+
+To run the app asynchronously, one schedules :func:`async_runTouchApp`
+or :meth:`App.async_run` to run within the given library's async event loop as
+in the examples shown below. Kivy is then treated as just another coroutine
+that the given library runs in its event loop. Internally, Kivy will use the
+specified async library's API, so ``KIVY_EVENTLOOP`` or ``async_lib`` must
+match the async library that is running Kivy.
+
+
+For a fuller basic and more advanced examples, see the demo apps in
+``examples/async``.
+
+Asyncio example
+~~~~~~~~~~~~~--
+
+.. code-block:: python
+
+    import asyncio
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(
+        async_runTouchApp(Label(text='Hello, World!'), async_lib='asyncio'))
+    loop.close()
+
+Trio example
+~~~~~~~~~~--
+
+.. code-block:: python
+
+    import trio
+
+    from kivy.app import async_runTouchApp
+    from kivy.uix.label import Label
+
+    from functools import partial
+
+    # use functools.partial() to pass keyword arguments:
+    async_runTouchApp_func = partial(async_runTouchApp, async_lib='trio')
+
+    trio.run(async_runTouchApp_func, Label(text='Hello, World!'))
+
+Interacting with Kivy app from other coroutines
+-----------------------------------------------
+
+It is fully safe to interact with any kivy object from other coroutines
+running within the same async event loop. This is because they are all running
+from the same thread and the other coroutines are only executed when Kivy
+is idling.
+
+Similarly, the kivy callbacks may safely interact with objects from other
+coroutines running in the same event loop. Normal single threaded rules apply
+to both case.
+
+.. versionadded:: 2.0.0
+
 '''
 
-__all__ = ('App', )
+__all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
 
 import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
-from kivy.base import runTouchApp, stopTouchApp
+from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.setupconfig import USE_SDL2
-
-
-platform = core_platform
 
 
 class App(EventDispatcher):
@@ -366,8 +460,8 @@ class App(EventDispatcher):
     .. versionadded:: 1.0.5
 
     .. versionchanged:: 1.8.0
-        `title` is now a :class:`~kivy.properties.StringProperty`. Don't set the
-        title in the class as previously stated in the documentation.
+        `title` is now a :class:`~kivy.properties.StringProperty`. Don't
+        set the title in the class as previously stated in the documentation.
 
     .. note::
 
@@ -385,8 +479,8 @@ class App(EventDispatcher):
 
     icon = StringProperty(None)
     '''Icon of your application.
-    The icon can be located in the same directory as your main file. You can set
-    this as follows::
+    The icon can be located in the same directory as your main file. You can
+    set this as follows::
 
         class MyApp(App):
             def build(self):
@@ -405,10 +499,10 @@ class App(EventDispatcher):
             class MyApp(App):
                 icon = 'customicon.png'
 
-         Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
-         32x32 for Windows7 or less. <= 256x256 for windows 8
-         256x256 does work (on Windows 8 at least), but is scaled
-         down and doesn't look as good as a 32x32 icon.
+        Recommended 256x256 or 1024x1024? for GNU/Linux and Mac OSX
+        32x32 for Windows7 or less. <= 256x256 for windows 8
+        256x256 does work (on Windows 8 at least), but is scaled
+        down and doesn't look as good as a 32x32 icon.
     '''
 
     use_kivy_settings = True
@@ -435,8 +529,8 @@ class App(EventDispatcher):
 
     :attr:`~App.settings_cls` is an :class:`~kivy.properties.ObjectProperty`
     and defaults to :class:`~kivy.uix.settings.SettingsWithSpinner` which
-    displays settings panels with a spinner to switch between them. If you set a
-    string, the :class:`~kivy.factory.Factory` will be used to resolve the
+    displays settings panels with a spinner to switch between them. If you set
+    a string, the :class:`~kivy.factory.Factory` will be used to resolve the
     class.
 
     '''
@@ -463,7 +557,11 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
-    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume')
+    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
+                  'on_config_change', )
+
+    # Stored so that we only need to determine this once
+    _user_data_dir = ""
 
     def __init__(self, **kwargs):
         App._running_app = self
@@ -619,19 +717,13 @@ class App(EventDispatcher):
             return resource_find(self.icon)
 
     def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
-        '''.. versionadded:: 1.0.7
-
-        .. versionchanged:: 1.4.0
-            Customized the default path for iOS and Android platforms. Added a
-            defaultpath parameter for desktop OS's (not applicable to iOS
-            and Android.)
-
+        '''
         Return the filename of your application configuration. Depending
         on the platform, the application file will be stored in
         different locations:
 
             - on iOS: <appdir>/Documents/.<appname>.ini
-            - on Android: /sdcard/.<appname>.ini
+            - on Android: <user_data_dir>/.<appname>.ini
             - otherwise: <appdir>/<appname>.ini
 
         When you are distributing your application on Desktops, please
@@ -639,7 +731,7 @@ class App(EventDispatcher):
         system-wide, the user might not have write-access to the
         application directory. If you want to store user settings, you
         should overload this method and change the default behavior to
-        save the configuration file in the user directory.::
+        save the configuration file in the user directory. ::
 
             class TestApp(App):
                 def get_application_config(self):
@@ -651,12 +743,24 @@ class App(EventDispatcher):
         - The tilda '~' will be expanded to the user directory.
         - %(appdir)s will be replaced with the application :attr:`directory`
         - %(appname)s will be replaced with the application :attr:`name`
+
+        .. versionadded:: 1.0.7
+
+        .. versionchanged:: 1.4.0
+            Customized the defaultpath for iOS and Android platforms. Added a
+            defaultpath parameter for desktop OS's (not applicable to iOS
+            and Android.)
+
+        .. versionchanged:: 1.11.0
+            Changed the Android version to make use of the
+            :attr:`~App.user_data_dir` and added a missing dot to the iOS
+            config file name.
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname)s.ini'
+            return join(self.user_data_dir, '.{0}.ini'.format(self.name))
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname)s.ini'
+            defaultpath = '~/Documents/.%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
@@ -739,6 +843,29 @@ class App(EventDispatcher):
                 self._app_directory = '.'
         return self._app_directory
 
+    def _get_user_data_dir(self):
+        # Determine and return the user_data_dir.
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = expanduser(join('~/Documents', self.name))
+        elif platform == 'android':
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getFilesDir())
+            data_dir = file_p.getAbsolutePath()
+        elif platform == 'win':
+            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+            data_dir = expanduser(data_dir)
+        else:  # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = expanduser(join(data_dir, self.name))
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
+
     @property
     def user_data_dir(self):
         '''
@@ -755,30 +882,27 @@ class App(EventDispatcher):
         On iOS, `~/Documents/<app_name>` is returned (which is inside the
         app's sandbox).
 
-        On Android, `/sdcard/<app_name>` is returned.
-
         On Windows, `%APPDATA%/<app_name>` is returned.
 
         On OS X, `~/Library/Application Support/<app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+
+        On Android, `Context.GetFilesDir
+        <https://developer.android.com/reference/android/content/\
+Context.html#getFilesDir()>`_ is returned.
+
+        .. versionchanged:: 1.11.0
+
+            On Android, this function previously returned
+            `/sdcard/<app_name>`. This folder became read-only by default
+            in Android API 26 and the user_data_dir has therefore been moved
+            to a writeable location.
+
         '''
-        data_dir = ""
-        if platform == 'ios':
-            data_dir = join('~/Documents', self.name)
-        elif platform == 'android':
-            data_dir = join('/sdcard', self.name)
-        elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
-        elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
-        else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = join(data_dir, self.name)
-        data_dir = expanduser(data_dir)
-        if not exists(data_dir):
-            os.mkdir(data_dir)
-        return data_dir
+        if self._user_data_dir == "":
+            self._user_data_dir = self._get_user_data_dir()
+        return self._user_data_dir
 
     @property
     def name(self):
@@ -793,9 +917,7 @@ class App(EventDispatcher):
             self._app_name = clsname.lower()
         return self._app_name
 
-    def run(self):
-        '''Launches the app in standalone mode.
-        '''
+    def _run_prepare(self):
         if not self.built:
             self.load_config()
             self.load_kv(filename=self.kv_file)
@@ -825,7 +947,24 @@ class App(EventDispatcher):
             return
 
         self.dispatch('on_start')
+
+    def run(self):
+        '''Launches the app in standalone mode.
+        '''
+        self._run_prepare()
         runTouchApp()
+        self.stop()
+
+    async def async_run(self, async_lib=None):
+        '''Identical to :meth:`run`, but is a coroutine and can be
+        scheduled in a running async event loop.
+
+        See :mod:`kivy.app` for example usage.
+
+        .. versionadded:: 2.0.0
+        '''
+        self._run_prepare()
+        await async_runTouchApp(async_lib=async_lib)
         self.stop()
 
     def stop(self, *largs):
@@ -838,8 +977,10 @@ class App(EventDispatcher):
         stopTouchApp()
 
         # Clear the window children
-        for child in self._app_window.children:
-            self._app_window.remove_widget(child)
+        if self._app_window:
+            for child in self._app_window.children:
+                self._app_window.remove_widget(child)
+        App._running_app = None
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
@@ -858,17 +999,19 @@ class App(EventDispatcher):
     def on_pause(self):
         '''Event handler called when Pause mode is requested. You should
         return True if your app can go into Pause mode, otherwise
-        return False and your application will be stopped (the default).
+        return False and your application will be stopped.
 
         You cannot control when the application is going to go into this mode.
         It's determined by the Operating System and mostly used for mobile
         devices (android/ios) and for resizing.
 
-        The default return value is False.
+        The default return value is True.
 
         .. versionadded:: 1.1.0
+        .. versionchanged:: 1.10.0
+            The default return value is now True.
         '''
-        return False
+        return True
 
     def on_resume(self):
         '''Event handler called when your application is resuming from
@@ -895,6 +1038,9 @@ class App(EventDispatcher):
     def on_config_change(self, config, section, key, value):
         '''Event handler fired when a configuration token has been changed by
         the settings page.
+
+        .. versionchanged:: 1.10.1
+           Added corresponding ``on_config_change`` event.
         '''
         pass
 
@@ -1014,7 +1160,7 @@ class App(EventDispatcher):
     #
 
     def _on_config_change(self, *largs):
-        self.on_config_change(*largs[1:])
+        self.dispatch('on_config_change', *largs[1:])
 
     def _install_settings_keys(self, window):
         window.bind(on_keyboard=self._on_keyboard_settings)
@@ -1043,4 +1189,3 @@ class App(EventDispatcher):
     def on_icon(self, instance, icon):
         if self._app_window:
             self._app_window.set_icon(self.get_application_icon())
-

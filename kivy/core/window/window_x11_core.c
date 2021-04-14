@@ -6,7 +6,7 @@
 #include <X11/extensions/Xrender.h>
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>
-#include "../../../kivy/graphics/config.h"
+#include "config.h"
 
 #if __USE_EGL == 0
 	#include <GL/gl.h>
@@ -43,7 +43,7 @@ static int g_width, g_height;
 #else
 	/* NEW: add support egl */
 	static EGLDisplay eglDisplay;
-	static EGLConfig eglconfig; 
+	static EGLConfig eglconfig;
 	static EGLSurface eglsurface;
 	static EGLContext eglcontext;
 	static EGLint egl_config_attribs[] = {
@@ -125,10 +125,10 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 	if (!Xdisplay) {
 		fatalError("Couldn't connect to X server\n");
 	}
-	
+
 	Xscreen = DefaultScreen(Xdisplay);
 	Xroot = RootWindow(Xdisplay, Xscreen);
-        
+
 	#if __USE_EGL == 0
 		Colormap cmap;
 		XRenderPictFormat *pict_format;
@@ -168,7 +168,7 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 		visual_x11 = CopyFromParent;
 		attr.colormap = None;
 	#endif
-		
+
 	attr.background_pixmap = None;
 	attr.border_pixmap = None;
 	attr.border_pixel = 0;
@@ -210,7 +210,7 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 	}
 
 	if ( CWOR ){
-        // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to controll
+        // As soon attr_mask is set to CWOverrideRedirect, the WM (windowmanager) won't be able to control
         // the window properly. To (as an example) make the window stay above you need the cooperation of
         // the WM and mustn't set CWOR.
         attr_mask |= CWOverrideRedirect;
@@ -232,7 +232,7 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 	if( !window_handle ) {
 		fatalError("Couldn't create the window\n");
 	}
-	
+
 	#if __USE_EGL == 0
 		#if USE_GLX_CREATE_WINDOW
 			int glXattr[] = { None };
@@ -244,7 +244,7 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 			glX_window_handle = window_handle;
 		#endif
 	#endif
-			
+
 	textprop.value = (unsigned char*)title;
 	textprop.encoding = XA_STRING;
 	textprop.format = 8;
@@ -267,7 +267,7 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
         Atom type = XInternAtom(Xdisplay,"_NET_WM_STATE", False);
         Atom value = XInternAtom(Xdisplay,"_NET_WM_STATE_ABOVE", False);
         XChangeProperty(Xdisplay, window_handle, type, XA_ATOM, 32, PropModeReplace, (const unsigned char *)&value, 1);
-        
+
         if ( fullscreen ) {
             // The fullscreen atom has only be set if the window should be above (and we need the help of the WM)
             Atom wm_state = XInternAtom(Xdisplay, "_NET_WM_STATE", False);
@@ -317,13 +317,13 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 	am_wm_pid = XInternAtom(Xdisplay, "_NET_WM_PID", False);
 	XChangeProperty(Xdisplay, window_handle, am_wm_pid, XA_CARDINAL,
                     32, PropModeReplace, (unsigned char *)&pid, 1);
-		    
-	
+
+
 	#if __USE_EGL == 1
 		//egl provides an interface to connect the graphics related functionality of openGL ES
 		//with the windowing interface and functionality of the native operation system (X11)
 		eglDisplay = eglGetDisplay(Xdisplay);
-		
+
 		if (eglDisplay == EGL_NO_DISPLAY) {
 			fatalError("Can't create egl display\n");
 		}
@@ -334,22 +334,22 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 		}
 
 		eglBindAPI(EGL_OPENGL_ES_API);
-		
+
 		EGLint num_configs;
 		eglChooseConfig(eglDisplay, egl_config_attribs, &eglconfig, 1, &num_configs);
-		
+
 		eglsurface = eglCreateWindowSurface(eglDisplay,eglconfig,window_handle,NULL);
-		
+
 		if (eglsurface == EGL_NO_SURFACE) {
 			fatalError("Couldn't create the surface\n");
 		}
-		
+
 		// connect the context to the surface
 		eglcontext = eglCreateContext(eglDisplay, eglconfig, EGL_NO_CONTEXT, ctx_attribs);
-		
+
 		// associate the egl-context with the egl-surface
 		eglMakeCurrent(eglDisplay, eglsurface, eglsurface, eglcontext);
-		
+
 		// print egl information
 		printf("WinX11 EGL vendor: %s\n", eglQueryString(eglDisplay, EGL_VENDOR));
 		printf("WinX11 EGL version: %s\n", eglQueryString(eglDisplay, EGL_VERSION));
@@ -369,13 +369,13 @@ static int createTheWindow(int width, int height, int x, int y, int resizable, i
 		if (!render_context) {
 			fatalError("Failed to create a GL context\n");
 		}
-		
+
 		if (!glXMakeContextCurrent(Xdisplay, glX_window_handle, glX_window_handle, render_context)) {
 			fatalError("glXMakeCurrent failed for window\n");
 		}
 	}
 #endif
-	
+
 static int updateTheMessageQueue(void)
 {
 	XEvent event;
@@ -439,6 +439,18 @@ void x11_gl_swap(void) {
 	#else
 		eglSwapBuffers(eglDisplay, eglsurface);
 	#endif
+}
+
+Display *x11_get_display(void) {
+	return Xdisplay;
+}
+
+Window x11_get_window(void) {
+	return window_handle;
+}
+
+void x11_set_title(char *title){
+	XStoreName(Xdisplay, window_handle, title);
 }
 
 int x11_get_width(void) {

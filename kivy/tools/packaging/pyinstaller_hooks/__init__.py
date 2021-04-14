@@ -64,10 +64,21 @@ import pkgutil
 import logging
 from os.path import dirname, join
 import importlib
+import subprocess
+import re
+import glob
 
 import kivy
-import kivy.deps
+try:
+    from kivy import deps as old_deps
+except ImportError:
+    old_deps = None
+try:
+    import kivy_deps
+except ImportError:
+    kivy_deps = None
 from kivy.factory import Factory
+from PyInstaller.depend import bindepend
 
 from os import environ
 if 'KIVY_DOC' not in environ:
@@ -78,14 +89,16 @@ if 'KIVY_DOC' not in environ:
 
     kivy_modules = [
         'xml.etree.cElementTree',
-        'kivy.core.gl'
+        'kivy.core.gl',
+        'kivy.weakmethod',
+        'kivy.core.window.window_info',
     ] + collect_submodules('kivy.graphics')
     '''List of kivy modules that are always needed as hiddenimports of
     pyinstaller.
     '''
 
     excludedimports = [modname_tkinter, '_tkinter', 'twisted']
-    '''List of excludedimports that should alwayys be excluded from
+    '''List of excludedimports that should always be excluded from
     pyinstaller.
     '''
 
@@ -93,9 +106,9 @@ if 'KIVY_DOC' not in environ:
         (kivy.kivy_data_dir,
          os.path.join('kivy_install', os.path.basename(kivy.kivy_data_dir))),
         (kivy.kivy_modules_dir,
-         os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir))),
+         os.path.join('kivy_install', os.path.basename(kivy.kivy_modules_dir)))
     ]
-'''List of datas to be included by pyinstaller.
+'''List of data to be included by pyinstaller.
 '''
 
 
@@ -163,9 +176,10 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
 
     :returns:
 
-        A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
-        are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        A dict with three keys, ``hiddenimports``, ``excludes``, and
+        ``binaries``. Their values are a list of the corresponding modules to
+        include/exclude. This can be passed directly to `Analysis`` with
+        e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
@@ -196,9 +210,11 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
         core_mods.remove(mod_name)
 
         mods.append(full_name)
-        if isinstance(val, basestring):
+        single_mod = False
+        if isinstance(val, (str, bytes)):
+            single_mod = True
             mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, val))
-        else:
+        if not single_mod:
             for v in val:
                 mods.append('kivy.core.{0}.{0}_{1}'.format(mod_name, v))
 
@@ -220,9 +236,17 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
 
     mods = sorted(set(mods))
 
-    if exclude_ignored and not any('gstplayer' in m for m in mods):
+    binaries = []
+    if any('gstplayer' in m for m in mods):
+        binaries = _find_gst_binaries()
+    elif exclude_ignored:
         excludes.append('kivy.lib.gstplayer')
-    return {'hiddenimports': mods, 'excludes': excludes}
+
+    return {
+        'hiddenimports': mods,
+        'excludes': excludes,
+        'binaries': binaries,
+    }
 
 
 def get_deps_all():
@@ -236,15 +260,17 @@ def get_deps_all():
 
     :returns:
 
-        A dict with two keys, ``hiddenimports`` and ``excludes``. Their values
-        are a list of the corresponding modules to include/exclude. This can
-        be passed directly to `Analysis`` with e.g.::
+        A dict with three keys, ``hiddenimports``, ``excludes``, and
+        ``binaries``. Their values are a list of the corresponding modules to
+        include/exclude. This can be passed directly to `Analysis`` with
+        e.g. ::
 
             a = Analysis(['..\\kivy\\examples\\demo\\touchtracer\\main.py'],
                         ...
                          **get_deps_all())
     '''
     return {
+        'binaries': _find_gst_binaries(),
         'hiddenimports': sorted(set(kivy_modules +
                                     collect_submodules('kivy.core'))),
         'excludes': []}
@@ -259,11 +285,31 @@ def get_factory_modules():
 
 def add_dep_paths():
     '''Should be called by the hook. It adds the paths with the binary
-    dependecies to the system path so that pyinstaller can find the binaries
+    dependencies to the system path so that pyinstaller can find the binaries
     during its crawling stage.
     '''
     paths = []
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
+    if old_deps is not None:
+        for importer, modname, ispkg in pkgutil.iter_modules(
+                old_deps.__path__):
+            if not ispkg:
+                continue
+            try:
+                mod = importer.find_module(modname).load_module(modname)
+            except ImportError as e:
+                logging.warn(
+                    "deps: Error importing dependency: {}".format(str(e)))
+                continue
+
+            if hasattr(mod, 'dep_bins'):
+                paths.extend(mod.dep_bins)
+    sys.path.extend(paths)
+
+    if kivy_deps is None:
+        return
+
+    paths = []
+    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
         if not ispkg:
             continue
         try:
@@ -275,3 +321,54 @@ def add_dep_paths():
         if hasattr(mod, 'dep_bins'):
             paths.extend(mod.dep_bins)
     sys.path.extend(paths)
+
+
+def _find_gst_plugin_path():
+    '''Returns a list of directories to search for GStreamer plugins.
+    '''
+    if 'GST_PLUGIN_PATH' in environ:
+        return [
+            os.path.abspath(os.path.expanduser(path))
+            for path in environ['GST_PLUGIN_PATH'].split(os.pathsep)
+        ]
+
+    try:
+        p = subprocess.Popen(
+            ['gst-inspect-1.0', 'coreelements'],
+            stdout=subprocess.PIPE, universal_newlines=True)
+    except:
+        return []
+    (stdoutdata, stderrdata) = p.communicate()
+
+    match = re.search(r'\s+(\S+libgstcoreelements\.\S+)', stdoutdata)
+
+    if not match:
+        return []
+
+    return [os.path.dirname(match.group(1))]
+
+
+def _find_gst_binaries():
+    '''Returns a list of GStreamer plugins and libraries to pass as the
+    ``binaries`` argument of ``Analysis``.
+    '''
+    gst_plugin_path = _find_gst_plugin_path()
+
+    plugin_filepaths = []
+    for plugin_dir in gst_plugin_path:
+        plugin_filepaths.extend(
+            glob.glob(os.path.join(plugin_dir, 'libgst*')))
+    if len(plugin_filepaths) == 0:
+        logging.warn('Could not find GStreamer plugins. ' +
+                     'Possible solution: set GST_PLUGIN_PATH')
+        return []
+
+    lib_filepaths = set()
+    for plugin_filepath in plugin_filepaths:
+        plugin_deps = bindepend.selectImports(plugin_filepath)
+        lib_filepaths.update([path for _, path in plugin_deps])
+
+    plugin_binaries = [(f, 'gst-plugins') for f in plugin_filepaths]
+    lib_binaries = [(f, '.') for f in lib_filepaths]
+
+    return plugin_binaries + lib_binaries

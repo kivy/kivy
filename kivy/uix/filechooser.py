@@ -17,7 +17,7 @@ vertical list, where folders can be collapsed and expanded.
 .. image:: images/filechooser_list.png
 
 The :class:`FileChooserIconView` presents icons and text from left to right,
-wrappping them as required.
+wrapping them as required.
 
 .. image:: images/filechooser_icon.png
 
@@ -87,6 +87,8 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
 
 from weakref import ref
 from time import time
+
+from kivy.core.text import DEFAULT_FONT
 from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.clock import Clock
@@ -102,7 +104,7 @@ from kivy.properties import (
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
-    splitdrive, realpath, getsize, isdir, abspath)
+    splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
 from fnmatch import fnmatch
 import collections
 
@@ -117,11 +119,12 @@ if platform == 'win':
     # Note: For some reason this doesn't work after a os.chdir(), no matter to
     #       what directory you change from where. Windows weirdness.
     try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, error
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, \
+                              error
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cant check if a file is hidden or not')
+        Logger.error('filechooser: we cannot check if a file is hidden or not')
 
 
 def alphanumeric_folders_first(files, filesystem):
@@ -176,7 +179,7 @@ class FileSystemLocal(FileSystemAbstract):
             try:
                 return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
             except error:
-                # This error can occured when a file is already accessed by
+                # This error can occurred when a file is already accessed by
                 # someone else. So don't return to True, because we have lot
                 # of chances to not being able to do anything with it.
                 Logger.exception('unable to access to <%s>' % fn)
@@ -307,7 +310,8 @@ class FileChooserController(RelativeLayout):
 
     :Events:
         `on_entry_added`: entry, parent
-            Fired when a root-level entry is added to the file list.
+            Fired when a root-level entry is added to the file list. If you
+            return True from this event, the entry is not added to FileChooser.
         `on_entries_cleared`
             Fired when the the entries list is cleared, usually when the
             root is refreshed.
@@ -347,8 +351,8 @@ class FileChooserController(RelativeLayout):
     filters = ListProperty([])
     '''
     filters specifies the filters to be applied to the files in the directory.
-    filters is a :class:`~kivy.properties.ListProperty` and defaults to []. This
-    is equivalent to '\*' i.e. nothing is filtered.
+    filters is a :class:`~kivy.properties.ListProperty` and defaults to [].
+    This is equivalent to '\\*' i.e. nothing is filtered.
 
     The filters are not reset when the path changes. You need to do that
     yourself if desired.
@@ -357,13 +361,13 @@ class FileChooserController(RelativeLayout):
 
     #. Patterns
 
-        e.g. ['\*.png'].
+        e.g. ['\\*.png'].
         You can use the following patterns:
 
             ========== =================================
             Pattern     Meaning
             ========== =================================
-            \*         matches everything
+            \\*         matches everything
             ?          matches any single character
             [seq]      matches any character in seq
             [!seq]     matches any character not in seq
@@ -422,8 +426,8 @@ class FileChooserController(RelativeLayout):
     '''
     Contains the list of files that are currently selected.
 
-    selection is a read-only :class:`~kivy.properties.ListProperty` and defaults
-    to [].
+    selection is a read-only :class:`~kivy.properties.ListProperty` and
+    defaults to [].
     '''
 
     multiselect = BooleanProperty(False)
@@ -451,15 +455,16 @@ class FileChooserController(RelativeLayout):
     rootpath to /users/foo, the user will be unable to go to /users or to any
     other directory not starting with /users/foo.
 
-    rootpath is a :class:`~kivy.properties.StringProperty` and defaults to None.
+    rootpath is a :class:`~kivy.properties.StringProperty` and defaults
+    to None.
 
     .. versionadded:: 1.2.0
 
     .. note::
 
         Similarly to :attr:`path`, whether `rootpath` is specified as
-        bytes or a unicode string determines the type of the filenames and paths
-        read.
+        bytes or a unicode string determines the type of the filenames and
+        paths read.
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
@@ -478,9 +483,10 @@ class FileChooserController(RelativeLayout):
 
     '''
 
-    file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
+    file_encodings = ListProperty(
+        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
     '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a non-ascii filename, undecodable without knowing it's
+    the user has a non-ascii filename, undecodable without knowing its
     initial encoding, we have no other choice than to guess it.
 
     Please note that if you encounter an issue because of a missing encoding
@@ -507,6 +513,19 @@ class FileChooserController(RelativeLayout):
 
     .. versionadded:: 1.8.0
     '''
+
+    font_name = StringProperty(DEFAULT_FONT)
+    '''Filename of the font to use in UI components. The path can be
+    absolute or relative.  Relative paths are resolved by the
+    :func:`~kivy.resources.resource_find` function.
+
+    :attr:`font_name` is a :class:`~kivy.properties.StringProperty` and
+    defaults to 'Roboto'. This value is taken
+    from :class:`~kivy.config.Config`.
+    '''
+
+    _update_files_ev = None
+    _create_files_entries_ev = None
 
     __events__ = ('on_entry_added', 'on_entries_cleared',
                   'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
@@ -552,8 +571,11 @@ class FileChooserController(RelativeLayout):
         self._previous_path = self._previous_path[-2:]
 
     def _trigger_update(self, *args):
-        Clock.unschedule(self._update_files)
-        Clock.schedule_once(self._update_files)
+        ev = self._update_files_ev
+        if ev is None:
+            ev = self._update_files_ev = Clock.create_trigger(
+                self._update_files)
+        ev()
 
     def on_entry_added(self, node, parent=None):
         if self.layout:
@@ -677,16 +699,22 @@ class FileChooserController(RelativeLayout):
         self._gitems_gen = self._generate_file_entries(
             path=kwargs.get('path', self.path),
             parent=self._gitems_parent)
+        self.path = abspath(self.path)
 
         # cancel any previous clock if exist
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
 
         # show the progression screen
         self._hide_progress()
         if self._create_files_entries():
             # not enough for creating all the entries, all a clock to continue
             # start a timer for the next 100 ms
-            Clock.schedule_interval(self._create_files_entries, .1)
+            if ev is None:
+                ev = self._create_files_entries_ev = Clock.schedule_interval(
+                    self._create_files_entries, .1)
+            ev()
 
     def _get_file_paths(self, items):
         return [file.path for file in items]
@@ -735,7 +763,9 @@ class FileChooserController(RelativeLayout):
         self._hide_progress()
         self._gitems = None
         self._gitems_gen = None
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
         return False
 
     def cancel(self, *largs):
@@ -744,14 +774,20 @@ class FileChooserController(RelativeLayout):
 
         .. versionadded:: 1.2.0
         '''
-        Clock.unschedule(self._create_files_entries)
+        ev = self._create_files_entries_ev
+        if ev is not None:
+            ev.cancel()
+
         self._hide_progress()
         if len(self._previous_path) > 1:
             # if we cancel any action, the path will be set same as the
             # previous one, so we can safely cancel the update of the previous
             # path.
             self.path = self._previous_path[-2]
-            Clock.unschedule(self._update_files)
+
+            ev = self._update_files_ev
+            if ev is not None:
+                ev.cancel()
 
     def _show_progress(self):
         if self._progress:
@@ -796,9 +832,19 @@ class FileChooserController(RelativeLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = self._create_entry_widget(dict(
-                name=back, size='', path=back, controller=ref(self),
-                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
+            if platform == 'win':
+                new_path = path[:path.rfind(sep)]
+                if sep not in new_path:
+                    new_path += sep
+                pardir = self._create_entry_widget(dict(
+                    name=back, size='', path=new_path, controller=ref(self),
+                    isdir=True, parent=None, sep=sep,
+                    get_nice_size=lambda: ''))
+            else:
+                pardir = self._create_entry_widget(dict(
+                    name=back, size='', path=back, controller=ref(self),
+                    isdir=True, parent=None, sep=sep,
+                    get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
         # generate all the entries for files
@@ -816,6 +862,8 @@ class FileChooserController(RelativeLayout):
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
+        if isfile(path):
+            path = dirname(path)
 
         files = []
         fappend = files.append
@@ -962,9 +1010,9 @@ class FileChooser(FileChooserController):
 
         self.fbind('view_mode', self.trigger_update_view)
 
-    def add_widget(self, widget, **kwargs):
+    def add_widget(self, widget, *args, **kwargs):
         if widget is self._progress:
-            super(FileChooser, self).add_widget(widget, **kwargs)
+            super(FileChooser, self).add_widget(widget, *args, **kwargs)
         elif hasattr(widget, 'VIEWNAME'):
             name = widget.VIEWNAME + 'view'
             screen = Screen(name=name)
