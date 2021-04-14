@@ -1,5 +1,4 @@
 '''
-
 Settings
 ========
 
@@ -86,7 +85,7 @@ corresponding properties of that class.
     .. versionadded:: 1.1.0
         Added :attr:`SettingPath` type
 
-    .. versionadded:: 1.9.2
+    .. versionadded:: 2.1.0
         Added :attr:`SettingColor` type
 
 In the JSON example above, the first element is of type "title". It will create
@@ -1326,7 +1325,7 @@ if __name__ == '__main__':
                 'type': 'color',
                 'title': 'Test color',
                 'desc': 'Your choosen Color',
-                'section': 'color_selection',
+                'section': 'colorselection',
                 'key': 'testcolor'
             }])
 
@@ -1340,6 +1339,6 @@ if __name__ == '__main__':
             return s
 
         def build_config(self, config):
-            config.setdefaults('color_selection', {'testcolor': '#FF0000'})
+            config.setdefaults('colorselection', {'testcolor': '#FF0000'})
 
     SettingsApp().run()
