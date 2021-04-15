@@ -5,8 +5,9 @@ Resource loading tests
 import pytest
 import tempfile
 import os
+from unittest.mock import patch
 from kivy.cache import Cache
-
+from kivy.clock import Clock
 from kivy.resources import resource_find, resource_add_path
 
 
@@ -58,3 +59,21 @@ def test_load_resource_not_found():
         found_file = resource_find(missing_file_name)
         assert missing_file_path == found_file
         assert missing_file_path == Cache.get(RESOURCE_CACHE, missing_file_name)
+
+
+def test_timestamp_and_lastaccess(test_file):
+    Cache.remove(RESOURCE_CACHE)
+    start = Clock.get_time()
+
+    resource_find(test_file)
+    ts = Cache.get_timestamp(RESOURCE_CACHE, test_file)
+    last_access = Cache.get_lastaccess(RESOURCE_CACHE, test_file)
+
+    assert ts >= start, 'Last timestamp not accurate.'
+    assert last_access >= start, 'Last access time is not accurate.'
+
+
+def test_print_usage():
+    with patch('kivy.cache.print') as mock_print:
+        Cache.print_usage()
+        mock_print.assert_called()
