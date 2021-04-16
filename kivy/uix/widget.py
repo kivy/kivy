@@ -526,14 +526,9 @@ class Widget(WidgetBase):
 
     def on_motion(self, etype, me):
         if self.disabled:
-            if 'pos' in me.profile and self.collide_point(*me.pos):
-                return True
+            return 'pos' in me.profile and self.collide_point(*me.pos)
         if me.type_id in self.motion_filter:
-            if 'pos' in me.profile:
-                widgets = self.children
-            else:
-                widgets = self.motion_filter[me.type_id]
-            for widget in list(widgets):
+            for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
 
