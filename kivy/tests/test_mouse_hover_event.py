@@ -6,7 +6,7 @@ from kivy.tests.common import GraphicUnitTest
 
 
 @pytest.mark.skipif(
-    platform == 'win' and 'CI' in os.environ,
+    False and platform == 'win' and 'CI' in os.environ,
     reason='Causes test_mouse_multitouchsim.py to fail on CI.'
 )
 class MouseHoverEventTestCase(GraphicUnitTest):
