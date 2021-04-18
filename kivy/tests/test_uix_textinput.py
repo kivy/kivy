@@ -64,6 +64,26 @@ class TextInputIMETest(unittest.TestCase):
         Window.dispatch('on_textedit', '세')
         self.assertEqual(ti.text, 'abc하세')
 
+    def test_ime_completion(self):
+        ti = TextInput()
+        ti.focused = True
+        events = [
+            ('on_textedit', 'test', 'test'),
+            ('on_textinput', 'rest', 'rest'),
+
+            ('on_textinput', ' ', 'rest '),
+            ('on_textedit', 'a', 'rest a'),
+
+            ('on_textinput', 'and', 'rest and'),
+            ('on_textinput', ' ', 'rest and '),
+
+            ('on_textedit', 'now', 'rest and now'),
+        ]
+
+        for event, text, expected in events:
+            Window.dispatch(event, text)
+            self.assertEqual(ti.text, expected)
+
 
 class TextInputGraphicTest(GraphicUnitTest):
     def test_text_validate(self):
