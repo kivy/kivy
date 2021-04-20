@@ -2850,6 +2850,11 @@ class TextInput(FocusBehavior, Widget):
         if self._ime_composition:
             self._replace_ime(text)
             self._ime_composition = ''
+        if text.endswith('\n') and not self.multiline:
+            text = text.rstrip('\n')
+            self.dispatch('on_text_validate')
+            if self.text_validate_unfocus:
+                self.focus = False
         self.insert_text(text, False)
 
     # current IME composition in progress by the IME system, or '' if nothing
