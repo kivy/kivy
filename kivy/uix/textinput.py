@@ -2640,9 +2640,7 @@ class TextInput(FocusBehavior, Widget):
 
         return lines, lines_flags
 
-    def _key_down(self, key, repeat=False):
-        displayed_str, internal_str, internal_action, scale = key
-
+    def _key_down(self, internal_action):
         # handle deletion
         if (
             self._selection
@@ -2662,11 +2660,7 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'backspace':
             self.do_backspace()
 
-        # handle action keys and text insertion
-        if internal_action is None:
-            self.insert_text(displayed_str)
-
-        elif internal_action in ('shift', 'shift_L', 'shift_R'):
+        if internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
                 self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
@@ -2708,8 +2702,7 @@ class TextInput(FocusBehavior, Widget):
         elif internal_action == 'escape':
             self.focus = False
 
-    def _key_up(self, key, repeat=False):
-        displayed_str, internal_str, internal_action, scale = key
+    def _key_up(self, internal_action):
         if internal_action in ('shift', 'shift_L', 'shift_R'):
             if self._selection:
                 self._update_selection(True)
@@ -2794,8 +2787,7 @@ class TextInput(FocusBehavior, Widget):
 
         k = self.interesting_keys.get(key)
         if k:
-            key = (None, None, k, 1)
-            self._key_down(key)
+            self._key_down(k)
 
     def _handle_command(self, command):
         from_undo = True
@@ -2850,8 +2842,7 @@ class TextInput(FocusBehavior, Widget):
         key = keycode[0]
         k = self.interesting_keys.get(key)
         if k:
-            key = (None, None, k, 1)
-            self._key_up(key)
+            self._key_up(k)
 
     def keyboard_on_textinput(self, window, text):
         if self._selection:
