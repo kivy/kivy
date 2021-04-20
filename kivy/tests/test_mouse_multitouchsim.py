@@ -13,6 +13,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 post_proc.touches.clear()
             elif hasattr(post_proc, 'last_touches'):
                 post_proc.last_touches.clear()
+        from kivy.core.window import Window
+        Window.rotation = 0
 
     def tearDown(self, fake=False):
         from kivy.base import EventLoop
@@ -22,6 +24,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 post_proc.touches.clear()
             elif hasattr(post_proc, 'last_touches'):
                 post_proc.last_touches.clear()
+        from kivy.core.window import Window
+        Window.rotation = 0
         super().tearDown(fake)
 
     # helper methods
