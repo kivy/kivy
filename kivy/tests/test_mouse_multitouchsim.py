@@ -125,6 +125,10 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # because the red dot is removed by the left button
         if 'disabled' not in kwargs:
             self.assertIn(event_id, mouse.touches)
+            print(mouse.touches)
+            print('Mouse touches count: %s' % len(mouse.touches))
+            print('Hover event: %s' % mouse.hover_event)
+            print('Eventloop.me_list count: %s' % len(eventloop.me_list))
             self.assertIsNotNone(
                 mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
