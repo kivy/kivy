@@ -1388,8 +1388,8 @@ class WindowBase(EventDispatcher):
     def to_window(self, x, y, initial=True, relative=False):
         return (x, y)
 
-    def to_relative_pos(self, x, y):
-        '''Transforms absolute to relative coordinate using
+    def to_normalized_pos(self, x, y):
+        '''Transforms absolute to normalized coordinate using
         :attr:`system_size`.
 
         .. versionadded:: 2.1.0
