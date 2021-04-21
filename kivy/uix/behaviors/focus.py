@@ -531,6 +531,7 @@ class FocusBehavior(object):
         key was consumed.
         '''
         if keycode[1] == 'tab':  # deal with cycle
+            modifiers = set(modifiers)
             if {'ctrl', 'alt', 'meta', 'super', 'compose'} & modifiers:
                 return False
             if 'shift' in modifiers:
