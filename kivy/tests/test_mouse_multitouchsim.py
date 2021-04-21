@@ -53,6 +53,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             mode = 'disable_multitouch'
         else:
             mode = ''
+        mode = mode + ',hover_disabled'
         from kivy.input.providers.mouse import MouseMotionEventProvider
         mouse = MouseMotionEventProvider('unittest', mode)
         mouse.is_touch = True

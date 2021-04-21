@@ -148,6 +148,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
+        self.hover_disabled = False
         self.hover_event = None
         # split arguments
         args = args.split(',')
@@ -161,6 +162,8 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.disable_multitouch = True
             elif arg == 'multitouch_on_demand':
                 self.multitouch_on_demand = True
+            elif arg == 'hover_disabled':
+                self.hover_disabled = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
 
@@ -172,12 +175,13 @@ class MouseMotionEventProvider(MotionEventProvider):
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_move', self.on_mouse_motion)
         fbind('on_mouse_up', self.on_mouse_release)
-        fbind('mouse_pos', self.begin_or_update_hover_event)
-        fbind('system_size', self.update_hover_event)
-        fbind('on_cursor_enter', self.begin_hover_event)
-        fbind('on_cursor_leave', self.end_hover_event)
-        fbind('on_close', self.end_hover_event)
-        fbind('on_rotate', self.update_hover_event)
+        if not self.hover_disabled:
+            fbind('mouse_pos', self.begin_or_update_hover_event)
+            fbind('system_size', self.update_hover_event)
+            fbind('on_cursor_enter', self.begin_hover_event)
+            fbind('on_cursor_leave', self.end_hover_event)
+            fbind('on_close', self.end_hover_event)
+            fbind('on_rotate', self.update_hover_event)
 
     def stop(self):
         '''Stop the mouse provider'''
@@ -187,12 +191,13 @@ class MouseMotionEventProvider(MotionEventProvider):
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_move', self.on_mouse_motion)
         funbind('on_mouse_up', self.on_mouse_release)
-        funbind('mouse_pos', self.begin_or_update_hover_event)
-        funbind('system_size', self.update_hover_event)
-        funbind('on_cursor_enter', self.begin_hover_event)
-        funbind('on_cursor_leave', self.end_hover_event)
-        funbind('on_close', self.end_hover_event)
-        funbind('on_rotate', self.update_hover_event)
+        if not self.hover_disabled:
+            funbind('mouse_pos', self.begin_or_update_hover_event)
+            funbind('system_size', self.update_hover_event)
+            funbind('on_cursor_enter', self.begin_hover_event)
+            funbind('on_cursor_leave', self.end_hover_event)
+            funbind('on_close', self.end_hover_event)
+            funbind('on_rotate', self.update_hover_event)
 
     def test_activity(self):
         if not self.disable_on_activity:
