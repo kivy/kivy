@@ -35,7 +35,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         # window from event listeners list.
         if not (platform == 'win' and 'CI' in os.environ):
             self.old_on_close = win.on_close
-            win.on_close = lambda *args: None
+            win.on_close = self.on_window_close
 
     def tearDown(self, fake=False):
         self.etype = None
@@ -62,6 +62,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
             win.on_close = self.old_on_close
             self.old_on_close = None
         super().tearDown(fake)
+
+    def on_window_close(self, *args, **kwargs):
+        pass
 
     def on_motion(self, _, etype, event):
         self.etype = etype
