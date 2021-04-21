@@ -22,6 +22,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.mouse = mouse = MouseMotionEventProvider('mouse', '')
         from kivy.base import EventLoop
         win = EventLoop.window
+        self.old_mouse_pos = win.mouse_pos[:]
+        self.old_rotation = win.rotation
+        self.old_system_size = win.system_size[:]
         win.mouse_pos = (0.0, 0.0)
         win.rotation = 0
         win.system_size = (320, 240)
@@ -40,6 +43,12 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.touch_event = None
         from kivy.base import EventLoop
         win = EventLoop.window
+        win.mouse_pos = self.old_mouse_pos
+        win.rotation = self.old_rotation
+        win.old_system_size = self.old_system_size
+        self.old_mouse_pos = None
+        self.old_rotation = None
+        self.old_system_size = None
         if self.button_widget:
             win.remove_widget(self.button_widget)
             self.button_widget = None
