@@ -1389,8 +1389,8 @@ class WindowBase(EventDispatcher):
         return (x, y)
 
     def to_normalized_pos(self, x, y):
-        '''Transforms absolute to normalized coordinate using
-        :attr:`system_size`.
+        '''Transforms absolute coordinates to normalized (0-1) coordinates
+        using :attr:`system_size`.
 
         .. versionadded:: 2.1.0
         '''
