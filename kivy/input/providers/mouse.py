@@ -284,7 +284,6 @@ class MouseMotionEventProvider(MotionEventProvider):
             # alt just released ?
             is_double_tap = 'shift' in modifiers
             self.create_touch(win, nx, ny, is_double_tap, True, [])
-        return True
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
@@ -306,7 +305,6 @@ class MouseMotionEventProvider(MotionEventProvider):
             if 'alt' in modifiers:
                 self.alt_touch = touch
                 self.current_drag = None
-        return True
 
     def on_mouse_release(self, win, x, y, button, modifiers):
         if button == 'all':
@@ -336,7 +334,6 @@ class MouseMotionEventProvider(MotionEventProvider):
         if self.alt_touch:
             self.remove_touch(win, self.alt_touch)
             self.alt_touch = None
-        return True
 
     def begin_or_update_hover_event(self, win, *args):
         etype = 'update' if self.hover_event else 'begin'
