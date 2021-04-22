@@ -5,10 +5,6 @@ from kivy import platform
 from kivy.tests.common import GraphicUnitTest
 
 
-@pytest.mark.skipif(
-    platform == 'win' and 'CI' in os.environ,
-    reason='Causes test_mouse_multitouchsim.py to fail on CI.'
-)
 class MouseHoverEventTestCase(GraphicUnitTest):
     '''Tests hover event from `MouseMotionEventProvider`.
     '''
@@ -26,6 +22,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.mouse = mouse = MouseMotionEventProvider('mouse', '')
         from kivy.base import EventLoop
         win = EventLoop.window
+        self.old_mouse_pos = win.mouse_pos[:]
+        self.old_rotation = win.rotation
+        self.old_system_size = win.system_size[:]
         win.mouse_pos = (0.0, 0.0)
         win.rotation = 0
         win.system_size = (320, 240)
@@ -34,8 +33,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.fbind('on_motion', self.on_motion)
         # Patch `win.on_close` method to prevent EventLoop from removing
         # window from event listeners list.
-        self.old_on_close = win.on_close
-        win.on_close = lambda *args: None
+        if not (platform == 'win' and 'CI' in os.environ):
+            self.old_on_close = win.on_close
+            win.on_close = lambda *args: None
 
     def tearDown(self, fake=False):
         self.etype = None
@@ -43,6 +43,12 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.touch_event = None
         from kivy.base import EventLoop
         win = EventLoop.window
+        win.mouse_pos = self.old_mouse_pos
+        win.rotation = self.old_rotation
+        win.old_system_size = self.old_system_size
+        self.old_mouse_pos = None
+        self.old_rotation = None
+        self.old_system_size = None
         if self.button_widget:
             win.remove_widget(self.button_widget)
             self.button_widget = None
@@ -52,8 +58,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.mouse = None
         win.funbind('on_motion', self.on_motion)
         # Restore method `on_close` to window
-        win.on_close = self.old_on_close
-        self.old_on_close = None
+        if not (platform == 'win' and 'CI' in os.environ):
+            win.on_close = self.old_on_close
+            self.old_on_close = None
         super().tearDown(fake)
 
     def on_motion(self, _, etype, event):
@@ -107,6 +114,10 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_no_event()
 
+    @pytest.mark.skipif(
+        platform == 'win' and 'CI' in os.environ,
+        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
+    )
     def test_no_event_on_close(self):
         win, mouse = self.get_providers()
         win.dispatch('on_close')
@@ -162,6 +173,10 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('end', self.to_relative_pos(win, x, y))
 
+    @pytest.mark.skipif(
+        platform == 'win' and 'CI' in os.environ,
+        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
+    )
     def test_end_event_on_window_close(self):
         win, mouse = self.get_providers()
         x, y = win.mouse_pos = (10.0, 10.0)
@@ -185,6 +200,10 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('end', self.to_relative_pos(win, x, y))
 
+    @pytest.mark.skipif(
+        platform == 'win' and 'CI' in os.environ,
+        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
+    )
     def test_with_full_cycle_with_mouse_pos_and_on_close_event(self):
         win, mouse = self.get_providers()
         # Test begin event
