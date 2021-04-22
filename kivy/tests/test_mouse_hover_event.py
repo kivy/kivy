@@ -71,9 +71,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
     def on_any_touch_event(self, _, touch):
         self.touch_event = touch
 
-    def to_relative_pos(self, win, x, y):
-        return x / (win.system_size[0] - 1), y / (win.system_size[1] - 1)
-
     def assert_event(self, etype, spos):
         assert self.etype == etype
         assert 'pos' in self.motion_event.profile
@@ -130,7 +127,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos
         win.dispatch('on_cursor_enter')
         self.advance_frames(1)
-        self.assert_event('begin', self.to_relative_pos(win, x, y))
+        self.assert_event('begin', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -139,7 +136,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win, mouse = self.get_providers()
         x, y = win.mouse_pos = (10.0, 10.0)
         self.advance_frames(1)
-        self.assert_event('begin', self.to_relative_pos(win, x, y))
+        self.assert_event('begin', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -149,7 +146,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.dispatch('on_cursor_enter')
         x, y = win.mouse_pos = (50.0, 50.0)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -159,7 +156,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.mouse_pos = (10.0, 10.0)
         x, y = win.mouse_pos = (50.0, 50.0)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -169,7 +166,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (10.0, 10.0)
         win.rotation = 90
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -180,7 +177,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         w, h = win.system_size
         win.system_size = (w + 10, h + 10)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Cleanup
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
@@ -190,7 +187,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (10.0, 10.0)
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
-        self.assert_event('end', self.to_relative_pos(win, x, y))
+        self.assert_event('end', win.to_normalized_pos(x, y))
 
     @pytest.mark.skipif(
         platform == 'win' and 'CI' in os.environ,
@@ -201,7 +198,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (10.0, 10.0)
         win.dispatch('on_close')
         self.advance_frames(1)
-        self.assert_event('end', self.to_relative_pos(win, x, y))
+        self.assert_event('end', win.to_normalized_pos(x, y))
 
     def test_with_full_cycle_with_cursor_events(self):
         win, mouse = self.get_providers()
@@ -209,15 +206,15 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.dispatch('on_cursor_enter')
         x, y = win.mouse_pos
         self.advance_frames(1)
-        self.assert_event('begin', self.to_relative_pos(win, x, y))
+        self.assert_event('begin', win.to_normalized_pos(x, y))
         # Test update event
         x, y = win.mouse_pos = (10.0, 10.0)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Test end event
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
-        self.assert_event('end', self.to_relative_pos(win, x, y))
+        self.assert_event('end', win.to_normalized_pos(x, y))
 
     @pytest.mark.skipif(
         platform == 'win' and 'CI' in os.environ,
@@ -228,22 +225,22 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         # Test begin event
         x, y = win.mouse_pos = (5.0, 5.0)
         self.advance_frames(1)
-        self.assert_event('begin', self.to_relative_pos(win, x, y))
+        self.assert_event('begin', win.to_normalized_pos(x, y))
         # Test update event
         x, y = win.mouse_pos = (10.0, 10.0)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         # Test end event
         win.dispatch('on_close')
         self.advance_frames(1)
-        self.assert_event('end', self.to_relative_pos(win, x, y))
+        self.assert_event('end', win.to_normalized_pos(x, y))
 
     def test_begin_event_no_dispatch_through_on_touch_events(self):
         win, mouse = self.get_providers(with_window_children=True)
         x, y = win.mouse_pos
         win.dispatch('on_cursor_enter')
         self.advance_frames(1)
-        self.assert_event('begin', self.to_relative_pos(win, x, y))
+        self.assert_event('begin', win.to_normalized_pos(x, y))
         assert self.touch_event is None
         # Cleanup
         win.dispatch('on_cursor_leave')
@@ -254,7 +251,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.dispatch('on_cursor_enter')
         x, y = win.mouse_pos = (10.0, 10.0)
         self.advance_frames(1)
-        self.assert_event('update', self.to_relative_pos(win, x, y))
+        self.assert_event('update', win.to_normalized_pos(x, y))
         assert self.touch_event is None
         # Cleanup
         win.dispatch('on_cursor_leave')
@@ -266,5 +263,5 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (10.0, 10.0)
         win.dispatch('on_cursor_leave')
         self.advance_frames(1)
-        self.assert_event('end', self.to_relative_pos(win, x, y))
+        self.assert_event('end', win.to_normalized_pos(x, y))
         assert self.touch_event is None
