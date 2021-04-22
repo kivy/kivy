@@ -252,7 +252,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.waiting_event.append(('end', touch))
         touch.clear_graphics(win)
 
-    def create_hover(self, etype, win):
+    def create_hover(self, win, etype):
         nx, ny = win.to_normalized_pos(*win.mouse_pos)
         # Divide by density because it's used by mouse_pos
         nx /= win._density
@@ -340,19 +340,19 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def begin_or_update_hover_event(self, win, *args):
         etype = 'update' if self.hover_event else 'begin'
-        self.create_hover(etype, win)
+        self.create_hover(win, etype)
 
     def begin_hover_event(self, win, *args):
         if not self.hover_event:
-            self.create_hover('begin', win)
+            self.create_hover(win, 'begin')
 
     def update_hover_event(self, win, *args):
         if self.hover_event:
-            self.create_hover('update', win)
+            self.create_hover(win, 'update')
 
     def end_hover_event(self, win, *args):
         if self.hover_event:
-            self.create_hover('end', win)
+            self.create_hover(win, 'end')
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
