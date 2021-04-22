@@ -1388,6 +1388,19 @@ class WindowBase(EventDispatcher):
     def to_window(self, x, y, initial=True, relative=False):
         return (x, y)
 
+    def to_normalized_pos(self, x, y):
+        '''Transforms absolute coordinates to normalized (0-1) coordinates
+        using :attr:`system_size`.
+
+        .. versionadded:: 2.1.0
+        '''
+        x_max = self.system_size[0] - 1.0
+        y_max = self.system_size[1] - 1.0
+        return (
+            x / x_max if x_max > 0 else 0.0,
+            y / y_max if y_max > 0 else 0.0
+        )
+
     def _apply_transform(self, m):
         return m
 
