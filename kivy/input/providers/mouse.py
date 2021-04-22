@@ -199,8 +199,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             return False
         # trying to get if we currently have other touch than us
         # discard touches generated from kinetic
-        touches = EventLoop.touches
-        for touch in touches:
+        for touch in EventLoop.touches:
             # discard all kinetic touch
             if touch.__class__.__name__ == 'KineticMotionEvent':
                 continue
@@ -245,12 +244,11 @@ class MouseMotionEventProvider(MotionEventProvider):
         return touch
 
     def remove_touch(self, win, touch):
-        if touch.id not in self.touches:
-            return
-        del self.touches[touch.id]
-        touch.update_time_end()
-        self.waiting_event.append(('end', touch))
-        touch.clear_graphics(win)
+        if touch.id in self.touches:
+            del self.touches[touch.id]
+            touch.update_time_end()
+            self.waiting_event.append(('end', touch))
+            touch.clear_graphics(win)
 
     def create_hover(self, win, etype):
         nx, ny = win.to_normalized_pos(*win.mouse_pos)
@@ -263,9 +261,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             hover.move(args)
         else:
             self.hover_event = hover = MouseMotionEvent(
-                self.device,
-                self.create_event_id(),
-                args
+                self.device, self.create_event_id(), args
             )
         if etype == 'end':
             hover.update_time_end()
