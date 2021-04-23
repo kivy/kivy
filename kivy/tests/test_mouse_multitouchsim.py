@@ -189,11 +189,6 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # when right - touch is preserved -> dot remains
         # when left  - touch is destroyed -> dot removed
         win.dispatch(
-            'on_mouse_move',
-            10, self.correct_y(win, 10),
-            {}
-        )
-        win.dispatch(
             'on_mouse_up',
             10, self.correct_y(win, 10),
             button, {}
@@ -386,11 +381,6 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # the dot is removed after the touch is released
         # when right - touch is preserved -> dot remains
         # when left  - touch is destroyed -> dot removed
-        win.dispatch(
-            'on_mouse_move',
-            10, self.correct_y(win, 10),
-            {}
-        )
         win.dispatch(
             'on_mouse_up',
             10, self.correct_y(win, 10),
