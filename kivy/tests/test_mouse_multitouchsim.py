@@ -44,6 +44,10 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             self.assertTrue(mouse.multitouch_on_demand)
         return (eventloop, win, mouse, wid)
 
+    def remove_sim_touch(self, win, x, y):
+        win.dispatch('on_mouse_down', x, self.correct_y(win, y), 'left', {})
+        win.dispatch('on_mouse_up', x, self.correct_y(win, y), 'left', {})
+
     def multitouch_dot_touch(self, button, **kwargs):
         # touch -> dot appears -> touch again -> dot disappears
         eventloop, win, mouse, wid = self.mouse_init(**kwargs)
@@ -68,9 +72,13 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
             # doesn't do anything on a pure Button
             self.render(wid)
-
             # cleanup!
-            # remove mouse provider
+            win.dispatch(
+                'on_mouse_up',
+                10, self.correct_y(win, 10),
+                'right', {}
+            )
+            self.assertFalse(mouse.touches)
             mouse.stop()
             eventloop.remove_input_provider(mouse)
             return
@@ -147,7 +155,12 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 event_id, mouse.touches
             )
             # cleanup!
-            # remove mouse provider
+            win.dispatch(
+                'on_mouse_up',
+                10, self.correct_y(win, 10),
+                button, {}
+            )
+            self.assertFalse(mouse.touches)
             mouse.stop()
             eventloop.remove_input_provider(mouse)
             return
@@ -194,6 +207,11 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         self.render(wid)
 
+        # remove red dot
+        if button == 'right':
+            self.remove_sim_touch(win, 10, 10)
+            self.assertFalse(mouse.touches)
+
         # cleanup!
         # remove mouse provider
         mouse.stop()
@@ -225,9 +243,13 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
             # doesn't do anything on a pure Button
             self.render(wid)
-
             # cleanup!
-            # remove mouse provider
+            win.dispatch(
+                'on_mouse_up',
+                10, self.correct_y(win, 10),
+                'right', {}
+            )
+            self.assertFalse(mouse.touches)
             mouse.stop()
             eventloop.remove_input_provider(mouse)
             return
@@ -293,7 +315,12 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot isn't present
             # cleanup!
-            # remove mouse provider
+            win.dispatch(
+                'on_mouse_up',
+                10, self.correct_y(win, 10),
+                'right', {}
+            )
+            self.assertFalse(mouse.touches)
             mouse.stop()
             eventloop.remove_input_provider(mouse)
             return
@@ -373,6 +400,10 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             )  # the red dot is present
 
         self.render(wid)
+
+        if button == 'right':
+            self.remove_sim_touch(win, 50, 50)
+            self.assertFalse(mouse.touches)
 
         # cleanup!
         # remove mouse provider
@@ -490,6 +521,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )  # the red dot is present
 
         self.render(wid)
+
+        self.remove_sim_touch(win, 10, 10)
+        self.assertFalse(mouse.touches)
 
         # cleanup!
         # remove mouse provider
