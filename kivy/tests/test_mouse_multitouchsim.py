@@ -212,7 +212,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         # remove red dot
         if button == 'right':
             self.remove_sim_touch(win, 10, 10)
-            self.assertFalse(mouse.touches)
+        self.assertFalse(mouse.touches)
 
         # cleanup!
         # remove mouse provider
@@ -407,7 +407,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         if button == 'right':
             self.remove_sim_touch(win, 50, 50)
-            self.assertFalse(mouse.touches)
+        self.assertFalse(mouse.touches)
 
         # cleanup!
         # remove mouse provider
@@ -456,6 +456,8 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         self.advance_frames(1)
         self.render(wid)
+
+        self.assertFalse(mouse.touches)
 
         # cleanup!
         # remove mouse provider
