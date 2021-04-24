@@ -9,8 +9,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
     '''Tests hover event from `MouseMotionEventProvider`.
     '''
 
-    framecount = 2
-
     def setUp(self):
         super().setUp()
         self.etype = None
@@ -61,6 +59,10 @@ class MouseHoverEventTestCase(GraphicUnitTest):
             win.on_close = self.old_on_close
             self.old_on_close = None
         super().tearDown(fake)
+
+    def on_window_flip(self, window):
+        # Not rendering widgets in tests so don't do screenshots
+        pass
 
     def on_motion(self, _, etype, event):
         self.etype = etype
