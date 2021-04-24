@@ -99,7 +99,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # called == multitouch_sim is False
             self.advance_frames(1)  # initialize stuff
             wid.on_touch_down(mouse.touches[event_id])
+            mouse.touches[event_id].grab_state = True
             wid.on_touch_up(mouse.touches[event_id])
+            mouse.touches[event_id].grab_state = False
             self.assertTrue(mouse.touches[event_id].multitouch_sim)
 
         elif 'disabled' in kwargs:
@@ -277,7 +279,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             # called == multitouch_sim is False
             self.advance_frames(1)  # initialize stuff
             wid.on_touch_down(mouse.touches[event_id])
+            mouse.touches[event_id].grab_state = True
             wid.on_touch_up(mouse.touches[event_id])
+            mouse.touches[event_id].grab_state = False
             self.assertTrue(mouse.touches[event_id].multitouch_sim)
             win.dispatch(
                 'on_mouse_up',
@@ -522,7 +526,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         self.render(wid)
 
-        self.remove_sim_touch(win, 10, 10)
+        self.remove_sim_touch(win, 11, 11)
         self.assertFalse(mouse.touches)
 
         # cleanup!
