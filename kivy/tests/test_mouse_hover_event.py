@@ -9,8 +9,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
     '''Tests hover event from `MouseMotionEventProvider`.
     '''
 
-    framecount = 3
-    '''Must be equal of max number of `self.advance_frame` in test method.'''
+    framecount = 2
 
     def setUp(self):
         super().setUp()
