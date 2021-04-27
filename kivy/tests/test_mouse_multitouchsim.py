@@ -5,6 +5,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
     framecount = 3
 
+    def render(self, root, framecount=1):
+        pass
+
     # helper methods
     def correct_y(self, win, y):
         # flip, because the mouse provider uses system's
