@@ -2,7 +2,8 @@ from kivy.tests.common import GraphicUnitTest
 
 
 class MultitouchSimulatorTestCase(GraphicUnitTest):
-    framecount = 2
+
+    framecount = 3
 
     # helper methods
     def correct_y(self, win, y):
@@ -71,7 +72,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
             # doesn't do anything on a pure Button
-            self.render(wid)
+            # self.render(wid)
             # cleanup!
             win.dispatch(
                 'on_mouse_up',
@@ -207,7 +208,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
-        self.render(wid)
+        # self.render(wid)
 
         # remove red dot
         if button == 'right':
@@ -244,7 +245,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
 
         if 'on_demand' in kwargs and 'scatter' not in kwargs:
             # doesn't do anything on a pure Button
-            self.render(wid)
+            # self.render(wid)
             # cleanup!
             win.dispatch(
                 'on_mouse_up',
@@ -403,7 +404,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
                 mouse.touches[event_id].ud.get('_drawelement')
             )  # the red dot is present
 
-        self.render(wid)
+        # self.render(wid)
 
         if button == 'right':
             self.remove_sim_touch(win, 50, 50)
@@ -455,7 +456,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         self.assertNotIn(event_id, mouse.touches)
 
         self.advance_frames(1)
-        self.render(wid)
+        # self.render(wid)
 
         self.assertFalse(mouse.touches)
 
@@ -527,7 +528,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         )  # the red dot is present
 
         self.advance_frames(1)
-        self.render(wid)
+        # self.render(wid)
 
         self.remove_sim_touch(win, 11, 11)
         self.assertFalse(mouse.touches)

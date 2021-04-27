@@ -150,6 +150,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.multitouch_on_demand = False
         self.hover_disabled = False
         self.hover_event = None
+        self._running = False
         # split arguments
         args = args.split(',')
         for arg in args:
@@ -169,8 +170,9 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def start(self):
         '''Start the mouse provider'''
-        if not EventLoop.window:
+        if not EventLoop.window or self._running:
             return
+        self._running = True
         fbind = EventLoop.window.fbind
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_move', self.on_mouse_motion)
@@ -185,8 +187,9 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def stop(self):
         '''Stop the mouse provider'''
-        if not EventLoop.window:
+        if not EventLoop.window or not self._running:
             return
+        self._running = False
         funbind = EventLoop.window.funbind
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_move', self.on_mouse_motion)
