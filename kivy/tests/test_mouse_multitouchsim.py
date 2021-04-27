@@ -2,7 +2,7 @@ from kivy.tests.common import GraphicUnitTest
 
 
 class MultitouchSimulatorTestCase(GraphicUnitTest):
-    framecount = 0
+    framecount = 2
 
     # helper methods
     def correct_y(self, win, y):
@@ -292,6 +292,9 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             print('Mouse touches count: %s' % len(mouse.touches))
             print('Hover event: %s' % mouse.hover_event)
             print('Eventloop.me_list count: %s' % len(eventloop.me_list))
+            self.assertIsNotNone(
+                mouse.touches[event_id].ud.get('_drawelement')
+            )
             win.dispatch(
                 'on_mouse_down',
                 10, self.correct_y(win, 10),
@@ -523,6 +526,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             mouse.touches[event_id].ud.get('_drawelement')
         )  # the red dot is present
 
+        self.advance_frames(1)
         self.render(wid)
 
         self.remove_sim_touch(win, 11, 11)
