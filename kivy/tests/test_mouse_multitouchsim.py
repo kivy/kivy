@@ -2,7 +2,11 @@ from kivy.tests.common import GraphicUnitTest
 
 
 class MultitouchSimulatorTestCase(GraphicUnitTest):
-    framecount = 0
+
+    framecount = 3
+
+    def render(self, root, framecount=1):
+        pass
 
     # helper methods
     def correct_y(self, win, y):
