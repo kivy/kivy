@@ -52,7 +52,8 @@ class Cache(object):
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
             `remove_callback`: function (optional)
-                add a callback that's called when a key of this category is about to be removed
+                add a callback that's called when a key of this category
+                is about to be removed
                 callback signature : f(category, key)
                 filled with the category and the key about to be removed
         '''
