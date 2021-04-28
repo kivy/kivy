@@ -39,7 +39,7 @@ class Cache(object):
     _objects = {}
 
     @staticmethod
-    def register(category, limit=None, timeout=None):
+    def register(category, limit=None, timeout=None, remove_callback=None):
         '''Register a new category in the cache with the specified limit.
 
         :Parameters:
@@ -51,10 +51,15 @@ class Cache(object):
             `timeout`: double (optional)
                 Time after which to delete the object if it has not been used.
                 If None, no timeout is applied.
+            `remove_callback`: function (optional)
+                add a callback that's called when an object of this category is removed
+                callback signature : f(category, objet)
+                filled with the category and the object about to be removed
         '''
         Cache._categories[category] = {
             'limit': limit,
-            'timeout': timeout}
+            'timeout': timeout,
+            'remove_callback': remove_callback}
         Cache._objects[category] = {}
         Logger.debug(
             'Cache: register <%s> with limit=%s, timeout=%s' %
@@ -177,10 +182,19 @@ class Cache(object):
         '''
         try:
             if key is not None:
+                # call the remove callback of the category if it was given
+                callback = Cache._categories[category]['remove_callback']
+                if callback is not None:
+                    callback(category, key)
                 del Cache._objects[category][key]
                 Logger.trace('Cache: Removed %s:%s from cache' %
                              (category, key))
             else:
+                # when purging the category, call the callback function for every key
+                callback = Cache._categories[category]['remove_callback']
+                if callback is not None:
+                    for key in Cache._objects[category].keys():
+                        callback(category, key)
                 Cache._objects[category] = {}
                 Logger.trace('Cache: Flushed category %s from cache' %
                              category)
