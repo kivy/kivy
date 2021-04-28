@@ -190,7 +190,8 @@ class Cache(object):
                 Logger.trace('Cache: Removed %s:%s from cache' %
                              (category, key))
             else:
-                # when purging the category, call the callback function for every key
+                # when purging the category, call the callback function
+                # for every key
                 callback = Cache._categories[category]['remove_callback']
                 if callback is not None:
                     for key in Cache._objects[category].keys():
