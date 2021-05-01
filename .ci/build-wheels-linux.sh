@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e -x
 
-yum -y install  autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel Xorg-x11-server-deve mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libudev libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget glib2-devel cairo-devel;
+yum -y install  autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel Xorg-x11-server-deve mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libudev libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget glib2-devel cairo-devel
 mkdir ~/kivy_sources;
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
-
-python3 -m pip install --upgrade meson ninja fonttools --user
 
 cd ~/kivy_sources;
 wget http://www.libsdl.org/release/SDL2-2.0.14.tar.gz
@@ -34,6 +32,14 @@ PATH="$HOME/kivy_build/bin:$PATH" make;
 make install;
 make distclean;
 
+# install meson
+cd ~/kivy_sources
+meson_python=$(ls -d /opt/python/*3*/bin | tail -1)
+"$meson_python/pip" install --upgrade setuptools pip virtualenv
+"$meson_python/python" -m virtualenv venv
+source venv/bin/activate
+pip install --upgrade meson ninja fonttools
+
 cd ~/kivy_sources
 harf_root="harfbuzz-2.8.0"
 wget "https://github.com/harfbuzz/harfbuzz/releases/download/2.8.0/$harf_root.tar.xz"
@@ -41,7 +47,9 @@ tar xf "$harf_root.tar.xz"
 cd "$harf_root"
 meson setup build --wrap-mode=default --buildtype=release -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dfreetype=enabled --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"
 meson compile -C build
-mason install
+meson install
+
+deactivate
 
 cd ~/kivy_sources
 ttf_hash="9d2a04f157c4e0c206fe5df7103018d5a59c6e35"
@@ -65,5 +73,5 @@ done
 
 for name in /io/dist/*.whl; do
     echo "Fixing $name";
-    auditwheel repair --plat manylinux2010_x86_64 $name -w /io/dist/;
+    auditwheel repair --plat manylinux2014_x86_64 $name -w /io/dist/;
 done

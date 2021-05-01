@@ -10,7 +10,7 @@ on:
 env:
   KIVY_SPLIT_EXAMPLES: 1
   SERVER_IP: '159.203.106.198'
-  DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
+  DOCKER_IMAGE: 'quay.io/pypa/manylinux2014_x86_64'
 
 jobs:
   kivy_examples_create:
