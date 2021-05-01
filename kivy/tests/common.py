@@ -12,7 +12,7 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 
 __all__ = (
     'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
-    'requires_graphics')
+    'requires_graphics', 'ensure_web_server')
 
 import unittest
 import logging

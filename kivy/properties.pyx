@@ -737,7 +737,7 @@ cdef class NumericProperty(Property):
             ps.numeric_fmt = 'px'
             ps.original_num = x
             return x
-        if tp is str:
+        if isinstance(x, str):
             return self.parse_str(obj, x, ps)
 
         if tp is tuple or tp is list:
@@ -793,7 +793,7 @@ cdef class StringProperty(Property):
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):
             return True
-        if type(value) is not str:
+        if not isinstance(value, str):
             raise ValueError('%s.%s accept only str' % (
                 obj.__class__.__name__,
                 self.name))
@@ -1692,7 +1692,7 @@ cdef class VariableListProperty(Property):
             Not currently used.
 
     Keeping in mind that the `default` list is expanded to a list of length 4,
-    here are some examples of how VariabelListProperty's are handled.
+    here are some examples of how VariableListProperty is handled.
 
     - VariableListProperty([1]) represents [1, 1, 1, 1].
     - VariableListProperty([1, 2]) represents [1, 2, 1, 2].
@@ -1765,7 +1765,8 @@ cdef class VariableListProperty(Property):
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):
             return True
-        if type(value) not in (int, float, list, tuple, str):
+        if type(value) not in (int, float, list, tuple, str) \
+                and not isinstance(value, str):
             err = '%s.%s accepts only int/float/list/tuple/str (got %r)'
             raise ValueError(err % (obj.__class__.__name__, self.name, value))
 
@@ -1786,7 +1787,7 @@ cdef class VariableListProperty(Property):
         # reset here, it'll be changed in parse is we use anything that is not px
         ps.uses_scaling = 0
         try:
-            if tp is int or tp is float or tp is str:
+            if tp is int or tp is float or isinstance(x, str):
                 y = self._convert_numeric(obj, x, ps)
                 if self.length == 4:
                     return [y, y, y, y]
@@ -1849,7 +1850,7 @@ cdef class VariableListProperty(Property):
         tp = type(x)
         if tp is int or tp is float:
             return x
-        if tp is str:
+        if isinstance(x, str):
             return self.parse_str(obj, x, ps)
 
         try:
@@ -2224,7 +2225,7 @@ cdef class ColorProperty(Property):
             return x
         cdef object color = x
         try:
-            if type(x) is str:
+            if isinstance(x, str):
                 color = self.parse_str(obj, x)
             color = self.parse_list(obj, color)
         except (ValueError, TypeError) as e:

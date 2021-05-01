@@ -314,6 +314,9 @@ class LabelBase(object):
         fn_regular will be used instead.
         '''
 
+        if fn_regular is None:
+            raise ValueError("font_regular cannot be None")
+
         fonts = []
 
         for font_type in fn_regular, fn_italic, fn_bold, fn_bolditalic:
