@@ -47,7 +47,7 @@ tar xf "$harf_root.tar.xz"
 cd "$harf_root"
 meson setup build --wrap-mode=default --buildtype=release -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dfreetype=enabled --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"
 meson compile -C build
-meson install
+meson install -C build
 
 deactivate
 
