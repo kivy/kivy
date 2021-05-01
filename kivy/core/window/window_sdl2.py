@@ -514,6 +514,10 @@ class WindowSDL(WindowBase):
             if action == 'dropfile':
                 dropfile = args
                 self.dispatch('on_dropfile', dropfile[0])
+            # A quit event might be received while the app is paused
+            elif action == 'quit':
+                EventLoop.quit = True
+                return
 
         while True:
             event = self._win.poll()
