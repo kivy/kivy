@@ -54,7 +54,7 @@ class TouchRippleBehavior(object):
         class RippleLabel(TouchRippleBehavior, Label):
 
             def __init__(self, **kwargs):
-                super(RippleLabel, self).__init__(**kwargs)
+                super().__init__(**kwargs)
 
             def on_touch_down(self, touch):
                 collide_point = self.collide_point(touch.x, touch.y)
@@ -134,7 +134,7 @@ class TouchRippleBehavior(object):
     ripple_color = ListProperty((1., 1., 1., .5))
 
     def __init__(self, **kwargs):
-        super(TouchRippleBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.ripple_pane = CanvasBase()
         self.canvas.add(self.ripple_pane)
         self.bind(
@@ -261,10 +261,10 @@ class TouchRippleButtonBehavior(TouchRippleBehavior):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        super(TouchRippleButtonBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def on_touch_down(self, touch):
-        if super(TouchRippleButtonBehavior, self).on_touch_down(touch):
+        if super().on_touch_down(touch):
             return True
         if touch.is_mouse_scrolling:
             return False
@@ -282,13 +282,13 @@ class TouchRippleButtonBehavior(TouchRippleBehavior):
     def on_touch_move(self, touch):
         if touch.grab_current is self:
             return True
-        if super(TouchRippleButtonBehavior, self).on_touch_move(touch):
+        if super().on_touch_move(touch):
             return True
         return self in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
-            return super(TouchRippleButtonBehavior, self).on_touch_up(touch)
+            return super().on_touch_up(touch)
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
@@ -308,7 +308,7 @@ class TouchRippleButtonBehavior(TouchRippleBehavior):
         # ensure ripple animation completes if disabled gets set to True
         if value:
             self.ripple_fade()
-        return super(TouchRippleButtonBehavior, self).on_disabled(
+        return super().on_disabled(
             instance, value)
 
     def on_press(self):
