@@ -375,7 +375,7 @@ class FocusBehavior(object):
     def __init__(self, **kwargs):
         self._old_focus_next = None
         self._old_focus_previous = None
-        super(FocusBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self._keyboard_mode = _keyboard_mode
         fbind = self.fbind
@@ -454,7 +454,7 @@ class FocusBehavior(object):
              not touch.button.startswith('scroll'))):
             self.focus = True
             FocusBehavior.ignored_touch.append(touch)
-        return super(FocusBehavior, self).on_touch_down(touch)
+        return super().on_touch_down(touch)
 
     @staticmethod
     def _handle_post_on_touch_up(touch):
