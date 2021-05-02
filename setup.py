@@ -504,6 +504,7 @@ if platform == 'win32' and c_options['use_sdl2'] is None:
     c_options['use_sdl2'] = True
     c_options['use_harfbuzz'] = True
 
+# on non-mobile OS either use_sdl2 is True or if None discover with pkg-config
 if c_options['use_sdl2'] or (
         platform not in ('android',) and c_options['use_sdl2'] is None):
 
@@ -554,18 +555,39 @@ if c_options['use_sdl2'] or (
             sdl2_flags = {}
 
 # if we haven't set it, check if we can use harfbuzz
-if c_options['use_sdl2'] and c_options['use_harfbuzz'] is None \
-        and platform not in ('android', 'ios'):
-    # 2.0.15 is last version without harfbuzz API. If sdl2 dist is compiled
-    # without it it's not an issue for us as it'll just error in runtime
-    harf_flags = pkgconfig('harfbuzz')
-    pkg_sdl = pkgconfig('SDL2_ttf > 2.0.15')
+# on non-mobile OS either use_harfbuzz is True or if None discover with
+# pkg-config, but only use pkg-config/frameworks if we used it for sdl2 already
+if c_options['use_sdl2'] and platform not in ('android', 'ios') and sdl2_flags \
+        and c_options['use_harfbuzz'] in (None, True):
+    harfbuzz_valid = False
+    if c_options['use_osx_frameworks'] and platform == 'darwin':
+        # check existence of frameworks
+        f_path = '/Library/Frameworks/harfbuzz.framework'
+        if not exists(f_path):
+            print('harfbuzz frameworks not found, fallback on pkg-config')
+        else:
+            harfbuzz_valid = True
+            c_options['use_harfbuzz'] = True
 
-    if 'libraries' in pkg_sdl and 'libraries' in harf_flags:
-        print('HarfBuzz found via pkg-config')
-        c_options['use_harfbuzz'] = True
-        assert sdl2_flags
-        sdl2_flags = merge(sdl2_flags, harf_flags)
+            sdl2_flags['extra_link_args'] += ['-framework', 'harfbuzz']
+            sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
+            print('Found harfbuzz frameworks: {}'.format(f_path))
+
+    if c_options['use_harfbuzz'] is None and not harfbuzz_valid:
+        # 2.0.15 is last version without harfbuzz API. If sdl2 dist is compiled
+        # without it it's not an issue for us as it'll just error in runtime
+        harf_flags = pkgconfig('harfbuzz')
+        pkg_sdl = pkgconfig('SDL2_ttf > 2.0.15')
+
+        if 'libraries' in pkg_sdl and 'libraries' in harf_flags:
+            print('HarfBuzz found via pkg-config')
+            c_options['use_harfbuzz'] = True
+            sdl2_flags = merge(sdl2_flags, harf_flags)
+    elif not harfbuzz_valid:
+        harf_flags = pkgconfig('harfbuzz')
+        if 'libraries' in harf_flags:
+            print('HarfBuzz found via pkg-config')
+            sdl2_flags = merge(sdl2_flags, harf_flags)
 
 if not c_options['use_sdl2']:
     c_options['use_harfbuzz'] = False
