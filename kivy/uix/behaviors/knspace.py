@@ -390,7 +390,7 @@ class KNSpace(EventDispatcher):
         return KNSpace(parent=self)
 
 
-class KNSpaceBehavior(object):
+class KNSpaceBehavior:
     '''Inheriting from this class allows naming of the inherited objects, which
     are then added to the associated namespace :attr:`knspace` and accessible
     through it.
