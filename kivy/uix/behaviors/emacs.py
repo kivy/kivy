@@ -65,7 +65,7 @@ class EmacsBehavior(object):
     '''
 
     def __init__(self, **kwargs):
-        super(EmacsBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.bindings = {
             'ctrl': {
@@ -108,8 +108,7 @@ class EmacsBehavior(object):
             emacs_shortcut = self.bindings[mod][chr(key)]
             emacs_shortcut()
         else:
-            super(EmacsBehavior, self).keyboard_on_key_down(window, keycode,
-                                                            text, modifiers)
+            super().keyboard_on_key_down(window, keycode, text, modifiers)
 
     def delete_word_right(self):
         '''Delete text right of the cursor to the end of the word'''
