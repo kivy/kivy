@@ -84,7 +84,7 @@ Builder.load_string("""
 """)
 
 
-class CoverBehavior(object):
+class CoverBehavior:
     '''The CoverBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
     provides rendering a texture covering full widget size keeping aspect ratio
     of the original texture.
