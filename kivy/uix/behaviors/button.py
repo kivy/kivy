@@ -53,7 +53,7 @@ from kivy.properties import OptionProperty, ObjectProperty, \
 from time import time
 
 
-class ButtonBehavior(object):
+class ButtonBehavior:
     '''
     This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     :class:`~kivy.uix.button.Button` behavior. Please see the
