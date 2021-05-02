@@ -29,7 +29,7 @@ In python:
     class CoverImage(CoverBehavior, Image):
 
         def __init__(self, **kwargs):
-            super(CoverImage, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             texture = self._coreimage.texture
             self.reference_size = texture.size
             self.texture = texture
@@ -116,7 +116,7 @@ class CoverBehavior(object):
     '''
 
     def __init__(self, **kwargs):
-        super(CoverBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # bind covering
         self.bind(
             size=self.calculate_cover,
