@@ -138,7 +138,7 @@ else:
     _is_desktop = False
 
 
-class CompoundSelectionBehavior(object):
+class CompoundSelectionBehavior:
     '''The Selection behavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
     implements the logic behind keyboard and touch
     selection of selectable widgets managed by the derived widget. Please see
