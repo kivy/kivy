@@ -61,7 +61,7 @@ if Config:
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
 
 
-class DragBehavior(object):
+class DragBehavior:
     '''
     The DragBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_ provides
     Drag behavior. When combined with a widget, dragging in the rectangle
