@@ -40,7 +40,7 @@ from kivy.properties import StringProperty
 __all__ = ('EmacsBehavior', )
 
 
-class EmacsBehavior(object):
+class EmacsBehavior:
     '''
     A `mixin <https://en.wikipedia.org/wiki/Mixin>`_ that enables Emacs-style
     keyboard shortcuts for the :class:`~kivy.uix.textinput.TextInput` widget.
