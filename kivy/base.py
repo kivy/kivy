@@ -170,8 +170,15 @@ class EventLoopBase(EventDispatcher):
             self.event_listeners.remove(listener)
 
     def start(self):
-        '''Must be called only once before :meth:`EventLoopBase.run()`.
-        This starts all configured input providers.'''
+        '''Must be called before :meth:`EventLoopBase.run()`. This starts all
+        configured input providers.
+
+        .. versionchanged:: 2.1.0
+            Method can be called multiple times, but event loop will start only
+            once.
+        '''
+        if self.status == 'started':
+            return
         self.status = 'started'
         self.quit = False
         Clock.start_clock()
@@ -188,8 +195,14 @@ class EventLoopBase(EventDispatcher):
 
     def stop(self):
         '''Stop all input providers and call callbacks registered using
-        `EventLoop.add_stop_callback()`.'''
+        `EventLoop.add_stop_callback()`.
 
+        .. versionchanged:: 2.1.0
+            Method can be called multiple times, but event loop will stop only
+            once.
+        '''
+        if self.status != 'started':
+            return
         # XXX stop in reverse order that we started them!! (like push
         # pop), very important because e.g. wm_touch and WM_PEN both
         # store old window proc and the restore, if order is messed big
