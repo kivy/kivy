@@ -305,16 +305,16 @@ class KNSpace(EventDispatcher):
 
     def __init__(self, parent=None, keep_ref=False, **kwargs):
         self.keep_ref = keep_ref
-        super(KNSpace, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.parent = parent
         self.__has_applied = set(self.properties().keys())
 
     def __setattr__(self, name, value):
-        prop = super(KNSpace, self).property(name, quiet=True)
+        prop = super().property(name, quiet=True)
         has_applied = self.__has_applied
         if prop is None:
             if hasattr(self, name):
-                super(KNSpace, self).__setattr__(name, value)
+                super().__setattr__(name, value)
             else:
                 self.apply_property(
                     **{name:
@@ -323,26 +323,26 @@ class KNSpace(EventDispatcher):
                 if not self.keep_ref:
                     value = getattr(value, 'proxy_ref', value)
                 has_applied.add(name)
-                super(KNSpace, self).__setattr__(name, value)
+                super().__setattr__(name, value)
         elif name not in has_applied:
             self.apply_property(**{name: prop})
             has_applied.add(name)
             if not self.keep_ref:
                 value = getattr(value, 'proxy_ref', value)
-            super(KNSpace, self).__setattr__(name, value)
+            super().__setattr__(name, value)
         else:
             if not self.keep_ref:
                 value = getattr(value, 'proxy_ref', value)
-            super(KNSpace, self).__setattr__(name, value)
+            super().__setattr__(name, value)
 
     def __getattribute__(self, name):
-        if name in super(KNSpace, self).__getattribute__('__dict__'):
-            return super(KNSpace, self).__getattribute__(name)
+        if name in super().__getattribute__('__dict__'):
+            return super().__getattribute__(name)
 
         try:
-            value = super(KNSpace, self).__getattribute__(name)
+            value = super().__getattribute__(name)
         except AttributeError:
-            parent = super(KNSpace, self).__getattribute__('parent')
+            parent = super().__getattribute__('parent')
             if parent is None:
                 raise AttributeError(name)
             return getattr(parent, name)
@@ -350,7 +350,7 @@ class KNSpace(EventDispatcher):
         if value is not None:
             return value
 
-        parent = super(KNSpace, self).__getattribute__('parent')
+        parent = super().__getattribute__('parent')
         if parent is None:
             return None
 
@@ -361,7 +361,7 @@ class KNSpace(EventDispatcher):
 
     def property(self, name, quiet=False):
         # needs to overwrite EventDispatcher.property so kv lang will work
-        prop = super(KNSpace, self).property(name, quiet=True)
+        prop = super().property(name, quiet=True)
         if prop is not None:
             return prop
 
@@ -406,7 +406,7 @@ class KNSpaceBehavior(object):
 
     def __init__(self, knspace=None, **kwargs):
         self.knspace = knspace
-        super(KNSpaceBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __knspace_clear_callbacks(self, *largs):
         for obj, name, uid in self.__callbacks:
