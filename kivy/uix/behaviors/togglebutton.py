@@ -24,7 +24,7 @@ that behaves like a togglebutton::
 
     class MyButton(ToggleButtonBehavior, Image):
         def __init__(self, **kwargs):
-            super(MyButton, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.source = 'atlas://data/images/defaulttheme/checkbox_off'
 
         def on_state(self, widget, value):
@@ -81,7 +81,7 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     def __init__(self, **kwargs):
         self._previous_group = None
-        super(ToggleButtonBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def on_group(self, *largs):
         groups = ToggleButtonBehavior.__groups
