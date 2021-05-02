@@ -93,7 +93,7 @@ if Config:
     _keyboard_mode = Config.get('kivy', 'keyboard_mode')
 
 
-class FocusBehavior(object):
+class FocusBehavior:
     '''Provides keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. Please see the
