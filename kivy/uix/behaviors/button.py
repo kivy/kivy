@@ -24,7 +24,7 @@ behaves like a button::
 
     class MyButton(ButtonBehavior, Image):
         def __init__(self, **kwargs):
-            super(MyButton, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.source = 'atlas://data/images/defaulttheme/checkbox_off'
 
         def on_press(self):
@@ -118,7 +118,7 @@ class ButtonBehavior(object):
         if 'min_state_time' not in kwargs:
             self.min_state_time = float(Config.get('graphics',
                                                    'min_state_time'))
-        super(ButtonBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
         self.fbind('state', self.cancel_event)
@@ -135,7 +135,7 @@ class ButtonBehavior(object):
             self.__state_event = None
 
     def on_touch_down(self, touch):
-        if super(ButtonBehavior, self).on_touch_down(touch):
+        if super().on_touch_down(touch):
             return True
         if touch.is_mouse_scrolling:
             return False
@@ -154,13 +154,13 @@ class ButtonBehavior(object):
     def on_touch_move(self, touch):
         if touch.grab_current is self:
             return True
-        if super(ButtonBehavior, self).on_touch_move(touch):
+        if super().on_touch_move(touch):
             return True
         return self in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
-            return super(ButtonBehavior, self).on_touch_up(touch)
+            return super().on_touch_up(touch)
         assert(self in touch.ud)
         touch.ungrab(self)
         self.last_touch = touch
