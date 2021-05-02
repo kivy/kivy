@@ -137,7 +137,7 @@ class DragBehavior(object):
 
     def __init__(self, **kwargs):
         self._drag_touch = None
-        super(DragBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def _get_uid(self, prefix='sv'):
         return '{0}.{1}'.format(prefix, self.uid)
@@ -147,11 +147,11 @@ class DragBehavior(object):
         x, y = touch.pos
         if not self.collide_point(x, y):
             touch.ud[self._get_uid('svavoid')] = True
-            return super(DragBehavior, self).on_touch_down(touch)
+            return super().on_touch_down(touch)
         if self._drag_touch or ('button' in touch.profile and
                                 touch.button.startswith('scroll')) or\
                 not ((xx < x <= xx + w) and (yy < y <= yy + h)):
-            return super(DragBehavior, self).on_touch_down(touch)
+            return super().on_touch_down(touch)
 
         # no mouse scrolling, so the user is going to drag with this touch.
         self._drag_touch = touch
@@ -168,7 +168,7 @@ class DragBehavior(object):
     def on_touch_move(self, touch):
         if self._get_uid('svavoid') in touch.ud or\
                 self._drag_touch is not touch:
-            return super(DragBehavior, self).on_touch_move(touch) or\
+            return super().on_touch_move(touch) or\
                 self._get_uid() in touch.ud
         if touch.grab_current is not self:
             return True
@@ -191,22 +191,22 @@ class DragBehavior(object):
 
     def on_touch_up(self, touch):
         if self._get_uid('svavoid') in touch.ud:
-            return super(DragBehavior, self).on_touch_up(touch)
+            return super().on_touch_up(touch)
 
         if self._drag_touch and self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
             self._drag_touch = None
             ud = touch.ud[self._get_uid()]
             if ud['mode'] == 'unknown':
-                super(DragBehavior, self).on_touch_down(touch)
+                super().on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
         else:
             if self._drag_touch is not touch:
-                super(DragBehavior, self).on_touch_up(touch)
+                super().on_touch_up(touch)
         return self._get_uid() in touch.ud
 
     def _do_touch_up(self, touch, *largs):
-        super(DragBehavior, self).on_touch_up(touch)
+        super().on_touch_up(touch)
         # don't forget about grab event!
         for x in touch.grab_list[:]:
             touch.grab_list.remove(x)
@@ -214,7 +214,7 @@ class DragBehavior(object):
             if not x:
                 continue
             touch.grab_current = x
-            super(DragBehavior, self).on_touch_up(touch)
+            super().on_touch_up(touch)
         touch.grab_current = None
 
     def _change_touch_mode(self, *largs):
@@ -229,6 +229,6 @@ class DragBehavior(object):
         self._drag_touch = None
         touch.push()
         touch.apply_transform_2d(self.parent.to_widget)
-        super(DragBehavior, self).on_touch_down(touch)
+        super().on_touch_down(touch)
         touch.pop()
         return
