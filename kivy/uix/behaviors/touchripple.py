@@ -37,7 +37,7 @@ __all__ = (
 )
 
 
-class TouchRippleBehavior(object):
+class TouchRippleBehavior:
     '''Touch ripple behavior.
 
     Supposed to be used as mixin on widget classes.
