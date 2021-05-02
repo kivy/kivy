@@ -72,8 +72,7 @@ function Install-kivy-test-run-win-deps {
 
 function Install-kivy-test-run-pip-deps {
     python -m pip install pip wheel setuptools --upgrade
-    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
-    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip twine
+    python -m pip install twine
 }
 
 function Install-kivy {
@@ -87,8 +86,6 @@ function Install-kivy-wheel {
     cd "$HOME"
 
     python -m pip install pip wheel setuptools --upgrade
-    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
-    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $bitness=python -c "import sys; print('win_amd64' if sys.maxsize > 2**32 else 'win32')"
@@ -103,8 +100,6 @@ function Install-kivy-sdist {
     cd "$HOME"
 
     python -m pip install pip wheel setuptools --upgrade
-    # workaround for https://github.com/pyinstaller/pyinstaller/issues/4265 until next release
-    python -m pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 
     $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
     python -m pip install "$root/dist/$kivy_fname[full,dev]"

@@ -55,7 +55,7 @@ for implementing all its behaviour previously handled by the base class. The
 easiest way to do this is to call `super()`::
 
     def on_touch_down(self, touch):
-        if super(OurClassName, self).on_touch_down(touch):
+        if super().on_touch_down(touch):
             return True
         if not self.collide_point(touch.x, touch.y):
             return False
