@@ -55,7 +55,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             """Based on FocusBehavior that provides automatic keyboard
             access, key presses will be used to select children.
             """
-            if super(SelectableGrid, self).keyboard_on_key_down(
+            if super().keyboard_on_key_down(
                 window, keycode, text, modifiers):
                 return True
             if self.select_with_key_down(window, keycode, text, modifiers):
@@ -66,7 +66,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             """Based on FocusBehavior that provides automatic keyboard
             access, key release will be used to select children.
             """
-            if super(SelectableGrid, self).keyboard_on_key_up(window, keycode):
+            if super().keyboard_on_key_up(window, keycode):
                 return True
             if self.select_with_key_up(window, keycode):
                 return True
@@ -77,8 +77,7 @@ to :meth:`select_with_touch` to pass on the touch events::
             *on_touch_down* events. """
             widget.bind(on_touch_down=self.button_touch_down,
                         on_touch_up=self.button_touch_up)
-            return super(SelectableGrid, self)\
-                .add_widget(widget, *args, **kwargs)
+            return super().add_widget(widget, *args, **kwargs)
 
         def button_touch_down(self, button, touch):
             """ Use collision detection to select buttons when the touch occurs
@@ -95,11 +94,11 @@ to :meth:`select_with_touch` to pass on the touch events::
 
         def select_node(self, node):
             node.background_color = (1, 0, 0, 1)
-            return super(SelectableGrid, self).select_node(node)
+            return super().select_node(node)
 
         def deselect_node(self, node):
             node.background_color = (1, 1, 1, 1)
-            super(SelectableGrid, self).deselect_node(node)
+            super().deselect_node(node)
 
         def on_selected_nodes(self, grid, nodes):
             print("Selected nodes = {0}".format(nodes))
@@ -277,7 +276,7 @@ class CompoundSelectionBehavior(object):
     _offset_counts = {}  # cache of counts for faster access
 
     def __init__(self, **kwargs):
-        super(CompoundSelectionBehavior, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._key_list = []
 
         def ensure_single_select(*l):
