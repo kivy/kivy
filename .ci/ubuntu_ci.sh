@@ -217,8 +217,8 @@ upload_file_to_server() {
     mkdir ~/.ssh
   fi
 
-  printf "%s" "$UBUNTU_UPLOAD_KEY" >~/.ssh/id_rsa
-  chmod 600 ~/.ssh/id_rsa
+  printf "%s" "$UBUNTU_UPLOAD_KEY" >~/.ssh/id_ed25519
+  chmod 600 ~/.ssh/id_ed25519
 
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
