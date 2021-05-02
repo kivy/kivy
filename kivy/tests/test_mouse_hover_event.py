@@ -9,9 +9,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
     '''Tests hover event from `MouseMotionEventProvider`.
     '''
 
-    framecount = 3
-    '''Must be equal of max number of `self.advance_frame` in test method.'''
-
     def setUp(self):
         super().setUp()
         self.etype = None
@@ -62,6 +59,10 @@ class MouseHoverEventTestCase(GraphicUnitTest):
             win.on_close = self.old_on_close
             self.old_on_close = None
         super().tearDown(fake)
+
+    def on_window_flip(self, window):
+        # Not rendering widgets in tests so don't do screenshots
+        pass
 
     def on_motion(self, _, etype, event):
         self.etype = etype
@@ -130,12 +131,18 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.dispatch('on_cursor_enter')
         self.advance_frames(1)
         self.assert_event('begin', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_begin_event_on_mouse_pos(self):
         win, mouse = self.get_providers()
         x, y = win.mouse_pos = (10.0, 10.0)
         self.advance_frames(1)
         self.assert_event('begin', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_update_event_with_enter_and_mouse_pos(self):
         win, mouse = self.get_providers()
@@ -143,6 +150,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (50.0, 50.0)
         self.advance_frames(1)
         self.assert_event('update', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_update_event_with_mouse_pos(self):
         win, mouse = self.get_providers()
@@ -150,6 +160,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         x, y = win.mouse_pos = (50.0, 50.0)
         self.advance_frames(1)
         self.assert_event('update', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_update_event_on_rotate(self):
         win, mouse = self.get_providers()
@@ -157,6 +170,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.rotation = 90
         self.advance_frames(1)
         self.assert_event('update', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_update_event_on_system_size(self):
         win, mouse = self.get_providers()
@@ -165,6 +181,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.system_size = (w + 10, h + 10)
         self.advance_frames(1)
         self.assert_event('update', self.to_relative_pos(win, x, y))
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_end_event_on_cursor_leave(self):
         win, mouse = self.get_providers()
@@ -226,6 +245,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('begin', self.to_relative_pos(win, x, y))
         assert self.touch_event is None
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_update_event_no_dispatch_through_on_touch_events(self):
         win, mouse = self.get_providers(with_window_children=True)
@@ -234,6 +256,9 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('update', self.to_relative_pos(win, x, y))
         assert self.touch_event is None
+        # Cleanup
+        win.dispatch('on_cursor_leave')
+        self.advance_frames(1)
 
     def test_end_event_no_dispatch_through_on_touch_events(self):
         win, mouse = self.get_providers(with_window_children=True)
