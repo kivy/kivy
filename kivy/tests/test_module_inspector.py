@@ -60,12 +60,12 @@ class InspectorTestCase(GraphicUnitTest):
         builder.trace = lambda *_, **__: None
         super(InspectorTestCase, self).setUp()
 
-    def tearDown(self):
+    def tearDown(self, *args, **kwargs):
         # add the logging back
         import kivy.lang.builder as builder
         builder.Builder.unload_file("InspectorTestCase.KV")
         builder.trace = self._trace
-        super(InspectorTestCase, self).tearDown()
+        super(InspectorTestCase, self).tearDown(*args, **kwargs)
 
     def clean_garbage(self, *args):
         for child in self._win.children[:]:
