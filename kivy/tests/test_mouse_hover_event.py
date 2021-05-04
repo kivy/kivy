@@ -34,7 +34,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
             self.old_on_close = win.on_close
             win.on_close = lambda *args: None
 
-    def tearDown(self, fake=False):
+    def tearDown(self, *args, **kwargs):
         self.etype = None
         self.motion_event = None
         self.touch_event = None
@@ -58,7 +58,7 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         if not (platform == 'win' and 'CI' in os.environ):
             win.on_close = self.old_on_close
             self.old_on_close = None
-        super().tearDown(fake)
+        super().tearDown(*args, **kwargs)
 
     def on_window_flip(self, window):
         # Not rendering widgets in tests so don't do screenshots
