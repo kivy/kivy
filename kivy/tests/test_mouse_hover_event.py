@@ -1,7 +1,3 @@
-import os
-import pytest
-
-from kivy import platform
 from kivy.tests.common import GraphicUnitTest
 
 
@@ -30,9 +26,8 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         win.fbind('on_motion', self.on_motion)
         # Patch `win.on_close` method to prevent EventLoop from removing
         # window from event listeners list.
-        if not (platform == 'win' and 'CI' in os.environ):
-            self.old_on_close = win.on_close
-            win.on_close = lambda *args: None
+        self.old_on_close = win.on_close
+        win.on_close = lambda *args: None
 
     def tearDown(self, *args, **kwargs):
         self.etype = None
@@ -55,9 +50,8 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.mouse = None
         win.funbind('on_motion', self.on_motion)
         # Restore method `on_close` to window
-        if not (platform == 'win' and 'CI' in os.environ):
-            win.on_close = self.old_on_close
-            self.old_on_close = None
+        win.on_close = self.old_on_close
+        self.old_on_close = None
         super().tearDown(*args, **kwargs)
 
     def on_window_flip(self, window):
@@ -112,10 +106,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_no_event()
 
-    @pytest.mark.skipif(
-        platform == 'win' and 'CI' in os.environ,
-        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
-    )
     def test_no_event_on_close(self):
         win, mouse = self.get_providers()
         win.dispatch('on_close')
@@ -189,10 +179,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('end', win.to_normalized_pos(x, y))
 
-    @pytest.mark.skipif(
-        platform == 'win' and 'CI' in os.environ,
-        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
-    )
     def test_end_event_on_window_close(self):
         win, mouse = self.get_providers()
         x, y = win.mouse_pos = (10.0, 10.0)
@@ -216,10 +202,6 @@ class MouseHoverEventTestCase(GraphicUnitTest):
         self.advance_frames(1)
         self.assert_event('end', win.to_normalized_pos(x, y))
 
-    @pytest.mark.skipif(
-        platform == 'win' and 'CI' in os.environ,
-        reason='Causes test_mouse_multitouchsim.py to fail on CI.'
-    )
     def test_with_full_cycle_with_mouse_pos_and_on_close_event(self):
         win, mouse = self.get_providers()
         # Test begin event
