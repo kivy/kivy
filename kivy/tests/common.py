@@ -162,8 +162,23 @@ class GraphicUnitTest(_base):
         Window.create_window()
         Window.register()
         Window.initialized = True
-        Window.canvas.clear()
-        Window.close = lambda *s: True
+        Window.close = lambda *s: None
+        self.clear_window_and_event_loop()
+
+    def clear_window_and_event_loop(self):
+        from kivy.base import EventLoop
+        window = self.Window
+        for child in window.children[:]:
+            window.remove_widget(child)
+        window.canvas.before.clear()
+        window.canvas.clear()
+        window.canvas.after.clear()
+        EventLoop.touches.clear()
+        for post_proc in EventLoop.postproc_modules:
+            if hasattr(post_proc, 'touches'):
+                post_proc.touches.clear()
+            elif hasattr(post_proc, 'last_touches'):
+                post_proc.last_touches.clear()
 
     def on_window_flip(self, window):
         '''Internal method to be called when the window have just displayed an
@@ -299,10 +314,10 @@ class GraphicUnitTest(_base):
         '''
         from kivy.base import stopTouchApp
         from kivy.core.window import Window
-        from kivy.clock import Clock
         Window.unbind(on_flip=self.on_window_flip)
+        self.clear_window_and_event_loop()
+        self.Window = None
         stopTouchApp()
-
         if not fake and self.test_failed:
             self.assertTrue(False)
         super(GraphicUnitTest, self).tearDown()
