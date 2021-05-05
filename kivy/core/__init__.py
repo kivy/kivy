@@ -25,6 +25,7 @@ import sys
 import traceback
 import tempfile
 import subprocess
+import importlib
 import kivy
 from kivy.logger import Logger
 
@@ -55,7 +56,7 @@ def core_select_lib(category, llist, create_instance=False,
                 pass
 
             # import module
-            mod = __import__(name='{2}.{0}.{1}'.format(
+            mod = importlib.__import__(name='{2}.{0}.{1}'.format(
                 basemodule, modulename, base),
                 globals=globals(),
                 locals=locals(),
@@ -127,7 +128,7 @@ def core_register_libs(category, libs, base='kivy.core'):
                 lib = libs_loadable[item]
             except KeyError:
                 continue
-            __import__(name='{2}.{0}.{1}'.format(category, lib, base),
+            importlib.__import__(name='{2}.{0}.{1}'.format(category, lib, base),
                        globals=globals(),
                        locals=locals(),
                        fromlist=[lib],

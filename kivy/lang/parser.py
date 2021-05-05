@@ -10,6 +10,7 @@ import re
 import sys
 import traceback
 import ast
+import importlib
 from re import sub, findall
 from types import CodeType
 from functools import partial
@@ -550,9 +551,10 @@ class Parser(object):
                 try:
                     if package not in sys.modules:
                         try:
-                            mod = __import__(package)
+                            mod = importlib.__import__(package)
                         except ImportError:
-                            mod = __import__('.'.join(package.split('.')[:-1]))
+                            module_name = '.'.join(package.split('.')[:-1])
+                            mod = importlib.__import__(module_name)
                         # resolve the whole thing
                         for part in package.split('.')[1:]:
                             mod = getattr(mod, part)
