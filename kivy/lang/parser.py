@@ -553,7 +553,8 @@ class Parser(object):
                         try:
                             mod = importlib.__import__(package)
                         except ImportError:
-                            mod = importlib.__import__('.'.join(package.split('.')[:-1]))
+                            module_name = '.'.join(package.split('.')[:-1])
+                            mod = importlib.__import__(module_name)
                         # resolve the whole thing
                         for part in package.split('.')[1:]:
                             mod = getattr(mod, part)
