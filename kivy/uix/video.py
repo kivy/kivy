@@ -257,7 +257,7 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
-        if self._video.eos != 'loop':
+        if not self._video or self._video.eos != 'loop':
             self.state = 'stop'
             self.eos = True
 
