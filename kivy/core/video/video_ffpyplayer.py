@@ -211,7 +211,7 @@ class VideoFFPy(VideoBase):
                 self._texture = fbo.texture
             else:
                 self._texture = Texture.create(size=self._size,
-                                                colorfmt='rgba')
+                                               colorfmt='rgba')
 
             # XXX FIXME
             # self.texture.add_reload_observer(self.reload_buffer)
@@ -405,6 +405,16 @@ class VideoFFPy(VideoBase):
         # Disabled as an attempt to fix kivy issue #6210
         # self._ffplayer.set_volume(self._volume)
 
+        # Make sure frame fetching thread is stopped before starting a new one
+        if self._thread and self._thread.is_alive():
+            self._ffplayer_need_quit = True
+            self._thread.join()
+
+        # Reset thread controls
+        self._ffplayer_need_quit = False
+        self._wakeup_queue = Queue(maxsize=1)
+
+        # Create frame fetching thread
         self._thread = Thread(
             target=self._next_frame_run,
             name='Next frame',
@@ -432,7 +442,6 @@ class VideoFFPy(VideoBase):
         if self._thread:
             # TODO: use callback, don't block here
             self._thread.join()
-            self._thread = None
 
         if self._ffplayer:
             self._ffplayer = None
@@ -440,7 +449,3 @@ class VideoFFPy(VideoBase):
         self._size = (0, 0)
         self._state = ''
         self._seek_queue = []
-
-        # reset for next load since thread is dead for sure
-        self._ffplayer_need_quit = False
-        self._wakeup_queue = Queue(maxsize=1)
