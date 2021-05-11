@@ -341,8 +341,12 @@ class Label(Widget):
         if (markup and cls is not CoreMarkupLabel) or \
            (not markup and cls is not CoreLabel):
             # markup have change, we need to change our rendering method.
-            d = Label._font_properties
-            dkw = dict(list(zip(d, [getattr(self, x) for x in d])))
+            dkw = {x: getattr(self, x) for x in self._font_properties}
+            dkw['usersize'] = self.text_size
+            if self.disabled:
+                dkw['color'] = self.disabled_color
+                dkw['outline_color'] = self.disabled_outline_color
+
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
