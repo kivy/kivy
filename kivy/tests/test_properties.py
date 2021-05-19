@@ -1270,8 +1270,9 @@ def test_inherit_property():
 
 def test_unknown_property(self):
     from kivy.uix.widget import Widget
+
     with self.assertRaises(ValueError) as cm:
-        EventDispatcher(width=12, unkn="abc")
+        Widget(width=12, unkn="abc")
     self.assertIn("Unexpected properties ['unkn']", str(cm.exception))
 
 
@@ -1312,12 +1313,16 @@ def test_pass_other_typeerror(self):
     for cls in [Widget2, Widget3]:
         with self.assertRaises(TypeError) as cm:
             cls(name='Pasta')
-        self.assertEqual("this is a typeerror unrelated to object", str(cm.exception))
+        self.assertEqual("this is a typeerror unrelated to object",
+                         str(cm.exception))
 
 
 def test_object_init_error(self):  # the above 3 test rely on this
-    from kivy.event import ObjectWithUid
+    class TestCls(object):
+        def __init__(self, **kwargs):
+            super(TestCls, self).__init__(**kwargs)
 
     with self.assertRaises(TypeError) as cm:
-        ObjectWithUid(name='foo')
-    self.assertEqual("object.__init__() takes exactly one argument (the instance to initialize)", str(cm))
+        TestCls(name='foo')
+    assert str(cm.exception).startswith(
+        "object.__init__() takes exactly one argument")
