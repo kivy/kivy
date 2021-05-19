@@ -231,7 +231,7 @@ cdef class EventDispatcher(ObjectWithUid):
         if kwargs: # at this point any kwargs passed will go to object which will error and cause confusion
             raise ValueError(
                 'Unexpected properties {}, valid properties are {}'.format(
-                    list(kwargs.keys()), sorted(properties).keys()))
+                    list(kwargs.keys()), sorted(properties.keys()))
         super(EventDispatcher, self).__init__()
 
         __cls__ = self.__class__
