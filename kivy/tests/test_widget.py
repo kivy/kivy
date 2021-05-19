@@ -123,4 +123,4 @@ class WidgetTestCase(unittest.TestCase):
         from kivy.uix.widget import Widget
         with self.assertRaises(ValueError) as cm:
             Widget(width=12, unkn="abc")
-        self.assertIn(cm.exception, "Unexpected properties ['unkn']")
+        self.assertIn("Unexpected properties ['unkn']", str(cm.exception))
