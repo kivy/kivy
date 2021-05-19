@@ -120,6 +120,7 @@ class WidgetTestCase(unittest.TestCase):
         self.root.remove_widget(wid)
 
     def test_unknown_property(self):
-        with self.assertRaises(ValueError) as e:
+        from kivy.uix.widget import Widget
+        with self.assertRaises(ValueError) as cm:
             Widget(width=12, unkn="abc")
         self.assertIn(cm.exception, "Unexpected properties ['unkn']")
