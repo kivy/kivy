@@ -174,7 +174,7 @@ class WidgetTestCase(unittest.TestCase):
                 cls(name='Pasta')
             self.assertEqual("this is a typeerror unrelated to object", str(cm.exception))
 
-    def test_object_init_error(self): # the above 3 test rely on this
+    def test_object_init_error(self):  # the above 3 test rely on this
         from kivy.event import ObjectWithUid
 
         with self.assertRaises(TypeError) as cm:
