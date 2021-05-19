@@ -232,10 +232,10 @@ cdef class EventDispatcher(ObjectWithUid):
         try: # at this point any kwargs passed may go to object which will error and cause confusion
            super(EventDispatcher, self).__init__(**kwargs)
         except TypeError as e:
-           if kwargs and "object.__init__() takes exactly one argument" in e:
+           if kwargs and str(e).startswith("object.__init__() takes exactly one argument"):
                raise ValueError(
                   'Unexpected properties {}, valid properties are {}'.format(
-                      list(kwargs.keys()), sorted(properties.keys()))
+                      list(kwargs.keys()), sorted(properties.keys()))) from e
            else:
                raise
 

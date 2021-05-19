@@ -151,3 +151,25 @@ class WidgetTestCase(unittest.TestCase):
 
         Widget2(name='Pasta')  # does not raise a ValueError
         Widget3(name='Pasta')  # does not raise a ValueError
+
+    def test_pass_other_typeerror(self):
+        class Event:
+            def __init__(self, **kwargs):
+                print(f'Event: {self}, {kwargs}')
+                super().__init__(**kwargs)
+
+        class Behavior:
+            def __init__(self, name):
+                super().__init__()
+                raise TypeError("this is a typeerror unrelated to object")
+
+        class Widget2(Behavior, Event):
+            pass
+
+        class Widget3(Event, Behavior):
+            pass
+
+        for cls in [Widget2,Widget3]:
+            with self.assertRaises(TypeError) as cm:
+                cls(name='Pasta')
+            self.assertEqual("this is a typeerror unrelated to object", str(cm.exception))
