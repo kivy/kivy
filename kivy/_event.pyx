@@ -235,7 +235,7 @@ cdef class EventDispatcher(ObjectWithUid):
            if kwargs and str(e).startswith("object.__init__() takes exactly one argument"):
                raise ValueError(
                   'Unexpected properties {}, valid properties are {}'.format(
-                      list(kwargs.keys()), sorted(properties.keys()))) from e
+                      sorted(kwargs.keys()), sorted(properties.keys()))) from e
            else:
                raise
 
