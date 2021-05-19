@@ -151,4 +151,3 @@ class WidgetTestCase(unittest.TestCase):
 
         Widget2(name='Pasta')  # does not raise a ValueError
         Widget3(name='Pasta')  # does not raise a ValueError
-
