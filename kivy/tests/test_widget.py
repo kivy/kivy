@@ -118,3 +118,8 @@ class WidgetTestCase(unittest.TestCase):
         rmtree(tmp)
 
         self.root.remove_widget(wid)
+
+    def test_unknown_property(self):
+        with self.assertRaises(ValueError) as e:
+            Widget(width=12, unkn="abc")
+        self.assertIn(cm.exception, "Unexpected properties ['unkn']")

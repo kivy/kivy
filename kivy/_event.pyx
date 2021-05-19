@@ -228,7 +228,9 @@ cdef class EventDispatcher(ObjectWithUid):
         prop_args = {
             k: kwargs.pop(k) for k in list(kwargs.keys()) if k in properties}
         self._kwargs_applied_init = set(prop_args.keys()) if prop_args else set()
-        super(EventDispatcher, self).__init__(**kwargs)
+        if kwargs: # at this point any kwargs passed will go to object which will error and confuse
+            raise ValueError("Unexpected properties {}, existing properties are {}".format(kwargs, properties)
+        super(EventDispatcher, self).__init__()
 
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:
