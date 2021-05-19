@@ -145,7 +145,10 @@ class WidgetTestCase(unittest.TestCase):
         class Widget3(Event, Behavior):
             pass
 
-        Widget(name='Pasta')
-        Widget2(name='Pasta')
-        Widget3(name='Pasta')
+        with self.assertRaises(ValueError) as cm:
+            Widget(name='Pasta')
+        self.assertIn("Unexpected properties ['name']", str(cm.exception))
+
+        Widget2(name='Pasta')  # does not raise a ValueError
+        Widget3(name='Pasta')  # does not raise a ValueError
 
