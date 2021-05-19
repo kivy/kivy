@@ -1268,15 +1268,15 @@ def test_inherit_property():
     assert args == (event, 'goodbye')
 
 
-def test_unknown_property(self):
+def test_unknown_property():
     from kivy.uix.widget import Widget
 
-    with self.assertRaises(ValueError) as cm:
+    with pytest.raises(ValueError) as cm:
         Widget(width=12, unkn="abc")
-    self.assertIn("Unexpected properties ['unkn']", str(cm.exception))
+    assert "Unexpected properties ['unkn']" in str(cm.value)
 
 
-def test_known_property_multiple_inheritance(self):
+def test_known_property_multiple_inheritance():
 
     class Behavior:
         def __init__(self, name):
@@ -1289,15 +1289,15 @@ def test_known_property_multiple_inheritance(self):
     class Widget3(EventDispatcher, Behavior):
         pass
 
-    with self.assertRaises(ValueError) as cm:
+    with pytest.raises(ValueError) as cm:
         EventDispatcher(name='Pasta')
-    self.assertIn("Unexpected properties ['name']", str(cm.exception))
+    assert "Unexpected properties ['name']" in str(cm.value)
 
     Widget2(name='Pasta')  # does not raise a ValueError
     Widget3(name='Pasta')  # does not raise a ValueError
 
 
-def test_pass_other_typeerror(self):
+def test_pass_other_typeerror():
 
     class Behavior:
         def __init__(self, name):
@@ -1311,18 +1311,17 @@ def test_pass_other_typeerror(self):
         pass
 
     for cls in [Widget2, Widget3]:
-        with self.assertRaises(TypeError) as cm:
+        with pytest.raises(TypeError) as cm:
             cls(name='Pasta')
-        self.assertEqual("this is a typeerror unrelated to object",
-                         str(cm.exception))
+        assert "this is a typeerror unrelated to object" == str(cm.value)
 
 
-def test_object_init_error(self):  # the above 3 test rely on this
+def test_object_init_error():  # the above 3 test rely on this
     class TestCls(object):
         def __init__(self, **kwargs):
             super(TestCls, self).__init__(**kwargs)
 
-    with self.assertRaises(TypeError) as cm:
+    with pytest.raises(TypeError) as cm:
         TestCls(name='foo')
-    assert str(cm.exception).startswith(
+    assert str(cm.value).startswith(
         "object.__init__() takes exactly one argument")
