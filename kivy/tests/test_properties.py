@@ -1269,10 +1269,13 @@ def test_inherit_property():
 
 
 def test_unknown_property():
-    from kivy.uix.widget import Widget
+    from kivy.properties import NumericProperty
+
+    class MyWidget(EventDispatcher):
+        width = NumericProperty(0)
 
     with pytest.raises(ValueError) as cm:
-        Widget(width=12, unkn="abc")
+        MyWidget(width=12, unkn="abc")
     assert "Unexpected properties ['unkn']" in str(cm.value)
 
 
