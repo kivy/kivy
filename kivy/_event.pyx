@@ -229,7 +229,9 @@ cdef class EventDispatcher(ObjectWithUid):
             k: kwargs.pop(k) for k in list(kwargs.keys()) if k in properties}
         self._kwargs_applied_init = set(prop_args.keys()) if prop_args else set()
 
-        try: # at this point any kwargs passed may go to object which will error and cause confusion
+        # at this point any kwargs passed may go to object
+        # which will raise a TypeError and cause confusion
+        try:
            super(EventDispatcher, self).__init__(**kwargs)
         except TypeError as e:
            if kwargs and str(e).startswith("object.__init__() takes exactly one argument"):
