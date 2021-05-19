@@ -228,11 +228,16 @@ cdef class EventDispatcher(ObjectWithUid):
         prop_args = {
             k: kwargs.pop(k) for k in list(kwargs.keys()) if k in properties}
         self._kwargs_applied_init = set(prop_args.keys()) if prop_args else set()
-        if kwargs: # at this point any kwargs passed will go to object which will error and cause confusion
-            raise ValueError(
-                'Unexpected properties {}, valid properties are {}'.format(
-                    list(kwargs.keys()), sorted(properties.keys()))
-        super(EventDispatcher, self).__init__()
+
+        try: # at this point any kwargs passed may go to object which will error and cause confusion
+           super(EventDispatcher, self).__init__(**kwargs)
+        except TypeError as e:
+           if kwargs and "object.__init__() takes exactly one argument" in e:
+               raise ValueError(
+                  'Unexpected properties {}, valid properties are {}'.format(
+                      list(kwargs.keys()), sorted(properties.keys())) from e
+           else:
+               raise
 
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:

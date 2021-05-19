@@ -124,3 +124,28 @@ class WidgetTestCase(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             Widget(width=12, unkn="abc")
         self.assertIn("Unexpected properties ['unkn']", str(cm.exception))
+
+    def test_known_property_multiple_inheritance(self):
+        class Event:
+            def __init__(self, **kwargs):
+                print(f'Event: {self}, {kwargs}')
+                super().__init__(**kwargs)
+
+        class Behavior:
+            def __init__(self, name):
+                print(f'Behavior: {self}, name={name}')
+                super().__init__()
+
+        class Widget(Event):
+            pass
+
+        class Widget2(Behavior, Event):
+            pass
+
+        class Widget3(Event, Behavior):
+            pass
+
+        Widget(name='Pasta')
+        Widget2(name='Pasta')
+        Widget3(name='Pasta')
+
