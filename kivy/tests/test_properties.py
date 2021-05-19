@@ -1326,5 +1326,4 @@ def test_object_init_error():  # the above 3 test rely on this
 
     with pytest.raises(TypeError) as cm:
         TestCls(name='foo')
-    assert str(cm.value).startswith(
-        "object.__init__() takes exactly one argument")
+    assert str(cm.value).startswith("object.__init__() takes")

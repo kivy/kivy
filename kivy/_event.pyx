@@ -234,7 +234,7 @@ cdef class EventDispatcher(ObjectWithUid):
         try:
            super(EventDispatcher, self).__init__(**kwargs)
         except TypeError as e:
-           if kwargs and str(e).startswith("object.__init__() takes exactly one argument"):
+           if kwargs and str(e).startswith("object.__init__() takes"):
                raise ValueError(
                   'Properties "{}" passed to __init__ may not be existing'
                   'property names. Valid properties are "{}"'.format(
