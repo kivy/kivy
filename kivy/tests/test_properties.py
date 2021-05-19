@@ -1266,3 +1266,58 @@ def test_inherit_property():
     event.b = 'goodbye'
     assert event.b == 'goodbye'
     assert args == (event, 'goodbye')
+
+
+def test_unknown_property(self):
+    from kivy.uix.widget import Widget
+    with self.assertRaises(ValueError) as cm:
+        EventDispatcher(width=12, unkn="abc")
+    self.assertIn("Unexpected properties ['unkn']", str(cm.exception))
+
+
+def test_known_property_multiple_inheritance(self):
+
+    class Behavior:
+        def __init__(self, name):
+            print(f'Behavior: {self}, name={name}')
+            super().__init__()
+
+    class Widget2(Behavior, EventDispatcher):
+        pass
+
+    class Widget3(EventDispatcher, Behavior):
+        pass
+
+    with self.assertRaises(ValueError) as cm:
+        EventDispatcher(name='Pasta')
+    self.assertIn("Unexpected properties ['name']", str(cm.exception))
+
+    Widget2(name='Pasta')  # does not raise a ValueError
+    Widget3(name='Pasta')  # does not raise a ValueError
+
+
+def test_pass_other_typeerror(self):
+
+    class Behavior:
+        def __init__(self, name):
+            super().__init__()
+            raise TypeError("this is a typeerror unrelated to object")
+
+    class Widget2(Behavior, EventDispatcher):
+        pass
+
+    class Widget3(EventDispatcher, Behavior):
+        pass
+
+    for cls in [Widget2, Widget3]:
+        with self.assertRaises(TypeError) as cm:
+            cls(name='Pasta')
+        self.assertEqual("this is a typeerror unrelated to object", str(cm.exception))
+
+
+def test_object_init_error(self):  # the above 3 test rely on this
+    from kivy.event import ObjectWithUid
+
+    with self.assertRaises(TypeError) as cm:
+        ObjectWithUid(name='foo')
+    self.assertEqual("object.__init__() takes exactly one argument (the instance to initialize)", str(cm))
