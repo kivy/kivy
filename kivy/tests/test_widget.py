@@ -173,3 +173,10 @@ class WidgetTestCase(unittest.TestCase):
             with self.assertRaises(TypeError) as cm:
                 cls(name='Pasta')
             self.assertEqual("this is a typeerror unrelated to object", str(cm.exception))
+
+    def test_object_init_error(self): # the above 3 test rely on this
+        from kivy.event import ObjectWithUid
+
+        with self.assertRaises(TypeError) as cm:
+            ObjectWithUid(name='foo')
+        self.assertEqual("object.__init__() takes exactly one argument (the instance to initialize)", str(cm))
