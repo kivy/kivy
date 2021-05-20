@@ -1274,7 +1274,7 @@ def test_unknown_property():
     class MyWidget(EventDispatcher):
         width = NumericProperty(0)
 
-    with pytest.raises(ValueError) as cm:
+    with pytest.raises(TypeError) as cm:
         MyWidget(width=12, unkn="abc")
     assert "Unexpected properties ['unkn']" in str(cm.value)
 
@@ -1292,7 +1292,7 @@ def test_known_property_multiple_inheritance():
     class Widget3(EventDispatcher, Behavior):
         pass
 
-    with pytest.raises(ValueError) as cm:
+    with pytest.raises(TypeError) as cm:
         EventDispatcher(name='Pasta')
     assert "Unexpected properties ['name']" in str(cm.value)
 
