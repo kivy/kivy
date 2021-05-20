@@ -1276,7 +1276,9 @@ def test_unknown_property():
 
     with pytest.raises(TypeError) as cm:
         MyWidget(width=12, unkn="abc")
-    assert "Unexpected properties ['unkn']" in str(cm.value)
+    assert "Properties ['unkn'] passed to __init__ may not be existing " \
+           "property names. Valid properties are ['width']" \
+           == str(cm.value)
 
 
 def test_known_property_multiple_inheritance():
@@ -1294,7 +1296,8 @@ def test_known_property_multiple_inheritance():
 
     with pytest.raises(TypeError) as cm:
         EventDispatcher(name='Pasta')
-    assert "Unexpected properties ['name']" in str(cm.value)
+    assert "Properties ['name'] passed to __init__ may not be existing" \
+           in str(cm.value)
 
     Widget2(name='Pasta')  # does not raise a ValueError
     Widget3(name='Pasta')  # does not raise a ValueError
