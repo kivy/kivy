@@ -1266,3 +1266,67 @@ def test_inherit_property():
     event.b = 'goodbye'
     assert event.b == 'goodbye'
     assert args == (event, 'goodbye')
+
+
+def test_unknown_property():
+    from kivy.properties import NumericProperty
+
+    class MyWidget(EventDispatcher):
+        width = NumericProperty(0)
+
+    with pytest.raises(TypeError) as cm:
+        MyWidget(width=12, unkn="abc")
+    assert "Properties ['unkn'] passed to __init__ may not be existing " \
+           "property names. Valid properties are ['width']" \
+           == str(cm.value)
+
+
+def test_known_property_multiple_inheritance():
+
+    class Behavior:
+        def __init__(self, name):
+            print(f'Behavior: {self}, name={name}')
+            super().__init__()
+
+    class Widget2(Behavior, EventDispatcher):
+        pass
+
+    class Widget3(EventDispatcher, Behavior):
+        pass
+
+    with pytest.raises(TypeError) as cm:
+        EventDispatcher(name='Pasta')
+    assert "Properties ['name'] passed to __init__ may not be existing" \
+           in str(cm.value)
+
+    Widget2(name='Pasta')  # does not raise a ValueError
+    Widget3(name='Pasta')  # does not raise a ValueError
+
+
+def test_pass_other_typeerror():
+
+    class Behavior:
+        def __init__(self, name):
+            super().__init__()
+            raise TypeError("this is a typeerror unrelated to object")
+
+    class Widget2(Behavior, EventDispatcher):
+        pass
+
+    class Widget3(EventDispatcher, Behavior):
+        pass
+
+    for cls in [Widget2, Widget3]:
+        with pytest.raises(TypeError) as cm:
+            cls(name='Pasta')
+        assert "this is a typeerror unrelated to object" == str(cm.value)
+
+
+def test_object_init_error():  # the above 3 test rely on this
+    class TestCls(object):
+        def __init__(self, **kwargs):
+            super(TestCls, self).__init__(**kwargs)
+
+    with pytest.raises(TypeError) as cm:
+        TestCls(name='foo')
+    assert str(cm.value).startswith("object.__init__() takes")
