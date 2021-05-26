@@ -228,7 +228,19 @@ cdef class EventDispatcher(ObjectWithUid):
         prop_args = {
             k: kwargs.pop(k) for k in list(kwargs.keys()) if k in properties}
         self._kwargs_applied_init = set(prop_args.keys()) if prop_args else set()
-        super(EventDispatcher, self).__init__(**kwargs)
+
+        # at this point any kwargs passed may go to object
+        # which will raise a TypeError and cause confusion
+        try:
+           super(EventDispatcher, self).__init__(**kwargs)
+        except TypeError as e:
+           if kwargs and str(e).startswith("object.__init__() takes"):
+               raise TypeError(
+                  'Properties {} passed to __init__ may not be existing '
+                  'property names. Valid properties are {}'.format(
+                      sorted(kwargs.keys()), sorted(properties.keys()))) from e
+           else:
+               raise
 
         __cls__ = self.__class__
         if __cls__ not in cache_events_handlers:
