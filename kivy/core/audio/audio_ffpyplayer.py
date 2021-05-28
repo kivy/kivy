@@ -147,6 +147,7 @@ class SoundFFPy(Sound):
         self._state = 'playing'
         self.state = 'play'
         super(SoundFFPy, self).play()
+        self.seek(0)
 
     def stop(self):
         if self._ffplayer and self._state == 'playing':

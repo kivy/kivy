@@ -31,6 +31,7 @@ kivy/graphics/*.cpp
 kivy/graphics/*.pyd
 kivy/graphics/cgl_backend/*.c
 kivy/graphics/cgl_backend/*.pyd
+kivy/graphics/cgl.h
 kivy/include/config.h
 kivy/include/config.pxi
 kivy/lib/gstplayer/_gstplayer.c
