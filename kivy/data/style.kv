@@ -475,50 +475,37 @@
 
 # Switch widget
 <Switch>:
-    active_norm_pos:
-        max(0., min(1., (int(self.active) + self.touch_distance / max(1.,
-        (self.width-(self.switch_button_relative_size_hint_x * self.width if
-        self.switch_button_relative_size_hint_x else self.switch_button_width))))))
-    size_hint: (None, None)
-    size: dp(82), dp(32)
+    on_kv_post:
+        self.active_norm_pos = abs(abs(self.spacing / self.background_width) -
+        int(self.active))
+        self._on_active_anim = True
     canvas:
         Color:
             rgb: 1, 1, 1
         Rectangle:
             source:
-                self.switch_background_disabled if self.disabled else \
-                self.switch_background_active if self.active else \
-                self.switch_background_inactive
-            size:
-                self.width, int(self.switch_background_relative_size_hint_y *
-                self.height if self.switch_background_relative_size_hint_y
-                else self.switch_background_height)
+                self.background_disabled if self.disabled else \
+                self.background_active if self.active else \
+                self.background_inactive
+            size: self.background_width, self.background_height
             pos:
-                int(self.center_x - self.width/2), int(self.center_y -
-                (self.switch_background_relative_size_hint_y * self.height if
-                self.switch_background_relative_size_hint_y else
-                self.switch_background_height)/2)
+                self.center_x - self.background_width/2, \
+                self.center_y - self.background_height/2
 
     canvas.after:
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: self.switch_button_disabled if self.disabled else self.switch_button
-            size:
-                int((self.switch_button_relative_size_hint_x * self.width)
-                if self.switch_button_relative_size_hint_x else
-                self.switch_button_width), \
-                int((self.switch_button_relative_size_hint_y * self.height) if
-                self.switch_button_relative_size_hint_y else
-                self.switch_button_height)
+            source:
+                self.sliding_button_disabled if self.disabled else \
+                self.sliding_button_active if self.active else \
+                self.sliding_button_inactive
+            size: self.sliding_button_width, self.sliding_button_height
             pos:
-                int(self.x + self.active_norm_pos * (self.width -
-                ((self.switch_button_relative_size_hint_x * self.width) if
-                self.switch_button_relative_size_hint_x else
-                self.switch_button_width)) ), \
-                int(self.center_y - ((self.switch_button_relative_size_hint_y *
-                self.height) if self.switch_button_relative_size_hint_y else
-                self.switch_button_height)/2)
+                (self.center_x - self.background_width/2) + \
+                self.active_norm_pos * (self.background_width -
+                self.sliding_button_width), \
+                self.center_y - (self.sliding_button_height/2)
 
 
 # ModalView widget
