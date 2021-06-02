@@ -35,7 +35,7 @@ create styles in which there is a spacing between the sides of the sliding
 button and the background.
 
 .. warning::
-    
+
     Avoid setting values too high for spacing. Especially values close to or
     greater than half of background_width, as unexpected Switch behavior can
     occur.
@@ -79,30 +79,6 @@ class Switch(Widget):
 
     :attr:`active` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
-    '''
-
-    touch_control = ObjectProperty(None, allownone=True)
-    '''(internal) Contains the touch that currently interacts with the switch.
-
-    :attr:`touch_control` is an :class:`~kivy.properties.ObjectProperty`
-    and defaults to None.
-    '''
-
-    touch_distance = NumericProperty(0)
-    '''(internal) Contains the distance between the initial position of the
-    touch and the current position to determine if the swipe is from the left
-    or right.
-
-    :attr:`touch_distance` is a :class:`~kivy.properties.NumericProperty`
-    and defaults to 0.
-    '''
-
-    active_norm_pos = NumericProperty(0)
-    '''(internal) Contains the normalized position of the movable element
-    inside the switch, in the 0-1 range.
-
-    :attr:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
-    and defaults to 0.
     '''
 
     background_width = NumericProperty(82)
@@ -252,14 +228,45 @@ class Switch(Widget):
     .. versionadded:: 2.1.0
     '''
 
+    touch_control = ObjectProperty(None, allownone=True)
+    '''(internal) Contains the touch that currently interacts with the switch.
+
+    :attr:`touch_control` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to None.
+    '''
+
+    touch_distance = NumericProperty(0)
+    '''(internal) Contains the distance between the initial position of the
+    touch and the current position to determine if the swipe is from the left
+    or right.
+
+    :attr:`touch_distance` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
+    '''
+
+    active_norm_pos = NumericProperty(0)
+    '''(internal) Contains the normalized position of the movable element
+    inside the switch.
+
+    :attr:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
+    '''
+
+    norm_spacing = NumericProperty(0)
+    '''(internal) Contains the normalized spacing inside the switch.
+
+    :attr:`norm_spacing` is a :class:`~kivy.properties.NumericProperty`
+    and defaults to 0.
+
+    .. versionadded:: 2.1.0
+    '''
 
     def __init__(self, **kwargs):
         super(Switch, self).__init__(**kwargs)
         self._on_active_anim = False
 
     def on_active(self, instance, value):
-        norm_pos = abs(abs(self.spacing / self.background_width) -
-                       int(self.active))
+        norm_pos = abs(self.norm_spacing - int(self.active))
         if self._on_active_anim and self.active_norm_pos != norm_pos:
             Animation(active_norm_pos=norm_pos, t='out_quad',
                       d=.2).start(self)
@@ -279,13 +286,13 @@ class Switch(Widget):
         if touch.grab_current is not self:
             return
         self.touch_distance = touch.x - touch.ox
-        norm_spacing = abs(self.spacing / self.background_width)
         if self.active:
-            origin_pos = 1 - norm_spacing
+            origin_pos = 1 - self.norm_spacing
         else:
-            origin_pos = 0 + norm_spacing
-        self.active_norm_pos = max(norm_spacing, min(1 - norm_spacing,
-                                   origin_pos + self.touch_distance / max(1,
+            origin_pos = 0 + self.norm_spacing
+        self.active_norm_pos = max(self.norm_spacing, min(1 -
+                                   self.norm_spacing, origin_pos +
+                                   self.touch_distance / max(1,
                                    self.background_width -
                                    self.sliding_button_width)))
         return True
@@ -299,8 +306,7 @@ class Switch(Widget):
             self.active = not self.active
         else:
             self.active = self.active_norm_pos > 0.5
-        norm_pos = abs(abs(self.spacing / self.background_width) -
-                       int(self.active))
+        norm_pos = abs(self.norm_spacing - int(self.active))
         if self.active_norm_pos != norm_pos:
             Animation(active_norm_pos=norm_pos, t='out_quad',
                       d=.2).start(self)
