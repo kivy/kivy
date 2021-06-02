@@ -475,9 +475,9 @@
 
 # Switch widget
 <Switch>:
+    norm_spacing: abs(self.spacing / self.background_width)
     on_kv_post:
-        self.active_norm_pos = abs(abs(self.spacing / self.background_width) -
-        int(self.active))
+        self.active_norm_pos = abs(self.norm_spacing - int(self.active))
         self._on_active_anim = True
     canvas:
         Color:
@@ -485,8 +485,17 @@
         Rectangle:
             source:
                 self.background_disabled if self.disabled else \
-                self.background_active if self.active else \
                 self.background_inactive
+            size: self.background_width, self.background_height
+            pos:
+                self.center_x - self.background_width/2, \
+                self.center_y - self.background_height/2
+        Color:
+            rgba:
+                1, 1, 1, 0 if self.disabled else ((self.active_norm_pos -
+                self.norm_spacing) / (1 - 2 * self.norm_spacing))
+        Rectangle:
+            source: self.background_active
             size: self.background_width, self.background_height
             pos:
                 self.center_x - self.background_width/2, \
@@ -498,8 +507,19 @@
         Rectangle:
             source:
                 self.sliding_button_disabled if self.disabled else \
-                self.sliding_button_active if self.active else \
                 self.sliding_button_inactive
+            size: self.sliding_button_width, self.sliding_button_height
+            pos:
+                (self.center_x - self.background_width/2) + \
+                self.active_norm_pos * (self.background_width -
+                self.sliding_button_width), \
+                self.center_y - (self.sliding_button_height/2)
+        Color:
+            rgba:
+                1, 1, 1, 0 if self.disabled else ((self.active_norm_pos -
+                self.norm_spacing) / (1 - 2 * self.norm_spacing))
+        Rectangle:
+            source: self.sliding_button_active
             size: self.sliding_button_width, self.sliding_button_height
             pos:
                 (self.center_x - self.background_width/2) + \
