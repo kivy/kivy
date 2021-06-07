@@ -195,9 +195,9 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     disable_hover = property(_get_disable_hover, _set_disable_hover)
     '''Disables dispatching of hover events if set to `True`.
-    
+
     .. versionadded:: 2.1.0
-    
+
     :attr:`disable_hover` is a Python :func:`property` and defaults to `False`.
     '''
 
