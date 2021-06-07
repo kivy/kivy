@@ -46,6 +46,19 @@ touch will simulate a multi-touch event. For example::
     if 'multitouch_sim' in touch.profile:
         touch.multitouch_sim = True
 
+.. versionchanged:: 2.1.0
+
+Provider dispatches hover events by listening to properties/events in
+:class:`~kivy.core.window.Window`. Dispatching can be disabled by setting
+:attr:`MouseMotionEventProvider.disable_hover` to ``True`` or by adding
+`disable_hover` in the config::
+
+    [input]
+    mouse = mouse,disable_hover
+
+It's also possible to enable/disable hover events at runtime with
+:attr:`MouseMotionEventProvider.disable_hover` property.
+
 Following is a list of the supported values for the
 :attr:`~kivy.input.motionevent.MotionEvent.profile` property list.
 
@@ -149,6 +162,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.disable_multitouch = False
         self.multitouch_on_demand = False
         self.hover_event = None
+        self._disable_hover = False
+        self._running = False
         # split arguments
         args = args.split(',')
         for arg in args:
@@ -159,10 +174,30 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.disable_on_activity = True
             elif arg == 'disable_multitouch':
                 self.disable_multitouch = True
+            elif arg == 'disable_hover':
+                self.disable_hover = True
             elif arg == 'multitouch_on_demand':
                 self.multitouch_on_demand = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
+
+    def _get_disable_hover(self):
+        return self._disable_hover
+
+    def _set_disable_hover(self, value):
+        if self._disable_hover != value:
+            if self._running:
+                if value:
+                    self._stop_hover_events()
+                else:
+                    self._start_hover_events()
+            self._disable_hover = value
+
+    disable_hover = property(_get_disable_hover, _set_disable_hover)
+    '''Disables dispatching of hover events if set to ``True`` (default).
+
+    .. versionadded:: 2.1.0
+    '''
 
     def start(self):
         '''Start the mouse provider'''
@@ -172,6 +207,12 @@ class MouseMotionEventProvider(MotionEventProvider):
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_move', self.on_mouse_motion)
         fbind('on_mouse_up', self.on_mouse_release)
+        if not self.disable_hover:
+            self._start_hover_events()
+        self._running = True
+
+    def _start_hover_events(self):
+        fbind = EventLoop.window.fbind
         fbind('mouse_pos', self.begin_or_update_hover_event)
         fbind('system_size', self.update_hover_event)
         fbind('on_cursor_enter', self.begin_hover_event)
@@ -187,6 +228,12 @@ class MouseMotionEventProvider(MotionEventProvider):
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_move', self.on_mouse_motion)
         funbind('on_mouse_up', self.on_mouse_release)
+        if not self.disable_hover:
+            self._stop_hover_events()
+        self._running = False
+
+    def _stop_hover_events(self):
+        funbind = EventLoop.window.funbind
         funbind('mouse_pos', self.begin_or_update_hover_event)
         funbind('system_size', self.update_hover_event)
         funbind('on_cursor_enter', self.begin_hover_event)
