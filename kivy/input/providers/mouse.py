@@ -50,7 +50,7 @@ touch will simulate a multi-touch event. For example::
 
 Provider dispatches hover events by listening to properties/events in
 :class:`~kivy.core.window.Window`. Dispatching can be disabled by setting
-`True` to :attr:`MouseMotionEventProvider.disable_hover` property or by adding
+:attr:`MouseMotionEventProvider.disable_hover` to ``True`` or by adding
 `disable_hover` in the config::
 
     [input]
@@ -194,12 +194,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             self._disable_hover = value
 
     disable_hover = property(_get_disable_hover, _set_disable_hover)
-    '''Disables dispatching of hover events if set to `True`.
+    '''Disables dispatching of hover events if set to ``True`` (default).
 
     .. versionadded:: 2.1.0
-
-    :attr:`disable_hover` is a :class:`property` instance and defaults to
-    `False`.
     '''
 
     def start(self):
