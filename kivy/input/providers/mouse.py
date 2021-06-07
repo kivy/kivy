@@ -198,7 +198,8 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     .. versionadded:: 2.1.0
 
-    :attr:`disable_hover` is a Python :func:`property` and defaults to `False`.
+    :attr:`disable_hover` is a :class:`property` instance and defaults to
+    `False`.
     '''
 
     def start(self):
