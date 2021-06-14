@@ -696,7 +696,7 @@ class Widget(WidgetBase):
         for child in children:
             remove_widget(child)
 
-    def export_to_png(self, filename, *args, **kwargs):
+    def export_to_png(self, filename, format='png', *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
         specified filename. Works by removing the widget canvas from its
         parent, rendering to an :class:`~kivy.graphics.fbo.Fbo`, and calling
@@ -720,12 +720,14 @@ class Widget(WidgetBase):
         :Parameters:
             `filename`: str
                 The filename with which to save the png.
+            `format`: str
+                The format to save to; used for BytesIO, defaults to 'png'.
             `scale`: float
                 The amount by which to scale the saved image, defaults to 1.
 
                 .. versionadded:: 1.11.0
         '''
-        self.export_as_image(*args, **kwargs).save(filename, fmt=kwargs.pop('fmt','png'), flipped=False)
+        self.export_as_image(*args, **kwargs).save(filename, fmt=format, flipped=False)
 
     def export_as_image(self, *args, **kwargs):
         '''Return an core :class:`~kivy.core.image.Image` of the actual
