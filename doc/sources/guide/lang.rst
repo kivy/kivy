@@ -472,7 +472,7 @@ declaration will have the same kv properties.
 Designing with the Kivy Language
 --------------------------------
 
-One of aims of the Kivy language is to
+One of the aims of the Kivy language is to
 `separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
 of presentation and logic. The presentation (layout) side is addressed by your
 kv file and the logic by your .py file.
