@@ -78,7 +78,7 @@ It's present in the kivy_installation_dir/kivy/app.py.
     Kivy is based on Python and uses Sphinx for documentation, so the
     documentation for each class is in the actual file.
 
-Similarly on line 2::
+Similarly on line 5::
 
     from kivy.uix.label import Label
 
@@ -86,20 +86,20 @@ One important thing to note here is the way packages/classes are laid out. The
 :class:`~kivy.uix` module is the section that holds the user interface elements
 like layouts and widgets.
 
-Moving on to line 5::
+Moving on to line 8::
 
     class MyApp(App):
 
 This is where we are `defining` the Base Class of our Kivy App. You should only
 ever need to change the name of your app `MyApp` in this line.
 
-Further on to line 7::
+Further on to line 10::
 
     def build(self):
 
 As highlighted by the image above, show casing the `Kivy App Life Cycle`, this
 is the function where you should initialize and return your `Root Widget`. This
-is what we do on line 8::
+is what we do on line 11::
 
     return Label(text='Hello world')
 
@@ -108,9 +108,9 @@ This Label will be the Root Widget of this App.
 
 .. Note::
     Python uses indentation to denote code blocks, therefore take note that in
-    the code provided above, at line 9 the class and function definition ends.
+    the code provided above, at line 12 the class and function definition ends.
 
-Now on to the portion that will make our app run at line 11 and 12::
+Now on to the portion that will make our app run at line 14 and 15::
 
     if __name__ == '__main__':
         MyApp().run()
@@ -178,11 +178,11 @@ At line 2 we import a :class:`~kivy.uix.gridlayout.Gridlayout`::
     from kivy.uix.gridlayout import GridLayout
 
 This class is used as a Base for our Root Widget (LoginScreen) defined
-at line 9::
+at line 7::
 
     class LoginScreen(GridLayout):
 
-At line 12 in the class LoginScreen, we override the method
+At line 9 in the class LoginScreen, we override the method
 :meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behavior::
 
@@ -193,7 +193,7 @@ One should not forget to call super in order to implement the functionality of
 the original class being overloaded. Also note that it is good practice not to
 omit the `**kwargs` while calling super, as they are sometimes used internally.
 
-Moving on to Line 15 and beyond::
+Moving on to Line 11 and beyond::
 
     self.cols = 2
     self.add_widget(Label(text='User Name'))
