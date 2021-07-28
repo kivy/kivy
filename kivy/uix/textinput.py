@@ -2176,6 +2176,7 @@ class TextInput(FocusBehavior, Widget):
                     base_dir,
                     halign,
                     rects,
+                    auto_halign_r,
                 )
             elif y <= miny:
                 line_num -= 1
@@ -2204,6 +2205,7 @@ class TextInput(FocusBehavior, Widget):
         base_dir,
         halign,
         rects,
+        auto_halign_r,
     ):
         size = list(texture.size)
         texcoords = texture.tex_coords[:]
