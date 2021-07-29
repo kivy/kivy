@@ -21,6 +21,7 @@ documentation for further details.
 # flake8: noqa
 
 import os
+import time
 from ctypes import cdll, Structure, c_ulong, c_int, c_ushort, \
                    c_void_p, pointer, POINTER, byref
 
@@ -141,7 +142,22 @@ class Device:
         self._fd = -1
         self._device = mtdev()
 
-        self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+        # Linux kernel creates input devices then hands permission changes
+        # off to udev. This results in a period of time when the device is
+        # readable only by root. Device reconnects can be processed by
+        # MTDMotionEventProvider faster than udev can get a chance to run,
+        # so we spin for a period of time to allow udev to fix permissions.
+        # We limit the loop time in case the system is misconfigured and
+        # the user really does not (and will not) have permission to access
+        # the device.
+        # Note: udev takes about 0.6 s on a Raspberry Pi 4
+        permission_wait_until = time.time() + 3.0
+        while self._fd == -1:
+            try:
+                self._fd = os.open(filename, os.O_NONBLOCK | os.O_RDONLY)
+            except PermissionError:
+                if time.time() > permission_wait_until:
+                    raise
         ret = mtdev_open(pointer(self._device), self._fd)
         if ret != 0:
             os.close(self._fd)
