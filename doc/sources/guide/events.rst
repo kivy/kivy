@@ -166,7 +166,7 @@ A widget has 2 default types of events:
 - Widget-defined event: e.g. an event will be fired for a Button when it's pressed or
   released.
 
-For a discussion on how widget touch events managed and propagated, please refer
+For a discussion on how widget touch events are managed and propagated, please refer
 to the :ref:`Widget touch event bubbling <widget-event-bubbling>` section.
 
 Creating custom events
