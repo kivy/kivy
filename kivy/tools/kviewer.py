@@ -60,7 +60,7 @@ class KvViewerApp(App):
         o = Observer()
         o.schedule(KvHandler(self.update, TARGET), PATH)
         o.start()
-        Clock.schedule_once(self.update, 1)
+        Clock.schedule_interval(self.update, 1)
         return super(KvViewerApp, self).build()
 
     @mainthread
