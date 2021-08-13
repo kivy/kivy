@@ -570,7 +570,7 @@ cdef class MatrixInstruction(ContextInstruction):
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
         self.stack = kwargs.get('stack', 'modelview_mat')
-        self._matrix = None
+        self.matrix = kwargs.get('matrix')
 
     cdef int apply(self) except -1:
         '''Apply the matrix of this instance to the
