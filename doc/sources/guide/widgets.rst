@@ -357,7 +357,7 @@ In kv:
             Color:
                 rgba: 0, 1, 0, 1
             Rectangle:
-                # self here refers to the widget i.e BoxLayout
+                # self here refers to the widget i.e FloatLayout
                 pos: self.pos
                 size: self.size
 

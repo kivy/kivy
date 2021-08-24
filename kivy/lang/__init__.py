@@ -268,8 +268,8 @@ called when the value of a property changes (i.e. you passively
 `observe` the property for potential changes).
 
 The Kivy language detects properties in your `value` expression and will create
-create callbacks to automatically update the property via your expression when
-changes occur.
+callbacks to automatically update the property via your expression when changes
+occur.
 
 Here's a simple example that demonstrates this behaviour::
 
