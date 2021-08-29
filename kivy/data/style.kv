@@ -475,11 +475,8 @@
 
 # Switch widget
 <Switch>:
-    norm_spacing: abs(self.spacing / self.background_width)
-    on_kv_post:
-        self.active_norm_pos = abs(self.norm_spacing - int(self.active))
-        self._on_active_anim = True
     canvas:
+        # background inactive image
         Color:
             rgb: 1, 1, 1
         Rectangle:
@@ -490,6 +487,7 @@
             pos:
                 self.center_x - self.background_width/2, \
                 self.center_y - self.background_height/2
+        # background active image
         Color:
             rgba:
                 1, 1, 1, 0 if self.disabled else ((self.active_norm_pos -
@@ -502,6 +500,7 @@
                 self.center_y - self.background_height/2
 
     canvas.after:
+        # sliding button inactive image
         Color:
             rgb: 1, 1, 1
         Rectangle:
@@ -514,6 +513,7 @@
                 self.active_norm_pos * (self.background_width -
                 self.sliding_button_width), \
                 self.center_y - (self.sliding_button_height/2)
+        # sliding button active image
         Color:
             rgba:
                 1, 1, 1, 0 if self.disabled else ((self.active_norm_pos -

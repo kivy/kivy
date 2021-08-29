@@ -40,7 +40,7 @@ button and the background.
     greater than half of background_width, as unexpected Switch behavior can
     occur.
 
-The background image is centered within the widget. The slidding button image
+The background image is centered within the widget. The sliding button image
 is centered vertically within the widget and slides horizontally to the sides,
 obeying the limit imposed by the spacing.
 
@@ -67,8 +67,8 @@ Kv Example::
 
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
-from kivy.properties import (BooleanProperty, ObjectProperty, NumericProperty,
-                             StringProperty, ReferenceListProperty)
+from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty,\
+                            StringProperty, ReferenceListProperty
 
 
 class Switch(Widget):
@@ -121,7 +121,7 @@ class Switch(Widget):
     '''
 
     sliding_button_height = NumericProperty(32)
-    '''Allows to control the switch slidding button height
+    '''Allows to control the switch sliding button height
 
     :attr:`sliding_button_height` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 32.
@@ -261,15 +261,15 @@ class Switch(Widget):
     .. versionadded:: 2.1.0
     '''
 
-    def __init__(self, **kwargs):
-        super(Switch, self).__init__(**kwargs)
-        self._on_active_anim = False
+    def on_kv_post(self, *args):
+        self.norm_spacing = abs(self.spacing / self.background_width)
+        self.active_norm_pos = abs(self.norm_spacing - int(self.active))
+        self.bind(active=self.anim_sliding_button)
 
-    def on_active(self, instance, value):
+    def anim_sliding_button(self, *args):
         norm_pos = abs(self.norm_spacing - int(self.active))
-        if self._on_active_anim and self.active_norm_pos != norm_pos:
-            Animation(active_norm_pos=norm_pos, t='out_quad',
-                      d=.2).start(self)
+        if self.active_norm_pos != norm_pos:
+            Animation(active_norm_pos=norm_pos, t='out_quad', d=.2).start(self)
 
     def on_touch_down(self, touch):
         if self.disabled or self.touch_control is not None:
@@ -279,7 +279,6 @@ class Switch(Widget):
         touch.grab(self)
         self.touch_distance = 0
         self.touch_control = touch
-        self._on_active_anim = False
         return True
 
     def on_touch_move(self, touch):
@@ -290,11 +289,11 @@ class Switch(Widget):
             origin_pos = 1 - self.norm_spacing
         else:
             origin_pos = 0 + self.norm_spacing
-        self.active_norm_pos = max(self.norm_spacing, min(1 -
-                                   self.norm_spacing, origin_pos +
-                                   self.touch_distance / max(1,
-                                   self.background_width -
-                                   self.sliding_button_width)))
+        self.active_norm_pos = max(self.norm_spacing,
+                                   min(1 - self.norm_spacing,
+                                       origin_pos + self.touch_distance /
+                                       max(1, self.background_width -
+                                           self.sliding_button_width)))
         return True
 
     def on_touch_up(self, touch):
@@ -304,13 +303,11 @@ class Switch(Widget):
         # depending of the distance, activate by norm pos or invert
         if abs(touch.ox - touch.x) < 5:
             self.active = not self.active
-        else:
+        elif self.active != (self.active_norm_pos > 0.5):
             self.active = self.active_norm_pos > 0.5
-        norm_pos = abs(self.norm_spacing - int(self.active))
-        if self.active_norm_pos != norm_pos:
-            Animation(active_norm_pos=norm_pos, t='out_quad',
-                      d=.2).start(self)
-        self._on_active_anim = True
+        # animate back the sliding button to current state
+        else:
+            self.anim_sliding_button()
         self.touch_control = None
         return True
 
