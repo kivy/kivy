@@ -36,9 +36,9 @@ button and the background.
 
 .. warning::
 
-    Avoid setting values too high for spacing. Especially values close to or
-    greater than half of background_width, as unexpected Switch behavior can
-    occur.
+    Avoid setting values too high for spacing. Especially values very close to
+    or greater than half of the background_width value, as the sliding button
+    may not have enough space to slide / be dragged.
 
 The background image is centered within the widget. The sliding button image
 is centered vertically within the widget and slides horizontally to the sides,
@@ -262,7 +262,7 @@ class Switch(Widget):
     '''
 
     def on_kv_post(self, *args):
-        self.norm_spacing = abs(self.spacing / self.background_width)
+        self.norm_spacing = min(abs(self.spacing / self.background_width), 0.499)
         self.active_norm_pos = abs(self.norm_spacing - int(self.active))
         self.bind(active=self.anim_sliding_button)
 
