@@ -38,7 +38,7 @@ button and the background.
 
     Avoid setting values too high for spacing. Especially values very close to
     or greater than half of the background_width value, as the sliding button
-    may not have enough space to slide / be dragged.
+    may not have enough space to slide/be dragged.
 
 The background image is centered within the widget. The sliding button image
 is centered vertically within the widget and slides horizontally to the sides,
