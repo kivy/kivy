@@ -518,6 +518,8 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
+        self._scroll_distance = 0
+        self._enable_scroll = True
 
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
@@ -1558,13 +1560,62 @@ class TextInput(FocusBehavior, Widget):
             if self._selection_touch is touch:
                 self._selection_touch = None
             return False
-        if self._selection_touch is touch:
+
+        # multiline = True
+        if self.scroll_from_swipe:
+            if self.multiline:
+                _scroll_timeout = touch.time_update - touch.time_start
+                self._scroll_distance += abs(touch.dy)
+
+                # disable scroll and start selection mode if scroll distance
+                # isn't reached within scroll_timeout
+                if _scroll_timeout >= self.scroll_timeout/1000 and\
+                   self._scroll_distance <= self.scroll_distance:
+                    self._enable_scroll = False
+
+                if self._enable_scroll:
+                    max_to_scroll = max(0, self.minimum_height - self.height)
+                    self.scroll_y = min(max(0, self.scroll_y + touch.dy),
+                                        max_to_scroll)
+                    self._trigger_update_graphics()
+                    return True
+
+            # multiline = False
+            else:
+                _scroll_timeout = touch.time_update - touch.time_start
+                self._scroll_distance += abs(touch.dx)
+
+                # disable scroll and start selection mode if scroll distance
+                # isn't reached within scroll_timeout
+                if _scroll_timeout >= self.scroll_timeout/1000 and\
+                   self._scroll_distance <= self.scroll_distance:
+                    self._enable_scroll = False
+
+                if self._enable_scroll:
+                    minimum_width = self._get_text_width(
+                                                         self.text,
+                                                         self.tab_width,
+                                                         self._label_cached) +\
+                                                         self.padding[0] +\
+                                                         self.padding[2]
+                    max_to_scroll = max(0, minimum_width - self.width)
+                    self.scroll_x = min(max(0, self.scroll_x - touch.dx),
+                                        max_to_scroll)
+                    self._trigger_update_graphics()
+                    return True
+        else:
+            self._enable_scroll = False
+
+        if self._enable_scroll == False and self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
             self._selection_to = self.cursor_index()
             self._update_selection()
             return True
 
     def on_touch_up(self, touch):
+        self._enable_scroll = True
+        self._scroll_distance = 0
+
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
@@ -3345,6 +3396,38 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
+    '''
+
+    scroll_from_swipe = BooleanProperty(not _is_desktop)
+    '''Allow to scroll the text using swipe gesture according to
+    :attr:`scroll_timeout` and :attr:`scroll_distance`.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_from_swipe` is a BooleanProperty and defaults to True on
+    mobile OS’s, False on desktop OS’s.
+    '''
+
+    scroll_distance = NumericProperty(20)
+    '''Minimum distance to move before change from scroll to selection mode, in
+    pixels.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_distance` is a NumericProperty and defaults to  20 pixels.
+    '''
+
+    scroll_timeout = NumericProperty(250)
+    '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
+    If the user has not moved :attr:`scroll_distance` within the timeout, the
+    scrolling will be disabled, and the selection mode will start.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_timeout` is a NumericProperty and defaults to 250
+    milliseconds.
     '''
 
     def get_sel_from(self):
