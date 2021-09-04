@@ -518,7 +518,8 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
-        self._scroll_distance = 0
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
         self._enable_scroll = True
 
         # [from; to) range of lines being partially or fully rendered
@@ -1565,12 +1566,14 @@ class TextInput(FocusBehavior, Widget):
         if self.scroll_from_swipe:
             if self.multiline:
                 _scroll_timeout = touch.time_update - touch.time_start
-                self._scroll_distance += abs(touch.dy)
+                self._scroll_distance_x += abs(touch.dx)
+                self._scroll_distance_y += abs(touch.dy)
 
                 # disable scroll and start selection mode if scroll distance
                 # isn't reached within scroll_timeout
                 if _scroll_timeout >= self.scroll_timeout/1000 and\
-                   self._scroll_distance <= self.scroll_distance:
+                   self._scroll_distance_x <= self.scroll_distance and\
+                   self._scroll_distance_y <= self.scroll_distance:
                     self._enable_scroll = False
 
                 if self._enable_scroll:
@@ -1583,12 +1586,12 @@ class TextInput(FocusBehavior, Widget):
             # multiline = False
             else:
                 _scroll_timeout = touch.time_update - touch.time_start
-                self._scroll_distance += abs(touch.dx)
+                self._scroll_distance_x += abs(touch.dx)
 
                 # disable scroll and start selection mode if scroll distance
                 # isn't reached within scroll_timeout
                 if _scroll_timeout >= self.scroll_timeout/1000 and\
-                   self._scroll_distance <= self.scroll_distance:
+                   self._scroll_distance_x <= self.scroll_distance:
                     self._enable_scroll = False
 
                 if self._enable_scroll:
@@ -1614,7 +1617,8 @@ class TextInput(FocusBehavior, Widget):
 
     def on_touch_up(self, touch):
         self._enable_scroll = True
-        self._scroll_distance = 0
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
 
         if touch.grab_current is not self:
             return
