@@ -1595,12 +1595,8 @@ class TextInput(FocusBehavior, Widget):
                     self._enable_scroll = False
 
                 if self._enable_scroll:
-                    minimum_width = self._get_text_width(
-                                                         self.text,
-                                                         self.tab_width,
-                                                         self._label_cached) +\
-                                                         self.padding[0] +\
-                                                         self.padding[2]
+                    minimum_width = (self._lines_rects[-1].texture.size[0] +
+                                     self.padding[0] + self.padding[2])
                     max_to_scroll = max(0, minimum_width - self.width)
                     self.scroll_x = min(max(0, self.scroll_x - touch.dx),
                                         max_to_scroll)
