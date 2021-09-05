@@ -130,7 +130,7 @@ With the dependencies installed, you can now install Kivy into the virtual envir
 
 To install the stable version of Kivy, from the terminal do::
 
-    python -m pip install kivy[base] kivy_examples --no-binary kivy
+    python -m pip install "kivy[base]" kivy_examples --no-binary kivy
 
 To install the latest cutting-edge Kivy from **master**, instead do::
 
