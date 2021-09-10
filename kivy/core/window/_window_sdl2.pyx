@@ -413,6 +413,7 @@ cdef class _WindowSDL2Storage:
                 windows_info = WindowInfoWindows()
                 windows_info.window = wm_info.info.win.window
                 windows_info.hdc = wm_info.info.win.hdc
+                return windows_info
 
     # Transparent Window background
     def is_window_shaped(self):
