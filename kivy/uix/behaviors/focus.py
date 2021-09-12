@@ -344,12 +344,15 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    input_type = OptionProperty('text', options=('text', 'number', 'url',
-                                                 'mail', 'datetime', 'tel',
-                                                 'address'))
+    input_type = OptionProperty('null', options=('null', 'text', 'number',
+                                                 'url', 'mail', 'datetime',
+                                                 'tel', 'address'))
     '''The kind of input keyboard to request.
 
     .. versionadded:: 1.8.0
+
+    .. versionchanged:: 2.1.0
+        Changed default value from `text` to `null`. Added `null` to options.
 
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
     defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',

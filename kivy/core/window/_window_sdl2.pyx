@@ -554,6 +554,7 @@ cdef class _WindowSDL2Storage:
                 TYPE_CLASS_NUMBER = 2
                 TYPE_CLASS_PHONE = 3
                 TYPE_CLASS_TEXT = 1
+                TYPE_CLASS_NULL = 0
 
                 TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
                 TYPE_TEXT_VARIATION_URI = 16
@@ -562,6 +563,7 @@ cdef class _WindowSDL2Storage:
                 TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
 
                 input_type_value = {
+                                "null": TYPE_CLASS_NULL,
                                 "text": TYPE_CLASS_TEXT,
                                 "number": TYPE_CLASS_NUMBER,
                                 "url":
@@ -580,6 +582,10 @@ cdef class _WindowSDL2Storage:
                 text_keyboards = {"text", "url", "mail", "address"}
 
                 if not keyboard_suggestions and input_type in text_keyboards:
+                    """
+                    Looks like some (major) device vendors and keyboards are de-facto ignoring this flag,
+                    so we can't really rely on this one to disable suggestions.
+                    """
                     input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
                 mActivity.changeKeyboard(input_type_value)
