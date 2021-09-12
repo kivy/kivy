@@ -769,7 +769,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         <int>sfc.format.BytesPerPixel,
         <int>sfc.pitch
     )
-    print(output)
+    Logger.debug("Window: Screenshot output dimensions {output}")
 
     cdef Uint32 pitch = sfc.pitch
     cdef Uint32 pxlength = pitch * sfc.h
