@@ -241,6 +241,7 @@ class Selector(ButtonBehavior, Image):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.always_release = True
         self.matrix = self.target.get_window_matrix()
 
         with self.canvas.before:
@@ -1618,12 +1619,16 @@ class TextInput(FocusBehavior, Widget):
             return
 
         self._update_selection()
+        
+        instance_x = self.to_window(instance.x, 0, False, True)[0]
+        instance_right = self.to_window(instance.right, 0, False, True)[0]
+        instance_top = self.to_window(0, instance.top, False, True)[1]
         self._show_cut_copy_paste(
             (
-                instance.right
+                instance_right
                 if instance is self._handle_left
-                else instance.x,
-                instance.top + self.line_height
+                else instance_x,
+                instance_top + self.line_height
             ),
             EventLoop.window
         )
@@ -1647,6 +1652,7 @@ class TextInput(FocusBehavior, Widget):
             x,
             y + instance._touch_diff + (self.line_height / 2)
         )
+        self.cursor = cursor
 
         if instance != touch.grab_current:
             return
@@ -1662,6 +1668,7 @@ class TextInput(FocusBehavior, Widget):
             self._selection_from = cindex
         elif instance == handle_right:
             self._selection_to = cindex
+        self._update_selection()
         self._trigger_update_graphics()
         self._trigger_position_handles()
 
