@@ -1516,8 +1516,8 @@ class TextInput(FocusBehavior, Widget):
                                             self.line_height)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._get_row_width(self.cursor_row) +
-                                     self.padding[0] + self.padding[2])
+                    minimum_width = (self._get_row_width(0) + self.padding[0] +
+                                     self.padding[2])
                     max_scroll_x = max(0, minimum_width - self.width)
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +
