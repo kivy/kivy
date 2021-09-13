@@ -109,7 +109,7 @@ def setup(app):
     sys.path += [join(dirname(kivy.__file__), 'extras')]
     from highlight import KivyLexer
 
-    app.add_lexer('kv', KivyLexer())
+    app.add_lexer('kv', KivyLexer)
     app.add_autodocumenter(CythonMethodDocumenter)
     app.connect('autodoc-process-docstring', callback_docstring)
     app.connect('autodoc-process-signature', callback_signature)
