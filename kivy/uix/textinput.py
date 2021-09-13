@@ -2334,9 +2334,9 @@ class TextInput(FocusBehavior, Widget):
             islice(
                 rects,
                 max(selection_start_row, first_visible_line),
-                min(selection_end_row + 1, last_visible_line),
+                min(selection_end_row + 1, last_visible_line - 1),
             ),
-            start=selection_start_row
+            start=max(selection_start_row, first_visible_line)
         ):
             draw_selection(
                 rect.pos,
@@ -2355,7 +2355,6 @@ class TextInput(FocusBehavior, Widget):
                 canvas_add,
                 selection_color
             )
-            y -= dy
         self._position_handles('both')
 
     def _draw_selection(
