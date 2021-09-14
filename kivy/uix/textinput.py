@@ -1619,16 +1619,12 @@ class TextInput(FocusBehavior, Widget):
             return
 
         self._update_selection()
-        
-        instance_x = self.to_window(instance.x, 0, False, True)[0]
-        instance_right = self.to_window(instance.right, 0, False, True)[0]
-        instance_top = self.to_window(0, instance.top, False, True)[1]
         self._show_cut_copy_paste(
             (
-                instance_right
+                self.x + instance.right
                 if instance is self._handle_left
-                else instance_x,
-                instance_top + self.line_height
+                else self.x + instance.x,
+                self.y + instance.top + self.line_height
             ),
             EventLoop.window
         )
