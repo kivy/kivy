@@ -1658,11 +1658,10 @@ class TextInput(FocusBehavior, Widget):
             return
 
         if instance == handle_middle:
-            self.cursor = cursor
             self._position_handles(mode='middle')
             return
 
-        cindex = self.cursor_index(cursor=cursor)
+        cindex = self.cursor_index()
 
         if instance == handle_left:
             self._selection_from = cindex
