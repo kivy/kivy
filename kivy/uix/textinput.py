@@ -170,7 +170,8 @@ from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, OptionProperty, \
-    ListProperty, ObjectProperty, VariableListProperty, ColorProperty
+    ListProperty, ObjectProperty, VariableListProperty, ColorProperty, \
+    BoundedNumericProperty
 
 __all__ = ('TextInput', )
 
@@ -3647,6 +3648,16 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    lines_to_scroll = BoundedNumericProperty(1, min=1)
+    '''Set how many lines will be scrolled at once when using the mouse scroll
+    wheel
+
+    .. versionadded:: 2.1.0
+
+    :attr:`lines_to_scroll is a 
+    :class:`~kivy.properties.BoundedNumericProperty` and defaults to 1.
     '''
 
     input_filter = ObjectProperty(None, allownone=True)
