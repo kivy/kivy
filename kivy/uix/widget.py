@@ -261,7 +261,8 @@ def _widget_destructor(uid, r):
     # Internal method called when a widget is deleted from memory. the only
     # thing we remember about it is its uid. Clear all the associated callbacks
     # created in kv language.
-    del _widget_destructors[uid]
+    if uid in _widget_destructors:
+      del _widget_destructors[uid]
     Builder.unbind_widget(uid)
 
 
