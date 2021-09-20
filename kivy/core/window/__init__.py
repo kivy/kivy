@@ -206,7 +206,7 @@ class WindowBase(EventDispatcher):
             Set the window border state. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
-        `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
+        `fullscreen`: must be one of (True, False, 'auto', 'fake')
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
