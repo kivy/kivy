@@ -1333,11 +1333,17 @@ class TextInput(FocusBehavior, Widget):
 
         if halign == 'center':
             viewport_width = self.width - padding_left - padding_right
-            xoff = int((viewport_width - self._get_row_width(cursor_y)) / 2)
+            xoff = max(
+                0,
+                int((viewport_width - self._get_row_width(cursor_y)) / 2)
+            )
 
         elif halign == 'right' or auto_halign_r:
             viewport_width = self.width - padding_left - padding_right
-            xoff = viewport_width - self._get_row_width(cursor_y)
+            xoff = max(
+                0,
+                int(viewport_width - self._get_row_width(cursor_y))
+            )
 
         for i in range(0, len(lines[cursor_y])):
             line_y = lines[cursor_y]
@@ -2280,8 +2286,10 @@ class TextInput(FocusBehavior, Widget):
                 auto_halign_r = 'rtl' in base_dir
         if halign == 'center':
             xoffset = int((viewport_width - texture_width) / 2.)
+            self.scroll_x = max(0, self.scroll_x - xoffset)
         elif halign == 'right' or auto_halign_r:
             xoffset = max(0, int(viewport_width - texture_width))
+            self.scroll_x = max(0, self.scroll_x - xoffset)
 
         # add rectangle
         rect = rects[line_num]
@@ -2454,7 +2462,7 @@ class TextInput(FocusBehavior, Widget):
             row_width = self._get_row_width(self.cursor_row)
             x = (
                 left
-                + (viewport_width - row_width) // 2
+                + max(0, (viewport_width - row_width) // 2)
                 + cursor_offset
                 - self.scroll_x
             )
@@ -2462,8 +2470,7 @@ class TextInput(FocusBehavior, Widget):
             row_width = self._get_row_width(self.cursor_row)
             x = (
                 left
-                + viewport_width
-                - row_width
+                + max(0, viewport_width - row_width)
                 + cursor_offset
                 - self.scroll_x
             )
