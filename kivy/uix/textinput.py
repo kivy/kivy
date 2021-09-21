@@ -1515,7 +1515,7 @@ class TextInput(FocusBehavior, Widget):
                 if self.multiline:
                     max_scroll_y = max(0, self.minimum_height - self.height)
                     if self.scroll_y < max_scroll_y:
-                        self.scroll_y = min(max_scroll_y, 
+                        self.scroll_y = min(max_scroll_y,
                                             self.scroll_y + self.line_height *
                                             self.lines_to_scroll)
                         self._trigger_update_graphics()
