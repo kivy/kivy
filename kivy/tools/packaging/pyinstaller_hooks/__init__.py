@@ -82,7 +82,6 @@ from PyInstaller.depend import bindepend
 
 from os import environ
 if 'KIVY_DOC' not in environ:
-    from PyInstaller.compat import modname_tkinter
     from PyInstaller.utils.hooks import collect_submodules
 
     curdir = dirname(__file__)
@@ -97,7 +96,7 @@ if 'KIVY_DOC' not in environ:
     pyinstaller.
     '''
 
-    excludedimports = [modname_tkinter, '_tkinter', 'twisted']
+    excludedimports = ['tkinter', '_tkinter', 'twisted']
     '''List of excludedimports that should always be excluded from
     pyinstaller.
     '''

@@ -242,6 +242,7 @@ class Selector(ButtonBehavior, Image):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.always_release = True
         self.matrix = self.target.get_window_matrix()
 
         with self.canvas.before:
@@ -1501,7 +1502,8 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y > 0:
-                        self.scroll_y -= self.line_height
+                        self.scroll_y = max(0, self.scroll_y -
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
                     if self.scroll_x > 0:
@@ -1510,16 +1512,14 @@ class TextInput(FocusBehavior, Widget):
                         self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    viewport_height = self.height\
-                                      - self.padding[1] - self.padding[3]
-                    text_height = len(self._lines) * (self.line_height
-                                                      + self.line_spacing)
-                    if viewport_height < text_height - self.scroll_y:
-                        self.scroll_y += self.line_height
+                    max_scroll_y = max(0, self.minimum_height - self.height)
+                    if self.scroll_y < max_scroll_y:
+                        self.scroll_y = min(max_scroll_y, self.scroll_y +
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._lines_rects[-1].texture.size[0] +
-                                     self.padding[0] + self.padding[2])
+                    minimum_width = (self._get_row_width(0) + self.padding[0] +
+                                     self.padding[2])
                     max_scroll_x = max(0, minimum_width - self.width)
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +
@@ -1621,10 +1621,10 @@ class TextInput(FocusBehavior, Widget):
         self._update_selection()
         self._show_cut_copy_paste(
             (
-                instance.right
+                self.x + instance.right
                 if instance is self._handle_left
-                else instance.x,
-                instance.top + self.line_height
+                else self.x + instance.x,
+                self.y + instance.top + self.line_height
             ),
             EventLoop.window
         )
@@ -1648,21 +1648,22 @@ class TextInput(FocusBehavior, Widget):
             x,
             y + instance._touch_diff + (self.line_height / 2)
         )
+        self.cursor = cursor
 
         if instance != touch.grab_current:
             return
 
         if instance == handle_middle:
-            self.cursor = cursor
             self._position_handles(mode='middle')
             return
 
-        cindex = self.cursor_index(cursor=cursor)
+        cindex = self.cursor_index()
 
         if instance == handle_left:
             self._selection_from = cindex
         elif instance == handle_right:
             self._selection_to = cindex
+        self._update_selection()
         self._trigger_update_graphics()
         self._trigger_position_handles()
 
@@ -2335,9 +2336,9 @@ class TextInput(FocusBehavior, Widget):
             islice(
                 rects,
                 max(selection_start_row, first_visible_line),
-                min(selection_end_row + 1, last_visible_line),
+                min(selection_end_row + 1, last_visible_line - 1),
             ),
-            start=selection_start_row
+            start=max(selection_start_row, first_visible_line)
         ):
             draw_selection(
                 rect.pos,
@@ -2356,7 +2357,6 @@ class TextInput(FocusBehavior, Widget):
                 canvas_add,
                 selection_color
             )
-            y -= dy
         self._position_handles('both')
 
     def _draw_selection(
