@@ -155,6 +155,7 @@ class WindowSDL(WindowBase):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
         self._meta_keys = (
             KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
@@ -838,6 +839,9 @@ class WindowSDL(WindowBase):
     def ungrab_mouse(self):
         self._win.grab_mouse(False)
 
+    def custom_titlebar(self, titlebar_widget):
+        self.titlebar_widget = titlebar_widget
+        return self._win.custom_titlebar(self.titlebar_box)
 
 class _WindowsSysDPIWatch:
 
