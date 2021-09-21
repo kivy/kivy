@@ -841,7 +841,7 @@ class WindowSDL(WindowBase):
 
     def custom_titlebar(self, titlebar_widget):
         self.titlebar_widget = titlebar_widget
-        return self._win.custom_titlebar(self.titlebar_box)
+        return self._win.custom_titlebar(self.titlebar_widget)
 
 class _WindowsSysDPIWatch:
 
