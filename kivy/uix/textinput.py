@@ -1349,8 +1349,10 @@ class TextInput(FocusBehavior, Widget):
             ):
                 cursor_x = i
                 break
+        else:
+            cursor_x = len(lines[cursor_y])
 
-        return int(cursor_x), int(cursor_y)
+        return cursor_x, cursor_y
 
     #
     # Selection control
