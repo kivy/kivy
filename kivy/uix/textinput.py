@@ -1575,9 +1575,11 @@ class TextInput(FocusBehavior, Widget):
 
                 # disable scroll and start selection mode if scroll distance
                 # isn't reached within scroll_timeout
-                if _scroll_timeout >= self.scroll_timeout/1000 and\
-                   self._scroll_distance_x <= self.scroll_distance and\
-                   self._scroll_distance_y <= self.scroll_distance:
+                if (
+                    _scroll_timeout >= self.scroll_timeout/1000
+                    and self._scroll_distance_x <= self.scroll_distance
+                    and self._scroll_distance_y <= self.scroll_distance
+                ):
                     self._enable_scroll = False
 
                 if self._enable_scroll:
