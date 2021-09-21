@@ -221,8 +221,7 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_LEAVE          #< Window has lost mouse focus */
         SDL_WINDOWEVENT_FOCUS_GAINED   #< Window has gained keyboard focus */
         SDL_WINDOWEVENT_FOCUS_LOST     #< Window has lost keyboard focus */
-        SDL_WINDOWEVENT_CLOSE
-        SDL_WINDOWEVENT_HIT_TEST #< The window manager requests that the
+        SDL_WINDOWEVENT_CLOSE          #< The window manager requests that the
                                         # window be closed */
 
     ctypedef enum SDL_HintPriority:
