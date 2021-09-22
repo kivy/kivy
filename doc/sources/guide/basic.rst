@@ -65,7 +65,7 @@ First off, let's get familiar with the Kivy app life cycle.
 
 As you can see above, for all intents and purposes, our entry point into our App
 is the run() method, and in our case that is "MyApp().run()". We will get back
-to this, but let's start from the third line::
+to this, but let's start from the line::
 
     from kivy.app import App
 
@@ -108,7 +108,7 @@ This Label will be the Root Widget of this App.
 
 .. Note::
     Python uses indentation to denote code blocks, therefore take note that in
-    the code provided above, at line 12 the class and function definition ends.
+    the code provided above, at line 11 the class and function definition ends.
 
 Now on to the portion that will make our app run at line 14 and 15::
 
