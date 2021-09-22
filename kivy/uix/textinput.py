@@ -1456,9 +1456,11 @@ class TextInput(FocusBehavior, Widget):
         cc = int(self.cursor_col)
         line = self._lines[self.cursor_row]
         len_line = len(line)
-        start = max(0, len(line[:cc]) - line[:cc].rfind(u' ') - 1)
-        end = line[cc:].find(u' ')
-        end = end if end > - 1 else (len_line - cc)
+        delimiters = u' .,:;!?\'"<>()[]{}'
+        start = max(0, len(line[:cc]) -
+                    max(line[:cc].rfind(s) for s in delimiters) - 1)
+        end = min((line[cc:].find(s) if line[cc:].find(s) > -1
+                    else (len_line - cc)) for s in delimiters)
         Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
 
     def on_triple_tap(self):
