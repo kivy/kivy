@@ -767,7 +767,6 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Poi
     cdef int w, h
     SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
     # shift y origin in widget as sdl origin is in top-left
-    widget = <object> data
 
     if pts.x < border and pts.y < border:
         return SDL_HITTEST_RESIZE_TOPLEFT
@@ -785,7 +784,7 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Poi
         return SDL_HITTEST_RESIZE_BOTTOMRIGHT
     elif w - pts.x  > border > h - pts.y:
         return SDL_HITTEST_RESIZE_BOTTOM
-
+    widget = <object> data
     if widget.collide_point(pts.x, h - pts.y) and widget.in_drag_area(pts.x, h - pts.y):
         return SDL_HITTEST_DRAGGABLE
 
