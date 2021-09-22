@@ -73,7 +73,7 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen,
+    def setup_window(self, x, y, width, height, borderless, fullscreen, custom_titlebar,
                      resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
@@ -82,6 +82,8 @@ cdef class _WindowSDL2Storage:
 
         if not USE_IOS:
             if borderless:
+                self.win_flags |= SDL_WINDOW_BORDERLESS
+            elif custom_titlebar:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
 
         if USE_ANDROID:
@@ -746,7 +748,7 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
 
-    def custom_titlebar(self, titlebar_widget):
+    def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
         return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
 
