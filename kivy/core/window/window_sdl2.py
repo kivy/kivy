@@ -268,7 +268,8 @@ class WindowSDL(WindowBase):
             if not self.borderless:
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
-                self.custom_titlebar = self.borderless = self._fake_fullscreen = False
+                self.custom_titlebar = \
+                    self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
                 self.borderless = False
         if self.fullscreen == 'fake':
@@ -322,7 +323,8 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            self._win.set_border_state(self.custom_titlebar if self.custom_titlebar else self.borderless)
+            # we don't want border in either of the case
+            self._win.set_border_state(self.custom_titlebar or self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
@@ -844,6 +846,7 @@ class WindowSDL(WindowBase):
     def set_custom_titlebar(self, titlebar_widget):
         self.titlebar_widget = titlebar_widget
         return self._win.set_custom_titlebar(self.titlebar_widget)
+
 
 class _WindowsSysDPIWatch:
 

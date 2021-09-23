@@ -722,7 +722,7 @@ class WindowBase(EventDispatcher):
     '''
 
     custom_titlebar = BooleanProperty(False)
-    '''When set to True, this property and allows the user to set a widget as a titlebar.
+    '''When set to True, allows the user to set a widget as a titlebar.
     Check the :mod:`~kivy.config` documentation for a more detailed
     explanation on the values.
 
@@ -932,7 +932,8 @@ class WindowBase(EventDispatcher):
         if 'borderless' not in kwargs:
             kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
         if 'custom_titlebar' not in kwargs:
-            kwargs['custom_titlebar'] = Config.getboolean('graphics', 'custom_titlebar')
+            kwargs['custom_titlebar'] = Config.getboolean('graphics',
+                                                          'custom_titlebar')
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):
