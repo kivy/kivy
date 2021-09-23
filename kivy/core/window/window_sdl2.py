@@ -155,6 +155,7 @@ class WindowSDL(WindowBase):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
         self._meta_keys = (
             KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
@@ -267,7 +268,9 @@ class WindowSDL(WindowBase):
             if not self.borderless:
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
-                self.borderless = self._fake_fullscreen = False
+                self.custom_titlebar = self.borderless = self._fake_fullscreen = False
+            elif self.custom_titlebar:
+                self.borderless = False
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -290,7 +293,7 @@ class WindowSDL(WindowBase):
                      if self._is_desktop else None)
             self.system_size = _size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
-                self.fullscreen, resizable, state,
+                self.fullscreen, self.custom_titlebar, resizable, state,
                 self.get_gl_backend_name())
 
             # calculate density/dpi
@@ -319,7 +322,7 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            self._win.set_border_state(self.borderless)
+            self._win.set_border_state(self.custom_titlebar if self.custom_titlebar else self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
@@ -838,6 +841,9 @@ class WindowSDL(WindowBase):
     def ungrab_mouse(self):
         self._win.grab_mouse(False)
 
+    def set_custom_titlebar(self, titlebar_widget):
+        self.titlebar_widget = titlebar_widget
+        return self._win.set_custom_titlebar(self.titlebar_widget)
 
 class _WindowsSysDPIWatch:
 

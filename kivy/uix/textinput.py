@@ -1501,7 +1501,8 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y > 0:
-                        self.scroll_y -= self.line_height
+                        self.scroll_y = max(0, self.scroll_y -
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
                     if self.scroll_x > 0:
@@ -1510,16 +1511,14 @@ class TextInput(FocusBehavior, Widget):
                         self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    viewport_height = self.height\
-                                      - self.padding[1] - self.padding[3]
-                    text_height = len(self._lines) * (self.line_height
-                                                      + self.line_spacing)
-                    if viewport_height < text_height - self.scroll_y:
-                        self.scroll_y += self.line_height
+                    max_scroll_y = max(0, self.minimum_height - self.height)
+                    if self.scroll_y < max_scroll_y:
+                        self.scroll_y = min(max_scroll_y, self.scroll_y +
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._lines_rects[-1].texture.size[0] +
-                                     self.padding[0] + self.padding[2])
+                    minimum_width = (self._get_row_width(0) + self.padding[0] +
+                                     self.padding[2])
                     max_scroll_x = max(0, minimum_width - self.width)
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +

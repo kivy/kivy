@@ -896,6 +896,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 22:
             Config.setdefault('graphics', 'verify_gl_main_thread', '1')
+            Config.setdefault('graphics', 'custom_titlebar', '0')
 
         else:
             # for future.

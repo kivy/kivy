@@ -721,6 +721,17 @@ class WindowBase(EventDispatcher):
     defaults to False.
     '''
 
+    custom_titlebar = BooleanProperty(False)
+    '''When set to True, this property and allows the user to set a widget as a titlebar.
+    Check the :mod:`~kivy.config` documentation for a more detailed
+    explanation on the values.
+
+    .. versionadded:: 1.9.0
+
+    :attr:`custom_titlebar` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
+    '''
+
     fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
     '''This property sets the fullscreen mode of the window. Available options
     are: True, False, 'auto' and 'fake'. Check the :mod:`~kivy.config`
@@ -920,6 +931,8 @@ class WindowBase(EventDispatcher):
         # set the default window parameter according to the configuration
         if 'borderless' not in kwargs:
             kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
+        if 'custom_titlebar' not in kwargs:
+            kwargs['custom_titlebar'] = Config.getboolean('graphics', 'custom_titlebar')
         if 'fullscreen' not in kwargs:
             fullscreen = Config.get('graphics', 'fullscreen')
             if fullscreen not in ('auto', 'fake'):

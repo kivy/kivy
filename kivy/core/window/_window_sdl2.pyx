@@ -73,7 +73,7 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen,
+    def setup_window(self, x, y, width, height, borderless, fullscreen, custom_titlebar,
                      resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
@@ -82,6 +82,8 @@ cdef class _WindowSDL2Storage:
 
         if not USE_IOS:
             if borderless:
+                self.win_flags |= SDL_WINDOW_BORDERLESS
+            elif custom_titlebar:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
 
         if USE_ANDROID:
@@ -745,6 +747,11 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
+
+    def set_custom_titlebar(self, titlebar_widget):
+        SDL_SetWindowBordered(self.win, SDL_FALSE)
+        return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
+
     @property
     def window_size(self):
         cdef int w, h
@@ -752,6 +759,37 @@ cdef class _WindowSDL2Storage:
         return [w, h]
 
 
+
+cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Point* pts, void* data) with gil:
+
+
+    cdef int border = 2 # pixels
+    cdef int w, h
+    SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
+    # shift y origin in widget as sdl origin is in top-left
+
+    if pts.x < border and pts.y < border:
+        return SDL_HITTEST_RESIZE_TOPLEFT
+    elif pts.x < border < h - pts.y:
+        return SDL_HITTEST_RESIZE_LEFT
+    elif pts.x < border and h - pts.y < border:
+        return SDL_HITTEST_RESIZE_BOTTOMLEFT
+    elif w - pts.x < border > pts.y:
+        return SDL_HITTEST_RESIZE_TOPRIGHT
+    elif w - pts.x  > border > pts.y:
+        return SDL_HITTEST_RESIZE_TOP
+    elif w - pts.x  < border < h - pts.y:
+        return SDL_HITTEST_RESIZE_RIGHT
+    elif w - pts.x  < border > h - pts.y:
+        return SDL_HITTEST_RESIZE_BOTTOMRIGHT
+    elif w - pts.x  > border > h - pts.y:
+        return SDL_HITTEST_RESIZE_BOTTOM
+    widget = <object> data
+    if widget.collide_point(pts.x, h - pts.y) and widget.in_drag_area(pts.x, h - pts.y):
+        return SDL_HITTEST_DRAGGABLE
+
+
+    return SDL_HitTestResult.SDL_HITTEST_NORMAL
 # Based on the example at
 # http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
 cdef SDL_Surface* flipVert(SDL_Surface* sfc):
