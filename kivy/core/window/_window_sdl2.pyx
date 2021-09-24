@@ -1,3 +1,7 @@
+import ctypes
+
+import win32con
+
 include "../../../kivy/lib/sdl2.pxi"
 include "../../include/config.pxi"
 
@@ -21,6 +25,9 @@ IF USE_X11:
 
 IF UNAME_SYSNAME == 'Windows':
     from .window_info cimport WindowInfoWindows
+    old_windProc = None
+    new_windProc = None
+    from kivy.input.providers.wm_common import SetWindowLong_WndProc_wrapper, WNDPROC
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -73,7 +80,7 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen, custom_titlebar,
+    def setup_window(self, x, y, width, height, borderless, fullscreen,
                      resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
@@ -82,8 +89,6 @@ cdef class _WindowSDL2Storage:
 
         if not USE_IOS:
             if borderless:
-                self.win_flags |= SDL_WINDOW_BORDERLESS
-            elif custom_titlebar:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
 
         if USE_ANDROID:
@@ -415,6 +420,7 @@ cdef class _WindowSDL2Storage:
                 windows_info = WindowInfoWindows()
                 windows_info.window = wm_info.info.win.window
                 windows_info.hdc = wm_info.info.win.hdc
+                return windows_info # return info
 
     # Transparent Window background
     def is_window_shaped(self):
@@ -608,6 +614,7 @@ cdef class _WindowSDL2Storage:
 
         action = None
         if event.type == SDL_QUIT:
+            unbind_custom_wndProc(self.get_window_info().window)
             return ('quit', )
         elif event.type == SDL_DROPFILE:
             return ('dropfile', event.drop.file)
@@ -752,6 +759,14 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowBordered(self.win, SDL_FALSE)
         return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
 
+    def hook_winProc(self):
+        if platform == "win" and not old_windProc:
+            print("set hook")
+            global old_windProc
+            global new_windProc
+            new_windProc = WNDPROC(custom_wndProc)
+            old_windProc = SetWindowLong_WndProc_wrapper(self.get_window_info().window, new_windProc)
+
     @property
     def window_size(self):
         cdef int w, h
@@ -759,6 +774,17 @@ cdef class _WindowSDL2Storage:
         return [w, h]
 
 
+def custom_wndProc(hwnd, msg, wParam, lParam):
+    global old_windProc
+    if msg == win32con.WM_NCCALCSIZE:
+        return 0
+    return ctypes.windll.user32.CallWindowProcW(old_windProc,
+                                                hwnd, msg, wParam,
+                                                lParam)
+def unbind_custom_wndProc(hwnd):
+    global new_windProc, old_windProc
+    if new_windProc and old_windProc:
+        new_windProc = SetWindowLong_WndProc_wrapper(hwnd, old_windProc)
 
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Point* pts, void* data) with gil:
 
