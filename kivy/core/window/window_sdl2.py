@@ -271,7 +271,13 @@ class WindowSDL(WindowBase):
                 self.custom_titlebar = \
                     self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
-                self.borderless = False
+                if platform == 'win':
+                    # use custom behaviour
+                    # To handle aero snapping and rounded corners
+                    self.borderless = False
+                else:
+                    # just set to borderless and use HitScanning
+                    self.borderless = True
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -294,7 +300,7 @@ class WindowSDL(WindowBase):
                      if self._is_desktop else None)
             self.system_size = _size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
-                self.fullscreen, self.custom_titlebar, resizable, state,
+                self.fullscreen, resizable, state,
                 self.get_gl_backend_name())
 
             # calculate density/dpi
@@ -323,8 +329,9 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            # we don't want border in either of the case
-            self._win.set_border_state(self.custom_titlebar or self.borderless)
+            self._win.set_border_state(self.borderless)
+            if self.custom_titlebar:
+                self._win.hook_winProc()
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
@@ -844,6 +851,16 @@ class WindowSDL(WindowBase):
         self._win.grab_mouse(False)
 
     def set_custom_titlebar(self, titlebar_widget):
+        if self.borderless and platform == 'win':
+            # because of aero snap on windows
+            Logger.warning("Window: Window.borderless set to True.. "
+                           "can't set custom titlebar "
+                           "set only Window.custom_titlebar to True")
+            return
+        if not self.custom_titlebar:
+            Logger.warning("Window: Window.custom_titlebar not set to True.. "
+                           "can't set custom titlebar")
+            return
         self.titlebar_widget = titlebar_widget
         return self._win.set_custom_titlebar(self.titlebar_widget)
 
