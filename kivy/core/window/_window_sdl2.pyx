@@ -761,7 +761,7 @@ cdef class _WindowSDL2Storage:
 
     def hook_winProc(self):
         if platform == "win" and not old_windProc:
-            print("set hook")
+#             print("set hook")
             global old_windProc
             global new_windProc
             new_windProc = WNDPROC(custom_wndProc)
