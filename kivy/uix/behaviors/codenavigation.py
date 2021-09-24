@@ -26,14 +26,17 @@ class CodeNavigationBehavior(EventDispatcher):
     .. versionadded:: 1.9.1
     '''
 
-    def _move_cursor_word_left(self, index=None):
-        pos = index or self.cursor_index()
-        pos -= 1
+    def _move_cursor_word_left(self, cursor=None):
+        col, row = cursor or self.cursor
+        if col == 0:
+            if row > 0:
+                row -= 1
+                col = len(self._lines[row])
+        else:
+            col, row = col - 1, row
+        if col == 0 and row == 0:
+            return col, row
 
-        if pos == 0:
-            return 0, 0
-
-        col, row = self.get_cursor_from_index(pos)
         lines = self._lines
 
         ucase = string.ascii_uppercase
@@ -102,9 +105,8 @@ class CodeNavigationBehavior(EventDispatcher):
 
         return col, row
 
-    def _move_cursor_word_right(self, index=None):
-        pos = index or self.cursor_index()
-        col, row = self.get_cursor_from_index(pos)
+    def _move_cursor_word_right(self, cursor=None):
+        col, row = cursor or self.cursor
         lines = self._lines
         mrow = len(lines) - 1
 

@@ -948,12 +948,12 @@ class TextInput(FocusBehavior, Widget):
 
     _re_whitespace = re.compile(r'\s+')
 
-    def _move_cursor_word_left(self, index=None):
-        pos = index or self.cursor_index()
-        if pos == 0:
-            return self.cursor
+    def _move_cursor_word_left(self, cursor=None):
+        col, row = cursor or self.cursor
+        if col == 0 and row == 0:
+            return col, row
         lines = self._lines
-        col, row = self.get_cursor_from_index(pos)
+
         if col == 0:
             row -= 1
             col = len(lines[row])
@@ -986,9 +986,9 @@ class TextInput(FocusBehavior, Widget):
             col = mpos
             return col, row
 
-    def _move_cursor_word_right(self, index=None):
-        pos = index or self.cursor_index()
-        col, row = self.get_cursor_from_index(pos)
+    def _move_cursor_word_right(self, cursor=None):
+        col, row = cursor or self.cursor
+
         lines = self._lines
         mrow = len(lines) - 1
         if row == mrow and col == len(lines[row]):
