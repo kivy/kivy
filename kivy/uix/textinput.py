@@ -195,7 +195,6 @@ Cache_register('textinput.width', timeout=60.)
 
 FL_IS_LINEBREAK = 0x01
 FL_IS_WORDBREAK = 0x02
-FL_IS_NEWLINE = FL_IS_LINEBREAK | FL_IS_WORDBREAK
 
 # late binding
 Clipboard = None
@@ -1030,22 +1029,29 @@ class TextInput(FocusBehavior, Widget):
             ito = ifrom
         rfrom = self.get_cursor_from_index(ifrom)[1]
         rtcol, rto = self.get_cursor_from_index(ito)
-        rfrom, rto = self._expand_rows(rfrom, rto + 1 if rtcol else rto)
+        rfrom, rto = self._expand_rows(rfrom, rto)
 
         return (self.cursor_index((0, rfrom)),
-                self.cursor_index((0, rto)))
+                self.cursor_index((len(self._lines[rto]), rto)))
 
     def _expand_rows(self, rfrom, rto=None):
-        if rto is None or rto == rfrom:
-            rto = rfrom + 1
-        lines = self._lines
-        flags = list(reversed(self._lines_flags))
-        while rfrom > 0 and not (flags[rfrom - 1] & FL_IS_NEWLINE):
-            rfrom -= 1
-        rmax = len(lines) - 1
-        while 0 < rto < rmax and not (flags[rto - 1] & FL_IS_NEWLINE):
-            rto += 1
-        return max(0, rfrom), min(rmax, rto)
+        lines_flags = self._lines_flags
+        rmax = len(lines_flags) - 1
+        if rto is None:
+            rto = rfrom
+        for i in range(rfrom, -1, -1):
+            if lines_flags[i] == FL_IS_LINEBREAK:
+                start = i
+                break
+        else:
+            start = 0
+        for i in range(rto + 1, rmax + 1):
+            if lines_flags[i] == FL_IS_LINEBREAK:
+                finish = i - 1
+                break
+        else:
+            finish = rmax
+        return start, finish
 
     def _shift_lines(
         self, direction, rows=None, old_cursor=None, from_undo=False
@@ -1057,7 +1063,7 @@ class TextInput(FocusBehavior, Widget):
                 return
 
         lines = self._lines
-        flags = list(reversed(self._lines_flags))
+        flags = self._lines_flags
         labels = self._lines_labels
         rects = self._lines_rects
         orig_cursor = self.cursor
@@ -1081,28 +1087,30 @@ class TextInput(FocusBehavior, Widget):
                 psrow, perow = self._expand_rows(srow - 1)
                 rows = ((srow, erow), (psrow, perow))
             elif direction > 0 and erow < len(lines) - 1:
-                psrow, perow = self._expand_rows(erow)
+                psrow, perow = self._expand_rows(erow + 1)
                 rows = ((srow, erow), (psrow, perow))
 
-        else:
+        if rows:
             (srow, erow), (psrow, perow) = rows
             if direction < 0:
-                m1srow, m1erow = psrow, perow
-                m2srow, m2erow = srow, erow
-                cdiff = psrow - perow
-                xdiff = srow - erow
+                m1srow, m1erow = psrow, perow + 1
+                m2srow, m2erow = srow, erow + 1
+                cdiff = psrow - perow - 1
+                xdiff = srow - erow - 1
             else:
-                m1srow, m1erow = srow, erow
-                m2srow, m2erow = psrow, perow
-                cdiff = perow - psrow
-                xdiff = erow - srow
+                m1srow, m1erow = srow, erow + 1
+                m2srow, m2erow = psrow, perow + 1
+                cdiff = perow - psrow + 1
+                xdiff = erow - srow + 1
 
-            self._lines_flags = list(reversed(chain(
-                flags[:m1srow],
-                flags[m2srow:m2erow],
-                flags[m1srow:m1erow],
-                flags[m2erow:],
-            )))
+            self._lines_flags = flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] + flags[m2erow:]
+            if srow == 0:
+                self._lines_flags[cdiff] = FL_IS_LINEBREAK
+                self._lines_flags[0] = 0
+            if psrow == 0:
+                self._lines_flags[-xdiff] = FL_IS_LINEBREAK
+                self._lines_flags[0] = 0
+
             self._lines[:] = (
                 lines[:m1srow]
                 + lines[m2srow:m2erow]
@@ -1126,7 +1134,7 @@ class TextInput(FocusBehavior, Widget):
             cerow = erow + cdiff
             sel = (
                 self.cursor_index((0, csrow)),
-                self.cursor_index((0, cerow))
+                self.cursor_index((len(self._lines[cerow]), cerow))
             )
             self.cursor = self.cursor_col, self.cursor_row + cdiff
 
