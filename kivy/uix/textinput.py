@@ -1389,26 +1389,30 @@ class TextInput(FocusBehavior, Widget):
         text = self.text
         a, b = sorted((self._selection_from, self._selection_to))
 
-        self.cursor = (start_col, start_row) = self.get_cursor_from_index(a)
-        end_col, end_row = self.get_cursor_from_index(b)
+        start = self.get_cursor_from_index(a)
+        finish = self.get_cursor_from_index(b)
+        cur_line = self._lines[start[1]][:start[0]] +\
+            self._lines[finish[1]][finish[0]:]
 
-        cur_line = (
-            self._lines[start_row][:start_col]
-            + self._lines[end_row][end_col:]
-        )
-        lines, lineflags = self._split_smart(cur_line)
+        self._set_line_text(start[1], cur_line)
+        start_del, finish_del, lines, lines_flags, len_lines = \
+            self._get_line_from_cursor(start[1], cur_line,
+                                       lines=(self._lines[:(start[1] + 1)] +
+                                              self._lines[(finish[1] + 1):]),
+                                       lines_flags=(
+                                           self._lines_flags[:(start[1] + 1)] +
+                                           self._lines_flags[(finish[1] + 1):])
+                                       )
+        self._refresh_text_from_property('del', start_del,
+                                         finish_del + (finish[1] - start[1]),
+                                         lines, lines_flags, len_lines)
 
-        if start_row == end_row:
-            self._set_line_text(start_row, cur_line)
-        else:
-            self._refresh_text_from_property(
-                'del', start_row, end_row, lines, lineflags, len(lines)
-            )
         self.scroll_x = scroll_x
         self.scroll_y = scroll_y
         # handle undo and redo for delete selection
         self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
+        self.cursor = self.get_cursor_from_index(a)
 
     def _set_unredo_delsel(self, a, b, substring, from_undo):
         # handle undo and redo for backspace
