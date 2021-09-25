@@ -880,8 +880,12 @@ class TextInput(FocusBehavior, Widget):
                 self._selection = True
                 self.delete_selection(True)
             elif undo_type == 'bkspc':
-                substring = x_item['undo_command'][2:][0]
+                substring = x_item['undo_command'][2][0]
+                mode = x_item['undo_command'][3]
                 self.insert_text(substring, True)
+                if mode == 'del':
+                    self.cursor = self.get_cursor_from_index(
+                        self.cursor_index() - 1)
             elif undo_type == 'shiftln':
                 direction, rows, cursor = x_item['undo_command'][1:]
                 self._shift_lines(direction, rows, cursor, True)
@@ -908,17 +912,21 @@ class TextInput(FocusBehavior, Widget):
             return
         col, row = self.cursor
         _lines = self._lines
+        _lines_flags = self._lines_flags
         text = _lines[row]
         cursor_index = self.cursor_index()
-        text_last_line = _lines[row - 1]
 
         if col == 0 and row == 0:
             return
-        _lines_flags = self._lines_flags
         start = row
         if col == 0:
-            substring = u'\n' if _lines_flags[row] else u' '
-            new_text = text_last_line + text
+            if _lines_flags[row] == FL_IS_LINEBREAK:
+                substring = u'\n'
+                new_text = _lines[row - 1] + text
+            else:
+                substring = _lines[row - 1][-1] if len(_lines[row - 1]) > 0 \
+                    else u''
+                new_text = _lines[row - 1][:-1] + text
             self._set_line_text(row - 1, new_text)
             self._delete_line(row)
             start = row - 1
@@ -935,22 +943,24 @@ class TextInput(FocusBehavior, Widget):
         # avoid trigger refresh, leads to issue with
         # keys/text send rapidly through code.
         self._refresh_text_from_property(
-            'del', start, finish, lines, lineflags, len_lines
+            'insert' if col == 0 else 'del', start, finish,
+            lines, lineflags, len_lines
         )
 
         self.cursor = self.get_cursor_from_index(cursor_index - 1)
         # handle undo and redo
-        self._set_undo_redo_bkspc(
+        self._set_unredo_bkspc(
             cursor_index,
             cursor_index - 1,
-            substring, from_undo)
+            substring, from_undo, mode)
 
-    def _set_undo_redo_bkspc(self, ol_index, new_index, substring, from_undo):
+    def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
+                          mode):
         # handle undo and redo for backspace
         if from_undo:
             return
         self._undo.append({
-            'undo_command': ('bkspc', new_index, substring),
+            'undo_command': ('bkspc', new_index, substring, mode),
             'redo_command': ol_index})
         # reset redo when undo is appended to
         self._redo = []
