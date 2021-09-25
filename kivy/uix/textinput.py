@@ -751,48 +751,57 @@ class TextInput(FocusBehavior, Widget):
                     return
         self._set_line_text(row, new_text)
 
-        wrap = (self._get_text_width(
-            new_text,
-            self.tab_width,
-            self._label_cached) > (self.width - self.padding[0] -
-                                   self.padding[2]))
-        if len_str > 1 or substring == u'\n' or wrap:
+        if (len_str > 1 or substring == u'\n' or
+            (substring == u' ' and self._lines_flags[row] != FL_IS_LINEBREAK)
+            or (row + 1 < len(self._lines) and
+                self._lines_flags[row + 1] != FL_IS_LINEBREAK) or
+            (self._get_text_width(new_text, self.tab_width, self._label_cached)
+             > (self.width - self.padding[0] - self.padding[2]))):
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
 
             (
-                start, finish, lines, lineflags, len_lines
+                start, finish, lines, lines_flags, len_lines
             ) = self._get_line_from_cursor(row, new_text)
 
             # calling trigger here could lead to wrong cursor positioning
             # and repeating of text when keys are added rapidly in a automated
             # fashion. From Android Keyboard for example.
             self._refresh_text_from_property(
-                'insert', start, finish, lines, lineflags, len_lines
+                'insert', start, finish, lines, lines_flags, len_lines
             )
 
         self.cursor = self.get_cursor_from_index(cindex + len_str)
         # handle undo and redo
         self._set_unredo_insert(cindex, cindex + len_str, substring, from_undo)
 
-    def _get_line_from_cursor(self, start, new_text):
+    def _get_line_from_cursor(self, start, new_text, lines=None,
+                              lines_flags=None):
         # get current paragraph from cursor position
+        if lines is None:
+            lines = self._lines
+        if lines_flags is None:
+            lines_flags = self._lines_flags
+        assert len(lines) == len(lines_flags)
         finish = start
-        lines = self._lines
-        linesflags = self._lines_flags
-        if start and not linesflags[start]:
+        _next = start + 1
+        if start > 0 and lines_flags[start] != FL_IS_LINEBREAK:
             start -= 1
-            new_text = u''.join((lines[start], new_text))
-        try:
-            while not linesflags[finish + 1]:
-                new_text = u''.join((new_text, lines[finish + 1]))
-                finish += 1
-        except IndexError:
-            pass
-        lines, lineflags = self._split_smart(new_text)
+            new_text = lines[start] + new_text
+        i = _next
+        for i in range(_next, len(lines_flags)):
+            if lines_flags[i] == FL_IS_LINEBREAK:
+                finish = i - 1
+                break
+        else:
+            finish = i
+
+        new_text = new_text + u''.join(lines[_next:finish + 1])
+        lines, lines_flags = self._split_smart(new_text)
+
         len_lines = max(1, len(lines))
-        return start, finish, lines, lineflags, len_lines
+        return start, finish, lines, lines_flags, len_lines
 
     def _set_unredo_insert(self, ci, sci, substring, from_undo):
         # handle undo and redo
@@ -2046,17 +2055,12 @@ class TextInput(FocusBehavior, Widget):
             self._lines[:] = _lines
         elif mode == 'del':
             if finish > start:
-                self._insert_lines(start,
-                                   finish if start == finish else (finish + 1),
-                                   len_lines, _lines_flags,
-                                   _lines, _lines_labels, _line_rects)
+                self._insert_lines(start, finish + 1, len_lines,
+                                   _lines_flags, _lines, _lines_labels,
+                                   _line_rects)
         elif mode == 'insert':
-            self._insert_lines(
-                start,
-                finish if (start == finish and not len_lines)
-                else (finish + 1),
-                len_lines, _lines_flags, _lines, _lines_labels,
-                _line_rects)
+            self._insert_lines(start, finish + 1, len_lines, _lines_flags,
+                               _lines, _lines_labels, _line_rects)
 
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
@@ -2563,16 +2567,23 @@ class TextInput(FocusBehavior, Widget):
         # Tokenize a text string from some delimiters
         if text is None:
             return
-        delimiters = u' ,\'".;:\n\r\t'
-        oldindex = 0
+        delimiters = u' .,:;!?\'"\r\t'
+        old_index = 0
+        prev_char = ''
         for index, char in enumerate(text):
             if char not in delimiters:
-                continue
-            if oldindex != index:
-                yield text[oldindex:index]
-            yield text[index:index + 1]
-            oldindex = index + 1
-        yield text[oldindex:]
+                if char != u'\n':
+                    if index > 0 and (prev_char in delimiters):
+                        if old_index < index:
+                            yield text[old_index:index]
+                        old_index = index
+                else:
+                    if old_index < index:
+                        yield text[old_index:index]
+                    yield text[index:index+1]
+                    old_index = index + 1
+            prev_char = char
+        yield text[old_index:]
 
     def _split_smart(self, text):
         """
