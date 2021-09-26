@@ -462,7 +462,12 @@ cdef extern from "SDL.h":
         pass
 
     ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
-    ctypedef SDL_HitTestResult (__cdecl *SDL_HitTest) (SDL_Window *win, SDL_Point *area, void *data) # for windows only see
+    # for windows only see
+    # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
+    IF UNAME_SYSNAME == 'Windows':
+        ctypedef SDL_HitTestResult (__cdecl *SDL_HitTest) (SDL_Window *win, SDL_Point *area, void *data)
+    ELSE:
+        ctypedef SDL_HitTestResult (*SDL_HitTest)(SDL_Window *win, const SDL_Point *area, void *data)
 
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
