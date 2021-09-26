@@ -811,7 +811,17 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Poi
     elif w - pts.x  > border > h - pts.y:
         return SDL_HITTEST_RESIZE_BOTTOM
     widget = <object> data
-    if widget.collide_point(pts.x, h - pts.y) and widget.in_drag_area(pts.x, h - pts.y):
+    in_drag_area = getattr(widget, 'in_drag_area', None)
+    if widget.collide_point(pts.x, h - pts.y):
+        if callable(in_drag_area):
+            if in_drag_area(pts.x, h - pts.y):
+                return SDL_HITTEST_DRAGGABLE
+            else:
+                return SDL_HitTestResult.SDL_HITTEST_NORMAL
+        for child in widget.walk():
+            drag = getattr(child, 'draggable', None)
+            if drag is not None and not drag and child.collide_point(pts.x, h - pts.y):
+                return SDL_HitTestResult.SDL_HITTEST_NORMAL
         return SDL_HITTEST_DRAGGABLE
 
 
