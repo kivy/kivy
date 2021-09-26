@@ -726,7 +726,7 @@ class WindowBase(EventDispatcher):
     Check the :mod:`~kivy.config` documentation for a more detailed
     explanation on the values.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 2.1.0
 
     :attr:`custom_titlebar` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
