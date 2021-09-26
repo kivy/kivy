@@ -1,7 +1,5 @@
 import ctypes
 
-import win32con
-
 include "../../../kivy/lib/sdl2.pxi"
 include "../../include/config.pxi"
 
@@ -25,9 +23,10 @@ IF USE_X11:
 
 IF UNAME_SYSNAME == 'Windows':
     from .window_info cimport WindowInfoWindows
+    from kivy.input.providers.wm_common import SetWindowLong_WndProc_wrapper, WNDPROC
+    import win32con
     old_windProc = None
     new_windProc = None
-    from kivy.input.providers.wm_common import SetWindowLong_WndProc_wrapper, WNDPROC
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -614,7 +613,8 @@ cdef class _WindowSDL2Storage:
 
         action = None
         if event.type == SDL_QUIT:
-            unbind_custom_wndProc(self.get_window_info().window)
+            IF UNAME_SYSNAME == 'Windows':
+                unbind_custom_wndProc(self.get_window_info().window)
             return ('quit', )
         elif event.type == SDL_DROPFILE:
             return ('dropfile', event.drop.file)
@@ -760,12 +760,13 @@ cdef class _WindowSDL2Storage:
         return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
 
     def hook_winProc(self):
-        if platform == "win" and not old_windProc:
-#             print("set hook")
-            global old_windProc
-            global new_windProc
-            new_windProc = WNDPROC(custom_wndProc)
-            old_windProc = SetWindowLong_WndProc_wrapper(self.get_window_info().window, new_windProc)
+        IF UNAME_SYSNAME == 'Windows':
+            if platform == "win" and not old_windProc:
+    #             print("set hook")
+                global old_windProc
+                global new_windProc
+                new_windProc = WNDPROC(custom_wndProc)
+                old_windProc = SetWindowLong_WndProc_wrapper(self.get_window_info().window, new_windProc)
 
     @property
     def window_size(self):
@@ -775,21 +776,23 @@ cdef class _WindowSDL2Storage:
 
 
 def custom_wndProc(hwnd, msg, wParam, lParam):
-    global old_windProc
-    if msg == win32con.WM_NCCALCSIZE:
-        return 0
-    return ctypes.windll.user32.CallWindowProcW(old_windProc,
-                                                hwnd, msg, wParam,
-                                                lParam)
+    IF UNAME_SYSNAME == 'Windows':
+        global old_windProc
+        if msg == win32con.WM_NCCALCSIZE:
+            return 0
+        return ctypes.windll.user32.CallWindowProcW(old_windProc,
+                                                    hwnd, msg, wParam,
+                                                    lParam)
 def unbind_custom_wndProc(hwnd):
-    global new_windProc, old_windProc
-    if new_windProc and old_windProc:
-        new_windProc = SetWindowLong_WndProc_wrapper(hwnd, old_windProc)
+    IF UNAME_SYSNAME == 'Windows':
+        global new_windProc, old_windProc
+        if new_windProc and old_windProc:
+            new_windProc = SetWindowLong_WndProc_wrapper(hwnd, old_windProc)
 
-cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, SDL_Point* pts, void* data) with gil:
+cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
 
-
-    cdef int border = 2 # pixels
+    # todo: discuss border size
+    cdef int border = 20 # pixels
     cdef int w, h
     SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
     # shift y origin in widget as sdl origin is in top-left
