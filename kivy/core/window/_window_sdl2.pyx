@@ -762,7 +762,6 @@ cdef class _WindowSDL2Storage:
     def hook_winProc(self):
         IF UNAME_SYSNAME == 'Windows':
             if platform == "win" and not old_windProc:
-    #             print("set hook")
                 global old_windProc
                 global new_windProc
                 new_windProc = WNDPROC(custom_wndProc)
@@ -784,7 +783,7 @@ def custom_wndProc(hwnd, msg, wParam, lParam):
                                                     lParam)
 def unbind_custom_wndProc(hwnd):
     IF UNAME_SYSNAME == 'Windows':
-        global new_windProc, old_windProc
+        global new_windProc
         if new_windProc and old_windProc:
             new_windProc = SetWindowLong_WndProc_wrapper(hwnd, old_windProc)
 
