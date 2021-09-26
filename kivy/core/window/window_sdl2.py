@@ -326,11 +326,23 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            if platform != 'win' and self.custom_titlebar:
-                self._win.set_border_state(self.custom_titlebar)
+            if platform == 'win':
+                if self.custom_titlebar:
+                    import win32con
+                    import ctypes
+                    self._win.set_border_state(False)
+                    self._win.hook_winProc()
+                    # make windows dispatch WM_NCCALCSIZE explicitly
+                    ctypes.windll.user32.SetWindowPos(
+                        self._win.get_window_info().window,
+                        win32con.HWND_TOP,
+                        *self._win.get_window_pos(),
+                        *self.system_size,
+                        win32con.SWP_FRAMECHANGED
+                    )
             else:
-                self._win.hook_winProc()
-                self._win.set_border_state(self.borderless)
+                self._win.set_border_state(self.borderless
+                                           or self.custom_titlebar)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
