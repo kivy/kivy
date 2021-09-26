@@ -275,9 +275,6 @@ class WindowSDL(WindowBase):
                     # use custom behaviour
                     # To handle aero snapping and rounded corners
                     self.borderless = False
-                else:
-                    # just set to borderless and use HitScanning
-                    self.borderless = True
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -329,8 +326,11 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            self._win.set_border_state(self.borderless)
-            if self.custom_titlebar:
+            self._win.set_border_state(self.custom_titlebar if platform != 'win'
+                                       and self.custom_titlebar
+                                       else self.borderless
+                                       )
+            if self.custom_titlebar and platform == 'win':
                 self._win.hook_winProc()
             self._win.set_fullscreen_mode(self.fullscreen)
 
