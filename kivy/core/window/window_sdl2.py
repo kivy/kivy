@@ -326,12 +326,11 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            self._win.set_border_state(self.custom_titlebar if platform != 'win'
-                                       and self.custom_titlebar
-                                       else self.borderless
-                                       )
-            if self.custom_titlebar and platform == 'win':
+            if platform != 'win' and self.custom_titlebar:
+                self._win.set_border_state(self.custom_titlebar)
+            else:
                 self._win.hook_winProc()
+                self._win.set_border_state(self.borderless)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
