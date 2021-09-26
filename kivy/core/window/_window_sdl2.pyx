@@ -777,7 +777,6 @@ cdef class _WindowSDL2Storage:
 
 def custom_wndProc(hwnd, msg, wParam, lParam):
     IF UNAME_SYSNAME == 'Windows':
-        global old_windProc
         if msg == win32con.WM_NCCALCSIZE:
             return 0
         return ctypes.windll.user32.CallWindowProcW(old_windProc,
