@@ -1161,6 +1161,37 @@ class WindowBase(EventDispatcher):
     defaults to 'data/images/defaultshape.png'. This value is taken from
     :class:`~kivy.config.Config`.
     '''
+    def set_custom_titlebar(self, widget):
+        """
+        Sets a Widget as a titlebar
+
+        .. warning::
+            Window.custom_titlebar must be set to True
+            for the widget to be successfully set as a titlebar
+
+        ... versionadded:: 2.1.0
+
+        .. note::
+            This feature requires the SDL2 window provider and is currently
+            only supported on desktop platforms.
+
+        how to use this feature
+        ```
+            1. first set Window.custom_titlebar to True
+            2. then call Window.set_custom_titlebar with the widget/layout
+               you want to set as titlebar as the argument
+        ```
+        If you want a child of the widget to receive touch events,
+        in that child define a property `draggable` and set it to False
+        if you set the property on a layout,
+        all the child in the layout will receive touch events
+
+        for a complete example see todo
+        """
+
+        Logger.warning('Window: set_custom_titlebar '
+                       'is not implemented in the current'
+                       ' window provider.')
 
     def on_shape_image(self, instance, value):
         if self.initialized:

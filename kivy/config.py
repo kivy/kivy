@@ -172,6 +172,9 @@ Available configuration tokens
     `borderless`: int , one of 0 or 1
         If set to `1`, removes the window border/decoration. Window resizing
         must also be disabled to hide the resizing border.
+    `custom_titlebar`: int , one of 0 or 1
+        If set to `1`, removes the window border and allows user to set a Widget
+        as a titlebar see `Window.set_custom_titlebar` for more usage
     `window_state`: string , one of 'visible', 'hidden', 'maximized'
                     or 'minimized'
 
