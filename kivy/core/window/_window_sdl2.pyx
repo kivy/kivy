@@ -23,10 +23,6 @@ IF USE_X11:
 
 IF UNAME_SYSNAME == 'Windows':
     from .window_info cimport WindowInfoWindows
-    from kivy.input.providers.wm_common import SetWindowLong_WndProc_wrapper, WNDPROC
-    import win32con
-    old_windProc = None
-    new_windProc = None
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -613,8 +609,6 @@ cdef class _WindowSDL2Storage:
 
         action = None
         if event.type == SDL_QUIT:
-            IF UNAME_SYSNAME == 'Windows':
-                unbind_custom_wndProc(self.get_window_info().window)
             return ('quit', )
         elif event.type == SDL_DROPFILE:
             return ('dropfile', event.drop.file)
@@ -759,33 +753,12 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowBordered(self.win, SDL_FALSE)
         return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
 
-    def hook_winProc(self):
-        IF UNAME_SYSNAME == 'Windows':
-            if platform == "win" and not old_windProc:
-                global old_windProc
-                global new_windProc
-                new_windProc = WNDPROC(custom_wndProc)
-                old_windProc = SetWindowLong_WndProc_wrapper(self.get_window_info().window, new_windProc)
-
     @property
     def window_size(self):
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return [w, h]
 
-
-def custom_wndProc(hwnd, msg, wParam, lParam):
-    IF UNAME_SYSNAME == 'Windows':
-        if msg == win32con.WM_NCCALCSIZE:
-            return 0
-        return ctypes.windll.user32.CallWindowProcW(old_windProc,
-                                                    hwnd, msg, wParam,
-                                                    lParam)
-def unbind_custom_wndProc(hwnd):
-    IF UNAME_SYSNAME == 'Windows':
-        global new_windProc
-        if new_windProc and old_windProc:
-            new_windProc = SetWindowLong_WndProc_wrapper(hwnd, old_windProc)
 
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
 
