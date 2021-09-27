@@ -331,7 +331,6 @@ class WindowSDL(WindowBase):
                     import win32con
                     import ctypes
                     self._win.set_border_state(False)
-                    self._win.hook_winProc()
                     # make windows dispatch WM_NCCALCSIZE explicitly
                     ctypes.windll.user32.SetWindowPos(
                         self._win.get_window_info().window,
@@ -864,9 +863,8 @@ class WindowSDL(WindowBase):
     def set_custom_titlebar(self, titlebar_widget):
         if self.borderless and platform == 'win':
             # because of aero snap on windows
-            Logger.warning("Window: Window.borderless set to True.. "
-                           "can't set custom titlebar "
-                           "set only Window.custom_titlebar to True")
+            Logger.warning("Window: Window.borderless set to True..  "
+                           "must use Window.custom_titlebar instead")
             return
         if not self.custom_titlebar:
             Logger.warning("Window: Window.custom_titlebar not set to True.. "
@@ -913,7 +911,7 @@ class _WindowsSysDPIWatch:
         self.hwnd = self.new_windProc = self.old_windProc = None
 
     def _wnd_proc(self, hwnd, msg, wParam, lParam):
-        from kivy.input.providers.wm_common import WM_DPICHANGED
+        from kivy.input.providers.wm_common import WM_DPICHANGED, WM_NCCALCSIZE
         from ctypes import windll
 
         if msg == WM_DPICHANGED:
@@ -934,6 +932,7 @@ class _WindowsSysDPIWatch:
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16
             Clock.schedule_once(clock_callback, -1)
-
+        elif msg == WM_NCCALCSIZE and self.window.custom_titlebar:
+            return 0
         return windll.user32.CallWindowProcW(
             self.old_windProc, hwnd, msg, wParam, lParam)
