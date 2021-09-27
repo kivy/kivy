@@ -762,7 +762,6 @@ cdef class _WindowSDL2Storage:
 
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
 
-    # todo: discuss border size
     cdef int border = max(
         Config.getdefaultint('graphics','custom_titlebar_border',5),
         Config.getint('graphics', 'custom_titlebar_border')
