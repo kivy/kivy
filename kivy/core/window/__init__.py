@@ -206,6 +206,8 @@ class WindowBase(EventDispatcher):
             Set the window border state. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
+        `custom_titlebar`: str, one of ('0', '1')
+            Set to `'1'` to uses a custom titlebar
         `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
@@ -728,6 +730,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 2.1.0
 
+    see :meth:`~kivy.core.window.WindowBase.set_custom_titlebar`
+    for detailed usage
     :attr:`custom_titlebar` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
@@ -1165,28 +1169,47 @@ class WindowBase(EventDispatcher):
         """
         Sets a Widget as a titlebar
 
-        .. warning::
-            Window.custom_titlebar must be set to True
-            for the widget to be successfully set as a titlebar
+            :widget: The widget you want to set as the titlebar
 
-        ... versionadded:: 2.1.0
+        .. versionadded:: 2.1.0
+
+        This function returns `True` on successfully setting the custom titlebar,
+        else false
+
+        How to use this feature
+
+        ::
+
+            1. first set Window.custom_titlebar to True
+            2. then call Window.set_custom_titlebar with the widget/layout you want to set as titlebar as the argument # noqa: E501
+
+        If you want a child of the widget to receive touch events, in
+        that child define a property `draggable` and set it to False
+
+        If you set the property `draggable` on a layout,
+        all the child in the layout will receive touch events
+
+        If you want to override default behaviour, add function `in_drag_area(x,y)`
+        to the widget
+
+        The function is call with two args x,y which are mouse.x, and mouse.y
+        the function should return
+
+        | `True` if that point should be used to drag the window
+        | `False` if you want to receive the touch event at the point
+
+        .. note::
+            If you use :meth:`in_drag_area` property `draggable`
+            will not be checked
 
         .. note::
             This feature requires the SDL2 window provider and is currently
             only supported on desktop platforms.
 
-        how to use this feature
-        ```
-            1. first set Window.custom_titlebar to True
-            2. then call Window.set_custom_titlebar with the widget/layout
-               you want to set as titlebar as the argument
-        ```
-        If you want a child of the widget to receive touch events,
-        in that child define a property `draggable` and set it to False
-        if you set the property on a layout,
-        all the child in the layout will receive touch events
+        .. warning::
+            :mod:`~kivy.core.window.WindowBase.custom_titlebar` must be set to True
+            for the widget to be successfully set as a titlebar
 
-        for a complete example see todo
         """
 
         Logger.warning('Window: set_custom_titlebar '

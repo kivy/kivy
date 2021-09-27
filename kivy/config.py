@@ -169,12 +169,14 @@ Available configuration tokens
         Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
-    `borderless`: int , one of 0 or 1
+    `borderless`: int, one of 0 or 1
         If set to `1`, removes the window border/decoration. Window resizing
         must also be disabled to hide the resizing border.
-    `custom_titlebar`: int , one of 0 or 1
+    `custom_titlebar`: int, one of 0 or 1
         If set to `1`, removes the window border and allows user to set a Widget
-        as a titlebar see `Window.set_custom_titlebar` for more usage
+        as a titlebar
+        see :meth:`~kivy.core.window.WindowBase.set_custom_titlebar`
+        for detailed usage
     `window_state`: string , one of 'visible', 'hidden', 'maximized'
                     or 'minimized'
 
