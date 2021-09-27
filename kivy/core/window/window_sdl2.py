@@ -339,6 +339,8 @@ class WindowSDL(WindowBase):
                         *self.system_size,
                         win32con.SWP_FRAMECHANGED
                     )
+                else:
+                    self._win.set_border_state(self.borderless)
             else:
                 self._win.set_border_state(self.borderless
                                            or self.custom_titlebar)
