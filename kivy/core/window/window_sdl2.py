@@ -873,7 +873,9 @@ class WindowSDL(WindowBase):
                            "can't set custom titlebar")
             return
         self.titlebar_widget = titlebar_widget
-        return self._win.set_custom_titlebar(self.titlebar_widget)
+        return True \
+            if self._win.set_custom_titlebar(self.titlebar_widget) == 0 \
+            else False
 
 
 class _WindowsSysDPIWatch:
