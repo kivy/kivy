@@ -465,7 +465,7 @@ cdef extern from "SDL.h":
     # for windows only see
     # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
     IF UNAME_SYSNAME == 'Windows':
-        ctypedef SDL_HitTestResult (__cdecl *SDL_HitTest) (SDL_Window *win, SDL_Point *area, void *data)
+        ctypedef SDL_HitTestResult (__cdecl *SDL_HitTest) (SDL_Window *win, const SDL_Point *area, void *data)
     ELSE:
         ctypedef SDL_HitTestResult (*SDL_HitTest)(SDL_Window *win, const SDL_Point *area, void *data)
 
