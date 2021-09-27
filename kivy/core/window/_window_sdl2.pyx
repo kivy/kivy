@@ -763,7 +763,10 @@ cdef class _WindowSDL2Storage:
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
 
     # todo: discuss border size
-    cdef int border = 20 # pixels
+    cdef int border = max(
+        Config.getdefaultint('graphics','custom_titlebar_border',5),
+        Config.getint('graphics', 'custom_titlebar_border')
+    ) # pixels
     cdef int w, h
     SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
     # shift y origin in widget as sdl origin is in top-left
