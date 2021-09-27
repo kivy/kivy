@@ -863,15 +863,17 @@ class WindowSDL(WindowBase):
         self._win.grab_mouse(False)
 
     def set_custom_titlebar(self, titlebar_widget):
-        if self.borderless and platform == 'win':
-            # because of aero snap on windows
-            Logger.warning("Window: Window.borderless set to True..  "
-                           "must use Window.custom_titlebar instead")
-            return
         if not self.custom_titlebar:
             Logger.warning("Window: Window.custom_titlebar not set to True.. "
                            "can't set custom titlebar")
             return
+
+        if self.borderless:
+            # because of aero snap on windows
+            Logger.warning("Window: Window.borderless set to True..  "
+                           "must use Window.custom_titlebar only")
+            return
+
         self.titlebar_widget = titlebar_widget
         return True \
             if self._win.set_custom_titlebar(self.titlebar_widget) == 0 \
