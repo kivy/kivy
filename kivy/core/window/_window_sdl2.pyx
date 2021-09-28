@@ -769,26 +769,26 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const S
     cdef int w, h
     SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
     # shift y origin in widget as sdl origin is in top-left
-
-    if pts.x < border and pts.y < border:
-        return SDL_HITTEST_RESIZE_TOPLEFT
-    elif pts.x < border < h - pts.y:
-        return SDL_HITTEST_RESIZE_LEFT
-    elif pts.x < border and h - pts.y < border:
-        return SDL_HITTEST_RESIZE_BOTTOMLEFT
-    elif w - pts.x < border > pts.y:
-        return SDL_HITTEST_RESIZE_TOPRIGHT
-    elif w - pts.x  > border > pts.y:
-        return SDL_HITTEST_RESIZE_TOP
-    elif w - pts.x  < border < h - pts.y:
-        return SDL_HITTEST_RESIZE_RIGHT
-    elif w - pts.x  < border > h - pts.y:
-        return SDL_HITTEST_RESIZE_BOTTOMRIGHT
-    elif w - pts.x  > border > h - pts.y:
-        return SDL_HITTEST_RESIZE_BOTTOM
+    if Config.getboolean('graphics', 'resizable'):
+        if pts.x < border and pts.y < border:
+            return SDL_HITTEST_RESIZE_TOPLEFT
+        elif pts.x < border < h - pts.y:
+            return SDL_HITTEST_RESIZE_LEFT
+        elif pts.x < border and h - pts.y < border:
+            return SDL_HITTEST_RESIZE_BOTTOMLEFT
+        elif w - pts.x < border > pts.y:
+            return SDL_HITTEST_RESIZE_TOPRIGHT
+        elif w - pts.x  > border > pts.y:
+            return SDL_HITTEST_RESIZE_TOP
+        elif w - pts.x  < border < h - pts.y:
+            return SDL_HITTEST_RESIZE_RIGHT
+        elif w - pts.x  < border > h - pts.y:
+            return SDL_HITTEST_RESIZE_BOTTOMRIGHT
+        elif w - pts.x  > border > h - pts.y:
+            return SDL_HITTEST_RESIZE_BOTTOM
     widget = <object> data
-    in_drag_area = getattr(widget, 'in_drag_area', None)
     if widget.collide_point(pts.x, h - pts.y):
+        in_drag_area = getattr(widget, 'in_drag_area', None)
         if callable(in_drag_area):
             if in_drag_area(pts.x, h - pts.y):
                 return SDL_HITTEST_DRAGGABLE

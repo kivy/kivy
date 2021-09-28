@@ -328,17 +328,22 @@ class WindowSDL(WindowBase):
             self._win.resize_window(w, h)
             if platform == 'win':
                 if self.custom_titlebar:
-                    import win32con
-                    import ctypes
-                    self._win.set_border_state(False)
-                    # make windows dispatch WM_NCCALCSIZE explicitly
-                    ctypes.windll.user32.SetWindowPos(
-                        self._win.get_window_info().window,
-                        win32con.HWND_TOP,
-                        *self._win.get_window_pos(),
-                        *self.system_size,
-                        win32con.SWP_FRAMECHANGED
-                    )
+                    # check dragging+resize or just dragging
+                    if Config.getboolean('graphics', 'resizable'):
+                        import win32con
+                        import ctypes
+                        self._win.set_border_state(False)
+                        # make windows dispatch,
+                        # WM_NCCALCSIZE explicitly
+                        ctypes.windll.user32.SetWindowPos(
+                            self._win.get_window_info().window,
+                            win32con.HWND_TOP,
+                            *self._win.get_window_pos(),
+                            *self.system_size,
+                            win32con.SWP_FRAMECHANGED
+                        )
+                    else:
+                        self._win.set_border_state(True)
                 else:
                     self._win.set_border_state(self.borderless)
             else:
@@ -936,7 +941,8 @@ class _WindowsSysDPIWatch:
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16
             Clock.schedule_once(clock_callback, -1)
-        elif msg == WM_NCCALCSIZE and self.window.custom_titlebar:
+        elif Config.getboolean('graphics', 'resizable') \
+                and msg == WM_NCCALCSIZE and self.window.custom_titlebar:
             return 0
         return windll.user32.CallWindowProcW(
             self.old_windProc, hwnd, msg, wParam, lParam)
