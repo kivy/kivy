@@ -864,7 +864,7 @@ class WindowSDL(WindowBase):
 
     def set_custom_titlebar(self, titlebar_widget):
         if not self.custom_titlebar:
-            Logger.warning("Window: Window.custom_titlebar not set to True.. "
+            Logger.warning("Window: Window.custom_titlebar not set to True… "
                            "can't set custom titlebar")
             return
 
