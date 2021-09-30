@@ -1610,13 +1610,13 @@ class TextInput(FocusBehavior, Widget):
         prioritized_touch_types = (
             touch.is_double_tap
             or touch.is_triple_tap
-            or self._touch_count==4
+            or self._touch_count == 4
         )
 
         _scroll_timeout = touch.time_update - touch.time_start
         # conditions for discarding touch such as swipe to scroll and as
         # selection on hold. If the conditions are true, the tap will be
-        # generically recognized as a single tap. 
+        # generically recognized as a single tap.
         single_tap = (
             _scroll_timeout <= self.scroll_timeout / 1000
             and self._scroll_distance_x <= self.scroll_distance
