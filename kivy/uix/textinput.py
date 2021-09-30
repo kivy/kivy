@@ -1566,7 +1566,7 @@ class TextInput(FocusBehavior, Widget):
 
         return True
 
-    # cancel/update existing selection by tapping
+    # cancel/update existing selection after a single tap
     def _cancel_update_selection(self, touch):
         if not self._selection_touch:
             self.cancel_selection()
@@ -1605,21 +1605,31 @@ class TextInput(FocusBehavior, Widget):
         if not self.focus:
             return False
 
+        # types of touch that will have higher priority in being recognized,
+        # compared to single tap
+        prioritized_touch_types = (
+            touch.is_double_tap
+            or touch.is_triple_tap
+            or self._touch_count==4
+        )
+
         _scroll_timeout = touch.time_update - touch.time_start
-        any_condition_true = any((
-            touch.is_double_tap,
-            touch.is_triple_tap,
-            self._touch_count == 4
-        ))
-        all_condition_true = all((
-            _scroll_timeout <= self.scroll_timeout / 1000,
-            self._scroll_distance_x <= self.scroll_distance,
-            self._scroll_distance_y <= self.scroll_distance
-        ))
+        # conditions for discarding touch such as swipe to scroll and as
+        # selection on hold. If the conditions are true, the tap will be
+        # generically recognized as a single tap. 
+        single_tap = (
+            _scroll_timeout <= self.scroll_timeout / 1000
+            and self._scroll_distance_x <= self.scroll_distance
+            and self._scroll_distance_y <= self.scroll_distance
+        )
+
+        # if the given conditions are true, the touch will be recognized as a
+        # single tap. If there is selected text, the selection will be canceled
+        # and it will be possible to start a new selection.
         if (
             self.scroll_from_swipe
-            and not any_condition_true
-            and all_condition_true
+            and not prioritized_touch_types
+            and single_tap
         ):
             self._cancel_update_selection(self._touch_down)
 
