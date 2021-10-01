@@ -15,6 +15,7 @@ __all__ = ('CodeNavigationBehavior', )
 
 from kivy.event import EventDispatcher
 import string
+import kivy.uix.textinput as textinput
 
 
 class CodeNavigationBehavior(EventDispatcher):
@@ -35,6 +36,7 @@ class CodeNavigationBehavior(EventDispatcher):
 
         col, row = self.get_cursor_from_index(pos)
         lines = self._lines
+        lines_flags = self._lines_flags
 
         ucase = string.ascii_uppercase
         lcase = string.ascii_lowercase
@@ -44,6 +46,10 @@ class CodeNavigationBehavior(EventDispatcher):
         mode = 'normal'
 
         rline = lines[row]
+        if col == 0 and lines_flags[row] == textinput.FL_IS_WORDBREAK:
+            row -= 1
+            rline = lines[row]
+            col = len(rline)
         c = rline[col] if len(rline) > col else '\n'
         if c in ws:
             mode = 'ws'
@@ -55,18 +61,25 @@ class CodeNavigationBehavior(EventDispatcher):
             mode = 'camel'
 
         while True:
-            if col == -1:
+            lc = c
+            if col <= 0:
                 if row == 0:
                     return 0, 0
-                row -= 1
-                rline = lines[row]
-                col = len(rline)
-            lc = c
+                if lines_flags[row] == textinput.FL_IS_WORDBREAK:
+                    lc = None
+                if col < 0 or lines_flags[row] == textinput.FL_IS_WORDBREAK:
+                    row -= 1
+                    rline = lines[row]
+                    col = len(rline)
             c = rline[col] if len(rline) > col else '\n'
+
             if c == '\n':
-                if lc not in ws:
+                if lc is not None and lc not in ws:
                     col += 1
-                break
+                    break
+                col -= 1
+                continue
+
             if mode in ('normal', 'camel') and c in ws:
                 col += 1
                 break
@@ -106,6 +119,7 @@ class CodeNavigationBehavior(EventDispatcher):
         pos = index or self.cursor_index()
         col, row = self.get_cursor_from_index(pos)
         lines = self._lines
+        lines_flags = self._lines_flags
         mrow = len(lines) - 1
 
         if row == mrow and col == len(lines[row]):
@@ -119,6 +133,11 @@ class CodeNavigationBehavior(EventDispatcher):
         mode = 'normal'
 
         rline = lines[row]
+        if len(rline) == col and \
+                lines_flags[row + 1] != textinput.FL_IS_LINEBREAK:
+            row += 1
+            col = 0
+            rline = lines[row]
         c = rline[col] if len(rline) > col else '\n'
         if c in ws:
             mode = 'ws'
@@ -153,15 +172,14 @@ class CodeNavigationBehavior(EventDispatcher):
 
             col += 1
 
-            if col > len(rline):
+            if col >= len(rline):
                 if row == mrow:
                     return len(rline), mrow
-                row += 1
-                rline = lines[row]
-                col = 0
-
+                if col > len(rline) or \
+                        lines_flags[row + 1] == textinput.FL_IS_WORDBREAK:
+                    row += 1
+                    rline = lines[row]
+                    col = 0
             c = rline[col] if len(rline) > col else '\n'
-            if c == '\n':
-                break
 
         return col, row

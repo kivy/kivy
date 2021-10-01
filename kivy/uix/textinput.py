@@ -953,6 +953,7 @@ class TextInput(FocusBehavior, Widget):
         if pos == 0:
             return self.cursor
         lines = self._lines
+        lines_flags = self._lines_flags
         col, row = self.get_cursor_from_index(pos)
         if col == 0:
             row -= 1
@@ -961,13 +962,12 @@ class TextInput(FocusBehavior, Widget):
         while True:
             matches = list(self._re_whitespace.finditer(lines[row], 0, col))
             if not matches:
-                if col == 0:
-                    if row == 0:
-                        return 0, 0
-                    row -= 1
-                    col = len(lines[row])
-                    continue
-                return 0, row
+                if row == 0 or (lines_flags[row] != FL_IS_WORDBREAK and
+                                len(lines[row]) > 0):
+                    return 0, row
+                row -= 1
+                col = len(lines[row])
+                continue
 
             match = matches[-1]
             mpos = match.end()
@@ -976,13 +976,19 @@ class TextInput(FocusBehavior, Widget):
                     match = matches[-2]
                     mpos = match.end()
                 else:
-                    if match.start() == 0:
-                        if row == 0:
+                    if row == 0:
+                        if match.start() == 0:
+                            return col, 0
+                        else:
                             return 0, 0
-                        row -= 1
-                        col = len(lines[row])
-                        continue
-                    return 0, row
+                    else:
+                        if match.start() == 0 or \
+                                lines_flags[row] == FL_IS_WORDBREAK:
+                            row -= 1
+                            col = len(lines[row])
+                            continue
+                        else:
+                            return 0, row
             col = mpos
             return col, row
 
@@ -990,6 +996,7 @@ class TextInput(FocusBehavior, Widget):
         pos = index or self.cursor_index()
         col, row = self.get_cursor_from_index(pos)
         lines = self._lines
+        lines_flags = self._lines_flags
         mrow = len(lines) - 1
         if row == mrow and col == len(lines[row]):
             return col, row
@@ -1000,13 +1007,12 @@ class TextInput(FocusBehavior, Widget):
         while True:
             matches = list(self._re_whitespace.finditer(lines[row], col))
             if not matches:
-                if col == len(lines[row]):
-                    if row == mrow:
-                        return col, row
-                    row += 1
-                    col = 0
-                    continue
-                return len(lines[row]), row
+                if row == mrow or (lines_flags[row + 1] != FL_IS_WORDBREAK and
+                                   len(lines[row]) > 0):
+                    return len(lines[row]), row
+                row += 1
+                col = 0
+                continue
 
             match = matches[0]
             mpos = match.start()
@@ -1015,13 +1021,19 @@ class TextInput(FocusBehavior, Widget):
                     match = matches[1]
                     mpos = match.start()
                 else:
-                    if match.end() == len(lines[row]):
-                        if row == mrow:
+                    if row == mrow:
+                        if match.end() == len(lines[row]):
                             return col, row
-                        row += 1
-                        col = 0
-                        continue
-                    return len(lines[row]), row
+                        else:
+                            return len(lines[row]), row
+                    else:
+                        if match.end() == len(lines[row]) or \
+                                lines_flags[row + 1] == FL_IS_WORDBREAK:
+                            row += 1
+                            col = 0
+                            continue
+                        else:
+                            return len(lines[row]), row
             col = mpos
             return col, row
 
