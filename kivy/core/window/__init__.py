@@ -341,7 +341,6 @@ class WindowBase(EventDispatcher):
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
-    _clearcolor = ObjectProperty([0, 0, 0, 1])
     _focus = BooleanProperty(True)
 
     gl_backends_allowed = []
@@ -457,19 +456,7 @@ class WindowBase(EventDispatcher):
     :attr:`size` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    def _get_clearcolor(self):
-        return self._clearcolor
-
-    def _set_clearcolor(self, value):
-        if value is not None:
-            if type(value) not in (list, tuple):
-                raise Exception('Clearcolor must be a list or tuple')
-            if len(value) != 4:
-                raise Exception('Clearcolor must contain 4 values')
-        self._clearcolor = value
-
-    clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
-                               bind=('_clearcolor', ))
+    clearcolor = ColorProperty((0, 0, 0, 1))
     '''Color used to clear the window.
 
     ::
@@ -487,8 +474,12 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.0.9
 
-    :attr:`clearcolor` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`clearcolor` is an :class:`~kivy.properties.ColorProperty` and
     defaults to (0, 0, 0, 1).
+
+    .. versionchanged:: 2.1.0
+        Changed from :class:`~kivy.properties.AliasProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     # make some property read-only
@@ -1428,13 +1419,13 @@ class WindowBase(EventDispatcher):
     def clear(self):
         '''Clear the window with the background color'''
         # XXX FIXME use late binding
-        from kivy.graphics.opengl import glClearColor, glClear, \
-            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
-        cc = self._clearcolor
-        if cc is not None:
-            glClearColor(*cc)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-                    GL_STENCIL_BUFFER_BIT)
+        from kivy.graphics import opengl as gl
+        gl.glClearColor(*self.clearcolor)
+        gl.glClear(
+            gl.GL_COLOR_BUFFER_BIT
+            | gl.GL_DEPTH_BUFFER_BIT
+            | gl.GL_STENCIL_BUFFER_BIT
+        )
 
     def set_title(self, title):
         '''Set the window title.
