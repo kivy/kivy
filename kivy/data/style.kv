@@ -190,6 +190,7 @@
             rgba:
                 (self.cursor_color
                 if self.focus and not self._cursor_blink
+                and int(self.x + self.padding[0]) <= self._cursor_visual_pos[0] <= int(self.x + self.width - self.padding[2])
                 else (0, 0, 0, 0))
         Rectangle:
             pos: self._cursor_visual_pos

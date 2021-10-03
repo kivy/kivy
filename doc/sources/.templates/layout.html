@@ -96,22 +96,32 @@
     <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
     {%- if not embedded %}
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '{{ url_root }}',
-        VERSION:     '{{ release|e }}',
-        COLLAPSE_MODINDEX: false,
-        FILE_SUFFIX: '{{ file_suffix }}',
-        HAS_SOURCE:  {{ has_source|lower }}
-
-      };
-    </script>
-    {%- for scriptfile in script_files %}
-    <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
-    {%- endfor %}
-    <script type="text/javascript" src="{{ pathto('_static/jquery-effects-core-and-slide.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
+    {%- block scripts %}
+        {% if sphinx_version >= "1.8.0" %} 
+          <script type="text/javascript" id="documentation_options" data-url_root="{{ pathto('', 1) }}" src="{{ pathto('_static/documentation_options.js', 1) }}"></script> 
+          {%- for scriptfile in script_files %} 
+            {{ js_tag(scriptfile) }} 
+          {%- endfor %} 
+        {% else %} 
+          <script type="text/javascript"> 
+              var DOCUMENTATION_OPTIONS = { 
+                  URL_ROOT:'{{ url_root }}', 
+                  VERSION:'{{ release|e }}', 
+                  LANGUAGE:'{{ language }}', 
+                  COLLAPSE_INDEX:false, 
+                  FILE_SUFFIX:'{{ '' if no_search_suffix else file_suffix }}', 
+                  HAS_SOURCE:  {{ has_source|lower }}, 
+                  SOURCELINK_SUFFIX: '{{ sourcelink_suffix }}' 
+              }; 
+          </script> 
+          {%- for scriptfile in script_files %} 
+            <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script> 
+          {%- endfor %} 
+        {% endif %}
+        <script type="text/javascript" src="{{ pathto('_static/jquery-effects-core-and-slide.js', 1) }}"></script>
+        <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
+        <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
+    {%- endblock %}
     {%- if use_opensearch %}
     <link rel="search" type="application/opensearchdescription+xml"
           title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
