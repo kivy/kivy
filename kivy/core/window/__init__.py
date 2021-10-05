@@ -1465,7 +1465,7 @@ class WindowBase(EventDispatcher):
         if `widget` is passed transforms `me` to `widget`'s local coordinates.
 
         :raises:
-            `AttributeError`: If widget's parent is ``None``.
+            `AttributeError`: If widget's ancestor is ``None``.
 
         .. note::
             Unless it's a specific case, call
