@@ -1530,7 +1530,11 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
-            me.push()
+            # TODO: Use me.push/me.pop methods because `me` is transformed
+            # Clock execution of partial ScrollView._on_touch_up method and
+            # other similar cases should be changed so that me.push/me.pop can
+            # be used restore previous values of event's attributes
+            # me.push()
             self.transform_motion_event_2d(me)
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)
@@ -1539,7 +1543,7 @@ class WindowBase(EventDispatcher):
             elif etype == 'end':
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
-            me.pop()
+            # me.pop()
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
