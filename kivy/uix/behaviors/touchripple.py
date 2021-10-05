@@ -25,7 +25,8 @@ animation instead of default press/release visualization.
 '''
 from kivy.animation import Animation
 from kivy.clock import Clock
-from kivy.graphics import CanvasBase, Color, Ellipse, ScissorPush, ScissorPop
+from kivy.graphics import CanvasBase, Color, Ellipse, RoundedRectangle, \
+    StencilPush, StencilUse, StencilUnUse, StencilPop
 from kivy.properties import BooleanProperty, ListProperty, NumericProperty, \
     ObjectProperty, StringProperty
 from kivy.uix.relativelayout import RelativeLayout
@@ -70,6 +71,20 @@ class TouchRippleBehavior(object):
                     self.ripple_fade()
                     return True
                 return False
+    '''
+
+    radius = ListProperty([0, 0, 0, 0])
+    '''Radius of the target shape that the touch ripple will be aplied. This
+    will clip the ripple to the target shape according to the radius given.
+    It is recommended to set the radius when using the touch ripple in a
+    rounded target shape as a circle, ellipse or rounded rectangle.
+    It's not necessary to set this property when using a rectangle as a target
+    shape.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`radius` is a :class:`~kivy.properties.ListProperty`
+    and defaults to [0, 0, 0, 0].
     '''
 
     ripple_rad_default = NumericProperty(10)
@@ -162,12 +177,13 @@ class TouchRippleBehavior(object):
         ripple_rad = self.ripple_rad
         self.ripple_color = [rc[0], rc[1], rc[2], self.ripple_fade_from_alpha]
         with self.ripple_pane:
-            ScissorPush(
-                x=int(round(x)),
-                y=int(round(y)),
-                width=int(round(width)),
-                height=int(round(height))
+            StencilPush()
+            RoundedRectangle(
+                size=self.size,
+                pos=self.pos,
+                radius=self.radius
             )
+            StencilUse()
             self.ripple_col_instruction = Color(rgba=self.ripple_color)
             self.ripple_ellipse = Ellipse(
                 size=(ripple_rad, ripple_rad),
@@ -176,7 +192,13 @@ class TouchRippleBehavior(object):
                     ripple_pos[1] - ripple_rad / 2.
                 )
             )
-            ScissorPop()
+            StencilUnUse()
+            RoundedRectangle(
+                size=self.size,
+                pos=self.pos,
+                radius=self.radius
+            )
+            StencilPop()
         anim = Animation(
             ripple_rad=max(width, height) * self.ripple_scale,
             t=self.ripple_func_in,
