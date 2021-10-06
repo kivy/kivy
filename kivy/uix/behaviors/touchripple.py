@@ -73,7 +73,7 @@ class TouchRippleBehavior(object):
                 return False
     '''
 
-    radius = ListProperty([0, 0, 0, 0])
+    ripple_clipping_radius = ListProperty([0, 0, 0, 0])
     '''Radius of the target shape that the touch ripple will be aplied. This
     will clip the ripple to the target shape according to the radius given.
     It is recommended to set the radius when using the touch ripple in a
@@ -83,7 +83,7 @@ class TouchRippleBehavior(object):
 
     .. versionadded:: 2.1.0
 
-    :attr:`radius` is a :class:`~kivy.properties.ListProperty`
+    :attr:`ripple_clipping_radius` is a :class:`~kivy.properties.ListProperty`
     and defaults to [0, 0, 0, 0].
     '''
 
@@ -181,7 +181,7 @@ class TouchRippleBehavior(object):
             RoundedRectangle(
                 size=self.size,
                 pos=self.pos,
-                radius=self.radius
+                radius=self.ripple_clipping_radius
             )
             StencilUse()
             self.ripple_col_instruction = Color(rgba=self.ripple_color)
@@ -196,7 +196,7 @@ class TouchRippleBehavior(object):
             RoundedRectangle(
                 size=self.size,
                 pos=self.pos,
-                radius=self.radius
+                radius=self.ripple_clipping_radius
             )
             StencilPop()
         anim = Animation(
