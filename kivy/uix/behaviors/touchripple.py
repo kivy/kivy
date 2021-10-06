@@ -79,7 +79,7 @@ class TouchRippleBehavior(object):
     the given radius. It is recommended to set the radius when using touch
     ripple on a rounded target shape with a circle, ellipse, or rounded
     rectangle shape.
-    
+
     .. Note::
         In order for you to get the expected result, the radius given needs to
         be the same as the target shape to which the ripple will be applied.
