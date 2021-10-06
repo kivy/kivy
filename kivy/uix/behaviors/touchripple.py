@@ -74,12 +74,17 @@ class TouchRippleBehavior(object):
     '''
 
     ripple_clipping_radius = ListProperty([0, 0, 0, 0])
-    '''Radius of the target shape that the touch ripple will be aplied. This
-    will clip the ripple to the target shape according to the radius given.
-    It is recommended to set the radius when using the touch ripple in a
-    rounded target shape as a circle, ellipse or rounded rectangle.
-    It's not necessary to set this property when using a rectangle as a target
-    shape.
+    '''Radius of the target shape to which the touch ripple is applied. This
+    will clip the ripple and adjust it to the shape of the target according to
+    the given radius. It is recommended to set the radius when using touch
+    ripple on a rounded target shape with a circle, ellipse, or rounded
+    rectangle shape.
+    
+    .. Note::
+        In order for you to get the expected result, the radius given needs to
+        be the same as the target shape to which the ripple will be applied.
+        It is not necessary to set this property when the target shape is
+        rectangular in shape.
 
     .. versionadded:: 2.1.0
 
