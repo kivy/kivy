@@ -1556,7 +1556,7 @@ class WindowBase(EventDispatcher):
         '''
         accepted = False
         for manager in self.event_managers[me.type_id][:]:
-            accepted = accepted or manager.update(etype, me)
+            accepted = accepted or manager.dispatch(etype, me)
         if accepted:
             return
         if me.is_touch:

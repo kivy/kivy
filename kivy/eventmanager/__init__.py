@@ -8,7 +8,7 @@ class EventManagerBase(object):
     def start(self):
         pass
 
-    def update(self, etype, me):
+    def dispatch(self, etype, me):
         pass
 
     def stop(self):
