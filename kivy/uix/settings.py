@@ -533,7 +533,7 @@ class SettingColor(SettingItem):
     :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.colorpicker.ColorPicker` so the user can choose a color.
 
-    .. versionadded:: 1.8.1
+    .. versionadded:: 2.0.1
     '''
 
     popup = ObjectProperty(None, allownone=True)
