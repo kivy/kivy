@@ -833,7 +833,7 @@
         pos: root.pos
         font_size: '15sp'
 
-#:import get_color kivy.utils.get_color_from_hex
+#:import kivy kivy
 <SettingColor>:
     BoxLayout:
         Label:
@@ -847,7 +847,7 @@
                 Line:
                     rectangle: self.x,self.y,self.width,self.height
                 Color: 
-                    rgba: get_color(root.value) if root.value else (1,1,1,1.) 
+                    rgba: kivy.utils.get_color(root.value) if root.value else (1,1,1,1.) 
                 Rectangle:
                     pos: self.pos
                     size: self.size 
