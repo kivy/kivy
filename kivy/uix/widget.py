@@ -727,14 +727,13 @@ class Widget(WidgetBase):
     def _find_index_in_motion_filter(self, event, widget):
         if widget is self:
             return 0
-        a_index = self.children.index(widget)
-        if a_index == 0:
-            if self.motion_filter[event][0] is self:
-                return 1
-            return 0
+        motion_widgets = self.motion_filter[event]
+        w_index = self.children.index(widget)
+        if w_index == 0:
+            return 1 if motion_widgets[0] is self else 0
         index = -1
-        for m_widget in self.motion_filter[event]:
-            if m_widget is self or self.children.index(m_widget) < a_index:
+        for i in range(len(motion_widgets) - 1):
+            if self.children.index(motion_widgets[i + 1]) < w_index:
                 index += 1
         return index + 1
 
