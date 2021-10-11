@@ -25,10 +25,6 @@ several default modules for :
 * Ignoring regions
 '''
 
-MET_TOUCH = 'touch'
-MET_HOVER = 'hover'
-ALL_ME_TYPES = (MET_TOUCH, MET_HOVER)
-
 from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import kivy_postproc_modules
 from kivy.input.provider import MotionEventProvider
@@ -39,8 +35,5 @@ __all__ = (
     MotionEvent.__name__,
     MotionEventProvider.__name__,
     MotionEventFactory.__name__,
-    'kivy_postproc_modules',
-    'MET_TOUCH',
-    'MET_HOVER',
-    'ALL_ME_TYPES'
+    'kivy_postproc_modules'
 )
