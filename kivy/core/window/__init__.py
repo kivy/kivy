@@ -1558,7 +1558,9 @@ class WindowBase(EventDispatcher):
         for manager in self.event_managers[me.type_id][:]:
             accepted = accepted or manager.dispatch(etype, me)
         if accepted:
-            return
+            if etype == 'end' and (me.type_id == 'touch' or me.is_touch):
+                FocusBehavior._handle_post_on_touch_up(me)
+            return accepted
         if me.is_touch:
             # TODO: Use me.push/me.pop methods because `me` is transformed
             # Clock execution of partial ScrollView._on_touch_up method and
