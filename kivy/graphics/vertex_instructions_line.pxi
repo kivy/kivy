@@ -1159,10 +1159,10 @@ cdef class Line(VertexInstruction):
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
         resolution = min(wh//2, resolution)
-        c1 = min(((wh-1)//2), c1)
-        c2 = min(((wh-1)//2), c2)
-        c3 = min(((wh-1)//2), c3)
-        c4 = min(((wh-1)//2), c4)
+        c1 = max(1, min(((wh-1)//2), c1))
+        c2 = max(1, min(((wh-1)//2), c2))
+        c3 = max(1, min(((wh-1)//2), c3))
+        c4 = max(1, min(((wh-1)//2), c4))
         if resolution == 0:
             self._points = [
                 x+w,    y+h,
@@ -1171,12 +1171,12 @@ cdef class Line(VertexInstruction):
                 x+w,    y,
             ]
             return
-        corners = [c3, c4, c1, c2]
+        corners = [c2, c1, c4, c3]
         origins = [
-            [x + w - c3, y + h - c3],  # Bottom Right Corner.
-            [x + c4,     y + h - c4],  # Bottom Left Corner.
-            [x + c1,     y + c1    ],  # Top Left Corner.
-            [x + w - c2, y + c2    ],  # Top Right Corner.
+            [x - corners[0] + w,    y - corners[0] + h],  # Bottom Right Corner.
+            [x + corners[1],        y - corners[1] + h],  # Bottom Left Corner.
+            [x + corners[2],        y + corners[2]    ],  # Top Left Corner.
+            [x - corners[3] + w,    y + corners[3]    ],  # Top Right Corner.
         ]
         #
         step = (PI / 2) / resolution # corner arc / segments
