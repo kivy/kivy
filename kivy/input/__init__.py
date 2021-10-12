@@ -25,6 +25,7 @@ several default modules for :
 * Ignoring regions
 '''
 
+
 from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import kivy_postproc_modules
 from kivy.input.provider import MotionEventProvider
@@ -35,5 +36,4 @@ __all__ = (
     MotionEvent.__name__,
     MotionEventProvider.__name__,
     MotionEventFactory.__name__,
-    'kivy_postproc_modules'
-)
+    'kivy_postproc_modules')
