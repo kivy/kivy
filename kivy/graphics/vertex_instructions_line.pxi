@@ -1133,17 +1133,18 @@ cdef class Line(VertexInstruction):
     cdef void prebuild_rounded_rectangle(self):
         cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, step, angle
         cdef int ccount, count, radius, index, loop
-        cdef resolution = 30
+        cdef resolution = 4
         cdef int l = <int>len(self._mode_args)
+        cdef int wh = <int>0
         cdef list vectors, origins, v1, corners
         origins = []
         vectors = []
 
         # cleans the points memory
         self._points = []
-        self._close = 1
         # assigns letters
         x, y, w, h = self._mode_args[:4]
+        wh = int(min(h,w))
         # a = <float>-PI
 
         # unpacks the arguments
@@ -1157,6 +1158,11 @@ cdef class Line(VertexInstruction):
         else:  # l == 9, but else make the compiler happy about uninitialization
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
+        resolution = min(wh//2, resolution)
+        c1 = min(((wh-1)//2), c1)
+        c2 = min(((wh-1)//2), c2)
+        c3 = min(((wh-1)//2), c3)
+        c4 = min(((wh-1)//2), c4)
         if resolution == 0:
             self._points = [
                 x+w,    y+h,
@@ -1184,20 +1190,28 @@ cdef class Line(VertexInstruction):
                 ccount = count+(resolution*loop)
                 index = ccount // resolution
                 v1 = [
-                    int(origins[index][0] + (cos(step*(ccount)) * corners[index])),
-                    int(origins[index][1] + (sin(step*(ccount)) * corners[index])),
+                    (origins[index][0] + (cos(step*(ccount)) * corners[index])),
+                    (origins[index][1] + (sin(step*(ccount)) * corners[index])),
                 ]
                 # adds the vector to the points list.
                 self._points.extend(v1)
             # control point vector
             v1 = [
-                int(origins[index][0] + (cos(step*(ccount+1)) * corners[index])),
-                int(origins[index][1] + (sin(step*(ccount+1)) * corners[index])),
+                (origins[index][0] + (cos(step*(ccount+1)) * corners[index])),
+                (origins[index][1] + (sin(step*(ccount+1)) * corners[index])),
             ]
             # # adds the contol poin vector to the points list at the end of the
             #   corner.
             self._points.extend(v1)
         # Closes the line
+        v1=[]
+        step = 0
+        angle = 0
+        count = 0
+        ccount = 0
+        index = 0
+        self._close = 1
+
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
