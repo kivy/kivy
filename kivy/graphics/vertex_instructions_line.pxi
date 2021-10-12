@@ -1131,14 +1131,23 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
-        cdef resolution = 30
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, step, angle
+        cdef int ccount, count, radius, index, loop
+        cdef resolution = 4
         cdef int l = <int>len(self._mode_args)
+        cdef int wh = <int>0
+        cdef list vectors, origins, v1, corners
+        origins = []
+        vectors = []
 
+        # cleans the points memory
         self._points = []
-        a = <float>-PI
-        x, y, w, h = self._mode_args [:4]
+        # assigns letters
+        x, y, w, h = self._mode_args[:4]
+        wh = int(min(h,w))
+        # a = <float>-PI
 
+        # unpacks the arguments
         if l == 5:
             c1 = c2 = c3 = c4 = self._mode_args[4]
         elif l == 6:
@@ -1149,44 +1158,60 @@ cdef class Line(VertexInstruction):
         else:  # l == 9, but else make the compiler happy about uninitialization
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
-
-        px = x + c1
-        py = y + c1
-
-        while a < - PI / 2.:
-            a += pi / resolution
-            self._points.extend([
-                px + cos(a) * c1,
-                py + sin(a) * c1])
-
-        px = x + w - c2
-        py = y + c2
-
-        while a < 0:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c2,
-                py + sin(a) * c2])
-
-        px = x + w - c3
-        py = y + h - c3
-
-        while a < PI / 2.:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c3,
-                py + sin(a) * c3])
-
-        px = x + c4
-        py = y + h - c4
-
-        while a < PI:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c4,
-                py + sin(a) * c4])
-
+        resolution = min(wh//2, resolution)
+        c1 = min(((wh-1)//2), c1)
+        c2 = min(((wh-1)//2), c2)
+        c3 = min(((wh-1)//2), c3)
+        c4 = min(((wh-1)//2), c4)
+        if resolution == 0:
+            self._points = [
+                x+w,    y+h,
+                x,      y+h,
+                x,      y,
+                x+w,    y,
+            ]
+            return
+        corners = [c3, c4, c1, c2]
+        origins = [
+            [x + w - c3, y + h - c3],  # Bottom Right Corner.
+            [x + c4,     y + h - c4],  # Bottom Left Corner.
+            [x + c1,     y + c1    ],  # Top Left Corner.
+            [x + w - c2, y + c2    ],  # Top Right Corner.
+        ]
+        #
+        step = (PI / 2) / resolution # corner arc / segments
+        angle = 0
+        count = 0
+        ccount = 0
+        index = 0
+        #
+        for loop in range(4):  # calculates corners.
+            for count in range(resolution):  # calculates the segments
+                ccount = count+(resolution*loop)
+                index = ccount // resolution
+                v1 = [
+                    (origins[index][0] + (cos(step*(ccount)) * corners[index])),
+                    (origins[index][1] + (sin(step*(ccount)) * corners[index])),
+                ]
+                # adds the vector to the points list.
+                self._points.extend(v1)
+            # control point vector
+            v1 = [
+                (origins[index][0] + (cos(step*(ccount+1)) * corners[index])),
+                (origins[index][1] + (sin(step*(ccount+1)) * corners[index])),
+            ]
+            # # adds the contol poin vector to the points list at the end of the
+            #   corner.
+            self._points.extend(v1)
+        # Closes the line
+        v1=[]
+        step = 0
+        angle = 0
+        count = 0
+        ccount = 0
+        index = 0
         self._close = 1
+
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
@@ -1558,4 +1583,3 @@ cdef class SmoothLine(Line):
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
             self.flag_data_update()
-
