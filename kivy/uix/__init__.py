@@ -54,3 +54,6 @@ Kivy widgets can be categorized as follows:
 
 ----
 '''
+
+WIDGET_BEHAVIOR_DISABLED = 1
+FILTERED_DISPATCH = 2

@@ -248,6 +248,7 @@ from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
 from kivy.weakproxy import WeakProxy
+from kivy import uix
 from functools import partial
 from itertools import islice
 
@@ -525,12 +526,20 @@ class Widget(WidgetBase):
         return True
 
     def on_motion(self, etype, me):
+        if me.flags & uix.WIDGET_BEHAVIOR_DISABLED:
+            return False
         if self.disabled:
             return 'pos' in me.profile and self.collide_point(*me.pos)
-        if me.type_id in self.motion_filter:
-            for widget in self.children[:]:
-                if widget.dispatch('on_motion', etype, me):
-                    return True
+        if me.type_id not in self.motion_filter:
+            return False
+        if me.flags & uix.FILTERED_DISPATCH:
+            widgets = self.motion_filter[me.type_id]
+            widgets = widgets[1:] if widgets[0] is self else widgets[:]
+        else:
+            widgets = self.children[:]
+        for widget in widgets:
+            if widget.dispatch('on_motion', etype, me):
+                return True
 
     #
     # Default event handlers
