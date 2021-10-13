@@ -369,13 +369,14 @@ class MotionEvent(MotionEventBase):
         self.x, self.y = absolute(self.sx, self.sy, x_max, y_max, rotation)
         self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max, rotation)
         self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
-
+        # Update z values
         if p is not None:
             self.z = self.sz * max(0, p - 1)
             self.oz = self.osz * max(0, p - 1)
             self.pz = self.psz * max(0, p - 1)
-
+            self.dz = self.z - self.pz
         if smode:
+            # Adjust y for keyboard height
             if smode == 'pan':
                 self.y -= kheight
                 self.oy -= kheight
@@ -386,11 +387,9 @@ class MotionEvent(MotionEventBase):
                 self.y += offset
                 self.oy += offset
                 self.py += offset
-
+        # Update delta for x and y
         self.dx = self.x - self.px
         self.dy = self.y - self.py
-        self.dz = self.z - self.pz
-
         # Cache position
         self.pos = self.x, self.y
 
