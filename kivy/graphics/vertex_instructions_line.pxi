@@ -174,7 +174,7 @@ cdef class Line(VertexInstruction):
             self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
-        if self._width == 1.0:
+        if self._width <= 1:
             self.build_legacy()
         else:
             self.build_extended()
@@ -1119,7 +1119,8 @@ cdef class Line(VertexInstruction):
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
         .. versionadded:: 1.9.0
-        .. versionmodified:: 2.1.0
+        .. versionchanged:: 2.1.0
+            ``resolution`` usage has changed, now it means the ammount of segments to process per corner.
         '''
         def __set__(self, args):
             if args == None:
