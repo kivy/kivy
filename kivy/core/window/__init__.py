@@ -1556,7 +1556,7 @@ class WindowBase(EventDispatcher):
         '''
         accepted = False
         for manager in self.event_managers[me.type_id][:]:
-            accepted = accepted or manager.dispatch(etype, me)
+            accepted = manager.dispatch(etype, me) or accepted
         if accepted:
             if etype == 'end' and (me.type_id == 'touch' or me.is_touch):
                 FocusBehavior._handle_post_on_touch_up(me)
