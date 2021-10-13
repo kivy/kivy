@@ -393,7 +393,7 @@ class MotionEvent(MotionEventBase):
         # Cache position
         self.pos = self.x, self.y
 
-    def to_absolute_pos(self, sx, sy, x_max, y_max, rotation=0):
+    def to_absolute_pos(self, nx, ny, x_max, y_max, rotation=0):
         '''Transforms normalized (0-1) coordinates `sx` and `sy` to absolute
         coordinates using `x_max`, `y_max` and `rotation`.
 
@@ -403,13 +403,13 @@ class MotionEvent(MotionEventBase):
         .. versionadded:: 2.1.0
         '''
         if rotation == 0:
-            return sx * x_max, sy * y_max
+            return nx * x_max, ny * y_max
         elif rotation == 90:
-            return sy * y_max, (1 - sx) * x_max
+            return ny * y_max, (1 - nx) * x_max
         elif rotation == 180:
-            return (1 - sx) * x_max, (1 - sy) * y_max
+            return (1 - nx) * x_max, (1 - ny) * y_max
         elif rotation == 270:
-            return (1 - sy) * x_max, sx * y_max
+            return (1 - ny) * x_max, nx * y_max
         raise ValueError('Invalid rotation {}, valid values are {}'
                          .format(rotation, (0, 90, 180, 270)))
 
