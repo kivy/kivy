@@ -748,19 +748,17 @@ class Widget(WidgetBase):
 
     def register_for_motion_event(self, event, widget=None):
         # Can be called multiple times with same arguments
-        a_widget = self if widget is None else widget
+        a_widget = widget or self
         motion_filter = self.motion_filter
-        if event in motion_filter:
-            if a_widget in motion_filter[event]:
-                return
+        if event not in motion_filter:
+            motion_filter[event] = [a_widget]
+        elif widget not in motion_filter[event]:
             index = self._find_index_in_motion_filter(event, a_widget)
             motion_filter[event].insert(index, a_widget)
-        else:
-            motion_filter[event] = [a_widget]
 
     def unregister_for_motion_event(self, event, widget=None):
         # Can be called multiple times with same arguments
-        a_widget = self if widget is None else widget
+        a_widget = widget or self
         motion_filter = self.motion_filter
         if event in motion_filter:
             if a_widget in motion_filter[event]:
