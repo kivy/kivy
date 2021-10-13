@@ -393,7 +393,7 @@ class MotionEvent(MotionEventBase):
         # Cache position
         self.pos = self.x, self.y
 
-    def to_absolute_pos(self, nx, ny, x_max, y_max, rotation=0):
+    def to_absolute_pos(self, nx, ny, x_max, y_max, rotation):
         '''Transforms normalized (0-1) coordinates `sx` and `sy` to absolute
         coordinates using `x_max`, `y_max` and `rotation`.
 
