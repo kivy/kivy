@@ -211,6 +211,7 @@ cdef class Line(VertexInstruction):
         return 0
 
     cdef void build_legacy(self):
+        # Builds a line with width = 1.0
         cdef int i
         cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
@@ -1118,6 +1119,7 @@ cdef class Line(VertexInstruction):
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
         .. versionadded:: 1.9.0
+        .. versionmodified:: 2.1.0
         '''
         def __set__(self, args):
             if args == None:
@@ -1204,7 +1206,7 @@ cdef class Line(VertexInstruction):
             #   corner.
             self._points.extend(v1)
         # Closes the line
-        v1=[]
+        v1 = []
         step = 0
         angle = 0
         count = 0
@@ -1369,24 +1371,30 @@ cdef class SmoothLine(Line):
             raise MemoryError("indices")
 
         if self._close:
-            ax = p[-2]
-            ay = p[-1]
-            bx = p[0]
-            by = p[1]
-            rx = bx - ax
-            ry = by - ay
-            last_angle = atan2(ry, rx)
+            ax = p[-2]  # last X coord of the line
+            ay = p[-1]  # Last Y coord of the line
+            bx = p[0]   # First X coord of the line
+            by = p[1]   # First Y coord of the line
+            rx = bx - ax  # gets the vector value (X axis).
+            ry = by - ay  # gets the vector value (Y axis).
+            last_angle = atan2(ry, rx)  # Calculates the angle of the vector.
 
         max_index = len(p)
+        # unpacks the choors in 2 elemnt arrays.
         for index in range(0, max_index, 2):
-            ax = p[index]
-            ay = p[index + 1]
+            ax = p[index]  # unpacks the x value.
+            ay = p[index + 1]  # unpacks the y value.
+            # Calculates the angle between points.
             if index < max_index - 2:
-                bx = p[index + 2]
-                by = p[index + 3]
-                rx = bx - ax
-                ry = by - ay
+                bx = p[index + 2]  # unpacks the mext x value.
+                by = p[index + 3]  # unpacks the mext y value.
+                rx = bx - ax  # gets the X segment value.
+                ry = by - ay  # gets the Y segment value.
                 angle = atan2(ry, rx)
+
+            # # If the index corresponds to the last 2 coordinates
+            #   we use the value we previously calculated if it was _closed
+            #   or 0.0 if not.
             else:
                 angle = last_angle
 
@@ -1394,6 +1402,7 @@ cdef class SmoothLine(Line):
                 av_angle = angle
                 ad_angle = pi
             else:
+                # calculates the angle
                 av_angle = atan2(
                         sin(angle) + sin(last_angle),
                         cos(angle) + cos(last_angle))
