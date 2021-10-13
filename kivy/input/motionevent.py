@@ -395,7 +395,7 @@ class MotionEvent(MotionEventBase):
 
     def to_absolute_pos(self, sx, sy, x_max, y_max, rotation=0):
         '''Transforms normalized (0-1) coordinates `sx` and `sy` to absolute
-        coordinates using `x_max` and `y_max`.
+        coordinates using `x_max`, `y_max` and `rotation`.
 
         :raises:
             `ValueError`: If `rotation` is not one of: 0, 90, 180 or 270
