@@ -135,7 +135,7 @@ class MotionEvent(MotionEventBase):
     __uniq_id = 0
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
-         'is_touch', 'id', 'shape', 'profile',
+         'is_touch', 'type_id', 'id', 'flags', 'shape', 'profile',
          # current position, in 0-1 range
          'sx', 'sy', 'sz',
          # first position set, in 0-1 range
