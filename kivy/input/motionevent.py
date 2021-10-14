@@ -371,9 +371,10 @@ class MotionEvent(MotionEventBase):
         self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
         # Update z values
         if p is not None:
-            self.z = self.sz * max(0, p - 1)
-            self.oz = self.osz * max(0, p - 1)
-            self.pz = self.psz * max(0, p - 1)
+            z_max = max(0, p - 1)
+            self.z = self.sz * z_max
+            self.oz = self.osz * z_max
+            self.pz = self.psz * z_max
             self.dz = self.z - self.pz
         if smode:
             # Adjust y for keyboard height
@@ -394,7 +395,7 @@ class MotionEvent(MotionEventBase):
         self.pos = self.x, self.y
 
     def to_absolute_pos(self, nx, ny, x_max, y_max, rotation):
-        '''Transforms normalized (0-1) coordinates `sx` and `sy` to absolute
+        '''Transforms normalized (0-1) coordinates `nx` and `ny` to absolute
         coordinates using `x_max`, `y_max` and `rotation`.
 
         :raises:
