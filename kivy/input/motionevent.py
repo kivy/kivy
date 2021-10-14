@@ -411,8 +411,8 @@ class MotionEvent(MotionEventBase):
             return (1 - nx) * x_max, (1 - ny) * y_max
         elif rotation == 270:
             return (1 - ny) * x_max, nx * y_max
-        raise ValueError('Invalid rotation {}, valid values are {}'
-                         .format(rotation, (0, 90, 180, 270)))
+        raise ValueError('Invalid rotation %s, '
+                         'valid values are 0, 90, 180 or 270' % rotation)
 
     def push(self, attrs=None):
         '''Push attribute values in `attrs` onto the stack
