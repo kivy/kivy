@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        python: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
         arch: ['x64', 'x86']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
@@ -109,7 +109,7 @@ jobs:
     needs: windows_wheels_create
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        python: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
         arch: [ 'x64', 'x86' ]
     steps:
       - uses: actions/checkout@v2

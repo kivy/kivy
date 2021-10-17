@@ -160,12 +160,17 @@ jobs:
             python: '3.8'
           - runs_on: macos-11     
             python: '3.9'
+          - runs_on: macos-11     
+            python: '3.10'
           - runs_on: apple-silicon-m1
             run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
             python: '3.8.12'
           - runs_on: apple-silicon-m1
             run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
             python: '3.9.7'
+          - runs_on: apple-silicon-m1
+            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
+            python: '3.10.1'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
