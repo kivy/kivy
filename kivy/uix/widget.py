@@ -532,9 +532,11 @@ class Widget(WidgetBase):
             return 'pos' in me.profile and self.collide_point(*me.pos)
         if me.type_id not in self.motion_filter:
             return False
+        filtered = self.motion_filter[me.type_id]
+        if filtered[0] is self and len(filtered) == 1:
+            return False
         if me.flags & uix.FILTERED_DISPATCH:
-            widgets = self.motion_filter[me.type_id]
-            widgets = widgets[1:] if widgets[0] is self else widgets[:]
+            widgets = filtered[1:] if filtered[0] is self else filtered[:]
         else:
             widgets = self.children[:]
         for widget in widgets:
