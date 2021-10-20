@@ -716,6 +716,9 @@ class TextInput(FocusBehavior, Widget):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
+        _lines = self._lines
+        _lines_flags = self._lines_flags
+
         if self.readonly or not substring or not self._lines:
             return
 
@@ -739,7 +742,7 @@ class TextInput(FocusBehavior, Widget):
 
         col, row = self.cursor
         cindex = self.cursor_index()
-        text = self._lines[row]
+        text = _lines[row]
         len_str = len(substring)
         new_text = text[:col] + substring + text[col:]
         if mode is not None:
@@ -751,12 +754,15 @@ class TextInput(FocusBehavior, Widget):
                     return
         self._set_line_text(row, new_text)
 
-        if (len_str > 1 or substring == u'\n' or
-            (substring == u' ' and self._lines_flags[row] != FL_IS_LINEBREAK)
-            or (row + 1 < len(self._lines) and
-                self._lines_flags[row + 1] != FL_IS_LINEBREAK) or
-            (self._get_text_width(new_text, self.tab_width, self._label_cached)
-             > (self.width - self.padding[0] - self.padding[2]))):
+        if len_str > 1 or substring == u'\n' or\
+            (substring == u' ' and _lines_flags[row] != FL_IS_LINEBREAK) or\
+            (row + 1 < len(_lines) and
+             _lines_flags[row + 1] != FL_IS_LINEBREAK) or\
+            (self._get_text_width(
+                new_text,
+                self.tab_width,
+                self._label_cached) > (self.width - self.padding[0] -
+                                       self.padding[2])):
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
@@ -783,7 +789,6 @@ class TextInput(FocusBehavior, Widget):
             lines = self._lines
         if lines_flags is None:
             lines_flags = self._lines_flags
-        assert len(lines) == len(lines_flags)
         finish = start
         _next = start + 1
         if start > 0 and lines_flags[start] != FL_IS_LINEBREAK:
@@ -2594,7 +2599,7 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     if old_index < index:
                         yield text[old_index:index]
-                    yield text[index:index+1]
+                    yield text[index:index + 1]
                     old_index = index + 1
             prev_char = char
         yield text[old_index:]
