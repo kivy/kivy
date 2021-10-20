@@ -64,7 +64,8 @@ prepare_env_for_unittest() {
 }
 
 install_kivy() {
-  python3 -m pip install -e "$(pwd)[dev,full]"
+  options=${1:-full,dev}
+  python3 -m pip install -e "$(pwd)[$options]"
 }
 
 
@@ -73,26 +74,29 @@ create_kivy_examples_wheel() {
 }
 
 install_kivy_examples_wheel() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
   python3 -m pip install --pre --no-index --no-deps -f "$root/dist" "kivy_examples"
-  python3 -m pip install --pre -f "$root/dist" "kivy_examples[full,dev]"
+  python3 -m pip install --pre -f "$root/dist" "kivy_examples[$options]"
 }
 
 install_kivy_wheel() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
   kivy_fname=$(ls "$root"/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
-  python3 -m pip install "${kivy_fname}[full,dev]"
+  python3 -m pip install "${kivy_fname}[$options]"
 }
 
 install_kivy_sdist() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
 
   kivy_fname=$(ls $root/dist/Kivy-*.tar.gz)
-  python3 -m pip install "$kivy_fname[full,dev]"
+  python3 -m pip install "$kivy_fname[$options]"
 }
 
 test_kivy() {
