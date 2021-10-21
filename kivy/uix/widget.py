@@ -526,10 +526,8 @@ class Widget(WidgetBase):
         return True
 
     def on_motion(self, etype, me):
-        if me.flags & uix.WIDGET_BEHAVIOR_DISABLED:
+        if self.disabled or me.flags & uix.WIDGET_BEHAVIOR_DISABLED:
             return False
-        if self.disabled:
-            return 'pos' in me.profile and self.collide_point(*me.pos)
         if me.type_id not in self.motion_filter:
             return False
         filtered = self.motion_filter[me.type_id]
