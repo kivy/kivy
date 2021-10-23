@@ -3,7 +3,6 @@
 Installation on Linux
 =====================
 
-
 To install Kivy on Linux using ``pip``, please follow the main :ref:`installation guide<installation-canonical>`.
 Otherwise, continue to the :ref:`PPA instructions below<linux-ppa>`.
 
@@ -42,13 +41,7 @@ instructions, but only the rpmfusion-free repo is needed for acquiring kivy depe
 
 Using dnf::
 
-<<<<<<< HEAD
-#. Download the appropriate wheel for your Python version.
-#. Install it as above but with ``pip install wheel-name`` where ``wheel-name``
-   is the name of the file, instead.
-=======
     sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
->>>>>>> master
 
 After you ensure that a 3rd-party repository containing any packages that dnf is otherwise unable to find,
 continue installing dependencies::
@@ -64,15 +57,10 @@ To install Kivy from source, please follow the installation guide until you reac
 :ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
 before continuing. Additionally, if you'd like to be able to use the x11 window backend do::
 
-<<<<<<< HEAD
-Using software packages (PPA etc.)
-----------------------------------
-=======
-    export USE_X11=1
+   export USE_X11=1
 
 Ubuntu
 ~~~~~~
->>>>>>> master
 
 Using apt::
 
@@ -120,11 +108,7 @@ Using software packages (PPA etc.)
 ----------------------------------
 
 Ubuntu / Kubuntu / Xubuntu / Lubuntu (Saucy and above)
-<<<<<<< HEAD
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>>>>> master
 
 #. Add one of the PPAs as you prefer
 
@@ -223,12 +207,6 @@ Gentoo
    `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
    `spell: Standard flag, provide enchant to use spelling in kivy apps.`
 
-<<<<<<< HEAD
-Manually installing Kivy from source
-------------------------------------
-
-For other distros or to manually install Kivy from source, see :ref:`installation_in_venv`.
-=======
 
 Device permissions
 ------------------
@@ -251,4 +229,3 @@ the 'input' group::
 
 Note that you need to log out then back in again for these permissions to
 be applied.
->>>>>>> master
