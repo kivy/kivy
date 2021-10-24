@@ -379,6 +379,7 @@ class AsyncImage(Image):
         if not Loader:
             from kivy.loader import Loader
         self.fbind('source', self._load_source)
+        self.fbind('extra_headers', self._load_source)
         super().__init__(**kwargs)
 
     def _load_source(self, *args):
