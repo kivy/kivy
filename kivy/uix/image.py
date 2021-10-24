@@ -59,7 +59,7 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-    AliasProperty, BooleanProperty, NumericProperty, ColorProperty
+    AliasProperty, BooleanProperty, NumericProperty, ColorProperty, DictProperty
 from kivy.logger import Logger
 
 # delayed imports
@@ -242,6 +242,7 @@ class Image(Widget):
     '''
 
     def __init__(self, **kwargs):
+
         self._coreimage = None
         self._loops = 0
         update = self.texture_update
@@ -359,9 +360,20 @@ class AsyncImage(Image):
         have no effect.
     '''
 
+    extra_headers = DictProperty(None, allow_none=True)
+    '''If this property is not set to none, any remote requests made will contain the headers stored in this dict.
+
+    :attr:`extra_headers` is a :class:`~kivy.properties.DictProperty` and defaults
+    to None.
+    '''
+
     __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
+
+        if 'extra_headers' in kwargs:
+            self.extra_headers = kwargs['extra_headers']
+
         self._found_source = None
         self._coreimage = None
         global Loader
@@ -386,7 +398,8 @@ class AsyncImage(Image):
             source,
             nocache=self.nocache,
             mipmap=self.mipmap,
-            anim_delay=self.anim_delay
+            anim_delay=self.anim_delay,
+            extra_headers=self.extra_headers
         )
         image.bind(
             on_load=self._on_source_load,

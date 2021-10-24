@@ -337,6 +337,12 @@ class LoaderBase(object):
             else:
                 # read from internet
                 request = urllib_request.Request(filename)
+
+                if "extra_headers" in kwargs and kwargs["extra_headers"]:
+                    extra_headers = kwargs["extra_headers"]
+                    for key in extra_headers:
+                        request.add_header(key, extra_headers[key])
+
                 if Config.has_option('network', 'useragent'):
                     useragent = Config.get('network', 'useragent')
                     if useragent:
