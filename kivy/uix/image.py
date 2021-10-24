@@ -364,6 +364,7 @@ class AsyncImage(Image):
 
     :attr:`extra_headers` is a :class:`~kivy.properties.DictProperty` and defaults
     to None.
+    .. versionadded:: 2.1.0 
     '''
 
     __events__ = ('on_error', 'on_load')
