@@ -338,8 +338,9 @@ class LoaderBase(object):
                 # read from internet
                 request = urllib_request.Request(filename)
 
-                for header, value in kwargs.get("extra_headers", {}).items():
-                    request.add_header(header, value)
+                if kwargs.get("extra_headers", {}):
+                    for header, value in kwargs.get("extra_headers", {}).items():
+                        request.add_header(header, value)
 
                 if Config.has_option('network', 'useragent'):
                     useragent = Config.get('network', 'useragent')
