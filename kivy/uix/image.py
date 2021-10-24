@@ -369,10 +369,9 @@ class AsyncImage(Image):
     __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
-
-        if 'extra_headers' in kwargs:
-            self.extra_headers = kwargs['extra_headers']
-
+        # Ensure the headers are saved before the source, so, they can be used
+        # in the request
+        self.extra_headers = kwargs.get('extra_headers')
         self._found_source = None
         self._coreimage = None
         global Loader
