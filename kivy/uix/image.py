@@ -242,7 +242,6 @@ class Image(Widget):
     '''
 
     def __init__(self, **kwargs):
-
         self._coreimage = None
         self._loops = 0
         update = self.texture_update
