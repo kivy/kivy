@@ -194,7 +194,11 @@ class MouseMotionEventProvider(MotionEventProvider):
             self._disable_hover = value
 
     disable_hover = property(_get_disable_hover, _set_disable_hover)
-    '''Disables dispatching of hover events if set to ``True`` (default).
+    '''Disables dispatching of hover events if set to ``True``.
+
+    Hover events are enabled by default (`disable_hover` is ``False``). See
+    module documentation if you want to enable/disable hover events through
+    config file.
 
     .. versionadded:: 2.1.0
     '''

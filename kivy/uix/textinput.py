@@ -211,8 +211,12 @@ _is_osx = sys.platform == 'darwin'
 
 # When we are generating documentation, Config doesn't exist
 _is_desktop = False
+_scroll_timeout = _scroll_distance = 0
 if Config:
     _is_desktop = Config.getboolean('kivy', 'desktop')
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = '{}sp'.format(Config.getint('widgets',
+                                                   'scroll_distance'))
 
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:
@@ -519,6 +523,9 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
+        self._enable_scroll = True
 
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
@@ -1470,9 +1477,15 @@ class TextInput(FocusBehavior, Widget):
     def long_touch(self, dt):
         self._long_touch_ev = None
         if self._selection_to == self._selection_from:
-            pos = self.to_local(*self._long_touch_pos, relative=False)
+            pos = self.to_local(*self._touch_down.pos, relative=False)
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
+
+    def cancel_long_touch_event(self):
+        # schedule long touch for paste
+        if self._long_touch_ev is not None:
+            self._long_touch_ev.cancel()
+            self._long_touch_ev = None
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -1563,17 +1576,16 @@ class TextInput(FocusBehavior, Widget):
         if self._touch_count == 4:
             self.dispatch('on_quad_touch')
 
+        # stores the touch for later use
+        self._touch_down = touch
+
         self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
-        self._long_touch_pos = touch.pos
         self._long_touch_ev = Clock.schedule_once(self.long_touch, .5)
 
         self.cursor = self.get_cursor_from_xy(*touch_pos)
-        if not self._selection_touch:
-            self.cancel_selection()
-            self._selection_touch = touch
-            self._selection_from = self._selection_to = self.cursor_index()
-            self._update_selection()
+        if not self.scroll_from_swipe:
+            self._cancel_update_selection(self._touch_down)
 
         if CutBuffer and 'button' in touch.profile and \
                 touch.button == 'middle':
@@ -1581,6 +1593,14 @@ class TextInput(FocusBehavior, Widget):
             return True
 
         return True
+
+    # cancel/update existing selection after a single tap
+    def _cancel_update_selection(self, touch):
+        if not self._selection_touch:
+            self.cancel_selection()
+            self._selection_touch = touch
+            self._selection_from = self._selection_to = self.cursor_index()
+            self._update_selection()
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
@@ -1590,7 +1610,13 @@ class TextInput(FocusBehavior, Widget):
             if self._selection_touch is touch:
                 self._selection_touch = None
             return False
-        if self._selection_touch is touch:
+
+        if self.scroll_from_swipe:
+            self.scroll_text_from_swipe(touch)
+        else:
+            self._enable_scroll = False
+
+        if not self._enable_scroll and self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
             self._selection_to = self.cursor_index()
             self._update_selection()
@@ -1602,22 +1628,52 @@ class TextInput(FocusBehavior, Widget):
         touch.ungrab(self)
         self._touch_count -= 1
 
-        # schedule long touch for paste
-        if self._long_touch_ev is not None:
-            self._long_touch_ev.cancel()
-            self._long_touch_ev = None
+        self.cancel_long_touch_event()
 
         if not self.focus:
             return False
 
+        # types of touch that will have higher priority in being recognized,
+        # compared to single tap
+        prioritized_touch_types = (
+            touch.is_double_tap
+            or touch.is_triple_tap
+            or self._touch_count == 4
+        )
+
+        _scroll_timeout = touch.time_update - touch.time_start
+        # conditions for discarding touch such as swipe to scroll and as
+        # selection on hold. If the conditions are true, the tap will be
+        # generically recognized as a single tap.
+        single_tap = (
+            _scroll_timeout <= self.scroll_timeout / 1000
+            and self._scroll_distance_x <= self.scroll_distance
+            and self._scroll_distance_y <= self.scroll_distance
+        )
+
+        # if the given conditions are true, the touch will be recognized as a
+        # single tap. If there is selected text, the selection will be canceled
+        # and it will be possible to start a new selection.
+        if (
+            self.scroll_from_swipe
+            and not prioritized_touch_types
+            and single_tap
+        ):
+            self._cancel_update_selection(self._touch_down)
+
+        self._enable_scroll = True
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
+
+        # show Bubble
+        win = EventLoop.window
+        if self._selection_to != self._selection_from:
+            self._show_cut_copy_paste(touch.pos, win)
+
         if self._selection_touch is touch:
             self._selection_to = self.cursor_index()
             self._update_selection(True)
-            # show Bubble
-            win = EventLoop.window
-            if self._selection_to != self._selection_from:
-                self._show_cut_copy_paste(touch.pos, win)
-            elif self.use_handles:
+            if self.use_handles and self._selection_to == self._selection_from:
                 self._hide_handles()
                 handle_middle = self._handle_middle
                 if handle_middle is None:
@@ -1634,6 +1690,54 @@ class TextInput(FocusBehavior, Widget):
                     EventLoop.window.add_widget(handle_middle, canvas='after')
                 self._position_handles(mode='middle')
             return True
+
+    def scroll_text_from_swipe(self, touch):
+        if self.multiline:
+            _scroll_timeout = touch.time_update - touch.time_start
+            self._scroll_distance_x += abs(touch.dx)
+            self._scroll_distance_y += abs(touch.dy)
+
+            # disable scroll and start selection mode if scroll distance
+            # isn't reached within scroll_timeout
+            if (
+                _scroll_timeout >= self.scroll_timeout / 1000
+                and self._scroll_distance_x <= self.scroll_distance
+                and self._scroll_distance_y <= self.scroll_distance
+            ):
+                self._enable_scroll = False
+                self._cancel_update_selection(self._touch_down)
+
+            if self._enable_scroll:
+                self.cancel_long_touch_event()
+                max_scroll_y = max(0, self.minimum_height - self.height)
+                self.scroll_y = min(max(0, self.scroll_y + touch.dy),
+                                    max_scroll_y)
+                self._trigger_update_graphics()
+                self._position_handles()
+                return True
+
+        else:
+            _scroll_timeout = touch.time_update - touch.time_start
+            self._scroll_distance_x += abs(touch.dx)
+
+            # works with the same logic as multiline above
+            if (
+                _scroll_timeout >= self.scroll_timeout / 1000
+                and self._scroll_distance_x <= self.scroll_distance
+            ):
+                self._enable_scroll = False
+                self._cancel_update_selection(self._touch_down)
+
+            if self._enable_scroll:
+                self.cancel_long_touch_event()
+                minimum_width = (self._get_row_width(0) + self.padding[0] +
+                                 self.padding[2])
+                max_scroll_x = max(0, minimum_width - self.width)
+                self.scroll_x = min(max(0, self.scroll_x - touch.dx),
+                                    max_scroll_x)
+                self._trigger_update_graphics()
+                self._position_handles()
+                return True
 
     def _handle_pressed(self, instance):
         self._hide_cut_copy_paste()
@@ -1706,7 +1810,9 @@ class TextInput(FocusBehavior, Widget):
             hp_mid = self.cursor_pos
             pos = self.to_local(*hp_mid, relative=True)
             handle_middle.x = pos[0] - handle_middle.width / 2
-            handle_middle.top = pos[1] - lh
+            handle_middle.top = max(self.padding[3],
+                                    min(self.height - self.padding[1],
+                                        pos[1] - lh))
         if mode[0] == 'm':
             return
 
@@ -3379,6 +3485,38 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`use_handles` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True on mobile OS's, False on desktop OS's.
+    '''
+
+    scroll_from_swipe = BooleanProperty(not _is_desktop)
+    '''Allow to scroll the text using swipe gesture according to
+    :attr:`scroll_timeout` and :attr:`scroll_distance`.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_from_swipe` is a BooleanProperty and defaults to True on
+    mobile OS’s, False on desktop OS’s.
+    '''
+
+    scroll_distance = NumericProperty(_scroll_distance)
+    '''Minimum distance to move before change from scroll to selection mode, in
+    pixels.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_distance` is a NumericProperty and defaults to  20 pixels.
+    '''
+
+    scroll_timeout = NumericProperty(_scroll_timeout)
+    '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
+    If the user has not moved :attr:`scroll_distance` within the timeout, the
+    scrolling will be disabled, and the selection mode will start.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`scroll_timeout` is a NumericProperty and defaults to 250
+    milliseconds.
     '''
 
     def get_sel_from(self):
