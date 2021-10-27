@@ -127,6 +127,15 @@ class AsyncImageTestCase(GraphicUnitTest):
         remove(source)
         rmtree(temp_dir)
 
+    def test_headers_asyncimage(self):
+        from unittest.mock import patch
+        from kivy.uix.image import AsyncImage
+
+        with patch('kivy.loader.urllib') as mock:
+            headers = {"Referer": "https://github.com/kivy/kivy"}
+            image = AsyncImage(extra_headers=headers)
+            mock.request.Request.return_value.add_header.assert_called_with("Referer", headers["Referer"])
+
 
 if __name__ == '__main__':
     import unittest
