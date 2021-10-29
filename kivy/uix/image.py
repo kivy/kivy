@@ -360,11 +360,12 @@ class AsyncImage(Image):
     '''
 
     extra_headers = DictProperty(None, allow_none=True)
-    '''If this property is not set to None, any remote requests made will contain the headers stored in this dict.
+    '''If this property is not set to None, any remote requests made will
+     contain the headers stored in this dict.
 
-    :attr:`extra_headers` is a :class:`~kivy.properties.DictProperty` and defaults
-    to None.
-    .. versionadded:: 2.1.0 
+    :attr:`extra_headers` is a :class:`~kivy.properties.DictProperty` and
+    defaults to None.
+    .. versionadded:: 2.1.0
     '''
 
     __events__ = ('on_error', 'on_load')
