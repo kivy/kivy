@@ -410,7 +410,7 @@ class MotionEvent(MotionEventBase):
         elif rotation == 180:
             return (1 - nx) * x_max, (1 - ny) * y_max
         elif rotation == 270:
-            return (1 - ny) * x_max, nx * y_max
+            return (1 - ny) * y_max, nx * x_max
         raise ValueError('Invalid rotation %s, '
                          'valid values are 0, 90, 180 or 270' % rotation)
 
