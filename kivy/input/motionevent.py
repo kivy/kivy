@@ -383,8 +383,7 @@ class MotionEvent(MotionEventBase):
                 self.oy -= kheight
                 self.py -= kheight
             elif smode == 'scale':
-                offset = \
-                    (kheight * ((self.y - kheight) / (h - kheight))) - kheight
+                offset = kheight * (self.y - h) / (h - kheight)
                 self.y += offset
                 self.oy += offset
                 self.py += offset
