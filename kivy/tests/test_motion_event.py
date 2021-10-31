@@ -10,6 +10,9 @@ class DummyMotionEvent(MotionEvent):
 
 class TestMotionEvent:
 
+    def create_dummy_motion_event(self):
+        return DummyMotionEvent('dummy', 'dummy1', (0, 0))
+
     def build_to_absolute_pos_data(self, x_max, y_max, x_step, y_step):
         for x, y in zip(range(0, x_max, x_step), range(0, y_max, y_step)):
             result = (x, y)
@@ -25,7 +28,7 @@ class TestMotionEvent:
             yield x / x_max, y / y_max, x_max, y_max, 270, result
 
     def test_to_absolute_pos(self):
-        event = DummyMotionEvent('dummy', 'dummy1', (0, 0))
+        event = self.create_dummy_motion_event()
         for item in self.build_to_absolute_pos_data(320, 240, 20, 21):
             args = item[:-1]
             expected_x, expected_y = item[-1]
@@ -36,6 +39,6 @@ class TestMotionEvent:
             assert correct, message
 
     def test_to_absolute_pos_error(self):
-        event = DummyMotionEvent('dummy', 'dummy1', (0, 0))
+        event = self.create_dummy_motion_event()
         with pytest.raises(ValueError):
             event.to_absolute_pos(0, 0, 100, 100, 10)
