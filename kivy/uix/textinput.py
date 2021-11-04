@@ -2113,7 +2113,7 @@ class TextInput(FocusBehavior, Widget):
         if self._refresh_text_from_property_ev is not None:
             self._refresh_text_from_property_ev.cancel()
         self._refresh_text_from_property_ev = Clock.schedule_once(
-            lambda dt: self._refresh_text_from_property(*largs))
+            lambda dt: self._refresh_text_from_property(*largs), -1)
 
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
