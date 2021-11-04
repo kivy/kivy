@@ -488,7 +488,8 @@ class TextInput(FocusBehavior, Widget):
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
-        self._trigger_adjust_viewport = triggered(timeout=-1)(self._adjust_viewport)
+        self._trigger_adjust_viewport = triggered(timeout=-1)(
+            self._adjust_viewport)
         self.is_focusable = kwargs.get('is_focusable', True)
         self._cursor = 0, 0
         self._selection = False
