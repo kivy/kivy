@@ -488,6 +488,7 @@ class TextInput(FocusBehavior, Widget):
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
+        self._trigger_adjust_viewport = triggered(timeout=-1)(self._adjust_viewport)
         self.is_focusable = kwargs.get('is_focusable', True)
         self._cursor = [0, 0]
         self._selection = False
@@ -3140,7 +3141,7 @@ class TextInput(FocusBehavior, Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
-        self._adjust_viewport(cc, cr)
+        self._trigger_adjust_viewport(cc, cr)
 
         if self._cursor == cursor:
             return
@@ -3148,7 +3149,6 @@ class TextInput(FocusBehavior, Widget):
         self._cursor = cursor
         return True
 
-    @triggered(timeout=-1)
     def _adjust_viewport(self, cc, cr):
         padding_left = self.padding[0]
         padding_right = self.padding[2]
