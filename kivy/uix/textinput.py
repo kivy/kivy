@@ -490,7 +490,7 @@ class TextInput(FocusBehavior, Widget):
             self._update_graphics, -1)
         self._trigger_adjust_viewport = triggered(timeout=-1)(self._adjust_viewport)
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._cursor = [0, 0]
+        self._cursor = 0, 0
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
@@ -2528,7 +2528,6 @@ class TextInput(FocusBehavior, Widget):
     def on_size(self, instance, value):
         # if the size change, we might do invalid scrolling / text split
         # size the text maybe be put after size_hint have been resolved.
-        self._trigger_refresh_text()
         self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
