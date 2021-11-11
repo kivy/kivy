@@ -641,13 +641,15 @@ cdef class _WindowSDL2Storage:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
-            return ('fingermotion', fid, x, y)
+            pressure = event.tfinger.pressure
+            return ('fingermotion', fid, x, y, pressure)
         elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
+            pressure = event.tfinger.pressure
             action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
-            return (action, fid, x, y)
+            return (action, fid, x, y, pressure)
         elif event.type == SDL_JOYAXISMOTION:
             return (
                 'joyaxismotion',
