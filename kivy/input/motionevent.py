@@ -367,26 +367,35 @@ class MotionEvent(MotionEventBase):
         x_max, y_max = max(0, w - 1), max(0, h - 1)
         absolute = self.to_absolute_pos
         self.x, self.y = absolute(self.sx, self.sy, x_max, y_max, rotation)
-        self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max, rotation)
-        self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
+        opos_ppos_updated = False
+        if self.ox is None:
+            self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max,
+                                        rotation)
+            self.px, self.py = absolute(self.psx, self.psy, x_max, y_max,
+                                        rotation)
+            opos_ppos_updated = True
         # Update z values
         if p is not None:
             z_max = max(0, p - 1)
             self.z = self.sz * z_max
-            self.oz = self.osz * z_max
-            self.pz = self.psz * z_max
+            if self.oz is None:
+                self.oz = self.osz * z_max
+            if self.pz is None:
+                self.pz = self.psz * z_max
             self.dz = self.z - self.pz
         if smode:
             # Adjust y for keyboard height
             if smode == 'pan':
                 self.y -= kheight
-                self.oy -= kheight
-                self.py -= kheight
+                if opos_ppos_updated:
+                    self.oy -= kheight
+                    self.py -= kheight
             elif smode == 'scale':
                 offset = kheight * (self.y - h) / (h - kheight)
                 self.y += offset
-                self.oy += offset
-                self.py += offset
+                if opos_ppos_updated:
+                    self.oy += offset
+                    self.py += offset
         # Update delta for x and y
         self.dx = self.x - self.px
         self.dy = self.y - self.py
