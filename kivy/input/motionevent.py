@@ -286,6 +286,22 @@ class MotionEvent(MotionEventBase):
         #: the touch.
         self.ud = EnhancedDictionary()
 
+        #: If set to `True` (default) keeps first previous position
+        #: (X, Y, Z in 0-1 range) and ignore all other until
+        #: :meth:`MotionEvent.dispatch_done` is called from the `EventLoop`.
+        #:
+        #: This attribute is needed because event provider can make many calls
+        #: to :meth:`MotionEvent.move`, but for all those calls event is
+        #: dispatched to the listeners only once. Assigning `False` will keep
+        #: latest previous position. See :meth:`MotionEvent.move`.
+        #:
+        #: .. versionadded:: 2.1.0
+        self.keep_first_prev_pos = True
+
+        #: Keep first previous position if :attr:`keep_first_prev_pos` is
+        #: `True`.
+        self._keep_prev_pos = True
+
         self.depack(args)
 
     def depack(self, args):
@@ -344,15 +360,24 @@ class MotionEvent(MotionEventBase):
         if class_instance in self.grab_list:
             self.grab_list.remove(class_instance)
 
-    def move(self, args):
-        '''Move the touch to another position
+    def dispatch_done(self):
+        '''Notify that dispatch to the listeners is done.
+
+        Called by the :meth:`EventLoopBase.dispatch_input`.
+
+        .. versionadded:: 2.1.0
         '''
-        self.px = self.x
-        self.py = self.y
-        self.pz = self.z
-        self.psx = self.sx
-        self.psy = self.sy
-        self.psz = self.sz
+        self._keep_prev_pos = True
+
+    def move(self, args):
+        '''Move the touch to an another position.
+        '''
+        if self.keep_first_prev_pos:
+            if self._keep_prev_pos:
+                self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
+                self._keep_prev_pos = False
+        else:
+            self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
         self.time_update = time()
         self.depack(args)
 

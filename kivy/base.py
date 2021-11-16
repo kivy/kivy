@@ -327,7 +327,9 @@ class EventLoopBase(EventDispatcher):
         pop = input_events.pop
         post_dispatch_input = self.post_dispatch_input
         while input_events:
-            post_dispatch_input(*pop(0))
+            etype, me = pop(0)
+            post_dispatch_input(etype, me)
+            me.dispatch_done()
 
     def mainloop(self):
         while not self.quit and self.status == 'started':
