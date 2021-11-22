@@ -936,7 +936,7 @@ Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
     import atexit
-    import cgi
+    from html import escape
 
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
@@ -976,7 +976,7 @@ if 'KIVY_PROFILE_LANG' in environ:
             count = 0
             for index, line in enumerate(lines):
                 line = line.rstrip()
-                line = cgi.escape(line)
+                line = escape(line)
                 matched_prp = []
                 for psn, rule in Builder.rules:
                     matched_prp += list(match_rule(fn, index, rule))

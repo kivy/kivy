@@ -519,7 +519,7 @@ class Parser(object):
                     ref = ref[c:-c] if c != 2 else ref
 
                 if ref[-3:] != '.kv':
-                    Logger.warn('Lang: {0} does not have a valid Kivy'
+                    Logger.warning('Lang: {0} does not have a valid Kivy'
                                 'Language extension (.kv)'.format(ref))
                     break
                 if ref in __KV_INCLUDES__:
@@ -528,7 +528,7 @@ class Parser(object):
                                               'Invalid or unknown file: {0}'
                                               .format(ref))
                     if not force_load:
-                        Logger.warn('Lang: {0} has already been included!'
+                        Logger.warning('Lang: {0} has already been included!'
                                     .format(ref))
                         continue
                     else:
