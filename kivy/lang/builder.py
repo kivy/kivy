@@ -967,7 +967,7 @@ if 'KIVY_PROFILE_LANG' in environ:
             '<style type="text/css">\n',
             'pre { margin: 0; }\n',
             '</style>']
-        files = set([x[1].ctx.filename for x in Builder.rules])
+        files = {x[1].ctx.filename for x in Builder.rules}
         for fn in files:
             try:
                 with open(fn) as f:
@@ -983,7 +983,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                 for psn, rule in Builder.rules:
                     matched_prp += list(match_rule(fn, index, rule))
 
-                count = sum(set([x.count for x in matched_prp]))
+                count = sum({x.count for x in matched_prp})
 
                 color = (255, 155, 155) if count else (255, 255, 255)
                 html += ['<tr style="background-color: rgb{}">'.format(color),

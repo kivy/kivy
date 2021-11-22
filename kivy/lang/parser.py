@@ -200,7 +200,6 @@ class ParserRuleProperty(object):
         # now, detect obj.prop
         # find all the fstrings in the  value
         fstrings = lang_fstr.findall(value)
-        expressions = [ast.parse(s) for s in fstrings]
         wk = set()
         for s in fstrings:
             expression = ast.parse(s)
