@@ -578,11 +578,11 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in _ids.keys():
-                if _ids[_key] == _root:
+            for _key, _value in _ids.items():
+                if _value == _root:
                     # skip on self
                     continue
-                _new_ids[_key] = _ids[_key]
+                _new_ids[_key] = _value
             _root.ids = _new_ids
 
         # first, ensure that the widget have all the properties used in
