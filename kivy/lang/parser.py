@@ -401,7 +401,7 @@ class ParserRule(object):
         for rule in re.split(lang_cls_split_pat, name):
             crule = None
 
-            if not len(rule):
+            if not rule:
                 raise ParserException(self.ctx, self.line,
                                       'Empty rule detected')
 
@@ -659,7 +659,7 @@ class Parser(object):
             # Current level, create an object
             elif count == indent:
                 x = content.split(':', 1)
-                if not len(x[0]):
+                if not x[0]:
                     raise ParserException(self, ln, 'Identifier missing')
                 if (len(x) == 2 and len(x[1]) and
                         not x[1].lstrip().startswith('#')):
@@ -679,7 +679,7 @@ class Parser(object):
             # Next level, is it a property or an object ?
             elif count == indent + spaces:
                 x = content.split(':', 1)
-                if not len(x[0]):
+                if not x[0]:
                     raise ParserException(self, ln, 'Identifier missing')
 
                 # It's a class, add to the current object as a children
