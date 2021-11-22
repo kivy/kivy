@@ -4,9 +4,7 @@ Builder
 
 Class used for the registering and application of rules for specific widgets.
 '''
-import codecs
 import sys
-import types
 from os import environ
 from os.path import join
 from copy import copy
