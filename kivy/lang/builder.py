@@ -979,7 +979,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                 line = escape(line)
                 matched_prp = []
                 for psn, rule in Builder.rules:
-                    matched_prp += list(match_rule(fn, index, rule))
+                    matched_prp.extend(match_rule(fn, index, rule))
 
                 count = sum({x.count for x in matched_prp})
 
