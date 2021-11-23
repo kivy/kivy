@@ -364,45 +364,54 @@ class MotionEvent(MotionEventBase):
             Max value for `x`, `y` and `z` is changed respectively to `w` - 1,
             `h` - 1 and `p` - 1.
         '''
-        x_max, y_max = max(0.0, w - 1.0), max(0.0, h - 1.0)
-        sx, sy = self.sx, self.sy
-        if rotation == 0:
-            self.x = sx * x_max
-            self.y = sy * y_max
-        elif rotation == 90:
-            sx, sy = sy, 1 - sx
-            self.x = sx * y_max
-            self.y = sy * x_max
-        elif rotation == 180:
-            sx, sy = 1 - sx, 1 - sy
-            self.x = sx * x_max
-            self.y = sy * y_max
-        elif rotation == 270:
-            sx, sy = 1 - sy, sx
-            self.x = sx * y_max
-            self.y = sy * x_max
-
+        x_max, y_max = max(0, w - 1), max(0, h - 1)
+        absolute = self.to_absolute_pos
+        self.x, self.y = absolute(self.sx, self.sy, x_max, y_max, rotation)
+        self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max, rotation)
+        self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
+        # Update z values
         if p is not None:
-            self.z = self.sz * max(0.0, p - 1.0)
-
+            z_max = max(0, p - 1)
+            self.z = self.sz * z_max
+            self.oz = self.osz * z_max
+            self.pz = self.psz * z_max
+            self.dz = self.z - self.pz
         if smode:
+            # Adjust y for keyboard height
             if smode == 'pan':
                 self.y -= kheight
+                self.oy -= kheight
+                self.py -= kheight
             elif smode == 'scale':
-                self.y += (kheight * (
-                    (self.y - kheight) / (h - kheight))) - kheight
-
-        if self.ox is None:
-            self.px = self.ox = self.x
-            self.py = self.oy = self.y
-            self.pz = self.oz = self.z
-
+                offset = kheight * (self.y - h) / (h - kheight)
+                self.y += offset
+                self.oy += offset
+                self.py += offset
+        # Update delta for x and y
         self.dx = self.x - self.px
         self.dy = self.y - self.py
-        self.dz = self.z - self.pz
-
-        # cache position
+        # Cache position
         self.pos = self.x, self.y
+
+    def to_absolute_pos(self, nx, ny, x_max, y_max, rotation):
+        '''Transforms normalized (0-1) coordinates `nx` and `ny` to absolute
+        coordinates using `x_max`, `y_max` and `rotation`.
+
+        :raises:
+            `ValueError`: If `rotation` is not one of: 0, 90, 180 or 270
+
+        .. versionadded:: 2.1.0
+        '''
+        if rotation == 0:
+            return nx * x_max, ny * y_max
+        elif rotation == 90:
+            return ny * y_max, (1 - nx) * x_max
+        elif rotation == 180:
+            return (1 - nx) * x_max, (1 - ny) * y_max
+        elif rotation == 270:
+            return (1 - ny) * y_max, nx * x_max
+        raise ValueError('Invalid rotation %s, '
+                         'valid values are 0, 90, 180 or 270' % rotation)
 
     def push(self, attrs=None):
         '''Push attribute values in `attrs` onto the stack
