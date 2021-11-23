@@ -991,7 +991,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                          '</tr>']
             html += ['</table>']
         html += ['</body></html>']
-        with open('builder_stats.html', 'w') as fd:
+        with open('builder_stats.html', 'w', encoding='utf-8') as fd:
             fd.write(''.join(html))
 
         print('Profiling written at builder_stats.html')
