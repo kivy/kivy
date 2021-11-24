@@ -296,9 +296,9 @@ class MotionEvent(MotionEventBase):
         #: latest previous position. See :meth:`MotionEvent.move`.
         #:
         #: .. versionadded:: 2.1.0
-        self.keep_first_prev_pos = True
+        self.sync_with_dispatch = True
 
-        #: Keep first previous position if :attr:`keep_first_prev_pos` is
+        #: Keep first previous position if :attr:`sync_with_dispatch` is
         #: `True`.
         self._keep_prev_pos = True
 
@@ -376,7 +376,7 @@ class MotionEvent(MotionEventBase):
     def move(self, args):
         '''Move the touch to an another position.
         '''
-        if self.keep_first_prev_pos:
+        if self.sync_with_dispatch:
             if not self._first_dispatch_done:
                 # Sync original/previous/current positions until the first
                 # dispatch (etype == 'begin') is done
