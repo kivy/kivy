@@ -377,19 +377,20 @@ class MotionEvent(MotionEventBase):
         '''Move the touch to an another position.
         '''
         if self.sync_with_dispatch:
-            if not self._first_dispatch_done:
-                # Sync original/previous/current positions until the first
-                # dispatch (etype == 'begin') is done
-                self.osx = self.psx = self.sx
-                self.osy = self.psy = self.sy
-                self.osz = self.psz = self.sz
-            elif self._keep_prev_pos:
+            if self._keep_prev_pos:
                 self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
                 self._keep_prev_pos = False
         else:
             self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
         self.time_update = time()
         self.depack(args)
+        if self.sync_with_dispatch and not self._first_dispatch_done:
+            # Sync original/previous/current positions until the first
+            # dispatch (etype == 'begin') is done.
+            self.osx = self.psx = self.sx
+            self.osy = self.psy = self.sy
+            self.osz = self.psz = self.sz
+            self.dsx = self.dsy = self.dsz = 0.0
 
     def scale_for_screen(self, w, h, p=None, rotation=0,
                          smode='None', kheight=0):
