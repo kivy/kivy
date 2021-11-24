@@ -302,6 +302,9 @@ class MotionEvent(MotionEventBase):
         #: `True`.
         self._keep_prev_pos = True
 
+        #: Flag that first dispatch of this event is done.
+        self._first_dispatch_done = False
+
         self.depack(args)
 
     def depack(self, args):
@@ -368,12 +371,19 @@ class MotionEvent(MotionEventBase):
         .. versionadded:: 2.1.0
         '''
         self._keep_prev_pos = True
+        self._first_dispatch_done = True
 
     def move(self, args):
         '''Move the touch to an another position.
         '''
         if self.keep_first_prev_pos:
-            if self._keep_prev_pos:
+            if not self._first_dispatch_done:
+                # Sync original/previous/current positions until the first
+                # dispatch (etype == 'begin') is done
+                self.osx = self.psx = self.sx
+                self.osy = self.psy = self.sy
+                self.osz = self.psz = self.sz
+            elif self._keep_prev_pos:
                 self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
                 self._keep_prev_pos = False
         else:
