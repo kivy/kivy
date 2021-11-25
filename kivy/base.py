@@ -302,6 +302,7 @@ class EventLoopBase(EventDispatcher):
             if wid != root_window and root_window is not None:
                 me.pop()
         me.grab_state = False
+        me.dispatch_done()
 
     def _dispatch_input(self, *ev):
         # remove the save event for the touch if exist
@@ -327,9 +328,7 @@ class EventLoopBase(EventDispatcher):
         pop = input_events.pop
         post_dispatch_input = self.post_dispatch_input
         while input_events:
-            etype, me = pop(0)
-            post_dispatch_input(etype, me)
-            me.dispatch_done()
+            post_dispatch_input(*pop(0))
 
     def mainloop(self):
         while not self.quit and self.status == 'started':
