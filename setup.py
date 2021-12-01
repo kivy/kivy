@@ -419,15 +419,6 @@ if platform == 'ios':
 elif platform == 'android':
     c_options['use_android'] = True
 
-elif platform == 'darwin':
-    if c_options['use_osx_frameworks']:
-        if osx_arch == "i386":
-            print("Warning: building with frameworks fail on i386")
-        else:
-            print(f"OSX framework used, force to {osx_arch} only")
-            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", f"-arch {osx_arch}")
-            print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
-
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
 if platform not in ('ios', 'android') and (c_options['use_gstreamer']
@@ -490,19 +481,22 @@ if c_options['use_sdl2'] or (
     sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        sdl2_frameworks_search_path = environ.get(
+            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH", "/Library/Frameworks"
+        )
         sdl2_valid = True
         sdl2_flags = {
             'extra_link_args': [
-                '-F/Library/Frameworks',
+                '-F{}'.format(sdl2_frameworks_search_path),
                 '-Xlinker', '-rpath',
-                '-Xlinker', '/Library/Frameworks',
+                '-Xlinker', sdl2_frameworks_search_path,
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
             'include_dirs': [],
-            'extra_compile_args': ['-F/Library/Frameworks']
+            'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
-            f_path = '/Library/Frameworks/{}.framework'.format(name)
+            f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
                 sdl2_valid = False
