@@ -103,11 +103,6 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-if sys.platform == 'darwin':
-    from platform import machine
-    osx_arch = machine()
-
-
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -622,8 +617,7 @@ def determine_gl_flags():
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
     elif platform == 'darwin':
-        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
-        flags['extra_compile_args'] = ['-arch', osx_arch]
+        flags['extra_link_args'] = ['-framework', 'OpenGL']
     elif platform.startswith('freebsd'):
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
