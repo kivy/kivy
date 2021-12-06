@@ -311,11 +311,11 @@ class MotionEvent(MotionEventBase):
         '''Depack `args` into attributes of the class'''
         if self.osx is None \
                 or self.sync_with_dispatch and not self._first_dispatch_done:
-            # Sync original/previous/current positions until the first
+            # Sync origin/previous/current positions until the first
             # dispatch (etype == 'begin') is done.
-            self.psx = self.osx = self.sx
-            self.psy = self.osy = self.sy
-            self.psz = self.osz = self.sz
+            self.osx = self.psx = self.sx
+            self.osy = self.psy = self.sy
+            self.osz = self.psz = self.sz
         # update the delta
         self.dsx = self.sx - self.psx
         self.dsy = self.sy - self.psy
