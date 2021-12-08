@@ -16,7 +16,8 @@ algebraic and platform functions.
 __all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_hex_from_color', 'get_random_color',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
-           'deprecated', 'interpolate', 'QueryDict',
+           'deprecated', 'SafeList',
+           'interpolate', 'QueryDict',
            'platform', 'escape_markup', 'reify', 'rgba', 'pi_version')
 
 from os import environ, path
@@ -351,6 +352,23 @@ def deprecated(func=None, msg=''):
                 Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
+
+
+class SafeList(list):
+    '''List with a clear() method.
+
+    .. warning::
+        Usage of the iterate() function will decrease your performance.
+    '''
+
+    def clear(self):
+        del self[:]
+
+    @deprecated
+    def iterate(self, reverse=False):
+        if reverse:
+            return iter(reversed(self))
+        return iter(self)
 
 
 class QueryDict(dict):
