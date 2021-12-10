@@ -376,7 +376,7 @@ class MotionEvent(MotionEventBase):
         self._first_dispatch_done = True
 
     def move(self, args):
-        '''Move the touch to an another position.
+        '''Move the touch to another position.
         '''
         if self.sync_with_dispatch:
             if self._keep_prev_pos:
