@@ -368,7 +368,7 @@ class MotionEvent(MotionEventBase):
     def dispatch_done(self):
         '''Notify that dispatch to the listeners is done.
 
-        Called by the :meth:`EventLoopBase.dispatch_input`.
+        Called by the :meth:`EventLoopBase.post_dispatch_input`.
 
         .. versionadded:: 2.1.0
         '''
