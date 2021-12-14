@@ -526,6 +526,17 @@ class Widget(WidgetBase):
         return True
 
     def on_motion(self, etype, me):
+        '''Receive a motion event previously registered by
+        :meth:`register_for_motion_event`.
+
+        :Parameters:
+            `etype`: `str`
+                Event type, one of "begin", "update", "end"
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Received motion event
+        :Returns: bool
+            `True` to stop event dispatching
+        '''
         if self.disabled or me.flags & uix.WIDGET_BEHAVIOR_DISABLED:
             return False
         if me.type_id not in self.motion_filter:
@@ -665,8 +676,8 @@ class Widget(WidgetBase):
             if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
-        for event in widget.motion_filter:
-            self.register_for_motion_event(event, widget)
+        for type_id in widget.motion_filter:
+            self.register_for_motion_event(type_id, widget)
         widget.fbind('motion_filter', self._update_motion_filter)
 
     def remove_widget(self, widget):
@@ -693,8 +704,8 @@ class Widget(WidgetBase):
             self.canvas.after.remove(widget.canvas)
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
-        for event in widget.motion_filter:
-            self.unregister_for_motion_event(event, widget)
+        for type_id in widget.motion_filter:
+            self.unregister_for_motion_event(type_id, widget)
         widget.funbind('motion_filter', self._update_motion_filter)
         widget.parent = None
         widget.dec_disabled(self._disabled_count)
@@ -723,20 +734,20 @@ class Widget(WidgetBase):
 
     def _update_motion_filter(self, child_widget, child_motion_filter):
         old_events = []
-        for event, widgets in self.motion_filter.items():
+        for type_id, widgets in self.motion_filter.items():
             if child_widget in widgets:
-                old_events.append(event)
-        for event in old_events:
-            if event not in child_motion_filter:
-                self.unregister_for_motion_event(event, child_widget)
-        for event in child_motion_filter:
-            if event not in old_events:
-                self.register_for_motion_event(event, child_widget)
+                old_events.append(type_id)
+        for type_id in old_events:
+            if type_id not in child_motion_filter:
+                self.unregister_for_motion_event(type_id, child_widget)
+        for type_id in child_motion_filter:
+            if type_id not in old_events:
+                self.register_for_motion_event(type_id, child_widget)
 
-    def _find_index_in_motion_filter(self, event, widget):
+    def _find_index_in_motion_filter(self, type_id, widget):
         if widget is self:
             return 0
-        motion_widgets = self.motion_filter[event]
+        motion_widgets = self.motion_filter[type_id]
         w_index = self.children.index(widget)
         if w_index == 0:
             return 1 if motion_widgets[0] is self else 0
@@ -746,25 +757,52 @@ class Widget(WidgetBase):
                 index += 1
         return index + 1
 
-    def register_for_motion_event(self, event, widget=None):
-        # Can be called multiple times with same arguments
-        a_widget = widget or self
-        motion_filter = self.motion_filter
-        if event not in motion_filter:
-            motion_filter[event] = [a_widget]
-        elif widget not in motion_filter[event]:
-            index = self._find_index_in_motion_filter(event, a_widget)
-            motion_filter[event].insert(index, a_widget)
+    def register_for_motion_event(self, type_id, widget=None):
+        '''Register to receive motion events of `type_id`.
 
-    def unregister_for_motion_event(self, event, widget=None):
-        # Can be called multiple times with same arguments
+        Override :meth:`on_motion` or bind to `on_motion` event to handle
+        the incoming motion events.
+
+        :Parameters:
+            `type_id`: `str`
+                Motion event type id (eg. "touch", "hover", etc.)
+            `widget`: `Widget`
+                Child widget or `self` if omitted
+
+        .. note::
+            Method can be called multiple times with the same arguments.
+
+        .. versionadded:: 2.1.0
+        '''
         a_widget = widget or self
         motion_filter = self.motion_filter
-        if event in motion_filter:
-            if a_widget in motion_filter[event]:
-                motion_filter[event].remove(a_widget)
-                if not motion_filter[event]:
-                    del motion_filter[event]
+        if type_id not in motion_filter:
+            motion_filter[type_id] = [a_widget]
+        elif widget not in motion_filter[type_id]:
+            index = self._find_index_in_motion_filter(type_id, a_widget)
+            motion_filter[type_id].insert(index, a_widget)
+
+    def unregister_for_motion_event(self, type_id, widget=None):
+        '''Unregister to receive motion events of `type_id`.
+
+        :Parameters:
+            `type_id`: `str`
+                Motion event type id (eg. "touch", "hover", etc.)
+            `widget`: `Widget`
+                Child widget or `self` if omitted
+
+        .. note::
+            Method can be called multiple times with the same arguments.
+
+        .. versionadded:: 2.1.0
+        '''
+        a_widget = widget or self
+        motion_filter = self.motion_filter
+        if type_id in motion_filter:
+            if a_widget in motion_filter[type_id]:
+                motion_filter[type_id].remove(a_widget)
+                if not motion_filter[type_id]:
+                    del motion_filter[type_id]
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
@@ -1549,3 +1587,13 @@ class Widget(WidgetBase):
     '''
 
     motion_filter = DictProperty()
+    '''Holds dict of `type_id` to `list` of widgets registered to receive
+    motion events of `type_id`.
+
+    Don't change the property directly but use
+    :meth:`register_for_motion_event` to register and
+    :meth:`unregister_for_motion_event` to unregister for motion events. If
+    `self` is registered it will always be the first element in the list.
+
+    .. versionadded:: 2.1.0
+    '''
