@@ -4,9 +4,7 @@ Builder
 
 Class used for the registering and application of rules for specific widgets.
 '''
-import codecs
 import sys
-import types
 from os import environ
 from os.path import join
 from copy import copy
@@ -580,11 +578,11 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in _ids.keys():
-                if _ids[_key] == _root:
+            for _key, _value in _ids.items():
+                if _value == _root:
                     # skip on self
                     continue
-                _new_ids[_key] = _ids[_key]
+                _new_ids[_key] = _value
             _root.ids = _new_ids
 
         # first, ensure that the widget have all the properties used in
@@ -938,7 +936,7 @@ Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
     import atexit
-    import cgi
+    from html import escape
 
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
@@ -967,7 +965,7 @@ if 'KIVY_PROFILE_LANG' in environ:
             '<style type="text/css">\n',
             'pre { margin: 0; }\n',
             '</style>']
-        files = set([x[1].ctx.filename for x in Builder.rules])
+        files = {x[1].ctx.filename for x in Builder.rules}
         for fn in files:
             try:
                 with open(fn) as f:
@@ -978,12 +976,12 @@ if 'KIVY_PROFILE_LANG' in environ:
             count = 0
             for index, line in enumerate(lines):
                 line = line.rstrip()
-                line = cgi.escape(line)
+                line = escape(line)
                 matched_prp = []
                 for psn, rule in Builder.rules:
-                    matched_prp += list(match_rule(fn, index, rule))
+                    matched_prp.extend(match_rule(fn, index, rule))
 
-                count = sum(set([x.count for x in matched_prp]))
+                count = sum({x.count for x in matched_prp})
 
                 color = (255, 155, 155) if count else (255, 255, 255)
                 html += ['<tr style="background-color: rgb{}">'.format(color),
@@ -993,7 +991,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                          '</tr>']
             html += ['</table>']
         html += ['</body></html>']
-        with open('builder_stats.html', 'w') as fd:
+        with open('builder_stats.html', 'w', encoding='utf-8') as fd:
             fd.write(''.join(html))
 
         print('Profiling written at builder_stats.html')

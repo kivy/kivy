@@ -4,14 +4,13 @@
 .. image:: images/label.png
     :align: right
 
-The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings::
+The :class:`Label` widget is for rendering text::
 
     # hello world text
     l = Label(text='Hello world')
 
     # unicode text; can only display glyphs that are available in the font
-    l = Label(text=u'Hello world ' + unichr(2764))
+    l = Label(text='Hello world ' + chr(2764))
 
     # multiline text
     l = Label(text='Multi\\nLine')
@@ -465,10 +464,6 @@ class Label(Widget):
     Creation of a simple hello world::
 
         widget = Label(text='Hello world')
-
-    If you want to create the widget with an unicode string, use::
-
-        widget = Label(text=u'My unicode string')
 
     :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.

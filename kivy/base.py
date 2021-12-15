@@ -257,51 +257,29 @@ class EventLoopBase(EventDispatcher):
         elif etype == 'end':
             if me in self.me_list:
                 self.me_list.remove(me)
-
         # dispatch to listeners
         if not me.grab_exclusive_class:
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
-
         # dispatch grabbed touch
         me.grab_state = True
-        for _wid in me.grab_list[:]:
-
-            # it's a weakref, call it!
-            wid = _wid()
+        for weak_widget in me.grab_list[:]:
+            # weak_widget is a weak reference to widget
+            wid = weak_widget()
             if wid is None:
                 # object is gone, stop.
-                me.grab_list.remove(_wid)
+                me.grab_list.remove(weak_widget)
                 continue
-
             root_window = wid.get_root_window()
             if wid != root_window and root_window is not None:
                 me.push()
-                w, h = root_window._get_effective_size()
-                kheight = root_window.keyboard_height
-                smode = root_window.softinput_mode
-                me.scale_for_screen(w, h, rotation=root_window.rotation,
-                                    smode=smode, kheight=kheight)
-                parent = wid.parent
-                # and do to_local until the widget
                 try:
-                    if parent:
-                        me.apply_transform_2d(parent.to_widget)
-                    else:
-                        me.apply_transform_2d(wid.to_widget)
-                        me.apply_transform_2d(wid.to_parent)
+                    root_window.transform_motion_event_2d(me, wid)
                 except AttributeError:
-                    # when using inner window, an app have grab the touch
-                    # but app is removed. the touch can't access
-                    # to one of the parent. (i.e, self.parent will be None)
-                    # and BAM the bug happen.
                     me.pop()
                     continue
-
             me.grab_current = wid
-
             wid._context.push()
-
             if etype == 'begin':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
@@ -313,21 +291,18 @@ class EventLoopBase(EventDispatcher):
                         wid.dispatch('on_touch_move', me)
                 else:
                     wid.dispatch('on_touch_move', me)
-
             elif etype == 'end':
                 if wid._context.sandbox:
                     with wid._context.sandbox:
                         wid.dispatch('on_touch_up', me)
                 else:
                     wid.dispatch('on_touch_up', me)
-
             wid._context.pop()
-
             me.grab_current = None
-
             if wid != root_window and root_window is not None:
                 me.pop()
         me.grab_state = False
+        me.dispatch_done()
 
     def _dispatch_input(self, *ev):
         # remove the save event for the touch if exist

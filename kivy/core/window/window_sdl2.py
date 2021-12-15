@@ -155,6 +155,7 @@ class WindowSDL(WindowBase):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
+        self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
         self._meta_keys = (
             KMOD_LCTRL, KMOD_RCTRL, KMOD_RSHIFT,
@@ -267,7 +268,13 @@ class WindowSDL(WindowBase):
             if not self.borderless:
                 self.fullscreen = self._fake_fullscreen = False
             elif not self.fullscreen or self.fullscreen == 'auto':
-                self.borderless = self._fake_fullscreen = False
+                self.custom_titlebar = \
+                    self.borderless = self._fake_fullscreen = False
+            elif self.custom_titlebar:
+                if platform == 'win':
+                    # use custom behaviour
+                    # To handle aero snapping and rounded corners
+                    self.borderless = False
         if self.fullscreen == 'fake':
             self.borderless = self._fake_fullscreen = True
             Logger.warning("The 'fake' fullscreen option has been "
@@ -319,7 +326,29 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            self._win.set_border_state(self.borderless)
+            if platform == 'win':
+                if self.custom_titlebar:
+                    # check dragging+resize or just dragging
+                    if Config.getboolean('graphics', 'resizable'):
+                        import win32con
+                        import ctypes
+                        self._win.set_border_state(False)
+                        # make windows dispatch,
+                        # WM_NCCALCSIZE explicitly
+                        ctypes.windll.user32.SetWindowPos(
+                            self._win.get_window_info().window,
+                            win32con.HWND_TOP,
+                            *self._win.get_window_pos(),
+                            *self.system_size,
+                            win32con.SWP_FRAMECHANGED
+                        )
+                    else:
+                        self._win.set_border_state(True)
+                else:
+                    self._win.set_border_state(self.borderless)
+            else:
+                self._win.set_border_state(self.borderless
+                                           or self.custom_titlebar)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
@@ -838,6 +867,14 @@ class WindowSDL(WindowBase):
     def ungrab_mouse(self):
         self._win.grab_mouse(False)
 
+    def set_custom_titlebar(self, titlebar_widget):
+        if not self.custom_titlebar:
+            Logger.warning("Window: Window.custom_titlebar not set to True… "
+                           "can't set custom titlebar")
+            return
+        self.titlebar_widget = titlebar_widget
+        return self._win.set_custom_titlebar(self.titlebar_widget) == 0
+
 
 class _WindowsSysDPIWatch:
 
@@ -876,7 +913,7 @@ class _WindowsSysDPIWatch:
         self.hwnd = self.new_windProc = self.old_windProc = None
 
     def _wnd_proc(self, hwnd, msg, wParam, lParam):
-        from kivy.input.providers.wm_common import WM_DPICHANGED
+        from kivy.input.providers.wm_common import WM_DPICHANGED, WM_NCCALCSIZE
         from ctypes import windll
 
         if msg == WM_DPICHANGED:
@@ -897,6 +934,8 @@ class _WindowsSysDPIWatch:
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16
             Clock.schedule_once(clock_callback, -1)
-
+        elif Config.getboolean('graphics', 'resizable') \
+                and msg == WM_NCCALCSIZE and self.window.custom_titlebar:
+            return 0
         return windll.user32.CallWindowProcW(
             self.old_windProc, hwnd, msg, wParam, lParam)

@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: 3.9
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
@@ -44,7 +44,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: 3.9
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
@@ -68,7 +68,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: 3.9
     - uses: actions/download-artifact@v2
       with:
         name: manylinux_wheels
@@ -165,7 +165,7 @@ jobs:
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: 3.9
       - name: Generate sdist
         run: |
           source .ci/ubuntu_ci.sh
