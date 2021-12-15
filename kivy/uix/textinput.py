@@ -3170,14 +3170,16 @@ class TextInput(FocusBehavior, Widget):
         elif offset < sx + 1:
             self.scroll_x = offset
 
-        # Avoid right/center horizontal alignment issues if the viewport is
-        # at the end of the line, if not multiline.
+        # Avoid right/center horizontal alignment issues if the viewport is at
+        # the end of the line, if not multiline.
+        viewport_scroll_x = row_width - viewport_width
         if (
             not self.multiline
-            and offset >= row_width - viewport_width
+            and offset >= viewport_scroll_x
+            and self.scroll_x >= viewport_scroll_x
             and (halign == "center" or halign == "right" or auto_halign_r)
         ):
-            self.scroll_x = max(0, row_width - viewport_width)
+            self.scroll_x = max(0, viewport_scroll_x)
 
         # do the same for Y
         # this algo try to center the cursor as much as possible
