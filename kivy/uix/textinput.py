@@ -1341,15 +1341,13 @@ class TextInput(FocusBehavior, Widget):
         if halign == 'center':
             viewport_width = self.width - padding_left - padding_right
             xoff = max(
-                0,
-                int((viewport_width - self._get_row_width(cursor_y)) / 2)
+                0, int((viewport_width - self._get_row_width(cursor_y)) / 2)
             )
 
         elif halign == 'right' or auto_halign_r:
             viewport_width = self.width - padding_left - padding_right
             xoff = max(
-                0,
-                int(viewport_width - self._get_row_width(cursor_y))
+                0, int(viewport_width - self._get_row_width(cursor_y))
             )
 
         for i in range(0, len(lines[cursor_y])):
@@ -2391,10 +2389,8 @@ class TextInput(FocusBehavior, Widget):
                 auto_halign_r = 'rtl' in base_dir
         if halign == 'center':
             xoffset = int((viewport_width - texture_width) / 2.)
-            self.scroll_x = max(0, self.scroll_x - xoffset)
         elif halign == 'right' or auto_halign_r:
             xoffset = max(0, int(viewport_width - texture_width))
-            self.scroll_x = max(0, self.scroll_x - xoffset)
 
         # add rectangle
         rect = rects[line_num]
@@ -3161,13 +3157,27 @@ class TextInput(FocusBehavior, Widget):
         padding_right = self.padding[2]
         viewport_width = self.width - padding_left - padding_right
         sx = self.scroll_x
+        halign = self.halign
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+
         offset = self.cursor_offset()
+        row_width = self._get_row_width(self.cursor_row)
 
         # if offset is outside the current bounds, readjust
         if offset - sx >= viewport_width:
             self.scroll_x = offset - viewport_width
         elif offset < sx + 1:
             self.scroll_x = offset
+        
+        # Avoid right/center horizontal alignment issues if the viewport is
+        # at the end of the line, if not multiline.
+        if (
+            not self.multiline
+            and offset >= row_width - viewport_width
+            and (halign == "center" or halign == "right" or auto_halign_r)
+        ):
+            self.scroll_x = max(0, row_width - viewport_width)
 
         # do the same for Y
         # this algo try to center the cursor as much as possible
