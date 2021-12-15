@@ -3169,7 +3169,7 @@ class TextInput(FocusBehavior, Widget):
             self.scroll_x = offset - viewport_width
         elif offset < sx + 1:
             self.scroll_x = offset
-        
+
         # Avoid right/center horizontal alignment issues if the viewport is
         # at the end of the line, if not multiline.
         if (
