@@ -57,7 +57,7 @@ class Touchtracer(FloatLayout):
 
     def normalize_pressure(self, pressure):
         print(pressure)
-        # this might mean we are on a device whose pressure value is
+        # this might mean we are on a device whose pressure value is
         # incorrectly reported by SDL2, like recent iOS devices.
         if pressure == 0.0:
             return 1
@@ -102,7 +102,7 @@ class Touchtracer(FloatLayout):
                 points = ud['lines'][index].points
                 oldx, oldy = points[-2], points[-1]
                 break
-            except:
+            except IndexError:
                 index -= 1
 
         points = calculate_points(oldx, oldy, touch.x, touch.y)
@@ -110,7 +110,10 @@ class Touchtracer(FloatLayout):
         # if pressure changed create a new point instruction
         if 'pressure' in ud:
             old_pressure = ud['pressure']
-            if not old_pressure or not .99 < (touch.pressure / old_pressure) < 1.01:
+            if (
+                not old_pressure
+                or not .99 < (touch.pressure / old_pressure) < 1.01
+            ):
                 g = ud['group']
                 pointsize = self.normalize_pressure(touch.pressure)
                 with self.canvas:
