@@ -168,6 +168,7 @@ class MotionEvent(MotionEventBase):
         #: String to identify type of event ('touch', 'hover', 'keyboard' etc.)
         self.type_id = type_id
 
+        #: Used by event manager or widget to suggest dispatching behavior
         self.flags = 0
 
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,

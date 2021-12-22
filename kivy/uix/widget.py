@@ -237,6 +237,7 @@ at the parent's right at each layout update.
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
+from kivy.eventmanager import DONT_DISPATCH, FILTERED_DISPATCH
 from kivy.factory import Factory
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
@@ -248,7 +249,6 @@ from kivy.base import EventLoop
 from kivy.lang import Builder
 from kivy.context import get_current_context
 from kivy.weakproxy import WeakProxy
-from kivy import uix
 from functools import partial
 from itertools import islice
 
@@ -537,14 +537,14 @@ class Widget(WidgetBase):
         :Returns: bool
             `True` to stop event dispatching
         '''
-        if self.disabled or me.flags & uix.WIDGET_BEHAVIOR_DISABLED:
+        if self.disabled or me.flags & DONT_DISPATCH:
             return False
         if me.type_id not in self.motion_filter:
             return False
         filtered = self.motion_filter[me.type_id]
         if filtered[0] is self and len(filtered) == 1:
             return False
-        if me.flags & uix.FILTERED_DISPATCH:
+        if me.flags & FILTERED_DISPATCH:
             widgets = filtered[1:] if filtered[0] is self else filtered[:]
         else:
             widgets = self.children[:]
