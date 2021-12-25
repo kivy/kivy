@@ -107,8 +107,8 @@ SDLK_F15 = 1073741896
 class SDL2MotionEvent(MotionEvent):
     def depack(self, args):
         self.is_touch = True
-        self.profile = ('pos', )
-        self.sx, self.sy = args
+        self.profile = ('pos', 'pressure', )
+        self.sx, self.sy, self.pressure = args
         win = EventLoop.window
         super(SDL2MotionEvent, self).depack(args)
 
@@ -126,13 +126,15 @@ class SDL2MotionEventProvider(MotionEventProvider):
             except IndexError:
                 return
 
-            action, fid, x, y = value
+            action, fid, x, y, pressure = value
             y = 1 - y
             if fid not in touchmap:
-                touchmap[fid] = me = SDL2MotionEvent('sdl', fid, (x, y))
+                touchmap[fid] = me = SDL2MotionEvent(
+                    'sdl', fid, (x, y, pressure)
+                )
             else:
                 me = touchmap[fid]
-                me.move((x, y))
+                me.move((x, y, pressure))
             if action == 'fingerdown':
                 dispatch_fn('begin', me)
             elif action == 'fingerup':
