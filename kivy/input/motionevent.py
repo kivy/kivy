@@ -406,7 +406,7 @@ class MotionEvent(MotionEventBase):
         self.pz = self.psz * z_max
         if smode:
             # Adjust y for keyboard height
-            if smode == 'pan':
+            if smode == 'pan' or smode == 'below_target':
                 self.y -= kheight
                 self.oy -= kheight
                 self.py -= kheight

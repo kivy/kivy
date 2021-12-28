@@ -629,11 +629,31 @@ class WindowBase(EventDispatcher):
             import android
         return android.get_keyboard_height()
 
+    def _get_kivy_vkheight(self):
+        mode = Config.get('kivy', 'keyboard_mode')
+        smode = self.softinput_mode
+        if (
+            (mode == 'dock' or mode == 'systemanddock')
+            and self._vkeyboard_cls is not None
+        ):
+            for w in self.children:
+                if isinstance(w, VKeyboard):
+                    vkeyboard_height = w.height * w.scale
+                    if smode == 'pan':
+                        w.top = 0
+                        return vkeyboard_height
+                    elif smode == 'below_target':
+                        w.top = w.target.y
+                        return vkeyboard_height - w.target.y
+        return 0
+
     def _get_kheight(self):
         if platform == 'android':
             return self._get_android_kheight()
-        if platform == 'ios':
+        elif platform == 'ios':
             return self._get_ios_kheight()
+        else:
+            return self._get_kivy_vkheight()
         return 0
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
@@ -1621,7 +1641,7 @@ class WindowBase(EventDispatcher):
             _h -= kheight
 
         # prepare the viewport
-        glViewport(x, y, w, _h)
+        glViewport(0, 0, w, _h)
 
         # do projection matrix
         projection_mat = Matrix()
@@ -1633,7 +1653,7 @@ class WindowBase(EventDispatcher):
         modelview_mat = modelview_mat.multiply(Matrix().rotate(r, 0, 0, 1))
 
         w, h = self.size
-        w2, h2 = w / 2., h / 2.
+        w2, h2 = w / 2., h / 2. - y
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
         frag_modelview_mat = Matrix()
