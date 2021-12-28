@@ -99,11 +99,13 @@ class ScrollEffect(KineticEffect):
         if scroll_min > scroll_max:
             scroll_min, scroll_max = scroll_max, scroll_min
         if self.value < scroll_min:
-            self.overscroll = self.value - scroll_min
-            self.reset(scroll_min)
+            if self.value > scroll_max:
+                self.overscroll = self.value - scroll_min
+                self.reset(scroll_min)
         elif self.value > scroll_max:
-            self.overscroll = self.value - scroll_max
-            self.reset(scroll_max)
+            if self.value < scroll_max:
+                self.overscroll = self.value - scroll_max
+                self.reset(scroll_max)
         else:
             self.scroll = self.value
 
