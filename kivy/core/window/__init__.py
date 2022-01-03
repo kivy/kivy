@@ -640,10 +640,8 @@ class WindowBase(EventDispatcher):
                 if isinstance(w, VKeyboard):
                     vkeyboard_height = w.height * w.scale
                     if smode == 'pan':
-                        w.top = 0
                         return vkeyboard_height
                     elif smode == 'below_target':
-                        w.top = w.target.y
                         return vkeyboard_height - w.target.y
         return 0
 
@@ -2151,6 +2149,13 @@ class WindowBase(EventDispatcher):
             # only after add, do dock mode
             keyboard.widget.docked = self.docked_vkeyboard
             keyboard.widget.setup_mode()
+
+            # sets vkeyboard position according to Window.softinput_mode
+            smode = self.softinput_mode
+            if smode == 'pan':
+                keyboard.widget.top = 0
+            elif smode == 'below_target':
+                keyboard.widget.top = keyboard.target.y
 
         else:
             # system keyboard, just register the callback.
