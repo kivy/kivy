@@ -650,9 +650,7 @@ class WindowBase(EventDispatcher):
             return self._get_android_kheight()
         elif platform == 'ios':
             return self._get_ios_kheight()
-        else:
-            return self._get_kivy_vkheight()
-        return 0
+        return self._get_kivy_vkheight()
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
