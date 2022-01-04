@@ -286,15 +286,36 @@ class MotionEvent(MotionEventBase):
         #: the touch.
         self.ud = EnhancedDictionary()
 
+        #: If set to `True` (default) keeps first previous position
+        #: (X, Y, Z in 0-1 range) and ignore all other until
+        #: :meth:`MotionEvent.dispatch_done` is called from the `EventLoop`.
+        #:
+        #: This attribute is needed because event provider can make many calls
+        #: to :meth:`MotionEvent.move`, but for all those calls event is
+        #: dispatched to the listeners only once. Assigning `False` will keep
+        #: latest previous position. See :meth:`MotionEvent.move`.
+        #:
+        #: .. versionadded:: 2.1.0
+        self.sync_with_dispatch = True
+
+        #: Keep first previous position if :attr:`sync_with_dispatch` is
+        #: `True`.
+        self._keep_prev_pos = True
+
+        #: Flag that first dispatch of this event is done.
+        self._first_dispatch_done = False
+
         self.depack(args)
 
     def depack(self, args):
         '''Depack `args` into attributes of the class'''
-        # set initial position and last position
-        if self.osx is None:
-            self.psx = self.osx = self.sx
-            self.psy = self.osy = self.sy
-            self.psz = self.osz = self.sz
+        if self.osx is None \
+                or self.sync_with_dispatch and not self._first_dispatch_done:
+            # Sync origin/previous/current positions until the first
+            # dispatch (etype == 'begin') is done.
+            self.osx = self.psx = self.sx
+            self.osy = self.psy = self.sy
+            self.osz = self.psz = self.sz
         # update the delta
         self.dsx = self.sx - self.psx
         self.dsy = self.sy - self.psy
@@ -344,15 +365,25 @@ class MotionEvent(MotionEventBase):
         if class_instance in self.grab_list:
             self.grab_list.remove(class_instance)
 
-    def move(self, args):
-        '''Move the touch to another position
+    def dispatch_done(self):
+        '''Notify that dispatch to the listeners is done.
+
+        Called by the :meth:`EventLoopBase.post_dispatch_input`.
+
+        .. versionadded:: 2.1.0
         '''
-        self.px = self.x
-        self.py = self.y
-        self.pz = self.z
-        self.psx = self.sx
-        self.psy = self.sy
-        self.psz = self.sz
+        self._keep_prev_pos = True
+        self._first_dispatch_done = True
+
+    def move(self, args):
+        '''Move the touch to another position.
+        '''
+        if self.sync_with_dispatch:
+            if self._keep_prev_pos:
+                self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
+                self._keep_prev_pos = False
+        else:
+            self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
         self.time_update = time()
         self.depack(args)
 
@@ -369,13 +400,10 @@ class MotionEvent(MotionEventBase):
         self.x, self.y = absolute(self.sx, self.sy, x_max, y_max, rotation)
         self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max, rotation)
         self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
-        # Update z values
-        if p is not None:
-            z_max = max(0, p - 1)
-            self.z = self.sz * z_max
-            self.oz = self.osz * z_max
-            self.pz = self.psz * z_max
-            self.dz = self.z - self.pz
+        z_max = 0 if p is None else max(0, p - 1)
+        self.z = self.sz * z_max
+        self.oz = self.osz * z_max
+        self.pz = self.psz * z_max
         if smode:
             # Adjust y for keyboard height
             if smode == 'pan':
@@ -387,9 +415,10 @@ class MotionEvent(MotionEventBase):
                 self.y += offset
                 self.oy += offset
                 self.py += offset
-        # Update delta for x and y
+        # Update delta values
         self.dx = self.x - self.px
         self.dy = self.y - self.py
+        self.dz = self.z - self.pz
         # Cache position
         self.pos = self.x, self.y
 

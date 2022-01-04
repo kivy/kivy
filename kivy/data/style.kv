@@ -847,7 +847,7 @@
                 Line:
                     rectangle: self.x,self.y,self.width,self.height
                 Color: 
-                    rgba: kivy.utils.get_color(root.value) if root.value else (1,1,1,1.) 
+                    rgba: kivy.utils.get_color_from_hex(root.value) if root.value else (1,1,1,1.)
                 Rectangle:
                     pos: self.pos
                     size: self.size 
