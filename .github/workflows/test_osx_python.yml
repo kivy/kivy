@@ -12,6 +12,7 @@ env:
 
 jobs:
   unit_test:
+    name: "unit_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
     defaults:
       run:
         shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}

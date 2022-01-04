@@ -145,6 +145,7 @@ jobs:
         upload_artifacts_to_pypi
 
   osx_wheel_test:
+    name: "osx_wheel_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
     needs: [ osx_wheels_create, kivy_examples_create ]
     defaults:
       run:
