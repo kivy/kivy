@@ -191,13 +191,6 @@ jobs:
           source .ci/osx_ci.sh
           arm64_set_path_and_python_version ${{ matrix.python }}
           install_kivy_test_wheel_run_pip_deps dev
-      - name: Install ffpyplayer dependencies (Apple Silicon)
-        # ffpyplayer doesn't provides a wheel with Apple Silicon support (yet).
-        if: ${{ matrix.runs_on  == 'apple-silicon-m1' }}
-        run: |
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
-          install_ffpyplayer_sys_deps
       - name: Install Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
