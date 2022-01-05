@@ -129,7 +129,7 @@ class CodeInput(CodeNavigationBehavior, TextInput):
             ntext = u'*' * len(ntext)
         ntext = self._get_bbcode(ntext)
         kw = self._get_line_options()
-        cid = u'{}\0{}\0{}'.format(ntext, self.password, kw)
+        cid = u'{}\0{}\0{}'.format(text, self.password, kw)
         texture = Cache_get('textinput.label', cid)
 
         if texture is None:
