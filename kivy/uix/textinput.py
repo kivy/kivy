@@ -1186,6 +1186,37 @@ class TextInput(FocusBehavior, Widget):
             / (self.line_height + self.line_spacing) - 1
         )
 
+    def _get_col_by_width(self, row, col, width):
+        if col == 0:
+            return col
+        _get_text_width = self._get_text_width
+        _tab_width = self.tab_width
+        _label_cached = self._label_cached
+        col_width = _get_text_width(self._lines[row][:col],
+                                    _tab_width,
+                                    _label_cached)
+        if col_width > width:
+            for c in self._lines[row][col - 1::-1]:
+                w = _get_text_width(c, _tab_width, _label_cached)
+                if col_width - w <= width:
+                    if (width - col_width + w) < (col_width - width):
+                        col -= 1
+                    break
+                else:
+                    col_width -= w
+                    col -= 1
+        elif col_width < width:
+            for c in self._lines[row][col:]:
+                w = _get_text_width(c, _tab_width, _label_cached)
+                if col_width + w >= width:
+                    if (col_width + w - width) < (width - col_width):
+                        col += 1
+                    break
+                else:
+                    col_width += w
+                    col += 1
+        return col
+
     def _move_cursor_up(self, col, row, control=False, alt=False):
         if self.multiline and control:
             self.scroll_y = max(0, self.scroll_y - self.line_height)
@@ -1193,8 +1224,12 @@ class TextInput(FocusBehavior, Widget):
             self._shift_lines(-1)
             return
         else:
+            width = self._get_text_width(self._lines[row][:col],
+                                         self.tab_width,
+                                         self._label_cached)
             row = max(row - 1, 0)
             col = min(len(self._lines[row]), col)
+            col = self._get_col_by_width(row, col, width)
 
         return col, row
 
@@ -1209,8 +1244,12 @@ class TextInput(FocusBehavior, Widget):
             self._shift_lines(1)
             return
         else:
+            width = self._get_text_width(self._lines[row][:col],
+                                         self.tab_width,
+                                         self._label_cached)
             row = min(row + 1, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
+            col = self._get_col_by_width(row, col, width)
 
         return col, row
 
