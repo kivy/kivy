@@ -127,11 +127,6 @@ jobs:
       with:
         name: manylinux_wheels
         path: dist
-    - name: Install dependencies
-      run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
-        install_kivy_test_wheel_run_pip_deps
     - name: Setup env
       run: |
         source .ci/ubuntu_ci.sh
@@ -139,7 +134,7 @@ jobs:
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_wheel
+        install_kivy_wheel dev
     - uses: actions/download-artifact@v2
       with:
         name: linux_examples_wheel
@@ -147,7 +142,7 @@ jobs:
     - name: Install kivy-examples wheel
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_examples_wheel
+        install_kivy_examples_wheel dev
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
