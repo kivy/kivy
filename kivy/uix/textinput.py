@@ -1446,6 +1446,17 @@ class TextInput(FocusBehavior, Widget):
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
 
+    def _select_word(self, delimiters=u' .,:;!?\'"<>()[]{}'):
+        ci = int(self.cursor_index())
+        cc = int(self.cursor_col)
+        line = self._lines[self.cursor_row]
+        len_line = len(line)
+        start = max(0, len(line[:cc]) -
+                    max(line[:cc].rfind(s) for s in delimiters) - 1)
+        end = min((line[cc:].find(s) if line[cc:].find(s) > -1
+                   else (len_line - cc)) for s in delimiters)
+        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
         inside TextInput. The default behavior is to select the
@@ -1453,16 +1464,7 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        ci = int(self.cursor_index())
-        cc = int(self.cursor_col)
-        line = self._lines[self.cursor_row]
-        len_line = len(line)
-        delimiters = u' .,:;!?\'"<>()[]{}'
-        start = max(0, len(line[:cc]) -
-                    max(line[:cc].rfind(s) for s in delimiters) - 1)
-        end = min((line[cc:].find(s) if line[cc:].find(s) > -1
-                    else (len_line - cc)) for s in delimiters)
-        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+        self._select_word()
 
     def on_triple_tap(self):
         '''This event is dispatched when a triple tap happens
