@@ -833,6 +833,34 @@
         pos: root.pos
         font_size: '15sp'
 
+#:import kivy kivy
+<SettingColor>:
+    BoxLayout:
+        Label:
+            size_hint_x: None
+            width: 44
+            padding: (0, 5)
+            canvas.before:
+                # white border to see that there's a color tile at dark colors e.g. black
+                Color:
+                    rgba: (1,1,1,1.)
+                Line:
+                    rectangle: self.x,self.y,self.width,self.height
+                Color: 
+                    rgba: kivy.utils.get_color_from_hex(root.value) if root.value else (1,1,1,1.)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size 
+        
+        Label:
+            text: root.value or ''
+            pos: root.pos
+            font_size: '15sp'
+            text_size: self.size
+            valign: 'middle'
+            halign: 'center'
+            padding: (5,0)
+
 <SettingOptions>:
     Label:
         text: root.value or ''
