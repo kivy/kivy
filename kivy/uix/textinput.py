@@ -729,6 +729,11 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly or not substring or not self._lines:
             return
 
+        selection_deleted = False
+        if self._selection:
+            self.delete_selection()
+            selection_deleted = True
+
         if isinstance(substring, bytes):
             substring = substring.decode('utf8')
 
@@ -787,7 +792,8 @@ class TextInput(FocusBehavior, Widget):
 
         self.cursor = self.get_cursor_from_index(cindex + len_str)
         # handle undo and redo
-        self._set_unredo_insert(cindex, cindex + len_str, substring, from_undo)
+        self._set_unredo_insert(cindex, cindex + len_str, substring,
+                                selection_deleted, from_undo)
 
     def _get_line_from_cursor(self, start, new_text, lines=None,
                               lines_flags=None):
@@ -815,12 +821,13 @@ class TextInput(FocusBehavior, Widget):
         len_lines = max(1, len(lines))
         return start, finish, lines, lines_flags, len_lines
 
-    def _set_unredo_insert(self, ci, sci, substring, from_undo):
+    def _set_unredo_insert(self, ci, sci, substring, selection_deleted,
+                           from_undo):
         # handle undo and redo
         if from_undo:
             return
         self._undo.append({
-            'undo_command': ('insert', ci, sci),
+            'undo_command': ('insert', ci, sci, selection_deleted),
             'redo_command': (ci, substring)
         })
         # reset redo when undo is appended to
@@ -845,31 +852,36 @@ class TextInput(FocusBehavior, Widget):
         '''
         try:
             x_item = self._redo.pop()
-            undo_type = x_item['undo_command'][0]
-            _get_cusror_from_index = self.get_cursor_from_index
-
-            if undo_type == 'insert':
-                cindex, substring = x_item['redo_command']
-                self.cursor = _get_cusror_from_index(cindex)
-                self.insert_text(substring, True)
-            elif undo_type == 'bkspc':
-                self.cursor = _get_cusror_from_index(x_item['redo_command'])
-                self.do_backspace(from_undo=True)
-            elif undo_type == 'shiftln':
-                direction, rows, cursor = x_item['redo_command'][1:]
-                self._shift_lines(direction, rows, cursor, True)
-            else:
-                # delsel
-                cindex, scindex = x_item['redo_command']
-                self._selection_from = cindex
-                self._selection_to = scindex
-                self._selection = True
-                self.delete_selection(True)
-                self.cursor = _get_cusror_from_index(cindex)
-            self._undo.append(x_item)
         except IndexError:
             # reached at top of undo list
-            pass
+            return
+        self._undo.append(x_item)
+        undo_type = x_item['undo_command'][0]
+        _get_cusror_from_index = self.get_cursor_from_index
+        self.cancel_selection()
+
+        if undo_type == 'insert':
+            cindex, substring = x_item['redo_command']
+            self.cursor = _get_cusror_from_index(cindex)
+            self.insert_text(substring, True)
+        elif undo_type == 'bkspc':
+            self.cursor = _get_cusror_from_index(x_item['redo_command'])
+            self.do_backspace(from_undo=True)
+        elif undo_type == 'shiftln':
+            direction, rows, cursor = x_item['redo_command'][1:]
+            self._shift_lines(direction, rows, cursor, True)
+        else:
+            # delsel
+            cindex, scindex = x_item['redo_command']
+            self._selection_from = cindex
+            self._selection_to = scindex
+            self._selection = True
+            self.delete_selection(True)
+            self.cursor = _get_cusror_from_index(cindex)
+            if (len(self._redo) > 0 and
+                    self._redo[-1]['undo_command'][0] == 'insert' and
+                    self._redo[-1]['undo_command'][3]):
+                self.do_redo()
 
     def do_undo(self):
         '''Do undo operation.
@@ -882,33 +894,36 @@ class TextInput(FocusBehavior, Widget):
         '''
         try:
             x_item = self._undo.pop()
-            undo_type = x_item['undo_command'][0]
-            self.cursor = self.get_cursor_from_index(x_item['undo_command'][1])
-
-            if undo_type == 'insert':
-                cindex, scindex = x_item['undo_command'][1:]
-                self._selection_from = cindex
-                self._selection_to = scindex
-                self._selection = True
-                self.delete_selection(True)
-            elif undo_type == 'bkspc':
-                substring = x_item['undo_command'][2][0]
-                mode = x_item['undo_command'][3]
-                self.insert_text(substring, True)
-                if mode == 'del':
-                    self.cursor = self.get_cursor_from_index(
-                        self.cursor_index() - 1)
-            elif undo_type == 'shiftln':
-                direction, rows, cursor = x_item['undo_command'][1:]
-                self._shift_lines(direction, rows, cursor, True)
-            else:
-                # delsel
-                substring = x_item['undo_command'][2:][0]
-                self.insert_text(substring, True)
-            self._redo.append(x_item)
         except IndexError:
             # reached at top of undo list
-            pass
+            return
+        self._redo.append(x_item)
+        undo_type = x_item['undo_command'][0]
+        self.cursor = self.get_cursor_from_index(x_item['undo_command'][1])
+        self.cancel_selection()
+
+        if undo_type == 'insert':
+            cindex, scindex, selection_deleted = x_item['undo_command'][1:]
+            self._selection_from = cindex
+            self._selection_to = scindex
+            self._selection = True
+            self.delete_selection(True)
+            if selection_deleted:
+                self.do_undo()
+        elif undo_type == 'bkspc':
+            substring = x_item['undo_command'][2][0]
+            mode = x_item['undo_command'][3]
+            self.insert_text(substring, True)
+            if mode == 'del':
+                self.cursor = self.get_cursor_from_index(
+                    self.cursor_index() - 1)
+        elif undo_type == 'shiftln':
+            direction, rows, cursor = x_item['undo_command'][1:]
+            self._shift_lines(direction, rows, cursor, True)
+        else:
+            # delsel
+            substring = x_item['undo_command'][2:][0]
+            self.insert_text(substring, True)
 
     def do_backspace(self, from_undo=False, mode='bkspc'):
         '''Do backspace operation from the current cursor position.
@@ -2046,7 +2061,6 @@ class TextInput(FocusBehavior, Widget):
         '''
         self._ensure_clipboard()
         data = Clipboard.paste()
-        self.delete_selection()
         self.insert_text(data)
 
     def _update_cutbuffer(self, *args):
@@ -2786,11 +2800,7 @@ class TextInput(FocusBehavior, Widget):
         displayed_str, internal_str, internal_action, scale = key
 
         # handle deletion
-        if (
-            self._selection
-            and internal_action in (None, 'del', 'backspace', 'enter')
-            and (internal_action != 'enter' or self.multiline)
-        ):
+        if (self._selection and internal_action in ('del', 'backspace')):
             self.delete_selection()
 
         elif internal_action == 'del':
@@ -2930,7 +2940,6 @@ class TextInput(FocusBehavior, Widget):
             self.focus = False
             return True
         elif key == 9:  # tab
-            self.delete_selection()
             self.insert_text(u'\t')
             return True
 
@@ -2996,8 +3005,6 @@ class TextInput(FocusBehavior, Widget):
             self._key_up(key)
 
     def keyboard_on_textinput(self, window, text):
-        if self._selection:
-            self.delete_selection()
         self.insert_text(text, False)
 
     # current IME composition in progress by the IME system, or '' if nothing
