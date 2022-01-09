@@ -1488,15 +1488,15 @@ class TextInput(FocusBehavior, Widget):
             self._long_touch_ev = None
 
     def _select_word(self, delimiters=u' .,:;!?\'"<>()[]{}'):
-        ci = int(self.cursor_index())
-        cc = int(self.cursor_col)
+        cindex = self.cursor_index()
+        col = self.cursor_col
         line = self._lines[self.cursor_row]
-        len_line = len(line)
-        start = max(0, len(line[:cc]) -
-                    max(line[:cc].rfind(s) for s in delimiters) - 1)
-        end = min((line[cc:].find(s) if line[cc:].find(s) > -1
-                   else (len_line - cc)) for s in delimiters)
-        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+        start = max(0, len(line[:col]) -
+                    max(line[:col].rfind(s) for s in delimiters) - 1)
+        end = min((line[col:].find(s) if line[col:].find(s) > -1
+                   else (len(line) - col)) for s in delimiters)
+        Clock.schedule_once(lambda dt: self.select_text(cindex - start,
+                                                        cindex + end))
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
