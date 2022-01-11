@@ -169,9 +169,17 @@ Available configuration tokens
         Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
-    `borderless`: int , one of 0 or 1
+    `borderless`: int, one of 0 or 1
         If set to `1`, removes the window border/decoration. Window resizing
         must also be disabled to hide the resizing border.
+    `custom_titlebar`: int, one of 0 or 1
+        If set to `1`, removes the window border and allows user to set a Widget
+        as a titlebar
+        see :meth:`~kivy.core.window.WindowBase.set_custom_titlebar`
+        for detailed usage
+    `custom_titlebar_border`: int, defaults to 5
+        sets the how many pixles off the border should be used as the
+        rezising frame
     `window_state`: string , one of 'visible', 'hidden', 'maximized'
                     or 'minimized'
 
@@ -373,7 +381,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 23
+KIVY_CONFIG_VERSION = 24
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -896,6 +904,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 22:
             Config.setdefault('graphics', 'verify_gl_main_thread', '1')
+
+        elif version == 23:
+            Config.setdefault('graphics', 'custom_titlebar', '0')
+            Config.setdefault('graphics', 'custom_titlebar_border', '5')
 
         else:
             # for future.

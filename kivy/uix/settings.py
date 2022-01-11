@@ -65,10 +65,10 @@ settings. Here is an example::
         }
     ]
 
-Each element in the root list represents a setting that the user can configure.
-Only the "type" key is mandatory: an instance of the associated class will be
-created and used for the setting - other keys are assigned to corresponding
-properties of that class.
+Each element in the root list represents a setting that the user can
+configure. Only the "type" key is mandatory: an instance of the associated
+class will be created and used for the setting - other keys are assigned to
+corresponding properties of that class.
 
     ============== =================================================
     Type           Associated class
@@ -79,10 +79,14 @@ properties of that class.
     options        :class:`SettingOptions`
     string         :class:`SettingString`
     path           :class:`SettingPath`
+    color          :class:`SettingColor`
     ============== =================================================
 
     .. versionadded:: 1.1.0
         Added :attr:`SettingPath` type
+
+    .. versionadded:: 2.1.0
+        Added :attr:`SettingColor` type
 
 In the JSON example above, the first element is of type "title". It will create
 a new instance of :class:`SettingTitle` and apply the rest of the key-value
@@ -168,6 +172,7 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
 
 import json
 import os
+import kivy.utils as utils
 from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.config import ConfigParser
@@ -178,6 +183,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.colorpicker import ColorPicker
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -213,8 +219,8 @@ class SettingItem(FloatLayout):
     title = StringProperty('<No title set>')
     '''Title of the setting, defaults to '<No title set>'.
 
-    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
-    '<No title set>'.
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults
+    to '<No title set>'.
     '''
 
     desc = StringProperty(None, allownone=True)
@@ -270,8 +276,8 @@ class SettingItem(FloatLayout):
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
-    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and defaults
-    to None.
+    :attr:`content` is an :class:`~kivy.properties.ObjectProperty` and
+    defaults to None.
     '''
 
     selected_alpha = NumericProperty(0)
@@ -324,9 +330,10 @@ class SettingItem(FloatLayout):
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting on top of a :class:`SettingItem`. It
-    is visualized with a :class:`~kivy.uix.switch.Switch` widget. By default,
-    0 and 1 are used for values: you can change them by setting :attr:`values`.
+    '''Implementation of a boolean setting on top of a :class:`SettingItem`.
+    It is visualized with a :class:`~kivy.uix.switch.Switch` widget.
+    By default, 0 and 1 are used for values: you can change them by setting
+    :attr:`values`.
     '''
 
     values = ListProperty(['0', '1'])
@@ -502,6 +509,68 @@ class SettingPath(SettingItem):
 
         # construct the content
         content.add_widget(textinput)
+        content.add_widget(SettingSpacer())
+
+        # 2 buttons are created for accept or cancel the current value
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+        btn = Button(text='Ok')
+        btn.bind(on_release=self._validate)
+        btnlayout.add_widget(btn)
+        btn = Button(text='Cancel')
+        btn.bind(on_release=self._dismiss)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+
+        # all done, open the popup !
+        popup.open()
+
+
+class SettingColor(SettingItem):
+    '''Implementation of a color setting on top of a :class:`SettingItem`.
+    It is visualized with a :class:`~kivy.uix.label.Label` widget and a
+    colored canvas rectangle that, when clicked, will open a
+    :class:`~kivy.uix.popup.Popup` with a
+    :class:`~kivy.uix.colorpicker.ColorPicker` so the user can choose a color.
+
+    .. versionadded:: 2.0.1
+    '''
+
+    popup = ObjectProperty(None, allownone=True)
+    '''(internal) Used to store the current popup when it's shown.
+
+    :attr:`popup` is an :class:`~kivy.properties.ObjectProperty` and defaults
+    to None.
+    '''
+
+    def on_panel(self, instance, value):
+        if value is None:
+            return
+        self.bind(on_release=self._create_popup)
+
+    def _dismiss(self, *largs):
+        if self.popup:
+            self.popup.dismiss()
+        self.popup = None
+
+    def _validate(self, instance):
+        self._dismiss()
+        value = utils.get_hex_from_color(self.colorpicker.color)
+        self.value = value
+
+    def _create_popup(self, instance):
+        # create popup layout
+        content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
+        self.popup = popup = Popup(
+            title=self.title, content=content, size_hint=(None, 0.9),
+            width=popup_width)
+
+        self.colorpicker = colorpicker = \
+            ColorPicker(color=utils.get_color_from_hex(self.value))
+        colorpicker.bind(on_color=self._validate)
+
+        self.colorpicker = colorpicker
+        content.add_widget(colorpicker)
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
@@ -932,6 +1001,7 @@ class Settings(BoxLayout):
         self.register_type('options', SettingOptions)
         self.register_type('title', SettingTitle)
         self.register_type('path', SettingPath)
+        self.register_type('color', SettingColor)
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -1249,11 +1319,25 @@ if __name__ == '__main__':
     from kivy.app import App
 
     class SettingsApp(App):
+        demo_json_settings = json.dumps([
+            {
+                'type': 'color',
+                'title': 'Test color',
+                'desc': 'Your choosen Color',
+                'section': 'colorselection',
+                'key': 'testcolor'
+            }])
 
         def build(self):
             s = Settings()
             s.add_kivy_panel()
+            s.add_json_panel('Color settings',
+                             self.config,
+                             data=self.demo_json_settings)
             s.bind(on_close=self.stop)
             return s
+
+        def build_config(self, config):
+            config.setdefaults('colorselection', {'testcolor': '#FF0000'})
 
     SettingsApp().run()

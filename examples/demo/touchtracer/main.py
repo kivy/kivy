@@ -32,6 +32,7 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Rectangle, Point, GraphicException
+from kivy.metrics import dp
 from random import random
 from math import sqrt
 
@@ -54,14 +55,23 @@ def calculate_points(x1, y1, x2, y2, steps=5):
 
 class Touchtracer(FloatLayout):
 
+    def normalize_pressure(self, pressure):
+        print(pressure)
+        # this might mean we are on a device whose pressure value is
+        # incorrectly reported by SDL2, like recent iOS devices.
+        if pressure == 0.0:
+            return 1
+        return dp(pressure * 10)
+
     def on_touch_down(self, touch):
         win = self.get_parent_window()
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
         pointsize = 5
+        print(touch.profile)
         if 'pressure' in touch.profile:
             ud['pressure'] = touch.pressure
-            pointsize = (touch.pressure * 100000) ** 2
+            pointsize = self.normalize_pressure(touch.pressure)
         ud['color'] = random()
 
         with self.canvas:
@@ -92,16 +102,20 @@ class Touchtracer(FloatLayout):
                 points = ud['lines'][index].points
                 oldx, oldy = points[-2], points[-1]
                 break
-            except:
+            except IndexError:
                 index -= 1
 
         points = calculate_points(oldx, oldy, touch.x, touch.y)
 
         # if pressure changed create a new point instruction
         if 'pressure' in ud:
-            if not .95 < (touch.pressure / ud['pressure']) < 1.05:
+            old_pressure = ud['pressure']
+            if (
+                not old_pressure
+                or not .99 < (touch.pressure / old_pressure) < 1.01
+            ):
                 g = ud['group']
-                pointsize = (touch.pressure * 100000) ** 2
+                pointsize = self.normalize_pressure(touch.pressure)
                 with self.canvas:
                     Color(ud['color'], 1, 1, mode='hsv', group=g)
                     ud['lines'].append(
