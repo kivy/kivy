@@ -104,7 +104,7 @@ Pre-compiled wheels
 The simplest is to install the current stable version of ``kivy`` and optionally ``kivy_examples``
 from the kivy-team provided PyPi wheels. Simply do::
 
-    python -m pip install kivy[base] kivy_examples
+    python -m pip install "kivy[base]" kivy_examples
 
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
@@ -130,7 +130,7 @@ With the dependencies installed, you can now install Kivy into the virtual envir
 
 To install the stable version of Kivy, from the terminal do::
 
-    python -m pip install kivy[base] kivy_examples --no-binary kivy
+    python -m pip install "kivy[base]" kivy_examples --no-binary kivy
 
 To install the latest cutting-edge Kivy from **master**, instead do::
 
@@ -152,14 +152,14 @@ Pre-release, pre-compiled wheels
 To install a pre-compiled wheel of the last **pre-release** version of Kivy, instead of the
 current stable version, add the ``--pre`` flag to pip::
 
-    python -m pip install --pre kivy[base] kivy_examples
+    python -m pip install --pre "kivy[base]" kivy_examples
 
 This will only install a development version of Kivy if one was released to
 `PyPi <https://pypi.org/project/Kivy/#history>`_. Instead, one can also install the
 latest **cutting-edge** :ref:`Nightly wheels <nightly-win-wheels>` from the Kivy server with::
 
     python -m pip install kivy --pre --no-deps --index-url  https://kivy.org/downloads/simple/
-    python -m pip install kivy[base] --pre --extra-index-url https://kivy.org/downloads/simple/
+    python -m pip install "kivy[base]" --pre --extra-index-url https://kivy.org/downloads/simple/
 
 It is done in two steps, because otherwise ``pip`` may ignore the wheels on the server and install
 an older pre-release version from PyPi.
@@ -251,7 +251,7 @@ audio, etc.), at least one backend must be installed to be able to use the categ
 To facilitate easy installation, we provide ``extras_require``
 `groups <https://setuptools.readthedocs.io/en/latest/userguide/dependency_management.html#optional-dependencies>`_
 that will install selected backends to ensure a working Kivy installation. So one can install
-Kivy more simply with e.g.``pip install kivy[base,media,tuio]``. The full list of selectors and
+Kivy more simply with e.g.``pip install "kivy[base,media,tuio]"``. The full list of selectors and
 the packages they install is listed in
 `setup.py <https://github.com/kivy/kivy/blob/master/setup.cfg>`_. The exact packages in each selector
 may change in the future, but the overall goal of each selector will remain as described below.
@@ -272,7 +272,7 @@ We offer the following selectors:
 The following selectors install backends packaged as wheels by kivy under the ``Kivy_deps`` namespace.
 They are typically released and versioned to match specific Kivy versions, so we provide selectors
 to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl2==x.y.z``,
-you can now do ``pip install kivy[sdl2]`` to automatically install the correct sdl2 for the Kivy
+you can now do ``pip install "kivy[sdl2]"`` to automatically install the correct sdl2 for the Kivy
 version).
 
     `gstreamer`: The gstreamer video/audio backend, if it's available

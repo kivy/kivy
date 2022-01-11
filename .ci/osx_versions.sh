@@ -1,9 +1,7 @@
 #!/bin/bash
 
-export ARIAL2=1.35.0
-export SDL2=2.0.12
-export SDL2_IMAGE=2.0.5
-export SDL2_MIXER=2.0.4
-export SDL2_TTF=2.0.15
-export GSTREAMER=1.16.2
+export SDL2="release-2.0.18"
+export SDL2_IMAGE="168ceb577c245c91801c1bcaf970ef31c9b4d7ba"
+export SDL2_MIXER="64120a41f62310a8be9bb97116e15a95a892e39d"
+export SDL2_TTF="393fdc91e6827905b75a6b267851c03f35914eab"
 export PLATYPUS=5.3

@@ -286,15 +286,36 @@ class MotionEvent(MotionEventBase):
         #: the touch.
         self.ud = EnhancedDictionary()
 
+        #: If set to `True` (default) keeps first previous position
+        #: (X, Y, Z in 0-1 range) and ignore all other until
+        #: :meth:`MotionEvent.dispatch_done` is called from the `EventLoop`.
+        #:
+        #: This attribute is needed because event provider can make many calls
+        #: to :meth:`MotionEvent.move`, but for all those calls event is
+        #: dispatched to the listeners only once. Assigning `False` will keep
+        #: latest previous position. See :meth:`MotionEvent.move`.
+        #:
+        #: .. versionadded:: 2.1.0
+        self.sync_with_dispatch = True
+
+        #: Keep first previous position if :attr:`sync_with_dispatch` is
+        #: `True`.
+        self._keep_prev_pos = True
+
+        #: Flag that first dispatch of this event is done.
+        self._first_dispatch_done = False
+
         self.depack(args)
 
     def depack(self, args):
         '''Depack `args` into attributes of the class'''
-        # set initial position and last position
-        if self.osx is None:
-            self.psx = self.osx = self.sx
-            self.psy = self.osy = self.sy
-            self.psz = self.osz = self.sz
+        if self.osx is None \
+                or self.sync_with_dispatch and not self._first_dispatch_done:
+            # Sync origin/previous/current positions until the first
+            # dispatch (etype == 'begin') is done.
+            self.osx = self.psx = self.sx
+            self.osy = self.psy = self.sy
+            self.osz = self.psz = self.sz
         # update the delta
         self.dsx = self.sx - self.psx
         self.dsy = self.sy - self.psy
@@ -344,15 +365,25 @@ class MotionEvent(MotionEventBase):
         if class_instance in self.grab_list:
             self.grab_list.remove(class_instance)
 
-    def move(self, args):
-        '''Move the touch to another position
+    def dispatch_done(self):
+        '''Notify that dispatch to the listeners is done.
+
+        Called by the :meth:`EventLoopBase.post_dispatch_input`.
+
+        .. versionadded:: 2.1.0
         '''
-        self.px = self.x
-        self.py = self.y
-        self.pz = self.z
-        self.psx = self.sx
-        self.psy = self.sy
-        self.psz = self.sz
+        self._keep_prev_pos = True
+        self._first_dispatch_done = True
+
+    def move(self, args):
+        '''Move the touch to another position.
+        '''
+        if self.sync_with_dispatch:
+            if self._keep_prev_pos:
+                self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
+                self._keep_prev_pos = False
+        else:
+            self.psx, self.psy, self.psz = self.sx, self.sy, self.sz
         self.time_update = time()
         self.depack(args)
 
@@ -364,45 +395,52 @@ class MotionEvent(MotionEventBase):
             Max value for `x`, `y` and `z` is changed respectively to `w` - 1,
             `h` - 1 and `p` - 1.
         '''
-        x_max, y_max = max(0.0, w - 1.0), max(0.0, h - 1.0)
-        sx, sy = self.sx, self.sy
-        if rotation == 0:
-            self.x = sx * x_max
-            self.y = sy * y_max
-        elif rotation == 90:
-            sx, sy = sy, 1 - sx
-            self.x = sx * y_max
-            self.y = sy * x_max
-        elif rotation == 180:
-            sx, sy = 1 - sx, 1 - sy
-            self.x = sx * x_max
-            self.y = sy * y_max
-        elif rotation == 270:
-            sx, sy = 1 - sy, sx
-            self.x = sx * y_max
-            self.y = sy * x_max
-
-        if p is not None:
-            self.z = self.sz * max(0.0, p - 1.0)
-
+        x_max, y_max = max(0, w - 1), max(0, h - 1)
+        absolute = self.to_absolute_pos
+        self.x, self.y = absolute(self.sx, self.sy, x_max, y_max, rotation)
+        self.ox, self.oy = absolute(self.osx, self.osy, x_max, y_max, rotation)
+        self.px, self.py = absolute(self.psx, self.psy, x_max, y_max, rotation)
+        z_max = 0 if p is None else max(0, p - 1)
+        self.z = self.sz * z_max
+        self.oz = self.osz * z_max
+        self.pz = self.psz * z_max
         if smode:
+            # Adjust y for keyboard height
             if smode == 'pan':
                 self.y -= kheight
+                self.oy -= kheight
+                self.py -= kheight
             elif smode == 'scale':
-                self.y += (kheight * (
-                    (self.y - kheight) / (h - kheight))) - kheight
-
-        if self.ox is None:
-            self.px = self.ox = self.x
-            self.py = self.oy = self.y
-            self.pz = self.oz = self.z
-
+                offset = kheight * (self.y - h) / (h - kheight)
+                self.y += offset
+                self.oy += offset
+                self.py += offset
+        # Update delta values
         self.dx = self.x - self.px
         self.dy = self.y - self.py
         self.dz = self.z - self.pz
-
-        # cache position
+        # Cache position
         self.pos = self.x, self.y
+
+    def to_absolute_pos(self, nx, ny, x_max, y_max, rotation):
+        '''Transforms normalized (0-1) coordinates `nx` and `ny` to absolute
+        coordinates using `x_max`, `y_max` and `rotation`.
+
+        :raises:
+            `ValueError`: If `rotation` is not one of: 0, 90, 180 or 270
+
+        .. versionadded:: 2.1.0
+        '''
+        if rotation == 0:
+            return nx * x_max, ny * y_max
+        elif rotation == 90:
+            return ny * y_max, (1 - nx) * x_max
+        elif rotation == 180:
+            return (1 - nx) * x_max, (1 - ny) * y_max
+        elif rotation == 270:
+            return (1 - ny) * y_max, nx * x_max
+        raise ValueError('Invalid rotation %s, '
+                         'valid values are 0, 90, 180 or 270' % rotation)
 
     def push(self, attrs=None):
         '''Push attribute values in `attrs` onto the stack
