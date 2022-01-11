@@ -1134,7 +1134,12 @@ class TextInput(FocusBehavior, Widget):
                 cdiff = perow - psrow + 1
                 xdiff = erow - srow + 1
 
-            self._lines_flags = flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] + flags[m2erow:]
+            self._lines_flags = (
+                flags[:m1srow]
+                + flags[m2srow:m2erow]
+                + flags[m1srow:m1erow]
+                + flags[m2erow:]
+            )
             if srow == 0:
                 self._lines_flags[cdiff] = FL_IS_LINEBREAK
                 self._lines_flags[0] = 0
