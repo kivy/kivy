@@ -25,5 +25,5 @@ class WindowInfoTest(GraphicUnitTest):
         if setupconfig.PLATFORM == 'win32':
             from kivy.core.window.window_info import WindowInfoWindows
             if isinstance(window_info, WindowInfoWindows):
-                self.assertNotEqual(window_info.HWND, 0)
-                self.assertNotEqual(window_info.HDC, 0)
+                self.assertNotEqual(window_info.window, 0)
+                self.assertNotEqual(window_info.hdc, 0)

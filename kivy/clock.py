@@ -449,7 +449,7 @@ See :mod:`~kivy.app` for example usage.
 
 __all__ = (
     'Clock', 'ClockNotRunningError', 'ClockEvent', 'FreeClockEvent',
-    'CyClockBase', 'CyClockBaseFree',
+    'CyClockBase', 'CyClockBaseFree', 'triggered',
     'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
     'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
     'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
