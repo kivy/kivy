@@ -194,7 +194,11 @@ class MouseMotionEventProvider(MotionEventProvider):
             self._disable_hover = value
 
     disable_hover = property(_get_disable_hover, _set_disable_hover)
-    '''Disables dispatching of hover events if set to ``True`` (default).
+    '''Disables dispatching of hover events if set to ``True``.
+
+    Hover events are enabled by default (`disable_hover` is ``False``). See
+    module documentation if you want to enable/disable hover events through
+    config file.
 
     .. versionadded:: 2.1.0
     '''
@@ -207,6 +211,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         fbind('on_mouse_down', self.on_mouse_press)
         fbind('on_mouse_move', self.on_mouse_motion)
         fbind('on_mouse_up', self.on_mouse_release)
+        fbind('on_rotate', self.update_touch_graphics)
+        fbind('system_size', self.update_touch_graphics)
         if not self.disable_hover:
             self._start_hover_events()
         self._running = True
@@ -228,6 +234,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         funbind('on_mouse_down', self.on_mouse_press)
         funbind('on_mouse_move', self.on_mouse_motion)
         funbind('on_mouse_up', self.on_mouse_release)
+        funbind('on_rotate', self.update_touch_graphics)
+        funbind('system_size', self.update_touch_graphics)
         if not self.disable_hover:
             self._stop_hover_events()
         self._running = False
@@ -377,6 +385,10 @@ class MouseMotionEventProvider(MotionEventProvider):
         if self.alt_touch:
             self.remove_touch(win, self.alt_touch)
             self.alt_touch = None
+
+    def update_touch_graphics(self, win, *args):
+        for touch in self.touches.values():
+            touch.update_graphics(win)
 
     def begin_or_update_hover_event(self, win, *args):
         etype = 'update' if self.hover_event else 'begin'

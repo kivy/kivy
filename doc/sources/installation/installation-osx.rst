@@ -173,8 +173,7 @@ To activate it so you can use python, like any normal virtualenv, do::
 On the default mac (zsh) shell you **must** be in the bin directory containing ``activate`` to be
 able to ``activate`` the virtualenv, hence why we changed the directory temporarily.
 
-``kivy_activate`` sets up the environment to be able to run Kivy, by setting the kivy home,
-gstreamer, and other variables.
+``kivy_activate`` sets up the environment to be able to run Kivy, by setting the kivy home, and other variables.
 
 Start any Kivy Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

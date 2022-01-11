@@ -341,7 +341,6 @@ class WindowBase(EventDispatcher):
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
-    _clearcolor = ObjectProperty([0, 0, 0, 1])
     _focus = BooleanProperty(True)
 
     gl_backends_allowed = []
@@ -457,19 +456,7 @@ class WindowBase(EventDispatcher):
     :attr:`size` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    def _get_clearcolor(self):
-        return self._clearcolor
-
-    def _set_clearcolor(self, value):
-        if value is not None:
-            if type(value) not in (list, tuple):
-                raise Exception('Clearcolor must be a list or tuple')
-            if len(value) != 4:
-                raise Exception('Clearcolor must contain 4 values')
-        self._clearcolor = value
-
-    clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
-                               bind=('_clearcolor', ))
+    clearcolor = ColorProperty((0, 0, 0, 1))
     '''Color used to clear the window.
 
     ::
@@ -487,8 +474,12 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 1.0.9
 
-    :attr:`clearcolor` is an :class:`~kivy.properties.AliasProperty` and
+    :attr:`clearcolor` is an :class:`~kivy.properties.ColorProperty` and
     defaults to (0, 0, 0, 1).
+
+    .. versionchanged:: 2.1.0
+        Changed from :class:`~kivy.properties.AliasProperty` to
+        :class:`~kivy.properties.ColorProperty`.
     '''
 
     # make some property read-only
@@ -1428,13 +1419,13 @@ class WindowBase(EventDispatcher):
     def clear(self):
         '''Clear the window with the background color'''
         # XXX FIXME use late binding
-        from kivy.graphics.opengl import glClearColor, glClear, \
-            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
-        cc = self._clearcolor
-        if cc is not None:
-            glClearColor(*cc)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-                    GL_STENCIL_BUFFER_BIT)
+        from kivy.graphics import opengl as gl
+        gl.glClearColor(*self.clearcolor)
+        gl.glClear(
+            gl.GL_COLOR_BUFFER_BIT
+            | gl.GL_DEPTH_BUFFER_BIT
+            | gl.GL_STENCIL_BUFFER_BIT
+        )
 
     def set_title(self, title):
         '''Set the window title.
@@ -1469,6 +1460,45 @@ class WindowBase(EventDispatcher):
             y / y_max if y_max > 0 else 0.0
         )
 
+    def transform_motion_event_2d(self, me, widget=None):
+        '''Returns transformed motion event `me` to this window size and then
+        if `widget` is passed transforms `me` to `widget`'s local coordinates.
+
+        :raises:
+            `AttributeError`: If widget's ancestor is ``None``.
+
+        .. note::
+            Unless it's a specific case, call
+            :meth:`~kivy.input.motionevent.MotionEvent.push` before and
+            :meth:`~kivy.input.motionevent.MotionEvent.pop` after this method's
+            call to preserve previous values of `me`'s attributes.
+
+        .. versionadded:: 2.1.0
+        '''
+        width, height = self._get_effective_size()
+        me.scale_for_screen(
+            width, height,
+            rotation=self.rotation,
+            smode=self.softinput_mode,
+            kheight=self.keyboard_height
+        )
+        if widget is None:
+            return me
+        parent = widget.parent
+        try:
+            if parent:
+                me.apply_transform_2d(parent.to_widget)
+            else:
+                me.apply_transform_2d(widget.to_widget)
+                me.apply_transform_2d(widget.to_parent)
+        except AttributeError:
+            # when using inner window, an app have grab the touch
+            # but app is removed. The touch can't access
+            # to one of the parent. (i.e, self.parent will be None)
+            # and BAM the bug happen.
+            raise
+        return me
+
     def _apply_transform(self, m):
         return m
 
@@ -1500,10 +1530,12 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         if me.is_touch:
-            w, h = self._get_effective_size()
-            me.scale_for_screen(w, h, rotation=self._rotation,
-                                smode=self.softinput_mode,
-                                kheight=self.keyboard_height)
+            # TODO: Use me.push/me.pop methods because `me` is transformed
+            # Clock execution of partial ScrollView._on_touch_up method and
+            # other similar cases should be changed so that me.push/me.pop can
+            # be used restore previous values of event's attributes
+            # me.push()
+            self.transform_motion_event_2d(me)
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)
             elif etype == 'update':
@@ -1511,6 +1543,7 @@ class WindowBase(EventDispatcher):
             elif etype == 'end':
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
+            # me.pop()
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
