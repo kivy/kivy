@@ -1489,6 +1489,17 @@ class TextInput(FocusBehavior, Widget):
             self._long_touch_ev.cancel()
             self._long_touch_ev = None
 
+    def _select_word(self, delimiters=u' .,:;!?\'"<>()[]{}'):
+        cindex = self.cursor_index()
+        col = self.cursor_col
+        line = self._lines[self.cursor_row]
+        start = max(0, len(line[:col]) -
+                    max(line[:col].rfind(s) for s in delimiters) - 1)
+        end = min((line[col:].find(s) if line[col:].find(s) > -1
+                   else (len(line) - col)) for s in delimiters)
+        Clock.schedule_once(lambda dt: self.select_text(cindex - start,
+                                                        cindex + end))
+
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
         inside TextInput. The default behavior is to select the
@@ -1496,14 +1507,7 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        ci = int(self.cursor_index())
-        cc = int(self.cursor_col)
-        line = self._lines[self.cursor_row]
-        len_line = len(line)
-        start = max(0, len(line[:cc]) - line[:cc].rfind(u' ') - 1)
-        end = line[cc:].find(u' ')
-        end = end if end > - 1 else (len_line - cc)
-        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+        self._select_word()
 
     def on_triple_tap(self):
         '''This event is dispatched when a triple tap happens
