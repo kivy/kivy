@@ -168,9 +168,10 @@ build_and_install_linux_kivy_sys_deps() {
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
 
   cd ~/kivy_sources;
-  wget http://www.libsdl.org/release/SDL2-2.0.12.tar.gz
-  tar xzf SDL2-2.0.12.tar.gz
-  cd SDL2-2.0.12
+  ver="2.0.20"
+  wget "https://github.com/libsdl-org/SDL/releases/download/release-$ver/SDL2-$ver.tar.gz"
+  tar xzf "SDL2-$ver.tar.gz"
+  cd "SDL2-$ver"
   ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"  --enable-alsa-shared=no  --enable-jack-shared=no  --enable-pulseaudio-shared=no  --enable-esd-shared=no  --enable-arts-shared=no  --enable-nas-shared=no  --enable-sndio-shared=no  --enable-fusionsound-shared=no  --enable-libsamplerate-shared=no  --enable-wayland-shared=no --enable-x11-shared=no --enable-directfb-shared=no --enable-kmsdrm-shared=no;
   make;
   make install;
@@ -186,18 +187,20 @@ build_and_install_linux_kivy_sys_deps() {
   make distclean;
 
   cd ~/kivy_sources;
-  wget http://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.4.tar.gz;
-  tar xzf SDL2_image-2.0.4.tar.gz;
-  cd SDL2_image-2.0.4;
+  ver="2.0.5"
+  wget "http://www.libsdl.org/projects/SDL_image/release/SDL2_image-$ver.tar.gz"
+  tar xzf "SDL2_image-$ver.tar.gz"
+  cd "SDL2_image-$ver"
   PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin" --enable-png-shared=no --enable-jpg-shared=no --enable-tif-shared=no --enable-webp-shared=no;
   PATH="$HOME/kivy_build/bin:$PATH" make;
   make install;
   make distclean;
 
   cd ~/kivy_sources;
-  wget http://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15.tar.gz;
-  tar xzf SDL2_ttf-2.0.15.tar.gz;
-  cd SDL2_ttf-2.0.15;
+  ver="2.0.18"
+  wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-$ver/SDL2_ttf-$ver.tar.gz"
+  tar xzf "SDL2_ttf-$ver.tar.gz"
+  cd "SDL2_ttf-$ver"
   PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin";
   PATH="$HOME/kivy_build/bin:$PATH" make;
   make install;
