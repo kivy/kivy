@@ -25,13 +25,13 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 
 class ScrollEffect(KineticEffect):
-    '''ScrollEffect class. See the module documentation for more information.
+    '''ScrollEffect class. See the module documentation for more informations.
     '''
 
     drag_threshold = NumericProperty('20sp')
     '''Minimum distance to travel before the movement is considered as a drag.
 
-    :attr:`drag_threshold` is a :class:`~kivy.properties.NumericProperty` and
+    :attr:`velocity` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20sp.
     '''
 
@@ -98,16 +98,24 @@ class ScrollEffect(KineticEffect):
         scroll_max = self.max
         if scroll_min > scroll_max:
             scroll_min, scroll_max = scroll_max, scroll_min
+
         if self.value < scroll_min:
-            if self.value > scroll_max:
-                self.overscroll = self.value - scroll_min
-                self.reset(scroll_min)
+            self.overscroll = self.value - scroll_min
+            self.reset(scroll_min)
         elif self.value > scroll_max:
-            if self.value < scroll_max:
-                self.overscroll = self.value - scroll_max
-                self.reset(scroll_max)
+            self.overscroll = self.value - scroll_max
+            self.reset(scroll_max)
         else:
             self.scroll = self.value
+    
+    def apply_distance(self, distance):
+        if abs(distance) < self.min_distance:
+            self.velocity = 0
+
+        if distance < 0 and self.value > self.max:
+            self.value += distance
+        elif distance > 0 and self.value < self.min:
+            self.value += distance
 
     def start(self, val, t=None):
         self.is_manual = True

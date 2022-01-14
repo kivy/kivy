@@ -55,7 +55,6 @@ class DampedScrollEffect(ScrollEffect):
     :attr:`round_value` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
-
     def update_velocity(self, dt):
         if abs(self.velocity) <= self.min_velocity and self.overscroll == 0:
             self.velocity = 0
@@ -111,4 +110,8 @@ class DampedScrollEffect(ScrollEffect):
         os = abs(self.overscroll)
         if os:
             distance /= 1. + os / sp(200.)
-        super(DampedScrollEffect, self).apply_distance(distance)
+        
+        if abs(distance) < self.min_distance:
+            self.velocity = 0
+        
+        self.value += distance
