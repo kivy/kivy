@@ -39,11 +39,31 @@ jobs:
     env:
       CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 PKG_CONFIG_PATH=$HOME/kivy_build/lib/pkgconfig LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib"
       CIBW_BUILD_VERBOSITY_LINUX: 3
-      CIBW_BUILD: "cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64"
+      CIBW_BUILD:  ${{ matrix.cibw_build }}
+      CIBW_ARCHS: ${{ matrix.cibw_archs }}
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
+        yum install -y epel-release &&
         build_and_install_linux_kivy_sys_deps
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        cibw_archs: [auto]
+        cibw_build: ['cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64']
+        include:
+           - os: ubuntu-18.04
+             cibw_archs: aarch64
+             cibw_build: cp37-manylinux_aarch64
+           - os: ubuntu-18.04
+             cibw_archs: aarch64
+             cibw_build: cp38-manylinux_aarch64
+           - os: ubuntu-18.04
+             cibw_archs: aarch64
+             cibw_build: cp39-manylinux_aarch64
+           - os: ubuntu-18.04
+             cibw_archs: aarch64
+             cibw_build: cp310-manylinux_aarch64
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v2
@@ -51,6 +71,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
+    - name: Set up QEMU
+      if: ${{ matrix.cibw_archs == 'aarch64' }}
+      uses: docker/setup-qemu-action@v1
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
