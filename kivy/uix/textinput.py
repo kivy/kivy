@@ -2802,7 +2802,7 @@ class TextInput(FocusBehavior, Widget):
             # Move cursor one char to the right. If that was successful,
             # do a backspace (effectively deleting char right of cursor)
             cursor = self.cursor
-            self.do_cursor_movement('cursor_right')
+            self.cursor = self.get_cursor_from_index(self.cursor_index() + 1)
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
 
