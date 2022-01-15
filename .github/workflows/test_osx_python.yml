@@ -45,14 +45,13 @@ jobs:
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
         build_and_install_universal_kivy_sys_deps
-        install_ffpyplayer_sys_deps
-        install_kivy_test_run_pip_deps
+        install_kivy_test_run_pip_deps dev
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        install_kivy
+        install_kivy dev
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh

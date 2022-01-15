@@ -86,10 +86,6 @@ build_and_install_universal_kivy_sys_deps() {
   popd
 }
 
-install_ffpyplayer_sys_deps() {
-  brew install ffmpeg
-}
-
 install_platypus() {
   download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "https://github.com/sveinbjornt/Platypus/releases/download/$PLATYPUS"
 
