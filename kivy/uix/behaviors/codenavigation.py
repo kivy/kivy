@@ -15,7 +15,6 @@ __all__ = ('CodeNavigationBehavior', )
 
 from kivy.event import EventDispatcher
 import string
-import kivy.uix.textinput as textinput
 
 
 class CodeNavigationBehavior(EventDispatcher):
@@ -46,7 +45,7 @@ class CodeNavigationBehavior(EventDispatcher):
         mode = 'normal'
 
         rline = lines[row]
-        if col == 0 and lines_flags[row] == textinput.FL_IS_WORDBREAK:
+        if col == 0 and lines_flags[row] == self.FL_IS_WORDBREAK:
             row -= 1
             rline = lines[row]
             col = len(rline)
@@ -65,9 +64,9 @@ class CodeNavigationBehavior(EventDispatcher):
             if col <= 0:
                 if row == 0:
                     return 0, 0
-                if lines_flags[row] == textinput.FL_IS_WORDBREAK:
+                if lines_flags[row] == self.FL_IS_WORDBREAK:
                     lc = None
-                if col < 0 or lines_flags[row] == textinput.FL_IS_WORDBREAK:
+                if col < 0 or lines_flags[row] == self.FL_IS_WORDBREAK:
                     row -= 1
                     rline = lines[row]
                     col = len(rline)
@@ -134,7 +133,7 @@ class CodeNavigationBehavior(EventDispatcher):
 
         rline = lines[row]
         if len(rline) == col and \
-                lines_flags[row + 1] != textinput.FL_IS_LINEBREAK:
+                lines_flags[row + 1] != self.FL_IS_LINEBREAK:
             row += 1
             col = 0
             rline = lines[row]
@@ -176,7 +175,7 @@ class CodeNavigationBehavior(EventDispatcher):
                 if row == mrow:
                     return len(rline), mrow
                 if col > len(rline) or \
-                        lines_flags[row + 1] == textinput.FL_IS_WORDBREAK:
+                        lines_flags[row + 1] == self.FL_IS_WORDBREAK:
                     row += 1
                     rline = lines[row]
                     col = 0
