@@ -50,10 +50,10 @@
             <select id="version_selector"></select>
             <h3>Quick search</h3>
             <form class="search" action="{{ pathto('search') }}" method="get">
-                &nbsp;
                 <input type="hidden" name="check_keywords" value="yes" />
                 <input type="hidden" name="area" value="default" />
                 <input type="text" class="text" name="q" />
+                <button type="submit">{{ _('Go') }}</button>
             </form>
           {%- block sidebartoc %}
           <!--
@@ -84,6 +84,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="twitter:site" content="@kivyframework">
     {{ metatags }}
     {%- if not embedded and docstitle %}
@@ -92,7 +93,7 @@
       {%- set titlesuffix = "" %}
     {%- endif %}
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
-    <link href='//fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
     {%- if not embedded %}
@@ -164,27 +165,27 @@
 
     <div id="topbar">
         <div id="topwrapper">
-        <div id="toplogo">
-            <a href="http://kivy.org/">
-                <img src="{{ pathto('_static/logo-kivy.png', 1) }}" alt="Kivy" height="50"/>
-            </a>
-        </div>
-        <div id="topmenu">
-            <ul class="navigation">
-                <li><a class="nav-guides" href="{{ pathto('gettingstarted/intro') }}">Guides</a></li>
-                <li><a class="nav-garden" href="http://kivy-garden.github.io/">Garden</a></li>
-                <li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
-                <li><a class="nav-pdf" href="https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf">PDF</a></li>
-                <li><a class="nav-wiki" href="http://wiki.kivy.org">Wiki</a></li>
-            </ul>
-        </div>
+          <div id="toplogo">
+              <a href="https://kivy.org/">
+                  <img src="{{ pathto('_static/logo-kivy.png', 1) }}" alt="Kivy"/>
+              </a>
+          </div>
+          <div id="topmenu">
+              <ul class="navigation">
+                  <li><a class="nav-guides" href="{{ pathto('gettingstarted/intro') }}">Guides</a></li>
+                  <li><a class="nav-garden" href="http://kivy-garden.github.io/">Garden</a></li>
+                  <li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
+                  <li><a class="nav-pdf" href="https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf">PDF</a></li>
+                  <li><a class="nav-wiki" href="http://wiki.kivy.org">Wiki</a></li>
+              </ul>
+          </div>
         </div>
     </div>
 
 {%- block document %}
 <div id="contentall">
-    {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
-    <div id="content">
+  {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
+  <div id="content">
     <div class="wrapper">
       <div class="documentwrapper">
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
@@ -216,11 +217,11 @@
         </div>
       {%- endif %}{% endif %}
       </div>
-      </div>
+    </div>
+    <div class="clearer"></div>
+  </div>
+</div>
 {%- endblock %}
-      <div class="clearer"></div>
-    </div>
-    </div>
 
 {%- block footer %}
 <!-- Piwik -->
