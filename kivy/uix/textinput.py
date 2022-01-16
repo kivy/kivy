@@ -3187,9 +3187,12 @@ class TextInput(FocusBehavior, Widget):
         padding_right = self.padding[2]
         viewport_width = self.width - padding_left - padding_right
         sx = self.scroll_x
-        halign = self.halign
         base_dir = self.base_direction or self._resolved_base_dir
-        auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+        auto_halign_r = (
+            self.halign == 'auto'
+            and base_dir
+            and 'rtl' in base_dir
+        )
 
         offset = self.cursor_offset()
         row_width = self._get_row_width(self.cursor_row)
@@ -3207,7 +3210,11 @@ class TextInput(FocusBehavior, Widget):
             not self.multiline
             and offset >= viewport_scroll_x
             and self.scroll_x >= viewport_scroll_x
-            and (halign == "center" or halign == "right" or auto_halign_r)
+            and (
+                self.halign == "center"
+                or self.halign == "right"
+                or auto_halign_r
+            )
         ):
             self.scroll_x = max(0, viewport_scroll_x)
 
