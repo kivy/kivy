@@ -103,11 +103,6 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-if sys.platform == 'darwin':
-    from platform import machine
-    osx_arch = machine()
-
-
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -419,15 +414,6 @@ if platform == 'ios':
 elif platform == 'android':
     c_options['use_android'] = True
 
-elif platform == 'darwin':
-    if c_options['use_osx_frameworks']:
-        if osx_arch == "i386":
-            print("Warning: building with frameworks fail on i386")
-        else:
-            print(f"OSX framework used, force to {osx_arch} only")
-            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", f"-arch {osx_arch}")
-            print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
-
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
 if platform not in ('ios', 'android') and (c_options['use_gstreamer']
@@ -490,19 +476,22 @@ if c_options['use_sdl2'] or (
     sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        sdl2_frameworks_search_path = environ.get(
+            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH", "/Library/Frameworks"
+        )
         sdl2_valid = True
         sdl2_flags = {
             'extra_link_args': [
-                '-F/Library/Frameworks',
+                '-F{}'.format(sdl2_frameworks_search_path),
                 '-Xlinker', '-rpath',
-                '-Xlinker', '/Library/Frameworks',
+                '-Xlinker', sdl2_frameworks_search_path,
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
             'include_dirs': [],
-            'extra_compile_args': ['-F/Library/Frameworks']
+            'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
-            f_path = '/Library/Frameworks/{}.framework'.format(name)
+            f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
                 sdl2_valid = False
@@ -628,8 +617,7 @@ def determine_gl_flags():
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
     elif platform == 'darwin':
-        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
-        flags['extra_compile_args'] = ['-arch', osx_arch]
+        flags['extra_link_args'] = ['-framework', 'OpenGL']
     elif platform.startswith('freebsd'):
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
@@ -1101,6 +1089,7 @@ if not build_examples:
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',

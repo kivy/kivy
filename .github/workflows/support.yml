@@ -1,0 +1,35 @@
+name: 'Support Requests'
+
+on:
+  issues:
+    types: [labeled, unlabeled, reopened]
+
+permissions:
+  issues: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/support-requests@v2
+        with:
+          github-token: ${{ github.token }}
+          support-label: 'support'
+          issue-comment: >
+            👋 We use the issue tracker exclusively for bug reports and feature requests.
+            However, this issue appears to be a support request. Please use our
+            [support channels](https://github.com/kivy/kivy/blob/master/README.md#support)
+            to get help with the project.
+            
+            
+            If you're having trouble installing Kivy,
+            make sure to check out the installation docs for
+            [Windows](https://kivy.org/docs/installation/installation-windows.html),
+            [Linux](https://kivy.org/docs/installation/installation-linux.html) and
+            [macOS](https://kivy.org/docs/installation/installation-osx.html).
+            
+            
+            Let us know if this comment was made in error, and we'll be happy
+            to reopen the issue.
+          close-issue: true
+          lock-issue: false

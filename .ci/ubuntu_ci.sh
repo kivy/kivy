@@ -64,7 +64,8 @@ prepare_env_for_unittest() {
 }
 
 install_kivy() {
-  python3 -m pip install -e "$(pwd)[dev,full]"
+  options=${1:-full,dev}
+  python3 -m pip install -e "$(pwd)[$options]"
 }
 
 
@@ -73,27 +74,29 @@ create_kivy_examples_wheel() {
 }
 
 install_kivy_examples_wheel() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
   python3 -m pip install --pre --no-index --no-deps -f "$root/dist" "kivy_examples"
-  python3 -m pip install --pre -f "$root/dist" "kivy_examples[full,dev]"
+  python3 -m pip install --pre -f "$root/dist" "kivy_examples[$options]"
 }
 
 install_kivy_wheel() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
-
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
   kivy_fname=$(ls "$root"/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
-  python3 -m pip install "${kivy_fname}[full,dev]"
+  python3 -m pip install "${kivy_fname}[$options]"
 }
 
 install_kivy_sdist() {
+  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
 
   kivy_fname=$(ls $root/dist/Kivy-*.tar.gz)
-  python3 -m pip install "$kivy_fname[full,dev]"
+  python3 -m pip install "$kivy_fname[$options]"
 }
 
 test_kivy() {
@@ -159,15 +162,49 @@ upload_docs_to_server() {
   fi
 }
 
-generate_manylinux2010_wheels() {
-  image=$1
+build_and_install_linux_kivy_sys_deps() {
+  yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel xorg-x11-server-devel mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget;
+  mkdir ~/kivy_sources;
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
 
-  python3 -m pip install twine
+  cd ~/kivy_sources;
+  ver="2.0.20"
+  wget "https://github.com/libsdl-org/SDL/releases/download/release-$ver/SDL2-$ver.tar.gz"
+  tar xzf "SDL2-$ver.tar.gz"
+  cd "SDL2-$ver"
+  ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"  --enable-alsa-shared=no  --enable-jack-shared=no  --enable-pulseaudio-shared=no  --enable-esd-shared=no  --enable-arts-shared=no  --enable-nas-shared=no  --enable-sndio-shared=no  --enable-fusionsound-shared=no  --enable-libsamplerate-shared=no  --enable-wayland-shared=no --enable-x11-shared=no --enable-directfb-shared=no --enable-kmsdrm-shared=no;
+  make;
+  make install;
+  make distclean;
 
-  mkdir dist
-  chmod +x .ci/build-wheels-linux.sh
-  docker run --rm -v "$(pwd):/io" "$image" "/io/.ci/build-wheels-linux.sh"
-  sudo rm dist/*-linux*
+  cd ~/kivy_sources;
+  wget http://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.tar.gz;
+  tar xzf SDL2_mixer-2.0.4.tar.gz;
+  cd SDL2_mixer-2.0.4;
+  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin" --enable-music-mod-modplug-shared=no --enable-music-mod-mikmod-shared=no --enable-music-midi-fluidsynth-shared=no --enable-music-ogg-shared=no --enable-music-flac-shared=no --enable-music-mp3-mpg123-shared=no;
+  PATH="$HOME/kivy_build/bin:$PATH" make;
+  make install;
+  make distclean;
+
+  cd ~/kivy_sources;
+  ver="2.0.5"
+  wget "http://www.libsdl.org/projects/SDL_image/release/SDL2_image-$ver.tar.gz"
+  tar xzf "SDL2_image-$ver.tar.gz"
+  cd "SDL2_image-$ver"
+  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin" --enable-png-shared=no --enable-jpg-shared=no --enable-tif-shared=no --enable-webp-shared=no;
+  PATH="$HOME/kivy_build/bin:$PATH" make;
+  make install;
+  make distclean;
+
+  cd ~/kivy_sources;
+  ver="2.0.18"
+  wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-$ver/SDL2_ttf-$ver.tar.gz"
+  tar xzf "SDL2_ttf-$ver.tar.gz"
+  cd "SDL2_ttf-$ver"
+  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin";
+  PATH="$HOME/kivy_build/bin:$PATH" make;
+  make install;
+  make distclean;
 }
 
 generate_armv7l_wheels() {

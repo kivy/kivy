@@ -10,7 +10,6 @@ on:
 env:
   KIVY_SPLIT_EXAMPLES: 1
   SERVER_IP: '159.203.106.198'
-  DOCKER_IMAGE: 'quay.io/pypa/manylinux2010_x86_64'
 
 jobs:
   kivy_examples_create:
@@ -21,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: 3.9
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
@@ -37,6 +36,13 @@ jobs:
           path: dist
 
   manylinux_wheel_create:
+    env:
+      CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 PKG_CONFIG_PATH=$HOME/kivy_build/lib/pkgconfig LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib"
+      CIBW_BUILD_VERBOSITY_LINUX: 3
+      CIBW_BUILD: "cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64"
+      CIBW_BEFORE_ALL_LINUX: >
+        source .ci/ubuntu_ci.sh &&
+        build_and_install_linux_kivy_sys_deps
     runs-on: ubuntu-18.04
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
@@ -44,20 +50,22 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: 3.9
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
+    - name: Install cibuildwheel
+      run: |
+        python -m pip install cibuildwheel==2.3.1
     - name: Make wheels
       run: |
-        source .ci/ubuntu_ci.sh
-        generate_manylinux2010_wheels $DOCKER_IMAGE
+        python -m cibuildwheel --output-dir wheelhouse
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v2
       with:
         name: manylinux_wheels
-        path: dist
+        path: ./wheelhouse/*.whl
 
   manylinux_wheel_upload:
     runs-on: ubuntu-18.04
@@ -68,7 +76,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: 3.9
     - uses: actions/download-artifact@v2
       with:
         name: manylinux_wheels
@@ -106,7 +114,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        python: [ '3.7', '3.8', '3.9', '3.10' ]
     env:
       DISPLAY: ':99.0'
     steps:
@@ -119,11 +127,6 @@ jobs:
       with:
         name: manylinux_wheels
         path: dist
-    - name: Install dependencies
-      run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
-        install_kivy_test_wheel_run_pip_deps
     - name: Setup env
       run: |
         source .ci/ubuntu_ci.sh
@@ -131,7 +134,7 @@ jobs:
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_wheel
+        install_kivy_wheel dev
     - uses: actions/download-artifact@v2
       with:
         name: linux_examples_wheel
@@ -139,7 +142,7 @@ jobs:
     - name: Install kivy-examples wheel
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_examples_wheel
+        install_kivy_examples_wheel dev
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
@@ -165,7 +168,7 @@ jobs:
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: 3.9
       - name: Generate sdist
         run: |
           source .ci/ubuntu_ci.sh

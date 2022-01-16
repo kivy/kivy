@@ -14,23 +14,21 @@ env:
   CXX: clang
   FFLAGS: '-ff2c'
   USE_SDL2: 1
-  USE_GSTREAMER: 1
-  GST_REGISTRY: '~/registry.bin'
 
 jobs:
   kivy_examples_create:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
-    runs-on: macos-10.15
+    runs-on: macos-11
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: '3.9'
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_test_wheel_run_pip_deps
+        install_kivy_test_wheel_run_pip_deps dev
     - name: Create wheel
       run: |
         source .ci/ubuntu_ci.sh
@@ -42,65 +40,78 @@ jobs:
         path: dist
 
   osx_wheels_create:
-    runs-on: macos-10.15
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
+    defaults:
+      run:
+        shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
+    env:
+      CIBW_BUILD: "cp37-macosx_x86_64 cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2"
+      CIBW_ARCHS_MACOS: "x86_64 universal2"
+      CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
+    runs-on: ${{ matrix.runs_on || 'macos-11' }}
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        include:
+          - runs_on: macos-11
+            python: '3.9'
+          # Fix for macOS 12 is here, but not merged yet: https://github.com/matthew-brett/delocate/pull/130
+          # - runs_on: apple-silicon-m1
+          #  run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
+          #  python: 3.9.7
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
+      # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
+      if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - name: Cache OSX deps
+    - name: Cache macOS deps downloads
       uses: actions/cache@v2
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
-    - name: Cache OSX gst-devel deps
-      uses: actions/cache@v2
-      with:
-        path: osx-cache-gst-devel
-        key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
-    - name: Install dependencies
+    - name: Build universal Kivy dependencies
       run: |
         source .ci/ubuntu_ci.sh
         source .ci/osx_versions.sh
         source .ci/osx_ci.sh
-        install_kivy_test_run_sys_deps
-        install_kivy_test_run_pip_deps
-    - name: Install Kivy
+        arm64_set_path_and_python_version ${{ matrix.python }}
+        build_and_install_universal_kivy_sys_deps
+    - name: Install cibuildwheel
       run: |
-        source .ci/ubuntu_ci.sh
-        install_kivy
-    - name: Make wheels
-      run: |
-        source .ci/osx_versions.sh
         source .ci/osx_ci.sh
-        generate_osx_wheels
-    - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v2
+        arm64_set_path_and_python_version ${{ matrix.python }}
+        python -m pip install cibuildwheel==2.3.1
+    - name: Build wheels
+      run: |
+        source .ci/osx_ci.sh
+        arm64_set_path_and_python_version ${{ matrix.python }}
+        export REPAIR_LIBRARY_PATH=/Library/Frameworks:/Library/Frameworks/SDL2_mixer.framework/Frameworks
+        python -m cibuildwheel --output-dir wheelhouse
+    - uses: actions/upload-artifact@v2
       with:
         name: osx_wheels
-        path: dist
+        path: ./wheelhouse/*.whl
 
   osx_wheel_upload:
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: osx_wheels_create
     if: github.event_name != 'pull_request'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.x
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x
+        python-version: '3.9'
     - uses: actions/download-artifact@v2
       with:
         name: osx_wheels
@@ -134,16 +145,39 @@ jobs:
         upload_artifacts_to_pypi
 
   osx_wheel_test:
-    runs-on: macos-10.15
+    name: "osx_wheel_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
     needs: [ osx_wheels_create, kivy_examples_create ]
+    defaults:
+      run:
+        shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
+    runs-on: ${{ matrix.runs_on || 'macos-11' }}
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        include:
+          - runs_on: macos-11     
+            python: '3.7'
+          - runs_on: macos-11     
+            python: '3.8'
+          - runs_on: macos-11     
+            python: '3.9'
+          - runs_on: macos-11     
+            python: '3.10'
+          - runs_on: apple-silicon-m1
+            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
+            python: '3.8.12'
+          - runs_on: apple-silicon-m1
+            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
+            python: '3.9.7'
+          - runs_on: apple-silicon-m1
+            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
+            python: '3.10.1'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
+        # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
+        if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
@@ -154,11 +188,15 @@ jobs:
       - name: Install test dependencies
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_test_wheel_run_pip_deps
+          source .ci/osx_ci.sh
+          arm64_set_path_and_python_version ${{ matrix.python }}
+          install_kivy_test_wheel_run_pip_deps dev
       - name: Install Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_wheel
+          source .ci/osx_ci.sh
+          arm64_set_path_and_python_version ${{ matrix.python }}
+          install_kivy_wheel dev
       - uses: actions/download-artifact@v2
         with:
           name: osx_examples_wheel
@@ -166,14 +204,18 @@ jobs:
       - name: Install kivy-examples wheel
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_examples_wheel
+          source .ci/osx_ci.sh
+          arm64_set_path_and_python_version ${{ matrix.python }}
+          install_kivy_examples_wheel dev
       - name: Test Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
+          source .ci/osx_ci.sh
+          arm64_set_path_and_python_version ${{ matrix.python }}
           test_kivy_install
 
   osx_app_create:
-    runs-on: macos-10.15
+    runs-on: macos-11
     if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
@@ -182,17 +224,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - name: Cache OSX deps
+          python-version: 3.9
+      - name: Cache macOS deps downloads
         uses: actions/cache@v2
         with:
           path: osx-cache
           key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
-      - name: Cache OSX gst-devel deps
-        uses: actions/cache@v2
-        with:
-          path: osx-cache-gst-devel
-          key: gst-devel-${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}-gst-devel
       - name: Generate version metadata
         run: |
           source .ci/ubuntu_ci.sh
@@ -202,9 +239,8 @@ jobs:
           source .ci/ubuntu_ci.sh
           source .ci/osx_versions.sh
           source .ci/osx_ci.sh
-          install_kivy_test_run_sys_deps
           install_platypus
-          install_kivy_test_run_pip_deps
+          install_kivy_test_run_pip_deps dev
       - name: Make app bundle
         run: |
           py_version=$(python3 -c "import platform; print(platform.python_version())")
@@ -223,7 +259,7 @@ jobs:
           path: app
 
   osx_app_upload_test:
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [osx_app_create, kivy_examples_create]
     env:
       KIVY_GL_BACKEND: 'mock'
@@ -232,7 +268,7 @@ jobs:
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: '3.9'
       - uses: actions/download-artifact@v2
         with:
           name: osx_app
@@ -270,8 +306,8 @@ jobs:
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
-          install_kivy_test_wheel_run_pip_deps
-          install_kivy_examples_wheel
+          install_kivy_test_wheel_run_pip_deps dev
+          install_kivy_examples_wheel dev
       - name: Test Kivy app
         run: |
           source .ci/osx_ci.sh
