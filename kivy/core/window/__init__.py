@@ -631,18 +631,20 @@ class WindowBase(EventDispatcher):
 
     def _get_kivy_vkheight(self):
         mode = Config.get('kivy', 'keyboard_mode')
-        smode = self.softinput_mode
         if (
-            (mode == 'dock' or mode == 'systemanddock')
+            mode in ['dock', 'systemanddock']
             and self._vkeyboard_cls is not None
         ):
             for w in self.children:
                 if isinstance(w, VKeyboard):
                     vkeyboard_height = w.height * w.scale
-                    if smode == 'pan':
+                    if self.softinput_mode == 'pan':
                         return vkeyboard_height
-                    elif smode == 'below_target':
-                        return vkeyboard_height - w.target.y
+                    elif (
+                        self.softinput_mode == 'below_target'
+                        and w.target.y < vkeyboard_height
+                    ):
+                            return vkeyboard_height - w.target.y
         return 0
 
     def _get_kheight(self):
@@ -1627,7 +1629,7 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
-        x, y = 0, 0
+        y = 0
         _h = h
         if smode == 'pan':
             y = kheight
@@ -2149,10 +2151,9 @@ class WindowBase(EventDispatcher):
             keyboard.widget.setup_mode()
 
             # sets vkeyboard position according to Window.softinput_mode
-            smode = self.softinput_mode
-            if smode == 'pan':
+            if self.softinput_mode == 'pan':
                 keyboard.widget.top = 0
-            elif smode == 'below_target':
+            elif self.softinput_mode == 'below_target':
                 keyboard.widget.top = keyboard.target.y
 
         else:
