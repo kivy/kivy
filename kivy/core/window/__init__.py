@@ -644,7 +644,7 @@ class WindowBase(EventDispatcher):
                         self.softinput_mode == 'below_target'
                         and w.target.y < vkeyboard_height
                     ):
-                            return vkeyboard_height - w.target.y
+                        return vkeyboard_height - w.target.y
         return 0
 
     def _get_kheight(self):
