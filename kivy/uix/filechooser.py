@@ -101,15 +101,12 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty, AliasProperty)
+import collections
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
     splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
 from fnmatch import fnmatch
-try:
-    import collections.abc as collections_abc
-except ImportError:
-    import collections as collections_abc
 
 platform = core_platform
 filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
@@ -668,7 +665,7 @@ class FileChooserController(RelativeLayout):
             return files
         filtered = []
         for filt in self.filters:
-            if isinstance(filt, collections_abc.Callable):
+            if isinstance(filt, collections.abc.Callable):
                 filtered.extend([fn for fn in files if filt(self.path, fn)])
             else:
                 filtered.extend([fn for fn in files if fnmatch(fn, filt)])
