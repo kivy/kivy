@@ -101,7 +101,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty, AliasProperty)
-import collections
+import collections.abc
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
