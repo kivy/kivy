@@ -3826,7 +3826,7 @@ class TextInput(FocusBehavior, Widget):
 
     lines_to_scroll = BoundedNumericProperty(3, min=1)
     '''Set how many lines will be scrolled at once when using the mouse scroll
-    wheel
+    wheel.
 
     .. versionadded:: 2.1.0
 
