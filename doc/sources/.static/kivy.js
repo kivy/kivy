@@ -1,13 +1,4 @@
-$(document).ready(function () {
-	// get real height of all elements inside div#content
-	function getRealHeight() {
-		var realHeight = 0;
-		$("#content").children().each(function(){
-			realHeight = realHeight + $(this).outerHeight(true);
-		});
-		return realHeight;
-	}
-	$('#content').css('min-height', getRealHeight());
+$(function() {
 
 	var bodyshortcut = false;
 	function ensure_bodyshortcut() {
@@ -60,10 +51,9 @@ $(document).ready(function () {
 	});
 
 
-	$('div.body dl[class] dt').hover(
-		function() { $(this).addClass('hover'); },
-		function() { $(this).removeClass('hover'); }
-	);
+	$('div.body dl[class] dt')
+	.on("mouseenter", function() { $(this).addClass('hover'); })
+	.on("mouseleave", function() { $(this).removeClass('hover'); });
 
 	if ( apibreaker == true ) {
 		ensure_bodyshortcut();
@@ -71,23 +61,7 @@ $(document).ready(function () {
 		apilink.insertBefore($('div.bodyshortcut'));
 	}
 
-	/**
-	$('#api-toggle-all').click(function() {
-		if ($(this).hasClass('showed')) {
-			$('div.body dl.api-level > dd').slideUp();
-			$(this).removeClass('showed');
-			$(this).html('Expand All &dArr;');
-			$.cookie('kivy.toggleall', 'true');
-		} else {
-			$('div.body dl.api-level > dd').slideDown();
-			$(this).addClass('showed');
-			$(this).html('Collapse All &uArr;');
-			$.cookie('kivy.toggleall', 'false');
-		}
-	});
-	**/
-
-	$('#api-toggle-desc').click(function() {
+	$('#api-toggle-desc').on("click", function() {
 		if ($(this).hasClass('showed')) {
 			$('div.body dl.api-level > dd p').hide();
 			$('div.body dl.api-level > dd pre').hide();
@@ -95,7 +69,6 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').hide();
 			$(this).removeClass('showed');
 			$(this).html('Show Descriptions &dArr;');
-			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'true');
 		} else {
 			$('div.body dl.api-level > dd p').show();
@@ -104,12 +77,11 @@ $(document).ready(function () {
 			$('div.body dl.api-level > dd ul').show();
 			$(this).addClass('showed');
 			$(this).html('Hide Descriptions &uArr;');
-			$('#content').css('min-height',getRealHeight());
 			$.cookie('kivy.toggledesc', 'false');
 		}
 	});
 
-	$('div.body dl.api-level dt').click(function() {
+	$('div.body dl.api-level dt').on("click", function() {
 		$(this).next().children().toggle();
 	});
 
@@ -189,6 +161,7 @@ $(document).ready(function () {
 						return item;
 				}).parent().hide();
 		$('.nav-api').addClass('current');
+		$('body').addClass('is-api');
 	} else {
 		$('div.sphinxsidebarwrapper > ul > li > ul').filter(
 				function(index, item) {
@@ -200,32 +173,6 @@ $(document).ready(function () {
 
 
 	if ( is_api ) {
-		var divscroll = $('div.sphinxsidebarwrapper');
-		var divscrollwidth = divscroll.width();
-		var divapi = $('.api-index');
-		var initial_offset = divscroll.offset();
-		var jwindow = $(window);
-
-		function update_api() {
-			var ywindow = jwindow.scrollTop();
-			var ypadding = 20;
-			var ydiff = ywindow - initial_offset.top;
-			var height = jwindow.height();
-			if ( ydiff + ypadding > 0) {
-				divscroll.css('position', 'fixed').css('top', ypadding);
-				height -= ypadding * 2;
-			} else {
-				divscroll.css('position', 'static').css('top', -ydiff);
-				height += ydiff - ypadding;
-			}
-			divscroll.height(height).width(divscrollwidth);
-			divapi.height(divapi.offsetParent().height() - divapi.position().top)
-		}
-
-		$(window).scroll(update_api).bind('resize', update_api);
-
-		update_api();
-
 		$('.toc').hide();
 
 
