@@ -38,7 +38,7 @@ build_and_install_universal_kivy_sys_deps() {
   download_cache_curl "${SDL2}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL/archive/refs/tags"
   download_cache_curl "${SDL2_MIXER}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_mixer/archive"
   download_cache_curl "${SDL2_IMAGE}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_image/archive"
-  download_cache_curl "${SDL2_TTF}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_ttf/archive"
+  download_cache_curl "${SDL2_TTF}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags"
 
   echo "-- Build SDL2 (Universal)"
   tar -xvf "${SDL2}.tar.gz"
