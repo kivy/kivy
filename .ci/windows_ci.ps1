@@ -110,7 +110,7 @@ function Test-kivy {
 }
 
 function Test-kivy-benchmark {
-    python -m pytest "$(pwd)/kivy/tests" --benchmark-only
+    pytest --pyargs kivy.tests --benchmark-only
 }
 
 function Test-kivy-installed {

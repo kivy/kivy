@@ -152,7 +152,7 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
-    - name: Upload benchamrks as artifact
+    - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v2
       with:
         name: benchmarks

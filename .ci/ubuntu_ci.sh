@@ -105,7 +105,7 @@ test_kivy() {
 }
 
 test_kivy_benchmark() {
-  KIVY_NO_ARGS=1 python3 -m pytest "$(pwd)/kivy/tests" --benchmark-only
+  KIVY_NO_ARGS=1 pytest --pyargs kivy.tests --benchmark-only
 }
 
 test_kivy_install() {
