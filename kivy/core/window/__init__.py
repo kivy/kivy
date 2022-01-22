@@ -629,12 +629,30 @@ class WindowBase(EventDispatcher):
             import android
         return android.get_keyboard_height()
 
+    def _get_kivy_vkheight(self):
+        mode = Config.get('kivy', 'keyboard_mode')
+        if (
+            mode in ['dock', 'systemanddock']
+            and self._vkeyboard_cls is not None
+        ):
+            for w in self.children:
+                if isinstance(w, VKeyboard):
+                    vkeyboard_height = w.height * w.scale
+                    if self.softinput_mode == 'pan':
+                        return vkeyboard_height
+                    elif (
+                        self.softinput_mode == 'below_target'
+                        and w.target.y < vkeyboard_height
+                    ):
+                        return vkeyboard_height - w.target.y
+        return 0
+
     def _get_kheight(self):
         if platform == 'android':
             return self._get_android_kheight()
-        if platform == 'ios':
+        elif platform == 'ios':
             return self._get_ios_kheight()
-        return 0
+        return self._get_kivy_vkheight()
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
@@ -1611,7 +1629,7 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
-        x, y = 0, 0
+        y = 0
         _h = h
         if smode == 'pan':
             y = kheight
@@ -1621,7 +1639,7 @@ class WindowBase(EventDispatcher):
             _h -= kheight
 
         # prepare the viewport
-        glViewport(x, y, w, _h)
+        glViewport(0, 0, w, _h)
 
         # do projection matrix
         projection_mat = Matrix()
@@ -1633,7 +1651,7 @@ class WindowBase(EventDispatcher):
         modelview_mat = modelview_mat.multiply(Matrix().rotate(r, 0, 0, 1))
 
         w, h = self.size
-        w2, h2 = w / 2., h / 2.
+        w2, h2 = w / 2., h / 2. - y
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
         frag_modelview_mat = Matrix()
@@ -2131,6 +2149,12 @@ class WindowBase(EventDispatcher):
             # only after add, do dock mode
             keyboard.widget.docked = self.docked_vkeyboard
             keyboard.widget.setup_mode()
+
+            # sets vkeyboard position according to Window.softinput_mode
+            if self.softinput_mode == 'pan':
+                keyboard.widget.top = 0
+            elif self.softinput_mode == 'below_target':
+                keyboard.widget.top = keyboard.target.y
 
         else:
             # system keyboard, just register the callback.
