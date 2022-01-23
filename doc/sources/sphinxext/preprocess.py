@@ -6,6 +6,7 @@ import re
 import types
 import sys
 from os.path import dirname, join
+import sphinx
 from sphinx.ext.autodoc import MethodDocumenter
 
 class CythonMethodDocumenter(MethodDocumenter):
@@ -109,7 +110,10 @@ def setup(app):
     sys.path += [join(dirname(kivy.__file__), 'extras')]
     from highlight import KivyLexer
 
-    app.add_lexer('kv', KivyLexer)
+    if sphinx.version_info[0] >= 3:
+        app.add_lexer('kv', KivyLexer)
+    else:
+        app.add_lexer('kv', KivyLexer())
     app.add_autodocumenter(CythonMethodDocumenter)
     app.connect('autodoc-process-docstring', callback_docstring)
     app.connect('autodoc-process-signature', callback_signature)
