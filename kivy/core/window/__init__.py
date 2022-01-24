@@ -923,7 +923,8 @@ class WindowBase(EventDispatcher):
             return
 
         self.initialized = False
-        self.event_managers = defaultdict(list)
+        self.event_managers = []
+        self.event_managers_dict = defaultdict(list)
         self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
@@ -1050,14 +1051,16 @@ class WindowBase(EventDispatcher):
         EventLoop.add_event_listener(self)
 
     def register_event_manager(self, manager):
+        self.event_managers.insert(0, manager)
         for type_id in manager.type_ids:
-            self.event_managers[type_id].insert(0, manager)
+            self.event_managers_dict[type_id].insert(0, manager)
         manager.window = self
         manager.start()
 
     def unregister_event_manager(self, manager):
+        self.event_managers.remove(manager)
         for type_id in manager.type_ids:
-            self.event_managers[type_id].remove(manager)
+            self.event_managers_dict[type_id].remove(manager)
         manager.stop()
         manager.window = None
 
@@ -1555,7 +1558,7 @@ class WindowBase(EventDispatcher):
                 The Motion Event currently dispatched.
         '''
         accepted = False
-        for manager in self.event_managers[me.type_id][:]:
+        for manager in self.event_managers_dict[me.type_id][:]:
             accepted = manager.dispatch(etype, me) or accepted
         if accepted:
             if etype == 'end' and (me.type_id == 'touch' or me.is_touch):
