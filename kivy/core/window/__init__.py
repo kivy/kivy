@@ -445,9 +445,7 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size,
-                         bind=('_size', '_rotation', 'softinput_mode',
-                               'keyboard_height'))
+    size = AliasProperty(_get_size, _set_size, bind=('_size', '_rotation'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -492,7 +490,7 @@ class WindowBase(EventDispatcher):
             return _size[0]
         return _size[1]
 
-    width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
+    width = AliasProperty(_get_width, bind=('_rotation', '_size'))
     '''Rotated window width.
 
     :attr:`width` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -509,9 +507,7 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None,
-                           bind=('_rotation', '_size', 'softinput_mode',
-                                 'keyboard_height'))
+    height = AliasProperty(_get_height, bind=('_rotation', '_size'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -697,9 +693,7 @@ class WindowBase(EventDispatcher):
         return self._size
 
     system_size = AliasProperty(_get_system_size, _set_system_size,
-                                bind=('_size', 'softinput_mode',
-                                      'keyboard_height'),
-                                cache=True)
+                                bind=('_size',))
     '''Real size of the window ignoring rotation. If the density is
     not 1, the :attr:`system_size` is the :attr:`size` divided by
     density.
