@@ -490,7 +490,7 @@ class WindowBase(EventDispatcher):
             return _size[0]
         return _size[1]
 
-    width = AliasProperty(_get_width, bind=('_rotation', '_size'))
+    width = AliasProperty(_get_width, bind=('_rotation', '_size', '_density'))
     '''Rotated window width.
 
     :attr:`width` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -507,7 +507,8 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, bind=('_rotation', '_size'))
+    height = AliasProperty(_get_height,
+                           bind=('_rotation', '_size', '_density'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -516,9 +517,7 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center,
-                           bind=('width', 'height', '_density'),
-                           cache=True)
+    center = AliasProperty(_get_center, bind=('width', 'height'))
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
