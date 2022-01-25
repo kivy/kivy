@@ -1051,6 +1051,15 @@ class WindowBase(EventDispatcher):
         EventLoop.add_event_listener(self)
 
     def register_event_manager(self, manager):
+        '''Register and start an event manager to handle events declared in
+        :attr:`~kivy.eventmanager.EventManagerBase.type_ids` attribute.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            Handling events with managers is experimental and this method can
+            be changed or removed in the future versions of Kivy.
+        '''
         self.event_managers.insert(0, manager)
         for type_id in manager.type_ids:
             self.event_managers_dict[type_id].insert(0, manager)
@@ -1058,6 +1067,15 @@ class WindowBase(EventDispatcher):
         manager.start()
 
     def unregister_event_manager(self, manager):
+        '''Unregister and stop an event manager previously registered with
+        :meth:`register_event_manager`.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            Handling events with managers is experimental and this method can
+            be changed or removed in the future versions of Kivy.
+        '''
         self.event_managers.remove(manager)
         for type_id in manager.type_ids:
             self.event_managers_dict[type_id].remove(manager)
