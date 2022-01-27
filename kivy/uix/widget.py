@@ -526,16 +526,22 @@ class Widget(WidgetBase):
         return True
 
     def on_motion(self, etype, me):
-        '''Receive a motion event previously registered by
-        :meth:`register_for_motion_event`.
+        '''Called when a motion event is received.
 
         :Parameters:
             `etype`: `str`
-                Event type, one of "begin", "update", "end"
+                Event type, one of "begin", "update" or "end"
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 Received motion event
         :Returns: bool
             `True` to stop event dispatching
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
         '''
         if self.disabled or me.flags & DONT_DISPATCH:
             return False
@@ -779,6 +785,11 @@ class Widget(WidgetBase):
             Method can be called multiple times with the same arguments.
 
         .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -801,6 +812,11 @@ class Widget(WidgetBase):
             Method can be called multiple times with the same arguments.
 
         .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -1602,4 +1618,8 @@ class Widget(WidgetBase):
     `self` is registered it will always be the first element in the list.
 
     .. versionadded:: 2.1.0
+    
+    .. warning::
+        This is an experimental property and it remains so until this warning
+        is present.
     '''
