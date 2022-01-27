@@ -162,7 +162,10 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...]::
+    '''Kivy Usage: %s [KIVY OPTION...] [-- PROGRAM OPTIONS]::
+
+            Options placed after a '-- ' separator, will not be touched by kivy,
+            and instead passed to your program.
 
             Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
             disable Kivy's argument parser.
