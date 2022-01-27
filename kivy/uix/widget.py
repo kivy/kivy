@@ -546,11 +546,16 @@ class Widget(WidgetBase):
             return False
         if me.flags & FILTERED_DISPATCH:
             widgets = filtered[1:] if filtered[0] is self else filtered[:]
+            for widget in widgets:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
         else:
-            widgets = self.children[:]
-        for widget in widgets:
-            if widget.dispatch('on_motion', etype, me):
-                return True
+            last_filtered = filtered[-1]
+            for widget in self.children[:]:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
+                if widget is last_filtered:
+                    return False
 
     #
     # Default event handlers
