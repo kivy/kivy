@@ -747,15 +747,16 @@ class Widget(WidgetBase):
     def _find_index_in_motion_filter(self, type_id, widget):
         if widget is self:
             return 0
+        max_index = self.children.index(widget) + 1
         motion_widgets = self.motion_filter[type_id]
-        w_index = self.children.index(widget)
-        if w_index == 0:
-            return 1 if motion_widgets[0] is self else 0
-        index = -1
-        for i in range(len(motion_widgets) - 1):
-            if self.children.index(motion_widgets[i + 1]) < w_index:
-                index += 1
-        return index + 1
+        find_index = self.children.index
+        insert_index = 1 if motion_widgets[0] is self else 0
+        for index in range(insert_index, len(motion_widgets)):
+            if find_index(motion_widgets[index]) < max_index:
+                insert_index += 1
+            else:
+                break
+        return insert_index
 
     def register_for_motion_event(self, type_id, widget=None):
         '''Register to receive motion events of `type_id`.
