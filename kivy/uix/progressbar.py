@@ -48,7 +48,7 @@ class ProgressBar(Widget):
             self._value = value
             return True
 
-    value = AliasProperty(_get_value, _set_value)
+    value = AliasProperty(_get_value, _set_value, cache=True)
     '''Current value used for the slider.
 
     :attr:`value` is an :class:`~kivy.properties.AliasProperty` that
