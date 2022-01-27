@@ -1057,8 +1057,9 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 2.1.0
 
         .. warning::
-            Handling events with managers is experimental and this method can
-            be changed or removed in the future versions of Kivy.
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
         '''
         self.event_managers.insert(0, manager)
         for type_id in manager.type_ids:
@@ -1073,8 +1074,9 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 2.1.0
 
         .. warning::
-            Handling events with managers is experimental and this method can
-            be changed or removed in the future versions of Kivy.
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
         '''
         self.event_managers.remove(manager)
         for type_id in manager.type_ids:
@@ -1567,13 +1569,20 @@ class WindowBase(EventDispatcher):
         self.render_context.draw()
 
     def on_motion(self, etype, me):
-        '''Event called when a Motion Event is received.
+        '''Event called when a motion event is received.
 
         :Parameters:
             `etype`: str
-                One of 'begin', 'update', 'end'
+                One of "begin", "update" or "end".
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
-                The Motion Event currently dispatched.
+                The motion event currently dispatched.
+
+        .. versionchanged:: 2.1.0
+            Event managers get to handle the touch event first and if none of
+            them accepts the event (by returning `True`) then window will
+            dispatch `me` through "on_touch_down", "on_touch_move",
+            "on_touch_up" events depending on the `etype`. All non-touch events
+            will go only through managers.
         '''
         accepted = False
         for manager in self.event_managers_dict[me.type_id][:]:
