@@ -1618,7 +1618,7 @@ class Widget(WidgetBase):
     `self` is registered it will always be the first element in the list.
 
     .. versionadded:: 2.1.0
-    
+
     .. warning::
         This is an experimental property and it remains so until this warning
         is present.
