@@ -40,5 +40,8 @@ Kivy provides the following properties:
     :mod:`~kivy.properties.ReferenceListProperty`,
     :mod:`~kivy.properties.AliasProperty`,
     :mod:`~kivy.properties.DictProperty`,
+    :mod:`~kivy.properties.VariableListProperty`,
+    :mod:`~kivy.properties.ConfigParserProperty`,
+    :mod:`~kivy.properties.ColorProperty`
 
 For an in-depth explanation, take a look at :doc:`/api-kivy.properties`.
