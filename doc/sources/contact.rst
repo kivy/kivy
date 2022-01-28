@@ -45,7 +45,7 @@ If you're unlucky more than once, try the mailing list.
 
 If you don't have the Discord app, you can also use
 `Discord's web client <https://chat.kivy.org>`_, but please, don't leave
-too soon. Just make sure to ask on the ``#support`` channel.
+too soon. Just make sure to ask on the ``support`` channels.
 
 
 Please read our
