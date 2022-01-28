@@ -217,7 +217,7 @@ class MotionEvent(MotionEventBase):
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos', 'flags')
+                           'px', 'py', 'pz', 'pos')
 
         #: Uniq ID of the event. You can safely use this property, it will be
         #: never the same across all existing events.
