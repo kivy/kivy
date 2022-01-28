@@ -28,7 +28,7 @@ Use a manager when you want to:
   :attr:`~kivy.input.motionevent.MotionEvent.profile`.
 - Combine several motion events (touch, hover etc.) into one new event and
   dispatch it to the widgets.
-- Dispatch one-time generic events, like app start/pause/resume/stop.
+- Dispatch one-time generic events, like app pause/resume.
 - Write an event simulator, like a touch simulator which draws a circle on
   window's canvas for every simulated touch.
 
@@ -36,16 +36,16 @@ Defining and registering an event manager
 -----------------------------------------
 
 1. Inherit :class:`EventManagerBase` and set which events this manager
-   should receive by declaring event types in
-   `:attr:`EventManagerBase.type_ids` attribute.
+    should receive by declaring event types in
+    `:attr:`EventManagerBase.type_ids` attribute.
 2. Implement :meth:`EventManagerBase.dispatch` which will be called by window
-   to pass event type (one of "begin", "update", "end") and an event.
+    to pass event type (one of "begin", "update", "end") and an event.
 3. Implement :meth:`EventManagerBase.start` and :meth:`EventManagerBase.stop`
-   to allocate and release additional resources if needed.
+    to allocate and release additional resources if needed.
 4. Register a manager instance to window using method
-   :meth:`~kivy.core.window.WindowBase.register_event_manager`. This can be
-   done by overriding methods :meth:`~kivy.app.App.build` or
-   :meth:`~kivy.app.App.on_start`.
+    :meth:`~kivy.core.window.WindowBase.register_event_manager`. This can be
+    done by overriding methods :meth:`~kivy.app.App.build` or
+    :meth:`~kivy.app.App.on_start`.
 
 All registered managers are kept in
 :attr:`~kivy.core.window.WindowBase.event_managers` list. To unregister a
@@ -72,13 +72,13 @@ by using different flags. Flags are assigned in
 Currently there are three dispatch behaviors recognized by the widget:
 
 1. Default dispatch (no flag required) - event will go through widget's
-   `children` list, starting with fist widget in the `children` list until
-   child widget accept the event or last widget registered for that event is
-   reached.
+    `children` list, starting with fist widget in the `children` list until
+    child widget accept the event or last widget registered for that event is
+    reached.
 2. Filtered dispatch (requires :attr:`FILTERED_DISPATCH`) - event will go only
-   through registered child widgets.
+    through registered child widgets.
 3. No children dispatch (requires :attr:`DONT_DISPATCH`) - event will not be
-   dispatched to child widgets.
+    dispatched to child widgets.
 
 Note that window does not have `motion_filter` property and therefore does not
 have a list of filtered widgets from its `children` list.
@@ -139,9 +139,9 @@ class EventManagerBase(object):
     '''
 
     def start(self):
-        '''Start this event manager, bind callbacks to objects and create
-        additional resources. Attribute :attr:`window` is assigned when this
-        method is called.
+        '''Start the manager, bind callbacks to objects and create additional
+        resources. Attribute :attr:`window` is assigned when this method is
+        called.
 
         .. versionadded:: 2.1.0
         '''
@@ -150,18 +150,18 @@ class EventManagerBase(object):
         '''Dispatch event `me` to widgets in :attr:`window`.
 
         :Parameters:
-            `etype`: str
+            `etype`: `str`
                 One of "begin", "update" or "end"
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 The Motion Event currently dispatched.
-        :Returns: bool
+        :Returns: `bool`
             `True` to stop event dispatching
 
         .. versionadded:: 2.1.0
         '''
 
     def stop(self):
-        '''Stop this manager, unbind from any objects and to release any
+        '''Stop the manager, unbind from any objects and to release any
         allocated resources.
 
         .. versionadded:: 2.1.0
