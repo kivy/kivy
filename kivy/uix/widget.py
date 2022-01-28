@@ -533,7 +533,7 @@ class Widget(WidgetBase):
                 Event type, one of "begin", "update" or "end"
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
                 Received motion event
-        :Returns: bool
+        :Returns: `bool`
             `True` to stop event dispatching
 
         .. versionadded:: 2.1.0
@@ -1609,13 +1609,13 @@ class Widget(WidgetBase):
     '''
 
     motion_filter = DictProperty()
-    '''Holds dict of `type_id` to `list` of widgets registered to receive
-    motion events of `type_id`.
+    '''Holds a dict of `type_id` to `list` of child widgets registered to
+    receive motion events of `type_id`.
 
     Don't change the property directly but use
-    :meth:`register_for_motion_event` to register and
-    :meth:`unregister_for_motion_event` to unregister for motion events. If
-    `self` is registered it will always be the first element in the list.
+    :meth:`register_for_motion_event` and :meth:`unregister_for_motion_event`
+    to register and unregister for motion events. If `self` is registered it
+    will always be the first element in the list.
 
     .. versionadded:: 2.1.0
 
