@@ -262,7 +262,7 @@ class EventLoopBase(EventDispatcher):
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
         # dispatch grabbed touch
-        if not (me.type_id == 'touch' or me.is_touch):
+        if not me.is_touch:
             # Non-touch event must be handled by the event manager
             return
         me.grab_state = True
