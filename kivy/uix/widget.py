@@ -781,10 +781,10 @@ class Widget(WidgetBase):
             `widget`: `Widget`
                 Child widget or `self` if omitted
 
+        .. versionadded:: 2.1.0
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. versionadded:: 2.1.0
 
         .. warning::
             This is an experimental method and it remains so while this warning
@@ -808,10 +808,10 @@ class Widget(WidgetBase):
             `widget`: `Widget`
                 Child widget or `self` if omitted
 
+        .. versionadded:: 2.1.0
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. versionadded:: 2.1.0
 
         .. warning::
             This is an experimental method and it remains so while this warning
