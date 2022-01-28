@@ -8,7 +8,7 @@ implementation of dispatching motion events
 :meth:`~kivy.uix.widget.Widget.on_motion` method.
 
 .. warning::
-    This feature is experimental and it remains so until this warning is
+    This feature is experimental and it remains so while this warning is
     present.
 
 Manager is a layer between window and its widgets. Window will forward all the

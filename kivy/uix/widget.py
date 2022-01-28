@@ -539,7 +539,7 @@ class Widget(WidgetBase):
         .. versionadded:: 2.1.0
 
         .. warning::
-            This is an experimental method and it remains so until this warning
+            This is an experimental method and it remains so while this warning
             is present as it can be changed or removed in the next versions of
             Kivy.
         '''
@@ -787,7 +787,7 @@ class Widget(WidgetBase):
         .. versionadded:: 2.1.0
 
         .. warning::
-            This is an experimental method and it remains so until this warning
+            This is an experimental method and it remains so while this warning
             is present as it can be changed or removed in the next versions of
             Kivy.
         '''
@@ -814,7 +814,7 @@ class Widget(WidgetBase):
         .. versionadded:: 2.1.0
 
         .. warning::
-            This is an experimental method and it remains so until this warning
+            This is an experimental method and it remains so while this warning
             is present as it can be changed or removed in the next versions of
             Kivy.
         '''
@@ -1620,6 +1620,6 @@ class Widget(WidgetBase):
     .. versionadded:: 2.1.0
 
     .. warning::
-        This is an experimental property and it remains so until this warning
+        This is an experimental property and it remains so while this warning
         is present.
     '''
