@@ -894,6 +894,40 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
+    event_managers = None
+    '''Holds a `list` of registered event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
+    event_managers_dict = None
+    '''Holds a `dict` of `type_id` to `list` of event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
     trigger_create_window = None
 
     __events__ = (
