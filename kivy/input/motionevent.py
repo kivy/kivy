@@ -9,30 +9,67 @@ pointing devices (touch and non-touch). This class defines all the properties
 and methods needed to handle 2D and 3D movements but has many more
 capabilities.
 
-.. note::
+Usually you would never need to create the :class:`MotionEvent` yourself as
+this is the role of the :mod:`~kivy.input.providers`.
 
-    You never create the :class:`MotionEvent` yourself: this is the role of the
-    :mod:`~kivy.input.providers`.
+Flow of the motion events
+-------------------------
 
-Motion Event and Touch
-----------------------
-
-We differentiate between a Motion Event and Touch event. A Touch event is a
-:class:`MotionEvent` with the `pos` profile. Only these events are dispatched
-throughout the widget tree.
-
-1. The :class:`MotionEvent` 's are gathered from input providers.
-2. All the :class:`MotionEvent` 's are dispatched from
-    :meth:`~kivy.core.window.WindowBase.on_motion`.
-3. If a :class:`MotionEvent` has a `pos` profile, we dispatch it through
+1. The :class:`MotionEvent` 's are gathered from input providers by
+    :class:`~kivy.base.EventLoopBase`.
+2. Post processing is preformed by registered processors
+    :mod:`~kivy.input.postproc`.
+3. :class:`~kivy.base.EventLoopBase` dispatches all motion events using
+    `on_motion` event to all registered listeners including the
+    :class:`~kivy.core.window.WindowBase`.
+4. Once received in :meth:`~kivy.core.window.WindowBase.on_motion` events
+    (touch or non-touch) are all registered managers. If a touch event is not
+    handled by at least one manager, then it is dispatched through
     :meth:`~kivy.core.window.WindowBase.on_touch_down`,
     :meth:`~kivy.core.window.WindowBase.on_touch_move` and
     :meth:`~kivy.core.window.WindowBase.on_touch_up`.
+5. Widgets receive events in :meth:`~kivy.uix.widget.Widget.on_motion` method
+    (if passed by a manager) or on `on_touch_xxx` methods.
 
-Listening to a Motion Event
+Motion events and event managers
+--------------------------------
+
+A motion event is a touch event if its :attr:`MotionEvent.is_touch` is set to
+`True`. Beside `is_touch` attribute, :attr:`MotionEvent.type_id` can be used to
+check for event's general type. Currently two types are dispatched by
+input providers: "touch" and "hover".
+
+Event managers can be used to dispatch any motion event throughout the widget
+tree and a manager uses `type_id` to specify which event types it want to
+receive. See :mod:`~kivy.eventmanager` to learn how to define and register
+an event manager.
+
+A manager can also assign a new `type_id` to
+:attr:`MotionEvent.type_id` before dispatching it to the widgets. This useful
+when dispatching a specific event::
+
+    class MouseTouchManager(EventManagerBase):
+
+        type_ids = ('touch',)
+
+        def dispatch(self, etype, me):
+            accepted = False
+            if me.device == 'mouse':
+                prev_type_id = me.type_id
+                me.type_id = 'mouse_touch'
+                # Dispatch mouse touch event to widgets which registered
+                # to receive 'mouse_touch'
+                for widget in self.window.children[:]:
+                    if widget.dispatch('on_motion', etype, me):
+                        accepted = True
+                        break
+                me.type_id = prev_type_id
+            return accepted
+
+Listening to a motion event
 ---------------------------
 
-If you want to receive all MotionEvents, Touch or not, you can bind the
+If you want to receive all motion events, touch or not, you can bind the
 MotionEvent from the :class:`~kivy.core.window.Window` to your own callback::
 
     def on_motion(self, etype, motionevent):
