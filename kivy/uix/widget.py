@@ -1433,6 +1433,9 @@ class Widget(WidgetBase):
         return self._disabled_count > 0
 
     def set_disabled(self, value):
+        # Necessary to ensure a change between value of equal truthiness
+        # doesn't mess up the count
+        value = bool(value)
         if value != self._disabled_value:
             self._disabled_value = value
             if value:
