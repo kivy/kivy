@@ -3,7 +3,7 @@
 Installation on Windows
 =======================
 
-To install Kivy on Windows, please follow the main :ref:`installation guide<installation-canonical>`.
+To install Kivy on Windows via ``pip``, please follow the main :ref:`installation guide<installation-canonical>`.
 
 Installation components
 -----------------------

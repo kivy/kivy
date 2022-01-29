@@ -1,6 +1,6 @@
 .. _packaging-osx:
 
-Creating packages for OS X
+Creating packages for macOS
 ==========================
 
 .. note::
