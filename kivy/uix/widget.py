@@ -758,9 +758,9 @@ class Widget(WidgetBase):
     def _find_index_in_motion_filter(self, type_id, widget):
         if widget is self:
             return 0
-        max_index = self.children.index(widget) + 1
-        motion_widgets = self.motion_filter[type_id]
         find_index = self.children.index
+        max_index = find_index(widget) + 1
+        motion_widgets = self.motion_filter[type_id]
         insert_index = 1 if motion_widgets[0] is self else 0
         for index in range(insert_index, len(motion_widgets)):
             if find_index(motion_widgets[index]) < max_index:
