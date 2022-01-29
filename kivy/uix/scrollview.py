@@ -621,7 +621,10 @@ class ScrollView(StencilView):
         if not vp or not self.effect_x:
             return
 
-        sw = vp.width - self.width
+        if self.effect_x.is_manual:
+            sw = vp.width - self._effect_x_start_width
+        else:
+            sw = vp.width - self.width
         if sw < 1 and not (self.always_overscroll and self.do_scroll_x):
             return
         if sw != 0:
@@ -633,7 +636,10 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_y:
             return
-        sh = vp.height - self.height
+        if self.effect_y.is_manual:
+            sh = vp.height - self._effect_y_start_height
+        else:
+            sh = vp.height - self.height
 
         if sh < 1 and not (self.always_overscroll and self.do_scroll_y):
             return
