@@ -21,7 +21,7 @@ On desktop, this defaults to::
 Therefore, if your user is named "tito", the file will be here:
 
 - Windows: ``C:\Users\tito\.kivy\config.ini``
-- OS X: ``/Users/tito/.kivy/config.ini``
+- macOS: ``/Users/tito/.kivy/config.ini``
 - Linux: ``/home/tito/.kivy/config.ini``
 
 On Android, this defaults to::

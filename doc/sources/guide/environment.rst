@@ -133,7 +133,10 @@ KIVY_AUDIO
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: sdl2, pil, pygame, imageio, tex, dds, gif
+    Values: sdl2, pil, pygame, imageio, tex, dds
+
+    .. versionchanged:: 2.0.0
+    Removed GPL `gif` implementation
 
 KIVY_CAMERA
     Implementation to use for reading camera

@@ -12,6 +12,22 @@ h1, h2, h3, h4, h5 {
 	font-weight: normal;
 }
 
+h1 {
+	font-size: 2.25em;
+}
+
+h2 {
+	font-size: 2em;
+}
+
+h3 {
+	font-size: 1.60em;
+}
+
+h4 {
+	font-size: 1.25em;
+}
+
 a, a:link, a:visited {
 	color: #2a7cdf;
 	text-decoration: none;
@@ -534,6 +550,14 @@ img {
 	max-width: 100%;
 	object-fit: contain;
 }
+
+code.docutils{
+	background: #e9e9e9;
+	padding: .2em .5em;
+	color: #000000;
+	border-radius: .5em;
+}
+
 
 @media (min-width: 640px) {
 

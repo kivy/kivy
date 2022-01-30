@@ -6,11 +6,10 @@ Kivy Basics
 Installation of the Kivy environment
 ------------------------------------
 
-Kivy depends on many Python libraries, such as pygame, gstreamer, PIL,
+Kivy depends on many libraries, such as SDL2, gstreamer, PIL,
 Cairo, and more. They are not all required, but depending on the
-platform you're working on, they can be a pain to install. For
-Windows and MacOS X, we provide a portable package that you can just
-unzip and use.
+platform you're working on, they can be a pain to install. To ease your
+development process, we provide pre-packaged binaries for Windows, macOS and Linux.
 
 Have a look at one of these pages for detailed installation instructions:
 
@@ -21,7 +20,7 @@ Have a look at one of these pages for detailed installation instructions:
 
 Alternatively, instructions for the development version can be found here:
 
-* :ref:`installation`
+* :ref:`kivy-dev-install`
 
 .. _quickstart:
 
@@ -39,7 +38,7 @@ Creating a kivy application is as simple as:
 Here is an example of a minimal application::
 
     import kivy
-    kivy.require('1.0.6') # replace with your current kivy version !
+    kivy.require('2.1.0') # replace with your current kivy version !
 
     from kivy.app import App
     from kivy.uix.label import Label
@@ -123,7 +122,7 @@ Running the application
 -----------------------
 To run the application, follow the instructions for your operating system:
 
-For Windows, Linux, OS X, or the RPi. From the :ref:`terminal<command-line>`
+For Windows, Linux, macOS, or the RPi. From the :ref:`terminal<command-line>`
 where you installed Kivy simply run::
 
     python main.py

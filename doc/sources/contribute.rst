@@ -29,7 +29,7 @@ Code of Conduct
 
 In the interest of fostering an open and welcoming community, we as
 contributors and maintainers need to ensure participation in our project and our
-sister projects is a harassment-free and postive experience for everyone.
+sister projects is a harassment-free and positive experience for everyone.
 
 As such, it is vital that all interaction is conducted in a manner conveying
 respect, open-mindedness and gratitude. For a more comprehensive discussion of

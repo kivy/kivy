@@ -31,8 +31,7 @@ The client app can send messages to the server and will print its message
 and the response it got. The examples are based mostly on the simple Echo
 example from the twisted docs, which you can find here:
 
-- http://twistedmatrix.com/documents/current/_downloads/simpleserv.py
-- http://twistedmatrix.com/documents/current/_downloads/simpleclient.py
+- https://twistedmatrix.com/documents/current/core/examples/
 
 To try the example, run echo_server_app.py first, and then launch
 echo_client_app.py.  The server will reply with simple echo messages to
