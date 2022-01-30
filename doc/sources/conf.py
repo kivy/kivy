@@ -226,9 +226,11 @@ config_parser.read(os.path.join(base_dir, '..', '..', 'setup.cfg'))
 # .. parse-literal::, otherwise it won't be replaced
 # !!! doesn't work for "::", ".. code::" or ".. code-block::"
 python_versions = config_parser['kivy']['python_versions'].strip()
+cython_max_version = config_parser['kivy']['cython_max'].strip()
 replacements = {
     'python_versions': python_versions,
     'kivy_version': kivy.__version__,
+    'cython_install': f"Cython=={cython_max_version}",
     'python_versions_bold': f'**{python_versions}**',
     'kivy_version_bold': f'**{kivy.__version__}**',
 }

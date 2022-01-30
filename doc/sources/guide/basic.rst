@@ -20,7 +20,7 @@ Have a look at one of these pages for detailed installation instructions:
 
 Alternatively, instructions for the development version can be found here:
 
-* :ref:`installation`
+* :ref:`kivy-dev-install`
 
 .. _quickstart:
 
