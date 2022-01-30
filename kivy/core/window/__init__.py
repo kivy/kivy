@@ -2076,13 +2076,17 @@ class WindowBase(EventDispatcher):
 
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
-                'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+                'null', 'text', 'number', 'url', 'mail', 'datetime', 'tel',
+                'address'.
 
                 .. note::
 
-                    `input_type` is currently only honored on mobile devices.
+                    `input_type` is currently only honored on Android.
 
                 .. versionadded:: 1.8.0
+
+                .. versionchanged:: 2.1.0
+                    Added `null` to soft keyboard types.
 
             `keyboard_suggestions`: bool
                 If True provides auto suggestions on top of keyboard.
