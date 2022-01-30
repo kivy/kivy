@@ -26,6 +26,8 @@ those dependencies:
 For more detail, see :ref:`iOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!
 
+.. _Compile the distribution:
+
 Compile the distribution
 ------------------------
 
@@ -37,6 +39,8 @@ Open a terminal, and type::
 If you experience any issues, please refer to our
 `user group <https://groups.google.com/forum/#!forum/kivy-users>`_ or the
 `kivy-ios project page <https://github.com/kivy/kivy-ios>`_.
+
+.. _Create an Xcode project:
 
 Create an Xcode project
 -----------------------
@@ -67,6 +71,8 @@ Then click on `Play`, and enjoy.
     the `<title>-ios/YourApp` directory. Don't make changes in the -ios
     directory directly.
 
+.. _Update the Xcode project:
+
 Update the Xcode project
 ------------------------
 
@@ -82,6 +88,7 @@ Then, update your Xcode project::
 All the libraries / frameworks necessary to run all the compiled recipes will be
 added to your Xcode project.
 
+.. _Customize:
 
 Customize the Xcode project
 ---------------------------
@@ -90,6 +97,7 @@ There are various ways to customize and configure your app. Please refer
 to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation
 for more information.
 
+.. _Known issues:
 
 Known issues
 ------------
