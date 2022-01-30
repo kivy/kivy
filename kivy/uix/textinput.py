@@ -2695,11 +2695,13 @@ class TextInput(FocusBehavior, Widget):
             Cache_append('textinput.label', cid, texture)
         return texture
 
+    _tokenize_delimiters = u' .,:;!?\r\t'
+
     def _tokenize(self, text):
         # Tokenize a text string from some delimiters
         if text is None:
             return
-        delimiters = u' .,:;!?\'"\r\t'
+        delimiters = self._tokenize_delimiters
         old_index = 0
         prev_char = ''
         for index, char in enumerate(text):
