@@ -2070,7 +2070,7 @@ class WindowBase(EventDispatcher):
 
                 .. note::
 
-                    `input_type` is currently only honored on mobile devices.
+                    `input_type` is currently only honored on Android.
 
                 .. versionadded:: 1.8.0
 

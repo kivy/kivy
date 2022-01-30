@@ -354,8 +354,12 @@ class FocusBehavior(object):
     .. versionchanged:: 2.1.0
         Changed default value from `text` to `null`. Added `null` to options.
 
+        .. warning::
+            As the default value has been changed, you may need to adjust
+            `input_type` in your code.
+
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    defaults to 'null'. Can be one of 'null', 'text', 'number', 'url', 'mail',
     'datetime', 'tel' or 'address'.
     '''
 
