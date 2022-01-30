@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-latest]
         cibw_archs: [auto]
         cibw_build: ['cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64']
         include:
