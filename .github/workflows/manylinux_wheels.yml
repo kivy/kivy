@@ -42,14 +42,14 @@ jobs:
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
       CIBW_BEFORE_ALL_LINUX: >
-        source .ci/ubuntu_ci.sh &&
+        mv `pwd`/kivy_build $HOME &&
         yum install -y epel-release &&
-        build_and_install_linux_kivy_sys_deps
+        yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel xorg-x11-server-devel mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget
     runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [ubuntu-latest]
-        cibw_archs: [auto]
+        cibw_archs: [x86_64]
         cibw_build: ['cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64']
         include:
            - os: ubuntu-latest
@@ -74,6 +74,20 @@ jobs:
     - name: Set up QEMU
       if: ${{ matrix.cibw_archs == 'aarch64' }}
       uses: docker/setup-qemu-action@v1
+    - uses: actions/cache@v2
+      id: deps-cache
+      with:
+        path: kivy_build
+        key: ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache-${{ hashFiles('**/ubuntu_ci.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache
+    - name: Build dependencies
+      if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+      run: |
+        rm -rf kivy_build
+        docker run --rm -v `pwd`:/root:rw --workdir=/root \
+           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} bash -ec 'yum install -y epel-release &&
+                                      source .ci/ubuntu_ci.sh && build_and_install_linux_kivy_sys_deps'
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
