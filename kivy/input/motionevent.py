@@ -17,7 +17,7 @@ Flow of the motion events
 
 1. The :class:`MotionEvent` 's are gathered from input providers by
     :class:`~kivy.base.EventLoopBase`.
-2. Post processing is preformed by registered processors
+2. Post processing is performed by registered processors
     :mod:`~kivy.input.postproc`.
 3. :class:`~kivy.base.EventLoopBase` dispatches all motion events using
     `on_motion` event to all registered listeners including the
