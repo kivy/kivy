@@ -55,7 +55,8 @@ when dispatching a specific event::
         def dispatch(self, etype, me):
             accepted = False
             if me.device == 'mouse':
-                prev_type_id = me.type_id
+                me.push() # Save current type_id and other values
+                self.window.transform_motion_event_2d(me)
                 me.type_id = 'mouse_touch'
                 # Dispatch mouse touch event to widgets which registered
                 # to receive 'mouse_touch'
@@ -63,7 +64,7 @@ when dispatching a specific event::
                     if widget.dispatch('on_motion', etype, me):
                         accepted = True
                         break
-                me.type_id = prev_type_id
+                me.pop() # Restore
             return accepted
 
 Listening to a motion event
@@ -72,7 +73,7 @@ Listening to a motion event
 If you want to receive all motion events, touch or not, you can bind the
 MotionEvent from the :class:`~kivy.core.window.Window` to your own callback::
 
-    def on_motion(self, etype, motionevent):
+    def on_motion(self, etype, me):
         # will receive all motion events.
         pass
 
@@ -217,7 +218,7 @@ class MotionEvent(MotionEventBase):
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos')
+                           'px', 'py', 'pz', 'pos', 'type_id', 'flags')
 
         #: Uniq ID of the event. You can safely use this property, it will be
         #: never the same across all existing events.
