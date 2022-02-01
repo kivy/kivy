@@ -128,6 +128,8 @@ import weakref
 from inspect import isroutine
 from copy import copy
 from time import time
+
+from kivy.eventmanager import FLAG_DEFAULT_DISPATCH
 from kivy.vector import Vector
 
 
@@ -209,10 +211,11 @@ class MotionEvent(MotionEventBase):
         self.type_id = type_id
 
         #: (Experimental) Used by a event manager or a widget to suggest
-        #: a dispatching behavior.
+        #: a dispatching behavior. Defaults to
+        #: :attr:`~kivy.eventmanager.FLAG_DEFAULT_DISPATCH`.
         #:
         #: .. versionadded:: 2.1.0
-        self.flags = 0
+        self.flags = FLAG_DEFAULT_DISPATCH
 
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.

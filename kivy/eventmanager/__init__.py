@@ -68,34 +68,56 @@ Manager can suggest how event should be dispatched further down the widget tree
 by using different flags. Flags are assigned in
 :attr:`~kivy.input.motionevent.MotionEvent.flags` attribute and inspected in
 :meth:`~kivy.uix.widget.Widget.on_motion` method by using bitwise operations.
+Widget can change the dispatch behavior by assigning different flags, but
+before changing the `flags` value both manager and widget should store/restore
+the current one, either by using a local variable or by using
+:meth:`~kivy.input.motionevent.MotionEvent.push` /
+:meth:`~kivy.input.motionevent.MotionEvent.pop` methods.
 
-Currently there are three dispatch behaviors recognized by the widget:
+Currently there are three dispatch behaviors recognized by the
+:class:`~kivy.uix.widget.Widget`:
 
-1. Default dispatch (no flag required) - event will go through widget's
-    `children` list, starting with fist widget in the `children` list until
-    child widget accept the event or last widget registered for that event is
-    reached.
-2. Filtered dispatch (requires :attr:`FILTERED_DISPATCH`) - event will go only
-    through registered child widgets.
-3. No children dispatch (requires :attr:`DONT_DISPATCH`) - event will not be
-    dispatched to child widgets.
+1. Default dispatch - event will go through widget's `children` list, starting
+    with the first widget in the list until event gets accepted or last widget
+    registered for that event is reached. Flag :attr:`FLAG_DEFAULT_DISPATCH` is
+    assigned by default in :class:`~kivy.input.motionevent.MotionEvent`.
+2. Filtered dispatch (requires :attr:`FLAG_FILTERED_DISPATCH`) - event will go
+    only through registered child widgets.
+3. No dispatch to children (requires :attr:`FLAG_DONT_DISPATCH`) - event will
+    not be dispatched to child widgets.
 
 Note that window does not have `motion_filter` property and therefore does not
 have a list of filtered widgets from its `children` list.
 '''
 
-DONT_DISPATCH = 1
+FLAG_DONT_DISPATCH = 2 ** 0
 '''Flag which suggest that event should not be dispatch to child widgets, but
 only go through method resolution order of
 :meth:`~kivy.uix.widget.Widget.on_motion` so that all super classes can handle
 the event.
 '''
 
-FILTERED_DISPATCH = 2
+FLAG_DEFAULT_DISPATCH = 2 ** 1
+'''Flag which suggest that event should go through widget's `children` list,
+starting with the first widget in the list until event gets accepted or last
+widget registered for that event is reached. Widgets after the last registered
+widget are ignored.
+'''
+
+FLAG_FILTERED_DISPATCH = 2 ** 2
 '''Flag which suggest that event should be dispatched only to child widgets
 which were previously registered to receive events of the same
 :attr:`~kivy.input.motionevent.MotionEvent.type_id` and not to all
 child widgets.
+'''
+
+NEXT_FLAG_EXP = 3
+'''Next exponent value for flags. If you're creating new event flags in your
+app use this value as initial value for the exponent::
+
+    FLAG_EXAMPLE_1 = 2 ** NEXT_FLAG_EXP
+    FLAG_EXAMPLE_2 = 2 ** (NEXT_FLAG_EXP + 1)
+    FLAG_EXAMPLE_3 = 2 ** (NEXT_FLAG_EXP + 2)
 '''
 
 

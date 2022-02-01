@@ -237,7 +237,11 @@ at the parent's right at each layout update.
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
-from kivy.eventmanager import DONT_DISPATCH, FILTERED_DISPATCH
+from kivy.eventmanager import (
+    FLAG_DONT_DISPATCH,
+    FLAG_FILTERED_DISPATCH,
+    FLAG_DEFAULT_DISPATCH
+)
 from kivy.factory import Factory
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
@@ -543,25 +547,25 @@ class Widget(WidgetBase):
             is present as it can be changed or removed in the next versions of
             Kivy.
         '''
-        if self.disabled or me.flags & DONT_DISPATCH:
-            return False
+        if self.disabled or me.flags & FLAG_DONT_DISPATCH:
+            return
         if me.type_id not in self.motion_filter:
-            return False
+            return
         filtered = self.motion_filter[me.type_id]
         if filtered[0] is self and len(filtered) == 1:
-            return False
-        if me.flags & FILTERED_DISPATCH:
-            widgets = filtered[1:] if filtered[0] is self else filtered[:]
-            for widget in widgets:
-                if widget.dispatch('on_motion', etype, me):
-                    return True
-        else:
+            return
+        if me.flags & FLAG_DEFAULT_DISPATCH:
             last_filtered = filtered[-1]
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
                 if widget is last_filtered:
-                    return False
+                    return
+        elif me.flags & FLAG_FILTERED_DISPATCH:
+            widgets = filtered[1:] if filtered[0] is self else filtered[:]
+            for widget in widgets:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
 
     #
     # Default event handlers
