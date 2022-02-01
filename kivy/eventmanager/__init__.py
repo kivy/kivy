@@ -95,6 +95,8 @@ FLAG_DONT_DISPATCH = 2 ** 0
 only go through method resolution order of
 :meth:`~kivy.uix.widget.Widget.on_motion` so that all super classes can handle
 the event.
+
+.. versionadded:: 2.1.0
 '''
 
 FLAG_DEFAULT_DISPATCH = 2 ** 1
@@ -102,6 +104,8 @@ FLAG_DEFAULT_DISPATCH = 2 ** 1
 starting with the first widget in the list until event gets accepted or last
 widget registered for that event is reached. Widgets after the last registered
 widget are ignored.
+
+.. versionadded:: 2.1.0
 '''
 
 FLAG_FILTERED_DISPATCH = 2 ** 2
@@ -109,6 +113,8 @@ FLAG_FILTERED_DISPATCH = 2 ** 2
 which were previously registered to receive events of the same
 :attr:`~kivy.input.motionevent.MotionEvent.type_id` and not to all
 child widgets.
+
+.. versionadded:: 2.1.0
 '''
 
 NEXT_FLAG_EXP = 3
@@ -118,6 +124,8 @@ app use this value as initial value for the exponent::
     FLAG_EXAMPLE_1 = 2 ** NEXT_FLAG_EXP
     FLAG_EXAMPLE_2 = 2 ** (NEXT_FLAG_EXP + 1)
     FLAG_EXAMPLE_3 = 2 ** (NEXT_FLAG_EXP + 2)
+
+.. versionadded:: 2.1.0
 '''
 
 
