@@ -129,7 +129,7 @@ from inspect import isroutine
 from copy import copy
 from time import time
 
-from kivy.eventmanager import FLAG_DEFAULT_DISPATCH
+from kivy.eventmanager import MODE_DEFAULT_DISPATCH
 from kivy.vector import Vector
 
 
@@ -175,7 +175,7 @@ class MotionEvent(MotionEventBase):
     __uniq_id = 0
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
-         'is_touch', 'type_id', 'id', 'flags', 'shape', 'profile',
+         'is_touch', 'type_id', 'id', 'dispatch_mode', 'shape', 'profile',
          # current position, in 0-1 range
          'sx', 'sy', 'sz',
          # first position set, in 0-1 range
@@ -210,18 +210,19 @@ class MotionEvent(MotionEventBase):
         #: .. versionadded:: 2.1.0
         self.type_id = type_id
 
-        #: (Experimental) Used by a event manager or a widget to suggest
-        #: a dispatching behavior. Defaults to
-        #: :attr:`~kivy.eventmanager.FLAG_DEFAULT_DISPATCH`.
+        #: (Experimental) Used by a event manager or a widget to assign
+        #: the dispatching mode. Defaults to
+        #: :attr:`~kivy.eventmanager.MODE_DEFAULT_DISPATCH`. See
+        #: :mod:`~kivy.eventmanager` for available modes.
         #:
         #: .. versionadded:: 2.1.0
-        self.flags = FLAG_DEFAULT_DISPATCH
+        self.dispatch_mode = MODE_DEFAULT_DISPATCH
 
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz', 'pos', 'type_id', 'flags')
+                           'px', 'py', 'pz', 'pos', 'type_id', 'dispatch_mode')
 
         #: Uniq ID of the event. You can safely use this property, it will be
         #: never the same across all existing events.

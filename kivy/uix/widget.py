@@ -238,9 +238,9 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.eventmanager import (
-    FLAG_DONT_DISPATCH,
-    FLAG_FILTERED_DISPATCH,
-    FLAG_DEFAULT_DISPATCH
+    MODE_DONT_DISPATCH,
+    MODE_FILTERED_DISPATCH,
+    MODE_DEFAULT_DISPATCH
 )
 from kivy.factory import Factory
 from kivy.properties import (
@@ -547,21 +547,21 @@ class Widget(WidgetBase):
             is present as it can be changed or removed in the next versions of
             Kivy.
         '''
-        if self.disabled or me.flags & FLAG_DONT_DISPATCH:
+        if self.disabled or me.dispatch_mode == MODE_DONT_DISPATCH:
             return
         if me.type_id not in self.motion_filter:
             return
         filtered = self.motion_filter[me.type_id]
         if filtered[0] is self and len(filtered) == 1:
             return
-        if me.flags & FLAG_DEFAULT_DISPATCH:
+        if me.dispatch_mode == MODE_DEFAULT_DISPATCH:
             last_filtered = filtered[-1]
             for widget in self.children[:]:
                 if widget.dispatch('on_motion', etype, me):
                     return True
                 if widget is last_filtered:
                     return
-        elif me.flags & FLAG_FILTERED_DISPATCH:
+        if me.dispatch_mode == MODE_FILTERED_DISPATCH:
             widgets = filtered[1:] if filtered[0] is self else filtered[:]
             for widget in widgets:
                 if widget.dispatch('on_motion', etype, me):
