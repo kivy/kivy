@@ -75,14 +75,14 @@ a local variable or by using event's
 Currently there are three dispatch modes (behaviors) recognized by the
 `on_motion` method in :class:`~kivy.uix.widget.Widget` class:
 
-1. Default dispatch (requires :attr:`MODE_DEFAULT_DISPATCH`) - event will go
+1. Default dispatch (requires :const:`MODE_DEFAULT_DISPATCH`) - event will go
     through widget's `children` list, starting with the first widget in the
     list until event gets accepted or last widget registered for that event is
-    reached. Mode :attr:`MODE_DEFAULT_DISPATCH` is assigned by default in
+    reached. Mode :const:`MODE_DEFAULT_DISPATCH` is assigned by default in
     :class:`~kivy.input.motionevent.MotionEvent` class.
-2. Filtered dispatch (requires :attr:`MODE_FILTERED_DISPATCH`) - event will go
+2. Filtered dispatch (requires :const:`MODE_FILTERED_DISPATCH`) - event will go
     only through registered child widgets.
-3. No dispatch to children (requires :attr:`MODE_DONT_DISPATCH`) - event will
+3. No dispatch to children (requires :const:`MODE_DONT_DISPATCH`) - event will
     not be dispatched to child widgets.
 
 Note that window does not have `motion_filter` property and therefore does not

@@ -212,7 +212,7 @@ class MotionEvent(MotionEventBase):
 
         #: (Experimental) Used by a event manager or a widget to assign
         #: the dispatching mode. Defaults to
-        #: :attr:`~kivy.eventmanager.MODE_DEFAULT_DISPATCH`. See
+        #: :const:`~kivy.eventmanager.MODE_DEFAULT_DISPATCH`. See
         #: :mod:`~kivy.eventmanager` for available modes.
         #:
         #: .. versionadded:: 2.1.0
