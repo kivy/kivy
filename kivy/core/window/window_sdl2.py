@@ -105,12 +105,16 @@ SDLK_F15 = 1073741896
 
 
 class SDL2MotionEvent(MotionEvent):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+        self.profile = ('pos', 'pressure')
+
     def depack(self, args):
-        self.is_touch = True
-        self.profile = ('pos', 'pressure', )
         self.sx, self.sy, self.pressure = args
-        win = EventLoop.window
-        super(SDL2MotionEvent, self).depack(args)
+        super().depack(args)
 
 
 class SDL2MotionEventProvider(MotionEventProvider):

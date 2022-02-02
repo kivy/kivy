@@ -53,8 +53,12 @@ from kivy.input.shape import ShapeRect
 
 class MTDMotionEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+
     def depack(self, args):
-        self.is_touch = True
         if 'x' in args:
             self.sx = args['x']
         else:
@@ -72,7 +76,7 @@ class MTDMotionEvent(MotionEvent):
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(MTDMotionEvent, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)

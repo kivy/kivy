@@ -22,16 +22,19 @@ class WM_MotionEvent(MotionEvent):
     '''
     __attrs__ = ('size', )
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+        self.profile = ('pos', 'shape', 'size')
+
     def depack(self, args):
-        self.is_touch = True
         self.shape = ShapeRect()
         self.sx, self.sy = args[0], args[1]
         self.shape.width = args[2][0]
         self.shape.height = args[2][1]
         self.size = self.shape.width * self.shape.height
-        self.profile = ('pos', 'shape', 'size')
-
-        super(WM_MotionEvent, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         args = (self.id, self.uid, str(self.spos), self.device)
