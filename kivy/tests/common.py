@@ -427,18 +427,20 @@ class UnitTestTouch(MotionEvent):
         '''Create a MotionEvent instance with X and Y of the first
         position a touch is at.
         '''
-
         from kivy.base import EventLoop
         self.eventloop = EventLoop
         win = EventLoop.window
-
         super(UnitTestTouch, self).__init__(
             # device, (tuio) id, args
             self.__class__.__name__, 99, {
                 "x": x / (win.width - 1.0),
                 "y": y / (win.height - 1.0),
-            }
+            },
+            is_touch=True,
+            type_id='touch'
         )
+        # set profile to accept x, y and pos properties
+        self.profile = ['pos']
 
     def touch_down(self, *args):
         self.eventloop.post_dispatch_input("begin", self)
@@ -455,27 +457,27 @@ class UnitTestTouch(MotionEvent):
         self.eventloop.post_dispatch_input("end", self)
 
     def depack(self, args):
-        # set MotionEvent to touch
-        self.is_touch = True
-
         # set sx/sy properties to ratio (e.g. X / win.width)
         self.sx = args['x']
         self.sy = args['y']
+        # run depack after we set the values
+        super().depack(args)
 
-        # set profile to accept x, y and pos properties
+
+# https://gist.github.com/tito/f111b6916aa6a4ed0851
+# subclass for touch event in unit test
+class UTMotionEvent(MotionEvent):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
         self.profile = ['pos']
 
-        # run depack after we set the values
-        super(UnitTestTouch, self).depack(args)
-
-
-class UTMotionEvent(MotionEvent):
     def depack(self, args):
-        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 def async_run(func=None, app_cls_func=None):

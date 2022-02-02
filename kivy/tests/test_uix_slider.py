@@ -1,18 +1,8 @@
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UTMotionEvent
 
-from kivy.input.motionevent import MotionEvent
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.base import EventLoop
-
-
-class UTMotionEvent(MotionEvent):
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
 
 
 class _TestSliderHandle(Slider):

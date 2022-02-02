@@ -1,9 +1,8 @@
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UTMotionEvent
 
 from kivy.lang import Builder
 from kivy.base import EventLoop
 from kivy.weakproxy import WeakProxy
-from kivy.input.motionevent import MotionEvent
 from time import sleep
 
 DropDown = None
@@ -53,26 +52,15 @@ FloatLayout:
 '''
 
 
-class UTMotionEvent(MotionEvent):
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
-
-
 class TouchPoint(UTMotionEvent):
     def __init__(self, raw_x, raw_y):
         win = EventLoop.window
-
-        super(UTMotionEvent, self).__init__(
+        super().__init__(
             "unittest", 1, {
                 "x": raw_x / float(win.width),
                 "y": raw_y / float(win.height),
             }
         )
-
         # press & release
         EventLoop.post_dispatch_input("begin", self)
         EventLoop.post_dispatch_input("end", self)
