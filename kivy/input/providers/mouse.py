@@ -281,7 +281,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             args += [not self.multitouch_on_demand]
         self.current_drag = touch = MouseMotionEvent(
             self.device, event_id, args,
-            is_touch=True
+            is_touch=True,
+            type_id='touch'
         )
         touch.is_double_tap = is_double_tap
         self.touches[event_id] = touch
@@ -316,7 +317,10 @@ class MouseMotionEventProvider(MotionEventProvider):
             hover.move(args)
         else:
             self.hover_event = hover = MouseMotionEvent(
-                self.device, self.create_event_id(), args
+                self.device,
+                self.create_event_id(),
+                args,
+                type_id='hover'
             )
         if etype == 'end':
             hover.update_time_end()

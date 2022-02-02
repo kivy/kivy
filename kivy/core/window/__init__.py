@@ -12,6 +12,7 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
+from collections import defaultdict
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
@@ -893,6 +894,40 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
+    event_managers = None
+    '''Holds a `list` of registered event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
+    event_managers_dict = None
+    '''Holds a `dict` of `type_id` to `list` of event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
     trigger_create_window = None
 
     __events__ = (
@@ -922,6 +957,8 @@ class WindowBase(EventDispatcher):
             return
 
         self.initialized = False
+        self.event_managers = []
+        self.event_managers_dict = defaultdict(list)
         self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
@@ -1046,6 +1083,40 @@ class WindowBase(EventDispatcher):
         EventLoop.set_window(self)
         Modules.register_window(self)
         EventLoop.add_event_listener(self)
+
+    def register_event_manager(self, manager):
+        '''Register and start an event manager to handle events declared in
+        :attr:`~kivy.eventmanager.EventManagerBase.type_ids` attribute.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
+        '''
+        self.event_managers.insert(0, manager)
+        for type_id in manager.type_ids:
+            self.event_managers_dict[type_id].insert(0, manager)
+        manager.window = self
+        manager.start()
+
+    def unregister_event_manager(self, manager):
+        '''Unregister and stop an event manager previously registered with
+        :meth:`register_event_manager`.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
+        '''
+        self.event_managers.remove(manager)
+        for type_id in manager.type_ids:
+            self.event_managers_dict[type_id].remove(manager)
+        manager.stop()
+        manager.window = None
 
     def mainloop(self):
         '''Called by the EventLoop every frame after it idles.
@@ -1532,14 +1603,28 @@ class WindowBase(EventDispatcher):
         self.render_context.draw()
 
     def on_motion(self, etype, me):
-        '''Event called when a Motion Event is received.
+        '''Event called when a motion event is received.
 
         :Parameters:
             `etype`: str
-                One of 'begin', 'update', 'end'
+                One of "begin", "update" or "end".
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
-                The Motion Event currently dispatched.
+                The motion event currently dispatched.
+
+        .. versionchanged:: 2.1.0
+            Event managers get to handle the touch event first and if none of
+            them accepts the event (by returning `True`) then window will
+            dispatch `me` through "on_touch_down", "on_touch_move",
+            "on_touch_up" events depending on the `etype`. All non-touch events
+            will go only through managers.
         '''
+        accepted = False
+        for manager in self.event_managers_dict[me.type_id][:]:
+            accepted = manager.dispatch(etype, me) or accepted
+        if accepted:
+            if me.is_touch and etype == 'end':
+                FocusBehavior._handle_post_on_touch_up(me)
+            return accepted
         if me.is_touch:
             # TODO: Use me.push/me.pop methods because `me` is transformed
             # Clock execution of partial ScrollView._on_touch_up method and

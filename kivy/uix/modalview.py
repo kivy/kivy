@@ -255,6 +255,10 @@ class ModalView(AnchorLayout):
         if self._is_open:
             self.center = self._window.center
 
+    def on_motion(self, etype, me):
+        super().on_motion(etype, me)
+        return True
+
     def on_touch_down(self, touch):
         """ touch down event handler. """
         self._touch_started_inside = self.collide_point(*touch.pos)
