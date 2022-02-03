@@ -310,6 +310,12 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
+        `on_drop_begin`:
+            Fired when a text or file(s) drop on the application is about to
+            begin.
+
+            .. versionadded:: 2.1.0
+
         `on_dropfile`: filename (bytes or string):
             Fired when a file is dropped on the application.
 
@@ -318,6 +324,16 @@ class WindowBase(EventDispatcher):
                 because the OS API calls are filtered. Check issue
                 `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
                 pointers to workarounds.
+
+        `on_droptext`: text (bytes or string)
+            Fired when a text is dropped on the application.
+
+            .. versionadded:: 2.1.0
+
+        `on_drop_end`:
+            Fired when a text or file(s) drop on the application have ended.
+
+            .. versionadded:: 2.1.0
 
         `on_memorywarning`:
             Fired when the platform have memory issue (iOS / Android mostly)
@@ -936,7 +952,8 @@ class WindowBase(EventDispatcher):
         'on_hide', 'on_show', 'on_motion', 'on_touch_down',
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
-        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_key_up', 'on_textinput', 'on_drop_begin', 'on_dropfile',
+        'on_droptext', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -2006,6 +2023,19 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
+    def on_drop_begin(self):
+        '''Event called when a text or file(s) drop on the application is about
+        to begin. It will be followed-up by one `on_droptext` event,
+        if text is being dropped, or by single or multiple `on_dropfile`
+        events if file(s) are being dropped and ending with `on_drop_end`
+        event.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
+        '''
+
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
 
@@ -2018,7 +2048,32 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.2.0
         '''
-        pass
+
+    def on_droptext(self, text):
+        '''Event called when a text is dropped on the application.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
+        '''
+
+    def on_drop_end(self):
+        '''Event called when a text or file(s) drop on the application have
+        ended.
+
+        Test if the drop events, `on_cursor_enter` and (if changed)
+        :attr:`~kivy.core.window.WindowBase.mouse_pos` arrived within a frame
+        limit to decide the drop position
+        (see :meth:`~kivy.clock.Clock.frames` method). If drop ended on
+        window title bar or on window edges then it can be considered as the
+        drop without position.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
+        '''
 
     def on_memorywarning(self):
         '''Event called when the platform have memory issue.

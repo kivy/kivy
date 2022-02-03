@@ -543,12 +543,11 @@ class WindowSDL(WindowBase):
             event = self._win.poll()
             if event is None:
                 continue
-            # As dropfile is send was the app is still in pause.loop
+            # A drop is send while the app is still in pause.loop
             # we need to dispatch it
             action, args = event[0], event[1:]
-            if action == 'dropfile':
-                dropfile = args
-                self.dispatch('on_dropfile', dropfile[0])
+            if action.startswith('drop'):
+                self._dispatch_drop_event(action, args)
             # app_terminating event might be received while the app is paused
             # in this case EventLoop.quit will be set at _event_filter
             elif EventLoop.quit:
@@ -633,9 +632,8 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_mouse_up',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
 
-            elif action == 'dropfile':
-                dropfile = args
-                self.dispatch('on_dropfile', dropfile[0])
+            elif action.startswith('drop'):
+                self._dispatch_drop_event(action, args)
             # video resize
             elif action == 'windowresized':
                 self._size = self._win.window_size
@@ -758,6 +756,16 @@ class WindowSDL(WindowBase):
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
+
+    def _dispatch_drop_event(self, action, args):
+        if action == 'dropfile':
+            self.dispatch('on_dropfile', args[0])
+        elif action == 'dropbegin':
+            self.dispatch('on_drop_begin')
+        elif action == 'dropend':
+            self.dispatch('on_drop_end')
+        elif action == 'droptext':
+            self.dispatch('on_droptext', args[0])
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))

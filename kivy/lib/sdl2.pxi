@@ -160,6 +160,9 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_EventType:
         SDL_FIRSTEVENT     = 0,
         SDL_DROPFILE       = 0x1000,
+        SDL_DROPTEXT
+        SDL_DROPBEGIN
+        SDL_DROPCOMPLETE
         SDL_QUIT           = 0x100
         SDL_WINDOWEVENT    = 0x200
         SDL_SYSWMEVENT

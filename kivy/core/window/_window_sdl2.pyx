@@ -259,6 +259,9 @@ cdef class _WindowSDL2Storage:
         SDL_SetEventFilter(_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
+        SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
+        SDL_EventState(SDL_DROPBEGIN, SDL_ENABLE)
+        SDL_EventState(SDL_DROPCOMPLETE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
@@ -616,8 +619,6 @@ cdef class _WindowSDL2Storage:
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
-        elif event.type == SDL_DROPFILE:
-            return ('dropfile', event.drop.file)
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y
@@ -733,6 +734,14 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTEDITING:
             s = event.edit.text.decode('utf-8')
             return ('textedit', s)
+        elif event.type == SDL_DROPFILE:
+            return ('dropfile', event.drop.file)
+        elif event.type == SDL_DROPTEXT:
+            return ('droptext', event.drop.file)
+        elif event.type == SDL_DROPBEGIN:
+            return ('dropbegin',)
+        elif event.type == SDL_DROPCOMPLETE:
+            return ('dropend',)
         else:
             #    print('receive unknown sdl window event', event.type)
             pass
