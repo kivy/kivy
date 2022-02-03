@@ -316,7 +316,7 @@ class WindowBase(EventDispatcher):
 
             .. versionadded:: 2.1.0
 
-        `on_dropfile`: filename (bytes or string):
+        `on_drop_file`: filename (bytes or string):
             Fired when a file is dropped on the application.
 
             .. note::
@@ -325,7 +325,12 @@ class WindowBase(EventDispatcher):
                 `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
                 pointers to workarounds.
 
-        `on_droptext`: text (bytes or string)
+            .. versionadded:: 1.2.0
+
+            .. versionchanged:: 2.1.0
+                Renamed from `on_dropfile` to `on_drop_file`.
+
+        `on_drop_text`: text (bytes or string)
             Fired when a text is dropped on the application.
 
             .. versionadded:: 2.1.0
@@ -952,8 +957,8 @@ class WindowBase(EventDispatcher):
         'on_hide', 'on_show', 'on_motion', 'on_touch_down',
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
-        'on_key_up', 'on_textinput', 'on_drop_begin', 'on_dropfile',
-        'on_droptext', 'on_drop_end', 'on_request_close',
+        'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
+        'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -2025,8 +2030,8 @@ class WindowBase(EventDispatcher):
 
     def on_drop_begin(self):
         '''Event called when a text or file(s) drop on the application is about
-        to begin. It will be followed-up by one `on_droptext` event,
-        if text is being dropped, or by single or multiple `on_dropfile`
+        to begin. It will be followed-up by one `on_drop_text` event,
+        if text is being dropped, or by single or multiple `on_drop_file`
         events if file(s) are being dropped and ending with `on_drop_end`
         event.
 
@@ -2036,7 +2041,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 2.1.0
         '''
 
-    def on_dropfile(self, filename):
+    def on_drop_file(self, filename):
         '''Event called when a file is dropped on the application.
 
         .. warning::
@@ -2047,9 +2052,19 @@ class WindowBase(EventDispatcher):
             (ios, android etc.)
 
         .. versionadded:: 1.2.0
-        '''
 
-    def on_droptext(self, text):
+        .. versionchanged:: 2.1.0
+            Renamed from `on_dropfile` to `on_drop_file`.
+        '''
+        if self.get_property_observers('on_dropfile'):
+            self.dispatch('on_dropfile', filename)
+
+    @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
+                    'Event on_dropfile will be removed in next two releases.')
+    def on_dropfile(self, filename):
+        pass
+
+    def on_drop_text(self, text):
         '''Event called when a text is dropped on the application.
 
         .. note::

@@ -759,13 +759,13 @@ class WindowSDL(WindowBase):
 
     def _dispatch_drop_event(self, action, args):
         if action == 'dropfile':
-            self.dispatch('on_dropfile', args[0])
+            self.dispatch('on_drop_file', args[0])
         elif action == 'dropbegin':
             self.dispatch('on_drop_begin')
         elif action == 'dropend':
             self.dispatch('on_drop_end')
         elif action == 'droptext':
-            self.dispatch('on_droptext', args[0])
+            self.dispatch('on_drop_text', args[0])
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
