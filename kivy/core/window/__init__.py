@@ -2029,10 +2029,9 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_drop_begin(self):
-        '''Event called when a text or file(s) drop on the application is about
-        to begin. It will be followed-up by one `on_drop_text` event,
-        if text is being dropped, or by single or multiple `on_drop_file`
-        events if file(s) are being dropped and ending with `on_drop_end`
+        '''Event called when a text or a file drop on the application is about
+        to begin. It will be followed-up by a single or a multiple
+        `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
         event.
 
         .. note::
@@ -2068,21 +2067,14 @@ class WindowBase(EventDispatcher):
         '''Event called when a text is dropped on the application.
 
         .. note::
-            This event works with sdl2 window provider.
+            This event works with sdl2 window provider on x11 window.
 
         .. versionadded:: 2.1.0
         '''
 
     def on_drop_end(self):
-        '''Event called when a text or file(s) drop on the application have
+        '''Event called when a text or a file drop on the application has
         ended.
-
-        Test if the drop events, `on_cursor_enter` and (if changed)
-        :attr:`~kivy.core.window.WindowBase.mouse_pos` arrived within a frame
-        limit to decide the drop position
-        (see :meth:`~kivy.clock.Clock.frames` method). If drop ended on
-        window title bar or on window edges then it can be considered as the
-        drop without position.
 
         .. note::
             This event works with sdl2 window provider.
