@@ -635,6 +635,9 @@ code.docutils{
 	}
 
 }
+span.linenos {
+	user-select: none;
+}
 
 @media (min-width: 1280px) {
 
