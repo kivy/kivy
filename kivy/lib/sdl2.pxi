@@ -544,6 +544,7 @@ cdef extern from "SDL.h":
     cdef SDL_bool SDL_SetHint(char *name, char *value)
     cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint8 SDL_GetMouseState(int* x,int* y)
+    cdef Uint8 SDL_GetGlobalMouseState(int *x, int *y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
     cdef int SDL_GetNumDisplayModes(int displayIndex)

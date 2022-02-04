@@ -615,7 +615,8 @@ cdef class _WindowSDL2Storage:
             rv = SDL_PollEvent(&event)
         if rv == 0:
             return False
-
+        cdef int temp_x
+        cdef int temp_y
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
@@ -739,7 +740,12 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_DROPTEXT:
             return ('droptext', event.drop.file)
         elif event.type == SDL_DROPBEGIN:
-            return ('dropbegin',)
+            SDL_GetGlobalMouseState(&temp_x, &temp_y)
+            wx, wy = self.get_window_pos()
+            w, h = self.window_size
+            x = max(0, min(temp_x - wx, w - 1))
+            y = max(0, min(temp_y - wy, h - 1))
+            return ('dropbegin', x, y)
         elif event.type == SDL_DROPCOMPLETE:
             return ('dropend',)
         else:
