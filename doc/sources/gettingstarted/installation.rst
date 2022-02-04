@@ -186,7 +186,7 @@ system dependencies listed for each OS: :ref:`Windows<install-source-win>`,
 :ref:`RPi<install-source-rpi>`.
 
 Then change to the kivy directory and install Kivy as an
-`editable install <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_::
+`editable install (i.e.  setuptools "develop mode") <https://setuptools.pypa.io/en/latest/userguide/development_mode.html>`_::
 
     cd kivy
     python -m pip install -e ".[dev,full]"
