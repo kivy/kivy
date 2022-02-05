@@ -227,7 +227,7 @@ $(function() {
 	// hack to add a attrib to all linenos
     $(".linenos").each(function(){
         let $this = $(this);
-        $this.attr("data-line-number", $this.text().trim());
+        $this.attr("data-line-number", $this.text());
 		$this.contents().filter(function(){
     			return this.nodeType === 3; //https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 		}).remove();
