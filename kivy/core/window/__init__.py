@@ -311,7 +311,7 @@ class WindowBase(EventDispatcher):
                 codepoint, and will be removed completely in future versions.
 
         `on_drop_begin`:
-            Fired when a text or file(s) drop on the application is about to
+            Fired when text(s) or file(s) drop on the application is about to
             begin.
 
             .. versionadded:: 2.1.0
@@ -336,7 +336,7 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 2.1.0
 
         `on_drop_end`:
-            Fired when a text or file(s) drop on the application have ended.
+            Fired when text(s) or file(s) drop on the application has ended.
 
             .. versionadded:: 2.1.0
 
