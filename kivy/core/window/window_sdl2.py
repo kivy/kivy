@@ -160,6 +160,7 @@ class WindowSDL(WindowBase):
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._win = _WindowSDL2Storage()
+        self._cursor_entered = False
         super(WindowSDL, self).__init__()
         self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
@@ -583,6 +584,9 @@ class WindowSDL(WindowBase):
                 x, y = self._fix_mouse_pos(x, y)
                 self._mouse_x = x
                 self._mouse_y = y
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
                 # don't dispatch motion if no button are pressed
                 if len(self._mouse_buttons_down) == 0:
                     continue
@@ -592,6 +596,11 @@ class WindowSDL(WindowBase):
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args
                 x, y = self._fix_mouse_pos(x, y)
+                self._mouse_x = x
+                self._mouse_y = y
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
                 btn = 'left'
                 if button == 3:
                     btn = 'right'
@@ -606,12 +615,16 @@ class WindowSDL(WindowBase):
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
                     self._mouse_buttons_down.remove(button)
-                self._mouse_x = x
-                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
                 self._update_modifiers()
                 x, y, button = args
+                if self._mouse_x < 0 or self._mouse_y < 0:
+                    mx, my = self._win.get_nearest_mouse_pos()
+                    self._mouse_x, self._mouse_y = self._fix_mouse_pos(mx, my)
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
                 btn = 'scrolldown'
                 if action.endswith('up'):
                     btn = 'scrollup'
@@ -676,9 +689,14 @@ class WindowSDL(WindowBase):
                 self._focus = False
 
             elif action == 'windowenter':
-                self.dispatch('on_cursor_enter')
+                x, y = self._win.get_nearest_mouse_pos()
+                self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
 
             elif action == 'windowleave':
+                self._cursor_entered = False
                 self.dispatch('on_cursor_leave')
 
             elif action == 'joyaxismotion':
@@ -761,9 +779,11 @@ class WindowSDL(WindowBase):
         if action == 'dropfile':
             self.dispatch('on_drop_file', args[0])
         elif action == 'dropbegin':
-            x, y = self._fix_mouse_pos(args[0], args[1])
-            self._mouse_x = x
-            self._mouse_y = y
+            x, y = self._win.get_nearest_mouse_pos()
+            self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
+            if not self._cursor_entered:
+                self._cursor_entered = True
+                self.dispatch('on_cursor_enter')
             self.dispatch('on_drop_begin')
         elif action == 'dropend':
             self.dispatch('on_drop_end')

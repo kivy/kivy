@@ -740,12 +740,7 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_DROPTEXT:
             return ('droptext', event.drop.file)
         elif event.type == SDL_DROPBEGIN:
-            SDL_GetGlobalMouseState(&temp_x, &temp_y)
-            wx, wy = self.get_window_pos()
-            w, h = self.window_size
-            x = max(0, min(temp_x - wx, w - 1))
-            y = max(0, min(temp_y - wy, h - 1))
-            return ('dropbegin', x, y)
+            return ('dropbegin',)
         elif event.type == SDL_DROPCOMPLETE:
             return ('dropend',)
         else:
@@ -771,6 +766,14 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
+    def get_nearest_mouse_pos(self):
+        cdef int temp_x, temp_y
+        SDL_GetGlobalMouseState(&temp_x, &temp_y)
+        wx, wy = self.get_window_pos()
+        w, h = self.window_size
+        x = max(0, min(temp_x - wx, w - 1))
+        y = max(0, min(temp_y - wy, h - 1))
+        return x, y
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
