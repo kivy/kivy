@@ -224,5 +224,12 @@ $(function() {
 		var section_title = $('li.toctree-l1.current > a').text();
 		$('div.body h1:eq(0)').prepend(section_title + ' &raquo; ');
 	}
-
+	// hack to add a attrib to all linenos
+    $(".linenos").each(function(){
+        let $this = $(this);
+        $this.attr("data-line-number", $this.text().trim());
+		$this.contents().filter(function(){
+    			return this.nodeType === 3; //https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+		}).remove();
+  });
 });

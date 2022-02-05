@@ -635,13 +635,14 @@ code.docutils{
 	}
 
 }
-span.linenos {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+.linenos::before {
+	line-height: 0;
+	font-size: 14px;
+	content: attr(data-line-number);
+}
+.linenos {
+	font-size: 0;
+	line-height: 80%;
 }
 
 @media (min-width: 1280px) {
