@@ -359,7 +359,7 @@ class WindowBase(EventDispatcher):
     _fake_fullscreen = False
 
     # private properties
-    _density = NumericProperty(1)
+    _density = NumericProperty(1.)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
@@ -775,7 +775,7 @@ class WindowBase(EventDispatcher):
         property instead.
     '''
 
-    mouse_pos = ObjectProperty([0, 0])
+    mouse_pos = ObjectProperty((0, 0))
     '''2d position of the mouse within the window.
 
     .. versionadded:: 1.2.0
