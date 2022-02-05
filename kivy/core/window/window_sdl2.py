@@ -761,7 +761,9 @@ class WindowSDL(WindowBase):
         if action == 'dropfile':
             self.dispatch('on_drop_file', args[0])
         elif action == 'dropbegin':
-            self._fix_mouse_pos(args[0], args[1])
+            x, y = self._fix_mouse_pos(args[0], args[1])
+            self._mouse_x = x
+            self._mouse_y = y
             self.dispatch('on_drop_begin')
         elif action == 'dropend':
             self.dispatch('on_drop_end')
