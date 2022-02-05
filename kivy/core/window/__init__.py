@@ -1040,6 +1040,10 @@ class WindowBase(EventDispatcher):
         if 'shape_image' not in kwargs:
             kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
+        self.fbind(
+            'on_drop_file',
+            lambda window, filename: window.dispatch('on_dropfile', filename)
+        )
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
@@ -2039,6 +2043,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
         '''
+        pass
 
     def on_drop_file(self, filename):
         '''Event called when a file is dropped on the application.
@@ -2055,8 +2060,7 @@ class WindowBase(EventDispatcher):
         .. versionchanged:: 2.1.0
             Renamed from `on_dropfile` to `on_drop_file`.
         '''
-        if self.get_property_observers('on_dropfile'):
-            self.dispatch('on_dropfile', filename)
+        pass
 
     @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
                     'Event on_dropfile will be removed in next two releases.')
@@ -2071,6 +2075,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
         '''
+        pass
 
     def on_drop_end(self):
         '''Event called when a text or a file drop on the application has
@@ -2081,6 +2086,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
         '''
+        pass
 
     def on_memorywarning(self):
         '''Event called when the platform have memory issue.
