@@ -558,6 +558,9 @@ code.docutils{
 	border-radius: .5em;
 }
 
+.linenos::before {
+	content: attr(data-line-number);
+}
 
 @media (min-width: 640px) {
 
