@@ -558,6 +558,9 @@ code.docutils{
 	border-radius: .5em;
 }
 
+.linenos::before {
+	content: attr(data-line-number);
+}
 
 @media (min-width: 640px) {
 
@@ -634,15 +637,6 @@ code.docutils{
 		font-size: 0.9em;
 	}
 
-}
-.linenos::before {
-	line-height: 0;
-	font-size: 14px;
-	content: attr(data-line-number);
-}
-.linenos {
-	font-size: 0;
-	line-height: 80%;
 }
 
 @media (min-width: 1280px) {
