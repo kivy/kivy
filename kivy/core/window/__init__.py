@@ -310,9 +310,17 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_drop_begin`:
+        `on_drop_begin`: x, y
             Fired when text(s) or file(s) drop on the application is about to
             begin.
+
+            Values `x` and `y` are drop position and are relative to window
+            position :attr:`left` and :attr:`top`.
+
+            .. note::
+                On Windows it is possible to drop file(s) on window title bar
+                or on it's edges and in that case :attr:`mouse_pos` won't be
+                updated as the mouse cursor is not within the window size.
 
             .. versionadded:: 2.1.0
 
@@ -2032,7 +2040,7 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_drop_begin(self):
+    def on_drop_begin(self, x, y):
         '''Event called when a text or a file drop on the application is about
         to begin. It will be followed-up by a single or a multiple
         `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
@@ -2049,7 +2057,6 @@ class WindowBase(EventDispatcher):
         '''Event called when a file is dropped on the application.
 
         .. warning::
-
             This event currently works with sdl2 window provider, on pygame
             window provider and OS X with a patched version of pygame.
             This event is left in place for further evolution

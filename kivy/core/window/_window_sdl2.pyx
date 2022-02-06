@@ -615,8 +615,6 @@ cdef class _WindowSDL2Storage:
             rv = SDL_PollEvent(&event)
         if rv == 0:
             return False
-        cdef int temp_x
-        cdef int temp_y
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
@@ -766,14 +764,11 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
-    def get_nearest_mouse_pos(self):
-        cdef int temp_x, temp_y
-        SDL_GetGlobalMouseState(&temp_x, &temp_y)
+    def get_relative_mouse_pos(self):
+        cdef int x, y
+        SDL_GetGlobalMouseState(&x, &y)
         wx, wy = self.get_window_pos()
-        w, h = self.window_size
-        x = max(0, min(temp_x - wx, w - 1))
-        y = max(0, min(temp_y - wy, h - 1))
-        return x, y
+        return x - wx, y - wy
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)

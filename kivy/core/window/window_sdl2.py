@@ -617,14 +617,13 @@ class WindowSDL(WindowBase):
                     self._mouse_buttons_down.remove(button)
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
+                x, y = self._win.get_relative_mouse_pos()
+                if not self._collide_and_dispatch_cursor_enter(x, y):
+                    # Ignore if the cursor position is on the window title bar
+                    # or on its edges
+                    continue
                 self._update_modifiers()
                 x, y, button = args
-                if self._mouse_x < 0 or self._mouse_y < 0:
-                    mx, my = self._win.get_nearest_mouse_pos()
-                    self._mouse_x, self._mouse_y = self._fix_mouse_pos(mx, my)
-                if not self._cursor_entered:
-                    self._cursor_entered = True
-                    self.dispatch('on_cursor_enter')
                 btn = 'scrolldown'
                 if action.endswith('up'):
                     btn = 'scrollup'
@@ -689,11 +688,8 @@ class WindowSDL(WindowBase):
                 self._focus = False
 
             elif action == 'windowenter':
-                x, y = self._win.get_nearest_mouse_pos()
-                self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
-                if not self._cursor_entered:
-                    self._cursor_entered = True
-                    self.dispatch('on_cursor_enter')
+                x, y = self._win.get_relative_mouse_pos()
+                self._collide_and_dispatch_cursor_enter(x, y)
 
             elif action == 'windowleave':
                 self._cursor_entered = False
@@ -778,17 +774,23 @@ class WindowSDL(WindowBase):
     def _dispatch_drop_event(self, action, args):
         if action == 'dropfile':
             self.dispatch('on_drop_file', args[0])
+        elif action == 'droptext':
+            self.dispatch('on_drop_text', args[0])
         elif action == 'dropbegin':
-            x, y = self._win.get_nearest_mouse_pos()
+            x, y = self._win.get_relative_mouse_pos()
+            self._collide_and_dispatch_cursor_enter(x, y)
+            self.dispatch('on_drop_begin', x, y)
+        elif action == 'dropend':
+            self.dispatch('on_drop_end')
+
+    def _collide_and_dispatch_cursor_enter(self, x, y):
+        w, h = self._win.window_size
+        if 0 <= x < w and 0 <= y < h:
             self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
             if not self._cursor_entered:
                 self._cursor_entered = True
                 self.dispatch('on_cursor_enter')
-            self.dispatch('on_drop_begin')
-        elif action == 'dropend':
-            self.dispatch('on_drop_end')
-        elif action == 'droptext':
-            self.dispatch('on_drop_text', args[0])
+            return True
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
