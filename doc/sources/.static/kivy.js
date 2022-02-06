@@ -224,7 +224,8 @@ $(function() {
 		var section_title = $('li.toctree-l1.current > a').text();
 		$('div.body h1:eq(0)').prepend(section_title + ' &raquo; ');
 	}
-	// hack to add a attrib to all linenos
+	// Hack to add an attrib to all linenos,
+	// this is needed in order to avoid certain browsers (Ex: Safari) that treat the line-number as a copyable item.
     $(".linenos").each(function(){
         let $this = $(this);
         $this.attr("data-line-number", $this.text());
