@@ -162,8 +162,13 @@ upload_docs_to_server() {
   fi
 }
 
-build_and_install_linux_kivy_sys_deps() {
+install_build_deps() {
+  yum install -y epel-release;
   yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel xorg-x11-server-devel mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget;
+}
+
+build_and_install_linux_kivy_sys_deps() {
+  install_build_deps
   mkdir ~/kivy_sources;
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
 
