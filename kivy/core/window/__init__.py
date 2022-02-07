@@ -1042,7 +1042,7 @@ class WindowBase(EventDispatcher):
 
         self.fbind(
             'on_drop_file',
-            lambda window, *args: window.dispatch('on_dropfile', *args)
+            lambda win, filename, *args: win.dispatch('on_dropfile', filename)
         )
         super(WindowBase, self).__init__(**kwargs)
 
@@ -2089,7 +2089,7 @@ class WindowBase(EventDispatcher):
     @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
                     'Event on_dropfile will be removed in the next two '
                     'releases.')
-    def on_dropfile(self, filename, x, y):
+    def on_dropfile(self, filename):
         pass
 
     def on_drop_text(self, text, x, y):
