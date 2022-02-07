@@ -42,9 +42,9 @@ jobs:
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
       CIBW_BEFORE_ALL_LINUX: >
-        mv `pwd`/kivy_build $HOME &&
-        yum install -y epel-release &&
-        yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel xorg-x11-server-devel mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget
+        cp -r `pwd`/kivy_build $HOME &&
+        source .ci/ubuntu_ci.sh &&
+        install_build_deps
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -79,15 +79,11 @@ jobs:
       with:
         path: kivy_build
         key: ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache-${{ hashFiles('**/ubuntu_ci.sh') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache
     - name: Build dependencies
       if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
       run: |
-        rm -rf kivy_build
         docker run --rm -v `pwd`:/root:rw --workdir=/root \
-           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} bash -ec 'yum install -y epel-release &&
-                                      source .ci/ubuntu_ci.sh && build_and_install_linux_kivy_sys_deps'
+           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} bash -ec 'source .ci/ubuntu_ci.sh && build_and_install_linux_kivy_sys_deps'
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
