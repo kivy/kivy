@@ -314,36 +314,22 @@ class WindowBase(EventDispatcher):
             Fired when text(s) or file(s) drop on the application is about to
             begin.
 
-            Values `x` and `y` are drop position and are relative to window
-            position :attr:`left` and :attr:`top`.
-
-            .. note::
-                On Windows it is possible to drop file(s) on window title bar
-                or on it's edges and in that case :attr:`mouse_pos` won't be
-                updated as the mouse cursor is not within the window size.
-
             .. versionadded:: 2.1.0
 
-        `on_drop_file`: filename (bytes or string):
+        `on_drop_file`: filename (bytes), x, y
             Fired when a file is dropped on the application.
-
-            .. note::
-                This event doesn't work for apps with elevated permissions,
-                because the OS API calls are filtered. Check issue
-                `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
-                pointers to workarounds.
 
             .. versionadded:: 1.2.0
 
             .. versionchanged:: 2.1.0
                 Renamed from `on_dropfile` to `on_drop_file`.
 
-        `on_drop_text`: text (bytes or string)
+        `on_drop_text`: text (bytes), x, y
             Fired when a text is dropped on the application.
 
             .. versionadded:: 2.1.0
 
-        `on_drop_end`:
+        `on_drop_end`: x, y
             Fired when text(s) or file(s) drop on the application has ended.
 
             .. versionadded:: 2.1.0
@@ -784,12 +770,18 @@ class WindowBase(EventDispatcher):
     '''
 
     mouse_pos = ObjectProperty((0, 0))
-    '''2d position of the mouse within the window.
+    '''2d position of the mouse cursor within the window.
+
+    Position is relative to the left/bottom point of the window.
+
+    .. note::
+        Cursor position will be scaled by the pixel density if the high density
+        mode is supported by the window provider.
 
     .. versionadded:: 1.2.0
 
     :attr:`mouse_pos` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to [0, 0].
+    defaults to (0, 0).
     '''
 
     show_cursor = BooleanProperty(True)
@@ -1050,7 +1042,7 @@ class WindowBase(EventDispatcher):
 
         self.fbind(
             'on_drop_file',
-            lambda window, filename: window.dispatch('on_dropfile', filename)
+            lambda window, *args: window.dispatch('on_dropfile', *args)
         )
         super(WindowBase, self).__init__(**kwargs)
 
@@ -2046,6 +2038,12 @@ class WindowBase(EventDispatcher):
         `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
         event.
 
+        :Parameters:
+            `x`: `int`
+                Cursor x position, relative to window :attr:`left`.
+            `y`: `int`
+                Cursor y position, relative to window :attr:`top`.
+
         .. note::
             This event works with sdl2 window provider.
 
@@ -2053,14 +2051,33 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_drop_file(self, filename):
+    def on_drop_file(self, filename, x, y):
         '''Event called when a file is dropped on the application.
+
+        :Parameters:
+            `filename`: `bytes`
+                Absolute path to a dropped file.
+            `x`: `int`
+                Cursor x position, relative to window :attr:`left`.
+            `y`: `int`
+                Cursor y position, relative to window :attr:`top`.
 
         .. warning::
             This event currently works with sdl2 window provider, on pygame
             window provider and OS X with a patched version of pygame.
             This event is left in place for further evolution
             (ios, android etc.)
+
+        .. note::
+            On Windows it is possible to drop a file on the window title bar
+            or on its edges and for that case :attr:`mouse_pos` won't be
+            updated as the mouse cursor is not within the window.
+
+        .. note::
+            This event doesn't work for apps with elevated permissions,
+            because the OS API calls are filtered. Check issue
+            `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
+            pointers to workarounds.
 
         .. versionadded:: 1.2.0
 
@@ -2070,23 +2087,43 @@ class WindowBase(EventDispatcher):
         pass
 
     @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
-                    'Event on_dropfile will be removed in next two releases.')
-    def on_dropfile(self, filename):
+                    'Event on_dropfile will be removed in the next two '
+                    'releases.')
+    def on_dropfile(self, filename, x, y):
         pass
 
-    def on_drop_text(self, text):
+    def on_drop_text(self, text, x, y):
         '''Event called when a text is dropped on the application.
+
+        :Parameters:
+            `text`: `bytes`
+                Text which is dropped.
+            `x`: `int`
+                Cursor x position, relative to window :attr:`left`.
+            `y`: `int`
+                Cursor y position, relative to window :attr:`top`.
 
         .. note::
             This event works with sdl2 window provider on x11 window.
+
+        .. note::
+            On Windows it is possible to drop a text on the window title bar
+            or on its edges and for that case :attr:`mouse_pos` won't be
+            updated as the mouse cursor is not within the window.
 
         .. versionadded:: 2.1.0
         '''
         pass
 
-    def on_drop_end(self):
+    def on_drop_end(self, x, y):
         '''Event called when a text or a file drop on the application has
         ended.
+
+        :Parameters:
+            `x`: `int`
+                Cursor x position, relative to window :attr:`left`.
+            `y`: `int`
+                Cursor y position, relative to window :attr:`top`.
 
         .. note::
             This event works with sdl2 window provider.
