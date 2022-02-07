@@ -12,13 +12,13 @@ class DropFile(Button):
         app = App.get_running_app()
 
         # add function to the list
-        app.drops.append(self.on_dropfile)
+        app.drops.append(self.on_drop_file)
 
-    def on_dropfile(self, widget, filename):
+    def on_drop_file(self, widget, filename):
         # a function catching a dropped file
         # if it's dropped in the widget's area
         if self.collide_point(*Window.mouse_pos):
-            # on_dropfile's filename is bytes (py3)
+            # on_drop_file's filename is bytes (py3)
             self.text = filename.decode('utf-8')
 
 
@@ -28,8 +28,8 @@ class DropApp(App):
         # with functions from widgets themselves
         self.drops = []
 
-        # bind handling function to 'on_dropfile'
-        Window.bind(on_dropfile=self.handledrops)
+        # bind handling function to 'on_drop_file'
+        Window.bind(on_drop_file=self.handledrops)
 
         box = BoxLayout()
         dropleft = DropFile(text='left')
@@ -40,9 +40,9 @@ class DropApp(App):
 
     def handledrops(self, *args):
         # this will execute each function from list with arguments from
-        # Window.on_dropfile
+        # Window.on_drop_file
         #
-        # make sure `Window.on_dropfile` works on your system first,
+        # make sure `Window.on_drop_file` works on your system first,
         # otherwise the example won't work at all
         for func in self.drops:
             func(*args)

@@ -310,7 +310,21 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_dropfile`: filename (bytes or string):
+        `on_drop_begin`: x, y
+            Fired when text(s) or file(s) drop on the application is about to
+            begin.
+
+            Values `x` and `y` are drop position and are relative to window
+            position :attr:`left` and :attr:`top`.
+
+            .. note::
+                On Windows it is possible to drop file(s) on window title bar
+                or on it's edges and in that case :attr:`mouse_pos` won't be
+                updated as the mouse cursor is not within the window size.
+
+            .. versionadded:: 2.1.0
+
+        `on_drop_file`: filename (bytes or string):
             Fired when a file is dropped on the application.
 
             .. note::
@@ -318,6 +332,21 @@ class WindowBase(EventDispatcher):
                 because the OS API calls are filtered. Check issue
                 `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
                 pointers to workarounds.
+
+            .. versionadded:: 1.2.0
+
+            .. versionchanged:: 2.1.0
+                Renamed from `on_dropfile` to `on_drop_file`.
+
+        `on_drop_text`: text (bytes or string)
+            Fired when a text is dropped on the application.
+
+            .. versionadded:: 2.1.0
+
+        `on_drop_end`:
+            Fired when text(s) or file(s) drop on the application has ended.
+
+            .. versionadded:: 2.1.0
 
         `on_memorywarning`:
             Fired when the platform have memory issue (iOS / Android mostly)
@@ -338,7 +367,7 @@ class WindowBase(EventDispatcher):
     _fake_fullscreen = False
 
     # private properties
-    _density = NumericProperty(1)
+    _density = NumericProperty(1.)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
@@ -754,7 +783,7 @@ class WindowBase(EventDispatcher):
         property instead.
     '''
 
-    mouse_pos = ObjectProperty([0, 0])
+    mouse_pos = ObjectProperty((0, 0))
     '''2d position of the mouse within the window.
 
     .. versionadded:: 1.2.0
@@ -936,7 +965,8 @@ class WindowBase(EventDispatcher):
         'on_hide', 'on_show', 'on_motion', 'on_touch_down',
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
-        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
+        'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -1018,6 +1048,10 @@ class WindowBase(EventDispatcher):
         if 'shape_image' not in kwargs:
             kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
+        self.fbind(
+            'on_drop_file',
+            lambda window, filename: window.dispatch('on_dropfile', filename)
+        )
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
@@ -2006,17 +2040,58 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_dropfile(self, filename):
+    def on_drop_begin(self, x, y):
+        '''Event called when a text or a file drop on the application is about
+        to begin. It will be followed-up by a single or a multiple
+        `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
+        event.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
+        '''
+        pass
+
+    def on_drop_file(self, filename):
         '''Event called when a file is dropped on the application.
 
         .. warning::
-
             This event currently works with sdl2 window provider, on pygame
             window provider and OS X with a patched version of pygame.
             This event is left in place for further evolution
             (ios, android etc.)
 
         .. versionadded:: 1.2.0
+
+        .. versionchanged:: 2.1.0
+            Renamed from `on_dropfile` to `on_drop_file`.
+        '''
+        pass
+
+    @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
+                    'Event on_dropfile will be removed in next two releases.')
+    def on_dropfile(self, filename):
+        pass
+
+    def on_drop_text(self, text):
+        '''Event called when a text is dropped on the application.
+
+        .. note::
+            This event works with sdl2 window provider on x11 window.
+
+        .. versionadded:: 2.1.0
+        '''
+        pass
+
+    def on_drop_end(self):
+        '''Event called when a text or a file drop on the application has
+        ended.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
         '''
         pass
 
