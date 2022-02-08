@@ -544,8 +544,7 @@ class Widget(WidgetBase):
 
         .. warning::
             This is an experimental method and it remains so while this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+            is present.
         '''
         if self.disabled or me.dispatch_mode == MODE_DONT_DISPATCH:
             return
@@ -792,8 +791,7 @@ class Widget(WidgetBase):
 
         .. warning::
             This is an experimental method and it remains so while this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -819,8 +817,7 @@ class Widget(WidgetBase):
 
         .. warning::
             This is an experimental method and it remains so while this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
