@@ -310,13 +310,13 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_drop_begin`: x, y
+        `on_drop_begin`: x, y, *args
             Fired when text(s) or file(s) drop on the application is about to
             begin.
 
             .. versionadded:: 2.1.0
 
-        `on_drop_file`: filename (bytes), x, y
+        `on_drop_file`: filename (bytes), x, y, *args
             Fired when a file is dropped on the application.
 
             .. versionadded:: 1.2.0
@@ -324,12 +324,12 @@ class WindowBase(EventDispatcher):
             .. versionchanged:: 2.1.0
                 Renamed from `on_dropfile` to `on_drop_file`.
 
-        `on_drop_text`: text (bytes), x, y
+        `on_drop_text`: text (bytes), x, y, *args
             Fired when a text is dropped on the application.
 
             .. versionadded:: 2.1.0
 
-        `on_drop_end`: x, y
+        `on_drop_end`: x, y, *args
             Fired when text(s) or file(s) drop on the application has ended.
 
             .. versionadded:: 2.1.0
@@ -2032,17 +2032,25 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_drop_begin(self, x, y):
+    def on_drop_begin(self, x, y, *args):
         '''Event called when a text or a file drop on the application is about
         to begin. It will be followed-up by a single or a multiple
         `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
         event.
 
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
+
         :Parameters:
             `x`: `int`
-                Cursor x position, relative to window :attr:`left`.
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
             `y`: `int`
-                Cursor y position, relative to window :attr:`top`.
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
 
         .. note::
             This event works with sdl2 window provider.
@@ -2051,16 +2059,24 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_drop_file(self, filename, x, y):
+    def on_drop_file(self, filename, x, y, *args):
         '''Event called when a file is dropped on the application.
+
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
 
         :Parameters:
             `filename`: `bytes`
                 Absolute path to a dropped file.
             `x`: `int`
-                Cursor x position, relative to window :attr:`left`.
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
             `y`: `int`
-                Cursor y position, relative to window :attr:`top`.
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
 
         .. warning::
             This event currently works with sdl2 window provider, on pygame
@@ -2092,16 +2108,24 @@ class WindowBase(EventDispatcher):
     def on_dropfile(self, filename):
         pass
 
-    def on_drop_text(self, text, x, y):
+    def on_drop_text(self, text, x, y, *args):
         '''Event called when a text is dropped on the application.
+
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
 
         :Parameters:
             `text`: `bytes`
                 Text which is dropped.
             `x`: `int`
-                Cursor x position, relative to window :attr:`left`.
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
             `y`: `int`
-                Cursor y position, relative to window :attr:`top`.
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
 
         .. note::
             This event works with sdl2 window provider on x11 window.
@@ -2115,15 +2139,23 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_drop_end(self, x, y):
+    def on_drop_end(self, x, y, *args):
         '''Event called when a text or a file drop on the application has
         ended.
 
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
+
         :Parameters:
             `x`: `int`
-                Cursor x position, relative to window :attr:`left`.
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
             `y`: `int`
-                Cursor y position, relative to window :attr:`top`.
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
 
         .. note::
             This event works with sdl2 window provider.
