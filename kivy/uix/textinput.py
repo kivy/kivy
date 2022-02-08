@@ -2747,9 +2747,14 @@ class TextInput(FocusBehavior, Widget):
         _tab_width, _label_cached = self.tab_width, self._label_cached
 
         # try to add each word on current line.
+        words_widths = {}
         for word in self._tokenize(text):
             is_newline = (word == u'\n')
-            w = text_width(word, _tab_width, _label_cached)
+            try:
+                w = words_widths[word]
+            except KeyError:
+                w = text_width(word, _tab_width, _label_cached)
+                words_widths[word] = w
             # if we have more than the width, or if it's a newline,
             # push the current line, and create a new one
             if (x + w > width and line) or is_newline:
@@ -2765,9 +2770,11 @@ class TextInput(FocusBehavior, Widget):
                     split_width = split_pos = 0
                     # split the word
                     for c in word:
-                        cw = self._get_text_width(
-                            c, self.tab_width, self._label_cached
-                        )
+                        try:
+                            cw = words_widths[c]
+                        except KeyError:
+                            cw = text_width(c, _tab_width, _label_cached)
+                            words_widths[c] = cw
                         if split_width + cw > width:
                             break
                         split_width += cw
