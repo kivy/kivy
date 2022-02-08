@@ -159,8 +159,9 @@ class WindowSDL(WindowBase):
 
     def __init__(self, **kwargs):
         self._pause_loop = False
-        self._win = _WindowSDL2Storage()
         self._cursor_entered = False
+        self._drop_pos = None
+        self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
         self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
@@ -527,8 +528,10 @@ class WindowSDL(WindowBase):
         self._win._set_cursor_state(value)
 
     def _fix_mouse_pos(self, x, y):
-        self.mouse_pos = (x * self._density,
-                          (self.system_size[1] - y - 1) * self._density)
+        self.mouse_pos = (
+            x * self._density,
+            (self.system_size[1] - 1 - y) * self._density
+        )
         return x, y
 
     def mainloop(self):
@@ -772,18 +775,21 @@ class WindowSDL(WindowBase):
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
 
     def _dispatch_drop_event(self, action, args):
+        x, y = (0, 0) if self._drop_pos is None else self._drop_pos
         if action == 'dropfile':
-            self.dispatch('on_drop_file', args[0])
+            self.dispatch('on_drop_file', args[0], x, y)
         elif action == 'droptext':
-            self.dispatch('on_drop_text', args[0])
+            self.dispatch('on_drop_text', args[0], x, y)
         elif action == 'dropbegin':
-            x, y = self._win.get_relative_mouse_pos()
+            self._drop_pos = x, y = self._win.get_relative_mouse_pos()
             self._collide_and_dispatch_cursor_enter(x, y)
             self.dispatch('on_drop_begin', x, y)
         elif action == 'dropend':
-            self.dispatch('on_drop_end')
+            self._drop_pos = None
+            self.dispatch('on_drop_end', x, y)
 
     def _collide_and_dispatch_cursor_enter(self, x, y):
+        # x, y are relative to window left/top position
         w, h = self._win.window_size
         if 0 <= x < w and 0 <= y < h:
             self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
