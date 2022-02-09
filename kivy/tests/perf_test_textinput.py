@@ -107,7 +107,7 @@ class PerfApp(App, FloatLayout):
         self.test_done = False
         text_input = self.text_input
         text_input.select_all()
-        text_input._copy(text_input.selection_text)
+        text_input.copy(text_input.selection_text)
         text_input.cursor = text_input.get_cursor_from_index(
             text_input.selection_to)
         len_text = len(text_input._lines)
@@ -132,7 +132,7 @@ class PerfApp(App, FloatLayout):
                 self.test_done = True
                 return
             self.tot_time += l[0]
-            text_input._paste()
+            text_input.paste()
             ev()
         ev = Clock.create_trigger(pste)
         ev()
