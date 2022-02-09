@@ -77,6 +77,21 @@ then install SDL2 from apt::
 
     sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
+Cross-Compilation for Raspberry Pi 1-3 headless installation on Raspbian Buster
+*******************************************************************************
+
+The Raspberry OS project uses `pi-gen` project to create bootable images for Raspberry PI.
+
+Kivy determines automatically, which libraries to add based on the environment it is run. The `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled in when running on a Raspberry Pi.
+
+When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variabel `USE_RPI` to `1`.
+
+The install command then looks something like this::
+
+    apt install build-essential libraspberrypi-dev raspberrypi-kernel-headers 
+    USE_RPI=1 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
+
+Please note that the `egl_rpi` window handler is not supported on Raspberry Pi 4 and higher.
 
 Raspberry Pi 4 headless installation on Raspbian Buster
 *******************************************************
