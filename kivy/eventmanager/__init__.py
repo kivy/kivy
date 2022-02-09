@@ -1,20 +1,22 @@
 '''
-EventManagerBase
-================
+Event Manager
+=============
 
 The :class:`EventManagerBase` is the abstract class intended for specific
 implementation of dispatching motion events
 (instances of :class:`~kivy.input.motionevent.MotionEvent`) to widgets through
-:meth:`~kivy.uix.widget.Widget.on_motion` method.
+:meth:`~kivy.uix.widget.Widget.on_motion` method of the
+:class:`~kivy.uix.widget.Widget` class.
 
 .. warning::
     This feature is experimental and it remains so while this warning is
     present.
 
-Manager is a layer between window and its widgets. Window will forward all the
-events it receives in :meth:`~kivy.uix.widget.Widget.on_motion` method to
-all managers who declared to receive types of those events. Event will continue
-to go through managers even if one of them accepts it (by returning `True`).
+Manager is a layer between the window and its widgets.
+:class:`~kivy.core.window.WindowBase` will forward all the events it receives
+in :meth:`~kivy.core.window.WindowBase.on_motion` method to the all managers
+who declared to receive types of those events. Event will continue to go
+through the managers list even if one of them accept it (by returning `True`).
 
 When to use an event manager
 ----------------------------
@@ -23,8 +25,8 @@ Use a manager when you want to:
 
 - Dispatch touch, hover, keyboard, joystick or any other events to the widgets
   through :meth:`~kivy.uix.widget.Widget.on_motion` method.
-- Dispatch filtered motion events by any criteria, like by
-  :attr:`~kivy.input.motionevent.MotionEvent.device` or
+- Dispatch filtered motion events by any criteria, like by a
+  :attr:`~kivy.input.motionevent.MotionEvent.device` or a
   :attr:`~kivy.input.motionevent.MotionEvent.profile`.
 - Combine several motion events (touch, hover etc.) into one new event and
   dispatch it to the widgets.
@@ -36,18 +38,18 @@ Defining and registering an event manager
 -----------------------------------------
 
 1. Inherit :class:`EventManagerBase` and set which events this manager
-    should receive by declaring event types in
-    `:attr:`EventManagerBase.type_ids` attribute.
+   should receive by declaring event types in
+   `:attr:`EventManagerBase.type_ids` attribute.
 2. Implement :meth:`EventManagerBase.dispatch` which will be called by window
-    to pass event type (one of "begin", "update", "end") and an event.
+   to pass event type (one of "begin", "update", "end") and an event.
 3. Implement :meth:`EventManagerBase.start` and :meth:`EventManagerBase.stop`
-    to allocate and release additional resources if needed.
+   to allocate and release additional resources if needed.
 4. Register a manager instance to window using method
-    :meth:`~kivy.core.window.WindowBase.register_event_manager`. This can be
-    done by overriding methods :meth:`~kivy.app.App.build` or
-    :meth:`~kivy.app.App.on_start`.
+   :meth:`~kivy.core.window.WindowBase.register_event_manager`. This can be
+   done by overriding methods :meth:`~kivy.app.App.build` or
+   :meth:`~kivy.app.App.on_start`.
 
-All registered managers are kept in
+All registered managers are kept in the
 :attr:`~kivy.core.window.WindowBase.event_managers` list. To unregister a
 manager call :meth:`~kivy.core.window.WindowBase.unregister_event_manager`
 which itself can be called in :meth:`~kivy.app.App.on_stop` method.
@@ -58,14 +60,14 @@ Dispatching events to the widgets
 Once registered, window will start the manager and forward all events of types
 declared in :attr:`EventManagerBase.type_ids` to the manager's
 :meth:`EventManagerBase.dispatch` method. It's up to manager to decide how to
-dispatch them, either going through :attr:`EventManagerBase.window.children`
-and dispatch `on_motion` event to them or by using some different logic. It's
+dispatch them, either by going through :attr:`EventManagerBase.window.children`
+list and dispatching `on_motion` event or by using some different logic. It's
 also up to manager to dispatch grabbed events if grab feature is supported by
 the event (see :meth:`~kivy.input.motionevent.MotionEvent.grab` and
 :meth:`~kivy.input.motionevent.MotionEvent.ungrab` methods).
 
 Manager can assign a different dispatch mode to decide how event
-should be dispatched throughout the widget tree by changing value of
+should be dispatched throughout the widget tree by changing the value of the
 :attr:`~kivy.input.motionevent.MotionEvent.dispatch_mode` attribute. Before
 changing the mode manager should store/restore the current one, either by using
 a local variable or by using event's
@@ -76,17 +78,17 @@ Currently there are three dispatch modes (behaviors) recognized by the
 `on_motion` method in :class:`~kivy.uix.widget.Widget` class:
 
 1. Default dispatch (requires :const:`MODE_DEFAULT_DISPATCH`) - event will go
-    through widget's `children` list, starting with the first widget in the
-    list until event gets accepted or last widget registered for that event is
-    reached. Mode :const:`MODE_DEFAULT_DISPATCH` is assigned by default in
-    :class:`~kivy.input.motionevent.MotionEvent` class.
+   through widget's `children` list, starting with the first widget in the
+   list until event gets accepted or last widget registered for that event is
+   reached. Mode :const:`MODE_DEFAULT_DISPATCH` is assigned by default in
+   :class:`~kivy.input.motionevent.MotionEvent` class.
 2. Filtered dispatch (requires :const:`MODE_FILTERED_DISPATCH`) - event will go
-    only through registered child widgets.
+   only through registered child widgets.
 3. No dispatch to children (requires :const:`MODE_DONT_DISPATCH`) - event will
-    not be dispatched to child widgets.
+   not be dispatched to child widgets.
 
-Note that window does not have `motion_filter` property and therefore does not
-have a list of filtered widgets from its `children` list.
+Note that window does not have a `motion_filter` property and therefore does
+not have a list of filtered widgets from its `children` list.
 '''
 
 MODE_DEFAULT_DISPATCH = 'default'
@@ -139,30 +141,30 @@ class EventManagerBase(object):
     '''
 
     type_ids = None
-    '''Override this attribute to declare type ids of events which manager will
-    receive. This attribute will be used by
-    :class:`~kivy.core.window.WindowBase` to know which events to pass to
-    method :meth:`dispatch`.
+    '''Override this attribute to declare the type ids of the events which
+    manager wants to receive. This attribute will be used by
+    :class:`~kivy.core.window.WindowBase` to know which events to pass to the
+    :meth:`dispatch` method.
 
     .. versionadded:: 2.1.0
     '''
 
     window = None
-    '''Holds an instance of :class:`~kivy.core.window.WindowBase`.
+    '''Holds the instance of the :class:`~kivy.core.window.WindowBase`.
 
     .. versionadded:: 2.1.0
     '''
 
     def start(self):
-        '''Start the manager, bind callbacks to objects and create additional
-        resources. Attribute :attr:`window` is assigned when this method is
-        called.
+        '''Start the manager, bind callbacks to the objects and create
+        additional resources. Attribute :attr:`window` is assigned when this
+        method is called.
 
         .. versionadded:: 2.1.0
         '''
 
     def dispatch(self, etype, me):
-        '''Dispatch event `me` to widgets in :attr:`window`.
+        '''Dispatch event `me` to the widgets in the :attr:`window`.
 
         :Parameters:
             `etype`: `str`
@@ -176,8 +178,8 @@ class EventManagerBase(object):
         '''
 
     def stop(self):
-        '''Stop the manager, unbind from any objects and to release any
-        allocated resources.
+        '''Stop the manager, unbind from any objects and release any allocated
+        resources.
 
         .. versionadded:: 2.1.0
         '''
