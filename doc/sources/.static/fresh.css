@@ -6,17 +6,14 @@
     --border-color: #736b5e;
     --border-secondary-color: #303436FF;
     --anchor-color: #3391ff;
-    --anchor-hover: #1752997F;
+    --anchor-hover: #1752997F
 }
 
-/* Modified CSS */
-:root,
-:root.light {
-    --color:#595959;
+:root,:root.light {
+    --color: #595959;
     --bg-color: #ffffff;
     --bg-accent-color: #f5f5f5;
     --bg-secondary-accent-color: #f5f5f5;
-
     --text-color: #595959;
     --htext-color: #414141;
     --dark-border-color: #e0e0e0;
@@ -28,12 +25,11 @@
     --versionselector-border-color: #d0d0d0;
     --em-property: #df712d;
     --dl-dt-bg-color: #e0e0e0;
-    --warning-color:#E88080;
+    --warning-color: #E88080;
     --docutils-bg-color: #e9e9e9;
-    --note-color:#80C880;
-    /*Values from pygments.css*/
+    --note-color: #80C880;
     --neutral-secondary-text: #000000;
-    --highlight-hll: #ffffcc ;
+    --highlight-hll: #ffffcc;
     --highlight-c: #666385;
     --highlight-err: #FF0000;
     --highlight-err_: #FF0000;
@@ -41,7 +37,7 @@
     --highlight-gd: #a40000;
     --highlight-gr: #ef2929;
     --highlight-gi: #00A000;
-    --highlight-go: #888888 ;
+    --highlight-go: #888888;
     --highlight-gp: #745334;
     --highlight-gu: #800080;
     --higlight-gh: #000080;
@@ -50,14 +46,14 @@
     --highlight-na: #c4a000;
     --highlight-nc: #db6500;
     --highlight-sb: #4e9a06;
-    --highlight-bp: #aa1105;
+    --highlight-bp: #aa1105
 }
 
 :root.dark {
     --bg-color: #131516;
     --bg-accent-color: #1a1d1e;
     --bg-secondary-accent-color: #2A2D2FFF;
-    --color:#b1aaa0;
+    --color: #b1aaa0;
     --text-color: #b1aaa0;
     --htext-color: #b1aaa0;
     --secondary-text-color: #bfb9b1;
@@ -74,8 +70,7 @@
     --em-property: #E27E40FF;
     --docutils-bg-color: #242729FF;
     --neutral-secondary-text: #E8E6E3FF;
-    --dl-dt-bg-color:#2A2D2FFF;
-
+    --dl-dt-bg-color: #2A2D2FFF;
     --highlight-hll: #525200FF;
     --highlight-c: #9F968AFF;
     --highlight-err: #FF1A1AFF;
@@ -93,162 +88,148 @@
     --highlight-na: #FFDC43FF;
     --highlight-nc: #FF9133FF;
     --highlight-sb: #ABF962FF;
-    --highlight-bp: #FA6256FF;
-
+    --highlight-bp: #FA6256FF
 }
 
 html.light {
-    color-scheme: light; !important;
+    color-scheme: light
 }
+
 html.dark {
-    color-scheme: dark; !important;
+    color-scheme: dark
 }
 
-
-html, body {
+body,html {
     background-color: var(--bg-color);
-    border-color: var(--border-color);
     color: var(--selection-text);
-    font-family: Verdana, sans-serif;
+    font-family: Verdana,sans-serif;
     font-size: 14px;
     line-height: 1.6em;
-    padding: 0px;
-    margin: 0px;
-}
-
-a {
-    color: var(--anchor-color);
-}
-
-table {
-    border-color: var(--border-color);
+    padding: 0;
+    margin: 0
 }
 
 body {
-    color: var(--color);
-    background-color: var(--bg-color);
+    color: var(--color)
 }
 
-h1,
-h2,
-h3,
-h4,
-h5 {
+a,a:link,a:visited,span.versionadded span {
+    color: var(--anchor-color)
+}
+
+body,html,table {
+    border-color: var(--border-color)
+}
+
+h1,h2,h3,h4,h5 {
     color: var(--htext-color);
-    font-weight: normal;
+    font-weight: 400
 }
 
 h1 {
-    font-size: 2.25em;
+    font-size: 2.25em
 }
 
 h2 {
-    font-size: 2em;
+    font-size: 2em
 }
 
 h3 {
-    font-size: 1.60em;
+    font-size: 1.6em
 }
 
 h4 {
-    font-size: 1.25em;
+    font-size: 1.25em
 }
 
-a,
-a:link,
-a:visited {
-    color: var(--anchor-color);
+a,a:link,a:visited {
     text-decoration-color: currentcolor;
-    text-decoration: none;
+    text-decoration: none
 }
 
 a.headerlink {
     font-size: 1.2em;
     color: transparent;
-    margin-left: 10px;
+    margin-left: 10px
 }
 
 .hover a.headerlink {
-    color: var(--secondary-text-color);
+    color: var(--secondary-text-color)
 }
 
-h1:hover a.headerlink,
-h2:hover a.headerlink,
-h3:hover a.headerlink,
-h4:hover a.headerlink,
-h5:hover a.headerlink {
+h1:hover a.headerlink,h2:hover a.headerlink,h3:hover a.headerlink,h4:hover a.headerlink,h5:hover a.headerlink {
     display: inline;
     color: var(--secondary-text-color);
-    margin-left: 10px;
+    margin-left: 10px
 }
 
 a:hover {
-    border-bottom: 1px solid rgba(42, 124, 223, 0.5);
+    border-bottom: 1px solid rgba(42,124,223,.5);
     border-bottom-color: var(--anchor-hover)
 }
 
 td.linenos .normal {
     color: inherit;
-    background-color: transparent;
+    background-color: transparent
 }
-
 
 #topbar {
     background-color: #202326;
-    margin: 0px;
+    margin: 0
 }
 
 #topwrapper {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap
 }
 
 #toplogo {
     height: 60px;
     width: 100%;
-    display: flex;
-    justify-content: center;
+    display: flex
 }
 
-#toplogo > a {
+#toplogo,#toplogo>a,#topmenu {
+    justify-content: center
+}
+
+#toplogo>a {
     display: flex;
-    justify-content: center;
     padding-bottom: 1em;
-    padding-top: 1em;
+    padding-top: 1em
 }
 
 #topmenu {
     height: 60px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: column
 }
 
 #topbar img {
-    object-fit: contain;
+    object-fit: contain
 }
 
 #topbar #toplogo a:hover {
-    border: none;
+    border: 0
 }
 
-#topbar ul,
-#topbar li {
-    margin: 0px;
-    padding: 0px;
-    list-style-type: none;
+#topbar li,#topbar ul,div.sphinxsidebar li,div.sphinxsidebar ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none
+}
+
+#topbar ul,#topmenu {
+    display: flex;
+    width: 100%
 }
 
 #topbar ul {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
+    justify-content: space-around
 }
 
 #topmenu ul.navigation li {
     display: flex;
-    list-style-type: none;
+    list-style-type: none
 }
 
 #topmenu ul.navigation li a {
@@ -257,66 +238,65 @@ td.linenos .normal {
     color: #bbb;
     text-decoration: none;
     background-color: #303030;
-    padding: 0 10px;
+    padding: 0 10px
 }
 
 #topmenu ul.navigation li a.current {
-    border-bottom: 2px solid #ffffff;
+    border-bottom: 2px solid #fff
 }
 
 #topmenu ul.navigation li a:hover {
     background-color: #383a3d;
-    border-bottom: 2px solid #202326;
+    border-bottom: 2px solid #202326
 }
 
-
 #topmenu ul.navigation .nav-garden {
-    background-color: #669900;
-    color: #ffffff;
+    background-color: #690;
+    color: #fff
 }
 
 #topmenu ul.navigation .nav-guides {
-    background-color: #0099cc;
-    color: #ffffff;
+    background-color: #09c;
+    color: #fff
 }
 
 #topmenu ul.navigation .nav-api {
-    background-color: #cc0000;
-    color: #ffffff;
+    background-color: #c00;
+    color: #fff
 }
 
 #topmenu ul.navigation .nav-pdf {
-    background-color: #ff8800;
-    color: #ffffff;
+    background-color: #f80;
+    color: #fff
 }
 
 #topmenu ul.navigation .nav-wiki {
-    background-color: #30757E;
-    color: #ffffff;
+    background-color: #30757e;
+    color: #fff
 }
 
 #topmenu ul.navigation a.nav-garden:hover {
-    background-color: #99cc00;
+    background-color: #9c0
 }
 
 #topmenu ul.navigation a.nav-guides:hover {
-    background-color: #33b5e5;
+    background-color: #33b5e5
 }
 
 #topmenu ul.navigation a.nav-api:hover {
-    background-color: #ff4444;
+    background-color: #f44
 }
 
 #topmenu ul.navigation a.nav-pdf:hover {
-    background-color: #ffbb33;
+    background-color: #fb3
 }
 
 #topmenu ul.navigation a.nav-wiki:hover {
-    background-color: #50C8D7;
+    background-color: #50c8d7
 }
 
 #themeToggleSwitchContainer {
-    padding: 0 0 2px 0;
+    padding: 0 0 2px
 }
 
 #themeToggleSwitch {
@@ -324,13 +304,13 @@ td.linenos .normal {
     top: 0;
     display: inline-block;
     width: 1rem;
-    height: 100%;
+    height: 100%
 }
 
 #themeToggleSwitch input {
     opacity: 0;
     width: 0;
-    height: 0;
+    height: 0
 }
 
 #themeToggleSwitch .slider {
@@ -342,22 +322,21 @@ td.linenos .normal {
     bottom: 0;
     background-color: #444343;
     -webkit-transition: .4s;
-    transition: .4s;
+    transition: .4s
 }
 
-#themeToggleSwitch input:checked + .slider:before {
+#themeToggleSwitch input:checked+.slider:before {
     -webkit-transform: translateY(30px);
     -ms-transform: translateY(30px);
-    transform: translateY(30px);
+    transform: translateY(30px)
 }
 
-/* Rounded sliders */
 #themeToggleSwitch .slider.round {
-    border-radius: 34px;
+    border-radius: 34px
 }
 
 #themeToggleSwitch .slider.round:before {
-    border-radius: 50%;
+    border-radius: 50%
 }
 
 #themeToggleSwitch .slider:before {
@@ -366,384 +345,328 @@ td.linenos .normal {
     height: 1rem;
     width: 1rem;
     top: 0;
-    background-color: white;
+    background-color: #fff;
     -webkit-transition: .4s;
-    transition: .4s;
+    transition: .4s
 }
 
 div.sphinxsidebar {
-    width: 100%;
+    width: 100%
 }
 
-div.sphinxsidebar a.mainlevel,
-div.sphinxsidebar h3 {
+div.sphinxsidebar a.mainlevel,div.sphinxsidebar h3 {
     background-color: var(--dark-border-color);
-    font-weight: normal;
+    font-weight: 400;
     font-size: 1em;
-    padding: 0.5em 1em;
-    margin: 1px 0;
+    padding: .5em 1em;
+    margin: 1px 0
 }
 
 div.sphinxsidebar a.togglable {
     padding-right: 34px;
-    background: var(--dark-border-color) url('disclosure_up.png') top right no-repeat;
+    background: var(--dark-border-color)url(disclosure_up.png)top right no-repeat
 }
 
 div.sphinxsidebar ul.toggleopen a.togglable {
-    background-image: url('disclosure_down.png')
+    background-image: url(disclosure_down.png)
 }
 
-div.sphinxsidebar ul,
-div.sphinxsidebar li {
-    margin: 0px;
-    padding: 0px;
-    list-style-type: none;
+div.sphinxsidebar ul li ul,tt.descclassname {
+    display: none
 }
 
-div.sphinxsidebar ul li ul {
-     display: none;
+div.sphinxsidebar li a,tt.descname {
+    color: var(--sphinxsidebar-li-a-color)
+}
+
+.footerlinks table,div.sphinxsidebar li a {
+    background-color: var(--sphinxsidebar-li-a-bg-color)
 }
 
 div.sphinxsidebar li a {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
-    color: var(--sphinxsidebar-li-a-color);
     display: block;
-    font-weight: normal;
+    font-weight: 400;
     font-size: 1em;
-    padding: 0.5em 1em;
-    border-left: 2px solid transparent;
+    padding: .5em 1em;
+    border-left: 2px solid transparent
 }
 
-div.sphinxsidebar ul ul li.current > a,
-div.sphinxsidebar li a:hover {
+div.sphinxsidebar li a:hover,div.sphinxsidebar ul ul li.current>a {
     background-color: var(--sphinxsidebar-li-a-hover);
     color: var(--sphinxsidebar-li-a-color);
-    border: none;
-    border-left: 2px solid var(--anchor-color);
+    border: 0;
+    border-left: 2px solid var(--anchor-color)
 }
 
-/* Footer */
-
 .footerlinks table {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
-    width: 100%;
+    width: 100%
 }
 
 .footerlinks td {
     padding: 10px 15px;
-    width: 50%;
+    width: 50%
 }
 
-.footerlinks td.rightlink {
-    text-align: right;
+.footerlinks td.rightlink,div.navlink {
+    text-align: right
 }
 
 #contentall {
     padding: 20px;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap
 }
 
 #content pre {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
     padding: 10px 15px;
-    font-family: 'Source Code Pro', monospace;
-    white-space: pre-wrap;
+    font-family: "Source Code Pro",monospace;
+    white-space: pre-wrap
 }
 
 #content h1 {
-    margin-bottom: 25px;
+    margin-bottom: 25px
 }
 
 #content h2 {
     border-bottom: 1px solid var(--dark-border-color);
-    padding: 15px 0px 8px 0px;
+    padding: 15px 0 8px
 }
 
-/* Content: Admonition (warning, important, notice) */
 #content div.admonition {
     padding-left: 10px;
-    margin: 8px 0px;
+    margin: 8px 0
 }
 
 #content div.admonition p {
-    margin: 0px;
+    margin: 0
 }
 
 #content div.warning {
-    border-left: 3px solid var(--warning-color);
+    border-left: 3px solid var(--warning-color)
 }
 
 #content div.note p.first {
-    color: var(--light-note-color);
+    color: var(--light-note-color)
 }
 
 #content div.note {
-    border-left: 3px solid var(--note-color);
-
+    border-left: 3px solid var(--note-color)
 }
 
-/* API only: versionadded */
-.versionchanged,
-.versionadded {
+.versionadded,.versionchanged {
     font-style: italic;
-    color: var(--versionchanged-color);
+    color: var(--versionchanged-color)
 }
 
-/* API only: Module: kivy -- Jump to API */
-.bodyshortcut {
+.bodyshortcut,dl.api-level dt {
     background-color: var(--sphinxsidebar-li-a-bg-color);
-    padding: 10px 15px;
+    padding: 10px 15px
 }
 
-.bodyshortcut .left {
-    float: left;
+.bodyshortcut .left,.gs-eleft {
+    float: left
 }
 
 .bodyshortcut .right {
-    float: right;
+    float: right
 }
 
-/* API only: Link collapse-all / hide description */
-#api-toggle-desc,
-#api-toggle-all {
+#api-toggle-all,#api-toggle-desc {
     float: right;
     font-size: 14px;
     margin-left: 10px;
-    cursor: pointer;
+    cursor: pointer
 }
-
-/* API only: classes / methods / ... */
 
 dl.api-level dt {
     cursor: pointer;
     background-color: var(--dl-dt-bg-color);
-    font-weight: normal;
+    font-weight: 400;
     font-size: 1em;
-    padding: 10px 15px;
-    margin: 1px 0px;
+    margin: 1px 0
 }
 
-dl.api-level dl.attribute dt {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
-
+#content pre,dl.api-level dl.attribute dt,table.field-list td.field-body dl.docutils dt,table.field-list th.field-name {
+    background-color: var(--sphinxsidebar-li-a-bg-color)
 }
 
 dl.api-level dd {
-    margin-left: 20px;
+    margin-left: 20px
 }
 
 dl.api-level {
-    margin-top: 20px;
-}
-
-tt.descclassname {
-    display: none;
+    margin-top: 20px
 }
 
 tt.descname {
-    color: var(--sphinxsidebar-li-a-color);
-    /*todo color: #515151;*/
-    font-size: 1.2em;
+    font-size: 1.2em
 }
 
 em {
-    font-style: normal;
+    font-style: normal
 }
 
 em.property {
-    color: var(--em-property);
+    color: var(--em-property)
 }
 
 big {
     font-size: 14px;
-    font-weight: normal;
+    font-weight: 400
 }
-
-/* field list */
 
 table.field-list {
     border-collapse: collapse;
-    border: 0 currentcolor !important;
-}
-
-table.field-list th.field-name {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
-
+    border: 0 currentcolor!important
 }
 
 table.field-list tr {
-    border: 5px solid var(--border-secondary-color);
+    border: 5px solid var(--border-secondary-color)
 }
 
 table.field-list td.field-body {
-    padding: 10px;
-    padding-bottom: 0px;
-    padding-top: 5px;
+    padding: 5px 10px 0
 }
 
 table.field-list td.field-body dl.docutils {
     margin-top: -6px;
-    margin-left: -10px;
+    margin-left: -10px
 }
 
 table.field-list td.field-body dl.docutils dt {
-    background-color: var(--sphinxsidebar-li-a-bg-color);
     padding: 5px 8px;
-    font-style: normal;
+    font-style: normal
 }
 
 table.field-list td.field-body dl.docutils dd {
-    margin: 8px 15px;
+    margin: 8px 15px
 }
-
-/* Form search */
 
 .sphinxsidebar form.search {
     display: flex;
     margin-top: .5em;
-    margin-bottom: .5em;
+    margin-bottom: .5em
 }
 
 form.search input {
     line-height: 2em;
-    border: 1px solid var(--versionselector-border-color);
     font-size: 1.1em;
     padding: 5px 8px;
     display: flex;
-    flex-grow: 1;
+    flex-grow: 1
 }
 
 form.search button[type=submit] {
     width: 20%;
-    font-size: 1em;
+    font-size: 1em
 }
 
-/* Getting started */
 .gs-eleft {
-    float: left;
-    margin-right: 10px;
+    margin-right: 10px
 }
 
-/* From HTML */
+#version_selector,form.search input,table.docutils {
+    border: 1px solid var(--versionselector-border-color)
+}
+
 table.docutils {
-    border-collapse: collapse;
-    border: 1px solid var(--versionselector-border-color);
+    border-collapse: collapse
 }
 
-table.docutils th,
-table.docutils td {
-    padding: 5px 8px;
+table.docutils td,table.docutils th {
+    padding: 5px 8px
 }
 
 .align-right {
     float: right;
-    margin: 5px 0 5px 5px;
+    margin: 5px 0 5px 5px
 }
 
 .align-center {
     margin: 5px auto;
-    display: block;
+    display: block
 }
 
-/** API **/
 .api-index {
     height: 200px;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: scroll
 }
 
 div.sphinxsidebar .api-index li a {
     font-size: 12px;
-    padding: 5px 5px;
+    padding: 5px
 }
 
-/** TOC **/
 .toc {
     background-color: var(--bg-accent-color);
     border: 1px solid var(--dark-border-color);
     padding: 10px;
-    font-size: 0.9em;
-    margin-top: 1em;
+    font-size: .9em;
+    margin-top: 1em
 }
 
 #content .toc h2 {
     font-size: 1.2em;
-    margin: 0 0 5px 0;
-    padding: 0 0 2px 0;
+    margin: 0 0 5px;
+    padding: 0 0 2px
 }
 
-.toc ul li,
-.toc ul {
+.toc ul,.toc ul li {
     list-style-type: none;
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0
 }
 
 .toc ul li li li {
     padding-left: 10px;
-    border-left: 1px solid var(--dark-border-color);
-}
-
-
-/** Highlighted tables (source code with line number) **/
-table.highlighttable {
-    width: 100%;
+    border-left: 1px solid var(--dark-border-color)
 }
 
 table.highlighttable td.linenos {
-    width: 40px;
+    width: 40px
 }
 
-/** viewcode link style **/
-.viewcode-back,
-.viewcode-link {
+.viewcode-back,.viewcode-link {
     position: absolute;
     right: 2em;
-    display: none;
+    display: none
 }
 
-/** version added in method/class/attribute/module **/
 span.versionadded {
     font-size: 12px;
-    float: right;
-}
-
-span.versionadded span {
-    color: var(--anchor-color);
+    float: right
 }
 
 div.navlink {
     font-size: 12px;
     position: relative;
-    text-align: right;
     top: -30px;
-    height: 0px;
+    height: 0
 }
 
 #version_selector {
     width: 100%;
     -webkit-appearance: none;
     -moz-appearance: none;
-    border: 1px solid var(--versionselector-border-color);
-    padding: 0.5em 1em;
+    padding: .5em 1em;
     margin-top: .5em;
     margin-bottom: .5em;
-    background: var(--bg-accent-color) url('disclosure_down.png') top right no-repeat;
+    background: var(--bg-accent-color)url(disclosure_down.png)top right no-repeat
 }
 
-#content {
-    width: 100%;
+#content,table.highlighttable {
+    width: 100%
 }
 
-#content > .wrapper {
+#content>.wrapper {
     padding-left: 0;
-    padding-right: 0;
+    padding-right: 0
 }
 
 img {
     max-width: 100%;
-    object-fit: contain;
+    object-fit: contain
 }
 
 code.docutils {
@@ -751,362 +674,215 @@ code.docutils {
     padding: .2em .5em;
     color: var(--neutral-secondary-text);
     border-radius: .5em;
-    background-image: none;
+    background-image: none
 }
 
 .linenos::before {
-    content: attr(data-line-number);
+    content: attr(data-line-number)
 }
 
 span.linenos {
     color: inherit;
-    background-color: transparent;
+    background-color: transparent
 }
 
-td.linenos .special {
+span.linenos.special,td.linenos .special {
     color: var(--neutral-secondary-text);
-    background-color: var(--highlight-hll);
-}
-
-span.linenos.special {
-    color: var(--neutral-secondary-text);
-    background-color: var(--highlight-hll);
+    background-color: var(--highlight-hll)
 }
 
 .highlight .hll {
-    background-color: var(--highlight-hll);
+    background-color: var(--highlight-hll)
 }
 
 .highlight .c {
-    color: var(--highlight-c);
+    color: var(--highlight-c)
 }
 
 .highlight .err {
     color: var(--highlight-err);
-    border-color: var(--highlight-err_);
+    border-color: var(--highlight-err_)
 }
 
-.highlight .g {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .k {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .l {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .n {
-    color: var(--neutral-secondary-text);
+.highlight .g,.highlight .k,.highlight .l,.highlight .n {
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .o {
-    color: var(--highlight-o);
+    color: var(--highlight-o)
 }
 
 .highlight .x {
-    color: var(--highlight-err);
+    color: var(--highlight-err)
 }
 
 .highlight .p {
-    color: var(--neutral-secondary-text);
+    color: var(--neutral-secondary-text)
 }
 
-.highlight .ch {
-    color: var(--highlight-c);
-}
-
-.highlight .cm {
-    color: var(--highlight-c);
-}
-
-.highlight .cp {
-    color: var(--highlight-c);
-}
-
-.highlight .cpf {
-    color: var(--highlight-c);
-}
-
-.highlight .c1 {
-    color: var(--highlight-c);
-}
-
-.highlight .cs {
-    color: var(--highlight-c);
+.highlight .c1,.highlight .ch,.highlight .cm,.highlight .cp,.highlight .cpf,.highlight .cs {
+    color: var(--highlight-c)
 }
 
 .highlight .gd {
-    color: var(--highlight-gd);
+    color: var(--highlight-gd)
 }
 
 .highlight .ge {
-    color: var(--neutral-secondary-text);
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .gr {
-    color: var(--highlight-gr);
+    color: var(--highlight-gr)
 }
 
 .highlight .gh {
-    color: var(--higlight-gh);
+    color: var(--higlight-gh)
 }
 
 .highlight .gi {
-    color: var(--highlight-gi);
+    color: var(--highlight-gi)
 }
 
 .highlight .go {
-    color: var(--highlight-go);
+    color: var(--highlight-go)
 }
 
 .highlight .gp {
-    color: var(--highlight-gp);
+    color: var(--highlight-gp)
 }
 
 .highlight .gs {
-    color: var(--neutral-secondary-text);
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .gu {
-    color: var(--highlight-gu);
+    color: var(--highlight-gu)
 }
 
 .highlight .gt {
-    color: var(--highlight-gd);
+    color: var(--highlight-gd)
 }
 
-.highlight .kc {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .kd {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .kn {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .kp {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .kr {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .kt {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .ld {
-    color: var(--neutral-secondary-text);
+.highlight .kc,.highlight .kd,.highlight .kn,.highlight .kp,.highlight .kr,.highlight .kt,.highlight .ld {
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .m {
-    color: var(--highlight-m);
+    color: var(--highlight-m)
 }
 
 .highlight .s {
-    color: var(--highlight-s);
+    color: var(--highlight-s)
 }
 
 .highlight .na {
-    color: var(--highlight-na);
+    color: var(--highlight-na)
 }
 
 .highlight .nb {
-    color: var(--neutral-secondary-text);
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .nc {
-    color: var(--highlight-nc);
+    color: var(--highlight-nc)
 }
 
 .highlight .no {
-    color: var(--neutral-secondary-text);
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .nd {
-    color: var(--highlight-go);
+    color: var(--highlight-go)
 }
 
 .highlight .ni {
-    color: var(--highlight-nc);
+    color: var(--highlight-nc)
 }
 
 .highlight .ne {
-    color: var(--highlight-gr);
+    color: var(--highlight-gr)
 }
 
-.highlight .nf {
-    color: var(--highlight-nc);
+.highlight .nf,.highlight .nl {
+    color: var(--highlight-nc)
 }
 
-.highlight .nl {
-    color: var(--highlight-nc);
-}
-
-.highlight .nn {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .nx {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .py {
-    color: var(--neutral-secondary-text);
+.highlight .nn,.highlight .nx,.highlight .py {
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .nt {
-    color: var(--versionchanged-color);
+    color: var(--versionchanged-color)
 }
 
-.highlight .nv {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .ow {
-    color: var(--neutral-secondary-text);
+.highlight .nv,.highlight .ow,.highlight .w {
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .w {
-    color: var(--neutral-secondary-text);
-    text-decoration-color: currentcolor;
+    text-decoration-color: currentcolor
 }
 
-.highlight .mb {
-    color: var(--highlight-m);
-}
-
-.highlight .mf {
-    color: var(--highlight-m);
-}
-
-.highlight .mh {
-    color: var(--highlight-m);
-}
-
-.highlight .mi {
-    color: var(--highlight-m);
-}
-
-.highlight .mo {
-    color: var(--highlight-m);
+.highlight .mb,.highlight .mf,.highlight .mh,.highlight .mi,.highlight .mo {
+    color: var(--highlight-m)
 }
 
 .highlight .sa {
-    color: var(--highlight-s);
+    color: var(--highlight-s)
 }
 
-.highlight .sb {
-    color: var(--highlight-sb);
-}
-
-.highlight .sc {
-    color: var(--highlight-sb);
+.highlight .sb,.highlight .sc {
+    color: var(--highlight-sb)
 }
 
 .highlight .dl {
-    color: var(--highlight-s);
+    color: var(--highlight-s)
 }
 
 .highlight .sd {
-    color: var(--secondary-text-color);
+    color: var(--secondary-text-color)
 }
 
-.highlight .s2 {
-    color: var(--highlight-s);
-}
-
-.highlight .se {
-    color: var(--highlight-s);
-}
-
-.highlight .sh {
-    color: var(--highlight-s);
-}
-
-.highlight .si {
-    color: var(--highlight-s);
-}
-
-.highlight .sx {
-    color: var(--highlight-s);
-}
-
-.highlight .sr {
-    color: var(--highlight-s);
-}
-
-.highlight .s1 {
-    color: var(--highlight-s);
-}
-
-.highlight .ss {
-    color: var(--highlight-s);
+.highlight .s1,.highlight .s2,.highlight .se,.highlight .sh,.highlight .si,.highlight .sr,.highlight .ss,.highlight .sx {
+    color: var(--highlight-s)
 }
 
 .highlight .bp {
-    color: var(--highlight-bp);
+    color: var(--highlight-bp)
 }
 
 .highlight .fm {
-    color: var(--highlight-nc);
+    color: var(--highlight-nc)
 }
 
-.highlight .vc {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .vg {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .vi {
-    color: var(--neutral-secondary-text);
-}
-
-.highlight .vm {
-    color: var(--neutral-secondary-text);
+.highlight .vc,.highlight .vg,.highlight .vi,.highlight .vm {
+    color: var(--neutral-secondary-text)
 }
 
 .highlight .il {
-    color: var(--highlight-m);
+    color: var(--highlight-m)
 }
 
-@media (min-width: 640px) {
-
-}
-
-@media (min-width: 768px) {
-
-}
-
-@media (min-width: 1024px) {
-
+@media (min-width:1024px) {
     #toplogo {
         width: 20%;
         height: 80px;
         display: flex;
-        justify-content: flex-start;
+        justify-content: flex-start
     }
 
     #topmenu {
         width: 80%;
-        height: 80px;
+        height: 80px
     }
 
     #topbar ul {
-        justify-content: flex-end;
+        justify-content: flex-end
     }
 
     #topmenu ul.navigation li {
-        margin-right: 3em;
+        margin-right: 3em
     }
 
     div.sphinxsidebar {
@@ -1114,34 +890,34 @@ span.linenos.special {
         position: sticky;
         top: 0;
         height: 80vh;
-        padding-top: 1em;
+        padding-top: 1em
     }
 
     #content {
-        width: calc(100% - 260px);
+        width: calc(100% - 260px)
     }
 
     .sphinxsidebarwrapper {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: 100%
     }
 
     .api-index {
         height: 100px;
         display: flex;
-        flex-grow: 1;
+        flex-grow: 1
     }
 
     .is-api .sphinxsidebarwrapper .current {
         display: flex;
         flex-grow: 1;
-        flex-direction: column;
+        flex-direction: column
     }
 
-    #content > .wrapper {
+    #content>.wrapper {
         padding-left: 1em;
-        padding-right: 1em;
+        padding-right: 1em
     }
 
     .toc {
@@ -1151,8 +927,9 @@ span.linenos.special {
         padding: 10px;
         float: right;
         margin: 0 0 10px 10px;
-        font-size: 0.9em;
+        font-size: .9em
     }
+
     .toc ul li li li {
     border-left-color: var(--dark-border-color);
 }
