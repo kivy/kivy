@@ -136,11 +136,6 @@ html_logo = '.static/logo-kivy.png'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['.static']
 
-# The style sheet to use for HTML and HTML Help pages. A file of that name
-# must exist either in Sphinx' static/ path, or in one of the custom paths
-# given in html_static_path.
-html_css_files = ['dark.css']
-
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
