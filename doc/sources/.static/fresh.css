@@ -921,18 +921,9 @@ span.linenos.special,td.linenos .special {
     }
 
     .toc {
-        width: auto;
-        background-color: var(--bg-accent-color);
-        border: 1px solid var(--dark-border-color);
-        padding: 10px;
         float: right;
         margin: 0 0 10px 10px;
-        font-size: .9em
     }
-
-    .toc ul li li li {
-    border-left-color: var(--dark-border-color);
-}
 
 }
 
