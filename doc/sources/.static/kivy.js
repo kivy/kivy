@@ -234,3 +234,7 @@ $(function() {
 		}).remove();
   });
 });
+function changeTheme(obj){
+	if(obj.checked) document.documentElement.className = "dark"
+	else  document.documentElement.className = "light"
+}
