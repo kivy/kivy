@@ -94,8 +94,9 @@
     {%- endif %}
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
     <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+
     {%- if not embedded %}
     {%- block scripts %}
         {% if sphinx_version >= "1.8.0" %} 
@@ -184,6 +185,14 @@
                   <li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
                   <li><a class="nav-pdf" href="https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf">PDF</a></li>
                   <li><a class="nav-wiki" href="http://wiki.kivy.org">Wiki</a></li>
+                  <li>
+                      <div id="themeToggleSwitchContainer">
+                          <label  id="themeToggleSwitch">
+                              <input class="input" type="checkbox" onchange="changeTheme(this)">
+                              <span class="slider round"></span>
+                          </label>
+                      </div>
+                  </li>
               </ul>
           </div>
         </div>
