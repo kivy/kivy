@@ -159,13 +159,6 @@
 {%- endblock %}
 {%- block extrahead %} {% endblock %}
   </head>
-  <script>
-    var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = "{{ pathto('_static/dark.css', 1) }}";
-            link.id = "darkModeS";
-        document.head.appendChild(link);
-    </script>
   <body>
 {%- block header %}{% endblock %}
 
