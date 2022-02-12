@@ -838,7 +838,7 @@ span.linenos.special,td.linenos .special {
 
 .vt-switch-check {
 	position: absolute;
-	top: 1px;
+	top: 2px;
 	width: 18px;
 	height: 18px;
 	border-radius: 50%;
@@ -848,10 +848,10 @@ span.linenos.special,td.linenos .special {
 }
 
 html.light .vt-switch-check{
-    left: 1px;
+    left: 2px;
 }
 html.dark .vt-switch-check{
-    left: 18px;
+    left: 20px;
 }
 .vt-switch-icon {
 	position: relative;
@@ -891,7 +891,7 @@ html.dark .vt-switch-icon .moon{
     #li_themeToggleSwitch{
         position: absolute;
         top: 15%;
-        left: 90%;
+        left: 87.5%;
     }
 }
 
@@ -963,7 +963,15 @@ html.dark .vt-switch-icon .moon{
     #themeToggleSwitch {
         position: relative;
     }
-
+    html.light .vt-switch-check{
+        left: 1px
+    }
+    html.dark .vt-switch-check{
+        left: 19px
+    }
+    .vt-switch-check {
+        top: 1px
+    }
 }
 
 @media (min-width: 1280px) {
