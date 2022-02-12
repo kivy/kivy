@@ -821,12 +821,10 @@ span.linenos.special,td.linenos .special {
 }
 
 #themeToggleSwitch {
-        position: relative;
         border-radius: 11px;
         display: block;
         width: 40px;
         height: 22px;
-        flex-shrink: 0;
         border: 1px solid var(--vt-c-divider);
         background-color: var(--vt-c-bg-mute);
         transition: border-color .25s,background-color .25s;
@@ -883,6 +881,18 @@ html.dark .vt-switch-icon .sun{
 }
 html.dark .vt-switch-icon .moon{
     opacity: 1;
+}
+
+@media (min-width: 320px) {
+    #topbar{
+        position: relative;
+    }
+
+    #li_themeToggleSwitch{
+        position: absolute;
+        top: 15%;
+        left: 90%;
+    }
 }
 
 
@@ -945,6 +955,13 @@ html.dark .vt-switch-icon .moon{
     .toc {
         float: right;
         margin: 0 0 10px 10px;
+    }
+    #topbar, #li_themeToggleSwitch{
+        position: static;
+    }
+
+    #themeToggleSwitch {
+        position: relative;
     }
 
 }
