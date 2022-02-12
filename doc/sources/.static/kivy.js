@@ -240,8 +240,12 @@ $(function() {
 		const target = currApiIndex_li[0];
 		$(target.parentNode).animate({"scrollTop": target.offsetTop - 2*target.parentNode.offsetTop }, 'normal');
 	}
+
+	document.documentElement.className = localStorage.getItem('theme') || "light";
+	$("#themeToggleSwitch").click(function () {
+		let currTheme = document.documentElement.className,
+			newTheme = currTheme === "light" ? "dark" : "light"
+		document.documentElement.className = newTheme
+		localStorage.setItem('theme', newTheme);
+	});
 });
-function changeTheme(obj){
-	if(obj.checked) document.documentElement.className = "dark"
-	else  document.documentElement.className = "light"
-}
