@@ -233,4 +233,12 @@ $(function() {
     			return this.nodeType === 3; //https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 		}).remove();
   });
+
+
+	$("#themeToggleSwitch").click(function () {
+		let currTheme = document.documentElement.className,
+			newTheme = currTheme === "light" ? "dark" : "light"
+		document.documentElement.className = newTheme
+		localStorage.setItem('theme', newTheme);
+	});
 });
