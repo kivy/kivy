@@ -234,12 +234,6 @@ $(function() {
 		}).remove();
   });
 
-	// to have the current "active" element be always be centred on the left side bar
-	const currApiIndex_li = $(".api-index li.current");
-	if (currApiIndex_li.length){
-		const target = currApiIndex_li[0];
-		$(target.parentNode).animate({"scrollTop": target.offsetTop - 2*target.parentNode.offsetTop }, 'normal');
-	}
 
 	$("#themeToggleSwitch").click(function () {
 		let currTheme = document.documentElement.className,
