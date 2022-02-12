@@ -226,9 +226,9 @@ $(function() {
 	}
 	// Hack to add an attrib to all linenos,
 	// this is needed in order to avoid certain browsers (Ex: Safari) that treat the line-number as a copyable item.
-    $(".linenos").each(function(){
+    $(".linenos, .gp").each(function(){
         let $this = $(this);
-        $this.attr("data-line-number", $this.text());
+        $this.attr("unselectable-data", $this.text());
 		$this.contents().filter(function(){
     			return this.nodeType === 3; //https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 		}).remove();
