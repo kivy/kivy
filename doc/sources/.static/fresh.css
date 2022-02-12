@@ -6,7 +6,8 @@
     --border-color: #736b5e;
     --border-secondary-color: #303436FF;
     --anchor-color: #3391ff;
-    --anchor-hover: #1752997F
+    --anchor-hover: #1752997F;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 2px rgba(0, 0, 0, .06);
 }
 
 :root,:root.light {
@@ -46,7 +47,12 @@
     --highlight-na: #c4a000;
     --highlight-nc: #db6500;
     --highlight-sb: #4e9a06;
-    --highlight-bp: #aa1105
+    --highlight-bp: #aa1105;
+    --vt-c-divider: rgba(60, 60, 60, .29);
+    --vt-c-border: #2c2b2b;
+    --vt-c-bg-mute: #f1f1f1;
+    --vt-switch-bg-color: #626262;
+    --vt-svg-fill: yellow;
 }
 
 :root.dark {
@@ -88,7 +94,11 @@
     --highlight-na: #FFDC43FF;
     --highlight-nc: #FF9133FF;
     --highlight-sb: #ABF962FF;
-    --highlight-bp: #FA6256FF
+    --highlight-bp: #FA6256FF;
+    --vt-c-divider: rgba(84, 84, 84, .65);
+    --vt-c-bg-mute: #2f2f2f;
+    --vt-switch-bg-color: black;
+    --vt-svg-fill: rgba(255, 255, 255, .87);
 }
 
 html.light {
@@ -295,60 +305,6 @@ td.linenos .normal {
     background-color: #50c8d7
 }
 
-#themeToggleSwitchContainer {
-    padding: 0 0 2px
-}
-
-#themeToggleSwitch {
-    position: relative;
-    top: 0;
-    display: inline-block;
-    width: 1rem;
-    height: 100%
-}
-
-#themeToggleSwitch input {
-    opacity: 0;
-    width: 0;
-    height: 0
-}
-
-#themeToggleSwitch .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #444343;
-    -webkit-transition: .4s;
-    transition: .4s
-}
-
-#themeToggleSwitch input:checked+.slider:before {
-    -webkit-transform: translateY(30px);
-    -ms-transform: translateY(30px);
-    transform: translateY(30px)
-}
-
-#themeToggleSwitch .slider.round {
-    border-radius: 34px
-}
-
-#themeToggleSwitch .slider.round:before {
-    border-radius: 50%
-}
-
-#themeToggleSwitch .slider:before {
-    position: absolute;
-    content: "";
-    height: 1rem;
-    width: 1rem;
-    top: 0;
-    background-color: #fff;
-    -webkit-transition: .4s;
-    transition: .4s
-}
 
 div.sphinxsidebar {
     width: 100%
@@ -863,6 +819,72 @@ span.linenos.special,td.linenos .special {
 .highlight .il {
     color: var(--highlight-m)
 }
+
+#themeToggleSwitch {
+        position: relative;
+        border-radius: 11px;
+        display: block;
+        width: 40px;
+        height: 22px;
+        flex-shrink: 0;
+        border: 1px solid var(--vt-c-divider);
+        background-color: var(--vt-c-bg-mute);
+        transition: border-color .25s,background-color .25s;
+        margin-top: auto;
+        margin-bottom: auto;
+}
+
+#themeToggleSwitch:hover {
+    border-color: var(--vt-svg-fill);
+}
+
+.vt-switch-check {
+	position: absolute;
+	top: 1px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background-color: var(--vt-switch-bg-color);
+	box-shadow: var(--shadow-1);
+	transition: background-color .25s, left .25s;
+}
+
+html.light .vt-switch-check{
+    left: 1px;
+}
+html.dark .vt-switch-check{
+    left: 18px;
+}
+.vt-switch-icon {
+	position: relative;
+	display: block;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	overflow: hidden;
+}
+.vt-switch-icon svg {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 12px;
+	height: 12px;
+	fill: var(--vt-svg-fill);
+    transition: opacity .25s, left .25s;
+}
+html.light .vt-switch-icon .sun{
+    opacity: 1;
+}
+html.light .vt-switch-icon .moon{
+    opacity: 0;
+}
+html.dark .vt-switch-icon .sun{
+    opacity: 0;
+}
+html.dark .vt-switch-icon .moon{
+    opacity: 1;
+}
+
 
 @media (min-width:1024px) {
     #toplogo {
