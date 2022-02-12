@@ -241,16 +241,6 @@ $(function() {
 		$(target.parentNode).animate({"scrollTop": target.offsetTop - 2*target.parentNode.offsetTop }, 'normal');
 	}
 
-	const currTheme = localStorage.getItem("theme");
-	if(currTheme){
-		document.documentElement.className = currTheme;
-	} else if(window.matchMedia){
-		document.documentElement.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark": "light";
-	} else { // neither localStorage or window.matchMedia exists
-		document.documentElement.className = "light"; //todo should dark theme be the fallback value instead ?
-	}
-	localStorage.setItem('theme', document.documentElement.className);
-
 	$("#themeToggleSwitch").click(function () {
 		let currTheme = document.documentElement.className,
 			newTheme = currTheme === "light" ? "dark" : "light"
