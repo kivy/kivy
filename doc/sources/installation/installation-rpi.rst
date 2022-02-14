@@ -82,7 +82,7 @@ Cross-Compilation for Raspberry Pi 1-3 headless installation on Raspbian Buster
 
 The Raspberry OS project uses `pi-gen` project to create bootable images for Raspberry PI.
 
-Kivy determines automatically, which libraries to add based on the environment it is run. The `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled in when running on a Raspberry Pi.
+Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi.
 
 When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variabel `USE_RPI` to `1`.
 
