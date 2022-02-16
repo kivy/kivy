@@ -573,8 +573,9 @@ code.docutils {
     border-radius: 0.5em;
     background-image: none;
 }
-.linenos::before {
-    content: attr(data-line-number);
+
+.linenos::before, .gp::before {
+	content: attr(unselectable-data);
 }
 span.linenos {
     color: inherit;
