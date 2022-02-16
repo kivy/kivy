@@ -83,15 +83,17 @@ Cross-Compilation for Raspberry Pi 1-3 headless installation on Raspbian Buster
 The Raspberry OS project uses `pi-gen` project to create bootable images for Raspberry PI.
 
 Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi.
+In order to build Kivy in such `pi-gen` environment, the auto-detection of the Raspberry Pi hardware version needs to be disabled.
 
-When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variabel `USE_RPI` to `1`.
+When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variabel `FORCE_RPI_VERSION` to any number < 4, e.g. `3`.
 
 The install command then looks something like this::
 
-    apt install build-essential libraspberrypi-dev raspberrypi-kernel-headers 
-    USE_RPI=1 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
+    apt install build-essential libraspberrypi-dev raspberrypi-kernel-headers
+    FORCE_RPI_VERSION=3 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
 
 Please note that the `egl_rpi` window handler is not supported on Raspberry Pi 4 and higher.
+The existing version check will refuse to compile the `egl_rpi` provider when detecting or forcing the Raspberry Pi version to 4 or higher.
 
 Raspberry Pi 4 headless installation on Raspbian Buster
 *******************************************************
