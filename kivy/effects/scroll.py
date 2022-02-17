@@ -19,6 +19,7 @@ class as a base effect for our :class:`~kivy.uix.scrollview.ScrollView` widget.
 __all__ = ('ScrollEffect', )
 
 
+from time import time
 from kivy.effects.kinetic import KineticEffect
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty
@@ -91,7 +92,7 @@ class ScrollEffect(KineticEffect):
         self.velocity = 0
         if self.history:
             val = self.history[-1][1]
-            super(ScrollEffect, self).start(val, None)
+            self.history = [(time(), val)]
 
     def on_value(self, *args):
         scroll_min = self.min
