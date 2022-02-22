@@ -1714,14 +1714,20 @@ class TextInput(FocusBehavior, Widget):
 
         if self.multiline:
             max_scroll_y = max(0, self.minimum_height - self.height)
-            self.scroll_y = min(max(0, self.scroll_y + touch.dy),
-                                max_scroll_y)
+            self.scroll_y = min(
+                max(0, self.scroll_y + touch.dy),
+                max_scroll_y
+            )
         else:
-            minimum_width = (self._get_row_width(0) + self.padding[0] +
-                                self.padding[2])
+            minimum_width = (
+                self._get_row_width(0)
+                + self.padding[0] + self.padding[2]
+            )
             max_scroll_x = max(0, minimum_width - self.width)
-            self.scroll_x = min(max(0, self.scroll_x - touch.dx),
-                                max_scroll_x)
+            self.scroll_x = min(
+                max(0, self.scroll_x - touch.dx),
+                max_scroll_x
+            )
         self._trigger_update_graphics()
         self._position_handles()
         return True
