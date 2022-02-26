@@ -233,14 +233,13 @@ class ModalView(AnchorLayout):
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
-            self._state = 'opening'
+            self._set_state('opening')
             self._anim = ani = Animation(_anim_alpha=1., d=self._anim_duration)
             ani.bind(on_complete=lambda *_args: self._set_state('open'))
             ani.start(self)
         else:
-            self._state = 'open'
+            self._set_state('open')
             self._anim_alpha = 1.
-            self.dispatch('on_open')
 
     def dismiss(self, *_args, **kwargs):
         """ Close the view if it is open.
@@ -265,7 +264,7 @@ class ModalView(AnchorLayout):
         if self.dispatch('on_dismiss') and not kwargs.get('force', False):
             return
         if kwargs.get('animation', True):
-            self._state = 'dismissing'
+            self._set_state('dismissing')
             self._anim = ani = Animation(_anim_alpha=0.,
                                          d=self._anim_duration)
             ani.bind(on_complete=lambda *args: self._set_state('dismissed'))
