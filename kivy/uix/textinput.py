@@ -526,6 +526,7 @@ class TextInput(FocusBehavior, Widget):
         self._scroll_distance_x = 0
         self._scroll_distance_y = 0
         self._enable_scroll = True
+        self._have_scrolled = False
 
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
@@ -1587,6 +1588,12 @@ class TextInput(FocusBehavior, Widget):
         # stores the touch for later use
         self._touch_down = touch
 
+        # Is a new touch_down, so previous scroll states needs to be reset
+        self._enable_scroll = True
+        self._have_scrolled = False
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
+
         self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
         self._long_touch_ev = Clock.schedule_once(self.long_touch, .5)
@@ -1621,10 +1628,8 @@ class TextInput(FocusBehavior, Widget):
 
         if self.scroll_from_swipe:
             self.scroll_text_from_swipe(touch)
-        else:
-            self._enable_scroll = False
 
-        if not self._enable_scroll and self._selection_touch is touch:
+        if not self._have_scrolled and self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
             self._selection_to = self.cursor_index()
             self._update_selection()
@@ -1649,29 +1654,10 @@ class TextInput(FocusBehavior, Widget):
             or self._touch_count == 4
         )
 
-        _scroll_timeout = touch.time_update - touch.time_start
-        # conditions for discarding touch such as swipe to scroll and as
-        # selection on hold. If the conditions are true, the tap will be
-        # generically recognized as a single tap.
-        single_tap = (
-            _scroll_timeout <= self.scroll_timeout / 1000
-            and self._scroll_distance_x <= self.scroll_distance
-            and self._scroll_distance_y <= self.scroll_distance
-        )
-
-        # if the given conditions are true, the touch will be recognized as a
-        # single tap. If there is selected text, the selection will be canceled
-        # and it will be possible to start a new selection.
-        if (
-            self.scroll_from_swipe
-            and not prioritized_touch_types
-            and single_tap
-        ):
+        if not self._have_scrolled and not prioritized_touch_types:
+            # Is a single tap and did not scrolled.
+            # Selection needs to be canceled.
             self._cancel_update_selection(self._touch_down)
-
-        self._enable_scroll = True
-        self._scroll_distance_x = 0
-        self._scroll_distance_y = 0
 
         # show Bubble
         win = EventLoop.window
@@ -1700,52 +1686,51 @@ class TextInput(FocusBehavior, Widget):
             return True
 
     def scroll_text_from_swipe(self, touch):
+        _scroll_timeout = (touch.time_update - touch.time_start) * 1000
+        self._scroll_distance_x += abs(touch.dx)
+        self._scroll_distance_y += abs(touch.dy)
+        if not self._have_scrolled:
+            # To be considered a scroll, touch should travel more than
+            # scroll_distance in less than the scroll_timeout since touch_down
+            if not (
+                _scroll_timeout <= self.scroll_timeout
+                and (
+                    (self._scroll_distance_x >= self.scroll_distance)
+                    or (self._scroll_distance_y >= self.scroll_distance)
+                )
+            ):
+                # Distance isn't enough (yet) to consider it as a scroll
+                if _scroll_timeout <= self.scroll_timeout:
+                    # Timeout is not reached, scroll is still enabled.
+                    return False
+                else:
+                    self._enable_scroll = False
+                    self._cancel_update_selection(self._touch_down)
+                    return False
+            # We have a scroll!
+            self._have_scrolled = True
+
+        self.cancel_long_touch_event()
+
         if self.multiline:
-            _scroll_timeout = touch.time_update - touch.time_start
-            self._scroll_distance_x += abs(touch.dx)
-            self._scroll_distance_y += abs(touch.dy)
-
-            # disable scroll and start selection mode if scroll distance
-            # isn't reached within scroll_timeout
-            if (
-                _scroll_timeout >= self.scroll_timeout / 1000
-                and self._scroll_distance_x <= self.scroll_distance
-                and self._scroll_distance_y <= self.scroll_distance
-            ):
-                self._enable_scroll = False
-                self._cancel_update_selection(self._touch_down)
-
-            if self._enable_scroll:
-                self.cancel_long_touch_event()
-                max_scroll_y = max(0, self.minimum_height - self.height)
-                self.scroll_y = min(max(0, self.scroll_y + touch.dy),
-                                    max_scroll_y)
-                self._trigger_update_graphics()
-                self._position_handles()
-                return True
-
+            max_scroll_y = max(0, self.minimum_height - self.height)
+            self.scroll_y = min(
+                max(0, self.scroll_y + touch.dy),
+                max_scroll_y
+            )
         else:
-            _scroll_timeout = touch.time_update - touch.time_start
-            self._scroll_distance_x += abs(touch.dx)
-
-            # works with the same logic as multiline above
-            if (
-                _scroll_timeout >= self.scroll_timeout / 1000
-                and self._scroll_distance_x <= self.scroll_distance
-            ):
-                self._enable_scroll = False
-                self._cancel_update_selection(self._touch_down)
-
-            if self._enable_scroll:
-                self.cancel_long_touch_event()
-                minimum_width = (self._get_row_width(0) + self.padding[0] +
-                                 self.padding[2])
-                max_scroll_x = max(0, minimum_width - self.width)
-                self.scroll_x = min(max(0, self.scroll_x - touch.dx),
-                                    max_scroll_x)
-                self._trigger_update_graphics()
-                self._position_handles()
-                return True
+            minimum_width = (
+                self._get_row_width(0)
+                + self.padding[0] + self.padding[2]
+            )
+            max_scroll_x = max(0, minimum_width - self.width)
+            self.scroll_x = min(
+                max(0, self.scroll_x - touch.dx),
+                max_scroll_x
+            )
+        self._trigger_update_graphics()
+        self._position_handles()
+        return True
 
     def _handle_pressed(self, instance):
         self._hide_cut_copy_paste()
