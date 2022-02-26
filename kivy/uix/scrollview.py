@@ -933,7 +933,7 @@ class ScrollView(StencilView):
             if not touch.ud['sv.handled']['y'] and self.do_scroll_y \
                     and self.effect_y:
                 height = self.height
-                if touch.ud.get('in_bar_y', False):
+                if touch.ud.get('in_bar_y', False) and self.vbar[1] != 1.0:
                     dy = touch.dy / float(height - height * self.vbar[1])
                     self.scroll_y = min(max(self.scroll_y + dy, 0.), 1.)
                     self._trigger_update_from_scroll()
