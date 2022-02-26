@@ -177,6 +177,7 @@ class ModalView(AnchorLayout):
     '''
 
     # Internals properties used for graphical representation.
+    _anim = None
 
     _anim_alpha = NumericProperty(0)
 
@@ -194,6 +195,12 @@ class ModalView(AnchorLayout):
         self._parent = None
         super(ModalView, self).__init__(**kwargs)
 
+    def _clear_anim(self):
+        """Stop and clear the animation if there are any."""
+        if self._anim:
+            self._anim.stop(self)
+            self._anim = None
+
     def open(self, *_args, **kwargs):
         """Display the modal in the Window.
 
@@ -206,6 +213,7 @@ class ModalView(AnchorLayout):
         from kivy.core.window import Window
         if self._is_open:
             return
+        self._clear_anim()
         self._window = Window
         self._is_open = True
         self.dispatch('on_pre_open')
@@ -217,7 +225,7 @@ class ModalView(AnchorLayout):
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
-            ani = Animation(_anim_alpha=1., d=self._anim_duration)
+            self._anim = ani = Animation(_anim_alpha=1., d=self._anim_duration)
             ani.bind(on_complete=lambda *_args: self.dispatch('on_open'))
             ani.start(self)
         else:
@@ -239,16 +247,19 @@ class ModalView(AnchorLayout):
             view.dismiss(animation=False)
 
         """
+        self._clear_anim()
         if not self._is_open:
             return
+
         self.dispatch('on_pre_dismiss')
-        if self.dispatch('on_dismiss') is True:
-            if kwargs.get('force', False) is not True:
-                return
+        if self.dispatch('on_dismiss') and not kwargs.get('force', False):
+            return
         if kwargs.get('animation', True):
-            Animation(_anim_alpha=0., d=self._anim_duration).start(self)
+            self._anim = ani = Animation(_anim_alpha=0.,
+                                         d=self._anim_duration)
+            ani.bind(on_complete=lambda *args: self._real_remove_widget())
+            ani.start(self)
         else:
-            self._anim_alpha = 0
             self._real_remove_widget()
 
     def _align_center(self, *_args):
@@ -281,11 +292,6 @@ class ModalView(AnchorLayout):
             super().on_touch_up(touch)
         self._touch_started_inside = None
         return True
-
-    def on__anim_alpha(self, _instance, value):
-        """ animation progress callback. """
-        if value == 0 and self._is_open:
-            self._real_remove_widget()
 
     def _real_remove_widget(self):
         if not self._is_open:
