@@ -16,20 +16,20 @@ Flow of the motion events
 -------------------------
 
 1. The :class:`MotionEvent` 's are gathered from input providers by
-    :class:`~kivy.base.EventLoopBase`.
+   :class:`~kivy.base.EventLoopBase`.
 2. Post processing is performed by registered processors
-    :mod:`~kivy.input.postproc`.
+   :mod:`~kivy.input.postproc`.
 3. :class:`~kivy.base.EventLoopBase` dispatches all motion events using
-    `on_motion` event to all registered listeners including the
-    :class:`~kivy.core.window.WindowBase`.
+   `on_motion` event to all registered listeners including the
+   :class:`~kivy.core.window.WindowBase`.
 4. Once received in :meth:`~kivy.core.window.WindowBase.on_motion` events
-    (touch or non-touch) are all registered managers. If a touch event is not
-    handled by at least one manager, then it is dispatched through
-    :meth:`~kivy.core.window.WindowBase.on_touch_down`,
-    :meth:`~kivy.core.window.WindowBase.on_touch_move` and
-    :meth:`~kivy.core.window.WindowBase.on_touch_up`.
+   (touch or non-touch) are all registered managers. If a touch event is not
+   handled by at least one manager, then it is dispatched through
+   :meth:`~kivy.core.window.WindowBase.on_touch_down`,
+   :meth:`~kivy.core.window.WindowBase.on_touch_move` and
+   :meth:`~kivy.core.window.WindowBase.on_touch_up`.
 5. Widgets receive events in :meth:`~kivy.uix.widget.Widget.on_motion` method
-    (if passed by a manager) or on `on_touch_xxx` methods.
+   (if passed by a manager) or on `on_touch_xxx` methods.
 
 Motion events and event managers
 --------------------------------
@@ -56,8 +56,8 @@ when dispatching a specific event::
             accepted = False
             if me.device == 'mouse':
                 me.push() # Save current type_id and other values
-                self.window.transform_motion_event_2d(me)
                 me.type_id = 'mouse_touch'
+                self.window.transform_motion_event_2d(me)
                 # Dispatch mouse touch event to widgets which registered
                 # to receive 'mouse_touch'
                 for widget in self.window.children[:]:
