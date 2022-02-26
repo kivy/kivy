@@ -79,7 +79,7 @@ __all__ = ('ModalView', )
 from kivy.animation import Animation
 from kivy.properties import (
     StringProperty, BooleanProperty, ObjectProperty, NumericProperty,
-    ListProperty, ColorProperty)
+    ListProperty, ColorProperty, OptionProperty)
 from kivy.uix.anchorlayout import AnchorLayout
 
 
@@ -185,7 +185,8 @@ class ModalView(AnchorLayout):
 
     _window = ObjectProperty(allownone=True, rebind=True)
 
-    _is_open = BooleanProperty(False)
+    _state = OptionProperty('dismissed', options=['dismissed', 'opening',
+                                                  'open', 'dismissing'])
 
     _touch_started_inside = None
 
@@ -201,6 +202,14 @@ class ModalView(AnchorLayout):
             self._anim.stop(self)
             self._anim = None
 
+    def _set_state(self, state):
+        """Set the state of widget."""
+        if self._state == 'opening':
+            self.dispatch('on_open')
+        self._state = state
+        if state == 'dismissed':
+            self._real_remove_widget()
+
     def open(self, *_args, **kwargs):
         """Display the modal in the Window.
 
@@ -211,11 +220,10 @@ class ModalView(AnchorLayout):
 
         """
         from kivy.core.window import Window
-        if self._is_open:
+        if self._state in ['opening', 'open']:
             return
         self._clear_anim()
         self._window = Window
-        self._is_open = True
         self.dispatch('on_pre_open')
         Window.add_widget(self)
         Window.bind(
@@ -225,10 +233,12 @@ class ModalView(AnchorLayout):
         self.fbind('center', self._align_center)
         self.fbind('size', self._align_center)
         if kwargs.get('animation', True):
+            self._state = 'opening'
             self._anim = ani = Animation(_anim_alpha=1., d=self._anim_duration)
-            ani.bind(on_complete=lambda *_args: self.dispatch('on_open'))
+            ani.bind(on_complete=lambda *_args: self._set_state('open'))
             ani.start(self)
         else:
+            self._state = 'open'
             self._anim_alpha = 1.
             self.dispatch('on_open')
 
@@ -248,22 +258,23 @@ class ModalView(AnchorLayout):
 
         """
         self._clear_anim()
-        if not self._is_open:
+        if self._state == 'dismissed':
             return
 
         self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') and not kwargs.get('force', False):
             return
         if kwargs.get('animation', True):
+            self._state = 'dismissing'
             self._anim = ani = Animation(_anim_alpha=0.,
                                          d=self._anim_duration)
-            ani.bind(on_complete=lambda *args: self._real_remove_widget())
+            ani.bind(on_complete=lambda *args: self._set_state('dismissed'))
             ani.start(self)
         else:
-            self._real_remove_widget()
+            self._set_state('dismissed')
 
     def _align_center(self, *_args):
-        if self._is_open:
+        if self._state == 'open':
             self.center = self._window.center
 
     def on_motion(self, etype, me):
@@ -294,7 +305,7 @@ class ModalView(AnchorLayout):
         return True
 
     def _real_remove_widget(self):
-        if not self._is_open:
+        if self._state == 'dismisesed':
             return
         self._window.remove_widget(self)
         self._window.unbind(
