@@ -304,13 +304,10 @@ class ModalView(AnchorLayout):
         return True
 
     def _real_remove_widget(self):
-        if self._state == 'dismisesed':
-            return
         self._window.remove_widget(self)
         self._window.unbind(
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
-        self._is_open = False
         self._window = None
 
     def on_pre_open(self):
