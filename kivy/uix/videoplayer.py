@@ -488,6 +488,11 @@ class VideoPlayer(GridLayout):
         self._annotations = ''
         self._annotations_labels = []
         super(VideoPlayer, self).__init__(**kwargs)
+        update_thumbnail = self._update_thumbnail
+        update_annotations = self._update_annotations
+        fbind = self.fbind
+        fbind('thumbnail', update_thumbnail)
+        fbind('annotations', update_annotations)
 
         if self.source:
             self._trigger_video_load()
@@ -524,13 +529,11 @@ class VideoPlayer(GridLayout):
         if value:
             self._trigger_video_load()
 
-    def on_thumbnail(self, instance, value):
-        if value:
-            self._load_thumbnail(value)
+    def _update_thumbnail(self, *largs):
+        self._load_thumbnail(self.thumbnail)
 
-    def on_annotations(self, instance, value):
-        if value:
-            self._load_annotations(value)
+    def _update_annotations(self, *largs):
+        self._load_annotations(self.annotations)
 
     def on_image_overlay_play(self, instance, value):
         self._image.image_overlay_play = value
@@ -542,8 +545,9 @@ class VideoPlayer(GridLayout):
         if not self.container:
             return
         self.container.clear_widgets()
-        self._image = VideoPlayerPreview(source=thumbnail, video=self)
-        self.container.add_widget(self._image)
+        if thumbnail:
+            self._image = VideoPlayerPreview(source=thumbnail, video=self)
+            self.container.add_widget(self._image)
 
     def _load_annotations(self, annotations):
         if not self.container:
