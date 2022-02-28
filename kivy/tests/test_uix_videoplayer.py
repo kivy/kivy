@@ -100,7 +100,7 @@ async def test_custom_annotations_reset_no_fail(
     with patch(
         "kivy.uix.videoplayer.VideoPlayer._load_annotations"
     ) as mock__load_annotations:
-        kivy_app.root.annotations = "data/annotations.jpg"
+        kivy_app.root.annotations = "data/annotations.jsa"
 
     kivy_app.root.annotations = ""
 
