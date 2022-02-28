@@ -93,6 +93,17 @@ async def test_custom_thumbnail_reset(
     assert len(kivy_app.root.container.children) == 0
 
 
+@async_run(app_cls_func=videoplayer_app)
+async def test_custom_annotations_reset_no_fail(
+    kivy_app,
+):
+    with patch(
+        "kivy.uix.videoplayer.VideoPlayer._load_annotations"
+    ) as mock__load_annotations:
+        kivy_app.root.annotations = "data/annotations.jpg"
+
+    kivy_app.root.annotations = ""
+
 if __name__ == "__main__":
     pytest.main(
         args=[
