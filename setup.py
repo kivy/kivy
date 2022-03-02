@@ -1050,6 +1050,9 @@ if not build_examples:
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',
+        project_urls={
+            'Source': 'https://github.com/kivy/kivy',
+        },
         license='MIT',
         description=(
             'A software library for rapid development of '
