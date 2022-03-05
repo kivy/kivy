@@ -39,7 +39,7 @@ Defining and registering an event manager
 
 1. Inherit :class:`EventManagerBase` and set which events this manager
    should receive by declaring event types in
-   `:attr:`EventManagerBase.type_ids` attribute.
+   :attr:`EventManagerBase.type_ids` attribute.
 2. Implement :meth:`EventManagerBase.dispatch` which will be called by window
    to pass event type (one of "begin", "update", "end") and an event.
 3. Implement :meth:`EventManagerBase.start` and :meth:`EventManagerBase.stop`
