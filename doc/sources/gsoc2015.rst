@@ -260,7 +260,7 @@ may appeal to you.
   - Refactor pyjnius to find the appropriate Activity from the provided 
     bootstrap
   - Introduce option for compilation with Python3 instead of Python2, this will
-    involve properly configuring the blacklist of ommitted modules, the 
+    involve properly configuring the blacklist of omitted modules, the 
     collection of libs into one large one to avoid shared library limit on 
     older devices, and performing any Python3 code conversions necessary.
   - Ensure all recipes work with Python3 version of their modules

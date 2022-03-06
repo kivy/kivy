@@ -394,7 +394,8 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.USEREVENT and \
                     hasattr(pygame, 'USEREVENT_DROPFILE') and \
                     event.code == pygame.USEREVENT_DROPFILE:
-                self.dispatch('on_dropfile', event.filename)
+                drop_x, drop_y = pygame.mouse.get_pos()
+                self.dispatch('on_drop_file', event.filename, drop_x, drop_y)
 
             '''
             # unhandled event !
@@ -432,9 +433,11 @@ class WindowPygame(WindowBase):
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
 
-    def request_keyboard(self, callback, target, input_type='text'):
+    def request_keyboard(
+            self, callback, target, input_type='text', keyboard_suggestions=True
+    ):
         keyboard = super(WindowPygame, self).request_keyboard(
-            callback, target, input_type)
+            callback, target, input_type, keyboard_suggestions)
         if android and not self.allow_vkeyboard:
             android.show_keyboard(target, input_type)
         return keyboard

@@ -1,3 +1,5 @@
+import ctypes
+
 include "../../../kivy/lib/sdl2.pxi"
 include "../../include/config.pxi"
 
@@ -233,6 +235,22 @@ cdef class _WindowSDL2Storage:
             if not self.ctx:
                 self.die()
 
+        # vsync
+        vsync = Config.get('graphics', 'vsync')
+        if vsync and vsync != 'none':
+            vsync = Config.getint('graphics', 'vsync')
+
+            Logger.debug(f'WindowSDL: setting vsync interval=={vsync}')
+            res = SDL_GL_SetSwapInterval(vsync)
+
+            if res == -1:
+                status = ''
+                if vsync not in (0, 1):
+                    res = SDL_GL_SetSwapInterval(1)
+                    status = ', trying fallback to 1: ' + ('failed' if res == -1 else 'succeeded')
+
+                Logger.debug('WindowSDL: requested vsync failed' + status)
+
         # Open all available joysticks
         cdef int joy_i
         for joy_i in range(SDL_NumJoysticks()):
@@ -241,6 +259,9 @@ cdef class _WindowSDL2Storage:
         SDL_SetEventFilter(_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
+        SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
+        SDL_EventState(SDL_DROPBEGIN, SDL_ENABLE)
+        SDL_EventState(SDL_DROPCOMPLETE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
@@ -250,7 +271,7 @@ cdef class _WindowSDL2Storage:
 
     def set_system_cursor(self, str name):
         # prevent the compiler to not be happy because of
-        # an unitialized value (return False in Cython is not a direct
+        # an uninitialized value (return False in Cython is not a direct
         # return 0 in C)
         cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_ARROW
         if name == 'arrow':
@@ -397,6 +418,7 @@ cdef class _WindowSDL2Storage:
                 windows_info = WindowInfoWindows()
                 windows_info.window = wm_info.info.win.window
                 windows_info.hdc = wm_info.info.win.hdc
+                return windows_info
 
     # Transparent Window background
     def is_window_shaped(self):
@@ -468,7 +490,13 @@ cdef class _WindowSDL2Storage:
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
-    def show_keyboard(self, system_keyboard, softinput_mode):
+    def show_keyboard(
+        self,
+        system_keyboard,
+        softinput_mode,
+        input_type,
+        keyboard_suggestions=True,
+    ):
         if SDL_IsTextInputActive():
             return
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
@@ -514,6 +542,57 @@ cdef class _WindowSDL2Storage:
                     rect.h = 1
                     SDL_SetTextInputRect(rect)
 
+                """
+                Android input type selection.
+                Based on input_type and keyboard_suggestions arguments, set the
+                keyboard type to be shown. Note that text suggestions will only
+                work when input_type is "text" or a text variation.
+                """
+
+                from android import mActivity
+
+                # InputType definitions, from Android documentation
+
+                TYPE_CLASS_DATETIME = 4
+                TYPE_CLASS_NUMBER = 2
+                TYPE_CLASS_PHONE = 3
+                TYPE_CLASS_TEXT = 1
+                TYPE_CLASS_NULL = 0
+
+                TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
+                TYPE_TEXT_VARIATION_URI = 16
+                TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
+
+                TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
+
+                input_type_value = {
+                                "null": TYPE_CLASS_NULL,
+                                "text": TYPE_CLASS_TEXT,
+                                "number": TYPE_CLASS_NUMBER,
+                                "url":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_URI,
+                                "mail":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                                "datetime": TYPE_CLASS_DATETIME,
+                                "tel": TYPE_CLASS_PHONE,
+                                "address":
+                                TYPE_CLASS_TEXT |
+                                TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+                              }.get(input_type, TYPE_CLASS_TEXT)
+
+                text_keyboards = {"text", "url", "mail", "address"}
+
+                if not keyboard_suggestions and input_type in text_keyboards:
+                    """
+                    Looks like some (major) device vendors and keyboards are de-facto ignoring this flag,
+                    so we can't really rely on this one to disable suggestions.
+                    """
+                    input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
+                mActivity.changeKeyboard(input_type_value)
+
             SDL_StartTextInput()
         finally:
             PyMem_Free(<void *>rect)
@@ -536,12 +615,9 @@ cdef class _WindowSDL2Storage:
             rv = SDL_PollEvent(&event)
         if rv == 0:
             return False
-
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
-        elif event.type == SDL_DROPFILE:
-            return ('dropfile', event.drop.file)
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y
@@ -555,23 +631,31 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_MOUSEWHEEL:
             x = event.wheel.x
             y = event.wheel.y
+            # TODO we should probably support events with both an x and y offset
             if x != 0:
                 suffix = 'left' if x > 0 else 'right'
-            else:
+            elif y != 0:
                 suffix = 'down' if y > 0 else 'up'
+            else:
+                # It's possible to get mouse wheel events with no offset in
+                # either x or y direction, we just ignore them
+                # https://wiki.libsdl.org/SDL_MouseWheelEvent
+                return None
             action = 'mousewheel' + suffix
             return (action, x, y, None)
         elif event.type == SDL_FINGERMOTION:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
-            return ('fingermotion', fid, x, y)
+            pressure = event.tfinger.pressure
+            return ('fingermotion', fid, x, y, pressure)
         elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
+            pressure = event.tfinger.pressure
             action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
-            return (action, fid, x, y)
+            return (action, fid, x, y, pressure)
         elif event.type == SDL_JOYAXISMOTION:
             return (
                 'joyaxismotion',
@@ -649,6 +733,14 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTEDITING:
             s = event.edit.text.decode('utf-8')
             return ('textedit', s)
+        elif event.type == SDL_DROPFILE:
+            return ('dropfile', event.drop.file)
+        elif event.type == SDL_DROPTEXT:
+            return ('droptext', event.drop.file)
+        elif event.type == SDL_DROPBEGIN:
+            return ('dropbegin',)
+        elif event.type == SDL_DROPCOMPLETE:
+            return ('dropend',)
         else:
             #    print('receive unknown sdl window event', event.type)
             pass
@@ -672,6 +764,16 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
+    def get_relative_mouse_pos(self):
+        cdef int x, y
+        SDL_GetGlobalMouseState(&x, &y)
+        wx, wy = self.get_window_pos()
+        return x - wx, y - wy
+
+    def set_custom_titlebar(self, titlebar_widget):
+        SDL_SetWindowBordered(self.win, SDL_FALSE)
+        return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
+
     @property
     def window_size(self):
         cdef int w, h
@@ -679,6 +781,48 @@ cdef class _WindowSDL2Storage:
         return [w, h]
 
 
+cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
+
+    cdef int border = max(
+        Config.getdefaultint('graphics','custom_titlebar_border',5),
+        Config.getint('graphics', 'custom_titlebar_border')
+    ) # pixels
+    cdef int w, h
+    SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
+    # shift y origin in widget as sdl origin is in top-left
+    if Config.getboolean('graphics', 'resizable'):
+        if pts.x < border and pts.y < border:
+            return SDL_HITTEST_RESIZE_TOPLEFT
+        elif pts.x < border < h - pts.y:
+            return SDL_HITTEST_RESIZE_LEFT
+        elif pts.x < border and h - pts.y < border:
+            return SDL_HITTEST_RESIZE_BOTTOMLEFT
+        elif w - pts.x < border > pts.y:
+            return SDL_HITTEST_RESIZE_TOPRIGHT
+        elif w - pts.x  > border > pts.y:
+            return SDL_HITTEST_RESIZE_TOP
+        elif w - pts.x  < border < h - pts.y:
+            return SDL_HITTEST_RESIZE_RIGHT
+        elif w - pts.x  < border > h - pts.y:
+            return SDL_HITTEST_RESIZE_BOTTOMRIGHT
+        elif w - pts.x  > border > h - pts.y:
+            return SDL_HITTEST_RESIZE_BOTTOM
+    widget = <object> data
+    if widget.collide_point(pts.x, h - pts.y):
+        in_drag_area = getattr(widget, 'in_drag_area', None)
+        if callable(in_drag_area):
+            if in_drag_area(pts.x, h - pts.y):
+                return SDL_HITTEST_DRAGGABLE
+            else:
+                return SDL_HitTestResult.SDL_HITTEST_NORMAL
+        for child in widget.walk():
+            drag = getattr(child, 'draggable', None)
+            if drag is not None and not drag and child.collide_point(pts.x, h - pts.y):
+                return SDL_HitTestResult.SDL_HITTEST_NORMAL
+        return SDL_HITTEST_DRAGGABLE
+
+
+    return SDL_HitTestResult.SDL_HITTEST_NORMAL
 # Based on the example at
 # http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
 cdef SDL_Surface* flipVert(SDL_Surface* sfc):
@@ -696,7 +840,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         <int>sfc.format.BytesPerPixel,
         <int>sfc.pitch
     )
-    print(output)
+    Logger.debug("Window: Screenshot output dimensions {output}")
 
     cdef Uint32 pitch = sfc.pitch
     cdef Uint32 pxlength = pitch * sfc.h

@@ -34,6 +34,12 @@ To fix that, you can add these options to the argument line:
 * min_touch_minor : width shape minimum
 * max_touch_minor : height shape maximum
 * rotation : 0,90,180 or 270 to rotate
+
+An inverted display configuration will look like this::
+
+    [input]
+    # example for inverting touch events
+    display = mtdev,/dev/input/event0,invert_x=1,invert_y=1
 '''
 
 __all__ = ('MTDMotionEventProvider', 'MTDMotionEvent')
@@ -47,8 +53,12 @@ from kivy.input.shape import ShapeRect
 
 class MTDMotionEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+
     def depack(self, args):
-        self.is_touch = True
         if 'x' in args:
             self.sx = args['x']
         else:
@@ -66,7 +76,7 @@ class MTDMotionEvent(MotionEvent):
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(MTDMotionEvent, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)

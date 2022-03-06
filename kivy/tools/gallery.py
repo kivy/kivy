@@ -176,23 +176,6 @@ def make_gallery_page(infos):
     showing information on all screenshots found.
     '''
 
-    def a(s=''):
-        ''' append formatted s to output, which will be joined into lines '''
-        for info in infos:
-            output.append(s.format(**info))
-
-    def t(left='', right=''):
-        ''' append left and right format strings into a table line. '''
-        for info in infos:
-            l = left.format(**info)
-            r = right.format(**info)
-            if len(l) > width1 or len(r) > width2:
-                Logger.error('items to wide for generated table: "%s" and "%s"',
-                             l, r)
-                return
-            output.append('| {0:{w1}} | {1:{w2}} |'
-                          .format(l, r, w1=width1, w2=width2))
-
     gallery_top = '''
 Gallery
 -------
@@ -223,29 +206,13 @@ We hope your journey into learning Kivy is exciting and fun!
     output = [gallery_top]
 
     for info in infos:
-        a("\n.. |link{num}|  replace:: :doc:`{source}<gen__{dunder}>`")
-        a("\n.. |pic{num}| image:: ../images/examples/{dunder}.png"
-          "\n    :width:  216pt"
-          "\n    :align: " " middle"
-          "\n    :target: gen__{dunder}.html")
-        a("\n.. |title{num}|  replace:: **{title}**")
-
-    # write the table
-    width1, width2 = 20, 50  # not including two end spaces
-    head = '+-' + '-' * width1 + '-+-' + '-' * width2 + '-+'
-    a()
-    a(head)
-
-    for info in infos:
-        t('| |pic{num}|', '| |title{num}|')
-        t('| |link{num}|', '')
-        paragraphs = info['description'].split("\n\n")
-        for p in paragraphs:
-            for line in textwrap.wrap(p, width2):
-                t('', line)
-            t()  # line between paragraphs
-        t()
-        a(head)
+        output.append(
+                "\n**{title}** (:doc:`{source}<gen__{dunder}>`)\n"
+                "\n{description}"
+                "\n.. image:: ../images/examples/{dunder}.png"
+                "\n  :width:  216pt"
+                "\n  :align:  left"
+                "\n  :target: gen__{dunder}.html".format(**info))
     return "\n".join(output) + "\n"
 
 

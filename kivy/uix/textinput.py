@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 '''
 Text Input
 ==========
@@ -91,8 +90,7 @@ For example, to write only in capitalized characters::
 
         def insert_text(self, substring, from_undo=False):
             s = substring.upper()
-            return super(CapitalInput, self).insert_text(s,\
- from_undo=from_undo)
+            return super().insert_text(s, from_undo=from_undo)
 
 Or to only allow floats (0 - 9 and a single period)::
 
@@ -104,9 +102,11 @@ Or to only allow floats (0 - 9 and a single period)::
             if '.' in self.text:
                 s = re.sub(pat, '', substring)
             else:
-                s = '.'.join([re.sub(pat, '', s) for s in\
- substring.split('.', 1)])
-            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
+                s = '.'.join(
+                    re.sub(pat, '', s)
+                    for s in substring.split('.', 1)
+                )
+            return super().insert_text(s, from_undo=from_undo)
 
 Default shortcuts
 -----------------
@@ -141,13 +141,12 @@ Control + r     redo
 '''
 
 
-__all__ = ('TextInput', )
-
-
 import re
 import sys
+import math
 from os import environ
 from weakref import ref
+from itertools import chain, islice
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -172,6 +171,20 @@ from kivy.uix.image import Image
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, OptionProperty, \
     ListProperty, ObjectProperty, VariableListProperty, ColorProperty
+
+__all__ = ('TextInput', )
+
+
+if 'KIVY_DOC' in environ:
+    def triggered(*_, **__):
+        def decorator_func(func):
+            def decorated_func(*args, **kwargs):
+                return func(*args, **kwargs)
+            return decorated_func
+        return decorator_func
+else:
+    from kivy.clock import triggered
+
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -198,8 +211,12 @@ _is_osx = sys.platform == 'darwin'
 
 # When we are generating documentation, Config doesn't exist
 _is_desktop = False
+_scroll_timeout = _scroll_distance = 0
 if Config:
     _is_desktop = Config.getboolean('kivy', 'desktop')
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = '{}sp'.format(Config.getint('widgets',
+                                                   'scroll_distance'))
 
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:
@@ -227,7 +244,8 @@ class Selector(ButtonBehavior, Image):
     matrix = ObjectProperty()
 
     def __init__(self, **kwargs):
-        super(Selector, self).__init__(**kwargs)
+        super().__init__(**kwargs)
+        self.always_release = True
         self.matrix = self.target.get_window_matrix()
 
         with self.canvas.before:
@@ -239,16 +257,17 @@ class Selector(ButtonBehavior, Image):
             PopMatrix()
 
     def update_transform(self, cb):
-        m = self.target.get_window_matrix()
-        if self.matrix != m:
-            self.matrix = m
+        matrix = self.target.get_window_matrix()
+        if self.matrix != matrix:
+            self.matrix = matrix
             self.transform.identity()
             self.transform.transform(self.matrix)
 
     def transform_touch(self, touch):
         matrix = self.matrix.inverse()
         touch.apply_transform_2d(
-            lambda x, y: matrix.transform_point(x, y, 0)[:2])
+            lambda x, y: matrix.transform_point(x, y, 0)[:2]
+        )
 
     def on_touch_down(self, touch):
         if self.parent is not EventLoop.window:
@@ -260,7 +279,7 @@ class Selector(ButtonBehavior, Image):
             self._touch_diff = self.top - touch.y
             if self.collide_point(*touch.pos):
                 FocusBehavior.ignored_touch.append(touch)
-            return super(Selector, self).on_touch_down(touch)
+            return super().on_touch_down(touch)
         finally:
             touch.pop()
 
@@ -284,7 +303,7 @@ class TextInputCutCopyPaste(Bubble):
 
     def __init__(self, **kwargs):
         self.mode = 'normal'
-        super(TextInputCutCopyPaste, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
         self.matrix = self.textinput.get_window_matrix()
 
@@ -314,7 +333,7 @@ class TextInputCutCopyPaste(Bubble):
             self.transform_touch(touch)
             if self.collide_point(*touch.pos):
                 FocusBehavior.ignored_touch.append(touch)
-            return super(TextInputCutCopyPaste, self).on_touch_down(touch)
+            return super().on_touch_down(touch)
         finally:
             touch.pop()
 
@@ -326,7 +345,7 @@ class TextInputCutCopyPaste(Bubble):
                 if ref(child) in touch.grab_list:
                     touch.grab_current = child
                     break
-            return super(TextInputCutCopyPaste, self).on_touch_up(touch)
+            return super().on_touch_up(touch)
         finally:
             touch.pop()
 
@@ -455,6 +474,10 @@ class TextInput(FocusBehavior, Widget):
 
     .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
+
+    .. versionchanged:: 2.1.0
+        :attr:`~kivy.uix.behaviors.FocusBehavior.keyboard_suggestions`
+        is now inherited from :class:`~kivy.uix.behaviors.FocusBehavior`.
     '''
 
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
@@ -500,6 +523,10 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev = Clock.create_trigger(
             self._do_blink_cursor, .5, interval=True)
         self._refresh_line_options_ev = None
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
+        self._enable_scroll = True
+        self._have_scrolled = False
 
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
@@ -523,9 +550,10 @@ class TextInput(FocusBehavior, Widget):
             305: 'ctrl_L',
             306: 'ctrl_R',
             308: 'alt_L',
-            307: 'alt_R'}
+            307: 'alt_R'
+        }
 
-        super(TextInput, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
@@ -591,20 +619,26 @@ class TextInput(FocusBehavior, Widget):
         if not cursor:
             cursor = self.cursor
         try:
-            l = self._lines
-            if len(l) == 0:
+            lines = self._lines
+            if not lines:
                 return 0
-            lf = self._lines_flags
-            index, cr = cursor
-            for row in range(cr):
-                if row >= len(l):
-                    continue
-                index += len(l[row])
-                if lf[row] & FL_IS_LINEBREAK:
+
+            flags = self._lines_flags
+            index, cursor_row = cursor
+
+            for _, line, flag in zip(
+                range(min(cursor_row, len(lines))),
+                lines,
+                flags
+            ):
+                index += len(line)
+                if flag & FL_IS_LINEBREAK:
                     index += 1
-            if lf[cr] & FL_IS_LINEBREAK:
+
+            if flags[cursor_row] & FL_IS_LINEBREAK:
                 index += 1
             return index
+
         except IndexError:
             return 0
 
@@ -614,10 +648,10 @@ class TextInput(FocusBehavior, Widget):
         offset = 0
         row = int(self.cursor_row)
         col = int(self.cursor_col)
-        _lines = self._lines
-        if col and row < len(_lines):
+        lines = self._lines
+        if col and row < len(lines):
             offset = self._get_text_width(
-                _lines[row][:col],
+                lines[row][:col],
                 self.tab_width,
                 self._label_cached
             )
@@ -629,18 +663,21 @@ class TextInput(FocusBehavior, Widget):
         index = boundary(index, 0, len(self.text))
         if index <= 0:
             return 0, 0
-        lf = self._lines_flags
-        l = self._lines
+        flags = self._lines_flags
+        lines = self._lines
+        if not lines:
+            return 0, 0
+
         i = 0
-        for row in range(len(l)):
-            ni = i + len(l[row])
-            if lf[row] & FL_IS_LINEBREAK:
-                ni += 1
+        for row, line in enumerate(lines):
+            count = i + len(line)
+            if flags[row] & FL_IS_LINEBREAK:
+                count += 1
                 i += 1
-            if ni >= index:
+            if count >= index:
                 return index - i, row
-            i = ni
-        return index, row
+            i = count
+        return int(index), int(row)
 
     def select_text(self, start, end):
         ''' Select a portion of text displayed in this TextInput.
@@ -656,9 +693,9 @@ class TextInput(FocusBehavior, Widget):
         '''
         if end < start:
             raise Exception('end must be superior to start')
-        m = len(self.text)
-        self._selection_from = boundary(start, 0, m)
-        self._selection_to = boundary(end, 0, m)
+        text_length = len(self.text)
+        self._selection_from = boundary(start, 0, text_length)
+        self._selection_to = boundary(end, 0, text_length)
         self._selection_finished = True
         self._update_selection(True)
         self._update_graphics_selection()
@@ -687,6 +724,9 @@ class TextInput(FocusBehavior, Widget):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
+        _lines = self._lines
+        _lines_flags = self._lines_flags
+
         if self.readonly or not substring or not self._lines:
             return
 
@@ -708,12 +748,11 @@ class TextInput(FocusBehavior, Widget):
             if not substring:
                 return
 
-        cc, cr = self.cursor
-        sci = self.cursor_index
-        ci = sci()
-        text = self._lines[cr]
+        col, row = self.cursor
+        cindex = self.cursor_index()
+        text = _lines[row]
         len_str = len(substring)
-        new_text = text[:cc] + substring + text[cc:]
+        new_text = text[:col] + substring + text[col:]
         if mode is not None:
             if mode == 'int':
                 if not re.match(self._insert_int_pat, new_text):
@@ -721,54 +760,70 @@ class TextInput(FocusBehavior, Widget):
             elif mode == 'float':
                 if not re.match(self._insert_float_pat, new_text):
                     return
-        self._set_line_text(cr, new_text)
+        self._set_line_text(row, new_text)
 
-        wrap = (self._get_text_width(
-            new_text,
-            self.tab_width,
-            self._label_cached) > (self.width - self.padding[0] -
-                                   self.padding[2]))
-        if len_str > 1 or substring == u'\n' or wrap:
+        if len_str > 1 or substring == u'\n' or\
+            (substring == u' ' and _lines_flags[row] != FL_IS_LINEBREAK) or\
+            (row + 1 < len(_lines) and
+             _lines_flags[row + 1] != FL_IS_LINEBREAK) or\
+            (self._get_text_width(
+                new_text,
+                self.tab_width,
+                self._label_cached) > (self.width - self.padding[0] -
+                                       self.padding[2])):
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
 
-            start, finish, lines,\
-                lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
+            (
+                start, finish, lines, lines_flags, len_lines
+            ) = self._get_line_from_cursor(row, new_text)
+
             # calling trigger here could lead to wrong cursor positioning
             # and repeating of text when keys are added rapidly in a automated
             # fashion. From Android Keyboard for example.
-            self._refresh_text_from_property('insert', start, finish, lines,
-                                             lineflags, len_lines)
+            self._refresh_text_from_property(
+                'insert', start, finish, lines, lines_flags, len_lines
+            )
 
-        self.cursor = self.get_cursor_from_index(ci + len_str)
+        self.cursor = self.get_cursor_from_index(cindex + len_str)
         # handle undo and redo
-        self._set_unredo_insert(ci, ci + len_str, substring, from_undo)
+        self._set_unredo_insert(cindex, cindex + len_str, substring, from_undo)
 
-    def _get_line_from_cursor(self, start, new_text):
+    def _get_line_from_cursor(self, start, new_text, lines=None,
+                              lines_flags=None):
         # get current paragraph from cursor position
+        if lines is None:
+            lines = self._lines
+        if lines_flags is None:
+            lines_flags = self._lines_flags
         finish = start
-        lines = self._lines
-        linesflags = self._lines_flags
-        if start and not linesflags[start]:
+        _next = start + 1
+        if start > 0 and lines_flags[start] != FL_IS_LINEBREAK:
             start -= 1
-            new_text = u''.join((lines[start], new_text))
-        try:
-            while not linesflags[finish + 1]:
-                new_text = u''.join((new_text, lines[finish + 1]))
-                finish += 1
-        except IndexError:
-            pass
-        lines, lineflags = self._split_smart(new_text)
+            new_text = lines[start] + new_text
+        i = _next
+        for i in range(_next, len(lines_flags)):
+            if lines_flags[i] == FL_IS_LINEBREAK:
+                finish = i - 1
+                break
+        else:
+            finish = i
+
+        new_text = new_text + u''.join(lines[_next:finish + 1])
+        lines, lines_flags = self._split_smart(new_text)
+
         len_lines = max(1, len(lines))
-        return start, finish, lines, lineflags, len_lines
+        return start, finish, lines, lines_flags, len_lines
 
     def _set_unredo_insert(self, ci, sci, substring, from_undo):
         # handle undo and redo
         if from_undo:
             return
-        self._undo.append({'undo_command': ('insert', ci, sci),
-                           'redo_command': (ci, substring)})
+        self._undo.append({
+            'undo_command': ('insert', ci, sci),
+            'redo_command': (ci, substring)
+        })
         # reset redo when undo is appended to
         self._redo = []
 
@@ -795,8 +850,8 @@ class TextInput(FocusBehavior, Widget):
             _get_cusror_from_index = self.get_cursor_from_index
 
             if undo_type == 'insert':
-                ci, substring = x_item['redo_command']
-                self.cursor = _get_cusror_from_index(ci)
+                cindex, substring = x_item['redo_command']
+                self.cursor = _get_cusror_from_index(cindex)
                 self.insert_text(substring, True)
             elif undo_type == 'bkspc':
                 self.cursor = _get_cusror_from_index(x_item['redo_command'])
@@ -806,12 +861,12 @@ class TextInput(FocusBehavior, Widget):
                 self._shift_lines(direction, rows, cursor, True)
             else:
                 # delsel
-                ci, sci = x_item['redo_command']
-                self._selection_from = ci
-                self._selection_to = sci
+                cindex, scindex = x_item['redo_command']
+                self._selection_from = cindex
+                self._selection_to = scindex
                 self._selection = True
                 self.delete_selection(True)
-                self.cursor = _get_cusror_from_index(ci)
+                self.cursor = _get_cusror_from_index(cindex)
             self._undo.append(x_item)
         except IndexError:
             # reached at top of undo list
@@ -832,14 +887,18 @@ class TextInput(FocusBehavior, Widget):
             self.cursor = self.get_cursor_from_index(x_item['undo_command'][1])
 
             if undo_type == 'insert':
-                ci, sci = x_item['undo_command'][1:]
-                self._selection_from = ci
-                self._selection_to = sci
+                cindex, scindex = x_item['undo_command'][1:]
+                self._selection_from = cindex
+                self._selection_to = scindex
                 self._selection = True
                 self.delete_selection(True)
             elif undo_type == 'bkspc':
-                substring = x_item['undo_command'][2:][0]
+                substring = x_item['undo_command'][2][0]
+                mode = x_item['undo_command'][3]
                 self.insert_text(substring, True)
+                if mode == 'del':
+                    self.cursor = self.get_cursor_from_index(
+                        self.cursor_index() - 1)
             elif undo_type == 'shiftln':
                 direction, rows, cursor = x_item['undo_command'][1:]
                 self._shift_lines(direction, rows, cursor, True)
@@ -864,49 +923,57 @@ class TextInput(FocusBehavior, Widget):
         # IME system handles its own backspaces
         if self.readonly or self._ime_composition:
             return
-        cc, cr = self.cursor
+        col, row = self.cursor
         _lines = self._lines
-        text = _lines[cr]
-        cursor_index = self.cursor_index()
-        text_last_line = _lines[cr - 1]
-
-        if cc == 0 and cr == 0:
-            return
         _lines_flags = self._lines_flags
-        start = cr
-        if cc == 0:
-            substring = u'\n' if _lines_flags[cr] else u' '
-            new_text = text_last_line + text
-            self._set_line_text(cr - 1, new_text)
-            self._delete_line(cr)
-            start = cr - 1
+        text = _lines[row]
+        cursor_index = self.cursor_index()
+
+        if col == 0 and row == 0:
+            return
+        start = row
+        if col == 0:
+            if _lines_flags[row] == FL_IS_LINEBREAK:
+                substring = u'\n'
+                new_text = _lines[row - 1] + text
+            else:
+                substring = _lines[row - 1][-1] if len(_lines[row - 1]) > 0 \
+                    else u''
+                new_text = _lines[row - 1][:-1] + text
+            self._set_line_text(row - 1, new_text)
+            self._delete_line(row)
+            start = row - 1
         else:
-            # ch = text[cc-1]
-            substring = text[cc - 1]
-            new_text = text[:cc - 1] + text[cc:]
-            self._set_line_text(cr, new_text)
+            # ch = text[col-1]
+            substring = text[col - 1]
+            new_text = text[:col - 1] + text[col:]
+            self._set_line_text(row, new_text)
 
         # refresh just the current line instead of the whole text
-        start, finish, lines, lineflags, len_lines =\
+        start, finish, lines, lineflags, len_lines = (
             self._get_line_from_cursor(start, new_text)
+        )
         # avoid trigger refresh, leads to issue with
         # keys/text send rapidly through code.
-        self._refresh_text_from_property('del', start, finish, lines,
-                                         lineflags, len_lines)
+        self._refresh_text_from_property(
+            'insert' if col == 0 else 'del', start, finish,
+            lines, lineflags, len_lines
+        )
 
         self.cursor = self.get_cursor_from_index(cursor_index - 1)
         # handle undo and redo
-        self._set_undo_redo_bkspc(
+        self._set_unredo_bkspc(
             cursor_index,
             cursor_index - 1,
-            substring, from_undo)
+            substring, from_undo, mode)
 
-    def _set_undo_redo_bkspc(self, ol_index, new_index, substring, from_undo):
+    def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
+                          mode):
         # handle undo and redo for backspace
         if from_undo:
             return
         self._undo.append({
-            'undo_command': ('bkspc', new_index, substring),
+            'undo_command': ('bkspc', new_index, substring, mode),
             'redo_command': ol_index})
         # reset redo when undo is appended to
         self._redo = []
@@ -922,6 +989,7 @@ class TextInput(FocusBehavior, Widget):
         if col == 0:
             row -= 1
             col = len(lines[row])
+
         while True:
             matches = list(self._re_whitespace.finditer(lines[row], 0, col))
             if not matches:
@@ -932,6 +1000,7 @@ class TextInput(FocusBehavior, Widget):
                     col = len(lines[row])
                     continue
                 return 0, row
+
             match = matches[-1]
             mpos = match.end()
             if mpos == col:
@@ -959,6 +1028,7 @@ class TextInput(FocusBehavior, Widget):
         if col == len(lines[row]):
             row += 1
             col = 0
+
         while True:
             matches = list(self._re_whitespace.finditer(lines[row], col))
             if not matches:
@@ -969,6 +1039,7 @@ class TextInput(FocusBehavior, Widget):
                     col = 0
                     continue
                 return len(lines[row]), row
+
             match = matches[0]
             mpos = match.start()
             if mpos == col:
@@ -1008,13 +1079,15 @@ class TextInput(FocusBehavior, Widget):
             rto += 1
         return max(0, rfrom), min(rmax, rto)
 
-    def _shift_lines(self, direction, rows=None, old_cursor=None,
-                     from_undo=False):
+    def _shift_lines(
+        self, direction, rows=None, old_cursor=None, from_undo=False
+    ):
         if self._selection_callback:
             if from_undo:
                 self._selection_callback.cancel()
             else:
                 return
+
         lines = self._lines
         flags = list(reversed(self._lines_flags))
         labels = self._lines_labels
@@ -1043,7 +1116,7 @@ class TextInput(FocusBehavior, Widget):
                 psrow, perow = self._expand_rows(erow)
                 rows = ((srow, erow), (psrow, perow))
 
-        if rows:
+        else:
             (srow, erow), (psrow, perow) = rows
             if direction < 0:
                 m1srow, m1erow = psrow, perow
@@ -1055,21 +1128,40 @@ class TextInput(FocusBehavior, Widget):
                 m2srow, m2erow = psrow, perow
                 cdiff = perow - psrow
                 xdiff = erow - srow
-            self._lines_flags = list(reversed(
-                flags[:m1srow] + flags[m2srow:m2erow] + flags[m1srow:m1erow] +
-                flags[m2erow:]))
-            self._lines[:] = (lines[:m1srow] + lines[m2srow:m2erow] +
-                              lines[m1srow:m1erow] + lines[m2erow:])
-            self._lines_labels = (labels[:m1srow] + labels[m2srow:m2erow] +
-                                  labels[m1srow:m1erow] + labels[m2erow:])
-            self._lines_rects = (rects[:m1srow] + rects[m2srow:m2erow] +
-                                 rects[m1srow:m1erow] + rects[m2erow:])
+
+            self._lines_flags = list(reversed(chain(
+                flags[:m1srow],
+                flags[m2srow:m2erow],
+                flags[m1srow:m1erow],
+                flags[m2erow:],
+            )))
+            self._lines[:] = (
+                lines[:m1srow]
+                + lines[m2srow:m2erow]
+                + lines[m1srow:m1erow]
+                + lines[m2erow:]
+            )
+            self._lines_labels = (
+                labels[:m1srow]
+                + labels[m2srow:m2erow]
+                + labels[m1srow:m1erow]
+                + labels[m2erow:]
+            )
+            self._lines_rects = (
+                rects[:m1srow]
+                + rects[m2srow:m2erow]
+                + rects[m1srow:m1erow]
+                + rects[m2erow:]
+            )
             self._trigger_update_graphics()
             csrow = srow + cdiff
             cerow = erow + cdiff
-            sel = (self.cursor_index((0, csrow)),
-                   self.cursor_index((0, cerow)))
+            sel = (
+                self.cursor_index((0, csrow)),
+                self.cursor_index((0, cerow))
+            )
             self.cursor = self.cursor_col, self.cursor_row + cdiff
+
             if not from_undo:
                 undo_rows = ((srow + cdiff, erow + cdiff),
                              (psrow - xdiff, perow - xdiff))
@@ -1085,6 +1177,43 @@ class TextInput(FocusBehavior, Widget):
                 self.select_text(*sel)
                 self._selection_callback = None
             self._selection_callback = Clock.schedule_once(cb)
+
+    @property
+    def pgmove_speed(self):
+        """how much vertical distance hitting pg_up or pg_down will move
+        """
+        return int(
+            self.height
+            / (self.line_height + self.line_spacing) - 1
+        )
+
+    def _move_cursor_up(self, col, row, control=False, alt=False):
+        if self.multiline and control:
+            self.scroll_y = max(0, self.scroll_y - self.line_height)
+        elif not self.readonly and self.multiline and alt:
+            self._shift_lines(-1)
+            return
+        else:
+            row = max(row - 1, 0)
+            col = min(len(self._lines[row]), col)
+
+        return col, row
+
+    def _move_cursor_down(self, col, row, control, alt):
+        if self.multiline and control:
+            maxy = self.minimum_height - self.height
+            self.scroll_y = max(
+                0,
+                min(maxy, self.scroll_y + self.line_height)
+            )
+        elif not self.readonly and self.multiline and alt:
+            self._shift_lines(1)
+            return
+        else:
+            row = min(row + 1, len(self._lines) - 1)
+            col = min(len(self._lines[row]), col)
+
+        return col, row
 
     def do_cursor_movement(self, action, control=False, alt=False):
         '''Move the cursor relative to its current position.
@@ -1115,46 +1244,45 @@ class TextInput(FocusBehavior, Widget):
         '''
         if not self._lines:
             return
-        pgmove_speed = int(self.height /
-            (self.line_height + self.line_spacing) - 1)
+
         col, row = self.cursor
         if action == 'cursor_up':
-            if self.multiline and control:
-                self.scroll_y = max(0, self.scroll_y - self.line_height)
-            elif not self.readonly and self.multiline and alt:
-                self._shift_lines(-1)
-                return
+            result = self._move_cursor_up(col, row, control, alt)
+            if result:
+                col, row = result
             else:
-                row = max(row - 1, 0)
-                col = min(len(self._lines[row]), col)
+                return
+
         elif action == 'cursor_down':
-            if self.multiline and control:
-                maxy = self.minimum_height - self.height
-                self.scroll_y = max(0, min(maxy,
-                                           self.scroll_y + self.line_height))
-            elif not self.readonly and self.multiline and alt:
-                self._shift_lines(1)
-                return
+            result = self._move_cursor_down(col, row, control, alt)
+            if result:
+                col, row = result
             else:
-                row = min(row + 1, len(self._lines) - 1)
-                col = min(len(self._lines[row]), col)
+                return
+
         elif action == 'cursor_home':
             col = 0
             if control:
                 row = 0
+
         elif action == 'cursor_end':
             if control:
                 row = len(self._lines) - 1
             col = len(self._lines[row])
+
         elif action == 'cursor_pgup':
-            row = max(0, row - pgmove_speed)
+            row = max(0, row - self.pgmove_speed)
             col = min(len(self._lines[row]), col)
+
         elif action == 'cursor_pgdown':
-            row = min(row + pgmove_speed, len(self._lines) - 1)
+            row = min(row + self.pgmove_speed, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
-        elif (self._selection and self._selection_finished and
-                self._selection_from < self._selection_to and
-                action == 'cursor_left'):
+
+        elif (
+            self._selection and self._selection_finished
+            and self._selection_from < self._selection_to
+            and action == 'cursor_left'
+        ):
             current_selection_to = self._selection_to
             while self._selection_from != current_selection_to:
                 current_selection_to -= 1
@@ -1163,9 +1291,12 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     row -= 1
                     col = len(self._lines[row])
-        elif (self._selection and self._selection_finished and
-                self._selection_from > self._selection_to and
-                action == 'cursor_right'):
+
+        elif (
+            self._selection and self._selection_finished
+            and self._selection_from > self._selection_to
+            and action == 'cursor_right'
+        ):
             current_selection_to = self._selection_to
             while self._selection_from != current_selection_to:
                 current_selection_to += 1
@@ -1185,6 +1316,7 @@ class TextInput(FocusBehavior, Widget):
                         col = len(self._lines[row])
                 else:
                     col, row = col - 1, row
+
         elif action == 'cursor_right':
             if not self.password and control:
                 col, row = self._move_cursor_word_right()
@@ -1200,42 +1332,62 @@ class TextInput(FocusBehavior, Widget):
         if dont_move_cursor:
             self._trigger_update_graphics()
         else:
-            self.cursor = (col, row)
+            self.cursor = col, row
 
     def get_cursor_from_xy(self, x, y):
         '''Return the (col, row) of the cursor from an (x, y) position.
         '''
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
-        l = self._lines
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
+
+        lines = self._lines
         dy = self.line_height + self.line_spacing
-        cx = x - self.x
-        scrl_y = self.scroll_y
-        scrl_x = self.scroll_x
-        scrl_y = scrl_y / dy if scrl_y > 0 else 0
-        cy = (self.top - padding_top + scrl_y * dy) - y
-        cy = int(boundary(round(cy / dy - 0.5), 0, len(l) - 1))
-        _get_text_width = self._get_text_width
-        _tab_width = self.tab_width
-        _label_cached = self._label_cached
+        cursor_x = x - self.x
+        scroll_y = self.scroll_y
+        scroll_x = self.scroll_x
+        scroll_y = scroll_y / dy if scroll_y > 0 else 0
+
+        cursor_y = (self.top - padding_top + scroll_y * dy) - y
+        cursor_y = int(boundary(
+            round(cursor_y / dy - 0.5),
+            0,
+            len(lines) - 1
+        ))
+
+        get_text_width = self._get_text_width
+        tab_width = self.tab_width
+        label_cached = self._label_cached
+
         # Offset for horizontal text alignment
         xoff = 0
         halign = self.halign
         base_dir = self.base_direction or self._resolved_base_dir
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
+
         if halign == 'center':
-            viewport_width = self.width - padding_left - self.padding[2]  # _r
-            xoff = int((viewport_width - self._get_row_width(cy)) / 2)
+            viewport_width = self.width - padding_left - padding_right
+            xoff = max(
+                0, int((viewport_width - self._get_row_width(cursor_y)) / 2)
+            )
+
         elif halign == 'right' or auto_halign_r:
-            viewport_width = self.width - padding_left - self.padding[2]  # _r
-            xoff = viewport_width - self._get_row_width(cy)
-        for i in range(0, len(l[cy])):
-            if xoff + _get_text_width(l[cy][:i], _tab_width, _label_cached) + \
-                  _get_text_width(l[cy][i], _tab_width, _label_cached) * 0.6 +\
-                  padding_left > cx + scrl_x:
-                cx = i
+            viewport_width = self.width - padding_left - padding_right
+            xoff = max(
+                0, int(viewport_width - self._get_row_width(cursor_y))
+            )
+
+        for i in range(0, len(lines[cursor_y])):
+            line_y = lines[cursor_y]
+
+            if cursor_x + scroll_x < (
+                xoff
+                + get_text_width(line_y[:i], tab_width, label_cached)
+                + get_text_width(line_y[i], tab_width, label_cached) * 0.6
+                + padding_left
+            ):
+                cursor_x = i
                 break
-        return cx, cy
+
+        return int(cursor_x), int(cursor_y)
 
     #
     # Selection control
@@ -1256,32 +1408,38 @@ class TextInput(FocusBehavior, Widget):
         if self.readonly:
             return
         self._hide_handles(EventLoop.window)
-        scrl_x = self.scroll_x
-        scrl_y = self.scroll_y
+        scroll_x = self.scroll_x
+        scroll_y = self.scroll_y
         cc, cr = self.cursor
         if not self._selection:
             return
         text = self.text
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
-        self.cursor = cursor = self.get_cursor_from_index(a)
-        start = cursor
+        a, b = sorted((self._selection_from, self._selection_to))
+
+        start = self.get_cursor_from_index(a)
         finish = self.get_cursor_from_index(b)
         cur_line = self._lines[start[1]][:start[0]] +\
             self._lines[finish[1]][finish[0]:]
-        lines, lineflags = self._split_smart(cur_line)
-        len_lines = len(lines)
-        if start[1] == finish[1]:
-            self._set_line_text(start[1], cur_line)
-        else:
-            self._refresh_text_from_property('del', start[1], finish[1], lines,
-                                             lineflags, len_lines)
-        self.scroll_x = scrl_x
-        self.scroll_y = scrl_y
+
+        self._set_line_text(start[1], cur_line)
+        start_del, finish_del, lines, lines_flags, len_lines = \
+            self._get_line_from_cursor(start[1], cur_line,
+                                       lines=(self._lines[:(start[1] + 1)] +
+                                              self._lines[(finish[1] + 1):]),
+                                       lines_flags=(
+                                           self._lines_flags[:(start[1] + 1)] +
+                                           self._lines_flags[(finish[1] + 1):])
+                                       )
+        self._refresh_text_from_property('del', start_del,
+                                         finish_del + (finish[1] - start[1]),
+                                         lines, lines_flags, len_lines)
+
+        self.scroll_x = scroll_x
+        self.scroll_y = scroll_y
         # handle undo and redo for delete selection
         self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
+        self.cursor = self.get_cursor_from_index(a)
 
     def _set_unredo_delsel(self, a, b, substring, from_undo):
         # handle undo and redo for backspace
@@ -1324,9 +1482,26 @@ class TextInput(FocusBehavior, Widget):
     def long_touch(self, dt):
         self._long_touch_ev = None
         if self._selection_to == self._selection_from:
-            pos = self.to_local(*self._long_touch_pos, relative=False)
+            pos = self.to_local(*self._touch_down.pos, relative=False)
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
+
+    def cancel_long_touch_event(self):
+        # schedule long touch for paste
+        if self._long_touch_ev is not None:
+            self._long_touch_ev.cancel()
+            self._long_touch_ev = None
+
+    def _select_word(self, delimiters=u' .,:;!?\'"<>()[]{}'):
+        cindex = self.cursor_index()
+        col = self.cursor_col
+        line = self._lines[self.cursor_row]
+        start = max(0, len(line[:col]) -
+                    max(line[:col].rfind(s) for s in delimiters) - 1)
+        end = min((line[col:].find(s) if line[col:].find(s) > -1
+                   else (len(line) - col)) for s in delimiters)
+        Clock.schedule_once(lambda dt: self.select_text(cindex - start,
+                                                        cindex + end))
 
     def on_double_tap(self):
         '''This event is dispatched when a double tap happens
@@ -1335,14 +1510,7 @@ class TextInput(FocusBehavior, Widget):
         different behavior. Alternatively, you can bind to this
         event to provide additional functionality.
         '''
-        ci = int(self.cursor_index())
-        cc = int(self.cursor_col)
-        line = self._lines[self.cursor_row]
-        len_line = len(line)
-        start = max(0, len(line[:cc]) - line[:cc].rfind(u' ') - 1)
-        end = line[cc:].find(u' ')
-        end = end if end > - 1 else (len_line - cc)
-        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+        self._select_word()
 
     def on_triple_tap(self):
         '''This event is dispatched when a triple tap happens
@@ -1370,7 +1538,7 @@ class TextInput(FocusBehavior, Widget):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             return False
-        if super(TextInput, self).on_touch_down(touch):
+        if super().on_touch_down(touch):
             return True
 
         if self.focus:
@@ -1383,25 +1551,28 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y > 0:
-                        self.scroll_y -= self.line_height
+                        self.scroll_y = max(0, self.scroll_y -
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
                     if self.scroll_x > 0:
-                        self.scroll_x -= self.line_height
+                        self.scroll_x = max(0, self.scroll_x -
+                                            self.line_height)
                         self._trigger_update_graphics()
             if scroll_type == 'up':
                 if self.multiline:
-                    viewport_height = self.height\
-                                      - self.padding[1] - self.padding[3]
-                    text_height = len(self._lines) * (self.line_height
-                                                      + self.line_spacing)
-                    if viewport_height < text_height - self.scroll_y:
-                        self.scroll_y += self.line_height
+                    max_scroll_y = max(0, self.minimum_height - self.height)
+                    if self.scroll_y < max_scroll_y:
+                        self.scroll_y = min(max_scroll_y, self.scroll_y +
+                                            self.line_height)
                         self._trigger_update_graphics()
                 else:
-                    if (self.scroll_x + self.width <
-                            self._lines_rects[-1].texture.size[0]):
-                        self.scroll_x += self.line_height
+                    minimum_width = (self._get_row_width(0) + self.padding[0] +
+                                     self.padding[2])
+                    max_scroll_x = max(0, minimum_width - self.width)
+                    if self.scroll_x < max_scroll_x:
+                        self.scroll_x = min(max_scroll_x, self.scroll_x +
+                                            self.line_height)
                         self._trigger_update_graphics()
             return True
 
@@ -1414,17 +1585,22 @@ class TextInput(FocusBehavior, Widget):
         if self._touch_count == 4:
             self.dispatch('on_quad_touch')
 
+        # stores the touch for later use
+        self._touch_down = touch
+
+        # Is a new touch_down, so previous scroll states needs to be reset
+        self._enable_scroll = True
+        self._have_scrolled = False
+        self._scroll_distance_x = 0
+        self._scroll_distance_y = 0
+
         self._hide_cut_copy_paste(EventLoop.window)
         # schedule long touch for paste
-        self._long_touch_pos = touch.pos
         self._long_touch_ev = Clock.schedule_once(self.long_touch, .5)
 
         self.cursor = self.get_cursor_from_xy(*touch_pos)
-        if not self._selection_touch:
-            self.cancel_selection()
-            self._selection_touch = touch
-            self._selection_from = self._selection_to = self.cursor_index()
-            self._update_selection()
+        if not self.scroll_from_swipe:
+            self._cancel_update_selection(self._touch_down)
 
         if CutBuffer and 'button' in touch.profile and \
                 touch.button == 'middle':
@@ -1432,6 +1608,14 @@ class TextInput(FocusBehavior, Widget):
             return True
 
         return True
+
+    # cancel/update existing selection after a single tap
+    def _cancel_update_selection(self, touch):
+        if not self._selection_touch:
+            self.cancel_selection()
+            self._selection_touch = touch
+            self._selection_from = self._selection_to = self.cursor_index()
+            self._update_selection()
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
@@ -1441,7 +1625,11 @@ class TextInput(FocusBehavior, Widget):
             if self._selection_touch is touch:
                 self._selection_touch = None
             return False
-        if self._selection_touch is touch:
+
+        if self.scroll_from_swipe:
+            self.scroll_text_from_swipe(touch)
+
+        if not self._have_scrolled and self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
             self._selection_to = self.cursor_index()
             self._update_selection()
@@ -1453,22 +1641,33 @@ class TextInput(FocusBehavior, Widget):
         touch.ungrab(self)
         self._touch_count -= 1
 
-        # schedule long touch for paste
-        if self._long_touch_ev is not None:
-            self._long_touch_ev.cancel()
-            self._long_touch_ev = None
+        self.cancel_long_touch_event()
 
         if not self.focus:
             return False
 
+        # types of touch that will have higher priority in being recognized,
+        # compared to single tap
+        prioritized_touch_types = (
+            touch.is_double_tap
+            or touch.is_triple_tap
+            or self._touch_count == 4
+        )
+
+        if not self._have_scrolled and not prioritized_touch_types:
+            # Is a single tap and did not scrolled.
+            # Selection needs to be canceled.
+            self._cancel_update_selection(self._touch_down)
+
+        # show Bubble
+        win = EventLoop.window
+        if self._selection_to != self._selection_from:
+            self._show_cut_copy_paste(touch.pos, win)
+
         if self._selection_touch is touch:
             self._selection_to = self.cursor_index()
             self._update_selection(True)
-            # show Bubble
-            win = EventLoop.window
-            if self._selection_to != self._selection_from:
-                self._show_cut_copy_paste(touch.pos, win)
-            elif self.use_handles:
+            if self.use_handles and self._selection_to == self._selection_from:
                 self._hide_handles()
                 handle_middle = self._handle_middle
                 if handle_middle is None:
@@ -1486,22 +1685,73 @@ class TextInput(FocusBehavior, Widget):
                 self._position_handles(mode='middle')
             return True
 
+    def scroll_text_from_swipe(self, touch):
+        _scroll_timeout = (touch.time_update - touch.time_start) * 1000
+        self._scroll_distance_x += abs(touch.dx)
+        self._scroll_distance_y += abs(touch.dy)
+        if not self._have_scrolled:
+            # To be considered a scroll, touch should travel more than
+            # scroll_distance in less than the scroll_timeout since touch_down
+            if not (
+                _scroll_timeout <= self.scroll_timeout
+                and (
+                    (self._scroll_distance_x >= self.scroll_distance)
+                    or (self._scroll_distance_y >= self.scroll_distance)
+                )
+            ):
+                # Distance isn't enough (yet) to consider it as a scroll
+                if _scroll_timeout <= self.scroll_timeout:
+                    # Timeout is not reached, scroll is still enabled.
+                    return False
+                else:
+                    self._enable_scroll = False
+                    self._cancel_update_selection(self._touch_down)
+                    return False
+            # We have a scroll!
+            self._have_scrolled = True
+
+        self.cancel_long_touch_event()
+
+        if self.multiline:
+            max_scroll_y = max(0, self.minimum_height - self.height)
+            self.scroll_y = min(
+                max(0, self.scroll_y + touch.dy),
+                max_scroll_y
+            )
+        else:
+            minimum_width = (
+                self._get_row_width(0)
+                + self.padding[0] + self.padding[2]
+            )
+            max_scroll_x = max(0, minimum_width - self.width)
+            self.scroll_x = min(
+                max(0, self.scroll_x - touch.dx),
+                max_scroll_x
+            )
+        self._trigger_update_graphics()
+        self._position_handles()
+        return True
+
     def _handle_pressed(self, instance):
         self._hide_cut_copy_paste()
-        sf, st = self._selection_from, self.selection_to
-        if sf > st:
-            self._selection_from, self._selection_to = st, sf
+        from_, to_ = self._selection_from, self.selection_to
+        if from_ > to_:
+            self._selection_from, self._selection_to = to_, from_
 
     def _handle_released(self, instance):
-        sf, st = self._selection_from, self.selection_to
-        if sf == st:
+        if self._selection_from == self.selection_to:
             return
 
         self._update_selection()
         self._show_cut_copy_paste(
-            (instance.right if instance is self._handle_left else instance.x,
-             instance.top + self.line_height),
-            EventLoop.window)
+            (
+                self.x + instance.right
+                if instance is self._handle_left
+                else self.x + instance.x,
+                self.y + instance.top + self.line_height
+            ),
+            EventLoop.window
+        )
 
     def _handle_move(self, instance, touch):
         if touch.grab_current != instance:
@@ -1520,23 +1770,24 @@ class TextInput(FocusBehavior, Widget):
 
         cursor = get_cursor(
             x,
-            y + instance._touch_diff + (self.line_height / 2))
+            y + instance._touch_diff + (self.line_height / 2)
+        )
+        self.cursor = cursor
 
         if instance != touch.grab_current:
             return
 
         if instance == handle_middle:
-            self.cursor = cursor
             self._position_handles(mode='middle')
             return
 
-        ci = self.cursor_index(cursor=cursor)
-        sf, st = self._selection_from, self.selection_to
+        cindex = self.cursor_index()
 
         if instance == handle_left:
-            self._selection_from = ci
+            self._selection_from = cindex
         elif instance == handle_right:
-            self._selection_to = ci
+            self._selection_to = cindex
+        self._update_selection()
         self._trigger_update_graphics()
         self._trigger_position_handles()
 
@@ -1552,7 +1803,9 @@ class TextInput(FocusBehavior, Widget):
             hp_mid = self.cursor_pos
             pos = self.to_local(*hp_mid, relative=True)
             handle_middle.x = pos[0] - handle_middle.width / 2
-            handle_middle.top = pos[1] - lh
+            handle_middle.top = max(self.padding[3],
+                                    min(self.height - self.padding[1],
+                                        pos[1] - lh))
         if mode[0] == 'm':
             return
 
@@ -1628,9 +1881,10 @@ class TextInput(FocusBehavior, Widget):
             anim.start(self._handle_right)
             anim.start(self._handle_left)
 
-    def _show_cut_copy_paste(self, pos, win, parent_changed=False,
-                             mode='', pos_in_window=False, *l):
-        # Show a bubble with cut copy and paste buttons
+    def _show_cut_copy_paste(
+        self, pos, win, parent_changed=False, mode='', pos_in_window=False, *l
+    ):
+        """Show a bubble with cut copy and paste buttons"""
         if not self.use_bubble:
             return
 
@@ -1638,8 +1892,14 @@ class TextInput(FocusBehavior, Widget):
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
             self.fbind('parent', self._show_cut_copy_paste, pos, win, True)
-            self.bind(focus=lambda *args: self._hide_cut_copy_paste(win))
-            self.bind(cursor_pos=lambda *args: self._hide_cut_copy_paste(win))
+
+            def hide_(*args):
+                return self._hide_cut_copy_paste(win)
+
+            self.bind(
+                focus=hide_,
+                cursor_pos=hide_,
+            )
         else:
             win.remove_widget(bubble)
             if not self.parent:
@@ -1670,8 +1930,10 @@ class TextInput(FocusBehavior, Widget):
             # bubble beyond right of window
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (win_size[0] - bubble_hw,
-                             (t_pos[1]) - (lh + ls + inch(.25)))
+                bubble_pos = (
+                    win_size[0] - bubble_hw,
+                    (t_pos[1]) - (lh + ls + inch(.25))
+                )
                 bubble.arrow_pos = 'top_right'
             else:
                 bubble_pos = (win_size[0] - bubble_hw, bubble_pos[1])
@@ -1679,8 +1941,10 @@ class TextInput(FocusBehavior, Widget):
         else:
             if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
-                bubble_pos = (bubble_pos[0],
-                             (t_pos[1]) - (lh + ls + inch(.25)))
+                bubble_pos = (
+                    bubble_pos[0],
+                    (t_pos[1]) - (lh + ls + inch(.25))
+                )
                 bubble.arrow_pos = 'top_mid'
             else:
                 bubble.arrow_pos = 'bottom_mid'
@@ -1710,19 +1974,21 @@ class TextInput(FocusBehavior, Widget):
 
     @staticmethod
     def _reload_remove_observer(wr):
-        # called when the textinput is deleted
+        """called when the textinput is deleted"""
         if wr in _textinput_list:
             _textinput_list.remove(wr)
 
     def _on_textinput_focused(self, instance, value, *largs):
-
         win = EventLoop.window
         self.cancel_selection()
         self._hide_cut_copy_paste(win)
 
         if value:
-            if (not (self.readonly or self.disabled) or _is_desktop and
-                    self._keyboard_mode == 'system'):
+            if (
+                not (self.readonly or self.disabled)
+                or _is_desktop
+                and self._keyboard_mode == 'system'
+            ):
                 self._trigger_cursor_reset()
                 self._editable = True
             else:
@@ -1780,7 +2046,7 @@ class TextInput(FocusBehavior, Widget):
         CutBuffer.set_cutbuffer(self.selection_text)
 
     def _get_text_width(self, text, tab_width, _label_cached):
-        # Return the width of a text, according to the current line options
+        """Return the width of a text, according to the current line options"""
         kw = self._get_line_options()
 
         try:
@@ -1803,7 +2069,7 @@ class TextInput(FocusBehavior, Widget):
         return width
 
     def on_cursor_blink(self, instance, value):
-        # trigger blink event reset to switch blinking while focused
+        """trigger blink event reset to switch blinking while focused"""
         self._reset_cursor_blink()
 
     def _do_blink_cursor(self, dt):
@@ -1825,14 +2091,16 @@ class TextInput(FocusBehavior, Widget):
         self._do_blink_cursor_ev()
 
     def on_cursor(self, instance, value):
-        # When the cursor is moved, reset cursor blinking to keep it showing,
-        # and update all the graphics.
+        """
+        When the cursor is moved, reset cursor blinking to keep it showing,
+        and update all the graphics.
+        """
         if self.focus:
             self._trigger_cursor_reset()
         self._trigger_update_graphics()
 
     def _delete_line(self, idx):
-        # Delete current line, and fix cursor position
+        """Delete current line, and fix cursor position"""
         assert(idx < len(self._lines))
         self._lines_flags.pop(idx)
         self._lines_labels.pop(idx)
@@ -1840,7 +2108,7 @@ class TextInput(FocusBehavior, Widget):
         self.cursor = self.cursor
 
     def _set_line_text(self, line_num, text):
-        # Set current line with other text than the default one.
+        """Set current line with other text than the default one."""
         self._lines_labels[line_num] = self._create_line_label(text)
         self._lines[line_num] = text
 
@@ -1878,8 +2146,10 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_text(self.text, *largs)
 
     def _refresh_text(self, text, *largs):
-        # Refresh all the lines from a new text.
-        # By using cache in internal functions, this method should be fast.
+        """
+        Refresh all the lines from a new text.
+        By using cache in internal functions, this method should be fast.
+        """
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
@@ -1903,17 +2173,12 @@ class TextInput(FocusBehavior, Widget):
             self._lines[:] = _lines
         elif mode == 'del':
             if finish > start:
-                self._insert_lines(start,
-                                   finish if start == finish else (finish + 1),
-                                   len_lines, _lines_flags,
-                                   _lines, _lines_labels, _line_rects)
+                self._insert_lines(start, finish + 1, len_lines,
+                                   _lines_flags, _lines, _lines_labels,
+                                   _line_rects)
         elif mode == 'insert':
-            self._insert_lines(
-                start,
-                finish if (start == finish and not len_lines)
-                else (finish + 1),
-                len_lines, _lines_flags, _lines, _lines_labels,
-                _line_rects)
+            self._insert_lines(start, finish + 1, len_lines, _lines_flags,
+                               _lines, _lines_labels, _line_rects)
 
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
@@ -1922,8 +2187,10 @@ class TextInput(FocusBehavior, Widget):
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
-        self.cursor = self.get_cursor_from_index(self.cursor_index()
-                                                 if cursor is None else cursor)
+        self.cursor = self.get_cursor_from_index(
+            self.cursor_index() if cursor is None else cursor
+        )
+
         # if we back to a new line, reset the scroll, otherwise, the effect is
         # ugly
         if self.cursor_row != row:
@@ -1972,29 +2239,32 @@ class TextInput(FocusBehavior, Widget):
         self._update_graphics_ev()
 
     def _update_graphics(self, *largs):
-        # Update all the graphics according to the current internal values.
-        #
-        # This is a little bit complex, cause we have to :
+        """
+        Update all the graphics according to the current internal values.
+        """
+
+        # This is a little bit complex, because we have to :
         #     - handle scroll_x
         #     - handle padding
         #     - create rectangle for the lines matching the viewport
         #     - crop the texture coordinates to match the viewport
-        #
+
         # This is the first step of graphics, the second is the selection.
 
         self.canvas.clear()
-        add = self.canvas.add
 
-        lh = self.line_height
-        dy = lh + self.line_spacing
+        line_height = self.line_height
+        dy = line_height + self.line_spacing
 
         # adjust view if the cursor is going outside the bounds
-        sx = self.scroll_x
-        sy = self.scroll_y
+        scroll_x = self.scroll_x
+        scroll_y = self.scroll_y
 
         # draw labels
-        if not self._lines or (
-                not self._lines[0] and len(self._lines) == 1):
+        if (
+            not self._lines
+            or (not self._lines[0] and len(self._lines) == 1)
+        ):
             rects = self._hint_text_rects
             labels = self._hint_text_labels
             lines = self._hint_text_lines
@@ -2002,91 +2272,39 @@ class TextInput(FocusBehavior, Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
+
         padding_left, padding_top, padding_right, padding_bottom = self.padding
         x = self.x + padding_left
-        y = self.top - padding_top + sy
+        y = self.top - padding_top + scroll_y
         miny = self.y + padding_bottom
         maxy = self.top - padding_top
         halign = self.halign
         base_dir = self.base_direction
-        find_base_dir = Label.find_base_direction
+
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
 
         fst_visible_ln = None
+        viewport_pos = scroll_x, 0
         for line_num, value in enumerate(lines):
             if miny < y < maxy + dy:
                 if fst_visible_ln is None:
                     fst_visible_ln = line_num
 
-                texture = labels[line_num]
-                size = list(texture.size)
-                texc = texture.tex_coords[:]
-
-                # calcul coordinate
-                viewport_pos = sx, 0
-                vw = self.width - padding_left - padding_right
-                vh = self.height - padding_top - padding_bottom
-                tw, th = list(map(float, size))
-                oh, ow = tch, tcw = texc[1:3]
-                tcx, tcy = 0, 0
-
-                # adjust size/texcoord according to viewport
-                if viewport_pos:
-                    tcx, tcy = viewport_pos
-                    tcx = tcx / tw * (ow)
-                    tcy = tcy / th * oh
-                if tw - viewport_pos[0] < vw:
-                    tcw = tcw - tcx
-                    size[0] = tcw * size[0]
-                elif vw < tw:
-                    tcw = (vw / tw) * tcw
-                    size[0] = vw
-                if vh < th:
-                    tch = (vh / th) * tch
-                    size[1] = vh
-
-                # cropping
-                mlh = lh
-                if y > maxy:
-                    vh = (maxy - y + lh)
-                    tch = (vh / float(lh)) * oh
-                    tcy = oh - tch
-                    size[1] = vh
-                if y - lh < miny:
-                    diff = miny - (y - lh)
-                    y += diff
-                    vh = lh - diff
-                    tch = (vh / float(lh)) * oh
-                    size[1] = vh
-
-                texc = (
-                    tcx,
-                    tcy + tch,
-                    tcx + tcw,
-                    tcy + tch,
-                    tcx + tcw,
-                    tcy,
-                    tcx,
-                    tcy)
-
-                # Horizontal alignment
-                xoffset = 0
-                if not base_dir:
-                    base_dir = self._resolved_base_dir = find_base_dir(value)
-                    if base_dir and halign == 'auto':
-                        auto_halign_r = 'rtl' in base_dir
-                if halign == 'center':
-                    xoffset = int((vw - size[0]) / 2.)
-                elif halign == 'right' or auto_halign_r:
-                    xoffset = max(0, int(vw - size[0]))
-
-                # add rectangle.
-                r = rects[line_num]
-                r.pos = int(xoffset + x), int(y - mlh)
-                r.size = size
-                r.texture = texture
-                r.tex_coords = texc
-                add(r)
+                y = self._draw_line(
+                    value,
+                    line_num,
+                    labels[line_num],
+                    viewport_pos,
+                    line_height,
+                    miny,
+                    maxy,
+                    x,
+                    y,
+                    base_dir,
+                    halign,
+                    rects,
+                    auto_halign_r,
+                )
             elif y <= miny:
                 line_num -= 1
                 break
@@ -2100,79 +2318,227 @@ class TextInput(FocusBehavior, Widget):
 
         self._update_graphics_selection()
 
+    def _draw_line(
+        self,
+        value,
+        line_num,
+        texture,
+        viewport_pos,
+        line_height,
+        miny,
+        maxy,
+        x,
+        y,
+        base_dir,
+        halign,
+        rects,
+        auto_halign_r,
+    ):
+        size = list(texture.size)
+        texcoords = texture.tex_coords[:]
+
+        # compute coordinate
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
+        viewport_width = self.width - padding_left - padding_right
+        viewport_height = self.height - padding_top - padding_bottom
+        texture_width, texture_height = size
+        original_height, original_width = tch, tcw = texcoords[1:3]
+
+        # adjust size/texcoord according to viewport
+        if viewport_pos:
+            tcx, tcy = viewport_pos
+            tcx = tcx / texture_width * original_width
+            tcy = tcy / texture_height * original_height
+
+        else:
+            tcx, tcy = 0, 0
+
+        if texture_width * (1 - tcx) < viewport_width:
+            tcw = tcw - tcx
+            texture_width = tcw * texture_width
+        elif viewport_width < texture_width:
+            tcw = (viewport_width / texture_width) * tcw
+            texture_width = viewport_width
+
+        if viewport_height < texture_height:
+            tch = (viewport_height / texture_height) * tch
+            texture_height = viewport_height
+
+        # cropping
+        if y > maxy:
+            viewport_height = (maxy - y + line_height)
+            tch = (viewport_height / line_height) * original_height
+            tcy = original_height - tch
+            texture_height = viewport_height
+        if y - line_height < miny:
+            diff = miny - (y - line_height)
+            y += diff
+            viewport_height = line_height - diff
+            tch = (viewport_height / line_height) * original_height
+            texture_height = viewport_height
+
+        if tcw < 0:
+            # nothing to show
+            return y
+
+        top_left_corner = tcx, tcy + tch
+        top_right_corner = tcx + tcw, tcy + tch
+        bottom_right_corner = tcx + tcw, tcy
+        bottom_left_corner = tcx, tcy
+
+        texcoords = (
+            top_left_corner
+            + top_right_corner
+            + bottom_right_corner
+            + bottom_left_corner
+        )
+
+        # Horizontal alignment
+        xoffset = 0
+        if not base_dir:
+            base_dir = self._resolved_base_dir = Label.find_base_direction(value)  # noqa
+            if base_dir and halign == 'auto':
+                auto_halign_r = 'rtl' in base_dir
+        if halign == 'center':
+            xoffset = int((viewport_width - texture_width) / 2.)
+        elif halign == 'right' or auto_halign_r:
+            xoffset = max(0, int(viewport_width - texture_width))
+
+        # add rectangle
+        rect = rects[line_num]
+        rect.pos = int(xoffset + x), int(y - line_height)
+        rect.size = texture_width, texture_height
+        rect.texture = texture
+        rect.tex_coords = texcoords
+        # useful to debug rectangle sizes
+        # self.canvas.add(Color(0, .5, 0, .5, mode='rgba'))
+        # self.canvas.add(Rectangle(pos=rect.pos, size=rect.size))
+        # self.canvas.add(Color())
+        self.canvas.add(rect)
+
+        return y
+
     def _update_graphics_selection(self):
         if not self._selection:
             return
-        self.canvas.remove_group('selection')
-        dy = self.line_height + self.line_spacing
+
+        # local references to avoid dot lookups later
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
         rects = self._lines_rects
-        padding_top = self.padding[1]
-        padding_bottom = self.padding[3]
-        _top = self.top
-        y = _top - padding_top + self.scroll_y
-        miny = self.y + padding_bottom
-        maxy = _top - padding_top
-        draw_selection = self._draw_selection
-        a, b = self._selection_from, self._selection_to
-        if a > b:
-            a, b = b, a
-        get_cursor_from_index = self.get_cursor_from_index
-        s1c, s1r = get_cursor_from_index(a)
-        s2c, s2r = get_cursor_from_index(b)
-        s2r += 1
-        # pass only the selection lines[]
-        # passing all the lines can get slow when dealing with a lot of text
-        y -= s1r * dy
-        _lines = self._lines
-        _get_text_width = self._get_text_width
+        label_cached = self._label_cached
+        lines = self._lines
         tab_width = self.tab_width
-        _label_cached = self._label_cached
-        width = self.width
-        padding_left = self.padding[0]
-        padding_right = self.padding[2]
-        x = self.x
+        top = self.top
+        get_text_width = self._get_text_width
+        get_cursor_from_index = self.get_cursor_from_index
+        draw_selection = self._draw_selection
         canvas_add = self.canvas.add
         selection_color = self.selection_color
-        for line_num, value in enumerate(_lines[s1r:s2r], start=s1r):
-            if miny <= y <= maxy + dy:
-                r = rects[line_num]
-                draw_selection(r.pos, r.size, line_num, (s1c, s1r),
-                               (s2c, s2r - 1), _lines, _get_text_width,
-                               tab_width, _label_cached, width,
-                               padding_left, padding_right, x,
-                               canvas_add, selection_color)
-            y -= dy
+
+        # selection borders
+        a, b = sorted((self._selection_from, self._selection_to))
+        selection_start_col, selection_start_row = get_cursor_from_index(a)
+        selection_end_col, selection_end_row = get_cursor_from_index(b)
+
+        dy = self.line_height + self.line_spacing
+        x = self.x
+        y = top - padding_top + self.scroll_y - selection_start_row * dy
+        width = self.width
+
+        miny = self.y + padding_bottom
+        maxy = top - padding_top + dy
+
+        self.canvas.remove_group('selection')
+        first_visible_line = math.floor(self.scroll_y / dy)
+        last_visible_line = math.ceil((self.scroll_y + maxy - miny) / dy)
+        width_minus_padding = width - (padding_right + padding_left)
+
+        for line_num, rect in enumerate(
+            islice(
+                rects,
+                max(selection_start_row, first_visible_line),
+                min(selection_end_row + 1, last_visible_line - 1),
+            ),
+            start=max(selection_start_row, first_visible_line)
+        ):
+            draw_selection(
+                rect.pos,
+                rect.size,
+                line_num,
+                (selection_start_col, selection_start_row),
+                (selection_end_col, selection_end_row),
+                lines,
+                get_text_width,
+                tab_width,
+                label_cached,
+                width_minus_padding,
+                padding_left,
+                padding_right,
+                x,
+                canvas_add,
+                selection_color
+            )
         self._position_handles('both')
 
-    def _draw_selection(self, *largs):
-        pos, size, line_num, (s1c, s1r), (s2c, s2r),\
-            _lines, _get_text_width, tab_width, _label_cached, width,\
-            padding_left, padding_right, x, canvas_add, selection_color = largs
+    def _draw_selection(
+        self,
+        pos,
+        size,
+        line_num,
+        selection_start,
+        selection_end,
+        lines,
+        get_text_width,
+        tab_width,
+        label_cached,
+        width_minus_padding,
+        padding_left,
+        padding_right,
+        x,
+        canvas_add,
+        selection_color
+    ):
+        selection_start_col, selection_start_row = selection_start
+        selection_end_col, selection_end_row = selection_end
+
         # Draw the current selection on the widget.
-        if line_num < s1r or line_num > s2r:
+        if not selection_start_row <= line_num <= selection_end_row:
             return
         x, y = pos
         w, h = size
-        x1 = x
-        x2 = x + w
-        if line_num == s1r:
-            lines = _lines[line_num]
-            x1 -= self.scroll_x
-            x1 += _get_text_width(lines[:s1c], tab_width, _label_cached)
-        if line_num == s2r:
-            lines = _lines[line_num]
-            x2 = (x - self.scroll_x) + _get_text_width(lines[:s2c],
-                                                       tab_width,
-                                                       _label_cached)
-        width_minus_padding = width - (padding_right + padding_left)
-        maxx = x + width_minus_padding
-        if x1 > maxx:
+        beg = x
+        end = x + w
+
+        if line_num == selection_start_row:
+            line = lines[line_num]
+            beg -= self.scroll_x
+            beg += get_text_width(
+                line[:selection_start_col],
+                tab_width,
+                label_cached
+            )
+
+        if line_num == selection_end_row:
+            line = lines[line_num]
+            end = (x - self.scroll_x) + get_text_width(
+                line[:selection_end_col],
+                tab_width,
+                label_cached
+            )
+
+        beg = boundary(beg, x, x + width_minus_padding)
+        end = boundary(end, x, x + width_minus_padding)
+        if beg == end:
             return
-        x1 = max(x1, x)
-        x2 = min(x2, x + width_minus_padding)
+
         canvas_add(Color(*selection_color, group='selection'))
-        canvas_add(Rectangle(
-            pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
+        canvas_add(
+            Rectangle(
+                pos=(beg, y),
+                size=(end - beg, h),
+                group='selection'
+            )
+        )
 
     def on_size(self, instance, value):
         # if the size change, we might do invalid scrolling / text split
@@ -2207,12 +2573,20 @@ class TextInput(FocusBehavior, Widget):
         auto_halign_r = halign == 'auto' and base_dir and 'rtl' in base_dir
         if halign == 'center':
             row_width = self._get_row_width(self.cursor_row)
-            x = left + int((viewport_width - row_width) / 2) \
-                     + cursor_offset - self.scroll_x
+            x = (
+                left
+                + max(0, (viewport_width - row_width) // 2)
+                + cursor_offset
+                - self.scroll_x
+            )
         elif halign == 'right' or auto_halign_r:
             row_width = self._get_row_width(self.cursor_row)
-            x = left + viewport_width - row_width \
-                     + cursor_offset - self.scroll_x
+            x = (
+                left
+                + max(0, viewport_width - row_width)
+                + cursor_offset
+                - self.scroll_x
+            )
         else:
             x = left + cursor_offset - self.scroll_x
 
@@ -2250,15 +2624,18 @@ class TextInput(FocusBehavior, Widget):
                 'anchor_y': 'top',
                 'padding_x': 0,
                 'padding_y': 0,
-                'padding': (0, 0)}
+                'padding': (0, 0)
+            }
             self._label_cached = Label(**kw)
         return self._line_options
 
     def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
         ntext = text.replace(u'\n', u'').replace(u'\t', u' ' * self.tab_width)
+
         if self.password and not hint:  # Don't replace hint_text with *
             ntext = self.password_mask * len(ntext)
+
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
@@ -2266,7 +2643,7 @@ class TextInput(FocusBehavior, Widget):
         if texture is None:
             # FIXME right now, we can't render very long line...
             # if we move on "VBO" version as fallback, we won't need to
-            # do this. try to found the maximum text we can handle
+            # do this. try to find the maximum text we can handle
             label = None
             label_len = len(ntext)
             ld = None
@@ -2282,16 +2659,17 @@ class TextInput(FocusBehavior, Widget):
                     label = Label(text=ntext[:label_len], **kw)
                     label.refresh()
                     if ld is not None and ld > 2:
-                        ld = int(ld / 2)
+                        ld //= 2
                         label_len += ld
                     else:
                         break
+
                 except:
                     # exception happen when we tried to render the text
                     # reduce it...
                     if ld is None:
                         ld = len(ntext)
-                    ld = int(ld / 2)
+                    ld //= 2
                     if ld < 2 and label_len:
                         label_len -= 1
                     label_len -= ld
@@ -2302,29 +2680,40 @@ class TextInput(FocusBehavior, Widget):
             Cache_append('textinput.label', cid, texture)
         return texture
 
+    _tokenize_delimiters = u' .,:;!?\r\t'
+
     def _tokenize(self, text):
         # Tokenize a text string from some delimiters
         if text is None:
             return
-        delimiters = u' ,\'".;:\n\r\t'
-        oldindex = 0
+        delimiters = self._tokenize_delimiters
+        old_index = 0
+        prev_char = ''
         for index, char in enumerate(text):
             if char not in delimiters:
-                continue
-            if oldindex != index:
-                yield text[oldindex:index]
-            yield text[index:index + 1]
-            oldindex = index + 1
-        yield text[oldindex:]
+                if char != u'\n':
+                    if index > 0 and (prev_char in delimiters):
+                        if old_index < index:
+                            yield text[old_index:index]
+                        old_index = index
+                else:
+                    if old_index < index:
+                        yield text[old_index:index]
+                    yield text[index:index + 1]
+                    old_index = index + 1
+            prev_char = char
+        yield text[old_index:]
 
     def _split_smart(self, text):
-        # Do a "smart" split. If autowidth or autosize is set,
-        # we are not doing smart split, just a split on line break.
-        # Otherwise, we are trying to split as soon as possible, to prevent
-        # overflow on the widget.
+        """
+        Do a "smart" split. If not multiline, or if wrap is set,
+        we are not doing smart split, just a split on line break.
+        Otherwise, we are trying to split as soon as possible, to prevent
+        overflow on the widget.
+        """
 
         # depend of the options, split the text on line, or word
-        if not self.multiline:
+        if not self.multiline or not self.do_wrap:
             lines = text.split(u'\n')
             lines_flags = [0] + [FL_IS_LINEBREAK] * (len(lines) - 1)
             return lines, lines_flags
@@ -2343,9 +2732,14 @@ class TextInput(FocusBehavior, Widget):
         _tab_width, _label_cached = self.tab_width, self._label_cached
 
         # try to add each word on current line.
+        words_widths = {}
         for word in self._tokenize(text):
             is_newline = (word == u'\n')
-            w = text_width(word, _tab_width, _label_cached)
+            try:
+                w = words_widths[word]
+            except KeyError:
+                w = text_width(word, _tab_width, _label_cached)
+                words_widths[word] = w
             # if we have more than the width, or if it's a newline,
             # push the current line, and create a new one
             if (x + w > width and line) or is_newline:
@@ -2361,9 +2755,11 @@ class TextInput(FocusBehavior, Widget):
                     split_width = split_pos = 0
                     # split the word
                     for c in word:
-                        cw = self._get_text_width(
-                            c, self.tab_width, self._label_cached
-                        )
+                        try:
+                            cw = words_widths[c]
+                        except KeyError:
+                            cw = text_width(c, _tab_width, _label_cached)
+                            words_widths[c] = cw
                         if split_width + cw > width:
                             break
                         split_width += cw
@@ -2391,10 +2787,13 @@ class TextInput(FocusBehavior, Widget):
         displayed_str, internal_str, internal_action, scale = key
 
         # handle deletion
-        if (self._selection and
-                internal_action in (None, 'del', 'backspace', 'enter')):
-            if internal_action != 'enter' or self.multiline:
-                self.delete_selection()
+        if (
+            self._selection
+            and internal_action in (None, 'del', 'backspace', 'enter')
+            and (internal_action != 'enter' or self.multiline)
+        ):
+            self.delete_selection()
+
         elif internal_action == 'del':
             # Move cursor one char to the right. If that was successful,
             # do a backspace (effectively deleting char right of cursor)
@@ -2402,35 +2801,45 @@ class TextInput(FocusBehavior, Widget):
             self.do_cursor_movement('cursor_right')
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
+
         elif internal_action == 'backspace':
             self.do_backspace()
 
         # handle action keys and text insertion
         if internal_action is None:
             self.insert_text(displayed_str)
+
         elif internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
                 self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
+
         elif internal_action == 'ctrl_L':
             self._ctrl_l = True
+
         elif internal_action == 'ctrl_R':
             self._ctrl_r = True
+
         elif internal_action == 'alt_L':
             self._alt_l = True
+
         elif internal_action == 'alt_R':
             self._alt_r = True
+
         elif internal_action.startswith('cursor_'):
             cc, cr = self.cursor
-            self.do_cursor_movement(internal_action,
-                                    self._ctrl_l or self._ctrl_r,
-                                    self._alt_l or self._alt_r)
+            self.do_cursor_movement(
+                internal_action,
+                self._ctrl_l or self._ctrl_r,
+                self._alt_l or self._alt_r
+            )
             if self._selection and not self._selection_finished:
                 self._selection_to = self.cursor_index()
                 self._update_selection()
             else:
                 self.cancel_selection()
+
         elif internal_action == 'enter':
             if self.multiline:
                 self.insert_text(u'\n')
@@ -2438,6 +2847,7 @@ class TextInput(FocusBehavior, Widget):
                 self.dispatch('on_text_validate')
                 if self.text_validate_unfocus:
                     self.focus = False
+
         elif internal_action == 'escape':
             self.focus = False
 
@@ -2456,32 +2866,27 @@ class TextInput(FocusBehavior, Widget):
             self._alt_r = False
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        # Keycodes on OS X:
-        ctrl, cmd = 64, 1024
-        key, key_str = keycode
+        key, _ = keycode
         win = EventLoop.window
 
         # This allows *either* ctrl *or* cmd, but not both.
         modifiers = set(modifiers) - {'capslock', 'numlock'}
-        is_shortcut = (modifiers == {'ctrl'} or (
-            _is_osx and modifiers == {'meta'}))
-        is_interesting_key = key in (list(self.interesting_keys.keys()) + [27])
+        is_shortcut = (
+            modifiers == {'ctrl'}
+            or _is_osx and modifiers == {'meta'}
+        )
+        is_interesting_key = key in self.interesting_keys.keys()
 
-        if not self.write_tab and super(TextInput,
-            self).keyboard_on_key_down(window, keycode, text, modifiers):
+        if (
+            not self.write_tab
+            and super().keyboard_on_key_down(window, keycode, text, modifiers)
+        ):
             return True
 
-        if not self._editable:
-            # duplicated but faster testing for non-editable keys
-            if text and not is_interesting_key:
-                if is_shortcut and key == ord('c'):
-                    self.copy()
-            elif key == 27:
-                self.focus = False
-            return True
+        if text and is_shortcut and not is_interesting_key:
+            self._handle_shortcut(key)
 
-        if text and not is_interesting_key:
-
+        elif self._editable and text and not is_interesting_key:
             self._hide_handles(win)
             self._hide_cut_copy_paste(win)
             win.remove_widget(self._handle_middle)
@@ -2505,52 +2910,11 @@ class TextInput(FocusBehavior, Widget):
 
             _command = self._command
             if _command and first_char == 2:
-                from_undo = True
-                _command, data = _command.split(':')
-                self._command = ''
-                if self._selection:
-                    self.delete_selection()
-                if _command == 'DEL':
-                    count = int(data)
-                    if not count:
-                        self.delete_selection(from_undo=True)
-                    end = self.cursor_index()
-                    self._selection_from = max(end - count, 0)
-                    self._selection_to = end
-                    self._selection = True
-                    self.delete_selection(from_undo=True)
-                    return
-                elif _command == 'INSERT':
-                    self.insert_text(data, from_undo)
-                elif _command == 'INSERTN':
-                    from_undo = False
-                    self.insert_text(data, from_undo)
-                elif _command == 'SELWORD':
-                    self.dispatch('on_double_tap')
-                elif _command == 'SEL':
-                    if data == '0':
-                        Clock.schedule_once(lambda dt: self.cancel_selection())
-                elif _command == 'CURCOL':
-                    self.cursor = int(data), self.cursor_row
+                self._handle_command(_command)
                 return
 
-            if is_shortcut:
-                if key == ord('x'):  # cut selection
-                    self._cut(self.selection_text)
-                elif key == ord('c'):  # copy selection
-                    self.copy()
-                elif key == ord('v'):  # paste clipboard content
-                    self.paste()
-                elif key == ord('a'):  # select all
-                    self.select_all()
-                elif key == ord('z'):  # undo
-                    self.do_undo()
-                elif key == ord('r'):  # redo
-                    self.do_redo()
             else:
-                is_sdl2 = (EventLoop.window.__class__.__module__ ==
-                           'kivy.core.window.window_sdl2')
-                if is_sdl2:
+                if EventLoop.window.managed_textinput:
                     # we expect to get managed key input via on_textinput
                     return
                 if self._selection:
@@ -2567,6 +2931,7 @@ class TextInput(FocusBehavior, Widget):
             self.focus = False
             return True
         elif key == 9:  # tab
+            self.delete_selection()
             self.insert_text(u'\t')
             return True
 
@@ -2575,8 +2940,57 @@ class TextInput(FocusBehavior, Widget):
             key = (None, None, k, 1)
             self._key_down(key)
 
+    def _handle_command(self, command):
+        from_undo = True
+        command, data = command.split(':')
+        self._command = ''
+        if self._selection:
+            self.delete_selection()
+        if command == 'DEL':
+            count = int(data)
+            if not count:
+                self.delete_selection(from_undo=True)
+            end = self.cursor_index()
+            self._selection_from = max(end - count, 0)
+            self._selection_to = end
+            self._selection = True
+            self.delete_selection(from_undo=True)
+            return
+        elif command == 'INSERT':
+            self.insert_text(data, from_undo)
+        elif command == 'INSERTN':
+            from_undo = False
+            self.insert_text(data, from_undo)
+        elif command == 'SELWORD':
+            self.dispatch('on_double_tap')
+        elif command == 'SEL':
+            if data == '0':
+                Clock.schedule_once(lambda dt: self.cancel_selection())
+        elif command == 'CURCOL':
+            self.cursor = int(data), self.cursor_row
+
+    def _handle_shortcut(self, key):
+        # actions that can be done in readonly
+        if key == ord('a'):  # select all
+            self.select_all()
+        elif key == ord('c'):  # copy selection
+            self.copy()
+
+        if not self._editable:
+            return
+
+        # actions that can be done only if editable
+        if key == ord('x'):  # cut selection
+            self._cut(self.selection_text)
+        elif key == ord('v'):  # paste clipboard content
+            self.paste()
+        elif key == ord('z'):  # undo
+            self.do_undo()
+        elif key == ord('r'):  # redo
+            self.do_redo()
+
     def keyboard_on_key_up(self, window, keycode):
-        key, key_str = keycode
+        key = keycode[0]
         k = self.interesting_keys.get(key)
         if k:
             key = (None, None, k, 1)
@@ -2698,6 +3112,18 @@ class TextInput(FocusBehavior, Widget):
     defaults to True.
     '''
 
+    do_wrap = BooleanProperty(True)
+    '''If True, and the text is multiline, then lines larger than the width of
+    the widget will wrap around to the next line, avoiding the need for
+    horizontal scrolling. Disabling this option ensure one line is always
+    displayed as one line.
+
+    :attr:`do_wrap` is a :class:`~kivy.properties.BooleanProperty` and defaults
+    to True.
+
+    versionadded:: 2.1.0
+    '''
+
     password = BooleanProperty(False)
     '''If True, the widget will display its characters as the character
     set in :attr:`password_mask`.
@@ -2715,16 +3141,6 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`password_mask` is a :class:`~kivy.properties.StringProperty` and
     defaults to `'*'`.
-    '''
-
-    keyboard_suggestions = BooleanProperty(True)
-    '''If True provides auto suggestions on top of keyboard.
-    This will only work if :attr:`input_type` is set to `text`.
-
-    .. versionadded:: 1.8.0
-
-    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
-    and defaults to True.
     '''
 
     cursor_blink = BooleanProperty(True)
@@ -2755,37 +3171,65 @@ class TextInput(FocusBehavior, Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
-        padding_left = self.padding[0]
-        padding_right = self.padding[2]
-        viewport_width = self.width - padding_left - padding_right
-        sx = self.scroll_x
-        offset = self.cursor_offset()
-
-        # if offset is outside the current bounds, readjust
-        if offset > viewport_width + sx:
-            self.scroll_x = offset - viewport_width
-        if offset < sx:
-            self.scroll_x = offset
-
-        # do the same for Y
-        # this algo try to center the cursor as much as possible
-        dy = self.line_height + self.line_spacing
-        offsety = cr * dy
-        sy = self.scroll_y
-        padding_top = self.padding[1]
-        padding_bottom = self.padding[3]
-        viewport_height = self.height - padding_top - padding_bottom - dy
-        if offsety > viewport_height + sy:
-            sy = offsety - viewport_height
-        if offsety < sy:
-            sy = offsety
-        self.scroll_y = sy
+        self._adjust_viewport(cc, cr)
 
         if self._cursor == cursor:
             return
 
         self._cursor = cursor
         return True
+
+    @triggered(timeout=-1)
+    def _adjust_viewport(self, cc, cr):
+        padding_left = self.padding[0]
+        padding_right = self.padding[2]
+        viewport_width = self.width - padding_left - padding_right
+        sx = self.scroll_x
+        base_dir = self.base_direction or self._resolved_base_dir
+        auto_halign_r = (
+            self.halign == 'auto'
+            and base_dir
+            and 'rtl' in base_dir
+        )
+
+        offset = self.cursor_offset()
+        row_width = self._get_row_width(self.cursor_row)
+
+        # if offset is outside the current bounds, readjust
+        if offset - sx >= viewport_width:
+            self.scroll_x = offset - viewport_width
+        elif offset < sx + 1:
+            self.scroll_x = offset
+
+        # Avoid right/center horizontal alignment issues if the viewport is at
+        # the end of the line, if not multiline.
+        viewport_scroll_x = row_width - viewport_width
+        if (
+            not self.multiline
+            and offset >= viewport_scroll_x
+            and self.scroll_x >= viewport_scroll_x
+            and (
+                self.halign == "center"
+                or self.halign == "right"
+                or auto_halign_r
+            )
+        ):
+            self.scroll_x = max(0, viewport_scroll_x)
+
+        # do the same for Y
+        # this algo try to center the cursor as much as possible
+        dy = self.line_height + self.line_spacing
+        offsety = cr * dy
+
+        padding_top = self.padding[1]
+        padding_bottom = self.padding[3]
+        viewport_height = self.height - padding_top - padding_bottom - dy
+
+        sy = self.scroll_y
+        if offsety > viewport_height + sy:
+            self.scroll_y = offsety - viewport_height
+        elif offsety < sy:
+            self.scroll_y = offsety
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
     '''Tuple of (col, row) values indicating the current cursor position.
@@ -3067,46 +3511,37 @@ class TextInput(FocusBehavior, Widget):
     and defaults to True on mobile OS's, False on desktop OS's.
     '''
 
-    suggestion_text = StringProperty('')
-    '''Shows a suggestion text at the end of the current line.
-    The feature is useful for text autocompletion, and it does not implement
-    validation (accepting the suggested text on enter etc.).
-    This can also be used by the IME to setup the current word being edited.
+    scroll_from_swipe = BooleanProperty(not _is_desktop)
+    '''Allow to scroll the text using swipe gesture according to
+    :attr:`scroll_timeout` and :attr:`scroll_distance`.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 2.1.0
 
-    :attr:`suggestion_text` is a :class:`~kivy.properties.StringProperty` and
-    defaults to `''`.
+    :attr:`scroll_from_swipe` is a BooleanProperty and defaults to True on
+    mobile OS’s, False on desktop OS’s.
     '''
 
-    def on_suggestion_text(self, instance, value):
-        global MarkupLabel
-        if not MarkupLabel:
-            from kivy.core.text.markup import MarkupLabel
+    scroll_distance = NumericProperty(_scroll_distance)
+    '''Minimum distance to move before change from scroll to selection mode, in
+    pixels.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
 
-        cursor_row = self.cursor_row
-        if cursor_row >= len(self._lines) or self.canvas is None:
-            return
+    .. versionadded:: 2.1.0
 
-        cursor_pos = self.cursor_pos
-        txt = self._lines[cursor_row]
+    :attr:`scroll_distance` is a NumericProperty and defaults to  20 pixels.
+    '''
 
-        kw = self._get_line_options()
-        rct = self._lines_rects[cursor_row]
+    scroll_timeout = NumericProperty(_scroll_timeout)
+    '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
+    If the user has not moved :attr:`scroll_distance` within the timeout, the
+    scrolling will be disabled, and the selection mode will start.
 
-        lbl = text = None
-        if value:
-            lbl = MarkupLabel(
-                text=txt + "[b]{}[/b]".format(value), **kw)
-        else:
-            lbl = Label(**kw)
-            text = txt
+    .. versionadded:: 2.1.0
 
-        lbl.refresh()
-
-        self._lines_labels[cursor_row] = lbl.texture
-        rct.size = lbl.size
-        self._update_graphics()
+    :attr:`scroll_timeout` is a NumericProperty and defaults to 250
+    milliseconds.
+    '''
 
     def get_sel_from(self):
         return self._selection_from
@@ -3263,9 +3698,11 @@ class TextInput(FocusBehavior, Widget):
     defaults to None.
     '''
 
-    base_direction = OptionProperty(None,
-                     options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
-                     allownone=True)
+    base_direction = OptionProperty(
+        None,
+        options=['ltr', 'rtl', 'weak_rtl', 'weak_ltr', None],
+        allownone=True
+    )
     '''Base direction of text, this impacts horizontal alignment when
     :attr:`halign` is `auto` (the default). Available options are: None,
     "ltr" (left to right), "rtl" (right to left) plus "weak_ltr" and
@@ -3365,15 +3802,20 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def _get_min_height(self):
-        return (len(self._lines) * (self.line_height + self.line_spacing) +
-                self.padding[1] + self.padding[3])
+        return (
+            len(self._lines) * (self.line_height + self.line_spacing)
+            + self.padding[1]
+            + self.padding[3]
+        )
 
-    minimum_height = AliasProperty(_get_min_height,
-                                   bind=('_lines', 'line_spacing', 'padding',
-                                         'font_size', 'font_name', 'password',
-                                         'font_context', 'hint_text',
-                                         'line_height'),
-                                   cache=True)
+    minimum_height = AliasProperty(
+        _get_min_height,
+        bind=(
+            '_lines', 'line_spacing', 'padding', 'font_size', 'font_name',
+            'password', 'font_context', 'hint_text', 'line_height'
+        ),
+        cache=True
+    )
     '''Minimum height of the content inside the TextInput.
 
     .. versionadded:: 1.8.0
@@ -3471,29 +3913,83 @@ class TextInput(FocusBehavior, Widget):
 
 
 if __name__ == '__main__':
+    from textwrap import dedent
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
+    KV = dedent(r'''
+    #:set font_size '20dp'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '10dp'
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            text: 'monoline'
+
+        TextInput:
+            size_hint_y: None
+            font_size: font_size
+            height: self.minimum_height
+            multiline: False
+            password: True
+            password_mask: '•'
+            text: 'password'
+
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            readonly: True
+            text: 'readonly'
+
+        TextInput:
+            font_size: font_size
+            size_hint_y: None
+            height: self.minimum_height
+            multiline: False
+            disabled: True
+            text: 'disabled'
+
+        TextInput:
+            font_size: font_size
+            hint_text: 'normal with hint text'
+
+        TextInput:
+            font_size: font_size
+            text: 'default'
+
+        TextInput:
+            font_size: font_size
+            text: 'bubble & handles'
+            use_bubble: True
+            use_handles: True
+
+        TextInput:
+            font_size: font_size
+            text: 'no wrap'
+            do_wrap: False
+
+        TextInput:
+            font_size: font_size
+            text: 'multiline\nreadonly'
+            disabled: app.time % 5 < 2.5
+    ''')
+
     class TextInputApp(App):
+        time = NumericProperty()
 
         def build(self):
+            Clock.schedule_interval(self.update_time, 0)
+            return Builder.load_string(KV)
 
-            Builder.load_string('''
-<TextInput>
-    on_text:
-        self.suggestion_text = ''
-        self.suggestion_text = 'ion_text'
-
-''')
-            root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True, use_bubble=True,
-                                  use_handles=True)
-            # textinput.text = __doc__
-            root.add_widget(textinput)
-            textinput2 = TextInput(multiline=False, text='monoline textinput',
-                                   size_hint=(1, None), height=30)
-            root.add_widget(textinput2)
-            return root
+        def update_time(self, dt):
+            self.time += dt
 
     TextInputApp().run()

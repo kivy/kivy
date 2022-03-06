@@ -153,9 +153,14 @@ class EventLoopBase(EventDispatcher):
 
     def remove_input_provider(self, provider):
         '''Remove an input provider.
+
+        .. versionchanged:: 2.1.0
+            Provider will be also removed if it exist in auto-remove list.
         '''
         if provider in self.input_providers:
             self.input_providers.remove(provider)
+            if provider in self.input_providers_autoremove:
+                self.input_providers_autoremove.remove(provider)
 
     def add_event_listener(self, listener):
         '''Add a new event listener for getting touch events.
@@ -170,8 +175,15 @@ class EventLoopBase(EventDispatcher):
             self.event_listeners.remove(listener)
 
     def start(self):
-        '''Must be called only once before :meth:`EventLoopBase.run()`.
-        This starts all configured input providers.'''
+        '''Must be called before :meth:`EventLoopBase.run()`. This starts all
+        configured input providers.
+
+        .. versionchanged:: 2.1.0
+            Method can be called multiple times, but event loop will start only
+            once.
+        '''
+        if self.status == 'started':
+            return
         self.status = 'started'
         self.quit = False
         Clock.start_clock()
@@ -188,17 +200,21 @@ class EventLoopBase(EventDispatcher):
 
     def stop(self):
         '''Stop all input providers and call callbacks registered using
-        `EventLoop.add_stop_callback()`.'''
+        `EventLoop.add_stop_callback()`.
 
+        .. versionchanged:: 2.1.0
+            Method can be called multiple times, but event loop will stop only
+            once.
+        '''
+        if self.status != 'started':
+            return
         # XXX stop in reverse order that we started them!! (like push
         # pop), very important because e.g. wm_touch and WM_PEN both
         # store old window proc and the restore, if order is messed big
         # problem happens, crashing badly without error
         for provider in reversed(self.input_providers[:]):
             provider.stop()
-            if provider in self.input_providers_autoremove:
-                self.input_providers_autoremove.remove(provider)
-                self.input_providers.remove(provider)
+            self.remove_input_provider(provider)
 
         # ensure any restart will not break anything later.
         self.input_events = []
@@ -241,53 +257,32 @@ class EventLoopBase(EventDispatcher):
         elif etype == 'end':
             if me in self.me_list:
                 self.me_list.remove(me)
-
         # dispatch to listeners
         if not me.grab_exclusive_class:
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
-
         # dispatch grabbed touch
+        if not me.is_touch:
+            # Non-touch event must be handled by the event manager
+            return
         me.grab_state = True
-        for _wid in me.grab_list[:]:
-
-            # it's a weakref, call it!
-            wid = _wid()
+        for weak_widget in me.grab_list[:]:
+            # weak_widget is a weak reference to widget
+            wid = weak_widget()
             if wid is None:
                 # object is gone, stop.
-                me.grab_list.remove(_wid)
+                me.grab_list.remove(weak_widget)
                 continue
-
             root_window = wid.get_root_window()
             if wid != root_window and root_window is not None:
                 me.push()
-                w, h = root_window.system_size
-                if platform == 'ios' or root_window._density != 1:
-                    w, h = root_window.size
-                kheight = root_window.keyboard_height
-                smode = root_window.softinput_mode
-                me.scale_for_screen(w, h, rotation=root_window.rotation,
-                                    smode=smode, kheight=kheight)
-                parent = wid.parent
-                # and do to_local until the widget
                 try:
-                    if parent:
-                        me.apply_transform_2d(parent.to_widget)
-                    else:
-                        me.apply_transform_2d(wid.to_widget)
-                        me.apply_transform_2d(wid.to_parent)
+                    root_window.transform_motion_event_2d(me, wid)
                 except AttributeError:
-                    # when using inner window, an app have grab the touch
-                    # but app is removed. the touch can't access
-                    # to one of the parent. (i.e, self.parent will be None)
-                    # and BAM the bug happen.
                     me.pop()
                     continue
-
             me.grab_current = wid
-
             wid._context.push()
-
             if etype == 'begin':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
@@ -299,21 +294,18 @@ class EventLoopBase(EventDispatcher):
                         wid.dispatch('on_touch_move', me)
                 else:
                     wid.dispatch('on_touch_move', me)
-
             elif etype == 'end':
                 if wid._context.sandbox:
                     with wid._context.sandbox:
                         wid.dispatch('on_touch_up', me)
                 else:
                     wid.dispatch('on_touch_up', me)
-
             wid._context.pop()
-
             me.grab_current = None
-
             if wid != root_window and root_window is not None:
                 me.pop()
         me.grab_state = False
+        me.dispatch_done()
 
     def _dispatch_input(self, *ev):
         # remove the save event for the touch if exist

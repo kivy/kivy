@@ -4,14 +4,13 @@
 .. image:: images/label.png
     :align: right
 
-The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings::
+The :class:`Label` widget is for rendering text::
 
     # hello world text
     l = Label(text='Hello world')
 
     # unicode text; can only display glyphs that are available in the font
-    l = Label(text=u'Hello world ' + unichr(2764))
+    l = Label(text='Hello world ' + chr(2764))
 
     # multiline text
     l = Label(text='Multi\\nLine')
@@ -341,8 +340,12 @@ class Label(Widget):
         if (markup and cls is not CoreMarkupLabel) or \
            (not markup and cls is not CoreLabel):
             # markup have change, we need to change our rendering method.
-            d = Label._font_properties
-            dkw = dict(list(zip(d, [getattr(self, x) for x in d])))
+            dkw = {x: getattr(self, x) for x in self._font_properties}
+            dkw['usersize'] = self.text_size
+            if self.disabled:
+                dkw['color'] = self.disabled_color
+                dkw['outline_color'] = self.disabled_outline_color
+
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -461,10 +464,6 @@ class Label(Widget):
     Creation of a simple hello world::
 
         widget = Label(text='Hello world')
-
-    If you want to create the widget with an unicode string, use::
-
-        widget = Label(text=u'My unicode string')
 
     :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
@@ -991,7 +990,7 @@ class Label(Widget):
         {'hello': ((64, 0, 78, 16), )}
 
     The references marked "hello" have a bounding box at (x1, y1, x2, y2).
-    These co-ordinates are relative to the top left corner of the text, with
+    These coordinates are relative to the top left corner of the text, with
     the y value increasing downwards. You can define multiple refs with the
     same name: each occurrence will be added as another (x1, y1, x2, y2) tuple
     to this list.
@@ -1018,7 +1017,7 @@ class Label(Widget):
     .. versionadded:: 1.1.0
 
     Position of all the ``[anchor=xxx]`` markup in the text.
-    These co-ordinates are relative to the top left corner of the text, with
+    These coordinates are relative to the top left corner of the text, with
     the y value increasing downwards. Anchors names should be unique and only
     the first occurrence of any duplicate anchors will be recorded.
 

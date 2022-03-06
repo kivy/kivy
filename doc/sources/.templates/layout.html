@@ -50,10 +50,10 @@
             <select id="version_selector"></select>
             <h3>Quick search</h3>
             <form class="search" action="{{ pathto('search') }}" method="get">
-                &nbsp;
                 <input type="hidden" name="check_keywords" value="yes" />
                 <input type="hidden" name="area" value="default" />
                 <input type="text" class="text" name="q" />
+                <button type="submit">{{ _('Go') }}</button>
             </form>
           {%- block sidebartoc %}
           <!--
@@ -84,7 +84,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="twitter:site" content="@kivyframework">
+    <meta name="color-scheme" content="dark light"> <!--tells web browser about which themes are supported -->
     {{ metatags }}
     {%- if not embedded and docstitle %}
       {%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
@@ -92,28 +94,47 @@
       {%- set titlesuffix = "" %}
     {%- endif %}
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
-    <link href='//fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
-    {%- if not embedded %}
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '{{ url_root }}',
-        VERSION:     '{{ release|e }}',
-        COLLAPSE_MODINDEX: false,
-        FILE_SUFFIX: '{{ file_suffix }}',
-        HAS_SOURCE:  {{ has_source|lower }}
+    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
 
-      };
-    </script>
-{%- block scripts %}
-    {%- for scriptfile in script_files %}
-    <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
-    {%- endfor %}
-    <script type="text/javascript" src="{{ pathto('_static/jquery-effects-core-and-slide.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
-{%- endblock %}
+    {%- if not embedded %}
+    {%- block scripts %}
+        {% if sphinx_version >= "1.8.0" %} 
+          <script type="text/javascript" id="documentation_options" data-url_root="{{ pathto('', 1) }}" src="{{ pathto('_static/documentation_options.js', 1) }}"></script> 
+          {%- for scriptfile in script_files %} 
+            {{ js_tag(scriptfile) }} 
+          {%- endfor %} 
+        {% else %} 
+          <script type="text/javascript"> 
+              var DOCUMENTATION_OPTIONS = { 
+                  URL_ROOT:'{{ url_root }}', 
+                  VERSION:'{{ release|e }}', 
+                  LANGUAGE:'{{ language }}', 
+                  COLLAPSE_INDEX:false, 
+                  FILE_SUFFIX:'{{ '' if no_search_suffix else file_suffix }}', 
+                  HAS_SOURCE:  {{ has_source|lower }}, 
+                  SOURCELINK_SUFFIX: '{{ sourcelink_suffix }}' 
+              }; 
+          </script> 
+          {%- for scriptfile in script_files %} 
+            <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script> 
+          {%- endfor %}
+        {% endif %}
+        <script>
+            const currTheme = localStorage.getItem("theme");
+            if(currTheme){
+                document.documentElement.className = currTheme;
+            } else if(window.matchMedia){
+                document.documentElement.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark": "light";
+            } else { // neither localStorage or window.matchMedia exists
+                document.documentElement.className = "light"; //todo should dark theme be the fallback value instead ?
+            }
+        </script>
+        <script type="text/javascript" src="{{ pathto('_static/jquery-effects-core-and-slide.js', 1) }}"></script>
+        <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
+        <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
+    {%- endblock %}
     {%- if use_opensearch %}
     <link rel="search" type="application/opensearchdescription+xml"
           title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
@@ -156,27 +177,52 @@
 
     <div id="topbar">
         <div id="topwrapper">
-        <div id="toplogo">
-            <a href="http://kivy.org/">
-                <img src="{{ pathto('_static/logo-kivy.png', 1) }}" alt="Kivy" height="50"/>
-            </a>
-        </div>
-        <div id="topmenu">
-            <ul class="navigation">
-                <li><a class="nav-guides" href="{{ pathto('gettingstarted/intro') }}">Guides</a></li>
-                <li><a class="nav-garden" href="http://kivy-garden.github.io/">Garden</a></li>
-                <li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
-                <li><a class="nav-pdf" href="https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf">PDF</a></li>
-                <li><a class="nav-wiki" href="http://wiki.kivy.org">Wiki</a></li>
-            </ul>
-        </div>
+          <div id="toplogo">
+              <a href="https://kivy.org/">
+                  <img src="{{ pathto('_static/logo-kivy.png', 1) }}" alt="Kivy"/>
+              </a>
+          </div>
+          <div id="topmenu">
+              <ul class="navigation">
+                  <li><a class="nav-guides" href="{{ pathto('gettingstarted/intro') }}">Guides</a></li>
+                  <li><a class="nav-garden" href="http://kivy-garden.github.io/">Garden</a></li>
+                  <li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
+                  <li><a class="nav-pdf" href="https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf">PDF</a></li>
+                  <li><a class="nav-wiki" href="http://wiki.kivy.org">Wiki</a></li>
+                  <li id="li_themeToggleSwitch">
+                        <button id="themeToggleSwitch" type="button">
+                            <span class="vt-switch-check">
+                                <span class="vt-switch-icon">
+                                    <!--[-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="sun">
+                                        <path d="M12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6s6,2.7,6,6S15.3,18,12,18zM12,8c-2.2,0-4,1.8-4,4c0,2.2,1.8,4,4,4c2.2,0,4-1.8,4-4C16,9.8,14.2,8,12,8z"></path>
+                                        <path d="M12,4c-0.6,0-1-0.4-1-1V1c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,3.6,12.6,4,12,4z"></path>
+                                        <path d="M12,24c-0.6,0-1-0.4-1-1v-2c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,23.6,12.6,24,12,24z"></path>
+                                        <path d="M5.6,6.6c-0.3,0-0.5-0.1-0.7-0.3L3.5,4.9c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C6.2,6.5,5.9,6.6,5.6,6.6z"></path>
+                                        <path d="M19.8,20.8c-0.3,0-0.5-0.1-0.7-0.3l-1.4-1.4c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C20.3,20.7,20,20.8,19.8,20.8z"></path>
+                                        <path d="M3,13H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S3.6,13,3,13z"></path>
+                                        <path d="M23,13h-2c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S23.6,13,23,13z"></path>
+                                        <path d="M4.2,20.8c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C4.7,20.7,4.5,20.8,4.2,20.8z"></path>
+                                        <path d="M18.4,6.6c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C18.9,6.5,18.6,6.6,18.4,6.6z"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="moon">
+                                        <path d="M12.1,22c-0.3,0-0.6,0-0.9,0c-5.5-0.5-9.5-5.4-9-10.9c0.4-4.8,4.2-8.6,9-9c0.4,0,0.8,0.2,1,0.5c0.2,0.3,0.2,0.8-0.1,1.1c-2,2.7-1.4,6.4,1.3,8.4c2.1,1.6,5,1.6,7.1,0c0.3-0.2,0.7-0.3,1.1-0.1c0.3,0.2,0.5,0.6,0.5,1c-0.2,2.7-1.5,5.1-3.6,6.8C16.6,21.2,14.4,22,12.1,22zM9.3,4.4c-2.9,1-5,3.6-5.2,6.8c-0.4,4.4,2.8,8.3,7.2,8.7c2.1,0.2,4.2-0.4,5.8-1.8c1.1-0.9,1.9-2.1,2.4-3.4c-2.5,0.9-5.3,0.5-7.5-1.1C9.2,11.4,8.1,7.7,9.3,4.4z"></path>
+                                    </svg>
+                                    <!--]-->
+                                </span>
+                            </span>
+                        </button>
+
+                  </li>
+              </ul>
+          </div>
         </div>
     </div>
 
 {%- block document %}
 <div id="contentall">
-    {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
-    <div id="content">
+  {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
+  <div id="content">
     <div class="wrapper">
       <div class="documentwrapper">
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
@@ -208,29 +254,14 @@
         </div>
       {%- endif %}{% endif %}
       </div>
-      </div>
+    </div>
+    <div class="clearer"></div>
+  </div>
+</div>
 {%- endblock %}
-      <div class="clearer"></div>
-    </div>
-    </div>
 
 {%- block footer %}
 <!-- Piwik -->
-<script>
-  var _paq = _paq || [];
-  _paq.push(['setDomains', '*.kivy.org']);
-  _paq.push(['setCookieDomain', '*.kivy.org']);
-  _paq.push(['enableHeartBeatTimer', 60]);
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="//pw.kivy.org/";
-    _paq.push(['setTrackerUrl', u+'pw.php']);
-    _paq.push(['setSiteId', 4]);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'pw.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
 <script>
   var selector = $("#version_selector");
 
@@ -253,7 +284,6 @@
     });
   });
 </script>
-<noscript><p><img src="//pw.kivy.org/pw.php?idsite=4&rec=1" style="border:0;" alt="" /></p></noscript>
 <!-- End Piwik Tracking Code -->
     <!--
     <div class="footer">

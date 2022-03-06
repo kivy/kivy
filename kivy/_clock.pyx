@@ -260,6 +260,7 @@ cdef class CyClockBase(object):
         self._del_safe_lock = RLock()
         self._del_safe_done = False
         self.has_ended = False
+        self.has_started = False
 
     def start_clock(self):
         """Must be called to start the clock.
@@ -268,7 +269,10 @@ cdef class CyClockBase(object):
         """
         self._lock_acquire()
         try:
-            pass
+            if self.has_started:
+                return
+
+            self.has_started = True
             # for now don't raise an exception when restarting because kivy's
             # graphical tests are not setup to handle clock isolation so they try
             # to restart the clock
@@ -664,10 +668,13 @@ cdef class CyClockBase(object):
         while found:
             count -= 1
             if count == -1:
+                remaining_events = '\n'.join(
+                    map(str, self.get_before_frame_events()))
                 Logger.critical(
-                    'Clock: Warning, too much iteration done before'
-                    ' the next frame. Check your code, or increase'
-                    ' the Clock.max_iteration attribute')
+                    f'Clock: Warning, too much iteration done before'
+                    f' the next frame. Check your code, or increase'
+                    f' the Clock.max_iteration attribute. Remaining events:\n'
+                    f'{remaining_events}')
                 break
 
             # search event that have timeout = -1
@@ -732,6 +739,24 @@ cdef class CyClockBase(object):
         ev = self._root_event
         while ev is not None:
             events.append(ev)
+            ev = ev.next
+        self._lock_release()
+        return events
+
+    cpdef get_before_frame_events(self):
+        '''Returns the list of :class:`ClockEvent` instances that are scheduled
+        to be called before the next frame (``-1`` timeout).
+
+        .. versionadded:: 2.1.0
+        '''
+        cdef list events = []
+        cdef ClockEvent ev
+
+        self._lock_acquire()
+        ev = self._root_event
+        while ev is not None:
+            if ev.timeout == -1:
+                events.append(ev)
             ev = ev.next
         self._lock_release()
         return events

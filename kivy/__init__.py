@@ -31,6 +31,7 @@ __all__ = (
 import sys
 import shutil
 from getopt import getopt, GetoptError
+import os
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
@@ -162,7 +163,10 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...]::
+    '''Kivy Usage: %s [KIVY OPTION...] [-- PROGRAM OPTIONS]::
+
+            Options placed after a '-- ' separator, will not be touched by kivy,
+            and instead passed to your program.
 
             Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
             disable Kivy's argument parser.
@@ -265,6 +269,22 @@ for examples_dir in (
         kivy_examples_dir = examples_dir
         break
 
+
+def _patch_mod_deps_win(dep_mod, mod_name):
+    import site
+    dep_bins = []
+
+    for d in [sys.prefix, site.USER_BASE]:
+        p = join(d, 'share', mod_name, 'bin')
+        if os.path.isdir(p):
+            os.environ["PATH"] = p + os.pathsep + os.environ["PATH"]
+            if hasattr(os, 'add_dll_directory'):
+                os.add_dll_directory(p)
+            dep_bins.append(p)
+
+    dep_mod.dep_bins = dep_bins
+
+
 # if there are deps, import them so they can do their magic.
 _packages = []
 try:
@@ -302,6 +322,10 @@ for importer, modname, package in _packages:
         _logging_msgs.append(
             'deps: Successfully imported "{}.{}"{}'.
             format(package, modname, version))
+
+        if modname.startswith('gst') and version == '0.3.3':
+            _patch_mod_deps_win(mod, modname)
+
     except ImportError as e:
         Logger.warning(
             'deps: Error importing dependency "{}.{}": {}'.
@@ -347,7 +371,9 @@ for importer, modname, package in _packages:
             format(package, modname, str(e)))
 
 # Don't go further if we generate documentation
-if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
+if any(name in sys.argv[0] for name in (
+        'sphinx-build', 'autobuild.py', 'sphinx'
+)):
     environ['KIVY_DOC'] = '1'
 if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
@@ -390,10 +416,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # Can be overrided in command line
+    # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
-            'KIVY_NO_ARGS' not in environ):
+            environ.get('KIVY_NO_ARGS', "false") not in ('true', '1', 'yes')):
         # save sys argv, otherwise, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
@@ -515,11 +541,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 for msg in _logging_msgs:
     Logger.info(msg)
 
-if _KIVY_RELEASE:
-    Logger.info('Kivy: v%s' % __version__)
-elif not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
+if not _KIVY_RELEASE and _kivy_git_hash and _kivy_build_date:
     Logger.info('Kivy: v%s, git-%s, %s' % (
         __version__, _kivy_git_hash[:7], _kivy_build_date))
+else:
+    Logger.info('Kivy: v%s' % __version__)
 Logger.info('Kivy: Installed at "{}"'.format(__file__))
 Logger.info('Python: v{}'.format(sys.version))
 Logger.info('Python: Interpreter at "{}"'.format(sys.executable))

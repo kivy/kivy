@@ -22,17 +22,21 @@ def normalize(value, a, b):
 
 class LeapFingerEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+        self.profile = ('pos', 'pos3d',)
+
     def depack(self, args):
-        super(LeapFingerEvent, self).depack(args)
+        super().depack(args)
         if args[0] is None:
             return
-        self.profile = ('pos', 'pos3d', )
         x, y, z = args
         self.sx = normalize(x, -150, 150)
         self.sy = normalize(y, 40, 460)
         self.sz = normalize(z, -350, 350)
         self.z = z
-        self.is_touch = True
 
 
 class LeapFingerEventProvider(MotionEventProvider):
@@ -85,7 +89,7 @@ class LeapFingerEventProvider(MotionEventProvider):
         available_uid = []
         for hand in frame.hands:
             for finger in hand.fingers:
-                # print hand.id(), finger.id(), finger.tip()
+                # print(hand.id(), finger.id(), finger.tip())
                 uid = '{0}:{1}'.format(hand.id, finger.id)
                 available_uid.append(uid)
                 position = finger.tip_position

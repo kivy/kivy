@@ -24,9 +24,9 @@ Usage::
 
     # To monitor changes, we can bind to color property changes
     def on_color(instance, value):
-        print "RGBA = ", str(value)  #  or instance.color
-        print "HSV = ", str(instance.hsv)
-        print "HEX = ", str(instance.hex_color)
+        print("RGBA = ", str(value))  #  or instance.color
+        print("HSV = ", str(instance.hsv))
+        print("HEX = ", str(instance.hex_color))
 
     clr_picker.bind(color=on_color)
 
@@ -427,7 +427,7 @@ class ColorPicker(RelativeLayout):
         ev()
 
     def _update_clr(self, dt):
-        # to prevent interaction between hsv/rgba, we work internaly using rgba
+        # to prevent interaction between hsv/rgba, we work internally using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
             text = min(255, max(0, float(text)))

@@ -95,7 +95,7 @@ if platform == "darwin":
     IS_GLES_PLATFORM = 0
 
 
-# XXX OpenGL & GLES 3 symbol, but works and requied on "GLES 2" on iOS
+# XXX OpenGL & GLES 3 symbol, but works and required on "GLES 2" on iOS
 # Adding it to headers can be complicated because it doesn't exists in gl2.h
 cdef int GL_DEPTH_STENCIL_ATTACHMENT = 0x821A
 
@@ -448,7 +448,7 @@ cdef class Fbo(RenderContext):
         self._width, self._height = x
         self.delete_fbo()
         self.create_fbo()
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def clear_color(self):

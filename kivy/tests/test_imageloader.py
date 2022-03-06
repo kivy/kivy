@@ -116,7 +116,7 @@ def match_prediction(pixels, fmt, fd, pitch):
     fail = errors.append
 
     if len(pixels) != pitch * fd['h']:
-        fail("Pitch errror: pitch {} * {} height != {} pixelbytes"
+        fail("Pitch error: pitch {} * {} height != {} pixelbytes"
              .format(pitch, fd['h'], len(pixels)))
 
     ptr = 0

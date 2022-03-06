@@ -12,7 +12,7 @@ Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
 ‎           Platform            Installation                                        Packaging
 ==========  ==================  ==================================================  =======================================================================
 |w_logo|    Windows             :ref:`pip<install-pip>`                             :ref:`PyInstaller<packaging-win>`
-|m_logo|    OS X                :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
+|m_logo|    macOS               :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
 |l_logo|    Linux               :ref:`pip<install-pip>`, :ref:`PPA<linux-ppa>`      ---
 |r_logo|    RPi                 :ref:`pip<install-pip>`                             ---
 |a_logo|    Android             :ref:`python-for-android<packaging_android>`        :ref:`python-for-android<packaging_android>`
@@ -44,7 +44,7 @@ The easiest way to install Kivy is with ``pip``, which installs Kivy using eithe
 :ref:`pre-compiled wheel<pip-wheel>`, if available, otherwise from source (see below).
 
 Kivy provides :ref:`pre-compiled wheels<kivy-wheel-install>` for the supported Python
-versions on Windows, OS X, Linux, and RPi. Alternatively, installing
+versions on Windows, macOS, Linux, and RPi. Alternatively, installing
 :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
@@ -83,7 +83,7 @@ with other Python versions and packages. It's optional **but strongly recommende
 
        source kivy_venv/Scripts/activate
 
-   If you are in **linux**, instead do::
+   If you are in **linux** or **macOS**, instead do::
 
        source kivy_venv/bin/activate
 
@@ -104,7 +104,7 @@ Pre-compiled wheels
 The simplest is to install the current stable version of ``kivy`` and optionally ``kivy_examples``
 from the kivy-team provided PyPi wheels. Simply do::
 
-    python -m pip install kivy[base] kivy_examples
+    python -m pip install "kivy[base]" kivy_examples
 
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
@@ -123,14 +123,14 @@ with some additional steps. Installing from source means that Kivy will be insta
 from source code and compiled directly on your system.
 
 First install the additional system dependencies listed for each platform:
-:ref:`Windows<install-source-win>`, :ref:`OS X<install-source-osx>`,
+:ref:`Windows<install-source-win>`, :ref:`macOS<install-source-osx>`,
 :ref:`Linux<install-source-linux>`, :ref:`RPi<install-source-rpi>`.
 
 With the dependencies installed, you can now install Kivy into the virtual environment.
 
 To install the stable version of Kivy, from the terminal do::
 
-    python -m pip install kivy[base] kivy_examples --no-binary kivy
+    python -m pip install "kivy[base]" kivy_examples --no-binary kivy
 
 To install the latest cutting-edge Kivy from **master**, instead do::
 
@@ -152,14 +152,14 @@ Pre-release, pre-compiled wheels
 To install a pre-compiled wheel of the last **pre-release** version of Kivy, instead of the
 current stable version, add the ``--pre`` flag to pip::
 
-    python -m pip install --pre kivy[base] kivy_examples
+    python -m pip install --pre "kivy[base]" kivy_examples
 
 This will only install a development version of Kivy if one was released to
 `PyPi <https://pypi.org/project/Kivy/#history>`_. Instead, one can also install the
 latest **cutting-edge** :ref:`Nightly wheels <nightly-win-wheels>` from the Kivy server with::
 
     python -m pip install kivy --pre --no-deps --index-url  https://kivy.org/downloads/simple/
-    python -m pip install kivy[base] --pre --extra-index-url https://kivy.org/downloads/simple/
+    python -m pip install "kivy[base]" --pre --extra-index-url https://kivy.org/downloads/simple/
 
 It is done in two steps, because otherwise ``pip`` may ignore the wheels on the server and install
 an older pre-release version from PyPi.
@@ -182,11 +182,11 @@ The typical process is to clone Kivy locally with::
 
 This creates a kivy named folder in your current path. Next, install the additional
 system dependencies listed for each OS: :ref:`Windows<install-source-win>`,
-:ref:`OS X<install-source-osx>`, :ref:`Linux<install-source-linux>`,
+:ref:`macOS<install-source-osx>`, :ref:`Linux<install-source-linux>`,
 :ref:`RPi<install-source-rpi>`.
 
 Then change to the kivy directory and install Kivy as an
-`editable install <https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`_::
+`editable install <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_::
 
     cd kivy
     python -m pip install -e ".[dev,full]"
@@ -214,11 +214,13 @@ Checking the demo
 ^^^^^^^^^^^^^^^^^
 
 Kivy should now be installed. You should be able to ``import kivy`` in Python or,
-if you installed the Kivy examples, run the demo (on Windows)::
+if you installed the Kivy examples, run the demo.
+
+on Windows::
 
     python kivy_venv\share\kivy-examples\demo\showcase\main.py
 
-or in bash or Linux::
+or in bash, Linux and macOS::
 
     python kivy_venv/share/kivy-examples/demo/showcase/main.py
 
@@ -251,7 +253,7 @@ audio, etc.), at least one backend must be installed to be able to use the categ
 To facilitate easy installation, we provide ``extras_require``
 `groups <https://setuptools.readthedocs.io/en/latest/userguide/dependency_management.html#optional-dependencies>`_
 that will install selected backends to ensure a working Kivy installation. So one can install
-Kivy more simply with e.g.``pip install kivy[base,media,tuio]``. The full list of selectors and
+Kivy more simply with e.g.``pip install "kivy[base,media,tuio]"``. The full list of selectors and
 the packages they install is listed in
 `setup.py <https://github.com/kivy/kivy/blob/master/setup.cfg>`_. The exact packages in each selector
 may change in the future, but the overall goal of each selector will remain as described below.
@@ -272,7 +274,7 @@ We offer the following selectors:
 The following selectors install backends packaged as wheels by kivy under the ``Kivy_deps`` namespace.
 They are typically released and versioned to match specific Kivy versions, so we provide selectors
 to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl2==x.y.z``,
-you can now do ``pip install kivy[sdl2]`` to automatically install the correct sdl2 for the Kivy
+you can now do ``pip install "kivy[sdl2]"`` to automatically install the correct sdl2 for the Kivy
 version).
 
     `gstreamer`: The gstreamer video/audio backend, if it's available
@@ -280,7 +282,7 @@ version).
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
     `sdl2`: The window/image/audio backend, if it's available (currently only on Windows,
-        on OSX and Linux it is already included in the main Kivy wheel).
+        on macOS and Linux it is already included in the main Kivy wheel).
     `glew`: A alternate OpenGL backend, if it's available (currently only on Windows)
 
 Following are the ``kivy_deps`` dependency wheels:
@@ -326,7 +328,7 @@ Multiple versions of Python can be installed side by side, but Kivy needs to
 be installed as package under each Python version that you want to use Kivy in.
 
 To install Python, see the instructions for each platform:
-:ref:`Windows<install-python-win>`, :ref:`OS X<install-python-osx>`,
+:ref:`Windows<install-python-win>`, :ref:`macOS<install-python-osx>`,
 :ref:`Linux<install-python-linux>`, :ref:`RPi<install-python-rpi>`.
 
 Once Python is installed, open the :ref:`console <command-line>` and make sure

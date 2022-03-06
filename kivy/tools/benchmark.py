@@ -194,7 +194,7 @@ if __name__ == '__main__':
     log('Kivy Benchmark v%s' % benchmark_version)
     log('=' * 70)
     log('')
-    log('System informations')
+    log('System information')
     log('-------------------')
 
     log('OS platform     : %s' % sys.platform)
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     log('Install date    : %s' % ctime(os.path.getctime(kivy.__file__)))
 
     log('')
-    log('OpenGL informations')
+    log('OpenGL information')
     log('-------------------')
 
     from kivy.core.gl import glGetString, GL_VENDOR, GL_RENDERER, GL_VERSION

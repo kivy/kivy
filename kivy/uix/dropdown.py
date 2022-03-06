@@ -281,20 +281,24 @@ class DropDown(ScrollView):
     def on_select(self, data):
         pass
 
-    def add_widget(self, *largs):
+    def add_widget(self, *args, **kwargs):
         if self.container:
-            return self.container.add_widget(*largs)
-        return super(DropDown, self).add_widget(*largs)
+            return self.container.add_widget(*args, **kwargs)
+        return super(DropDown, self).add_widget(*args, **kwargs)
 
-    def remove_widget(self, *largs):
+    def remove_widget(self, *args, **kwargs):
         if self.container:
-            return self.container.remove_widget(*largs)
-        return super(DropDown, self).remove_widget(*largs)
+            return self.container.remove_widget(*args, **kwargs)
+        return super(DropDown, self).remove_widget(*args, **kwargs)
 
-    def clear_widgets(self):
+    def clear_widgets(self, *args, **kwargs):
         if self.container:
-            return self.container.clear_widgets()
-        return super(DropDown, self).clear_widgets()
+            return self.container.clear_widgets(*args, **kwargs)
+        return super(DropDown, self).clear_widgets(*args, **kwargs)
+
+    def on_motion(self, etype, me):
+        super().on_motion(etype, me)
+        return True
 
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)
@@ -320,13 +324,14 @@ class DropDown(ScrollView):
         # calculate the coordinate of the attached widget in the window
         # coordinate system
         win = self._win
+        if not win:
+            return
         widget = self.attach_to
-        if not widget or not win:
+        if not widget or not widget.get_parent_window():
             return
         wx, wy = widget.to_window(*widget.pos)
         wright, wtop = widget.to_window(widget.right, widget.top)
 
-        # set width and x
         if self.auto_width:
             self.width = wright - wx
 
@@ -357,7 +362,6 @@ class DropDown(ScrollView):
             # none of both top/bottom have enough place to display the
             # widget at the current size. Take the best side, and fit to
             # it.
-
             if h_top < h_bottom:
                 self.top = self.height = wy
             else:

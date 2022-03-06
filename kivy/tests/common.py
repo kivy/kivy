@@ -12,7 +12,7 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 
 __all__ = (
     'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
-    'requires_graphics')
+    'requires_graphics', 'ensure_web_server')
 
 import unittest
 import logging
@@ -162,8 +162,23 @@ class GraphicUnitTest(_base):
         Window.create_window()
         Window.register()
         Window.initialized = True
-        Window.canvas.clear()
-        Window.close = lambda *s: True
+        Window.close = lambda *s: None
+        self.clear_window_and_event_loop()
+
+    def clear_window_and_event_loop(self):
+        from kivy.base import EventLoop
+        window = self.Window
+        for child in window.children[:]:
+            window.remove_widget(child)
+        window.canvas.before.clear()
+        window.canvas.clear()
+        window.canvas.after.clear()
+        EventLoop.touches.clear()
+        for post_proc in EventLoop.postproc_modules:
+            if hasattr(post_proc, 'touches'):
+                post_proc.touches.clear()
+            elif hasattr(post_proc, 'last_touches'):
+                post_proc.last_touches.clear()
 
     def on_window_flip(self, window):
         '''Internal method to be called when the window have just displayed an
@@ -299,10 +314,10 @@ class GraphicUnitTest(_base):
         '''
         from kivy.base import stopTouchApp
         from kivy.core.window import Window
-        from kivy.clock import Clock
         Window.unbind(on_flip=self.on_window_flip)
+        self.clear_window_and_event_loop()
+        self.Window = None
         stopTouchApp()
-
         if not fake and self.test_failed:
             self.assertTrue(False)
         super(GraphicUnitTest, self).tearDown()
@@ -412,18 +427,20 @@ class UnitTestTouch(MotionEvent):
         '''Create a MotionEvent instance with X and Y of the first
         position a touch is at.
         '''
-
         from kivy.base import EventLoop
         self.eventloop = EventLoop
         win = EventLoop.window
-
         super(UnitTestTouch, self).__init__(
             # device, (tuio) id, args
             self.__class__.__name__, 99, {
-                "x": x / float(win.width),
-                "y": y / float(win.height),
-            }
+                "x": x / (win.width - 1.0),
+                "y": y / (win.height - 1.0),
+            },
+            is_touch=True,
+            type_id='touch'
         )
+        # set profile to accept x, y and pos properties
+        self.profile = ['pos']
 
     def touch_down(self, *args):
         self.eventloop.post_dispatch_input("begin", self)
@@ -431,8 +448,8 @@ class UnitTestTouch(MotionEvent):
     def touch_move(self, x, y):
         win = self.eventloop.window
         self.move({
-            "x": x / float(win.width),
-            "y": y / float(win.height)
+            "x": x / (win.width - 1.0),
+            "y": y / (win.height - 1.0)
         })
         self.eventloop.post_dispatch_input("update", self)
 
@@ -440,27 +457,27 @@ class UnitTestTouch(MotionEvent):
         self.eventloop.post_dispatch_input("end", self)
 
     def depack(self, args):
-        # set MotionEvent to touch
-        self.is_touch = True
-
         # set sx/sy properties to ratio (e.g. X / win.width)
         self.sx = args['x']
         self.sy = args['y']
+        # run depack after we set the values
+        super().depack(args)
 
-        # set profile to accept x, y and pos properties
+
+# https://gist.github.com/tito/f111b6916aa6a4ed0851
+# subclass for touch event in unit test
+class UTMotionEvent(MotionEvent):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
         self.profile = ['pos']
 
-        # run depack after we set the values
-        super(UnitTestTouch, self).depack(args)
-
-
-class UTMotionEvent(MotionEvent):
     def depack(self, args):
-        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 def async_run(func=None, app_cls_func=None):

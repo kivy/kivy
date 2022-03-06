@@ -38,7 +38,7 @@ class CameraBase(EventDispatcher):
         `resolution`: tuple (int, int)
             Resolution to try to request from the camera.
             Used in the gstreamer pipeline by forcing the appsink caps
-            to this resolution. If the camera doesnt support the resolution,
+            to this resolution. If the camera doesn't support the resolution,
             a negotiation error might be thrown.
 
     :Events:

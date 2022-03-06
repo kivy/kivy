@@ -176,6 +176,12 @@ the value can use the values of other properties using reserved keywords.
             TextInput:
                 on_focus: self.insert_text("Focus" if args[1] else "No focus")
 
+
+.. versionchanged:: 2.1.0
+
+    f-strings are now parsed in value expressions, allowing to bind to the
+    properties that they contain.
+
 .. kv-lang-ids:
 
 ids
@@ -210,8 +216,8 @@ Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
 these ids may not be available during the inner widget's `__init__` function.
 
-Valid expressons
-~~~~~~~~~~~~~~~~
+Valid expressions
+~~~~~~~~~~~~~~~~~
 
 There are two places that accept python statements in a kv file:
 after a property, which assigns to the property the result of the expression
@@ -262,8 +268,8 @@ called when the value of a property changes (i.e. you passively
 `observe` the property for potential changes).
 
 The Kivy language detects properties in your `value` expression and will create
-create callbacks to automatically update the property via your expression when
-changes occur.
+callbacks to automatically update the property via your expression when changes
+occur.
 
 Here's a simple example that demonstrates this behaviour::
 

@@ -72,9 +72,9 @@ KIVY_NO_CONSOLELOG
     If set, logs will be not print to the console
 
 KIVY_NO_ARGS
-    If set, the argument passed in command line will not be parsed and used by Kivy.
-    Ie, you can safely make a script or an app with your own arguments without
-    requiring the `--` delimiter::
+    If set to one of ('true', '1', 'yes'), the argument passed in command line
+    will not be parsed and used by Kivy. Ie, you can safely make a script or an
+    app with your own arguments without requiring the `--` delimiter::
 
         import os
         os.environ["KIVY_NO_ARGS"] = "1"
@@ -133,7 +133,10 @@ KIVY_AUDIO
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: sdl2, pil, pygame, imageio, tex, dds, gif
+    Values: sdl2, pil, pygame, imageio, tex, dds
+
+    .. versionchanged:: 2.0.0
+    Removed GPL `gif` implementation
 
 KIVY_CAMERA
     Implementation to use for reading camera

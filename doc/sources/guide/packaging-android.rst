@@ -7,19 +7,19 @@ Create a package for Android
 You can create a package for android using the `python-for-android
 <https://github.com/kivy/python-for-android>`_ project. This page explains how
 to download and use it directly on your own machine (see
-:ref:`Packaging your application into APK`) or
+:ref:`Packaging your application into APK or AAB`) or
 use the :ref:`buildozer` tool to automate the entire process. You can also see
 :ref:`Packaging your application for Kivy Launcher` to run kivy
 programs without compiling them.
 
 For new users, we recommend using :ref:`Buildozer` as the easiest way
-to make a full APK. You can also run your Kivy app without a
+to make a full APK or AAB. You can also run your Kivy app without a
 compilation step with the :ref:`Kivy Launcher <Packaging your
 application for Kivy launcher>` app.
 
 Kivy applications can be :ref:`released on an Android market
 <release_on_the_market>` such as the Play store, with a few extra
-steps to create a fully signed APK.
+steps to create a fully signed AAB (Android App Bundle).
 
 The Kivy project includes tools for accessing Android APIs to
 accomplish vibration, sensor access, texting etc. These, along with
@@ -32,13 +32,12 @@ Buildozer
 ---------
 
 Buildozer is a tool that automates the entire build process. It
-downloads and sets up all the prequisites for python-for-android,
+downloads and sets up all the prerequisites for python-for-android,
 including the android SDK and NDK, then builds an apk that can be
 automatically pushed to the device. 
 
-Buildozer currently works only in Linux, and is a beta
-release, but it already works well and can significantly simplify the
-apk build.
+Buildozer currently works only in Linux and macOS (You can still use
+it on Windows via WSL), and can significantly simplify the apk build.
 
 You can get buildozer at `<https://github.com/kivy/buildozer>`_::
 
@@ -90,18 +89,17 @@ for full details.
 Packaging your application for the Kivy Launcher
 ------------------------------------------------
 
-The `Kivy launcher <https://play.google.com/store/apps/details?id=org.kivy.pygame&hl=en>`_
-is an Android application that runs any Kivy examples stored on your
-SD Card. 
+The Kivy launcher is an Android application that runs any Kivy examples
+stored on your SD Card. 
 To install the Kivy launcher, you must:
 
-#. Go to the `Kivy Launcher page <https://market.android.com/details?id=org.kivy.pygame>`_
-   on the Google Play Store
+#. Go on Google Play Store and search for `Kivy Launcher` from `kivy org`
 #. Click on Install
 #. Select your phone... And you're done!
 
 If you don't have access to the Google Play Store on your phone/tablet,
-you can download and install the APK manually from  http://kivy.org/#download.
+you can download and install the APK manually from
+https://github.com/kivy/kivy-launcher/releases
 
 Once the Kivy launcher is installed, you can put your Kivy
 applications in the Kivy directory in your external storage directory
@@ -153,7 +151,7 @@ released on the Play store or other Android markets.
 To do this, you must run Buildozer with the :code:`release` parameter
 (e.g. :code:`buildozer android release`), or if using
 python-for-android use the :code:`--release` option to build.py. This
-creates a release APK in the :code:`bin` directory, which you must
+creates a release AAB in the :code:`bin` directory, which you must
 properly sign and zipalign.
 The procedure for doing this is described in the Android documentation
 at https://developer.android.com/studio/publish/app-signing.html#signing-manually -
@@ -167,7 +165,7 @@ Targeting Android
 
 Kivy is designed to operate identically across platforms and as a result, makes
 some clear design decisions. It includes its own set of widgets and by default,
-builds an APK with all the required core dependencies and libraries.
+builds an APK or AAB with all the required core dependencies and libraries.
 
 It is possible to target specific Android features, both directly and
 in a (somewhat) cross-platform way. See the `Using Android APIs` section

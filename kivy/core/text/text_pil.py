@@ -42,7 +42,7 @@ class LabelPIL(LabelBase):
 
     def _render_begin(self):
         # create a surface, context, font...
-        self._pil_im = Image.new('RGBA', self._size)
+        self._pil_im = Image.new('RGBA', self._size, color=(255, 255, 255, 0))
         self._pil_draw = ImageDraw.Draw(self._pil_im)
 
     def _render_text(self, text, x, y):

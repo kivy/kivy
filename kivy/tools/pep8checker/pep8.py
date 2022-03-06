@@ -313,9 +313,9 @@ def extraneous_whitespace(logical_line):
     E202: spam(ham[1 ], {eggs: 2})
     E202: spam(ham[1], {eggs: 2 })
 
-    E203: if x == 4: print x, y; x, y = y , x
-    E203: if x == 4: print x, y ; x, y = y, x
-    E203: if x == 4 : print x, y; x, y = y, x
+    E203: if x == 4: print(x, y); x, y = y , x
+    E203: if x == 4: print(x, y); x, y = y, x
+    E203: if x == 4 : print(x, y); x, y = y, x
     """
     line = logical_line
     for match in EXTRANEOUS_WHITESPACE_REGEX.finditer(line):
@@ -1234,7 +1234,7 @@ def ambiguous_identifier(logical_line, tokens):
 def python_3000_has_key(logical_line, noqa):
     r"""The {}.has_key() method is removed in Python 3: use the 'in' operator.
 
-    Okay: if "alph" in d:\n    print d["alph"]
+    Okay: if "alph" in d:\n    print(d["alph"])
     W601: assert d.has_key('alph')
     """
     pos = logical_line.find('.has_key(')

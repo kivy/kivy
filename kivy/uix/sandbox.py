@@ -107,6 +107,7 @@ class Sandbox(FloatLayout):
         traceback.print_tb(_traceback)
         return True
 
+    on_motion = sandbox(Widget.on_motion)
     on_touch_down = sandbox(Widget.on_touch_down)
     on_touch_move = sandbox(Widget.on_touch_move)
     on_touch_up = sandbox(Widget.on_touch_up)
@@ -121,7 +122,7 @@ class Sandbox(FloatLayout):
 
     @sandbox
     def clear_widgets(self, *args, **kwargs):
-        self._container.clear_widgets()
+        self._container.clear_widgets(*args, **kwargs)
 
     @sandbox
     def on_size(self, *args):

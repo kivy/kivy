@@ -244,7 +244,7 @@ immediately previous multiple of `kivy-indent-offset' spaces."
 
 
 (defun kivy-mode-version ()
-  "Diplay version of `kivy-mode'."
+  "Display version of `kivy-mode'."
   (interactive)
   (message "kivy-mode %s" kivy-mode-version)
   kivy-mode-version)

@@ -883,7 +883,7 @@ class MultistrokeGesture(object):
             self.permute()
 
     def get_distance(self, cand, tpl, numpoints=None):
-        '''Compute the distance from this Candiate to a UnistrokeTemplate.
+        '''Compute the distance from this Candidate to a UnistrokeTemplate.
         Returns the Cosine distance between the stroke paths.
 
         `numpoints` will prepare both the UnistrokeTemplate and Candidate path
@@ -955,7 +955,7 @@ class MultistrokeGesture(object):
             # Handle a theoretical case where a MultistrokeGesture is composed
             # manually and the orientation_sensitive flag is True, and contains
             # a UnistrokeTemplate that has orientation_sensitive=False (or vice
-            # versa). This would cause KeyError - requesting nonexistant vector
+            # versa). This would cause KeyError - requesting nonexistent vector
             if tpl.orientation_sens:
                 if skip_bounded:
                     continue

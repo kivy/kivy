@@ -101,12 +101,12 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty, AliasProperty)
+import collections.abc
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
     splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
 from fnmatch import fnmatch
-import collections
 
 platform = core_platform
 filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
@@ -124,7 +124,7 @@ if platform == 'win':
         _have_win32file = True
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cant check if a file is hidden or not')
+        Logger.error('filechooser: we cannot check if a file is hidden or not')
 
 
 def alphanumeric_folders_first(files, filesystem):
@@ -665,7 +665,7 @@ class FileChooserController(RelativeLayout):
             return files
         filtered = []
         for filt in self.filters:
-            if isinstance(filt, collections.Callable):
+            if isinstance(filt, collections.abc.Callable):
                 filtered.extend([fn for fn in files if filt(self.path, fn)])
             else:
                 filtered.extend([fn for fn in files if fnmatch(fn, filt)])
@@ -1010,9 +1010,9 @@ class FileChooser(FileChooserController):
 
         self.fbind('view_mode', self.trigger_update_view)
 
-    def add_widget(self, widget, **kwargs):
+    def add_widget(self, widget, *args, **kwargs):
         if widget is self._progress:
-            super(FileChooser, self).add_widget(widget, **kwargs)
+            super(FileChooser, self).add_widget(widget, *args, **kwargs)
         elif hasattr(widget, 'VIEWNAME'):
             name = widget.VIEWNAME + 'view'
             screen = Screen(name=name)

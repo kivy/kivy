@@ -452,17 +452,21 @@ class ActionGroup(ActionItem, Button):
             # auto_dismiss applies to touching outside of the DropDown
             item.bind(on_release=ddn.dismiss)
 
-    def add_widget(self, item):
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `item` to `widget`.
+        '''
         # if adding ActionSeparator ('normal' mode,
         # everything visible), add it to the parent
-        if isinstance(item, ActionSeparator):
-            super(ActionGroup, self).add_widget(item)
+        if isinstance(widget, ActionSeparator):
+            super(ActionGroup, self).add_widget(widget, *args, **kwargs)
             return
 
-        if not isinstance(item, ActionItem):
+        if not isinstance(widget, ActionItem):
             raise ActionBarException('ActionGroup only accepts ActionItem')
 
-        self.list_action_item.append(item)
+        self.list_action_item.append(widget)
 
     def show_group(self):
         # 'normal' mode, items can fit to the view
@@ -471,8 +475,8 @@ class ActionGroup(ActionItem, Button):
             item.inside_group = True
             self._dropdown.add_widget(item)
 
-    def clear_widgets(self):
-        self._dropdown.clear_widgets()
+    def clear_widgets(self, *args, **kwargs):
+        self._dropdown.clear_widgets(*args, **kwargs)
 
 
 class ActionOverflow(ActionGroup):
@@ -489,21 +493,25 @@ class ActionOverflow(ActionGroup):
     and defaults to 'atlas://data/images/defaulttheme/overflow'.
     '''
 
-    def add_widget(self, action_item, index=0):
-        if action_item is None:
+    def add_widget(self, widget, index=0, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+             Renamed argument `action_item` to `widget`.
+        '''
+        if widget is None:
             return
 
-        if isinstance(action_item, ActionSeparator):
+        if isinstance(widget, ActionSeparator):
             return
 
-        if not isinstance(action_item, ActionItem):
+        if not isinstance(widget, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(widget))
 
         else:
             if index == 0:
                 index = len(self._list_overflow_items)
-            self._list_overflow_items.insert(index, action_item)
+            self._list_overflow_items.insert(index, widget)
 
     def show_default_items(self, parent):
         # display overflow and its items if widget's directly added to it
@@ -575,30 +583,34 @@ class ActionView(BoxLayout):
     def on_action_previous(self, instance, value):
         self._list_action_items.insert(0, value)
 
-    def add_widget(self, action_item, index=0):
-        if action_item is None:
+    def add_widget(self, widget, index=0, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `action_item` to `widget`.
+        '''
+        if widget is None:
             return
 
-        if not isinstance(action_item, ActionItem):
+        if not isinstance(widget, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem'
-                                     ' (got {!r}'.format(action_item))
+                                     ' (got {!r}'.format(widget))
 
-        elif isinstance(action_item, ActionOverflow):
-            self.overflow_group = action_item
-            action_item.use_separator = self.use_separator
+        elif isinstance(widget, ActionOverflow):
+            self.overflow_group = widget
+            widget.use_separator = self.use_separator
 
-        elif isinstance(action_item, ActionGroup):
-            self._list_action_group.append(action_item)
-            action_item.use_separator = self.use_separator
+        elif isinstance(widget, ActionGroup):
+            self._list_action_group.append(widget)
+            widget.use_separator = self.use_separator
 
-        elif isinstance(action_item, ActionPrevious):
-            self.action_previous = action_item
+        elif isinstance(widget, ActionPrevious):
+            self.action_previous = widget
 
         else:
-            super(ActionView, self).add_widget(action_item, index)
+            super(ActionView, self).add_widget(widget, index, *args, **kwargs)
             if index == 0:
                 index = len(self._list_action_items)
-            self._list_action_items.insert(index, action_item)
+            self._list_action_items.insert(index, widget)
 
     def on_use_separator(self, instance, value):
         for group in self._list_action_group:
@@ -606,8 +618,8 @@ class ActionView(BoxLayout):
         if self.overflow_group:
             self.overflow_group.use_separator = value
 
-    def remove_widget(self, widget):
-        super(ActionView, self).remove_widget(widget)
+    def remove_widget(self, widget, *args, **kwargs):
+        super(ActionView, self).remove_widget(widget, *args, **kwargs)
         if isinstance(widget, ActionOverflow):
             for item in widget.list_action_item:
                 if item in self._list_action_items:
@@ -835,18 +847,22 @@ class ActionBar(BoxLayout):
         self._stack_cont_action_view = []
         self._emit_previous = partial(self.dispatch, 'on_previous')
 
-    def add_widget(self, view):
-        if isinstance(view, ContextualActionView):
-            self._stack_cont_action_view.append(view)
-            if view.action_previous is not None:
-                view.action_previous.unbind(on_release=self._emit_previous)
-                view.action_previous.bind(on_release=self._emit_previous)
+    def add_widget(self, widget, *args, **kwargs):
+        '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `view` to `widget`.
+        '''
+        if isinstance(widget, ContextualActionView):
+            self._stack_cont_action_view.append(widget)
+            if widget.action_previous is not None:
+                widget.action_previous.unbind(on_release=self._emit_previous)
+                widget.action_previous.bind(on_release=self._emit_previous)
             self.clear_widgets()
-            super(ActionBar, self).add_widget(view)
+            super(ActionBar, self).add_widget(widget, *args, **kwargs)
 
-        elif isinstance(view, ActionView):
-            self.action_view = view
-            super(ActionBar, self).add_widget(view)
+        elif isinstance(widget, ActionView):
+            self.action_view = widget
+            super(ActionBar, self).add_widget(widget, *args, **kwargs)
 
         else:
             raise ActionBarException(

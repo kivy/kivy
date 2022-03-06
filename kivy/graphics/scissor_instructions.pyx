@@ -13,7 +13,7 @@ Scissor instructions clip your drawing area into a rectangular region.
 The area provided to clip is in screenspace pixels and must be provided as
 integer values not floats.
 
-The following code will draw a circle ontop of our widget while clipping
+The following code will draw a circle on top of our widget while clipping
 the circle so it does not expand beyond the widget borders.
 
 .. code-block:: python
@@ -118,7 +118,7 @@ cdef class ScissorPush(Instruction):
     def x(self, value):
         self._x = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def y(self):
@@ -128,7 +128,7 @@ cdef class ScissorPush(Instruction):
     def y(self, value):
         self._y = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def width(self):
@@ -138,7 +138,7 @@ cdef class ScissorPush(Instruction):
     def width(self, value):
         self._width = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def height(self):
@@ -148,7 +148,7 @@ cdef class ScissorPush(Instruction):
     def height(self, value):
         self._height = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def pos(self):
@@ -158,7 +158,7 @@ cdef class ScissorPush(Instruction):
     def pos(self, value):
         self._x, self._y = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def size(self):
@@ -168,7 +168,7 @@ cdef class ScissorPush(Instruction):
     def size(self, value):
         self._width, self._height = value
         self._rect = Rect(self._x, self._y, self._width, self._height)
-        self.flag_update()
+        self.flag_data_update()
 
     def __init__(self, **kwargs):
         self._x, self._y = kwargs.pop(

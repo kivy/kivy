@@ -181,7 +181,7 @@ for x in lines:
 
     print('%s with gil:' % x)
     s = x.split()
-    print('    print "GL %s(' % s[2], end=' ')
+    print('    print("GL %s(' % s[2], end=' ')
     pointer = 0
     for arg in s[3:]:
         arg = arg.strip()
@@ -195,7 +195,7 @@ for x in lines:
         else:
             print('%s = ", %s, ",' % (arg, arg), end=' ')
         pointer = 0
-    print(')"')
+    print(')")')
     print('    %s' % y)
     print('    ret = glGetError()')
     print('    if ret: print("ERR {} / {}".format(ret, ret))')

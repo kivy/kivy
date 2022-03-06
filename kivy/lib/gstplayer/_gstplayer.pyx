@@ -232,7 +232,7 @@ cdef class GstPlayer:
         if self.playbin == NULL:
             raise GstPlayerException(
                 'Unable to create a playbin. Consider setting the environment variable '
-                'GST_REGISTRY to a user accesible path, such as ~/registry.bin')
+                'GST_REGISTRY to a user accessible path, such as ~/registry.bin')
 
         gst_bin_add(<GstBin *>self.pipeline, self.playbin)
 

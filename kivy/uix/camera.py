@@ -37,20 +37,20 @@ class Camera(Image):
     '''Camera class. See module documentation for more information.
     '''
 
-    play = BooleanProperty(True)
+    play = BooleanProperty(False)
     '''Boolean indicating whether the camera is playing or not.
     You can start/stop the camera by setting this property::
 
-        # start the camera playing at creation (default)
+        # start the camera playing at creation
         cam = Camera(play=True)
 
-        # create the camera, and start later
+        # create the camera, and start later (default)
         cam = Camera(play=False)
         # and later
         cam.play = True
 
     :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    True.
+    False.
     '''
 
     index = NumericProperty(-1)
@@ -90,7 +90,9 @@ class Camera(Image):
         fbind('resolution', on_index)
         on_index()
 
-    def on_tex(self, *l):
+    def on_tex(self, camera):
+        self.texture = texture = camera.texture
+        self.texture_size = list(texture.size)
         self.canvas.ask_update()
 
     def _on_index(self, *largs):
@@ -101,16 +103,11 @@ class Camera(Image):
             self._camera = CoreCamera(index=self.index, stopped=True)
         else:
             self._camera = CoreCamera(index=self.index,
-                                  resolution=self.resolution, stopped=True)
-        self._camera.bind(on_load=self._camera_loaded)
+                                      resolution=self.resolution, stopped=True)
         if self.play:
             self._camera.start()
-            self._camera.bind(on_texture=self.on_tex)
 
-    def _camera_loaded(self, *largs):
-        if self._camera.texture is not None:
-            self.texture = self._camera.texture
-            self.texture_size = list(self.texture.size)
+        self._camera.bind(on_texture=self.on_tex)
 
     def on_play(self, instance, value):
         if not self._camera:
