@@ -1,18 +1,8 @@
-from kivy.tests.common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest, UTMotionEvent
 
-from kivy.input.motionevent import MotionEvent
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.base import EventLoop
-
-
-class UTMotionEvent(MotionEvent):
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
 
 
 class _TestSliderHandle(Slider):
@@ -41,11 +31,11 @@ class SliderMoveTestCase(GraphicUnitTest):
         builder.trace = lambda *_, **__: None
         super(SliderMoveTestCase, self).setUp()
 
-    def tearDown(self):
+    def tearDown(self, *args, **kwargs):
         # add the logging back
         import kivy.lang.builder as builder
         builder.trace = self._trace
-        super(SliderMoveTestCase, self).tearDown()
+        super(SliderMoveTestCase, self).tearDown(*args, **kwargs)
 
     def test_slider_move(self):
         EventLoop.ensure_window()

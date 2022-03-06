@@ -488,8 +488,11 @@ class VideoPlayer(GridLayout):
         self._annotations = ''
         self._annotations_labels = []
         super(VideoPlayer, self).__init__(**kwargs)
-        self._load_thumbnail()
-        self._load_annotations()
+        update_thumbnail = self._update_thumbnail
+        update_annotations = self._update_annotations
+        fbind = self.fbind
+        fbind('thumbnail', update_thumbnail)
+        fbind('annotations', update_annotations)
 
         if self.source:
             self._trigger_video_load()
@@ -501,15 +504,36 @@ class VideoPlayer(GridLayout):
                                                            -1)
         ev()
 
+    def _try_load_default_thumbnail(self, *largs):
+        if not self.thumbnail:
+            filename = self.source.rsplit('.', 1)
+            thumbnail = filename[0] + '.png'
+            if exists(thumbnail):
+                self._load_thumbnail(thumbnail)
+
+    def _try_load_default_annotations(self, *largs):
+        if not self.annotations:
+            filename = self.source.rsplit('.', 1)
+            annotations = filename[0] + '.jsa'
+            if exists(annotations):
+                self._load_annotations(annotations)
+
     def on_source(self, instance, value):
-        # we got a value, try to see if we have an image for it
-        self._load_thumbnail()
-        self._load_annotations()
+        # By default, VideoPlayer should look for thumbnail and annotations
+        # with the same filename (except extension) of the source (video) file.
+        Clock.schedule_once(self._try_load_default_thumbnail, -1)
+        Clock.schedule_once(self._try_load_default_annotations, -1)
         if self._video is not None:
             self._video.unload()
             self._video = None
         if value:
             self._trigger_video_load()
+
+    def _update_thumbnail(self, *largs):
+        self._load_thumbnail(self.thumbnail)
+
+    def _update_annotations(self, *largs):
+        self._load_annotations(self.annotations)
 
     def on_image_overlay_play(self, instance, value):
         self._image.image_overlay_play = value
@@ -517,35 +541,25 @@ class VideoPlayer(GridLayout):
     def on_image_loading(self, instance, value):
         self._image.image_loading = value
 
-    def _load_thumbnail(self):
+    def _load_thumbnail(self, thumbnail):
         if not self.container:
             return
         self.container.clear_widgets()
-        # get the source, remove extension, and use png
-        thumbnail = self.thumbnail
-        if not thumbnail:
-            filename = self.source.rsplit('.', 1)
-            thumbnail = filename[0] + '.png'
-            if not exists(thumbnail):
-                thumbnail = ''
-        self._image = VideoPlayerPreview(source=thumbnail, video=self)
-        self.container.add_widget(self._image)
+        if thumbnail:
+            self._image = VideoPlayerPreview(source=thumbnail, video=self)
+            self.container.add_widget(self._image)
 
-    def _load_annotations(self):
+    def _load_annotations(self, annotations):
         if not self.container:
             return
         self._annotations_labels = []
-        annotations = self.annotations
-        if not annotations:
-            filename = self.source.rsplit('.', 1)
-            annotations = filename[0] + '.jsa'
-        if exists(annotations):
+        if annotations:
             with open(annotations, 'r') as fd:
                 self._annotations = load(fd)
-        if self._annotations:
-            for ann in self._annotations:
-                self._annotations_labels.append(
-                    VideoPlayerAnnotation(annotation=ann))
+            if self._annotations:
+                for ann in self._annotations:
+                    self._annotations_labels.append(
+                        VideoPlayerAnnotation(annotation=ann))
 
     def on_state(self, instance, value):
         if self._video is not None:

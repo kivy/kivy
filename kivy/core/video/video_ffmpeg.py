@@ -78,7 +78,7 @@ class VideoFFMpeg(VideoBase):
         if frame is None:
             return
 
-        # first time we got a frame, we know that video is readed now.
+        # first time we got a frame, we know that video is read now.
         if self._texture is None:
             self._texture = Texture.create(size=(
                 player.get_width(), player.get_height()),

@@ -23,7 +23,7 @@ it into a playable pong game, describing each step along the way.
 
 Here is a check list before starting this tutorial:
 
-- You have a working Kivy installation. See the :doc:`/installation/installation`
+- You have a working Kivy installation. See the :doc:`/gettingstarted/installation`
   section for detailed descriptions
 - You know how to run a basic Kivy application. See :ref:`quickstart`
   if you don't.
@@ -122,7 +122,7 @@ them because it would define these rules for all Widget instances.
 Inside a rule section, you can add various blocks to define the style and
 contents of the widgets they will be applied to. You can:
 
-- set property values,
+- set property values
 - add child widgets
 - define a `canvas` section in which you can add Graphics instructions that
   define how the widget is rendered.

@@ -3,6 +3,288 @@
 Changelog
 =========
 
+2.1.0
+=====
+
+Highlights
+----------
+
+- [:repo:`7270`]: Graphics: Check whether user updated GL instructions from external thread.
+- [:repo:`7293`]: Properties: Add dynamic screen density/dpi support
+- [:repo:`7371`]: KV: Allow using f-strings in KV-lang
+- [:repo:`7424`]: Properties: Speed up bare widget creation (3X) and property dispatching/setting
+- [:repo:`7587`]: Fix PermissionError when reconnecting mtdev input devices
+- [:repo:`7637`]: Added Custom titlebar support
+- [:repo:`7642`]: TextInput loading time optimisation for large texts
+- [:repo:`7658`]: Feature: EventManagerBase
+- [:repo:`7663`]: Add python3.10 in the ci configuration
+- [:repo:`7678`]: Add support for Apple Silicon on CI/CD
+
+Deprecated
+----------
+
+- [:repo:`7701`]: deprecate 'kivy.utils.SafeList'
+- [:repo:`7786`]: WindowBase: Add on_drop_begin, on_droptext and on_drop_end events
+
+Breaking changes
+----------------
+
+- [:repo:`6290`]: Widget: Fix signature of add/remove/clear_widget  to be consistent with base class
+- [:repo:`7264`]: Camera: Change play default to False
+- [:repo:`7356`]: Widget: Widget.clear_widgets empty widget list does not remove all children
+- [:repo:`7437`]: TextInput: Remove broken and confusing `suggestion_text` property
+- [:repo:`7744`]: Change default input_type to null. Add some warning regarding TYPE_TEXT_FLAG_NO_SUGGESTIONS
+- [:repo:`7763`]: Removed Python3.6 from the supported ones, it reached EOL
+- [:repo:`7820`]: Patch gst current release to look for dlls in correct place for win store
+
+Kv-lang
+-------
+
+- [:repo:`7371`]: KV: Allow using f-strings in KV-lang
+- [:repo:`7703`]: refactor kivy.lang
+
+Misc
+----
+
+- [:repo:`7204`]: Kivy: print kivy's version even when not a release.
+- [:repo:`7271`]: Inspector: Prevent circular import breaking Window
+- [:repo:`7403`]: Exceptions: Fix typos in message
+- [:repo:`7433`]: Source: Fix typos in source code
+- [:repo:`7453`]: Screen: Added Oneplus 6t in screen module
+- [:repo:`7701`]: deprecate 'kivy.utils.SafeList'
+
+Packaging
+---------
+
+- [:repo:`7341`]: OSX: Use platform.machine() for osx version detection
+- [:repo:`7605`]: PyInstaller hook: Replace modname_tkinter with 'tkinter'
+- [:repo:`7781`]: PyInstaller develop version isn't needed anymore
+
+Widgets
+-------
+
+- [:repo:`7049`]: Camera: Fix GI camera provider crash when no texture is available after loading
+- [:repo:`7213`]: ScrollView: Match scroll effect stop condition to start condition.
+- [:repo:`7261`]: Camera: Revert "Fixes crash during camera configuration"
+- [:repo:`7262`]: RecycleGridLayout : Fix layout when number of widgets match number of columns
+- [:repo:`7264`]: Camera: Change play default to False
+- [:repo:`7322`]: Widget: fix export_to_png not passing arguments through
+- [:repo:`7353`]: RecycleLayout: Allow setting x, y sizing of views independently
+- [:repo:`7372`]: Focus: Allow modifiers (e.g. numlock) be present to tab cycle focus
+- [:repo:`7383`]: Dropdown: Fix reposition in scrollview/recycleview
+- [:repo:`7391`]: Factory: Registered TouchRippleBehavior and TouchRippleButtonBehavior with Factory
+- [:repo:`7426`]: Dropdown: Ensure visibility on reposition
+- [:repo:`7434`]: ModalView: code cleanup regarding detection of main-Window:
+- [:repo:`7437`]: TextInput: Remove broken and confusing `suggestion_text` property
+- [:repo:`7457`]: ScrollView: Fix for scroll bar areas blocking clicks when scroll is disabled with overscroll
+- [:repo:`7471`]: Video: Add support for preview image
+- [:repo:`7488`]: FocusBehavior: Fix assumption that modifiers is always a set.
+- [:repo:`7520`]: Video: Fixed handling eos after unloading
+- [:repo:`7527`]: Label: Fix label not displaying as disabled if it is disabled when created
+- [:repo:`7548`]: Fixes issue #7514 ('auto_halign_r' referenced before assignment)
+- [:repo:`7610`]: Added scroll from swipe feature in TextInput
+- [:repo:`7612`]: Fixed unexpected overscrolling bug when using mouse wheel
+- [:repo:`7615`]: Fixed unexpected overscrolling bug when using mouse wheel, complement to #7612 
+- [:repo:`7618`]: Fixed TextInput visual selection bugs while scrolling
+- [:repo:`7621`]: Fixed inconsistent behavior of TextInput bubble and handles
+- [:repo:`7622`]: Fixes TextInput cursor issues when resizing/scrolling
+- [:repo:`7631`]: Fixes some bugs in the TextInput if the text is right-aligned or center-aligned and not multiline.
+- [:repo:`7636`]: Textinput on double tap improvement
+- [:repo:`7641`]: Textinput:  Fixes issues #7165, #7236, #7235
+- [:repo:`7642`]: TextInput loading time optimisation for large texts
+- [:repo:`7706`]: SettingColor: Change method name to get_color_from_hex
+- [:repo:`7737`]: CodeInput: fixed disappearing lines after inserting text
+- [:repo:`7740`]: TextInput: easier tokenize delimiters setting; quotes removed from default delimiters
+- [:repo:`7775`]: Don't let 'ScrollEffect.reset()' set 'is_manual' to True
+- [:repo:`7796`]: EventManagerBase: Fix indentation and typos in the doc
+- [:repo:`7807`]: Textinput: Simplified the swipe feature logic. Fixed a bug that was preventing to show the select all / paste bubble
+- [:repo:`7814`]: :zap: Prevent crash (overflow error) when scrollbar is hidden
+- [:repo:`7816`]: VideoPlayer: Defer before the next frame the default thumbnail and annotations loading
+
+Core-app
+--------
+
+- [:repo:`7173`]: Logger: Do not mutate log record, fixes #7062
+- [:repo:`7245`]: Resources: Add a cache for resource_find
+- [:repo:`7293`]: Properties: Add dynamic screen density/dpi support
+- [:repo:`7300`]: Logger: Remove refactoring artifact
+- [:repo:`7307`]: Logger: Remove purge log's randomized behavior
+- [:repo:`7326`]: Command line: Fix disabling kivy cmd args
+- [:repo:`7429`]: Clock: Print remaining events before next frame upon too much iteration error
+- [:repo:`7505`]: EventLoopBase: Remove provider from auto-remove list
+- [:repo:`7508`]: App: Process app quit event while paused
+- [:repo:`7512`]: EventLoopBase: Start/stop event loop only once
+- [:repo:`7749`]: collections fix for python 3.10
+- [:repo:`7763`]: Removed Python3.6 from the supported ones, it reached EOL
+- [:repo:`7771`]: Explain the '--' separator for option parsing.
+- [:repo:`7810`]: Track whether the clock has started
+
+Core-providers
+--------------
+
+- [:repo:`7228`]: Image: Fix PIL label rendering shadow
+- [:repo:`7231`]: Keyboard: Add keyboard suggestions and fix input type on android
+- [:repo:`7260`]: Camera: Use NSString instead of AVCaptureSessionPreset in order to support MacOS < 10.13
+- [:repo:`7263`]: Camera: Added API to change avfoundation camera provider orientation
+- [:repo:`7279`]: Window: prevent "empty" mousewheel events from breaking scrollview
+- [:repo:`7290`]: Camera: improve avfoundation by using memoryview and re-scheduling the interval on framerate change
+- [:repo:`7299`]: Window: Handle DPI Windows messages until SDL2 handles them
+- [:repo:`7303`]: Camera: Fix AVFoundation provider to release the camera, start it async, and check if started before stopping it
+- [:repo:`7339`]: Camera: Android camera focus mode fix
+- [:repo:`7347`]: Window: Delay binding dpi until window is ready.
+- [:repo:`7389`]: Mouse: Fix mouse being offset by 2 pixels vertically
+- [:repo:`7390`]: SoundAndroidPlayer: Properly stop after playback completion
+- [:repo:`7409`]: Window: Fix logging message
+- [:repo:`7418`]: Video: Reduce latency from user interaction for ffpyplayer
+- [:repo:`7467`]: Text: Raise when registering a font_regular with None
+- [:repo:`7484`]: WindowBase: Add to_normalized_pos method
+- [:repo:`7517`]: Core: Use importlib's __import__ for compatibility with patching
+- [:repo:`7541`]: SoundLoader: Fix play calls not working in ffpyplayer after the first
+- [:repo:`7620`]: removed print and added logging to flipVert
+- [:repo:`7637`]: Added Custom titlebar support
+- [:repo:`7647`]: WindowBase: Change type of clearcolor property to ColorProperty
+- [:repo:`7648`]: WindowBase: Add transform_motion_event_2d method
+- [:repo:`7688`]: Fix dds header comparison
+- [:repo:`7726`]: Window.softinput_mode fix for "pan" and "below_target" modes when using kivy virtual keyboard.
+- [:repo:`7744`]: Change default input_type to null. Add some warning regarding TYPE_TEXT_FLAG_NO_SUGGESTIONS
+- [:repo:`7770`]: WindowBase: Update bind list of properties: system_size, size, width, height and center
+- [:repo:`7778`]: WindowBase: Don't return motion event in transform_motion_event_2d method
+- [:repo:`7786`]: WindowBase: Add on_drop_begin, on_droptext and on_drop_end events
+- [:repo:`7793`]: WindowBase|WindowSDL: Add drop position for all on_drop_xxx events
+- [:repo:`7795`]: WindowBase: Add *args to on_drop_xxx events
+
+Core-widget
+-----------
+
+- [:repo:`6290`]: Widget: Fix signature of add/remove/clear_widget  to be consistent with base class
+- [:repo:`7209`]: Animation: Allow canceling all animated widgets
+- [:repo:`7356`]: Widget: Widget.clear_widgets empty widget list does not remove all children
+- [:repo:`7424`]: Properties: Speed up bare widget creation (3X) and property dispatching/setting
+- [:repo:`7439`]: Properties: Drop long number type and document numpy issues with NumericProperty
+- [:repo:`7442`]: EventDispatcher: Removed/replaced all basestring occurrences with str
+- [:repo:`7445`]: EventDispatcher: Rename method unregister_event_types to unregister_event_type
+- [:repo:`7449`]: TextInput: Fix readonly mode preventing using cursor keys, wrapping, and more
+- [:repo:`7459`]: Properties: Accept str-subclass where we accept strings
+- [:repo:`7536`]: EventDispatcher: Add nicer error message for non-existing properties
+- [:repo:`7658`]: Feature: EventManagerBase
+- [:repo:`7774`]: Fix widget.disabled handling of value change of equal truthiness
+
+Distribution
+------------
+
+- [:repo:`7257`]: Setup: Fix buggy detection of cython module name
+- [:repo:`7362`]: Build: No oneliners in [options.extras_require]
+- [:repo:`7663`]: Add python3.10 in the ci configuration
+- [:repo:`7678`]: Add support for Apple Silicon on CI/CD
+- [:repo:`7711`]: Add an option  to force a custom search path for SDL2 frameworks + fixes ARCHFLAGS
+- [:repo:`7762`]: macOS deps: Update SDL to 2.0.20 and update SDL_ttf to 2.0.18
+- [:repo:`7769`]: Add Linux AArch64 wheel build support
+- [:repo:`7777`]: Bump to 2.1.0rc1
+- [:repo:`7802`]: Bump to 2.1.0rc1
+- [:repo:`7804`]: Use the `KIVY_RPI_VERSION` env variable to force the build of `egl_rpi` in non Raspi CI builds
+- [:repo:`7813`]: Bump cython and kivy_deps versions to latest
+- [:repo:`7820`]: Patch gst current release to look for dlls in correct place for win store
+- [:repo:`7821`]: Bump to 2.1.0rc2
+- [:repo:`7822`]: Bump to 2.1.0rc3
+
+Documentation
+-------------
+
+- [:repo:`7010`]: Doc: Warn that decorated methods might not be bindable.
+- [:repo:`7284`]: docs: fix simple typo, expressons -> expressions
+- [:repo:`7286`]: Doc: Add negative size warning
+- [:repo:`7288`]: Documentation: Updated prerequisites and supported python version for iOS
+- [:repo:`7295`]: Doc cleanups
+- [:repo:`7301`]: Doc: Add Kivy config example for inverted mtdev events
+- [:repo:`7305`]: Slider: Fix step property docs
+- [:repo:`7328`]: Added documentation for RecycleView viewclass statefullness,  including a warning, context paragraph, and minimal example
+- [:repo:`7342`]: TabbedPanel: Doc calling `switch_to` from `__init__`
+- [:repo:`7344`]: App: fix Trio example in docstring
+- [:repo:`7358`]: Doc: Fix doc code formatting
+- [:repo:`7359`]: Fix first doc line being ignored
+- [:repo:`7366`]: Docs: use print() in docs, comment and generated code
+- [:repo:`7392`]: Docs: Fix packaging-osx docs (homebrew)
+- [:repo:`7432`]: Docs: Fix codespell found typos
+- [:repo:`7435`]: Docs: check for "sphinx" in command line
+- [:repo:`7441`]: Docs: Fix creating of docs of compoundselection.py
+- [:repo:`7451`]: Docs: Fix Type Error when creating bytes from array in Python 3
+- [:repo:`7481`]: Doc: Properties spelling fix
+- [:repo:`7497`]: Docs: Use python3 super in example
+- [:repo:`7560`]: Comment references the wrong layout
+- [:repo:`7561`]: Typo on docs, missing "the"
+- [:repo:`7580`]: Fix line number references in basic.rst
+- [:repo:`7581`]: Fixes double word in docs
+- [:repo:`7592`]: Fix missing word in doc/guide/events.rst
+- [:repo:`7603`]: Fixes pong tutorial collision on the right side.
+- [:repo:`7614`]: Fix install command for zsh
+- [:repo:`7623`]: Sphinx: Use class instead of instance in add_lexer + Fixes search on sphinx>1.7.9
+- [:repo:`7624`]: Sphinx: Fixes missing documentation_options
+- [:repo:`7625`]: Update line number references in documentation
+- [:repo:`7672`]: fix various docs
+- [:repo:`7693`]: Remove wording and functions specific to Python 2
+- [:repo:`7717`]: MotionEvent: Fix docstring in dispatch_done method to reference post_dispatch_input
+- [:repo:`7752`]: Improves docs on mobile, fixes duplicated getting started
+- [:repo:`7757`]: Update README.md
+- [:repo:`7764`]: Update license year
+- [:repo:`7766`]: Add support for older Sphinx versions
+- [:repo:`7773`]: Docs review before release 2.1.0
+- [:repo:`7790`]: made code examples user friendly; fixes #7720
+- [:repo:`7799`]: Dark Theme support for docs
+- [:repo:`7801`]: made Generic Prompt unselectable
+- [:repo:`7815`]: MotionEvent: Fix indentation in module doc
+- [:repo:`7826`]: add GitHub URL for PyPi
+- [:repo:`7830`]: EventManager: Fix typo in module doc
+
+Graphics
+--------
+
+- [:repo:`4854`]: Graphics: Add Sdl2 vsync
+- [:repo:`7270`]: Graphics: Check whether user updated GL instructions from external thread.
+- [:repo:`7277`]: SVG: Fix SVG instruction iteration for python 3.9.
+- [:repo:`7455`]: Graphics: Only check for threading issues once graphics is initialized
+
+Input
+-----
+
+- [:repo:`7387`]: Mouse: Update MouseMotionEventProvider to dispatch hover events
+- [:repo:`7425`]: Mouse: Fix computation of relative touch position in MouseMotionEventProvider
+- [:repo:`7492`]: MouseMotionEventProvider: Refactor of provider and tests
+- [:repo:`7549`]: MouseMotionEventProvider: Add disable_hover property
+- [:repo:`7587`]: Fix PermissionError when reconnecting mtdev input devices
+- [:repo:`7644`]: MouseMotionEventProvider: Update doc of disable_hover property
+- [:repo:`7659`]: MotionEvent: Fix scale_for_screen method
+- [:repo:`7679`]: MotionEvent: Fix calculation of z values in scale_for_screen method
+- [:repo:`7684`]: Enable pressure for touches in android (and ios?)
+- [:repo:`7691`]: MotionEvent: Fix keeping of the previous normalized position
+- [:repo:`7714`]: MouseMotionEventProvider: Update simulated touch graphics on window resize or rotate
+- [:repo:`7785`]: Input providers: Assign type_id to MotionEvent subclasses
+
+Tests/ci
+--------
+
+- [:repo:`7176`]: Dev: Add pre-commit.com framework hooks
+- [:repo:`7292`]: Benchmarks: Add benchmarks option measurements to pytest
+- [:repo:`7461`]: AsyncImageTestCase: Fix for test_reload_asyncimage method and cleanup
+- [:repo:`7464`]: Makefile: Add test commands to show missing coverage lines
+- [:repo:`7466`]: Tests: Increase test coverage
+- [:repo:`7475`]: MouseHoverEventTestCase: Skip testing on Windows platform
+- [:repo:`7483`]: MouseHoverEventTestCase: Enable some tests on Windows CI
+- [:repo:`7493`]: GraphicUnitTest: Add clear_window_and_event_loop method 
+- [:repo:`7494`]: MouseHoverEventTestCase: Dispatching event on_cursor_leave to cleanup some tests
+- [:repo:`7495`]: CI: Removed unused id_rsa.enc. ssh keys are in the secret env
+- [:repo:`7502`]: MultitouchSimulatorTestCase: Don't render widgets in tests
+- [:repo:`7509`]: CI: Switch rsa ssh key to ed25519 for server upload
+- [:repo:`7513`]: Tests: Latest pyinstaller includes fixes for tests
+- [:repo:`7515`]: GraphicUnitTest: Fix signature of tearDown method to use (*args, **kwargs)
+- [:repo:`7516`]: MouseHoverEventTestCase: Removed skip of test methods on Windows CI
+- [:repo:`7674`]: temporary force python3.9 use in the ci
+- [:repo:`7676`]: Bump support-request to v2. Previous integration has been shut down.
+- [:repo:`7760`]: Fixes benchmark tests on wheels
+- [:repo:`7780`]: Updates action-gh-release and use the default token
+- [:repo:`7784`]: Linux AArch64 wheel build optimization
+- [:repo:`7794`]: Bring perf_test_textinput  inline with changes in TextInput
+- [:repo:`7827`]: Increase timeout to avoid failing tests on windows-2022
+
 2.0.0
 =====
 

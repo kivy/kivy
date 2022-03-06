@@ -68,7 +68,7 @@ class ProxyImage(Image):
             Fired when the image is loaded or changed.
         `on_error`
             Fired when the image cannot be loaded.
-            `error`: Exception data that ocurred
+            `error`: Exception data that occurred
     '''
 
     __events__ = ('on_load', 'on_error')
@@ -152,7 +152,7 @@ class LoaderBase(object):
     increase the number of workers, then all the images will be loaded faster,
     but the user will not been able to use the application while loading.
     Prior to 1.6.0, the default number was 20, and loading many full-hd images
-    was completly blocking the application.
+    was completely blocking the application.
 
     .. versionadded:: 1.6.0
     '''

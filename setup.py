@@ -103,14 +103,6 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-# Detect 32/64bit for OSX (http://stackoverflow.com/a/1405971/798575)
-if sys.platform == 'darwin':
-    if sys.maxsize > 2 ** 32:
-        osx_arch = 'x86_64'
-    else:
-        osx_arch = 'i386'
-
-
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
@@ -120,9 +112,13 @@ if kivy_ios_root is not None:
     platform = 'ios'
 # proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
+    used_pi_version = pi_version
+    # Force detected Raspberry Pi version for cross-builds, if needed
+    if 'KIVY_RPI_VERSION' in environ:
+        used_pi_version = int(environ['KIVY_RPI_VERSION'])
     # The proprietary broadcom video core drivers are not available on the
     # Raspberry Pi 4
-    if (pi_version or 4) < 4:
+    if (used_pi_version or 4) < 4:
         platform = 'rpi'
 # use mesa video core drivers
 if environ.get('VIDEOCOREMESA', None) == '1':
@@ -422,15 +418,6 @@ if platform == 'ios':
 elif platform == 'android':
     c_options['use_android'] = True
 
-elif platform == 'darwin':
-    if c_options['use_osx_frameworks']:
-        if osx_arch == "i386":
-            print("Warning: building with frameworks fail on i386")
-        else:
-            print("OSX framework used, force to x86_64 only")
-            environ["ARCHFLAGS"] = environ.get("ARCHFLAGS", "-arch x86_64")
-            print("OSX ARCHFLAGS are: {}".format(environ["ARCHFLAGS"]))
-
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
 if platform not in ('ios', 'android') and (c_options['use_gstreamer']
@@ -493,19 +480,22 @@ if c_options['use_sdl2'] or (
     sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        sdl2_frameworks_search_path = environ.get(
+            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH", "/Library/Frameworks"
+        )
         sdl2_valid = True
         sdl2_flags = {
             'extra_link_args': [
-                '-F/Library/Frameworks',
+                '-F{}'.format(sdl2_frameworks_search_path),
                 '-Xlinker', '-rpath',
-                '-Xlinker', '/Library/Frameworks',
+                '-Xlinker', sdl2_frameworks_search_path,
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
             'include_dirs': [],
-            'extra_compile_args': ['-F/Library/Frameworks']
+            'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
-            f_path = '/Library/Frameworks/{}.framework'.format(name)
+            f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
                 sdl2_valid = False
@@ -533,18 +523,6 @@ if c_options['use_sdl2'] or (
 
 # -----------------------------------------------------------------------------
 # declare flags
-
-
-def get_modulename_from_file(filename):
-    filename = filename.replace(sep, '/')
-    pyx = '.'.join(filename.split('.')[:-1])
-    pyxl = pyx.split('/')
-    while pyxl[0] != 'kivy':
-        pyxl.pop(0)
-    if pyxl[1] == 'kivy':
-        pyxl.pop(0)
-    return '.'.join(pyxl)
-
 
 def expand(root, *args):
     return join(root, 'kivy', *args)
@@ -643,8 +621,7 @@ def determine_gl_flags():
         flags['libraries'] = ['GLESv2']
         flags['extra_link_args'] = ['-framework', 'OpenGLES']
     elif platform == 'darwin':
-        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', osx_arch]
-        flags['extra_compile_args'] = ['-arch', osx_arch]
+        flags['extra_link_args'] = ['-framework', 'OpenGL']
     elif platform.startswith('freebsd'):
         flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
@@ -827,7 +804,9 @@ sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     '_clock.pyx': {},
     'weakproxy.pyx': {},
-    'properties.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
+    'properties.pyx': merge(
+        base_flags, {'depends': ['_event.pxd', '_metrics.pxd']}),
+    '_metrics.pyx': merge(base_flags, {'depends': ['_event.pxd']}),
     'graphics/buffer.pyx': merge(base_flags, gl_flags_base),
     'graphics/context.pyx': merge(base_flags, gl_flags_base),
     'graphics/compiler.pyx': merge(base_flags, gl_flags_base),
@@ -999,23 +978,23 @@ def get_extensions_from_sources(sources):
         return ext_modules
     for pyx, flags in sources.items():
         is_graphics = pyx.startswith('graphics')
-        pyx = expand(src_path, pyx)
+        pyx_path = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
         if not can_use_cython:
             # can't use cython, so use the .c files instead.
-            pyx = '%s.c' % pyx[:-4]
+            pyx_path = '%s.c' % pyx_path[:-4]
         if is_graphics:
-            depends = resolve_dependencies(pyx, depends)
+            depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
-        module_name = get_modulename_from_file(pyx)
+        module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
         flags_clean = {'depends': depends}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
         ext_modules.append(CythonExtension(
-            module_name, [pyx] + f_depends + c_depends, **flags_clean))
+            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
     return ext_modules
 
 
@@ -1071,6 +1050,9 @@ if not build_examples:
         author='Kivy Team and other contributors',
         author_email='kivy-dev@googlegroups.com',
         url='http://kivy.org',
+        project_urls={
+            'Source': 'https://github.com/kivy/kivy',
+        },
         license='MIT',
         description=(
             'A software library for rapid development of '
@@ -1110,10 +1092,10 @@ if not build_examples:
             'Operating System :: Microsoft :: Windows',
             'Operating System :: POSIX :: BSD :: FreeBSD',
             'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',

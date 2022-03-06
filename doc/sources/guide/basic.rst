@@ -6,11 +6,10 @@ Kivy Basics
 Installation of the Kivy environment
 ------------------------------------
 
-Kivy depends on many Python libraries, such as pygame, gstreamer, PIL,
+Kivy depends on many libraries, such as SDL2, gstreamer, PIL,
 Cairo, and more. They are not all required, but depending on the
-platform you're working on, they can be a pain to install. For
-Windows and MacOS X, we provide a portable package that you can just
-unzip and use.
+platform you're working on, they can be a pain to install. To ease your
+development process, we provide pre-packaged binaries for Windows, macOS and Linux.
 
 Have a look at one of these pages for detailed installation instructions:
 
@@ -21,7 +20,7 @@ Have a look at one of these pages for detailed installation instructions:
 
 Alternatively, instructions for the development version can be found here:
 
-* :ref:`installation`
+* :ref:`kivy-dev-install`
 
 .. _quickstart:
 
@@ -39,7 +38,7 @@ Creating a kivy application is as simple as:
 Here is an example of a minimal application::
 
     import kivy
-    kivy.require('1.0.6') # replace with your current kivy version !
+    kivy.require('2.1.0') # replace with your current kivy version !
 
     from kivy.app import App
     from kivy.uix.label import Label
@@ -65,7 +64,7 @@ First off, let's get familiar with the Kivy app life cycle.
 
 As you can see above, for all intents and purposes, our entry point into our App
 is the run() method, and in our case that is "MyApp().run()". We will get back
-to this, but let's start from the third line::
+to this, but let's start from the line::
 
     from kivy.app import App
 
@@ -78,7 +77,7 @@ It's present in the kivy_installation_dir/kivy/app.py.
     Kivy is based on Python and uses Sphinx for documentation, so the
     documentation for each class is in the actual file.
 
-Similarly on line 2::
+Similarly on line 5::
 
     from kivy.uix.label import Label
 
@@ -86,20 +85,20 @@ One important thing to note here is the way packages/classes are laid out. The
 :class:`~kivy.uix` module is the section that holds the user interface elements
 like layouts and widgets.
 
-Moving on to line 5::
+Moving on to line 8::
 
     class MyApp(App):
 
 This is where we are `defining` the Base Class of our Kivy App. You should only
 ever need to change the name of your app `MyApp` in this line.
 
-Further on to line 7::
+Further on to line 10::
 
     def build(self):
 
 As highlighted by the image above, show casing the `Kivy App Life Cycle`, this
 is the function where you should initialize and return your `Root Widget`. This
-is what we do on line 8::
+is what we do on line 11::
 
     return Label(text='Hello world')
 
@@ -108,9 +107,9 @@ This Label will be the Root Widget of this App.
 
 .. Note::
     Python uses indentation to denote code blocks, therefore take note that in
-    the code provided above, at line 9 the class and function definition ends.
+    the code provided above, at line 11 the class and function definition ends.
 
-Now on to the portion that will make our app run at line 11 and 12::
+Now on to the portion that will make our app run at line 14 and 15::
 
     if __name__ == '__main__':
         MyApp().run()
@@ -123,7 +122,7 @@ Running the application
 -----------------------
 To run the application, follow the instructions for your operating system:
 
-For Windows, Linux, OS X, or the RPi. From the :ref:`terminal<command-line>`
+For Windows, Linux, macOS, or the RPi. From the :ref:`terminal<command-line>`
 where you installed Kivy simply run::
 
     python main.py
@@ -178,11 +177,11 @@ At line 2 we import a :class:`~kivy.uix.gridlayout.Gridlayout`::
     from kivy.uix.gridlayout import GridLayout
 
 This class is used as a Base for our Root Widget (LoginScreen) defined
-at line 9::
+at line 7::
 
     class LoginScreen(GridLayout):
 
-At line 12 in the class LoginScreen, we override the method
+At line 9 in the class LoginScreen, we override the method
 :meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behavior::
 
@@ -193,7 +192,7 @@ One should not forget to call super in order to implement the functionality of
 the original class being overloaded. Also note that it is good practice not to
 omit the `**kwargs` while calling super, as they are sometimes used internally.
 
-Moving on to Line 15 and beyond::
+Moving on to Line 11 and beyond::
 
     self.cols = 2
     self.add_widget(Label(text='User Name'))

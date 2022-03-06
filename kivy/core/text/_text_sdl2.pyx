@@ -168,7 +168,7 @@ cdef TTF_Font *_get_font(self) except *:
     bytes_fontname = <bytes>fontname.encode('utf-8')
     ext = fontname.rsplit('.', 1)
     if len(ext) == 2:
-        # try to open the fount if it has an extension
+        # try to open the font if it has an extension
         fontobject = TTF_OpenFont(bytes_fontname,
                                   int(self.options['font_size']))
     # fallback to search a system font

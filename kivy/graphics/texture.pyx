@@ -59,7 +59,7 @@ For example, to blit immutable bytes data::
     buf = [int(x * 255 / size) for x in range(size)]
 
     # then, convert the array to a ubyte string
-    buf = b''.join(map(chr, buf))
+    buf = bytes(buf)
 
     # then blit the buffer
     texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
@@ -1139,7 +1139,7 @@ cdef class Texture:
         .. versionchanged:: 1.8.0
 
             Parameter `flipped` added, defaults to True. All the OpenGL Texture
-            are readed from bottom / left, it need to be flipped before saving.
+            are read from bottom / left, it need to be flipped before saving.
             If you don't want to flip the image, set flipped to False.
 
         .. versionchanged:: 1.11.0

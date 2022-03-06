@@ -29,7 +29,7 @@ Code of Conduct
 
 In the interest of fostering an open and welcoming community, we as
 contributors and maintainers need to ensure participation in our project and our
-sister projects is a harassment-free and postive experience for everyone.
+sister projects is a harassment-free and positive experience for everyone.
 
 As such, it is vital that all interaction is conducted in a manner conveying
 respect, open-mindedness and gratitude. For a more comprehensive discussion of
@@ -74,7 +74,7 @@ spelling or just weird examples, please take 2 minutes to report the issue.
 #. Validate the issue and you're done!
 
 
-If you are feeling up to it, you can also try to resolve the bug, and contribute by sending 
+If you are feeling up to it, you can also try to resolve the bug, and contribute by sending
 us the patch :) Read the next section to find out how to do this.
 
 Code Contributions
@@ -94,14 +94,19 @@ Coding style
 - If you haven't done it yet, read the
   `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ about coding style in python.
 
-- Activate the pep8 check on git commits like this::
+- Activate the pep8 and other basic checks on git commits like this::
 
     make hook
 
 This will pass the code added to the git staging zone (about to be committed)
-through a pep8 checker program when you do a commit, and ensure that you didn't
-introduce pep8 errors. If you did, the commit will be rejected: please correct the 
+through a checker program when you do a commit, and ensure that you didn't
+introduce style errors. If you did, the commit will be rejected: please correct the
 errors and try again.
+
+The checker used is `pre-commit <https://pre-commit.com/>`_. If you need to skip
+a particular check see `documentation <https://pre-commit.com/#temporarily-disabling-hooks>`_,
+TLDR being that putting `SKIP=hookname` in front of `git commit` will skip that hook, the
+name of the offending hook is shown when it fails.
 
 Performance
 ~~~~~~~~~~~
@@ -133,7 +138,7 @@ Code Workflow
 
 So here is the initial setup to begin with our workflow (you only need to do
 this once to install Kivy). Basically you follow the installation
-instructions from :ref:`dev-install`, but you don't clone our repository,
+instructions from :ref:`kivy-dev-install`, but you don't clone our repository,
 you fork it. Here are the steps:
 
     #. Log in to GitHub
@@ -141,10 +146,10 @@ you fork it. Here are the steps:
        clicking the *fork* button.
     #. Clone your fork of our repository to your computer. Your fork will have
        the git remote name 'origin' and you will be on branch 'master'::
-       
+
         git clone https://github.com/username/kivy.git
-       
-    #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
+
+    #. Compile and set up PYTHONPATH or install (see :ref:`kivy-dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
        styleguide by executing `make hook` from the root directory of your
        clone. This will run our styleguide check whenever you do a commit,
@@ -175,7 +180,7 @@ Now, whenever you want to create a patch, you follow the following steps:
     #. Give each commit an appropriate commit message, so that others who are
        not familiar with the matter get a good idea of what you changed.
     #. Once you are satisfied with your changes, pull our upstream repository and
-       merge it with you local repository. We can pull your stuff, but since you know 
+       merge it with you local repository. We can pull your stuff, but since you know
        exactly what's changed, you should do the merge::
 
         git pull kivy master
@@ -207,7 +212,7 @@ get instant karma. Congratulations, you're a hero!
 Documentation Contributions
 ---------------------------
 
-Documentation contributions generally follow the same workflow as code contributions, 
+Documentation contributions generally follow the same workflow as code contributions,
 but are just a bit more lax.
 
     #. Following the instructions above,
@@ -233,9 +238,9 @@ To submit a documentation update, use the following steps:
     #. Modify the documentation with your correction or improvement.
     #. Re-generate the HTML pages, and review your update::
 
-			make html
+            make html
 
-    #. Give each commit an appropriate commit message, so that others who are not familiar with 
+    #. Give each commit an appropriate commit message, so that others who are not familiar with
        the matter get a good idea of what you changed.
     #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't
        logically belong to this update.
@@ -325,7 +330,7 @@ If you updated your kivy install, and have some trouble compiling docs, run::
     make clean force html
 
 The docs will be generated in ``docs/build/html``. For more information on
-docstring formatting, please refer to the official 
+docstring formatting, please refer to the official
 `Sphinx Documentation <http://sphinx-doc.org/>`_.
 
 Unit tests contributions
@@ -348,4 +353,3 @@ GSOC
     :maxdepth: 3
 
     gsoc
-

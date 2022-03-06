@@ -66,7 +66,7 @@ cdef class ClearColor(Instruction):
         self.g = clear_color[1]
         self.b = clear_color[2]
         self.a = clear_color[3]
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def rgb(self):
@@ -81,7 +81,7 @@ cdef class ClearColor(Instruction):
         self.g = clear_color[1]
         self.b = clear_color[2]
         self.a = 1
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def r(self):
@@ -92,7 +92,7 @@ cdef class ClearColor(Instruction):
     @r.setter
     def r(self, r):
         self.r = r
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def g(self):
@@ -103,7 +103,7 @@ cdef class ClearColor(Instruction):
     @g.setter
     def g(self, g):
         self.g = g
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def b(self):
@@ -114,7 +114,7 @@ cdef class ClearColor(Instruction):
     @b.setter
     def b(self, b):
         self.b = b
-        self.flag_update()
+        self.flag_data_update()
 
     @property
     def a(self):
@@ -125,7 +125,7 @@ cdef class ClearColor(Instruction):
     @a.setter
     def a(self, a):
         self.a = a
-        self.flag_update()
+        self.flag_data_update()
 
 
 cdef class ClearBuffers(Instruction):

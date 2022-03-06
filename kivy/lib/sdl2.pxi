@@ -160,6 +160,9 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_EventType:
         SDL_FIRSTEVENT     = 0,
         SDL_DROPFILE       = 0x1000,
+        SDL_DROPTEXT
+        SDL_DROPBEGIN
+        SDL_DROPCOMPLETE
         SDL_QUIT           = 0x100
         SDL_WINDOWEVENT    = 0x200
         SDL_SYSWMEVENT
@@ -221,7 +224,7 @@ cdef extern from "SDL.h":
         SDL_WINDOWEVENT_LEAVE          #< Window has lost mouse focus */
         SDL_WINDOWEVENT_FOCUS_GAINED   #< Window has gained keyboard focus */
         SDL_WINDOWEVENT_FOCUS_LOST     #< Window has lost keyboard focus */
-        SDL_WINDOWEVENT_CLOSE           #< The window manager requests that the
+        SDL_WINDOWEVENT_CLOSE          #< The window manager requests that the
                                         # window be closed */
 
     ctypedef enum SDL_HintPriority:
@@ -249,6 +252,19 @@ cdef extern from "SDL.h":
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
         SDL_WINDOW_ALLOW_HIGHDPI
+
+    ctypedef enum SDL_HitTestResult:
+        SDL_HITTEST_NORMAL
+        SDL_HITTEST_DRAGGABLE
+        SDL_HITTEST_RESIZE_TOPLEFT
+        SDL_HITTEST_RESIZE_TOP
+        SDL_HITTEST_RESIZE_TOPRIGHT
+        SDL_HITTEST_RESIZE_RIGHT
+        SDL_HITTEST_RESIZE_BOTTOMRIGHT
+        SDL_HITTEST_RESIZE_BOTTOM
+        SDL_HITTEST_RESIZE_BOTTOMLEFT
+        SDL_HITTEST_RESIZE_LEFT
+
 
     cdef struct SDL_DropEvent:
         Uint32 type
@@ -449,6 +465,12 @@ cdef extern from "SDL.h":
         pass
 
     ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
+    # for windows only see
+    # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
+    IF UNAME_SYSNAME == 'Windows':
+        ctypedef SDL_HitTestResult (__cdecl *SDL_HitTest) (SDL_Window *win, const SDL_Point *area, void *data)
+    ELSE:
+        ctypedef SDL_HitTestResult (*SDL_HitTest)(SDL_Window *win, const SDL_Point *area, void *data)
 
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
@@ -521,7 +543,8 @@ cdef extern from "SDL.h":
     cdef char * SDL_GetError()
     cdef SDL_bool SDL_SetHint(char *name, char *value)
     cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
-    cdef Uint8 SDL_GetMouseState(int* x,int* y)
+    cdef Uint32 SDL_GetMouseState(int* x,int* y)
+    cdef Uint32 SDL_GetGlobalMouseState(int *x, int *y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
     cdef int SDL_GetNumDisplayModes(int displayIndex)
@@ -626,7 +649,7 @@ cdef extern from "SDL.h":
     cdef SDL_bool SDL_HasScreenKeyboardSupport()
     cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
     cdef void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h)
-
+    cdef int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback, void *callback_data)
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */
     Uint16 AUDIO_S8     #0x8008  /**< Signed 8-bit samples */

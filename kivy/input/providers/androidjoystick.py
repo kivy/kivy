@@ -30,14 +30,18 @@ if 'KIVY_DOC' not in os.environ:
 
 class AndroidMotionEvent(MotionEvent):
 
-    def depack(self, args):
-        self.is_touch = True
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
         self.profile = ['pos', 'pressure', 'shape']
+
+    def depack(self, args):
         self.sx, self.sy, self.pressure, radius = args
         self.shape = ShapeRect()
         self.shape.width = radius
         self.shape.height = radius
-        super(AndroidMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 class AndroidMotionEventProvider(MotionEventProvider):

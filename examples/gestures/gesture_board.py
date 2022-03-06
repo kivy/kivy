@@ -54,7 +54,7 @@ class GestureBoard(FloatLayout):
             pass
 
     def on_touch_up(self, touch):
-        # touch is over, display informations, and check if it matches some
+        # touch is over, display information, and check if it matches some
         # known gesture.
         g = simplegesture('', list(zip(touch.ud['line'].points[::2],
                                        touch.ud['line'].points[1::2])))

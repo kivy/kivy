@@ -13,7 +13,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Validate PEP8
       run: |
         source .ci/ubuntu_ci.sh
@@ -28,7 +28,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -53,6 +53,15 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         upload_coveralls
+    - name: Test Kivy benchmarks
+      run: |
+        source .ci/ubuntu_ci.sh
+        test_kivy_benchmark
+    - name: Upload benchamrks as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmarks
+        path: .benchmarks-kivy
 
   gen_docs:
     runs-on: ubuntu-18.04
@@ -61,7 +70,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh

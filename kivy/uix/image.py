@@ -163,7 +163,7 @@ class Image(Widget):
     '''
 
     keep_data = BooleanProperty(False)
-    '''If True, the underlaying _coreimage will store the raw image data.
+    '''If True, the underlying _coreimage will store the raw image data.
     This is useful when performing pixel based collision detection.
 
     .. versionadded:: 1.3.0
@@ -209,7 +209,7 @@ class Image(Widget):
         w, h = self.size
         tw, th = self.texture.size
 
-        # ensure that the width is always maximized to the containter width
+        # ensure that the width is always maximized to the container width
         if self.allow_stretch:
             if not self.keep_ratio:
                 return [w, h]
@@ -251,12 +251,15 @@ class Image(Widget):
         super().__init__(**kwargs)
 
     def texture_update(self, *largs):
-        if not self.source:
+        self.set_texture_from_resource(self.source)
+
+    def set_texture_from_resource(self, resource):
+        if not resource:
             self._clear_core_image()
             return
-        source = resource_find(self.source)
+        source = resource_find(resource)
         if not source:
-            Logger.error('Image: Not found <%s>' % self.source)
+            Logger.error('Image: Not found <%s>' % resource)
             self._clear_core_image()
             return
         if self._coreimage:
@@ -270,7 +273,7 @@ class Image(Widget):
                 nocache=self.nocache
             )
         except Exception:
-            Logger.error('Image: Error loading <%s>' % self.source)
+            Logger.error('Image: Error loading <%s>' % resource)
             self._clear_core_image()
             image = self._coreimage
         if image:

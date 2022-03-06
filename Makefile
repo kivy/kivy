@@ -96,18 +96,29 @@ style:
 hook:
 	# Install pre-commit git hook to check your changes for styleguide
 	# consistency.
-	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
-	chmod +x .git/hooks/pre-commit
+	pre-commit install -f --config=kivy/tools/precommit_hooks/pre-commit-config.yaml
 
 image-testsuite:
 	mkdir -p "${KIVY_DIR}tests/image-testsuite"
 	-${KIVY_DIR}tools/image-testsuite/imagemagick-testsuite.sh "${KIVY_DIR}tests/image-testsuite"
 
 test:
+	# Run tests and print output.
 	-rm -rf kivy/tests/build
 	env KIVY_NO_ARGS=1 $(PYTEST) kivy/tests
 
+test-to-txt:
+	# Run tests with missing line stats and save output to 'coverage.txt'.
+	-rm -rf kivy/tests/build
+	env KIVY_NO_ARGS=1 $(PYTEST) --cov-report term-missing --cov=kivy kivy/tests > coverage.txt
+
+test-to-xml:
+	# Run tests with missing line stats and save output to 'coverage.xml'.
+	-rm -rf kivy/tests/build
+	env KIVY_NO_ARGS=1 $(PYTEST) --cov-report xml --cov-report term-missing --cov=kivy kivy/tests
+
 cover:
+	# Note: This option does not currently support the missing lines analysis.
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
 install:

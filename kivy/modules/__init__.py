@@ -97,6 +97,7 @@ __all__ = ('Modules', )
 from kivy.config import Config
 from kivy.logger import Logger
 import kivy
+import importlib
 import os
 import sys
 
@@ -146,11 +147,11 @@ class ModuleBase:
     def import_module(self, name):
         try:
             modname = 'kivy.modules.{0}'.format(name)
-            module = __import__(name=modname)
+            module = importlib.__import__(name=modname)
             module = sys.modules[modname]
         except ImportError:
             try:
-                module = __import__(name=name)
+                module = importlib.__import__(name=name)
                 module = sys.modules[name]
             except ImportError:
                 Logger.exception('Modules: unable to import <%s>' % name)

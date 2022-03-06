@@ -16,10 +16,15 @@ from kivy.input.motionevent import MotionEvent
 class WM_Pen(MotionEvent):
     '''MotionEvent representing the WM_Pen event. Supports the pos profile.'''
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+        self.profile = ['pos']
+
     def depack(self, args):
-        self.is_touch = True
         self.sx, self.sy = args[0], args[1]
-        super(WM_Pen, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         i, u, s, d = (self.id, self.uid, str(self.spos), self.device)

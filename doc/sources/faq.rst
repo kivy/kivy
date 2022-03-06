@@ -15,7 +15,7 @@ Unable to get a Window, abort.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If Kivy cannot instantiate a Window core provider (mostly SDL2), you'll see
-this. The underlaying issue depends on many things:
+this. The underlying issue depends on many things:
 
 - Check your installation. Twice.
 - Check that your graphics driver support OpenGL 2.1 at the minimum. Otherwise, Kivy can't run.
@@ -25,7 +25,7 @@ this. The underlaying issue depends on many things:
 - Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
 - Check your PATH to ensure that other programs in it don't provide the same dlls as Kivy/Python, or bad stuff can happen.
 
-  - This commonly happens if some other program that uses similar dependecies as Kivy adds itself to the ``PATH`` so that Kivy's dependecies clash with theirs.
+  - This commonly happens if some other program that uses similar dependencies as Kivy adds itself to the ``PATH`` so that Kivy's dependencies clash with theirs.
   - Please read `this <https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them>`_ and `this <https://www.digitalcitizen.life/simple-questions-what-are-environment-variables>`_ for more details on ``PATH``.
   - The best tool to troubleshoot this is with `Dependency Walker <http://www.dependencywalker.com/>`_ explained `here <https://www.thewindowsclub.com/dependency-walker-download>`_ and `here <https://kb.froglogic.com/display/KB/Analyzing+dependencies+with+Dependency+Walker>`_.
   - But ensure that you're launching it from the identical environment that you start Python.
@@ -75,18 +75,6 @@ using it. In the kivy directory, do::
 
 Android FAQ
 -----------
-
-could not extract public data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This error message can occur under various circumstances. Ensure that:
-
-* you have a phone with an sdcard
-* you are not currently in "USB Mass Storage" mode
-* you have permissions to write to the sdcard
-
-In the case of the "USB Mass Storage" mode error, and if you don't want to keep
-unplugging the device, set the usb option to Power.
 
 Crash on touch interaction on Android 2.3.x
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,12 +169,12 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python
->= 3.4 with the same codebase. Python 3 is also now supported by
-python-for-android.
+Yes! Kivy |kivy_version_bold| officially supports Python versions |python_versions_bold|.
 
-However, be aware that while Kivy will run in Python 3.4+, our iOS
-build tools still require Python 2.7.
+As of version **2.0.0** Kivy dropped support for Python 2. You can still use older versions with
+Python 2 support. 
+
+Python 3 is also supported by python-for-android and kivy-ios.
 
 
 How is Kivy related to PyMT?

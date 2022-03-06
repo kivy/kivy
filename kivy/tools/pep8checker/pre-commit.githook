@@ -3,6 +3,9 @@
     Kivy Git Pre-Commit Hook to Enforce Styleguide
     ==============================================
 
+    DEPRECATED: Use pre-commit.com framework instead:
+    `pip install pre-commit && make hook`
+
     This script is not supposed to be run directly.
     Instead, copy it to your kivy/.git/hooks/ directory, call it 'pre-commit'
     and make it executable.

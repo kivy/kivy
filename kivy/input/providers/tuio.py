@@ -61,8 +61,6 @@ class TuioMotionEventProvider(MotionEventProvider):
         # Create a class to handle the new TUIO type/path
         # Replace NEWPATH with the pathname you want to handle
         class TuioNEWPATHMotionEvent(MotionEvent):
-            def __init__(self, id, args):
-                super(TuioNEWPATHMotionEvent, self).__init__(id, args)
 
             def depack(self, args):
                 # In this method, implement 'unpacking' for the received
@@ -73,7 +71,7 @@ class TuioMotionEventProvider(MotionEventProvider):
                     self.sx, self.sy = args
                     self.profile = ('pos', )
                 self.sy = 1 - self.sy
-                super(TuioNEWPATHMotionEvent, self).depack(args)
+                super().depack(args)
 
         # Register it with the TUIO MotionEvent provider.
         # You obviously need to replace the PATH placeholders appropriately.
@@ -90,9 +88,9 @@ class TuioMotionEventProvider(MotionEventProvider):
     __handlers__ = {}
 
     def __init__(self, device, args):
-        super(TuioMotionEventProvider, self).__init__(device, args)
+        super().__init__(device, args)
         args = args.split(',')
-        if len(args) <= 0:
+        if len(args) == 0:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
             err = 'Tuio: Current configuration is <%s>' % (str(','.join(args)))
@@ -220,8 +218,10 @@ class TuioMotionEvent(MotionEvent):
     '''
     __attrs__ = ('a', 'b', 'c', 'X', 'Y', 'Z', 'A', 'B', 'C', 'm', 'r')
 
-    def __init__(self, device, id, args):
-        super(TuioMotionEvent, self).__init__(device, id, args)
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
         # Default argument for TUIO touches
         self.a = 0.0
         self.b = 0.0
@@ -246,11 +246,7 @@ class TuioMotionEvent(MotionEvent):
 class Tuio2dCurMotionEvent(TuioMotionEvent):
     '''A 2dCur TUIO touch.'''
 
-    def __init__(self, device, id, args):
-        super(Tuio2dCurMotionEvent, self).__init__(device, id, args)
-
     def depack(self, args):
-        self.is_touch = True
         if len(args) < 5:
             self.sx, self.sy = list(map(float, args[0:2]))
             self.profile = ('pos', )
@@ -269,18 +265,14 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
             self.shape.width = width
             self.shape.height = height
         self.sy = 1 - self.sy
-        super(Tuio2dCurMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 class Tuio2dObjMotionEvent(TuioMotionEvent):
     '''A 2dObj TUIO object.
     '''
 
-    def __init__(self, device, id, args):
-        super(Tuio2dObjMotionEvent, self).__init__(device, id, args)
-
     def depack(self, args):
-        self.is_touch = True
         if len(args) < 5:
             self.sx, self.sy = args[0:2]
             self.profile = ('pos', )
@@ -301,7 +293,7 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
                 self.shape.width = width
                 self.shape.height = height
         self.sy = 1 - self.sy
-        super(Tuio2dObjMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 class Tuio2dBlbMotionEvent(TuioMotionEvent):
@@ -311,22 +303,20 @@ class Tuio2dBlbMotionEvent(TuioMotionEvent):
     /tuio/2Dblb set s   x y a w h f X Y A m r
     '''
 
-    def __init__(self, device, id, args):
-        super(Tuio2dBlbMotionEvent, self).__init__(device, id, args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.profile = ('pos', 'angle', 'mov', 'rot', 'rotacc', 'acc', 'shape')
 
     def depack(self, args):
-        self.is_touch = True
         self.sx, self.sy, self.a, self.X, self.Y, sw, sh, sd, \
             self.A, self.m, self.r = args
         self.Y = -self.Y
-        self.profile = ('pos', 'angle', 'mov', 'rot', 'rotacc',
-                        'acc', 'shape')
         if self.shape is None:
             self.shape = ShapeRect()
             self.shape.width = sw
             self.shape.height = sh
         self.sy = 1 - self.sy
-        super(Tuio2dBlbMotionEvent, self).depack(args)
+        super().depack(args)
 
 
 # registers

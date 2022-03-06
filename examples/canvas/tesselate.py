@@ -4,7 +4,7 @@ Tesselate Demonstration
 
 This demonstrates the experimental library for tesselating polygons. You
 should see a hollow square with some buttons below it. You can click and
-drag to create additional shapes, watching the number of vertexes and elements
+drag to create additional shapes, watching the number of vertices and elements
 at the top of the screen. The 'debug' button toggles showing the mesh in
 different colors.
 '''

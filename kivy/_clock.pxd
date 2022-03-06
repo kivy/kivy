@@ -95,6 +95,7 @@ cdef class CyClockBase(object):
     cdef public object _lock_acquire
     cdef public object _lock_release
 
+    cdef public int has_started
     cdef public int has_ended
     cdef public object _del_safe_lock
     cdef public int _del_safe_done
@@ -114,6 +115,7 @@ cdef class CyClockBase(object):
     cpdef _process_events_before_frame(self)
     cpdef get_min_timeout(self)
     cpdef get_events(self)
+    cpdef get_before_frame_events(self)
     cpdef _process_clock_ended_del_safe_events(self)
     cpdef _process_clock_ended_callbacks(self)
 

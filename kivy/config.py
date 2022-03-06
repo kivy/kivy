@@ -169,9 +169,17 @@ Available configuration tokens
         Time allowed for the detection of triple tap, in milliseconds.
 
 :graphics:
-    `borderless`: int , one of 0 or 1
+    `borderless`: int, one of 0 or 1
         If set to `1`, removes the window border/decoration. Window resizing
         must also be disabled to hide the resizing border.
+    `custom_titlebar`: int, one of 0 or 1
+        If set to `1`, removes the window border and allows user to set a Widget
+        as a titlebar
+        see :meth:`~kivy.core.window.WindowBase.set_custom_titlebar`
+        for detailed usage
+    `custom_titlebar_border`: int, defaults to 5
+        sets the how many pixles off the border should be used as the
+        rezising frame
     `window_state`: string , one of 'visible', 'hidden', 'maximized'
                     or 'minimized'
 
@@ -238,6 +246,15 @@ Available configuration tokens
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
+    `vsync`: `none`, empty value, or integers
+        Whether vsync is enabled, currently only used with sdl2 window.
+        Possible values are `none` or empty value -- leaves it unchanged,
+        ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
+        ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
+        or ``-1`` failed. See ``SDL_GL_SetSwapInterval``.
+    `verify_gl_main_thread`: int, 1 or 0, defaults to 1
+        Whether to check if code that changes any gl instructions is
+        running outside the main thread and then raise an error.
 
 :input:
 
@@ -309,6 +326,10 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionchanged:: 2.1.0
+    `vsync` has been added to the graphics section.
+    `verify_gl_main_thread` has been added to the graphics section.
+
 .. versionchanged:: 1.10.0
     `min_state_time`  and `allow_screensaver` have been added
     to the `graphics` section.
@@ -360,7 +381,7 @@ from weakref import ref
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 21
+KIVY_CONFIG_VERSION = 24
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -750,7 +771,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'rotation', '0')
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
-            Config.setdefault('graphics', 'vsync', '1')
             Config.setdefault('graphics', 'width', '800')
 
             # input configuration
@@ -786,7 +806,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
         elif version == 1:
-            Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
         elif version == 2:
@@ -879,6 +898,16 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 20:
             Config.setdefault('network', 'useragent', 'curl')
+
+        elif version == 21:
+            Config.setdefault('graphics', 'vsync', '')
+
+        elif version == 22:
+            Config.setdefault('graphics', 'verify_gl_main_thread', '1')
+
+        elif version == 23:
+            Config.setdefault('graphics', 'custom_titlebar', '0')
+            Config.setdefault('graphics', 'custom_titlebar_border', '5')
 
         else:
             # for future.

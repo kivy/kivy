@@ -59,8 +59,12 @@ Keyboard = None
 
 class HIDMotionEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+
     def depack(self, args):
-        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
@@ -75,8 +79,7 @@ class HIDMotionEvent(MotionEvent):
         if 'button' in args:
             self.button = args['button']
             self.profile.append('button')
-
-        super(HIDMotionEvent, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         return '<HIDMotionEvent id=%d pos=(%f, %f) device=%s>' \
@@ -659,7 +662,7 @@ else:
             # open the input
             fd = open(input_fn, 'rb')
 
-            # get the controler name (EVIOCGNAME)
+            # get the controller name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
                                       " " * 256).decode().strip()
             Logger.info('HIDMotionEvent: using <%s>' % device_name)
