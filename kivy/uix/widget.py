@@ -237,6 +237,11 @@ at the parent's right at each layout update.
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
+from kivy.eventmanager import (
+    MODE_DONT_DISPATCH,
+    MODE_FILTERED_DISPATCH,
+    MODE_DEFAULT_DISPATCH
+)
 from kivy.factory import Factory
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
@@ -326,7 +331,9 @@ class Widget(WidgetBase):
 
     __metaclass__ = WidgetMetaclass
     __events__ = (
-        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post')
+        'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+        'on_kv_post'
+    )
     _proxy_ref = None
 
     def __init__(self, **kwargs):
@@ -522,6 +529,43 @@ class Widget(WidgetBase):
             return False
         return True
 
+    def on_motion(self, etype, me):
+        '''Called when a motion event is received.
+
+        :Parameters:
+            `etype`: `str`
+                Event type, one of "begin", "update" or "end"
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Received motion event
+        :Returns: `bool`
+            `True` to stop event dispatching
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so while this warning
+            is present.
+        '''
+        if self.disabled or me.dispatch_mode == MODE_DONT_DISPATCH:
+            return
+        if me.type_id not in self.motion_filter:
+            return
+        filtered = self.motion_filter[me.type_id]
+        if filtered[0] is self and len(filtered) == 1:
+            return
+        if me.dispatch_mode == MODE_DEFAULT_DISPATCH:
+            last_filtered = filtered[-1]
+            for widget in self.children[:]:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
+                if widget is last_filtered:
+                    return
+        if me.dispatch_mode == MODE_FILTERED_DISPATCH:
+            widgets = filtered[1:] if filtered[0] is self else filtered[:]
+            for widget in widgets:
+                if widget.dispatch('on_motion', etype, me):
+                    return True
+
     #
     # Default event handlers
     #
@@ -646,6 +690,9 @@ class Widget(WidgetBase):
             if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
+        for type_id in widget.motion_filter:
+            self.register_for_motion_event(type_id, widget)
+        widget.fbind('motion_filter', self._update_motion_filter)
 
     def remove_widget(self, widget):
         '''Remove a widget from the children of this widget.
@@ -671,6 +718,9 @@ class Widget(WidgetBase):
             self.canvas.after.remove(widget.canvas)
         elif widget.canvas in self.canvas.before.children:
             self.canvas.before.remove(widget.canvas)
+        for type_id in widget.motion_filter:
+            self.unregister_for_motion_event(type_id, widget)
+        widget.funbind('motion_filter', self._update_motion_filter)
         widget.parent = None
         widget.dec_disabled(self._disabled_count)
 
@@ -695,6 +745,87 @@ class Widget(WidgetBase):
         remove_widget = self.remove_widget
         for child in children:
             remove_widget(child)
+
+    def _update_motion_filter(self, child_widget, child_motion_filter):
+        old_events = []
+        for type_id, widgets in self.motion_filter.items():
+            if child_widget in widgets:
+                old_events.append(type_id)
+        for type_id in old_events:
+            if type_id not in child_motion_filter:
+                self.unregister_for_motion_event(type_id, child_widget)
+        for type_id in child_motion_filter:
+            if type_id not in old_events:
+                self.register_for_motion_event(type_id, child_widget)
+
+    def _find_index_in_motion_filter(self, type_id, widget):
+        if widget is self:
+            return 0
+        find_index = self.children.index
+        max_index = find_index(widget) + 1
+        motion_widgets = self.motion_filter[type_id]
+        insert_index = 1 if motion_widgets[0] is self else 0
+        for index in range(insert_index, len(motion_widgets)):
+            if find_index(motion_widgets[index]) < max_index:
+                insert_index += 1
+            else:
+                break
+        return insert_index
+
+    def register_for_motion_event(self, type_id, widget=None):
+        '''Register to receive motion events of `type_id`.
+
+        Override :meth:`on_motion` or bind to `on_motion` event to handle
+        the incoming motion events.
+
+        :Parameters:
+            `type_id`: `str`
+                Motion event type id (eg. "touch", "hover", etc.)
+            `widget`: `Widget`
+                Child widget or `self` if omitted
+
+        .. versionadded:: 2.1.0
+
+        .. note::
+            Method can be called multiple times with the same arguments.
+
+        .. warning::
+            This is an experimental method and it remains so while this warning
+            is present.
+        '''
+        a_widget = widget or self
+        motion_filter = self.motion_filter
+        if type_id not in motion_filter:
+            motion_filter[type_id] = [a_widget]
+        elif widget not in motion_filter[type_id]:
+            index = self._find_index_in_motion_filter(type_id, a_widget)
+            motion_filter[type_id].insert(index, a_widget)
+
+    def unregister_for_motion_event(self, type_id, widget=None):
+        '''Unregister to receive motion events of `type_id`.
+
+        :Parameters:
+            `type_id`: `str`
+                Motion event type id (eg. "touch", "hover", etc.)
+            `widget`: `Widget`
+                Child widget or `self` if omitted
+
+        .. versionadded:: 2.1.0
+
+        .. note::
+            Method can be called multiple times with the same arguments.
+
+        .. warning::
+            This is an experimental method and it remains so while this warning
+            is present.
+        '''
+        a_widget = widget or self
+        motion_filter = self.motion_filter
+        if type_id in motion_filter:
+            if a_widget in motion_filter[type_id]:
+                motion_filter[type_id].remove(a_widget)
+                if not motion_filter[type_id]:
+                    del motion_filter[type_id]
 
     def export_to_png(self, filename, *args, **kwargs):
         '''Saves an image of the widget and its children in png format at the
@@ -1433,6 +1564,9 @@ class Widget(WidgetBase):
         return self._disabled_count > 0
 
     def set_disabled(self, value):
+        # Necessary to ensure a change between value of equal truthiness
+        # doesn't mess up the count
+        value = bool(value)
         if value != self._disabled_value:
             self._disabled_value = value
             if value:
@@ -1476,4 +1610,20 @@ class Widget(WidgetBase):
         :class:`~kivy.properties.BooleanProperty` to an
         :class:`~kivy.properties.AliasProperty` to allow access to its
         previous state when a parent's disabled state is changed.
+    '''
+
+    motion_filter = DictProperty()
+    '''Holds a dict of `type_id` to `list` of child widgets registered to
+    receive motion events of `type_id`.
+
+    Don't change the property directly but use
+    :meth:`register_for_motion_event` and :meth:`unregister_for_motion_event`
+    to register and unregister for motion events. If `self` is registered it
+    will always be the first element in the list.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
     '''

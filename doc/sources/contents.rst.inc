@@ -4,7 +4,6 @@
 	.. toctree::
 		:maxdepth: 2
 
-		gettingstarted/index
 		examples/index
 
 .. toctree::

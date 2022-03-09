@@ -139,11 +139,6 @@ its children. There are different kinds of layouts, allowing for different
 automatic organization of their children. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
 
-**BoxLayout**:
-Arranges widgets in an adjacent manner (either vertically or horizontally) manner,
-to fill all the space. The size_hint property of children can be used to change
-proportions allowed to each child, or set fixed size for some of them.
-
 .. only:: html
 
     .. image:: ../images/boxlayout.gif
@@ -160,6 +155,10 @@ proportions allowed to each child, or set fixed size for some of them.
     .. image:: ../images/anchorlayout.png
     .. image:: ../images/floatlayout.png
 
+**BoxLayout**:
+Arranges widgets in an adjacent manner (either vertically or horizontally) manner,
+to fill all the space. The size_hint property of children can be used to change
+proportions allowed to each child, or set fixed size for some of them.
 
 **GridLayout**:
 Arranges widgets in a grid. You must specify at least one dimension of the

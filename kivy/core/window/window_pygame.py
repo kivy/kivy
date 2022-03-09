@@ -394,7 +394,8 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.USEREVENT and \
                     hasattr(pygame, 'USEREVENT_DROPFILE') and \
                     event.code == pygame.USEREVENT_DROPFILE:
-                self.dispatch('on_dropfile', event.filename)
+                drop_x, drop_y = pygame.mouse.get_pos()
+                self.dispatch('on_drop_file', event.filename, drop_x, drop_y)
 
             '''
             # unhandled event !

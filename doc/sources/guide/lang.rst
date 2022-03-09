@@ -475,7 +475,7 @@ Designing with the Kivy Language
 One of the aims of the Kivy language is to
 `separate the concerns <https://en.wikipedia.org/wiki/Separation_of_concerns>`_
 of presentation and logic. The presentation (layout) side is addressed by your
-kv file and the logic by your .py file.
+``.kv`` file and the logic by your ``.py`` file.
 
 The code goes in py files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -506,7 +506,6 @@ what files are loaded is described in the :meth:`kivy.app.App.load_kv` method.
 
 .. literalinclude:: ../../../examples/guide/designwithkv/controller.kv
     :language: kv
-    :linenos:
 
 One label and one button in a vertical ``BoxLayout``. Seems very simple. There
 are 3 things going on here:
@@ -543,5 +542,4 @@ that the ``Button`` and ``Label`` will show up and respond to our touch events.
 More documentation
 ------------------
 For a full description of the different components of the `KV` language,
- advanced usage and limitations, see the documentation
- for :mod:`~kivy.lang`
+advanced usage and limitations, see the documentation for :mod:`~kivy.lang`

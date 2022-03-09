@@ -296,6 +296,10 @@ class DropDown(ScrollView):
             return self.container.clear_widgets(*args, **kwargs)
         return super(DropDown, self).clear_widgets(*args, **kwargs)
 
+    def on_motion(self, etype, me):
+        super().on_motion(etype, me)
+        return True
+
     def on_touch_down(self, touch):
         self._touch_started_inside = self.collide_point(*touch.pos)
         if not self.auto_dismiss or self._touch_started_inside:

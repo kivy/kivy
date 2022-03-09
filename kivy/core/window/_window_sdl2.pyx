@@ -259,6 +259,9 @@ cdef class _WindowSDL2Storage:
         SDL_SetEventFilter(_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
+        SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
+        SDL_EventState(SDL_DROPBEGIN, SDL_ENABLE)
+        SDL_EventState(SDL_DROPCOMPLETE, SDL_ENABLE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
@@ -554,6 +557,7 @@ cdef class _WindowSDL2Storage:
                 TYPE_CLASS_NUMBER = 2
                 TYPE_CLASS_PHONE = 3
                 TYPE_CLASS_TEXT = 1
+                TYPE_CLASS_NULL = 0
 
                 TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
                 TYPE_TEXT_VARIATION_URI = 16
@@ -562,6 +566,7 @@ cdef class _WindowSDL2Storage:
                 TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
 
                 input_type_value = {
+                                "null": TYPE_CLASS_NULL,
                                 "text": TYPE_CLASS_TEXT,
                                 "number": TYPE_CLASS_NUMBER,
                                 "url":
@@ -580,6 +585,10 @@ cdef class _WindowSDL2Storage:
                 text_keyboards = {"text", "url", "mail", "address"}
 
                 if not keyboard_suggestions and input_type in text_keyboards:
+                    """
+                    Looks like some (major) device vendors and keyboards are de-facto ignoring this flag,
+                    so we can't really rely on this one to disable suggestions.
+                    """
                     input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
                 mActivity.changeKeyboard(input_type_value)
@@ -606,12 +615,9 @@ cdef class _WindowSDL2Storage:
             rv = SDL_PollEvent(&event)
         if rv == 0:
             return False
-
         action = None
         if event.type == SDL_QUIT:
             return ('quit', )
-        elif event.type == SDL_DROPFILE:
-            return ('dropfile', event.drop.file)
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y
@@ -641,13 +647,15 @@ cdef class _WindowSDL2Storage:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
-            return ('fingermotion', fid, x, y)
+            pressure = event.tfinger.pressure
+            return ('fingermotion', fid, x, y, pressure)
         elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
             fid = event.tfinger.fingerId
             x = event.tfinger.x
             y = event.tfinger.y
+            pressure = event.tfinger.pressure
             action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
-            return (action, fid, x, y)
+            return (action, fid, x, y, pressure)
         elif event.type == SDL_JOYAXISMOTION:
             return (
                 'joyaxismotion',
@@ -725,6 +733,14 @@ cdef class _WindowSDL2Storage:
         elif event.type == SDL_TEXTEDITING:
             s = event.edit.text.decode('utf-8')
             return ('textedit', s)
+        elif event.type == SDL_DROPFILE:
+            return ('dropfile', event.drop.file)
+        elif event.type == SDL_DROPTEXT:
+            return ('droptext', event.drop.file)
+        elif event.type == SDL_DROPBEGIN:
+            return ('dropbegin',)
+        elif event.type == SDL_DROPCOMPLETE:
+            return ('dropend',)
         else:
             #    print('receive unknown sdl window event', event.type)
             pass
@@ -748,6 +764,11 @@ cdef class _WindowSDL2Storage:
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
+    def get_relative_mouse_pos(self):
+        cdef int x, y
+        SDL_GetGlobalMouseState(&x, &y)
+        wx, wy = self.get_window_pos()
+        return x - wx, y - wy
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
@@ -819,7 +840,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         <int>sfc.format.BytesPerPixel,
         <int>sfc.pitch
     )
-    print(output)
+    Logger.debug("Window: Screenshot output dimensions {output}")
 
     cdef Uint32 pitch = sfc.pitch
     cdef Uint32 pxlength = pitch * sfc.h

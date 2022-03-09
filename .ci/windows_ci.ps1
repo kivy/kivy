@@ -106,11 +106,11 @@ function Install-kivy-sdist {
 }
 
 function Test-kivy {
-    python -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+    python -m pytest --timeout=400 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
 }
 
 function Test-kivy-benchmark {
-    python -m pytest "$(pwd)/kivy/tests" --benchmark-only
+    pytest --pyargs kivy.tests --benchmark-only
 }
 
 function Test-kivy-installed {
@@ -120,7 +120,7 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    raise-only-error -Func {python -m pytest --timeout=300 .}
+    raise-only-error -Func {python -m pytest --timeout=400 .}
 }
 
 function Upload-artifacts-to-pypi {

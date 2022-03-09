@@ -95,6 +95,7 @@ cdef class CyClockBase(object):
     cdef public object _lock_acquire
     cdef public object _lock_release
 
+    cdef public int has_started
     cdef public int has_ended
     cdef public object _del_safe_lock
     cdef public int _del_safe_done

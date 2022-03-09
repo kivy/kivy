@@ -12,6 +12,7 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
+from collections import defaultdict
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
@@ -309,14 +310,29 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_dropfile`: filename (bytes or string):
+        `on_drop_begin`: x, y, *args
+            Fired when text(s) or file(s) drop on the application is about to
+            begin.
+
+            .. versionadded:: 2.1.0
+
+        `on_drop_file`: filename (bytes), x, y, *args
             Fired when a file is dropped on the application.
 
-            .. note::
-                This event doesn't work for apps with elevated permissions,
-                because the OS API calls are filtered. Check issue
-                `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
-                pointers to workarounds.
+            .. versionadded:: 1.2.0
+
+            .. versionchanged:: 2.1.0
+                Renamed from `on_dropfile` to `on_drop_file`.
+
+        `on_drop_text`: text (bytes), x, y, *args
+            Fired when a text is dropped on the application.
+
+            .. versionadded:: 2.1.0
+
+        `on_drop_end`: x, y, *args
+            Fired when text(s) or file(s) drop on the application has ended.
+
+            .. versionadded:: 2.1.0
 
         `on_memorywarning`:
             Fired when the platform have memory issue (iOS / Android mostly)
@@ -337,7 +353,7 @@ class WindowBase(EventDispatcher):
     _fake_fullscreen = False
 
     # private properties
-    _density = NumericProperty(1)
+    _density = NumericProperty(1.)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
@@ -445,9 +461,7 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
-    size = AliasProperty(_get_size, _set_size,
-                         bind=('_size', '_rotation', 'softinput_mode',
-                               'keyboard_height'))
+    size = AliasProperty(_get_size, _set_size, bind=('_size', '_rotation'))
     '''Get the rotated size of the window. If :attr:`rotation` is set, then the
     size will change to reflect the rotation.
 
@@ -492,7 +506,7 @@ class WindowBase(EventDispatcher):
             return _size[0]
         return _size[1]
 
-    width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
+    width = AliasProperty(_get_width, bind=('_rotation', '_size', '_density'))
     '''Rotated window width.
 
     :attr:`width` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -509,9 +523,8 @@ class WindowBase(EventDispatcher):
             return _size[1] - kb
         return _size[0] - kb
 
-    height = AliasProperty(_get_height, None,
-                           bind=('_rotation', '_size', 'softinput_mode',
-                                 'keyboard_height'))
+    height = AliasProperty(_get_height,
+                           bind=('_rotation', '_size', '_density'))
     '''Rotated window height.
 
     :attr:`height` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -520,9 +533,7 @@ class WindowBase(EventDispatcher):
     def _get_center(self):
         return self.width / 2., self.height / 2.
 
-    center = AliasProperty(_get_center,
-                           bind=('width', 'height', '_density'),
-                           cache=True)
+    center = AliasProperty(_get_center, bind=('width', 'height'))
     '''Center of the rotated window.
 
     .. versionadded:: 1.0.9
@@ -629,12 +640,30 @@ class WindowBase(EventDispatcher):
             import android
         return android.get_keyboard_height()
 
+    def _get_kivy_vkheight(self):
+        mode = Config.get('kivy', 'keyboard_mode')
+        if (
+            mode in ['dock', 'systemanddock']
+            and self._vkeyboard_cls is not None
+        ):
+            for w in self.children:
+                if isinstance(w, VKeyboard):
+                    vkeyboard_height = w.height * w.scale
+                    if self.softinput_mode == 'pan':
+                        return vkeyboard_height
+                    elif (
+                        self.softinput_mode == 'below_target'
+                        and w.target.y < vkeyboard_height
+                    ):
+                        return vkeyboard_height - w.target.y
+        return 0
+
     def _get_kheight(self):
         if platform == 'android':
             return self._get_android_kheight()
-        if platform == 'ios':
+        elif platform == 'ios':
             return self._get_ios_kheight()
-        return 0
+        return self._get_kivy_vkheight()
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
@@ -679,9 +708,7 @@ class WindowBase(EventDispatcher):
         return self._size
 
     system_size = AliasProperty(_get_system_size, _set_system_size,
-                                bind=('_size', 'softinput_mode',
-                                      'keyboard_height'),
-                                cache=True)
+                                bind=('_size',))
     '''Real size of the window ignoring rotation. If the density is
     not 1, the :attr:`system_size` is the :attr:`size` divided by
     density.
@@ -742,13 +769,19 @@ class WindowBase(EventDispatcher):
         property instead.
     '''
 
-    mouse_pos = ObjectProperty([0, 0])
-    '''2d position of the mouse within the window.
+    mouse_pos = ObjectProperty((0, 0))
+    '''2d position of the mouse cursor within the window.
+
+    Position is relative to the left/bottom point of the window.
+
+    .. note::
+        Cursor position will be scaled by the pixel density if the high density
+        mode is supported by the window provider.
 
     .. versionadded:: 1.2.0
 
     :attr:`mouse_pos` is an :class:`~kivy.properties.ObjectProperty` and
-    defaults to [0, 0].
+    defaults to (0, 0).
     '''
 
     show_cursor = BooleanProperty(True)
@@ -882,6 +915,40 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
+    event_managers = None
+    '''Holds a `list` of registered event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
+    event_managers_dict = None
+    '''Holds a `dict` of `type_id` to `list` of event managers.
+
+    Don't change the property directly but use
+    :meth:`register_event_manager` and :meth:`unregister_event_manager` to
+    register and unregister an event manager.
+
+    Event manager is an instance of
+    :class:`~kivy.eventmanager.EventManagerBase`.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+        This is an experimental property and it remains so while this warning
+        is present.
+    '''
+
     trigger_create_window = None
 
     __events__ = (
@@ -890,7 +957,8 @@ class WindowBase(EventDispatcher):
         'on_hide', 'on_show', 'on_motion', 'on_touch_down',
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
-        'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
+        'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
+        'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -911,6 +979,8 @@ class WindowBase(EventDispatcher):
             return
 
         self.initialized = False
+        self.event_managers = []
+        self.event_managers_dict = defaultdict(list)
         self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
@@ -970,6 +1040,10 @@ class WindowBase(EventDispatcher):
         if 'shape_image' not in kwargs:
             kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
+        self.fbind(
+            'on_drop_file',
+            lambda win, filename, *args: win.dispatch('on_dropfile', filename)
+        )
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
@@ -1035,6 +1109,40 @@ class WindowBase(EventDispatcher):
         EventLoop.set_window(self)
         Modules.register_window(self)
         EventLoop.add_event_listener(self)
+
+    def register_event_manager(self, manager):
+        '''Register and start an event manager to handle events declared in
+        :attr:`~kivy.eventmanager.EventManagerBase.type_ids` attribute.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
+        '''
+        self.event_managers.insert(0, manager)
+        for type_id in manager.type_ids:
+            self.event_managers_dict[type_id].insert(0, manager)
+        manager.window = self
+        manager.start()
+
+    def unregister_event_manager(self, manager):
+        '''Unregister and stop an event manager previously registered with
+        :meth:`register_event_manager`.
+
+        .. versionadded:: 2.1.0
+
+        .. warning::
+            This is an experimental method and it remains so until this warning
+            is present as it can be changed or removed in the next versions of
+            Kivy.
+        '''
+        self.event_managers.remove(manager)
+        for type_id in manager.type_ids:
+            self.event_managers_dict[type_id].remove(manager)
+        manager.stop()
+        manager.window = None
 
     def mainloop(self):
         '''Called by the EventLoop every frame after it idles.
@@ -1460,6 +1568,43 @@ class WindowBase(EventDispatcher):
             y / y_max if y_max > 0 else 0.0
         )
 
+    def transform_motion_event_2d(self, me, widget=None):
+        '''Transforms the motion event `me` to this window size and then if
+        `widget` is passed transforms `me` to `widget`'s local coordinates.
+
+        :raises:
+            `AttributeError`: If widget's ancestor is ``None``.
+
+        .. note::
+            Unless it's a specific case, call
+            :meth:`~kivy.input.motionevent.MotionEvent.push` before and
+            :meth:`~kivy.input.motionevent.MotionEvent.pop` after this method's
+            call to preserve previous values of `me`'s attributes.
+
+        .. versionadded:: 2.1.0
+        '''
+        width, height = self._get_effective_size()
+        me.scale_for_screen(
+            width, height,
+            rotation=self.rotation,
+            smode=self.softinput_mode,
+            kheight=self.keyboard_height
+        )
+        if widget is not None:
+            parent = widget.parent
+            try:
+                if parent:
+                    me.apply_transform_2d(parent.to_widget)
+                else:
+                    me.apply_transform_2d(widget.to_widget)
+                    me.apply_transform_2d(widget.to_parent)
+            except AttributeError:
+                # when using inner window, an app have grab the touch
+                # but app is removed. The touch can't access
+                # to one of the parent. (i.e, self.parent will be None)
+                # and BAM the bug happen.
+                raise
+
     def _apply_transform(self, m):
         return m
 
@@ -1482,19 +1627,35 @@ class WindowBase(EventDispatcher):
         self.render_context.draw()
 
     def on_motion(self, etype, me):
-        '''Event called when a Motion Event is received.
+        '''Event called when a motion event is received.
 
         :Parameters:
             `etype`: str
-                One of 'begin', 'update', 'end'
+                One of "begin", "update" or "end".
             `me`: :class:`~kivy.input.motionevent.MotionEvent`
-                The Motion Event currently dispatched.
+                The motion event currently dispatched.
+
+        .. versionchanged:: 2.1.0
+            Event managers get to handle the touch event first and if none of
+            them accepts the event (by returning `True`) then window will
+            dispatch `me` through "on_touch_down", "on_touch_move",
+            "on_touch_up" events depending on the `etype`. All non-touch events
+            will go only through managers.
         '''
+        accepted = False
+        for manager in self.event_managers_dict[me.type_id][:]:
+            accepted = manager.dispatch(etype, me) or accepted
+        if accepted:
+            if me.is_touch and etype == 'end':
+                FocusBehavior._handle_post_on_touch_up(me)
+            return accepted
         if me.is_touch:
-            w, h = self._get_effective_size()
-            me.scale_for_screen(w, h, rotation=self._rotation,
-                                smode=self.softinput_mode,
-                                kheight=self.keyboard_height)
+            # TODO: Use me.push/me.pop methods because `me` is transformed
+            # Clock execution of partial ScrollView._on_touch_up method and
+            # other similar cases should be changed so that me.push/me.pop can
+            # be used restore previous values of event's attributes
+            # me.push()
+            self.transform_motion_event_2d(me)
             if etype == 'begin':
                 self.dispatch('on_touch_down', me)
             elif etype == 'update':
@@ -1502,6 +1663,7 @@ class WindowBase(EventDispatcher):
             elif etype == 'end':
                 self.dispatch('on_touch_up', me)
                 FocusBehavior._handle_post_on_touch_up(me)
+            # me.pop()
 
     def on_touch_down(self, touch):
         '''Event called when a touch down event is initiated.
@@ -1569,7 +1731,7 @@ class WindowBase(EventDispatcher):
         w2, h2 = w / 2., h / 2.
         r = radians(self.rotation)
 
-        x, y = 0, 0
+        y = 0
         _h = h
         if smode == 'pan':
             y = kheight
@@ -1579,7 +1741,7 @@ class WindowBase(EventDispatcher):
             _h -= kheight
 
         # prepare the viewport
-        glViewport(x, y, w, _h)
+        glViewport(0, 0, w, _h)
 
         # do projection matrix
         projection_mat = Matrix()
@@ -1591,7 +1753,7 @@ class WindowBase(EventDispatcher):
         modelview_mat = modelview_mat.multiply(Matrix().rotate(r, 0, 0, 1))
 
         w, h = self.size
-        w2, h2 = w / 2., h / 2.
+        w2, h2 = w / 2., h / 2. - y
         modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
         self.render_context['modelview_mat'] = modelview_mat
         frag_modelview_mat = Matrix()
@@ -1870,17 +2032,135 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def on_dropfile(self, filename):
+    def on_drop_begin(self, x, y, *args):
+        '''Event called when a text or a file drop on the application is about
+        to begin. It will be followed-up by a single or a multiple
+        `on_drop_text` or `on_drop_file` events ending with an `on_drop_end`
+        event.
+
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
+
+        :Parameters:
+            `x`: `int`
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
+            `y`: `int`
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
+        '''
+        pass
+
+    def on_drop_file(self, filename, x, y, *args):
         '''Event called when a file is dropped on the application.
 
-        .. warning::
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
 
+        :Parameters:
+            `filename`: `bytes`
+                Absolute path to a dropped file.
+            `x`: `int`
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
+            `y`: `int`
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
+
+        .. warning::
             This event currently works with sdl2 window provider, on pygame
             window provider and OS X with a patched version of pygame.
             This event is left in place for further evolution
             (ios, android etc.)
 
+        .. note::
+            On Windows it is possible to drop a file on the window title bar
+            or on its edges and for that case :attr:`mouse_pos` won't be
+            updated as the mouse cursor is not within the window.
+
+        .. note::
+            This event doesn't work for apps with elevated permissions,
+            because the OS API calls are filtered. Check issue
+            `#4999 <https://github.com/kivy/kivy/issues/4999>`_ for
+            pointers to workarounds.
+
         .. versionadded:: 1.2.0
+
+        .. versionchanged:: 2.1.0
+            Renamed from `on_dropfile` to `on_drop_file`.
+        '''
+        pass
+
+    @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
+                    'Event on_dropfile will be removed in the next two '
+                    'releases.')
+    def on_dropfile(self, filename):
+        pass
+
+    def on_drop_text(self, text, x, y, *args):
+        '''Event called when a text is dropped on the application.
+
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
+
+        :Parameters:
+            `text`: `bytes`
+                Text which is dropped.
+            `x`: `int`
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
+            `y`: `int`
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
+
+        .. note::
+            This event works with sdl2 window provider on x11 window.
+
+        .. note::
+            On Windows it is possible to drop a text on the window title bar
+            or on its edges and for that case :attr:`mouse_pos` won't be
+            updated as the mouse cursor is not within the window.
+
+        .. versionadded:: 2.1.0
+        '''
+        pass
+
+    def on_drop_end(self, x, y, *args):
+        '''Event called when a text or a file drop on the application has
+        ended.
+
+        Arguments `x` and `y` are the mouse cursor position at the time of the
+        drop and you should only rely on them if the drop originated from the
+        mouse.
+
+        :Parameters:
+            `x`: `int`
+                Cursor x position, relative to the window :attr:`left`, at the
+                time of the drop.
+            `y`: `int`
+                Cursor y position, relative to the window :attr:`top`, at the
+                time of the drop.
+            `*args`: `tuple`
+                Additional arugments.
+
+        .. note::
+            This event works with sdl2 window provider.
+
+        .. versionadded:: 2.1.0
         '''
         pass
 
@@ -2023,13 +2303,17 @@ class WindowBase(EventDispatcher):
 
             `input_type`: string
                 Choose the type of soft keyboard to request. Can be one of
-                'text', 'number', 'url', 'mail', 'datetime', 'tel', 'address'.
+                'null', 'text', 'number', 'url', 'mail', 'datetime', 'tel',
+                'address'.
 
                 .. note::
 
-                    `input_type` is currently only honored on mobile devices.
+                    `input_type` is currently only honored on Android.
 
                 .. versionadded:: 1.8.0
+
+                .. versionchanged:: 2.1.0
+                    Added `null` to soft keyboard types.
 
             `keyboard_suggestions`: bool
                 If True provides auto suggestions on top of keyboard.
@@ -2089,6 +2373,12 @@ class WindowBase(EventDispatcher):
             # only after add, do dock mode
             keyboard.widget.docked = self.docked_vkeyboard
             keyboard.widget.setup_mode()
+
+            # sets vkeyboard position according to Window.softinput_mode
+            if self.softinput_mode == 'pan':
+                keyboard.widget.top = 0
+            elif self.softinput_mode == 'below_target':
+                keyboard.widget.top = keyboard.target.y
 
         else:
             # system keyboard, just register the callback.

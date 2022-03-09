@@ -31,6 +31,7 @@ __all__ = (
 import sys
 import shutil
 from getopt import getopt, GetoptError
+import os
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
@@ -162,7 +163,10 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...]::
+    '''Kivy Usage: %s [KIVY OPTION...] [-- PROGRAM OPTIONS]::
+
+            Options placed after a '-- ' separator, will not be touched by kivy,
+            and instead passed to your program.
 
             Set KIVY_NO_ARGS=1 in your environment or before you import Kivy to
             disable Kivy's argument parser.
@@ -265,6 +269,22 @@ for examples_dir in (
         kivy_examples_dir = examples_dir
         break
 
+
+def _patch_mod_deps_win(dep_mod, mod_name):
+    import site
+    dep_bins = []
+
+    for d in [sys.prefix, site.USER_BASE]:
+        p = join(d, 'share', mod_name, 'bin')
+        if os.path.isdir(p):
+            os.environ["PATH"] = p + os.pathsep + os.environ["PATH"]
+            if hasattr(os, 'add_dll_directory'):
+                os.add_dll_directory(p)
+            dep_bins.append(p)
+
+    dep_mod.dep_bins = dep_bins
+
+
 # if there are deps, import them so they can do their magic.
 _packages = []
 try:
@@ -302,6 +322,10 @@ for importer, modname, package in _packages:
         _logging_msgs.append(
             'deps: Successfully imported "{}.{}"{}'.
             format(package, modname, version))
+
+        if modname.startswith('gst') and version == '0.3.3':
+            _patch_mod_deps_win(mod, modname)
+
     except ImportError as e:
         Logger.warning(
             'deps: Error importing dependency "{}.{}": {}'.
