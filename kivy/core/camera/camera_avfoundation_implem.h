@@ -11,7 +11,7 @@ bool avf_camera_attempt_capture_preset(camera_t camera, char* preset);
 bool avf_camera_attempt_start_metadata_analysis(camera_t camera);
 void avf_camera_get_metadata(camera_t camera, char **metatype, char **data);
 bool avf_camera_have_new_metadata(camera_t camera);
-bool avf_camera_set_video_orientation(camera_t camera, int orientation);
+void avf_camera_set_video_orientation(camera_t camera, int orientation);
 int avf_camera_get_video_orientation();
 void avf_camera_change_input(camera_t camera, int _cameraNum);
 void avf_camera_zoom_level(camera_t camera, float zoomLevel);
