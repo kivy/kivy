@@ -796,8 +796,8 @@ bool avf_camera_have_new_metadata(camera_t camera){
     return ((Camera *)camera)->haveNewMetadata();
 }
 
-bool avf_camera_set_video_orientation(camera_t camera, int orientation){
-    return ((Camera *)camera)->setVideoOrientation(orientation);
+void avf_camera_set_video_orientation(camera_t camera, int orientation){
+    ((Camera *)camera)->setVideoOrientation(orientation);
 }
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
