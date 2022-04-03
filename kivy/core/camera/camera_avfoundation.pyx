@@ -160,7 +160,7 @@ class CameraAVFoundation(CameraBase):
         self._metadata_callback = callback
         avf_camera_attempt_start_metadata_analysis(storage.camera)
         
-    def get_video_orientation(self):
+    def get_device_orientation(self):
         if platform == 'ios':
             return avf_camera_get_video_orientation()
         return 0
