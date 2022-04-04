@@ -5,15 +5,17 @@
  *
  * TODO:
  * - add iOS native photo and video capture
+ * I've let the code concerning caps, even if it's not yet used. uncomment
+ * WITH_CAMERA_CAPS to compile with it.
  */
 
+//#define WITH_CAMERA_CAPS
 
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/NSException.h>
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 #import <UIKit/UIKit.h>
-#define WITH_CAMERA_CAPS
 #endif
 
 #ifdef WITH_CAMERA_CAPS
