@@ -796,26 +796,38 @@ void avf_camera_set_video_orientation(camera_t camera, int orientation){
     ((Camera *)camera)->setVideoOrientation(orientation);
 }
 
+int avf_camera_get_device_orientation() {
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-int avf_camera_get_video_orientation() {
     return (int)[[UIDevice currentDevice] orientation];
+#else
+    return 0;
+#endif
 }
 
 void avf_camera_change_input(camera_t camera, int _cameraNum) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     ((Camera *)camera)->changeCameraInput(_cameraNum);
+#endif
 }
 
 void avf_camera_zoom_level(camera_t camera, float zoomLevel) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     ((Camera *)camera)->zoomLevel(zoomLevel);
+#endif
 }
 
 char *avf_camera_documents_directory() {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *basePath = paths.firstObject;
     return (char *)[basePath UTF8String];
+#else
+    return "";
+#endif
 }
 
 void avf_camera_save_pixels(camera_t camera, unsigned char *pixels, int width, int height, char *path, float quality) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     int size = width * height * 4;
     if (strcmp(path,"") == 0) {
         unsigned char *local_pixels = pixels;
@@ -850,5 +862,5 @@ void avf_camera_save_pixels(camera_t camera, unsigned char *pixels, int width, i
     CGColorSpaceRelease(colorSpaceRef);
     CGDataProviderRelease(provider);
     CGImageRelease(imageRef);
-}
 #endif
+}
