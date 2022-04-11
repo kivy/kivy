@@ -5,6 +5,8 @@
  *
  * TODO:
  * - add iOS native photo and video capture
+ * - add support for telephoto and wide angle lenses
+ *     needs iOS10 AVCaptureDeviceDiscoverySession   discoverySessionWithDeviceTypes:mediaType:position: 
  * I've let the code concerning caps, even if it's not yet used. uncomment
  * WITH_CAMERA_CAPS to compile with it.
  */
