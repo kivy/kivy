@@ -1124,9 +1124,9 @@ cdef class Ellipse(Rectangle):
         `segments`: int, defaults to 180
             Define how many segments are needed for drawing the ellipse.
             The drawing will be smoother if you have many segments.
-        `angle_start`: int, defaults to 0
+        `angle_start`: float, defaults to 0
             Specifies the starting angle, in degrees, of the disk portion.
-        `angle_end`: int, defaults to 360
+        `angle_end`: float, defaults to 360
             Specifies the ending angle, in degrees, of the disk portion.
     '''
     cdef int _segments
