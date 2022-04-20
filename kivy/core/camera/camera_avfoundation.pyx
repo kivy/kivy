@@ -21,6 +21,11 @@ cdef extern from "camera_avfoundation_implem.h":
     void avf_camera_get_metadata(camera_t camera, char **metatype, char **data)
     bint avf_camera_have_new_metadata(camera_t camera);
     bint avf_camera_set_video_orientation(camera_t camera, int orientation)
+    int avf_camera_get_device_orientation()
+    void avf_camera_change_input(camera_t camera, int _cameraNum)
+    void avf_camera_zoom_level(camera_t camera, float zoomLevel)
+    char *avf_camera_documents_directory()
+    void avf_camera_save_pixels(camera_t camera, unsigned char *pixels, int width, int height, char *path, float quality)
 
 
 from kivy.logger import Logger
@@ -154,3 +159,30 @@ class CameraAVFoundation(CameraBase):
         cdef _AVStorage storage = <_AVStorage>self._storage
         self._metadata_callback = callback
         avf_camera_attempt_start_metadata_analysis(storage.camera)
+        
+    def get_device_orientation(self):
+        # iOS only
+        return avf_camera_get_device_orientation()
+
+    def change_camera_input(self, index):
+        # iOS only
+        cdef _AVStorage storage = <_AVStorage>self._storage
+        avf_camera_change_input(storage.camera, index)
+
+    def zoom_level(self, level):
+        # iOS only
+        cdef _AVStorage storage = <_AVStorage>self._storage
+        avf_camera_zoom_level(storage.camera, level)
+
+    def get_app_documents_directory(self):
+        # iOS only
+        return str(avf_camera_documents_directory().decode('utf-8'))
+
+    def save_texture(self, texture, filepath = '', quality = 0.9):
+        # iOS only
+        # With texture argument only: Save texture to iOS Photos App
+        # With texture and filepath arguments: Save texture as jpg; filepath root must be app documents directory,
+        #     sub-directories in filepath must exist, filepath last element is filename.jpg
+        cdef _AVStorage storage = <_AVStorage>self._storage
+        avf_camera_save_pixels(storage.camera, bytearray(texture.pixels), int(texture.width), int(texture.height),
+                               filepath.encode('utf-8'), quality)
