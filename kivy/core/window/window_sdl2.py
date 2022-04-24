@@ -313,25 +313,13 @@ class WindowSDL(WindowBase):
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
                      if self._is_desktop else None)
-            self.system_size = _size = self._win.setup_window(
+            self.system_size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable, state,
                 self.get_gl_backend_name())
 
-            # calculate density/dpi
-            if platform == 'win':
-                from ctypes import windll
-                self._density = 1.
-                try:
-                    hwnd = windll.user32.GetActiveWindow()
-                    self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                except AttributeError:
-                    pass
-            else:
-                sz = self._win._get_gl_size()[0]
-                self._density = density = sz / _size[0]
-                if self._is_desktop and self.size[0] != _size[0]:
-                    self.dpi = density * 96.
+            # We don't have a density or dpi yet set, so let's ask for an update
+            self._update_density_and_dpi()
 
             # never stay with a None pos, application using w.center
             # will be fired.
@@ -402,6 +390,20 @@ class WindowSDL(WindowBase):
         if platform == 'win' and self._win_dpi_watch is None:
             self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
             self._win_dpi_watch.start()
+
+    def _update_density_and_dpi(self):
+        if platform == 'win':
+            from ctypes import windll
+            self._density = 1.
+            try:
+                hwnd = windll.user32.GetActiveWindow()
+                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
+            except AttributeError:
+                pass
+        else:
+            self._density = self._win._get_gl_size()[0] / self._size[0]
+            if self._is_desktop:
+                self.dpi = self._density * 96.
 
     def close(self):
         self._win.teardown_window()
@@ -670,6 +672,12 @@ class WindowSDL(WindowBase):
                     self._do_resize_ev = ev
                 else:
                     ev()
+            elif action == 'windowdisplaychanged':
+                Logger.info(f"WindowSDL: Window is now on display {args[0]}")
+
+                # The display has changed, so the density and dpi
+                # may have changed too.
+                self._update_density_and_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
