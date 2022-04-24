@@ -1112,8 +1112,8 @@ cdef class Line(VertexInstruction):
 
         * x and y represent the bottom-left position of the rectangle
         * width and height represent the size
-        * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * corner_radius specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
+        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 90)
 
         The line is automatically closed.
 
@@ -1122,6 +1122,10 @@ cdef class Line(VertexInstruction):
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
         .. versionadded:: 1.9.0
+
+        .. versionchanged:: 2.2.0
+        Default value of `resolution` changed to 90.
+        `corner_radius` order changed to match RoundedRectangle radius property (clock-wise). It was bottom-left, bottom-right, top-right, top-left in previous versions.
         '''
         def __set__(self, args):
             if args == None:
@@ -1135,13 +1139,13 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
-        cdef resolution = 30
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, min_wh_half, step
+        cdef resolution = 90
         cdef int l = <int>len(self._mode_args)
 
         self._points = []
-        a = <float>-PI
         x, y, w, h = self._mode_args [:4]
+        w, h = <float>max(2.0, w), <float>max(2.0, h)  # avoid issues with smoothline if width/height < 2.0
 
         if l == 5:
             c1 = c2 = c3 = c4 = self._mode_args[4]
@@ -1154,41 +1158,66 @@ cdef class Line(VertexInstruction):
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
 
-        px = x + c1
-        py = y + c1
+        step = PI / resolution
 
-        while a < - PI / 2.:
-            a += pi / resolution
-            self._points.extend([
-                px + cos(a) * c1,
-                py + sin(a) * c1])
+        # Limits the maximum radius allowed. Minimum radius = 1 avoid shape
+        # draw issues (especially with smoothline)
+        min_wh_half = <float>(min(w, h) / 2)
+        c1 = <float>max(1.0, min(min_wh_half, c1))
+        c2 = <float>max(1.0, min(min_wh_half, c2))
+        c3 = <float>max(1.0, min(min_wh_half, c3))
+        c4 = <float>max(1.0, min(min_wh_half, c4))
 
+        # Segment calculations are based on the quadrants of the trigonometric
+        # circle: 0 (0º) → PI/2 (90º) → PI (180º) → -PI (270º) → 0 (360º).
+
+        # top-right (quadrant 1)
+        a = 0.0
         px = x + w - c2
-        py = y + c2
-
-        while a < 0:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c2,
-                py + sin(a) * c2])
-
-        px = x + w - c3
-        py = y + h - c3
+        py = y + h - c2
 
         while a < PI / 2.:
-            a += PI / resolution
+            a += step
             self._points.extend([
-                px + cos(a) * c3,
-                py + sin(a) * c3])
+                px + cos(a) * c2,
+                py + sin(a) * c2
+            ])
 
-        px = x + c4
-        py = y + h - c4
+        # top-left  (quadrant 2)
+        a = <float>PI / 2.0
+        px = x + c1
+        py = y + h - c1
 
         while a < PI:
-            a += PI / resolution
+            a += step
+            self._points.extend([
+                px + cos(a) * c1,
+                py + sin(a) * c1
+            ])
+
+        # bottom-left (quadrant 3)
+        a = <float>- PI
+        px = x + c4
+        py = y + c4
+
+        while a < - PI / 2.0:
+            a += step
             self._points.extend([
                 px + cos(a) * c4,
-                py + sin(a) * c4])
+                py + sin(a) * c4
+            ])
+
+        # bottom-right (quadrant 4)
+        a = <float>- PI / 2.0
+        px = x + w - c3
+        py = y + c3
+
+        while a < 0.0:
+            a += step
+            self._points.extend([
+                px + cos(a) * c3,
+                py + sin(a) * c3
+            ])
 
         self._close = 1
 
