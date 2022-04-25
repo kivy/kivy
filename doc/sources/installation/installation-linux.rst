@@ -193,19 +193,32 @@ OpenSuSE
 Gentoo
 ~~~~~~
 
-#. There is a kivy ebuild (kivy stable version)
+#. **Add** the `raiagent overlay <https://github.com/leycec/raiagent>`_
+   packaging the `full Kivy + KivyMD + Buildozer + python-for-android stack
+   <https://github.com/kivy/kivy/issues/7868>`_.
 
-   emerge Kivy
+   .. code-block:: bash
 
-#. available USE-flags are:
+      eselect repository enable raiagent
 
-   `cairo: Standard flag, let kivy use cairo graphical libraries.`
-   `camera: Install libraries needed to support camera.`
-   `doc: Standard flag, will make you build the documentation locally.`
-   `examples: Standard flag, will give you kivy examples programs.`
-   `garden: Install garden tool to manage user maintained widgets.`
-   `gstreamer: Standard flag, kivy will be able to use audio/video streaming libraries.`
-   `spell: Standard flag, provide enchant to use spelling in kivy apps.`
+#. **Synchronize** (i.e., fetch) this overlay.
+
+   .. code-block:: bash
+
+      emerge --sync raiagent
+
+#. Install **Kivy** and optionally **KivyMD**, **Buildozer**, and
+   **python-for-android**.
+
+   .. code-block:: bash
+
+      emerge --ask --autounmask Kivy kivymd buildozer python-for-android
+
+#. (\ *Optional*\ ) Describe all **USE flags** supported by these ebuilds.
+
+   .. code-block:: bash
+
+      equery u Kivy kivymd buildozer python-for-android
 
 
 Device permissions
