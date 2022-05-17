@@ -164,7 +164,7 @@ from kivy.graphics.context_instructions import Transform
 from kivy.graphics.texture import Texture
 
 from kivy.uix.widget import Widget
-from kivy.uix.bubble import Bubble
+from kivy.uix.bubble import Bubble, BubbleContent
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 
@@ -306,6 +306,8 @@ class TextInputCutCopyPaste(Bubble):
         super().__init__(**kwargs)
         self._check_parent_ev = Clock.schedule_interval(self._check_parent, .5)
         self.matrix = self.textinput.get_window_matrix()
+        self.bubble_content = BubbleContent
+        self.add_widget(self.bubble_content)
 
         with self.canvas.before:
             Callback(self.update_transform)
@@ -372,7 +374,7 @@ class TextInputCutCopyPaste(Bubble):
         mode = self.mode
 
         if parent:
-            self.clear_widgets()
+            self.bubble_content.clear_widgets()
             if mode == 'paste':
                 # show only paste on long touch
                 self.but_selectall.opacity = 1
@@ -387,7 +389,7 @@ class TextInputCutCopyPaste(Bubble):
                 widget_list = (self.but_cut, self.but_copy, self.but_paste)
 
             for widget in widget_list:
-                self.add_widget(widget)
+                self.bubble_content.add_widget(widget)
 
     def do(self, action):
         textinput = self.textinput
