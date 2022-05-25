@@ -13,17 +13,13 @@ env:
 jobs:
   unit_test:
     name: "unit_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
-    defaults:
-      run:
-        shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
-    runs-on: ${{ matrix.runs_on || 'macos-11' }}
+    runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
         include:
           - runs_on: macos-11
             python: '3.9'
           - runs_on: apple-silicon-m1
-            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
             python: '3.9.7'
     steps:
     - uses: actions/checkout@v2
