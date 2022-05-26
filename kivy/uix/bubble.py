@@ -7,14 +7,13 @@ Bubble
 .. image:: images/bubble.jpg
     :align: right
 
-The Bubble widget is a form of menu or a small popup with an arrow arranged on
-one side of the BubbleContent. The BubbleContent is a styled BoxLayout that can
-be used to add e.g., BubbleButtons as menu items.
+The :class:`Bubble` widget is a form of menu or a small popup with an arrow
+arranged on one side of it's content.
 
 The :class:`Bubble` contains an arrow attached to the content
-(e.g., BubbleContent) pointing in the direction you choose. It can be placed
-either at a predifined location or flexibly by specifying a relative position
-on the border of the widget.
+(e.g., :class:`BubbleContent`) pointing in the direction you choose. It can
+be placed either at a predifined location or flexibly by specifying a relative
+position on the border of the widget.
 
 The :class:`BubbleContent` is a styled BoxLayout and is thought to be added to
 the :class:`Bubble` as a child widget. The :class:`Bubble` will then arrange
@@ -26,6 +25,42 @@ is compatible with Kivy to be placed inside a :class:`BoxLayout`.
 The :class:`BubbleButton`is a styled Button. It suits to the style of
 :class:`Bubble` and :class:`BubbleContent`. Feel free to place other Widgets
 inside the 'content' of the :class:`Bubble`.
+
+
+.. versionchanged:: 2.2.0
+The properties :attr:`background_image`, :attr:`background_color`,
+:attr:`border` and :attr:`border_auto_scale` were removed from :class:`Bubble`.
+These properties had only been used by the content widget that now uses it's
+own properties instead. The color of the arrow is now changed with
+:attr:`arrow_color` instead of :attr:`background_color`.
+These changes makes the :class:`Bubble` transparent to use with other layouts
+as content without any side-effects due to property inheritance.
+
+The property :attr:`flex_arrow_pos` has been added to allow further
+customization of the arrow positioning.
+
+The properties :attr:`arrow_margin`, :attr:`arrow_margin_x`,
+:attr:`arrow_margin_y`, :attr:`content_size`, :attr:`content_width` and
+:attr:`content_height` have been added to ease proper sizing of a
+:class:`Bubble` e.g., based on it's content size.
+
+BubbleContent
+=============
+
+The :class:`BubbleContent` is a styled BoxLayout that can be used to
+add e.g., :class:`BubbleButtons` as menu items.
+
+.. versionchanged:: 2.2.0
+The properties :attr:`background_image`, :attr:`background_color`,
+:attr:`border` and :attr:`border_auto_scale` were added to the
+:class:`BubbleContent`. The :class:`BubbleContent` does no longer rely on these
+properties being present in the parent class.
+
+BubbleButton
+============
+
+The :class:`BubbleButton` is a styled :class:`Button` that can be used to be
+added to the :class:`BubbleContent`.
 
 Simple example
 --------------
@@ -42,12 +77,23 @@ You can choose the direction in which the arrow points::
     or
     Bubble(size=(200, 40), flex_arrow_pos=(175, 40))
 
-To change the appearance of the bubble::
+    Similarly, the corresponding properties in the '.kv' language can be used
+    as well.
 
-    bubble.background_color = (1, 0, 0, .5) #50% translucent red
-    bubble.border = [0, 0, 0, 0]
-    background_image = 'path/to/background/image'
-    arrow_image = 'path/to/arrow/image'
+You can change the appearance of the bubble::
+
+    Bubble(
+        arrow_image='/path/to/arrow/image',
+        arrow_color=(1, 0, 0, .5)),
+    )
+    BubbleContent(
+        background_image='/path/to/background/image',
+        background_color=(1, 0, 0, .5),  # 50% translucent red
+        border=(0,0,0,0),
+    )
+
+    Similarly, the corresponding properties in the '.kv' language can be used
+    as well.
 
 -----------------------------
 '''
@@ -87,9 +133,21 @@ class BubbleButton(Button):
 
 
 class BubbleContent(BoxLayout):
+    '''A styled BoxLayout that can be used as the content widget of a Bubble.
+
+    .. versionchanged:: 2.2.0
+    The graphical appearance of :class:`BubbleContent` is now based on it's
+    own properties :attr:`background_image`, :attr:`background_color`,
+    :attr:`border` and :attr:`border_auto_scale`. The parent widget properties
+    are no longer considered. This makes the BubbleContent a standalone themed
+    BoxLayout.
+    '''
+
     background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a). To use it you have to set
     :attr:`background_image` first.
+
+    .. versionadded:: 2.2.0
 
     :attr:`background_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
@@ -97,6 +155,8 @@ class BubbleContent(BoxLayout):
 
     background_image = StringProperty('atlas://data/images/defaulttheme/bubble')
     '''Background image of the bubble.
+
+    .. versionadded:: 2.2.0
 
     :attr:`background_image` is a :class:`~kivy.properties.StringProperty` and
     defaults to 'atlas://data/images/defaulttheme/bubble'.
@@ -109,6 +169,8 @@ class BubbleContent(BoxLayout):
 
     It must be a list of 4 values: (bottom, right, top, left). Read the
     BorderImage instructions for more information about how to use it.
+
+    .. versionadded:: 2.2.0
 
     :attr:`border` is a :class:`~kivy.properties.ListProperty` and defaults to
     (16, 16, 16, 16)
@@ -123,6 +185,8 @@ class BubbleContent(BoxLayout):
     )
     '''Specifies the :attr:`kivy.graphics.BorderImage.auto_scale`
     value on the background BorderImage.
+
+    .. versionadded:: 2.2.0
 
     :attr:`border_auto_scale` is a
     :class:`~kivy.properties.OptionProperty` and defaults to
@@ -156,7 +220,9 @@ class Bubble(BoxLayout):
 
     arrow_color = ColorProperty([1, 1, 1, 1])
     '''Arrow color, in the format (r, g, b, a). To use it you have to set
-    :attr:`background_image` first.
+    :attr:`arrow_image` first.
+
+    .. versionadded:: 2.2.0
 
     :attr:`arrow_color` is a :class:`~kivy.properties.ColorProperty` and
     defaults to [1, 1, 1, 1].
@@ -188,12 +254,15 @@ class Bubble(BoxLayout):
     :attr:`arrow_pos` is a :class:`~kivy.properties.OptionProperty` and
     defaults to 'bottom_mid'.
     '''
+
     flex_arrow_pos = ListProperty(None)
     '''Specifies the position of the arrow as flex coordinate around the
     border of the :class:`Bubble` Widget.
     If this property is set to a proper position (relative pixel coordinates
     within the :class:`Bubble` widget, it overwrites the setting
     :attr:`arrow_pos`.
+
+    .. versionadded:: 2.2.0
 
     :attr:`flex_arrow_pos` is a :class:`~kivy.properties.ListProperty` and
     defaults to None.
@@ -216,6 +285,8 @@ class Bubble(BoxLayout):
     to determine the correct width of the Bubble to exactly enclose the
     arrow + content by adding :attr:`content_width` and :attr:`arrow_margin_x`
 
+    .. versionadded:: 2.2.0
+
     :attr:`arrow_margin_x` is a :class:`~kivy.properties.NumericProperty` and
     represents the added margin in x direction due to the arrow widget.
     It defaults to 0 and is read only.
@@ -229,6 +300,8 @@ class Bubble(BoxLayout):
     to determine the correct height of the Bubble to exactly enclose the
     arrow + content by adding :attr:`content_height` and :attr:`arrow_margin_y`
 
+    .. versionadded:: 2.2.0
+
     :attr:`arrow_margin_y` is a :class:`~kivy.properties.NumericProperty` and
     represents the added margin in y direction due to the arrow widget.
     It defaults to 0 and is read only.
@@ -240,6 +313,8 @@ class Bubble(BoxLayout):
 
     Check the description of :attr:`arrow_margin_x` and :attr:`arrow_margin_y`.
 
+    .. versionadded:: 2.2.0
+
     :attr:`arrow_margin` is a :class:`~kivy.properties.ReferenceListProperty`
     of (:attr:`arrow_margin_x`, :attr:`arrow_margin_y`) properties.
     It is read only.
@@ -247,6 +322,8 @@ class Bubble(BoxLayout):
 
     content_width = NumericProperty(0)
     '''The width of the content Widget.
+
+    .. versionadded:: 2.2.0
 
     :attr:`content_width` is a :class:`~kivy.properties.NumericProperty` and
     is the same as self.content.width if content is not None, else it defaults
@@ -256,6 +333,8 @@ class Bubble(BoxLayout):
     content_height = NumericProperty(0)
     '''The height of the content Widget.
 
+    .. versionadded:: 2.2.0
+
     :attr:`content_height` is a :class:`~kivy.properties.NumericProperty` and
     is the same as self.content.height if content is not None, else it defaults
     to 0. It is read only.
@@ -263,6 +342,8 @@ class Bubble(BoxLayout):
 
     content_size = ReferenceListProperty(content_width, content_height)
     ''' The size of the content Widget.
+
+    .. versionadded:: 2.2.0
 
     :attr:`content_size` is a :class:`~kivy.properties.ReferenceListProperty`
     of (:attr:`content_width`, :attr:`content_height`) properties.
@@ -359,6 +440,9 @@ class Bubble(BoxLayout):
 
     def on_arrow_image(self, instance, value):
         self._arrow_image.source = self.arrow_image
+        self._arrow_image.width = self._arrow_image.texture_size[0]
+        self._arrow_image.height = dp(self._arrow_image.texture_size[1])
+        self._arrow_image_scatter.size = self._arrow_image.texture_size
         self.reposition_inner_widgets()
 
     def on_arrow_color(self, instance, value):
