@@ -3828,10 +3828,11 @@ class TextInput(FocusBehavior, Widget):
     '''Set how many lines will be scrolled at once when using the mouse scroll
     wheel.
 
-    .. versionadded:: 2.1.0
+    .. versionadded:: 2.2.0
 
     :attr:`lines_to_scroll is a
-    :class:`~kivy.properties.BoundedNumericProperty` and defaults to 3.
+    :class:`~kivy.properties.BoundedNumericProperty` and defaults to 3, the
+    minimum is 1.
     '''
 
     input_filter = ObjectProperty(None, allownone=True)

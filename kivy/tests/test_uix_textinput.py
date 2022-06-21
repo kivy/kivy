@@ -439,7 +439,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         EventLoop.post_dispatch_input("begin", touch)
         EventLoop.post_dispatch_input("end", touch)
         self.advance_frames(1)
-        assert ti._visible_lines_range == (19, 29)
+        assert ti._visible_lines_range == (17, 27)
         assert ti.cursor == prev_cursor
 
     def test_vertical_scroll_doesnt_depend_on_lines_rendering(self):
@@ -458,7 +458,8 @@ class TextInputGraphicTest(GraphicUnitTest):
         win = EventLoop.window
 
         # slowly scroll to the last line to render all lines at least once
-        for _ in range(30):  # little overscroll is important for detection
+        # 3 lines will scroll at once, following the lines_to_scroll property
+        for _ in range(10):  # little overscroll is important for detection
             touch = UTMotionEvent("unittest", next(touch_id), {
                 "x": ti.center_x / float(win.width),
                 "y": ti.center_y / float(win.height),
@@ -490,7 +491,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         EventLoop.post_dispatch_input("begin", touch)
         EventLoop.post_dispatch_input("end", touch)
         self.advance_frames(1)
-        assert ti._visible_lines_range == (1, 11)
+        assert ti._visible_lines_range == (3, 13)
 
     def test_selectall_copy_paste(self):
         text = 'test'
