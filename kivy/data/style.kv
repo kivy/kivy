@@ -46,8 +46,6 @@
     background_disabled_normal: 'atlas://data/images/defaulttheme/bubble_btn'
     background_disabled_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
     border: (0, 0, 0, 0)
-    size_hint_y: None
-    height: dp(30)
 
 <Slider>:
     canvas:
@@ -201,6 +199,7 @@
             rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
+    content: content.__self__
     but_cut: cut.__self__
     but_copy: copy.__self__
     but_paste: paste.__self__
@@ -208,22 +207,24 @@
 
     size_hint: None, None
     size: '150sp', '50sp'
-    BubbleButton:
-        id: cut
-        text: 'Cut'
-        on_release: root.do('cut')
-    BubbleButton:
-        id: copy
-        text: 'Copy'
-        on_release: root.do('copy')
-    BubbleButton:
-        id: paste
-        text: 'Paste'
-        on_release: root.do('paste')
-    BubbleButton:
-        id: selectall
-        text: 'Select All'
-        on_release: root.do('selectall')
+    BubbleContent:
+        id: content
+        BubbleButton:
+            id: cut
+            text: 'Cut'
+            on_release: root.do('cut')
+        BubbleButton:
+            id: copy
+            text: 'Copy'
+            on_release: root.do('copy')
+        BubbleButton:
+            id: paste
+            text: 'Paste'
+            on_release: root.do('paste')
+        BubbleButton:
+            id: selectall
+            text: 'Select All'
+            on_release: root.do('selectall')
 
 <CodeInput>:
     font_name: 'data/fonts/RobotoMono-Regular.ttf'
