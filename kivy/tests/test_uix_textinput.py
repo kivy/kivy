@@ -8,7 +8,7 @@ from itertools import count
 
 from kivy.core.window import Window
 from kivy.tests.common import GraphicUnitTest, UTMotionEvent
-from kivy.uix.textinput import TextInput
+from kivy.uix.textinput import TextInput, TextInputCutCopyPaste
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 
@@ -545,6 +545,13 @@ class TextInputGraphicTest(GraphicUnitTest):
         ti.height = ti_height_for_x_lines(ti, n_lines_to_show)
         self.advance_frames(1)
         return ti
+
+    def test_cutcopypastebubble_content(self):
+        tibubble = TextInputCutCopyPaste(textinput=TextInput())
+        assert tibubble.but_copy.parent == tibubble.content
+        assert tibubble.but_cut.parent == tibubble.content
+        assert tibubble.but_paste.parent == tibubble.content
+        assert tibubble.but_selectall.parent == tibubble.content
 
 
 def ti_height_for_x_lines(ti, x):
