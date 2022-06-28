@@ -296,8 +296,7 @@ def add_dep_paths():
             try:
                 mod = importer.find_module(modname).load_module(modname)
             except ImportError as e:
-                logging.warn(
-                    "deps: Error importing dependency: {}".format(str(e)))
+                logging.warning(f"deps: Error importing dependency: {e}")
                 continue
 
             if hasattr(mod, 'dep_bins'):
@@ -314,7 +313,7 @@ def add_dep_paths():
         try:
             mod = importer.find_module(modname).load_module(modname)
         except ImportError as e:
-            logging.warn("deps: Error importing dependency: {}".format(str(e)))
+            logging.warning(f"deps: Error importing dependency: {e}")
             continue
 
         if hasattr(mod, 'dep_bins'):
@@ -358,7 +357,7 @@ def _find_gst_binaries():
         plugin_filepaths.extend(
             glob.glob(os.path.join(plugin_dir, 'libgst*')))
     if len(plugin_filepaths) == 0:
-        logging.warn('Could not find GStreamer plugins. ' +
+        logging.warning('Could not find GStreamer plugins. ' +
                      'Possible solution: set GST_PLUGIN_PATH')
         return []
 
