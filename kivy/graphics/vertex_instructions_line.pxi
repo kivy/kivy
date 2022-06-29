@@ -1114,7 +1114,7 @@ cdef class Line(VertexInstruction):
         * **x** and **y** represent the bottom-left position of the rectangle.
         * **width** and **height** represent the size.
         * **corner_radius** specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
-        * **resolution** is the number of line segment that will be used to draw the circle arc at each corner (defaults to 60).
+        * **resolution** is the number of line segment that will be used to draw the circle arc at each corner (defaults to 45).
 
         The line is automatically closed.
 
@@ -1127,7 +1127,7 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.9.0
 
         .. versionchanged:: 2.2.0
-        Default value of `resolution` changed to 60.
+        Default value of `resolution` changed from 30 to 45.
 
         The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
         It was bottom-left, bottom-right, top-right, top-left in previous versions.
@@ -1150,7 +1150,7 @@ cdef class Line(VertexInstruction):
 
     cdef void prebuild_rounded_rectangle(self):
         cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, min_wh_half, step
-        cdef resolution = 60
+        cdef resolution = 45
         cdef int l = <int>len(self._mode_args)
 
         self._points = []
