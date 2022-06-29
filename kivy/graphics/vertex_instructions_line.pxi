@@ -133,6 +133,7 @@ cdef class Line(VertexInstruction):
     cdef Instruction _stencil_pop
     cdef double _bxmin, _bxmax, _bymin, _bymax
     cdef tuple _mode_args
+    cdef tuple _rounded_rectangle
 
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -1101,7 +1102,7 @@ cdef class Line(VertexInstruction):
 
     property rounded_rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of one of the following forms:
 
@@ -1110,12 +1111,14 @@ cdef class Line(VertexInstruction):
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4, resolution)
 
-        * x and y represent the bottom-left position of the rectangle
-        * width and height represent the size
-        * corner_radius specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
-        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 90)
+        * **x** and **y** represent the bottom-left position of the rectangle.
+        * **width** and **height** represent the size.
+        * **corner_radius** specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
+        * **resolution** is the number of line segment that will be used to draw the circle arc at each corner (defaults to 60).
 
         The line is automatically closed.
+
+        .. note:: The figure will not render to width or height values less than 2 pixels when using SmoothLine.
 
         Usage::
 
@@ -1124,13 +1127,20 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.9.0
 
         .. versionchanged:: 2.2.0
-        Default value of `resolution` changed to 90.
-        `corner_radius` order changed to match RoundedRectangle radius property (clock-wise). It was bottom-left, bottom-right, top-right, top-left in previous versions.
+        Default value of `resolution` changed to 60.
+
+        The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
+        It was bottom-left, bottom-right, top-right, top-left in previous versions.
+        Now both are clockwise: top-left, top-right, bottom-right, bottom-left.
         '''
+
+        def __get__(self):
+            return self._rounded_rectangle
+
         def __set__(self, args):
             if args == None:
                 raise GraphicException(
-                    'Invlid rounded rectangle value: {0!r}'.format(args))
+                    'Invalid rounded rectangle value: {0!r}'.format(args))
             if len(args) not in (5, 6, 8, 9):
                 raise GraphicException('invalid number of arguments:'
                         '{0} not in (5, 6, 8, 9)'.format(len(args)))
@@ -1140,12 +1150,15 @@ cdef class Line(VertexInstruction):
 
     cdef void prebuild_rounded_rectangle(self):
         cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, min_wh_half, step
-        cdef resolution = 90
+        cdef resolution = 60
         cdef int l = <int>len(self._mode_args)
 
         self._points = []
         x, y, w, h = self._mode_args [:4]
-        w, h = <float>max(2.0, w), <float>max(2.0, h)  # avoid issues with smoothline if width/height < 2.0
+
+        # zero size of the figure + avoid rendering issue with SmoothLine
+        if w<=0 or h<=0 or isinstance(self, SmoothLine) and (w < 2 or h < 2):
+            return
 
         if l == 5:
             c1 = c2 = c3 = c4 = self._mode_args[4]
@@ -1160,13 +1173,16 @@ cdef class Line(VertexInstruction):
 
         step = PI / resolution
 
-        # Limits the maximum radius allowed. Minimum radius = 1 avoid shape
-        # draw issues (especially with smoothline)
+        # Limits the maximum radius allowed.
+        # Minimum radius = 1 avoid shape drawing issues (especially with SmoothLine)
         min_wh_half = <float>(min(w, h) / 2)
         c1 = <float>max(1.0, min(min_wh_half, c1))
         c2 = <float>max(1.0, min(min_wh_half, c2))
         c3 = <float>max(1.0, min(min_wh_half, c3))
         c4 = <float>max(1.0, min(min_wh_half, c4))
+
+        # Resulting rounded_rectangle
+        self._rounded_rectangle = (x, y, w, h, c1, c2, c3, c4, resolution)
 
         # Segment calculations are based on the quadrants of the trigonometric
         # circle: 0 (0º) → PI/2 (90º) → PI (180º) → -PI (270º) → 0 (360º).
@@ -1346,6 +1362,11 @@ cdef class SmoothLine(Line):
         VertexInstruction.apply(self)
         return 0
 
+    # FIXME: Some artifacts can be observed, depending on the line width,
+    # overdraw_width and radius. The minimum width and/or height of
+    # rounded_rectangle also needs to be limited to 2px.
+    # There is a issue when trying to render rectangles (or rounded rectangles
+    # with radius = 0). It is probably related to the closing of the line.
     cdef void build_smooth(self):
         cdef:
             list p = self.points
