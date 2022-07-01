@@ -65,7 +65,7 @@ class SpinnerOption(Button):
     pass
 
 
-class Spinner(Button):
+class SpinnerBehavior(object):
     '''Spinner class, see module documentation for more information.
     '''
 
@@ -143,15 +143,15 @@ class Spinner(Button):
 
     def __init__(self, **kwargs):
         self._dropdown = None
-        super(Spinner, self).__init__(**kwargs)
+        super().__init__()
         fbind = self.fbind
         build_dropdown = self._build_dropdown
-        fbind('on_release', self._toggle_dropdown)
+        update_dropdown = self._update_dropdown
         fbind('dropdown_cls', build_dropdown)
         fbind('option_cls', build_dropdown)
-        fbind('values', self._update_dropdown)
+        fbind('values', update_dropdown)
         fbind('size', self._update_dropdown_size)
-        fbind('text_autoupdate', self._update_dropdown)
+        fbind('text_autoupdate', update_dropdown)
         build_dropdown()
 
     def _build_dropdown(self, *largs):
@@ -219,3 +219,9 @@ class Spinner(Button):
         else:
             if self._dropdown.attach_to:
                 self._dropdown.dismiss()
+
+
+class Spinner(SpinnerBehavior, Button):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fbind('on_release', self._toggle_dropdown)
