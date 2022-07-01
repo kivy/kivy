@@ -50,11 +50,8 @@ Kv Example::
 
 __all__ = ('Spinner', 'SpinnerOption')
 
-from kivy.compat import string_types
-from kivy.factory import Factory
-from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
 from kivy.uix.button import Button
-from kivy.uix.dropdown import DropDown
+from kivy.uix.behaviors import SpinnerBehavior
 
 
 class SpinnerOption(Button):
@@ -222,6 +219,13 @@ class SpinnerBehavior(object):
 
 
 class Spinner(SpinnerBehavior, Button):
+    '''Spinner class, see module documentation for more information.
+
+    .. versionchanged:: 2.2.0
+        The behavior / logic of the spinner has been moved to
+        :class:`~kivy.uix.behaviors.SpinnerBehavior`.
+    '''
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.fbind('on_release', self._toggle_dropdown)
+        self.fbind('on_release', self.toggle_dropdown)
