@@ -14,8 +14,12 @@ DEF LINE_MODE_RECTANGLE = 3
 DEF LINE_MODE_ROUNDED_RECTANGLE = 4
 DEF LINE_MODE_BEZIER = 5
 
+from kivy.cache import Cache
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
 import itertools
+
+# register graphics texture cache
+Cache.register('kv.graphics.texture')
 
 cdef float PI = <float>3.1415926535
 
@@ -1282,9 +1286,12 @@ cdef class SmoothLine(Line):
         self.texture = self.premultiplied_texture()
 
     def premultiplied_texture(self):
-        texture = Texture.create(size=(4, 1), colorfmt="rgba")
-        texture.add_reload_observer(self._smooth_reload_observer)
-        self._smooth_reload_observer(texture)
+        texture = Cache.get('kv.graphics.texture', 'smoothline')
+        if not texture:
+            texture = Texture.create(size=(4, 1), colorfmt="rgba")
+            texture.add_reload_observer(self._smooth_reload_observer)
+            self._smooth_reload_observer(texture)
+            Cache.append('kv.graphics.texture', 'smoothline', texture)
         return texture
 
     cpdef _smooth_reload_observer(self, texture):
