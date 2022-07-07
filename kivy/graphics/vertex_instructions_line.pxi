@@ -971,7 +971,6 @@ cdef class Line(VertexInstruction):
 
         self._points = points
 
-
     property circle:
         '''Use this property to build a circle, without calculating the
         :attr:`points`. You can only set this property, not get it.
@@ -1111,10 +1110,10 @@ cdef class Line(VertexInstruction):
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4, resolution)
 
-        * **x** and **y** represent the bottom-left position of the rectangle.
-        * **width** and **height** represent the size.
-        * **corner_radius** specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
-        * **resolution** is the number of line segment that will be used to draw the circle arc at each corner (defaults to 45).
+        * `x` and `y` represent the bottom-left position of the rectangle.
+        * `width` and `height` represent the size.
+        * `corner_radius` specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
+        * `resolution` is the number of line segment that will be used to draw the circle arc at each corner (defaults to 45).
 
         The line is automatically closed.
 
@@ -1132,6 +1131,8 @@ cdef class Line(VertexInstruction):
         The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
         It was bottom-left, bottom-right, top-right, top-left in previous versions.
         Now both are clockwise: top-left, top-right, bottom-right, bottom-left.
+        To keep the corner radius order without changing the order manually, you can use python's built-in method `reversed` or `[::-1]`,
+        to reverse the order of the corner radius.
         '''
 
         def __get__(self):
@@ -1149,7 +1150,7 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, min_wh_half, step
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, step, min_dimension, half_min_dimension
         cdef resolution = 45
         cdef int l = <int>len(self._mode_args)
 
@@ -1171,68 +1172,91 @@ cdef class Line(VertexInstruction):
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
 
-        step = PI / resolution
+        c1 = max(c1, 1.0)
+        c2 = max(c2, 1.0)
+        c3 = max(c3, 1.0)
+        c4 = max(c4, 1.0)
+        min_dimension = min(w, h)
+        half_min_dimension = min_dimension / 2.0
 
-        # Limits the maximum radius allowed.
-        # Minimum radius = 1 avoid shape drawing issues (especially with SmoothLine)
-        min_wh_half = <float>(min(w, h) / 2)
-        c1 = <float>max(1.0, min(min_wh_half, c1))
-        c2 = <float>max(1.0, min(min_wh_half, c2))
-        c3 = <float>max(1.0, min(min_wh_half, c3))
-        c4 = <float>max(1.0, min(min_wh_half, c4))
+        # If larger values are passed for each corner, e will have to make some
+        #  adjustments.
+        if c1 > half_min_dimension:
+            c2 = min(c2, half_min_dimension)
+            c4 = min(c4, half_min_dimension)
+            c1 = min(c1, min_dimension - c2, min_dimension - c4)
+
+        if c2 > half_min_dimension:
+            c1 = min(c1, half_min_dimension)
+            c3 = min(c3, half_min_dimension)
+            c2 = min(c2, min_dimension - c1, min_dimension - c3)
+        
+        if c3 > half_min_dimension:
+            c2 = min(c2, half_min_dimension)
+            c4 = min(c4, half_min_dimension)
+            c3 = min(c3, min_dimension - c2, min_dimension - c4)
+        
+        if c4 > half_min_dimension:
+            c3 = min(c3, half_min_dimension)
+            c1 = min(c1, half_min_dimension)
+            c4 = min(c4, min_dimension - c3, min_dimension - c1)
 
         # Resulting rounded_rectangle
         self._rounded_rectangle = (x, y, w, h, c1, c2, c3, c4, resolution)
 
-        # Segment calculations are based on the quadrants of the trigonometric
-        # circle: 0 (0º) → PI/2 (90º) → PI (180º) → -PI (270º) → 0 (360º).
+        step = PI / resolution
+        
+        # top-left
+        a = 0.0
+        px = x + c1
+        py = y + h - c1
 
-        # top-right (quadrant 1)
+        min_c2_x = x + w - c2
+        while a < PI / 2.:
+            a += step
+            self._points.extend([
+                min(min_c2_x, px - cos(a) * c1),
+                py + sin(a) * c1,
+            ])
+
+        # top-right
         a = 0.0
         px = x + w - c2
         py = y + h - c2
 
+        min_c3_y = y + c3
         while a < PI / 2.:
             a += step
             self._points.extend([
-                px + cos(a) * c2,
-                py + sin(a) * c2
+                px + sin(a) * c2,
+                max(min_c3_y, py + cos(a) * c2),
             ])
 
-        # top-left  (quadrant 2)
-        a = <float>PI / 2.0
-        px = x + c1
-        py = y + h - c1
-
-        while a < PI:
-            a += step
-            self._points.extend([
-                px + cos(a) * c1,
-                py + sin(a) * c1
-            ])
-
-        # bottom-left (quadrant 3)
-        a = <float>- PI
-        px = x + c4
-        py = y + c4
-
-        while a < - PI / 2.0:
-            a += step
-            self._points.extend([
-                px + cos(a) * c4,
-                py + sin(a) * c4
-            ])
-
-        # bottom-right (quadrant 4)
-        a = <float>- PI / 2.0
+        # bottom-right
+        a = 0.0
         px = x + w - c3
         py = y + c3
 
-        while a < 0.0:
+        
+        max_c4_x = x + c4
+        while a < PI / 2.:
             a += step
             self._points.extend([
-                px + cos(a) * c3,
-                py + sin(a) * c3
+                max(max_c4_x, px + cos(a) * c3),
+                py - sin(a) * c3,
+            ])
+
+        # bottom-left
+        a = 0.0
+        px = x + c4
+        py = y + c4
+
+        min_c1_y = y + h - c1
+        while a < PI / 2.:
+            a += step
+            self._points.extend([
+                px - sin(a) * c4,
+                min(min_c1_y, py - cos(a) * c4),
             ])
 
         self._close = 1
@@ -1363,10 +1387,7 @@ cdef class SmoothLine(Line):
         return 0
 
     # FIXME: Some artifacts can be observed, depending on the line width,
-    # overdraw_width and radius. The minimum width and/or height of
-    # rounded_rectangle also needs to be limited to 2px.
-    # There is a issue when trying to render rectangles (or rounded rectangles
-    # with radius = 0). It is probably related to the closing of the line.
+    # overdraw_width and radius.
     cdef void build_smooth(self):
         cdef:
             list p = self.points
