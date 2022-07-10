@@ -56,39 +56,17 @@ If you want a synchronous request, you can call the wait() method.
 
 '''
 
-from base64 import b64encode
 from collections import deque
 from json import loads
 from threading import Event, Thread
 from time import sleep
 
+import requests
 from kivy.clock import Clock
-from kivy.compat import PY2
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
-
-if PY2:
-    from httplib import HTTPConnection
-    from urlparse import urlparse, urlunparse
-else:
-    from http.client import HTTPConnection
-    from urllib.parse import urlparse, urlunparse
-
-try:
-    import ssl
-
-    HTTPSConnection = None
-    if PY2:
-        from httplib import HTTPSConnection
-    else:
-        from http.client import HTTPSConnection
-except ImportError:
-    # depending the platform, if openssl support wasn't compiled before python,
-    # this class is not available.
-    pass
-
 
 # list to save UrlRequest and prevent GC on un-referenced objects
 g_requests = []
@@ -122,6 +100,11 @@ class UrlRequest(Thread):
     .. versionchanged:: 1.11.0
 
         Parameters `on_cancel` added.
+
+    .. versionchanged:: 2.11.0
+
+        Parameters `on_finish` added.
+        Parameters `auth` added.
 
     :Parameters:
         `url`: str
@@ -181,6 +164,8 @@ class UrlRequest(Thread):
         `proxy_headers`: dict, defaults to None
             If set, and `proxy_host` is also set, the headers to send to the
             proxy server in the ``CONNECT`` request.
+        `auth`: HTTPBasicAuth, defaults to None
+            If set, request will use basicauth to authenticate.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
@@ -189,8 +174,8 @@ class UrlRequest(Thread):
                  timeout=None, method=None, decode=True, debug=False,
                  file_path=None, ca_file=None, verify=True, proxy_host=None,
                  proxy_port=None, proxy_headers=None, user_agent=None,
-                 on_cancel=None, on_finish=None, cookies=None):
-        super(UrlRequest, self).__init__()
+                 on_cancel=None, on_finish=None, cookies=None, auth=None):
+        super().__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
@@ -220,6 +205,7 @@ class UrlRequest(Thread):
         self._cancel_event = Event()
         self._user_agent = user_agent
         self._cookies = cookies
+        self._auth = auth
 
         if platform in ['android', 'ios']:
             import certifi
@@ -267,8 +253,8 @@ class UrlRequest(Thread):
             result, resp = self._fetch_url(url, req_body, req_headers, q)
             if self.decode:
                 result = self.decode_result(result, resp)
-        except Exception as e:
-            q(('error', None, e))
+        except Exception as ex:
+            q(('error', None, ex))
         else:
             if not self._cancel_event.is_set():
                 q(('success', resp, result))
@@ -277,7 +263,6 @@ class UrlRequest(Thread):
 
         # using trigger can result in a missed on_success event
         self._trigger_result()
-
         # clean ourself when the queue is empty
         while len(self._queue):
             sleep(.1)
@@ -286,25 +271,6 @@ class UrlRequest(Thread):
         # ok, authorize the GC to clean us.
         if self in g_requests:
             g_requests.remove(self)
-
-    def _parse_url(self, url):
-        parse = urlparse(url)
-        host = parse.hostname
-        port = parse.port
-        userpass = None
-
-        # append user + pass to hostname if specified
-        if parse.username and parse.password:
-            userpass = {
-                "Authorization": "Basic {}".format(b64encode(
-                    "{}:{}".format(
-                        parse.username,
-                        parse.password
-                    ).encode('utf-8')
-                ).decode('utf-8'))
-            }
-
-        return host, port, userpass, parse
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -315,6 +281,7 @@ class UrlRequest(Thread):
         file_path = self.file_path
         ca_file = self.ca_file
         verify = self.verify
+        auth = self._auth
 
         if self._debug:
             Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
@@ -324,71 +291,34 @@ class UrlRequest(Thread):
             Logger.debug('UrlRequest: {0} - headers: {1}'.format(
                 id(self), headers))
 
-        # parse url
-        host, port, userpass, parse = self._parse_url(url)
-        if userpass and not headers:
-            headers = userpass
-        elif userpass and headers:
-            key = list(userpass.keys())[0]
-            headers[key] = userpass[key]
-
-        # translate scheme to connection class
-        cls = self.get_connection_for_scheme(parse.scheme)
-
-        # reconstruct path to pass on the request
-        path = parse.path
-        if parse.params:
-            path += ';' + parse.params
-        if parse.query:
-            path += '?' + parse.query
-        if parse.fragment:
-            path += '#' + parse.fragment
-
         # create connection instance
-        args = {}
-        if timeout is not None:
-            args['timeout'] = timeout
+        req = requests
+        kwargs = {}
 
-        if (ca_file is not None and hasattr(ssl, 'create_default_context') and
-                parse.scheme == 'https'):
-            ctx = ssl.create_default_context(cafile=ca_file)
-            ctx.verify_mode = ssl.CERT_REQUIRED
-            args['context'] = ctx
-
-        if not verify and parse.scheme == 'https' and (
-            hasattr(ssl, 'create_default_context')):
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            args['context'] = ctx
-
-        if self._proxy_host:
-            Logger.debug('UrlRequest: {0} - proxy via {1}:{2}'.format(
-                id(self), self._proxy_host, self._proxy_port
-            ))
-            req = cls(self._proxy_host, self._proxy_port, **args)
-            if parse.scheme == 'https':
-                req.set_tunnel(host, port, self._proxy_headers)
-            else:
-                path = urlunparse(parse)
-        else:
-            req = cls(host, port, **args)
-
-        # send request
+        # get method
         method = self._method
         if method is None:
-            method = 'GET' if body is None else 'POST'
-        req.request(method, path, body, headers or {})
+            method = 'get' if body is None else 'post'
 
-        # read header
-        resp = req.getresponse()
+        req_call = getattr(req, method)
+
+        if auth:
+            kwargs["auth"] = auth
+
+        # send request
+        resp = req_call(
+            url,
+            data=body,
+            headers=headers,
+            timeout=timeout,
+            verify=verify,
+            cert=ca_file,
+            **kwargs
+        )
 
         # read content
         if report_progress or file_path is not None:
-            try:
-                total_size = int(resp.getheader('content-length'))
-            except:
-                total_size = -1
+            total_size = int(resp.headers.get('Content-Length', -1))
 
             # before starting the download, send a fake progress to permit the
             # user to initialize his ui
@@ -398,8 +328,8 @@ class UrlRequest(Thread):
             def get_chunks(fd=None):
                 bytes_so_far = 0
                 result = b''
-                while 1:
-                    chunk = resp.read(chunk_size)
+
+                for chunk in resp.iter_content(chunk_size):
                     if not chunk:
                         break
 
@@ -429,31 +359,16 @@ class UrlRequest(Thread):
                 q(('progress', resp, (bytes_so_far, total_size)))
                 trigger()
         else:
-            result = resp.read()
+            result = resp.content
             try:
                 if isinstance(result, bytes):
                     result = result.decode('utf-8')
             except UnicodeDecodeError:
                 # if it's an image? decoding would not work
                 pass
-        req.close()
 
         # return everything
         return result, resp
-
-    def get_connection_for_scheme(self, scheme):
-        '''Return the Connection class for a particular scheme.
-        This is an internal function that can be expanded to support custom
-        schemes.
-
-        Actual supported schemes: http, https.
-        '''
-        if scheme == 'http':
-            return HTTPConnection
-        elif scheme == 'https' and HTTPSConnection is not None:
-            return HTTPSConnection
-        else:
-            raise Exception('No class for scheme %s' % scheme)
 
     def decode_result(self, result, resp):
         '''Decode the result fetched from url according to his Content-Type.
@@ -462,7 +377,7 @@ class UrlRequest(Thread):
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
         # decoded.
-        content_type = resp.getheader('Content-Type', None)
+        content_type = resp.headers.get('Content-Type', None)
         if content_type is not None:
             ct = content_type.split(';')[0]
             if ct == 'application/json':
@@ -470,7 +385,7 @@ class UrlRequest(Thread):
                     result = result.decode('utf-8')
                 try:
                     return loads(result)
-                except:
+                except Exception:
                     return result
 
         return result
@@ -487,7 +402,7 @@ class UrlRequest(Thread):
                 # in the comment below
                 final_cookies = ""
                 parsed_headers = []
-                for key, value in resp.getheaders():
+                for key, value in resp.headers.items():
                     if key == "Set-Cookie":
                         final_cookies += "{};".format(value)
                     else:
@@ -499,9 +414,10 @@ class UrlRequest(Thread):
                 # ?  http://stackoverflow.com/questions/2454494/..
                 # ..urllib2-multiple-set-cookie-headers-in-response
                 self._resp_headers = dict(parsed_headers)
-                self._resp_status = resp.status
+                self._resp_status = resp.status_code
+
             if result == 'success':
-                status_class = resp.status // 100
+                status_class = resp.status_code // 100
 
                 if status_class in (1, 2):
                     if self._debug:
@@ -530,7 +446,7 @@ class UrlRequest(Thread):
                     if self._debug:
                         Logger.debug('UrlRequest: {} Download failed with '
                                      'http error {}'.format(id(self),
-                                                            resp.status))
+                                                            resp.status_code))
                     self._is_finished = True
                     self._result = data
                     if self.on_failure:
