@@ -133,7 +133,7 @@ cdef class Line(VertexInstruction):
     cdef Instruction _stencil_pop
     cdef double _bxmin, _bxmax, _bymin, _bymax
     cdef tuple _mode_args
-    cdef tuple _rounded_rectangle
+    cdef tuple _rounded_rectangle, _rectangle, _ellipse, _circle
 
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -891,7 +891,7 @@ cdef class Line(VertexInstruction):
 
     property ellipse:
         '''Use this property to build an ellipse, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (x, y, width, height, angle_start,
         angle_end, segments):
@@ -917,7 +917,14 @@ cdef class Line(VertexInstruction):
             Line(ellipse=(0, 0, 150, 150, 90, 180, 20))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+        
+        Now you can get the ellipse generated through the property.
         '''
+
+        def __get__(self):
+            return self._ellipse
 
         def __set__(self, args):
             if args == None:
@@ -955,6 +962,12 @@ cdef class Line(VertexInstruction):
             segments = int(abs(angle_end - angle_start) / 2) + 3
             if segments % 2 == 1:
                 segments += 1
+        
+        # Resulting ellipse
+        self._ellipse = (x, y, w, h, angle_start, angle_end, segments)
+        # Reset another properties
+        self._rounded_rectangle = self._rectangle = self._circle = None
+
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
@@ -973,7 +986,7 @@ cdef class Line(VertexInstruction):
 
     property circle:
         '''Use this property to build a circle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
         angle_end, segments):
@@ -999,7 +1012,14 @@ cdef class Line(VertexInstruction):
             Line(circle=(150, 150, 50, 90, 180, 20))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+        
+        Now you can get the circle generated through the property.
         '''
+
+        def __get__(self):
+            return self._circle
 
         def __set__(self, args):
             if args == None:
@@ -1036,6 +1056,11 @@ cdef class Line(VertexInstruction):
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
 
+        # Resulting circle
+        self._circle = (x, y, r, angle_start, angle_end, segments)
+        # Reset another properties
+        self._rounded_rectangle = self._rectangle = self._ellipse = None
+
         segmentpoints = segments * 2
 
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
@@ -1053,7 +1078,7 @@ cdef class Line(VertexInstruction):
 
     property rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (x, y, width, height):
 
@@ -1067,7 +1092,14 @@ cdef class Line(VertexInstruction):
             Line(rectangle=(0, 0, 200, 200))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+
+        Now you can get the rectangle generated through the property.
         '''
+
+        def __get__(self):
+            return self._rectangle
 
         def __set__(self, args):
             if args == None:
@@ -1095,6 +1127,11 @@ cdef class Line(VertexInstruction):
         else:
             x = y = width = height = 0
             assert 0
+
+        # Resulting rectangle
+        self._rectangle = (x, y, width, height)
+        # Reset another properties
+        self._rounded_rectangle = self._circle = self._ellipse = None
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
         self._close = 1
@@ -1127,6 +1164,8 @@ cdef class Line(VertexInstruction):
 
         .. versionchanged:: 2.2.0
         Default value of `resolution` changed from 30 to 45.
+
+        Now you can get the rounded rectangle generated through the property.
 
         The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
         It was bottom-left, bottom-right, top-right, top-left in previous versions.
@@ -1172,6 +1211,7 @@ cdef class Line(VertexInstruction):
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
 
+        # The minimum radius needs to be limited to 1px. This avoid some known rendering issues
         c1 = max(c1, 1.0)
         c2 = max(c2, 1.0)
         c3 = max(c3, 1.0)
@@ -1203,6 +1243,8 @@ cdef class Line(VertexInstruction):
 
         # Resulting rounded_rectangle
         self._rounded_rectangle = (x, y, w, h, c1, c2, c3, c4, resolution)
+        # Reset another properties
+        self._rectangle = self._ellipse = self._circle = None
 
         step = PI / resolution
         
@@ -1263,7 +1305,7 @@ cdef class Line(VertexInstruction):
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of 2n elements, n being the number of points.
 
