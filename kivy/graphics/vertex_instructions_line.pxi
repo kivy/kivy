@@ -1254,7 +1254,7 @@ cdef class Line(VertexInstruction):
         py = y + h - c1
 
         min_c2_x = x + w - c2
-        while a < PI / 2.:
+        while a < PI / 2. - step:
             a += step
             self._points.extend([
                 min(min_c2_x, px - cos(a) * c1),
@@ -1267,7 +1267,7 @@ cdef class Line(VertexInstruction):
         py = y + h - c2
 
         min_c3_y = y + c3
-        while a < PI / 2.:
+        while a < PI / 2. - step:
             a += step
             self._points.extend([
                 px + sin(a) * c2,
@@ -1281,7 +1281,7 @@ cdef class Line(VertexInstruction):
 
         
         max_c4_x = x + c4
-        while a < PI / 2.:
+        while a < PI / 2. - step:
             a += step
             self._points.extend([
                 max(max_c4_x, px + cos(a) * c3),
@@ -1294,7 +1294,7 @@ cdef class Line(VertexInstruction):
         py = y + c4
 
         min_c1_y = y + h - c1
-        while a < PI / 2.:
+        while a < PI / 2. - step:
             a += step
             self._points.extend([
                 px - sin(a) * c4,
