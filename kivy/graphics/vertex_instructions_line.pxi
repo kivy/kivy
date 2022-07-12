@@ -1189,7 +1189,7 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, step, min_dimension, half_min_dimension
+        cdef float a, max_a, px, py, x, y, w, h, c1, c2, c3, c4, step, min_dimension, half_min_dimension
         cdef resolution = 45
         cdef int l = <int>len(self._mode_args)
 
@@ -1210,6 +1210,9 @@ cdef class Line(VertexInstruction):
         else:  # l == 9, but else make the compiler happy about uninitialization
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
+
+        if resolution <= 4:
+            resolution = 4
 
         # The minimum radius needs to be limited to 1px. This avoid some known rendering issues
         c1 = max(c1, 1.0)
@@ -1247,13 +1250,14 @@ cdef class Line(VertexInstruction):
         self._rectangle = self._ellipse = self._circle = None
 
         step = PI / resolution
+        max_a = PI / 2.0 - step
         
         # top-left
         a = 0.0
         px = x + c1
         py = y + h - c1
 
-        while a < PI / 2. - step:
+        while a < max_a:
             a += step
             self._points.extend([
                 px - cos(a) * c1,
@@ -1265,7 +1269,7 @@ cdef class Line(VertexInstruction):
         px = x + w - c2
         py = y + h - c2
 
-        while a < PI / 2. - step:
+        while a < max_a:
             a += step
             self._points.extend([
                 px + sin(a) * c2,
@@ -1277,7 +1281,7 @@ cdef class Line(VertexInstruction):
         px = x + w - c3
         py = y + c3
 
-        while a < PI / 2. - step:
+        while a < max_a:
             a += step
             self._points.extend([
                 px + cos(a) * c3,
@@ -1289,7 +1293,7 @@ cdef class Line(VertexInstruction):
         px = x + c4
         py = y + c4
 
-        while a < PI / 2. - step:
+        while a < max_a:
             a += step
             self._points.extend([
                 px - sin(a) * c4,
