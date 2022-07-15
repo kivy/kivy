@@ -1154,8 +1154,6 @@ cdef class Line(VertexInstruction):
 
         The line is automatically closed.
 
-        .. note:: The figure will not render to width or height values less than 2 pixels when using SmoothLine.
-
         Usage::
 
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
@@ -1261,7 +1259,7 @@ cdef class Line(VertexInstruction):
             a += step
             self._points.extend([
                 px - cos(a) * c1,
-                py + sin(a) * c1,
+                py + sin(a) * c1
             ])
 
         # top-right
@@ -1273,7 +1271,7 @@ cdef class Line(VertexInstruction):
             a += step
             self._points.extend([
                 px + sin(a) * c2,
-                py + cos(a) * c2,
+                py + cos(a) * c2
             ])
 
         # bottom-right
@@ -1285,7 +1283,7 @@ cdef class Line(VertexInstruction):
             a += step
             self._points.extend([
                 px + cos(a) * c3,
-                py - sin(a) * c3,
+                py - sin(a) * c3
             ])
 
         # bottom-left
@@ -1297,7 +1295,7 @@ cdef class Line(VertexInstruction):
             a += step
             self._points.extend([
                 px - sin(a) * c4,
-                py - cos(a) * c4,
+                py - cos(a) * c4
             ])
 
         self._close = 1
