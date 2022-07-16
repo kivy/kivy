@@ -3662,7 +3662,7 @@ class TextInput(FocusBehavior, Widget):
     you can load the system fonts by specifying a font context starting
     with the special string `system://`. This will load the system
     fontconfig configuration, and add your application-specific fonts on
-    top of it (this imposes a signifficant risk of family name collision,
+    top of it (this imposes a significant risk of family name collision,
     Pango may not use your custom font file, but pick one from the system)
 
     .. note::

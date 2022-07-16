@@ -265,7 +265,7 @@ class CompoundSelectionBehavior(object):
 
     _anchor = None  # the last anchor node selected (e.g. shift relative node)
     # the idx may be out of sync
-    _anchor_idx = 0  # cache indexs in case list hasn't changed
+    _anchor_idx = 0  # cache indexes in case list hasn't changed
     _last_selected_node = None  # the absolute last node selected
     _last_node_idx = 0
     _ctrl_down = False  # if it's pressed - for e.g. shift selection

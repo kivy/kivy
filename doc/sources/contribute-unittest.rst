@@ -5,7 +5,7 @@ Tests are located in the `kivy/tests` folder. If you find a bug in Kivy, a good
 thing to do can be to write a minimal case showing the issue and to ask core
 devs if the behaviour shown is intended or a real bug. If you write your code
 as a `unittest <http://docs.python.org/2/library/unittest.html>`_
-, it will prevent the bug from coming back unnoticed in the future, and wil
+, it will prevent the bug from coming back unnoticed in the future, and will
 make Kivy a better, stronger project. Writing a unittest may be a really good
 way to get familiar with Kivy while doing something useful.
 

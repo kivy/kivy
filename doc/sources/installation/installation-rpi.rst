@@ -85,7 +85,7 @@ The Raspberry OS project uses `pi-gen` project to create bootable images for Ras
 Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi.
 In order to build Kivy in such `pi-gen` environment, the auto-detection of the Raspberry Pi hardware version needs to be disabled.
 
-When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variabel `KIVY_RPI_VERSION` to any number < 4, e.g. `3`.
+When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variable `KIVY_RPI_VERSION` to any number < 4, e.g. `3`.
 
 The install command then looks something like this::
 

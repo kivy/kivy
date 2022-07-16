@@ -2050,7 +2050,7 @@ class WindowBase(EventDispatcher):
                 Cursor y position, relative to the window :attr:`top`, at the
                 time of the drop.
             `*args`: `tuple`
-                Additional arugments.
+                Additional arguments.
 
         .. note::
             This event works with sdl2 window provider.
@@ -2076,7 +2076,7 @@ class WindowBase(EventDispatcher):
                 Cursor y position, relative to the window :attr:`top`, at the
                 time of the drop.
             `*args`: `tuple`
-                Additional arugments.
+                Additional arguments.
 
         .. warning::
             This event currently works with sdl2 window provider, on pygame
@@ -2125,7 +2125,7 @@ class WindowBase(EventDispatcher):
                 Cursor y position, relative to the window :attr:`top`, at the
                 time of the drop.
             `*args`: `tuple`
-                Additional arugments.
+                Additional arguments.
 
         .. note::
             This event works with sdl2 window provider on x11 window.
@@ -2155,7 +2155,7 @@ class WindowBase(EventDispatcher):
                 Cursor y position, relative to the window :attr:`top`, at the
                 time of the drop.
             `*args`: `tuple`
-                Additional arugments.
+                Additional arguments.
 
         .. note::
             This event works with sdl2 window provider.

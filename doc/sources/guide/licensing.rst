@@ -1,7 +1,7 @@
 Package licensing
 =================
 
-.. warning:: This is not a legally authoratative guide! The Kivy organisation,
+.. warning:: This is not a legally authoritative guide! The Kivy organisation,
    authors and contributors take no responsibility for any lack of knowledge,
    information or advice presented here. The guide is merely informative and is
    meant to protect inexperienced users.
