@@ -455,7 +455,7 @@ you could do:
   :class:`~kivy.uix.button.Button` and
   :class:`~kivy.uix.label.Label`
   classes, and figure out how to use their `add_widget` and `remove_widget`
-  functions to add or remove widgets dynamically.
+  functions to add or remove widgets dynamically.)
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support, so
   wouldn't it be cool to have a player on each side and have four 
