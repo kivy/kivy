@@ -113,7 +113,7 @@ Windows redistributables) check all the files.
 of them are related to Kivy, Python or your source, but those that aren't need
 checking.
 
-**apk:** ``APK/assets/private.tar`` 
+**apk:** ``APK/assets/private.tar``
 
 **aab:** ``AAB/base/assets/private.tar``
 

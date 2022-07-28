@@ -172,7 +172,7 @@ Does Kivy support Python 3.x?
 Yes! Kivy |kivy_version_bold| officially supports Python versions |python_versions_bold|.
 
 As of version **2.0.0** Kivy dropped support for Python 2. You can still use older versions with
-Python 2 support. 
+Python 2 support.
 
 Python 3 is also supported by python-for-android and kivy-ios.
 

@@ -123,7 +123,7 @@ Application quit abnormally!
 In debug mode, all the print statements are sent to the Xcode console.
 Looking and grep'ing these logs is highly encouraged. You'll probably find
 that you missed to build/install a required dependency. Not your case?
-Feel free to ask on our Discord ``support`` channels. 
+Feel free to ask on our Discord ``support`` channels.
 
 How can Apple accept a python app?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
