@@ -466,5 +466,5 @@ you could do:
 
 .. note::
 
-    You can find the entire source code and source code files for each step in
-    the Kivy examples directory under tutorials/pong/
+    You can find the entire source code--and source code files for each step--in
+    the Kivy examples directory under `tutorials/pong/`.
