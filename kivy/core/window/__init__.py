@@ -203,13 +203,13 @@ class WindowBase(EventDispatcher):
     '''WindowBase is an abstract window widget for any window implementation.
 
     :Parameters:
-        `borderless`: str, one of ('0', '1')
+        `borderless`: bool, one of (False, True)
             Set the window border state. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
-        `custom_titlebar`: str, one of ('0', '1')
+        `custom_titlebar`: bool, one of (False, True)
             Set to `'1'` to uses a custom titlebar
-        `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
+        `fullscreen`: one of (False, True, 'auto', 'fake')
             Make the window fullscreen. Check the
             :mod:`~kivy.config` documentation for a
             more detailed explanation on the values.
