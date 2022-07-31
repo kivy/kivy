@@ -10,7 +10,7 @@ from time import sleep
 import certifi
 import pytest
 import responses
-from kivy.network.newurlrequest import UrlRequest
+from kivy.network.urlrequest import UrlRequestRequests as UrlRequest
 from requests.auth import HTTPBasicAuth
 from responses import matchers
 
