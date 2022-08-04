@@ -571,7 +571,7 @@ class ConfigParser(PythonConfigParser, object):
         if self.filename is None:
             return False
         try:
-            with open(self.filename, 'w') as fd:
+            with open(self.filename, 'w', encoding="utf-8") as fd:
                 PythonConfigParser.write(self, fd)
         except IOError:
             Logger.exception('Unable to write the config <%s>' % self.filename)
