@@ -81,7 +81,7 @@ class AnimatedButton(Label):
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
-        assert(repr(self) in touch.ud)
+        assert repr(self) in touch.ud
         touch.ungrab(self)
         _animdelay = self.img._coreimage.anim_delay
         self.img.source = self.background_normal

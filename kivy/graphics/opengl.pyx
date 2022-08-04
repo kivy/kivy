@@ -1159,8 +1159,8 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
     '''
-    assert(format in (GL_RGB, GL_RGBA))
-    assert(type == GL_UNSIGNED_BYTE)
+    assert format in (GL_RGB, GL_RGBA)
+    assert type == GL_UNSIGNED_BYTE
 
     cdef object py_pixels = None
     cdef long size

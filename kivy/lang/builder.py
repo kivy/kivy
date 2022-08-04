@@ -555,13 +555,13 @@ class BuilderBase(object):
         # rootrule: the current root rule (for children of a rule)
 
         # will collect reference to all the id in children
-        assert(rule not in self.rulectx)
+        assert rule not in self.rulectx
         self.rulectx[rule] = rctx = {
             'ids': {'root': widget.proxy_ref},
             'set': [], 'hdl': []}
 
         # extract the context of the rootrule (not rule!)
-        assert(rootrule in self.rulectx)
+        assert rootrule in self.rulectx
         rctx = self.rulectx[rootrule]
 
         # if a template context is passed, put it as "ctx"
@@ -687,7 +687,7 @@ class BuilderBase(object):
             rule = None
             for widget_set, rules in reversed(rctx['set']):
                 for rule in rules:
-                    assert(isinstance(rule, ParserRuleProperty))
+                    assert isinstance(rule, ParserRuleProperty)
                     key = rule.name
                     value = rule.co_value
                     if type(value) is CodeType:
@@ -716,8 +716,8 @@ class BuilderBase(object):
             crule = None
             for widget_set, rules in rctx['hdl']:
                 for crule in rules:
-                    assert(isinstance(crule, ParserRuleProperty))
-                    assert(crule.name.startswith('on_'))
+                    assert isinstance(crule, ParserRuleProperty)
+                    assert crule.name.startswith('on_')
                     key = crule.name
                     if not widget_set.is_event_type(key):
                         key = key[3:]

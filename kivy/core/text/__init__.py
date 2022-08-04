@@ -571,7 +571,7 @@ class LabelBase(object):
     def clear_texture(self):
         self._render_begin()
         data = self._render_end()
-        assert(data)
+        assert data
         if data is not None and data.width > 1:
             self.texture.blit_data(data)
         return
@@ -682,7 +682,7 @@ class LabelBase(object):
 
         # get data from provider
         data = self._render_end()
-        assert(data)
+        assert data
         self.options = old_opts
 
         # If the text is 1px width, usually, the data is black.

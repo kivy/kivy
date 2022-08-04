@@ -564,7 +564,7 @@ class UrlRequest(Thread):
                         func(self)
 
             else:
-                assert(0)
+                assert 0
 
     @property
     def is_finished(self):

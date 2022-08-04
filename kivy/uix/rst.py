@@ -1098,7 +1098,7 @@ class _Visitor(nodes.NodeVisitor):
             label = RstTitle(section=self.section, document=self.root)
             self.current.add_widget(label)
             self.push(label)
-            # assert(self.text == '')
+            # assert self.text == ''
 
         elif cls is nodes.Text:
             # check if parent isn't a special directive
@@ -1165,7 +1165,7 @@ class _Visitor(nodes.NodeVisitor):
             box = RstBlockQuote()
             self.current.add_widget(box)
             self.push(box.content)
-            assert(self.text == '')
+            assert self.text == ''
 
         elif cls is nodes.enumerated_list:
             box = RstList()
@@ -1201,13 +1201,13 @@ class _Visitor(nodes.NodeVisitor):
             label = RstWarning()
             self.current.add_widget(label)
             self.push(label.content)
-            assert(self.text == '')
+            assert self.text == ''
 
         elif cls is nodes.note:
             label = RstNote()
             self.current.add_widget(label)
             self.push(label.content)
-            assert(self.text == '')
+            assert self.text == ''
 
         elif cls is nodes.image:
             # docutils parser breaks path with spaces
@@ -1256,13 +1256,13 @@ class _Visitor(nodes.NodeVisitor):
             self.push(lst)
 
         elif cls is nodes.term:
-            assert(isinstance(self.current, RstDefinitionList))
+            assert isinstance(self.current, RstDefinitionList)
             term = RstTerm(document=self.root)
             self.current.add_widget(term)
             self.push(term)
 
         elif cls is nodes.definition:
-            assert(isinstance(self.current, RstDefinitionList))
+            assert isinstance(self.current, RstDefinitionList)
             definition = RstDefinition(document=self.root)
             definition.add_widget(RstDefinitionSpace(document=self.root))
             self.current.add_widget(definition)
@@ -1331,7 +1331,7 @@ class _Visitor(nodes.NodeVisitor):
             self.section -= 1
 
         elif cls is nodes.title:
-            assert(isinstance(self.current, RstTitle))
+            assert isinstance(self.current, RstTitle)
             if not self.title:
                 self.title = self.text
             self.set_text(self.current, 'title')
@@ -1342,12 +1342,12 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.paragraph:
             self.do_strip_text = False
-            assert(isinstance(self.current, RstParagraph))
+            assert isinstance(self.current, RstParagraph)
             self.set_text(self.current, 'paragraph')
             self.pop()
 
         elif cls is nodes.literal_block:
-            assert(isinstance(self.current, RstLiteralBlock))
+            assert isinstance(self.current, RstLiteralBlock)
             self.set_text(self.current.content, 'literal_block')
             self.pop()
 
@@ -1386,7 +1386,7 @@ class _Visitor(nodes.NodeVisitor):
             self.pop()
 
         elif cls is nodes.term:
-            assert(isinstance(self.current, RstTerm))
+            assert isinstance(self.current, RstTerm)
             self.set_text(self.current, 'term')
             self.pop()
 
@@ -1397,7 +1397,7 @@ class _Visitor(nodes.NodeVisitor):
             self.pop()
 
         elif cls is nodes.field_name:
-            assert(isinstance(self.current, RstFieldName))
+            assert isinstance(self.current, RstFieldName)
             self.set_text(self.current, 'field_name')
             self.pop()
 

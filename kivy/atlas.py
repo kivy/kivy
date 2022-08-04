@@ -198,7 +198,7 @@ class Atlas(EventDispatcher):
 
         # must be a name finished by .atlas ?
         filename = self._filename
-        assert(filename.endswith('.atlas'))
+        assert filename.endswith('.atlas')
         filename = filename.replace('/', os.sep)
 
         Logger.debug('Atlas: Load <%s>' % filename)
