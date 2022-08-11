@@ -105,13 +105,23 @@ class CodeInput(CodeNavigationBehavior, TextInput):
         # use text_color as foreground color
         text_color = kwargs.get('foreground_color')
         if text_color:
-            self.text_color = get_hex_from_color(text_color)
+            # Avoid crashing the app if the user provided a color as HEX
+            if type(text_color) is str: self.text_color = text_color
+            else: self.text_color = get_hex_from_color(text_color)
         # set foreground to white to allow text colors to show
         # use text_color as the default color in bbcodes
         self.use_text_color = False
         self.foreground_color = [1, 1, 1, .999]
+        
+        # If background color was not provided
         if not kwargs.get('background_color'):
-            self.background_color = [.9, .92, .92, 1]
+            # Get pygments background color from style, if provided
+            # (some pygments default style have them defined)
+            try: self.background_color = get_color_from_hex(style.background_color)
+            # If the background color was not provided, set a default one
+            except Exception: self.background_color = [.9, .92, .92, 1]
+        # Otherwise, get the provided color
+        else: self.background_color = kwargs.get("background_color")
 
     def on_style_name(self, *args):
         self.style = styles.get_style_by_name(self.style_name)
