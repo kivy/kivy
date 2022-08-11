@@ -124,7 +124,7 @@ def get_color_from_hex(s):
         as a grey scale.
 
     >>> get_color_from_hex("#009933FF")     # [0.0, 0.6, 0.2, 1.0]
-    >>> get_color_from_hex("093F")          # [0.0, 0.6, 0.2, 1.0]
+    >>> get_color_from_hex("093")           # [0.0, 0.6, 0.2, 1.0]
     >>> get_color_from_hex("#FF")           # [1.0, 1.0, 1.0, 1.0]
     >>> get_color_from_hex("0")             # [0.0, 0.0, 0.0, 0.0]
     '''
