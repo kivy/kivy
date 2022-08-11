@@ -18,6 +18,10 @@ well as code highlighting for `languages supported by pygments
 <http://pygments.org/docs/lexers/>`_ along with `KivyLexer` for
 :mod:`kivy.lang` highlighting.
 
+.. versionadded:: 2.1.0
+    Added support for :mod:`pygments.style.background_color` to be
+    used by default if provided.
+
 Usage example
 -------------
 
