@@ -113,14 +113,36 @@ def rgba(s, *args):
 def get_color_from_hex(s):
     '''Transform a hex string color to a kivy
     :class:`~kivy.graphics.Color`.
-    '''
-    if s.startswith('#'):
-        return get_color_from_hex(s[1:])
 
+    .. versionadded:: 2.1.0
+
+    Added support and for 3-4 HEX values, because :mod:`pygments.styles`
+    also support this and also because is common on web development.
+
+    .. note::
+        If provided values has 1-2 characters, that will be treated
+        as a grey scale.
+
+    >>> get_color_from_hex("#009933FF")     # [0.0, 0.6, 0.2, 1.0]
+    >>> get_color_from_hex("093F")          # [0.0, 0.6, 0.2, 1.0]
+    >>> get_color_from_hex("#FF")           # [1.0, 1.0, 1.0, 1.0]
+    >>> get_color_from_hex("0")             # [0.0, 0.0, 0.0, 0.0]
+    '''
+    # Remove the usually HEX prefix
+    if s.startswith('#'): return get_color_from_hex(s[1:])
+
+    # If provided color have 1-2 values, treat it as a gray scale
+    if len(s) < 3: return get_color_from_hex(6 // len(s) * s)
+    # In case the color have 3-4 values, double the values
+    elif len(s) < 5: return get_color_from_hex("{}{}{}".format(*[6 // len(s) * value for value in s]))
+
+    # Compute the values
     value = [int(x, 16) / 255.
              for x in split('([0-9a-f]{2})', s.lower()) if x != '']
-    if len(value) == 3:
-        value.append(1.0)
+
+    # If the alpha value is missing, add it by default
+    if len(value) == 3: value.append(1.0)
+
     return value
 
 
