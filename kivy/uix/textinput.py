@@ -2607,7 +2607,7 @@ class TextInput(FocusBehavior, Widget):
     def _get_cursor_visual_pos(self):
         # Return the position of the cursor's top visible point
         cx, cy = map(int, self.cursor_pos)
-        max_y = self.top - self.padding[3]
+        max_y = self.top - self.padding[1]
         return [cx, min(max_y, cy)]
 
     def _get_line_options(self):
