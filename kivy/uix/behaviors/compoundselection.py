@@ -255,10 +255,10 @@ class CompoundSelectionBehavior(object):
     '''
 
     text_entry_timeout = NumericProperty(1.)
-    '''When typing characters in rapid succession (i.e. the time difference since
-    the last character is less than :attr:`text_entry_timeout`), the keys get
-    concatenated and the combined text is passed as the key argument of
-    :meth:`goto_node`.
+    '''When typing characters in rapid succession (i.e. the time difference
+    since the last character is less than :attr:`text_entry_timeout`), the
+    keys get concatenated and the combined text is passed as the key argument
+    of :meth:`goto_node`.
 
     .. versionadded:: 1.10.0
     '''

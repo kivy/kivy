@@ -1045,7 +1045,7 @@ cdef class BorderImage(Rectangle):
         # set the vertex data
         # WARNING we are allocating the vertices as a float
         # because we know exactly the format.
-        assert(sizeof(vertex_t) == 4 * sizeof(float))
+        assert sizeof(vertex_t) == 4 * sizeof(float)
         cdef float *vertices = [
             hs[0], vs[0], ths[0], tvs[0], #v0
             hs[1], vs[0], ths[1], tvs[0], #v1

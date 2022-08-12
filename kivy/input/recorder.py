@@ -283,7 +283,7 @@ class Recorder(EventDispatcher):
         dt = time() - self.play_time
         while self.play_data:
             event = self.play_data[0]
-            assert(len(event) == 4)
+            assert len(event) == 4
             if event[0] > dt:
                 return
 

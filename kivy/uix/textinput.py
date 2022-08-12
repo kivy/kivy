@@ -2101,7 +2101,7 @@ class TextInput(FocusBehavior, Widget):
 
     def _delete_line(self, idx):
         """Delete current line, and fix cursor position"""
-        assert(idx < len(self._lines))
+        assert idx < len(self._lines)
         self._lines_flags.pop(idx)
         self._lines_labels.pop(idx)
         self._lines.pop(idx)

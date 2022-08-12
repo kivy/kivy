@@ -557,7 +557,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
-        assert("_" not in section)
+        assert "_" not in section
         if self.has_section(section):
             return
         self.add_section(section)

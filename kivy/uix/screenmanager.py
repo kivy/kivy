@@ -1142,7 +1142,7 @@ class ScreenManager(FloatLayout):
 
         .. versionadded: 1.8.0
         '''
-        assert(screen is not None)
+        assert screen is not None
 
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
