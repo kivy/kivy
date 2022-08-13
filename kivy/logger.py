@@ -133,6 +133,7 @@ COLORS = {
     'CRITICAL': RED,
     'ERROR': RED}
 
+logging.addLevelName(9, 'TRACE')
 logging.TRACE = 9
 LOG_LEVELS = {
     'trace': logging.TRACE,
@@ -296,9 +297,6 @@ class ColoredFormatter(logging.Formatter):
         except:
             pass
         levelname = record.levelname
-        if record.levelno == logging.TRACE:
-            levelname = 'TRACE'
-            record.levelname = levelname
         if self.use_color and levelname in COLORS:
             levelname_color = (
                 COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ)
