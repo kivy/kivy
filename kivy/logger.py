@@ -384,6 +384,7 @@ class ColoredLogRecord(logging.LogRecord):
         self.levelname = self._format_levelname(self.levelname)
         self.msg = self._format_message(self.msg)
 
+
 # Included for backward compatibility only.
 # Could be used to override colors.
 COLORS = ColoredLogRecord.LEVEL_COLORS
