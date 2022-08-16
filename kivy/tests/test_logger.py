@@ -24,7 +24,7 @@ def file_handler():
         Config.set("kivy", "log_maxfiles", log_maxfiles)
 
 
-@pytest.mark.parametrize('n', [0, 1, 5])
+@pytest.mark.parametrize("n", [0, 1, 5])
 def test_purge_logs(tmp_path, file_handler, n):
     from kivy.config import Config
     from kivy.logger import FileHandler
@@ -37,13 +37,13 @@ def test_purge_logs(tmp_path, file_handler, n):
     handler._configure()
     open_file = pathlib.Path(handler.filename).name
     # wait a little so the timestamps are different for different files
-    time.sleep(.05)
+    time.sleep(0.05)
 
-    names = [f'log_{i}.txt' for i in range(n + 2)]
+    names = [f"log_{i}.txt" for i in range(n + 2)]
     for name in names:
         p = tmp_path / name
-        p.write_text('some data')
-        time.sleep(.05)
+        p.write_text("some data")
+        time.sleep(0.05)
 
     handler.purge_logs()
 
@@ -140,7 +140,7 @@ def test_colonsplittinglogrecord_with_colon():
         pathname="test.py",
         lineno=1,
         msg="Part1: Part2: Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -153,7 +153,8 @@ def test_colonsplittinglogrecord_with_colon():
     shimmedlogrecord = ColonSplittingLogRecord(originallogrecord)
     assert (
         str(shimmedlogrecord)
-        == '<LogRecord: kivy.test, 10, test.py, 1, "[Part1       ] Part2: Part 3">'
+        == '<LogRecord: kivy.test, 10, test.py, 1, '
+           '"[Part1       ] Part2: Part 3">'
     )
 
 
@@ -166,7 +167,7 @@ def test_colonsplittinglogrecord_without_colon():
         pathname="test.py",
         lineno=1,
         msg="Part1 Part2 Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -185,7 +186,7 @@ def test_uncoloredlogrecord_without_markup():
         pathname="test.py",
         lineno=1,
         msg="Part1: Part2 Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -204,7 +205,7 @@ def test_uncoloredlogrecord_with_markup():
         pathname="test.py",
         lineno=1,
         msg="Part1: $BOLDPart2$RESET Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -226,7 +227,7 @@ def test_coloredlogrecord_without_markup():
         pathname="test.py",
         lineno=1,
         msg="Part1: Part2 Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -248,7 +249,7 @@ def test_coloredlogrecord_with_markup():
         pathname="test.py",
         lineno=1,
         msg="Part1: $BOLDPart2$RESET Part 3",
-        args=("args", ),
+        args=("args",),
         exc_info=None,
         func="test_colon_splitting",
         sinfo=None,
@@ -257,7 +258,8 @@ def test_coloredlogrecord_with_markup():
     # Bolding has been added to message.
     assert (
         str(shimmedlogrecord)
-        == '<LogRecord: kivy.test, 20, test.py, 1, "Part1: \x1b[1mPart2\x1b[0m Part 3">'
+        == '<LogRecord: kivy.test, 20, test.py, 1, '
+           '"Part1: \x1b[1mPart2\x1b[0m Part 3">'
     )
     # And there is a change in the levelname
     assert originallogrecord.levelname != shimmedlogrecord.levelname
