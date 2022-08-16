@@ -3,6 +3,7 @@ Logger tests
 ============
 """
 
+import logging
 import pytest
 import pathlib
 import time
@@ -85,3 +86,201 @@ def test_trace_level_has_level_name():
     Logger.setLevel(9)
     Logger.trace("test: This is trace message 1")
     assert LoggerHistory.history[0].levelname == "TRACE"
+
+
+def test_logging_does_not_deep_copy():
+    # If the Logger does a deep copy of an uncopyable
+    # data structure, it will fail. See issues #7585 and #7528.
+
+    import threading
+    from kivy.logger import Logger
+
+    class UncopyableDatastructure:
+        def __init__(self, name):
+            self._lock = threading.Lock()
+            self._name = name
+
+        def __str__(self):
+            return "UncopyableDatastructure(name=%r)" % self._name
+
+    s = UncopyableDatastructure("Uncopyable")
+    Logger.error("The value of s is %s", s)
+
+
+def configured_string_logging(unique_code, formatter=None):
+    """
+    Helper function provides logger configured to write to log_output.
+    """
+    from io import StringIO
+
+    log_output = StringIO()
+
+    handler = logging.StreamHandler(stream=log_output)
+    if formatter:
+        handler.setFormatter(formatter)
+
+    logger = logging.getLogger("tests.%s" % unique_code)
+
+    # Do not escalate to root/Kivy loggers.
+    logger.setLevel(9)  # Catch everything
+    logger.propagate = False
+    assert not logger.hasHandlers(), "Must use unique code between tests."
+
+    logger.addHandler(handler)
+
+    return logger, log_output
+
+
+def test_colonsplittinglogrecord_with_colon():
+    from kivy.logger import ColonSplittingLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1: Part2: Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    # Just making sure we know what it looks like before.
+    assert (
+        str(originallogrecord)
+        == '<LogRecord: kivy.test, 10, test.py, 1, "Part1: Part2: Part 3">'
+    )
+    shimmedlogrecord = ColonSplittingLogRecord(originallogrecord)
+    assert (
+        str(shimmedlogrecord)
+        == '<LogRecord: kivy.test, 10, test.py, 1, "[Part1       ] Part2: Part 3">'
+    )
+
+
+def test_colonsplittinglogrecord_without_colon():
+    from kivy.logger import ColonSplittingLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1 Part2 Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = ColonSplittingLogRecord(originallogrecord)
+    # No colons means no change.
+    assert str(originallogrecord) == str(shimmedlogrecord)
+
+
+def test_uncoloredlogrecord_without_markup():
+    from kivy.logger import UncoloredLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1: Part2 Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = UncoloredLogRecord(originallogrecord)
+    # No markup means no change.
+    assert str(originallogrecord) == str(shimmedlogrecord)
+
+
+def test_uncoloredlogrecord_with_markup():
+    from kivy.logger import UncoloredLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1: $BOLDPart2$RESET Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = UncoloredLogRecord(originallogrecord)
+    # No markup means no change.
+    assert (
+        str(shimmedlogrecord)
+        == '<LogRecord: kivy.test, 10, test.py, 1, "Part1: Part2 Part 3">'
+    )
+
+
+def test_coloredlogrecord_without_markup():
+    from kivy.logger import ColoredLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1: Part2 Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = ColoredLogRecord(originallogrecord)
+    # The str() looks the same, because it doesn't include levelname.
+    assert str(originallogrecord) == str(shimmedlogrecord)
+    # But there is a change in the levelname
+    assert originallogrecord.levelname != shimmedlogrecord.levelname
+    assert shimmedlogrecord.levelname == "\x1b[1;36mDEBUG\x1b[0m"
+
+
+def test_coloredlogrecord_with_markup():
+    from kivy.logger import ColoredLogRecord
+
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=1,
+        msg="Part1: $BOLDPart2$RESET Part 3",
+        args=("args", ),
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = ColoredLogRecord(originallogrecord)
+    # Bolding has been added to message.
+    assert (
+        str(shimmedlogrecord)
+        == '<LogRecord: kivy.test, 20, test.py, 1, "Part1: \x1b[1mPart2\x1b[0m Part 3">'
+    )
+    # And there is a change in the levelname
+    assert originallogrecord.levelname != shimmedlogrecord.levelname
+    assert shimmedlogrecord.levelname == "\x1b[1;32mINFO\x1b[0m"
+
+
+def test_kivyformatter_colon_no_color():
+    from kivy.logger import KivyFormatter
+
+    formatter = KivyFormatter("[%(levelname)-7s] %(message)s", use_color=False)
+    logger, log_output = configured_string_logging("1", formatter)
+    logger.info("Fancy: $BOLDmess$RESETage")
+    assert log_output.getvalue() == "[INFO   ] [Fancy       ] message\n"
+
+
+def test_kivyformatter_colon_color():
+    from kivy.logger import KivyFormatter
+
+    formatter = KivyFormatter("[%(levelname)-18s] %(message)s", use_color=True)
+
+    logger, log_output = configured_string_logging("2", formatter)
+    logger.info("Fancy: $BOLDmess$RESETage")
+    assert (
+        log_output.getvalue()
+        == "[\x1b[1;32mINFO\x1b[0m   ] [Fancy       ] \x1b[1mmess\x1b[0mage\n"
+    )
