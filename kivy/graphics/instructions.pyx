@@ -654,6 +654,11 @@ cdef class Canvas(CanvasBase):
         return 0
 
     cpdef add(self, Instruction c):
+        '''Append an :class:`Instruction` to our list. If the canvas contains
+        an `after` group, then this instruction is inserted just before the
+        after group, which remains last. This is different from how
+        :meth:`insert` works, which can insert anywhere.
+        '''
         # the after group must remain the last one.
         if self._after is None:
             c.radd(self)
