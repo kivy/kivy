@@ -356,7 +356,8 @@ class ColoredLogRecord(logging.LogRecord):
 
     @classmethod
     def _format_message(cls, message):
-        return message.replace("$RESET", cls.RESET_SEQ).replace("$BOLD", cls.BOLD_SEQ)
+        return message.replace(
+            "$RESET", cls.RESET_SEQ).replace("$BOLD", cls.BOLD_SEQ)
 
     @classmethod
     def _format_levelname(cls, levelname):
@@ -418,10 +419,12 @@ class KivyFormatter(logging.Formatter):
 
     def __init__(self, *args, use_color=True, **kwargs):
         super().__init__(*args, **kwargs)
-        self._coloring_cls = ColoredLogRecord if use_color else UncoloredLogRecord
+        self._coloring_cls = (
+            ColoredLogRecord if use_color else UncoloredLogRecord)
 
     def format(self, record):
-        return super().format(self._coloring_cls(ColonSplittingLogRecord(record)))
+        return super().format(
+            self._coloring_cls(ColonSplittingLogRecord(record)))
 
 
 #: Kivy default logger instance
