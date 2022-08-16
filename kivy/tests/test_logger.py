@@ -58,3 +58,30 @@ def test_purge_logs(tmp_path, file_handler, n):
             expected_names = expected_names[:-1]
 
     assert set(expected_names) == files
+
+
+def test_trace_level():
+    """Kivy logger defines a custom level of Trace."""
+    from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
+    import logging
+
+    Logger.setLevel(9)
+    # Try different ways to trigger a trace:
+    Logger.trace("test: This is trace message 1")
+    logging.log(logging.TRACE, "test: This is trace message 2")
+    Logger.log(LOG_LEVELS["trace"], "test: This is trace message 3")
+    # Not supported:
+    # logging.trace('test: This is trace message 4')
+
+    last_log_records = LoggerHistory.history[:3]
+    assert all(log_record.levelno == 9 for log_record in last_log_records), [
+        log_record.levelno for log_record in last_log_records
+    ]
+
+
+def test_trace_level_has_level_name():
+    from kivy.logger import Logger, LoggerHistory
+
+    Logger.setLevel(9)
+    Logger.trace("test: This is trace message 1")
+    assert LoggerHistory.history[0].levelname == "TRACE"
