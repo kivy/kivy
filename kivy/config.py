@@ -326,6 +326,9 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionchanged:: 2.2.0
+    `implementation` has been added to the network section.
+
 .. versionchanged:: 2.1.0
     `vsync` has been added to the graphics section.
     `verify_gl_main_thread` has been added to the graphics section.
@@ -335,6 +338,7 @@ Available configuration tokens
     to the `graphics` section.
     `kivy_clock` has been added to the kivy section.
     `default_font` has beed added to the kivy section.
+    `useragent` has been added to the network section.
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -369,14 +373,15 @@ try:
     from ConfigParser import ConfigParser as PythonConfigParser
 except ImportError:
     from configparser import RawConfigParser as PythonConfigParser
+from collections import OrderedDict
 from os import environ
 from os.path import exists
-from kivy import kivy_config_fn
-from kivy.logger import Logger, logger_config_update
-from collections import OrderedDict
-from kivy.utils import platform
-from kivy.compat import PY2, string_types
 from weakref import ref
+
+from kivy import kivy_config_fn
+from kivy.compat import PY2, string_types
+from kivy.logger import Logger, logger_config_update
+from kivy.utils import platform
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -721,7 +726,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             'KIVY_NO_CONFIG' not in environ):
         try:
             Config.read(kivy_config_fn)
-        except Exception as e:
+        except Exception:
             Logger.exception('Core: error while reading local'
                              'configuration')
 
@@ -909,6 +914,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'custom_titlebar', '0')
             Config.setdefault('graphics', 'custom_titlebar_border', '5')
 
+        elif version == 24:
+            Config.setdefault("network", "implementation", "default")
+
         else:
             # for future.
             break
@@ -928,7 +936,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             Config.filename = kivy_config_fn
             Config.write()
-        except Exception as e:
+        except Exception:
             Logger.exception('Core: Error while saving default config file')
 
     # Load configuration from env

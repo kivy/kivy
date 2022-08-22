@@ -58,33 +58,24 @@ If you want a synchronous request, you can call the wait() method.
 
 from base64 import b64encode
 from collections import deque
+from http.client import HTTPConnection
 from json import loads
 from threading import Event, Thread
 from time import sleep
+from urllib.parse import urlparse, urlunparse
 
 import requests
 from kivy.clock import Clock
-from kivy.compat import PY2
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 
-if PY2:
-    from httplib import HTTPConnection
-    from urlparse import urlparse, urlunparse
-else:
-    from http.client import HTTPConnection
-    from urllib.parse import urlparse, urlunparse
-
 try:
     import ssl
 
     HTTPSConnection = None
-    if PY2:
-        from httplib import HTTPSConnection
-    else:
-        from http.client import HTTPSConnection
+    from http.client import HTTPSConnection
 except ImportError:
     # depending the platform, if openssl support wasn't compiled before python,
     # this class is not available.
@@ -124,7 +115,7 @@ class UrlRequestBase(Thread):
 
         Parameters `on_cancel` added.
 
-    .. versionchanged:: 2.11.0
+    .. versionchanged:: 2.2.0
 
         Parameters `on_finish` added.
         Parameters `auth` added.
@@ -193,13 +184,14 @@ class UrlRequestBase(Thread):
     '''
 
     def __init__(
-            self, url, on_success=None, on_redirect=None,
-            on_failure=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192,
-            timeout=None, method=None, decode=True, debug=False,
-            file_path=None, ca_file=None, verify=True, proxy_host=None,
-            proxy_port=None, proxy_headers=None, user_agent=None,
-            on_cancel=None, on_finish=None, cookies=None, auth=None):
+        self, url, on_success=None, on_redirect=None,
+        on_failure=None, on_error=None, on_progress=None,
+        req_body=None, req_headers=None, chunk_size=8192,
+        timeout=None, method=None, decode=True, debug=False,
+        file_path=None, ca_file=None, verify=True, proxy_host=None,
+        proxy_port=None, proxy_headers=None, user_agent=None,
+        on_cancel=None, on_finish=None, cookies=None, auth=None
+    ):
         super().__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -406,11 +398,6 @@ class UrlRequestBase(Thread):
                 status_class = self.get_status_code(resp) // 100
 
                 if status_class in (1, 2):
-                    print(
-                        'UrlRequest: {0} Download finished with '
-                        '{1} datalen'.format(id(self), len(data))
-                    )
-
                     if self._debug:
                         Logger.debug(
                             'UrlRequest: {0} Download finished with '
@@ -481,7 +468,7 @@ class UrlRequestBase(Thread):
             else:
                 assert(0)
 
-            if not result == "progress" and self.on_finish:
+            if result != "progress" and self.on_finish:
                 if self._debug:
                     Logger.debug('UrlRequest: Request is finished')
                 func = self.on_finish()
@@ -558,8 +545,8 @@ class UrlRequestBase(Thread):
 class UrlRequestUrllib(UrlRequestBase):
 
     def get_chunks(
-            self, resp, chunk_size, total_size, report_progress, q,
-            trigger, fd=None
+        self, resp, chunk_size, total_size, report_progress, q,
+        trigger, fd=None
     ):
         bytes_so_far = 0
         result = b''
@@ -710,8 +697,8 @@ class UrlRequestUrllib(UrlRequestBase):
 class UrlRequestRequests(UrlRequestBase):
 
     def get_chunks(
-            self, resp, chunk_size, total_size, report_progress, q,
-            trigger, fd=None
+        self, resp, chunk_size, total_size, report_progress, q,
+        trigger, fd=None
     ):
         bytes_so_far = 0
         result = b''
@@ -790,4 +777,15 @@ class UrlRequestRequests(UrlRequestBase):
         return None, response
 
 
-UrlRequest = UrlRequestUrllib
+implementation_map = {
+    "default": UrlRequestUrllib,
+    "requests": UrlRequestRequests,
+    "urllib": UrlRequestUrllib,
+}
+
+if Config.has_option('network', 'implementation'):
+    prefered_implementation = Config.get("network", "implementation")
+    UrlRequest = implementation_map.get(prefered_implementation)
+
+else:
+    UrlRequest = implementation_map["default"]
