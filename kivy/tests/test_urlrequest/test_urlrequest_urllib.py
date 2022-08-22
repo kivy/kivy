@@ -2,13 +2,14 @@
 UrlRequest tests
 ================
 '''
-import pytest
+import os
 import threading
-
+from base64 import b64encode
 from datetime import datetime
 from time import sleep
-from base64 import b64encode
-import os
+
+import pytest
+from kivy.network.urlrequest import UrlRequestUrllib as UrlRequest
 
 
 def wait_request_is_finished(kivy_clock, request, timeout=10):
@@ -62,7 +63,6 @@ class UrlRequestQueue:
 
 @pytest.mark.skipif(os.environ.get('NONETWORK'), reason="No network")
 def test_callbacks(kivy_clock):
-    from kivy.network.urlrequest import UrlRequest
     obj = UrlRequestQueue([])
     queue = obj.queue
     req = UrlRequest('http://google.com',
@@ -82,7 +82,6 @@ def test_callbacks(kivy_clock):
 
 @pytest.mark.skipif(os.environ.get('NONETWORK'), reason="No network")
 def test_auth_header(kivy_clock):
-    from kivy.network.urlrequest import UrlRequest
     obj = UrlRequestQueue([])
     queue = obj.queue
     head = {
@@ -111,7 +110,6 @@ def test_auth_header(kivy_clock):
 
 @pytest.mark.skipif(os.environ.get('NONETWORK'), reason="No network")
 def test_auth_auto(kivy_clock):
-    from kivy.network.urlrequest import UrlRequest
     obj = UrlRequestQueue([])
     queue = obj.queue
     req = UrlRequest(
@@ -136,7 +134,6 @@ def test_auth_auto(kivy_clock):
 @pytest.mark.parametrize("scheme", ("http", "https"))
 def test_ca_file(kivy_clock, scheme):
     """Passing a `ca_file` should not crash on http scheme, refs #6946"""
-    from kivy.network.urlrequest import UrlRequest
     import certifi
     obj = UrlRequestQueue([])
     queue = obj.queue
