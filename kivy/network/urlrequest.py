@@ -56,6 +56,7 @@ If you want a synchronous request, you can call the wait() method.
 
 '''
 
+import os
 from base64 import b64encode
 from collections import deque
 from http.client import HTTPConnection
@@ -783,9 +784,11 @@ implementation_map = {
     "urllib": UrlRequestUrllib,
 }
 
-if Config.has_option('network', 'implementation'):
-    prefered_implementation = Config.get("network", "implementation")
-    UrlRequest = implementation_map.get(prefered_implementation)
-
+if not os.environ.get("KIVY_DOC_INCLUDE"):
+    prefered_implementation = Config.getdefault(
+        "network", "implementation", "default"
+    )
 else:
-    UrlRequest = implementation_map["default"]
+    prefered_implementation = "default"
+
+UrlRequest = implementation_map.get(prefered_implementation)
