@@ -106,32 +106,8 @@ except NameError:  # Python 2
 
 Logger = None
 
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
-
-# These are the sequences need to get colored output
-RESET_SEQ = "\033[0m"
-COLOR_SEQ = "\033[1;%dm"
-BOLD_SEQ = "\033[1m"
-
 previous_stderr = sys.stderr
 
-
-def formatter_message(message, use_color=True):
-    if use_color:
-        message = message.replace("$RESET", RESET_SEQ)
-        message = message.replace("$BOLD", BOLD_SEQ)
-    else:
-        message = message.replace("$RESET", "").replace("$BOLD", "")
-    return message
-
-
-COLORS = {
-    'TRACE': MAGENTA,
-    'WARNING': YELLOW,
-    'INFO': GREEN,
-    'DEBUG': CYAN,
-    'CRITICAL': RED,
-    'ERROR': RED}
 
 logging.addLevelName(9, 'TRACE')
 logging.TRACE = 9
@@ -280,30 +256,6 @@ class LoggerHistory(logging.Handler):
         self.clear_history()
 
 
-class ColoredFormatter(logging.Formatter):
-
-    def __init__(self, msg, use_color=True):
-        logging.Formatter.__init__(self, msg)
-        self.use_color = use_color
-
-    def format(self, record):
-        """Apply terminal color code to the record"""
-        # deepcopy so we do not mess up the record for other formatters
-        record = copy.deepcopy(record)
-        try:
-            msg = record.msg.split(':', 1)
-            if len(msg) == 2:
-                record.msg = '[%-12s]%s' % (msg[0], msg[1])
-        except:
-            pass
-        levelname = record.levelname
-        if self.use_color and levelname in COLORS:
-            levelname_color = (
-                COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ)
-            record.levelname = levelname_color
-        return logging.Formatter.format(self, record)
-
-
 class ConsoleHandler(logging.StreamHandler):
 
     def filter(self, record):
@@ -349,6 +301,133 @@ def logger_config_update(section, key, value):
     Logger.setLevel(level=LOG_LEVELS.get(value))
 
 
+class ColonSplittingLogRecord(logging.LogRecord):
+    """Clones an existing logRecord, but reformats the message field
+    if it contains a colon."""
+
+    def __init__(self, logrecord):
+        try:
+            parts = logrecord.msg.split(":", 1)
+            if len(parts) == 2:
+                new_msg = "[%-12s]%s" % (parts[0], parts[1])
+            else:
+                new_msg = parts[0]
+        except Exception:
+            new_msg = logrecord.msg
+
+        super().__init__(
+            name=logrecord.name,
+            level=logrecord.levelno,
+            pathname=logrecord.pathname,
+            lineno=logrecord.lineno,
+            msg=new_msg,
+            args=logrecord.args,
+            exc_info=logrecord.exc_info,
+            func=logrecord.funcName,
+            sinfo=logrecord.stack_info,
+        )
+
+
+class ColoredLogRecord(logging.LogRecord):
+    """Clones an existing logRecord, but reformats the levelname to add
+    color, and the message to add bolding (where indicated by $BOLD
+    and $RESET in the message)."""
+
+    BLACK = 0
+    RED = 1
+    GREEN = 2
+    YELLOW = 3
+    BLUE = 4
+    MAGENTA = 5
+    CYAN = 6
+    WHITE = 7
+    RESET_SEQ = "\033[0m"
+    COLOR_SEQ = "\033[1;%dm"
+    BOLD_SEQ = "\033[1m"
+
+    LEVEL_COLORS = {
+        "TRACE": MAGENTA,
+        "WARNING": YELLOW,
+        "INFO": GREEN,
+        "DEBUG": CYAN,
+        "CRITICAL": RED,
+        "ERROR": RED,
+    }
+
+    @classmethod
+    def _format_message(cls, message):
+        return message.replace(
+            "$RESET", cls.RESET_SEQ).replace("$BOLD", cls.BOLD_SEQ)
+
+    @classmethod
+    def _format_levelname(cls, levelname):
+        if levelname in cls.LEVEL_COLORS:
+            return (
+                cls.COLOR_SEQ % (30 + cls.LEVEL_COLORS[levelname])
+                + levelname
+                + cls.RESET_SEQ
+            )
+        return levelname
+
+    def __init__(self, logrecord):
+        super().__init__(
+            name=logrecord.name,
+            level=logrecord.levelno,
+            pathname=logrecord.pathname,
+            lineno=logrecord.lineno,
+            msg=logrecord.msg,
+            args=logrecord.args,
+            exc_info=logrecord.exc_info,
+            func=logrecord.funcName,
+            sinfo=logrecord.stack_info,
+        )
+        self.levelname = self._format_levelname(self.levelname)
+        self.msg = self._format_message(self.msg)
+
+
+# Included for backward compatibility only.
+# Could be used to override colors.
+COLORS = ColoredLogRecord.LEVEL_COLORS
+
+
+class UncoloredLogRecord(logging.LogRecord):
+    """Clones an existing logRecord, but reformats the message
+    to remove $BOLD/$RESET markup."""
+
+    @classmethod
+    def _format_message(cls, message):
+        return message.replace("$RESET", "").replace("$BOLD", "")
+
+    def __init__(self, logrecord):
+        super().__init__(
+            name=logrecord.name,
+            level=logrecord.levelno,
+            pathname=logrecord.pathname,
+            lineno=logrecord.lineno,
+            msg=logrecord.msg,
+            args=logrecord.args,
+            exc_info=logrecord.exc_info,
+            func=logrecord.funcName,
+            sinfo=logrecord.stack_info,
+        )
+        self.msg = self._format_message(self.msg)
+
+
+class KivyFormatter(logging.Formatter):
+    """Split out first field in message marked with a colon,
+    and either apply terminal color codes to the record, or strip
+    out color markup if colored logging is not available."""
+
+    def __init__(self, *args, use_color=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._coloring_cls = (
+            ColoredLogRecord if use_color else UncoloredLogRecord)
+
+    def format(self, record):
+        return super().format(
+            self._coloring_cls(ColonSplittingLogRecord(record)))
+
+
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
@@ -387,14 +466,12 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         if not use_color:
             # No additional control characters will be inserted inside the
             # levelname field, 7 chars will fit "WARNING"
-            color_fmt = formatter_message(
-                '[%(levelname)-7s] %(message)s', use_color)
+            fmt = "[%(levelname)-7s] %(message)s"
         else:
             # levelname field width need to take into account the length of the
             # color control codes (7+4 chars for bold+color, and reset)
-            color_fmt = formatter_message(
-                '[%(levelname)-18s] %(message)s', use_color)
-        formatter = ColoredFormatter(color_fmt, use_color=use_color)
+            fmt = "[%(levelname)-18s] %(message)s"
+        formatter = KivyFormatter(fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)
         Logger.addHandler(console)
