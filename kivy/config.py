@@ -386,7 +386,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 24
+KIVY_CONFIG_VERSION = 25
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -917,6 +917,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 24:
             Config.setdefault("network", "implementation", "default")
 
+        # WARNING: When adding a new version migration here,
+        # don't forget to increment KIVY_CONFIG_VERSION !
         else:
             # for future.
             break
