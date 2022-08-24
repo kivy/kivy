@@ -106,7 +106,11 @@ function Install-kivy-sdist {
 }
 
 function Test-kivy {
-    python -m pytest --timeout=400 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+    # Tests with default environment variables.
+    python -m pytest --timeout=400 --cov=kivy --cov-branch --cov-report= "$(pwd)/kivy/tests"
+    # Logging tests, with KIVY_LOG_MODE=TEST.
+    $env:KIVY_LOG_MODE = 'TEST'
+    python -m pytest -m logmodetest --timeout=400 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
 }
 
 function Test-kivy-benchmark {
