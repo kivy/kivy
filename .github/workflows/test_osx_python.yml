@@ -33,11 +33,10 @@ jobs:
       uses: actions/cache@v2
       with:
         path: osx-cache
-        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_versions.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
         build_and_install_universal_kivy_sys_deps

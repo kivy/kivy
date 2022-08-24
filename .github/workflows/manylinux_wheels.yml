@@ -78,7 +78,7 @@ jobs:
       id: deps-cache
       with:
         path: kivy_build
-        key: ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache-${{ hashFiles('**/ubuntu_ci.sh') }}
+        key: ${{ runner.os }}-${{ matrix.cibw_archs }}-deps-cache-${{ hashFiles('.ci/ubuntu_ci.sh') }}
     - name: Build dependencies
       if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
       run: |
