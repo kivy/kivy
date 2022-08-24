@@ -12,7 +12,7 @@ arranged on one side of it's content.
 
 The :class:`Bubble` contains an arrow attached to the content
 (e.g., :class:`BubbleContent`) pointing in the direction you choose. It can
-be placed either at a predifined location or flexibly by specifying a relative
+be placed either at a predefined location or flexibly by specifying a relative
 position on the border of the widget.
 
 The :class:`BubbleContent` is a styled BoxLayout and is thought to be added to

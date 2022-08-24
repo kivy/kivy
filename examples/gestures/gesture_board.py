@@ -21,7 +21,7 @@ def simplegesture(name, point_list):
 class GestureBoard(FloatLayout):
     """
     Our application main widget, derived from touchtracer example, use data
-    constructed from touches to match symboles loaded from my_gestures.
+    constructed from touches to match symbols loaded from my_gestures.
 
     """
     def __init__(self, *args, **kwargs):
