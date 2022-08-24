@@ -40,7 +40,7 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Test-kivy-benchmark
-    - name: Upload benchamrks as artifact
+    - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v2
       with:
         name: benchmarks
