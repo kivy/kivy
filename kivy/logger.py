@@ -88,8 +88,6 @@ messages::
 import logging
 import os
 import sys
-import copy
-from random import randint
 from functools import partial
 import pathlib
 
@@ -98,11 +96,6 @@ import kivy
 
 __all__ = (
     'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
-
-try:
-    PermissionError
-except NameError:  # Python 2
-    PermissionError = OSError, IOError
 
 Logger = None
 
@@ -433,9 +426,6 @@ Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
-# set the Kivy logger as the default
-logging.root = Logger
-
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
 file_log_handler = None
@@ -476,5 +466,9 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         console.setFormatter(formatter)
         Logger.addHandler(console)
 
-# install stderr handlers
-sys.stderr = LogFile('stderr', Logger.warning)
+if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
+    # set the Kivy logger as the default
+    logging.root = Logger
+
+    # install stderr handlers
+    sys.stderr = LogFile("stderr", Logger.warning)

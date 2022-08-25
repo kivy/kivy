@@ -4,6 +4,9 @@ Logger tests
 """
 
 import logging
+import os
+import sys
+
 import pytest
 import pathlib
 import time
@@ -152,9 +155,8 @@ def test_colonsplittinglogrecord_with_colon():
     )
     shimmedlogrecord = ColonSplittingLogRecord(originallogrecord)
     assert (
-        str(shimmedlogrecord)
-        == '<LogRecord: kivy.test, 10, test.py, 1, '
-           '"[Part1       ] Part2: Part 3">'
+        str(shimmedlogrecord) == "<LogRecord: kivy.test, 10, test.py, 1, "
+        '"[Part1       ] Part2: Part 3">'
     )
 
 
@@ -257,9 +259,8 @@ def test_coloredlogrecord_with_markup():
     shimmedlogrecord = ColoredLogRecord(originallogrecord)
     # Bolding has been added to message.
     assert (
-        str(shimmedlogrecord)
-        == '<LogRecord: kivy.test, 20, test.py, 1, '
-           '"Part1: \x1b[1mPart2\x1b[0m Part 3">'
+        str(shimmedlogrecord) == "<LogRecord: kivy.test, 20, test.py, 1, "
+        '"Part1: \x1b[1mPart2\x1b[0m Part 3">'
     )
     # And there is a change in the levelname
     assert originallogrecord.levelname != shimmedlogrecord.levelname
@@ -286,3 +287,22 @@ def test_kivyformatter_colon_color():
         log_output.getvalue()
         == "[\x1b[1;32mINFO\x1b[0m   ] [Fancy       ] \x1b[1mmess\x1b[0mage\n"
     )
+
+
+@pytest.mark.logmodetest
+@pytest.mark.skipif(
+    os.environ.get("KIVY_LOG_MODE", None) != "TEST",
+    reason="Requires KIVY_LOG_MODE=TEST to run.",
+)
+def test_kivy_log_mode_marker_on():
+    """
+    This is a test of the pytest marker "logmodetest".
+    This should only be invoked if the environment variable is properly set
+    (before pytest is run).
+
+    Also, tests that kivy.logger paid attention to the environment variable
+    """
+    from kivy.logger import previous_stderr
+
+    assert sys.stderr == previous_stderr, "Kivy.logging override stderr"
+    assert logging.root.parent is None, "Kivy.logging override root logger"
