@@ -143,7 +143,6 @@ def get_color_from_hex(color):
 
     # If the alpha value is missing, add it by default
     if len(value) == 3: value.append(1.0)
-    print(value)
 
     return value
 
