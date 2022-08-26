@@ -14,6 +14,7 @@ import pytest
 # Used to determine which tests must be skipped
 LOG_MODE = os.environ.get("KIVY_LOG_MODE", "KIVY")
 
+
 @pytest.fixture
 def file_handler():
     # restores handler to original state
@@ -307,6 +308,7 @@ def test_kivy_log_mode_marker_on():
     """
     assert logging.root.level != 0, "Root logger was modified"
 
+
 @pytest.mark.skipif(
     LOG_MODE == "TEST",
     reason="Requires KIVY_LOG_MODE!=TEST to run.",
@@ -359,11 +361,13 @@ def simulate_evacuation():
 
 # Separated out as different tests, because they test different configurations:
 
+
 @pytest.mark.skipif(
     LOG_MODE != "KIVY", reason="KIVY_LOG_MODE must be KIVY or absent"
 )
 def test_third_party_handlers_works_kivy_mode():
     simulate_evacuation()
+
 
 @pytest.mark.logmodetest
 @pytest.mark.skipif(LOG_MODE != "TEST", reason="KIVY_LOG_MODE must be TEST")
