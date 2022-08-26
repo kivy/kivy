@@ -5,11 +5,10 @@ Logger tests
 
 import logging
 import os
-import sys
-
-import pytest
 import pathlib
 import time
+
+import pytest
 
 
 @pytest.fixture
@@ -302,7 +301,19 @@ def test_kivy_log_mode_marker_on():
 
     Also, tests that kivy.logger paid attention to the environment variable
     """
-    from kivy.logger import previous_stderr
+    assert logging.root.parent is None, "Overrode root logger"
 
-    assert sys.stderr == previous_stderr, "Kivy.logging override stderr"
-    assert logging.root.parent is None, "Kivy.logging override root logger"
+
+@pytest.mark.skipif(
+    os.environ.get("KIVY_LOG_MODE", None) == "TEST",
+    reason="Requires KIVY_LOG_MODE!=TEST to run.",
+)
+def test_kivy_log_mode_marker_off():
+    """
+    This is a test of the pytest marker "logmodetest".
+    This should only be invoked if the environment variable is properly set
+    (before pytest is run).
+
+    Also, tests that kivy.logger paid attention to the environment variable
+    """
+    assert logging.root.parent is not None, "Did not override root logger"

@@ -99,8 +99,6 @@ __all__ = (
 
 Logger = None
 
-previous_stderr = sys.stderr
-
 
 logging.addLevelName(9, 'TRACE')
 logging.TRACE = 9
@@ -250,26 +248,40 @@ class LoggerHistory(logging.Handler):
 
 
 class ConsoleHandler(logging.StreamHandler):
+    """
+        Emits records to a stream (by default, stderr).
+
+        However, if the msg starts with "stderr:" it is not formatted, but
+        written straight to the stream.
+
+    """
 
     def filter(self, record):
         try:
             msg = record.msg
             k = msg.split(':', 1)
             if k[0] == 'stderr' and len(k) == 2:
-                previous_stderr.write(k[1] + '\n')
+                # This message was scraped from stderr.
+                # Emit it without formatting.
+                self.stream.write(k[1] + '\n')
+                # Don't pass it to the formatted emitter.
                 return False
-        except:
+        except Exception:
             pass
         return True
 
 
-class LogFile(object):
+class ProcessingStream(object):
+    """
+        Stream-like object that takes each completed line written to it,
+        adds a given prefix, and applies the given function to it.
+    """
 
     def __init__(self, channel, func):
-        self.buffer = ''
+        self.buffer = ""
         self.func = func
         self.channel = channel
-        self.errors = ''
+        self.errors = ""
 
     def write(self, s):
         s = self.buffer + s
@@ -277,8 +289,8 @@ class LogFile(object):
         f = self.func
         channel = self.channel
         lines = s.split('\n')
-        for l in lines[:-1]:
-            f('%s: %s' % (channel, l))
+        for line in lines[:-1]:
+            f('%s: %s' % (channel, line))
         self.buffer = lines[-1]
 
     def flush(self):
@@ -466,9 +478,16 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         console.setFormatter(formatter)
         Logger.addHandler(console)
 
+# This environment variable is unsupported, and is expected to change before
+# the next release.
 if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
     # set the Kivy logger as the default
     logging.root = Logger
 
     # install stderr handlers
-    sys.stderr = LogFile("stderr", Logger.warning)
+
+    # Caution: If any logging handlers output to sys.stderr they should be
+    # configured BEFORE this reconfiguration is done to avoid loops.
+    sys.stderr = ProcessingStream("stderr", Logger.warning)
+    # Sends all messages written to stderr to the Logger, after prefixing it
+    # with "stderr:"
