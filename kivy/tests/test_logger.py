@@ -6,10 +6,13 @@ Logger tests
 import logging
 import os
 import pathlib
+import sys
 import time
 
 import pytest
 
+# Used to determine which tests must be skipped
+LOG_MODE = os.environ.get("KIVY_LOG_MODE", "KIVY")
 
 @pytest.fixture
 def file_handler():
@@ -69,6 +72,7 @@ def test_trace_level():
     import logging
 
     Logger.setLevel(9)
+
     # Try different ways to trigger a trace:
     Logger.trace("test: This is trace message 1")
     logging.log(logging.TRACE, "test: This is trace message 2")
@@ -290,22 +294,21 @@ def test_kivyformatter_colon_color():
 
 @pytest.mark.logmodetest
 @pytest.mark.skipif(
-    os.environ.get("KIVY_LOG_MODE", None) != "TEST",
+    LOG_MODE != "TEST",
     reason="Requires KIVY_LOG_MODE=TEST to run.",
 )
 def test_kivy_log_mode_marker_on():
     """
     This is a test of the pytest marker "logmodetest".
-    This should only be invoked if the environment variable is properly set
+    This should only be invoked if the environment variable is appropriately set
     (before pytest is run).
 
     Also, tests that kivy.logger paid attention to the environment variable
     """
-    assert logging.root.parent is None, "Overrode root logger"
-
+    assert logging.root.level != 0, "Root logger was modified"
 
 @pytest.mark.skipif(
-    os.environ.get("KIVY_LOG_MODE", None) == "TEST",
+    LOG_MODE == "TEST",
     reason="Requires KIVY_LOG_MODE!=TEST to run.",
 )
 def test_kivy_log_mode_marker_off():
@@ -316,4 +319,53 @@ def test_kivy_log_mode_marker_off():
 
     Also, tests that kivy.logger paid attention to the environment variable
     """
-    assert logging.root.parent is not None, "Did not override root logger"
+    assert logging.root.level == 0, "Root logger was not modified"
+
+
+""" These tests are an overly-dramatic simulation of a third-party library's 
+    logging infrastructure.
+
+    A handler is attached to the root-logger, which takes action when a
+    critical message is logged.
+    """
+
+
+class NuclearReactorMonitoringHandler(logging.Handler):
+    NUCLEAR_REACTOR_STATUS = "Nominal"
+
+    def __init__(self):
+        super().__init__(level=logging.CRITICAL)
+
+    def emit(self, log_record):
+        # The fact that this was called means a critical log record
+        # was created.
+        sys.stderr.write("Please proceed immediately to the nearest exit.\n")
+        sys.stderr.flush()
+        self.NUCLEAR_REACTOR_STATUS = "Evacuated"
+
+
+def simulate_evacuation():
+    logging.getLogger().addHandler(logging.StreamHandler())
+
+    handler = NuclearReactorMonitoringHandler()
+    logging.getLogger().addHandler(handler)
+
+    nuclear_core_logger = logging.getLogger("powerstation.core")
+    nuclear_core_logger.info("Core temperature nominal")
+    assert handler.NUCLEAR_REACTOR_STATUS == "Nominal"
+    nuclear_core_logger.critical("Radioactive gas leak")
+    assert handler.NUCLEAR_REACTOR_STATUS == "Evacuated"
+
+
+# Separated out as different tests, because they test different configurations:
+
+@pytest.mark.skipif(
+    LOG_MODE != "KIVY", reason="KIVY_LOG_MODE must be KIVY or absent"
+)
+def test_third_party_handlers_works_kivy_mode():
+    simulate_evacuation()
+
+@pytest.mark.logmodetest
+@pytest.mark.skipif(LOG_MODE != "TEST", reason="KIVY_LOG_MODE must be TEST")
+def test_third_party_handlers_works_test_mode():
+    simulate_evacuation()

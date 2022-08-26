@@ -491,14 +491,15 @@ def add_kivy_handlers(logger):
             logger.addHandler(console)
 
 
-add_kivy_handlers(Logger)
-
-
 # This environment variable is unsupported, and is expected to change before
 # the next release.
 if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
-    # set the Kivy logger as the default
-    logging.root = Logger
+    # Add the Kivy handlers to the root logger, so it will be used
+    # for all propagated log messages.
+    add_kivy_handlers(logging.root)
+
+    # Root logger defaults to warning. Let Logger be the limiting factor.
+    logging.root.setLevel(logging.NOTSET)
 
     # install stderr handlers
 
