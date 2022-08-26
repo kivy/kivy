@@ -451,6 +451,7 @@ def is_color_terminal():
             and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
     )
 
+
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None

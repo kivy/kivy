@@ -324,12 +324,11 @@ def test_kivy_log_mode_marker_off():
     assert logging.root.level == 0, "Root logger was not modified"
 
 
-""" These tests are an overly-dramatic simulation of a third-party library's 
-    logging infrastructure.
-
-    A handler is attached to the root-logger, which takes action when a
-    critical message is logged.
-    """
+# These tests are an overly-dramatic simulation of a third-party library's
+# logging infrastructure.
+#
+# A handler is attached to the root-logger, which takes action when a
+# critical message is logged.
 
 
 class NuclearReactorMonitoringHandler(logging.Handler):
