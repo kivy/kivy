@@ -92,6 +92,7 @@ from functools import partial
 import pathlib
 
 import kivy
+from kivy.utils import platform
 
 
 __all__ = (
@@ -448,7 +449,7 @@ def is_color_terminal():
                         'xterm-256color',
                     )
             )
-            and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
+            and platform not in ('android', 'ios')
     )
 
 
