@@ -361,7 +361,7 @@ class ColoredLogRecord(logging.LogRecord):
 
     @classmethod
     def _format_message(cls, message):
-        return message.replace(
+        return str(message).replace(
             "$RESET", cls.RESET_SEQ).replace("$BOLD", cls.BOLD_SEQ)
 
     @classmethod
@@ -401,7 +401,7 @@ class UncoloredLogRecord(logging.LogRecord):
 
     @classmethod
     def _format_message(cls, message):
-        return message.replace("$RESET", "").replace("$BOLD", "")
+        return str(message).replace("$RESET", "").replace("$BOLD", "")
 
     def __init__(self, logrecord):
         super().__init__(
