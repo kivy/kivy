@@ -177,6 +177,22 @@ def test_colonsplittinglogrecord_without_colon():
     # No colons means no change.
     assert str(originallogrecord) == str(shimmedlogrecord)
 
+    # Try a non-string (Issue #7984)
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg=1,
+        args=None,
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = ColonSplittingLogRecord(originallogrecord)
+    # No colons means no change.
+    assert str(originallogrecord) == str(shimmedlogrecord)
+
 
 def test_uncoloredlogrecord_without_markup():
     from kivy.logger import UncoloredLogRecord
@@ -194,6 +210,21 @@ def test_uncoloredlogrecord_without_markup():
     )
     shimmedlogrecord = UncoloredLogRecord(originallogrecord)
     # No markup means no change.
+    assert str(originallogrecord) == str(shimmedlogrecord)
+
+    # Try a non-string (Issue #7984)
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg=1,
+        args=None,
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = UncoloredLogRecord(originallogrecord)
     assert str(originallogrecord) == str(shimmedlogrecord)
 
 
@@ -239,6 +270,21 @@ def test_coloredlogrecord_without_markup():
     # But there is a change in the levelname
     assert originallogrecord.levelname != shimmedlogrecord.levelname
     assert shimmedlogrecord.levelname == "\x1b[1;36mDEBUG\x1b[0m"
+
+    # Try a non-string (Issue #7984)
+    originallogrecord = logging.LogRecord(
+        name="kivy.test",
+        level=logging.DEBUG,
+        pathname="test.py",
+        lineno=1,
+        msg=1,
+        args=None,
+        exc_info=None,
+        func="test_colon_splitting",
+        sinfo=None,
+    )
+    shimmedlogrecord = ColoredLogRecord(originallogrecord)
+    assert str(originallogrecord) == str(shimmedlogrecord)
 
 
 def test_coloredlogrecord_with_markup():
