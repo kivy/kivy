@@ -67,6 +67,21 @@ def test_purge_logs(tmp_path, file_handler, n):
     assert set(expected_names) == files
 
 
+@pytest.mark.xfail  # Issue #7986 not yet fixed.
+def test_logger_history_size():
+    from kivy.logger import Logger, LoggerHistory
+
+    for x in range(200):
+        Logger.info(x)
+    assert len(LoggerHistory.history) == 100, "Wrong size: %s" % len(
+        LoggerHistory.history
+    )
+
+
+@pytest.mark.skipif(
+    LOG_MODE != "KIVY",
+    reason="Requires KIVY_LOG_MODE==KIVY to run.",
+)
 def test_trace_level():
     """Kivy logger defines a custom level of Trace."""
     from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
@@ -87,6 +102,10 @@ def test_trace_level():
     ]
 
 
+@pytest.mark.skipif(
+    LOG_MODE == "PYTHON",
+    reason="Requires KIVY_LOG_MODE!=PYTHON to run.",
+)
 def test_trace_level_has_level_name():
     from kivy.logger import Logger, LoggerHistory
 
@@ -339,14 +358,15 @@ def test_kivyformatter_colon_color():
     )
 
 
-@pytest.mark.logmodetest
+@pytest.mark.logmodepython
+@pytest.mark.logmodemixed
 @pytest.mark.skipif(
-    LOG_MODE != "TEST",
-    reason="Requires KIVY_LOG_MODE=TEST to run.",
+    LOG_MODE == "KIVY",
+    reason="Requires KIVY_LOG_MODE!=KIVY to run.",
 )
 def test_kivy_log_mode_marker_on():
     """
-    This is a test of the pytest marker "logmodetest".
+    This is a test of the pytest markers.
     This should only be invoked if the environment variable is appropriately set
     (before pytest is run).
 
@@ -356,12 +376,12 @@ def test_kivy_log_mode_marker_on():
 
 
 @pytest.mark.skipif(
-    LOG_MODE == "TEST",
-    reason="Requires KIVY_LOG_MODE!=TEST to run.",
+    LOG_MODE != "KIVY",
+    reason="Requires KIVY_LOG_MODE==KIVY to run.",
 )
 def test_kivy_log_mode_marker_off():
     """
-    This is a test of the pytest marker "logmodetest".
+    This is a test of the pytest markers.
     This should only be invoked if the environment variable is properly set
     (before pytest is run).
 
@@ -404,17 +424,67 @@ def simulate_evacuation():
     assert handler.NUCLEAR_REACTOR_STATUS == "Evacuated"
 
 
-# Separated out as different tests, because they test different configurations:
+@pytest.mark.logmodepython
+@pytest.mark.logmodemixed
+def test_third_party_handlers_work():
+    # This should work under any mode.
+    simulate_evacuation()
+
+
+def are_regular_logs_handled():
+    from kivy.logger import LoggerHistory
+
+    LoggerHistory.clear_history()
+    logging.getLogger("test").info(1)
+    return bool(LoggerHistory.history)
+
+
+def are_kivy_logger_logs_handled():
+    from kivy.logger import LoggerHistory, Logger
+
+    LoggerHistory.clear_history()
+    Logger.info(1)
+    return bool(LoggerHistory.history)
+
+
+def is_stderr_output_handled():
+    from kivy.logger import LoggerHistory
+
+    LoggerHistory.clear_history()
+    sys.stderr.write("Test output to stderr\n")
+    sys.stderr.flush()
+    return bool(LoggerHistory.history)
 
 
 @pytest.mark.skipif(
-    LOG_MODE != "KIVY", reason="KIVY_LOG_MODE must be KIVY or absent"
+    LOG_MODE != "KIVY",
+    reason="Requires KIVY_LOG_MODE==KIVY to run.",
 )
-def test_third_party_handlers_works_kivy_mode():
-    simulate_evacuation()
+def test_kivy_mode_handlers():
+    assert are_regular_logs_handled()
+    assert are_kivy_logger_logs_handled()
+    # This line doesn't work because of pytest's handling of stderr.
+    # Runs fine as stand-alone code.
+    # assert is_stderr_output_handled()
 
 
-@pytest.mark.logmodetest
-@pytest.mark.skipif(LOG_MODE != "TEST", reason="KIVY_LOG_MODE must be TEST")
-def test_third_party_handlers_works_test_mode():
-    simulate_evacuation()
+@pytest.mark.logmodepython
+@pytest.mark.skipif(
+    LOG_MODE != "PYTHON",
+    reason="Requires KIVY_LOG_MODE==PYTHON to run.",
+)
+def test_python_mode_handlers():
+    assert not are_regular_logs_handled()
+    assert not are_kivy_logger_logs_handled()
+    assert not is_stderr_output_handled()
+
+
+@pytest.mark.logmodemixed
+@pytest.mark.skipif(
+    LOG_MODE != "MIXED",
+    reason="Requires KIVY_LOG_MODE==MIXED to run.",
+)
+def test_mixed_mode_handlers():
+    assert not are_regular_logs_handled()
+    assert are_kivy_logger_logs_handled()
+    assert not is_stderr_output_handled()
