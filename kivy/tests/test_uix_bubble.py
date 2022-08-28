@@ -178,7 +178,7 @@ class BubbleTest(GraphicUnitTest):
         for a, b in zip(seq1, seq2):
             self.assertAlmostEqual(a, b, delta=delta)
 
-    def assertTestBubbleLayoutWithPredifinedArrowPos(self, bubble):
+    def assertTestBubbleLayoutWithPredefinedArrowPos(self, bubble):
         arrow_length = bubble.arrow_length
         arrow_width = bubble.arrow_width
         bubble_width = bubble.test_bubble_width
@@ -344,7 +344,7 @@ class BubbleTest(GraphicUnitTest):
                 bubble.add_widget(content)
                 self.render(bubble)
 
-                self.assertTestBubbleLayoutWithPredifinedArrowPos(bubble)
+                self.assertTestBubbleLayoutWithPredefinedArrowPos(bubble)
 
     def test_bubble_layout_without_arrow(self):
         bubble_width = 200
