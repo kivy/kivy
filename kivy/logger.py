@@ -92,6 +92,7 @@ from functools import partial
 import pathlib
 
 import kivy
+from kivy.utils import platform
 
 
 __all__ = (
@@ -433,56 +434,74 @@ class KivyFormatter(logging.Formatter):
             self._coloring_cls(ColonSplittingLogRecord(record)))
 
 
+def is_color_terminal():
+    return (
+            (
+                    os.environ.get("WT_SESSION") or
+                    os.environ.get("COLORTERM") == 'truecolor' or
+                    os.environ.get('PYCHARM_HOSTED') == '1' or
+                    os.environ.get('TERM') in (
+                        'rxvt',
+                        'rxvt-256color',
+                        'rxvt-unicode',
+                        'rxvt-unicode-256color',
+                        'xterm',
+                        'xterm-256color',
+                    )
+            )
+            and platform not in ('android', 'ios')
+    )
+
+
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
-# add default kivy logger
-Logger.addHandler(LoggerHistory())
-file_log_handler = None
-if 'KIVY_NO_FILELOG' not in os.environ:
-    file_log_handler = FileHandler()
-    Logger.addHandler(file_log_handler)
+file_log_handler = (
+    FileHandler()
+    if 'KIVY_NO_FILELOG' not in os.environ
+    else None
+)
 
-# Use the custom handler instead of streaming one.
-if 'KIVY_NO_CONSOLELOG' not in os.environ:
-    if hasattr(sys, '_kivy_logging_handler'):
-        Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
-    else:
-        use_color = (
-            (
-                os.environ.get("WT_SESSION") or
-                os.environ.get("COLORTERM") == 'truecolor' or
-                os.environ.get('PYCHARM_HOSTED') == '1' or
-                os.environ.get('TERM') in (
-                    'rxvt',
-                    'rxvt-256color',
-                    'rxvt-unicode',
-                    'rxvt-unicode-256color',
-                    'xterm',
-                    'xterm-256color',
-                )
-            ) and os.environ.get('KIVY_BUILD') not in ('android', 'ios')
-        )
-        if not use_color:
-            # No additional control characters will be inserted inside the
-            # levelname field, 7 chars will fit "WARNING"
-            fmt = "[%(levelname)-7s] %(message)s"
+
+def add_kivy_handlers(logger):
+    # add default kivy logger
+    logger.addHandler(LoggerHistory())
+    if file_log_handler:
+        logger.addHandler(file_log_handler)
+
+    # Use the custom handler instead of streaming one.
+    if 'KIVY_NO_CONSOLELOG' not in os.environ:
+        # This attribute is undocumented, and may be removed in a future
+        # release.
+        if hasattr(sys, '_kivy_logging_handler'):
+            logger.addHandler(getattr(sys, '_kivy_logging_handler'))
         else:
-            # levelname field width need to take into account the length of the
-            # color control codes (7+4 chars for bold+color, and reset)
-            fmt = "[%(levelname)-18s] %(message)s"
-        formatter = KivyFormatter(fmt, use_color=use_color)
-        console = ConsoleHandler()
-        console.setFormatter(formatter)
-        Logger.addHandler(console)
+            use_color = is_color_terminal()
+            if not use_color:
+                # No additional control characters will be inserted inside the
+                # levelname field, 7 chars will fit "WARNING"
+                fmt = "[%(levelname)-7s] %(message)s"
+            else:
+                # levelname field width need to take into account the length of
+                # the color control codes (7+4 chars for bold+color, and reset)
+                fmt = "[%(levelname)-18s] %(message)s"
+            formatter = KivyFormatter(fmt, use_color=use_color)
+            console = ConsoleHandler()
+            console.setFormatter(formatter)
+            logger.addHandler(console)
+
 
 # This environment variable is unsupported, and is expected to change before
 # the next release.
 if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
-    # set the Kivy logger as the default
-    logging.root = Logger
+    # Add the Kivy handlers to the root logger, so it will be used
+    # for all propagated log messages.
+    add_kivy_handlers(logging.root)
+
+    # Root logger defaults to warning. Let Logger be the limiting factor.
+    logging.root.setLevel(logging.NOTSET)
 
     # install stderr handlers
 
