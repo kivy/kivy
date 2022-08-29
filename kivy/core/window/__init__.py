@@ -1984,9 +1984,15 @@ class WindowBase(EventDispatcher):
                            "semantics.")
 
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # On Android a back key/gesture is mapped to 27 and initiates a pause.
+        # Consume the event and tell Android to pause.
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
-        if WindowBase.on_keyboard.exit_on_escape:
+        if key == 27 and platform == 'android':
+            from android import mActivity
+            mActivity.moveTaskToBack(True)
+            return True
+        elif WindowBase.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
