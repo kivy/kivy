@@ -178,7 +178,7 @@ The following steps assumes git is pre-installed and available in the terminal.
 
 The typical process is to clone Kivy locally with::
 
-    git clone git://github.com/kivy/kivy.git
+    git clone https://github.com/kivy/kivy.git
 
 This creates a kivy named folder in your current path. Next, install the additional
 system dependencies listed for each OS: :ref:`Windows<install-source-win>`,
