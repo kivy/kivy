@@ -953,7 +953,7 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         self._run_prepare()
         runTouchApp()
-        self.stop()
+        self._stop()
 
     async def async_run(self, async_lib=None):
         '''Identical to :meth:`run`, but is a coroutine and can be
@@ -965,14 +965,22 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         self._run_prepare()
         await async_runTouchApp(async_lib=async_lib)
-        self.stop()
+        self._stop()
 
     def stop(self, *largs):
         '''Stop the application.
 
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
+        Except on Android, set Android state to stop, Kivy state then follows. 
         '''
+        if platform == 'android':
+            from android import mActivity
+            mActivity.finishAndRemoveTask()
+        else:
+            self._stop()
+         
+    def stop(self, *largs):
         self.dispatch('on_stop')
         stopTouchApp()
 
