@@ -989,6 +989,16 @@ Context.html#getFilesDir()>`_ is returned.
             for child in self._app_window.children:
                 self._app_window.remove_widget(child)
         App._running_app = None
+      
+    def pause(self, *largs):
+        '''Pause the application.
+
+        On Android set OS state to pause, Kivy app state follows.
+        No functionality on other OS.
+        '''
+        if platform == 'android':
+            from android import mActivity
+            mActivity.moveTaskToBack(True)
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
