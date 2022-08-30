@@ -989,7 +989,7 @@ Context.html#getFilesDir()>`_ is returned.
             for child in self._app_window.children:
                 self._app_window.remove_widget(child)
         App._running_app = None
-      
+
     def pause(self, *largs):
         '''Pause the application.
 
