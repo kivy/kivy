@@ -972,15 +972,15 @@ Context.html#getFilesDir()>`_ is returned.
 
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
-        Except on Android, set Android state to stop, Kivy state then follows. 
+        Except on Android, set Android state to stop, Kivy state then follows.
         '''
         if platform == 'android':
             from android import mActivity
             mActivity.finishAndRemoveTask()
         else:
             self._stop()
-         
-    def stop(self, *largs):
+
+    def _stop(self, *largs):
         self.dispatch('on_stop')
         stopTouchApp()
 
