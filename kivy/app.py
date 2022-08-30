@@ -995,6 +995,7 @@ Context.html#getFilesDir()>`_ is returned.
 
         On Android set OS state to pause, Kivy app state follows.
         No functionality on other OS.
+        .. versionadded:: 2.2.0
         '''
         if platform == 'android':
             from android import mActivity
