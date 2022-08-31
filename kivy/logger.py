@@ -397,9 +397,10 @@ class ProcessingStream(object):
 
 
 def logger_config_update(section, key, value):
-    if LOG_LEVELS.get(value) is None:
-        raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
-    Logger.setLevel(level=LOG_LEVELS.get(value))
+    if KIVY_LOG_MODE != "PYTHON":
+        if LOG_LEVELS.get(value) is None:
+            raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
+            Logger.setLevel(level=LOG_LEVELS.get(value))
 
 
 class ColonSplittingLogRecord(logging.LogRecord):
