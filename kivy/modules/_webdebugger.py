@@ -11,6 +11,7 @@ from kivy.logger import Logger
 
 try:
     from flask import Flask, render_template_string, make_response
+    from flask_wtf.csrf import CSRFProtect
 except ImportError:
     Logger.error('WebDebugger: unable to import Flask. Install it!')
     raise
@@ -26,7 +27,10 @@ class MissingOrderedDict(OrderedDict):
 
 
 metrics = MissingOrderedDict()
+# OpenRefactory Warning: The 'Flask' method creates a Flask app
+# without Cross-Site Request Forgery (CSRF) protection.
 app = Flask(__name__)
+CSRFProtect(app)
 
 
 @app.route('/')
