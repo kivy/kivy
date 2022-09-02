@@ -116,25 +116,18 @@ def get_color_from_hex(color):
 
     .. versionchanged:: 2.2.0
 
-    Supporting and 1-4 HEX values.
-    If provided values has just 1-2 characters, that will be treated as a grey scale.
+    Supporting and 3-4 HEX values.
 
-    >>> get_color_from_hex("FF00FF33")  # [1.0, 0.0, 1.0, 0.2]
-    >>> get_color_from_hex("F0F3")      # [1.0, 0.0, 1.0, 0.2]
-    >>> get_color_from_hex("F0F")       # [1.0, 0.0, 1.0, 1.0]
-    >>> get_color_from_hex("00")        # [0.0, 0.0, 0.0, 1.0]
-    >>> get_color_from_hex("F")         # [1.0, 1.0, 1.0, 1.0]
+    >>> get_color_from_hex("#FF00FF33")  # [1.0, 0.0, 1.0, 0.2]
+    >>> get_color_from_hex("#F0F3")      # [1.0, 0.0, 1.0, 0.2]
+    >>> get_color_from_hex("#F0F")       # [1.0, 0.0, 1.0, 1.0]
     '''
     # Remove the usually HEX prefix
-    if '#' in color:
-        color = color.replace("#", "")
-
-    # If provided color have 1-2 values, treat it as a gray scale
-    if len(color) < 3:
-        color = 6 // len(color) * color
+    if color.startswith("#"):
+        color = color[1:]
 
     # In case the color have 3-4 values, double the values
-    elif len(color) < 5:
+    if 2 < len(color) < 5:
         color = f"{'{}' * len(color)}".format(*[value * 2 for value in color])
 
     # Compute the values
@@ -142,7 +135,8 @@ def get_color_from_hex(color):
              for x in split('([0-9a-f]{2})', color.lower()) if x != '']
 
     # If the alpha value is missing, add it by default
-    if len(value) == 3: value.append(1.0)
+    if len(value) == 3:
+        value.append(1.0)
 
     return value
 
