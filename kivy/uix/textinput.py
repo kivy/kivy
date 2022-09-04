@@ -2637,6 +2637,8 @@ class TextInput(FocusBehavior, Widget):
             ntext = self.password_mask * len(ntext)
 
         kw = self._get_line_options()
+        kw['color'] = self.disabled_foreground_color if self.disabled\
+            else (self.hint_text_color if not text else self.foreground_color)
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
 

@@ -196,7 +196,7 @@
             pos: self._cursor_visual_pos
             size: root.cursor_width, -self._cursor_visual_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
+            rgba: (1, 1, 1, 1)
 
 <TextInputCutCopyPaste>:
     content: content.__self__
