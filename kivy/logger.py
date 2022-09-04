@@ -25,7 +25,8 @@ Logger object
 The Kivy ``Logger`` class provides a singleton logging.logger instance.
 
 As well as the standard logging levels (``debug``, ``info``,
-``warning``, ``error`` and ``critical``), a new ``trace`` level is available.
+``warning``, ``error`` and ``critical``), an additional ``trace`` level is
+available.
 
 Example Usage
 -------------
@@ -400,7 +401,7 @@ def logger_config_update(section, key, value):
     if KIVY_LOG_MODE != "PYTHON":
         if LOG_LEVELS.get(value) is None:
             raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
-            Logger.setLevel(level=LOG_LEVELS.get(value))
+        Logger.setLevel(level=LOG_LEVELS.get(value))
 
 
 class ColonSplittingLogRecord(logging.LogRecord):
@@ -575,6 +576,10 @@ file_log_handler = (
     else None
 )
 
+
+# Issue #7891 describes an undocumented feature that was since removed
+# Detect if a client was depending on it.
+# .. versionchanged:: 2.2.0
 assert not hasattr(sys, '_kivy_logging_handler'), \
     "Not supported. Try logging.root.addHandler()"
 

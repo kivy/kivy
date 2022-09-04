@@ -124,7 +124,7 @@ Available configuration tokens
         .. note::
             Logging outout can also be controlled by the environment variables
             ``KIVY_LOG_MODE``, ``KIVY_NO_FILELOG`` and ``KIVY_NO_CONSOLELOG``.
-            More information is providfed in the :mod:`kivy.logger` module.
+            More information is provided in the :mod:`kivy.logger` module.
 
     `log_level`: string, one of |log_levels|
         Set the minimum log level to use.
