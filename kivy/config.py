@@ -122,7 +122,7 @@ Available configuration tokens
         Activate file logging. 0 is disabled, 1 is enabled.
 
         .. note::
-            Logging outout can also be controlled by the environment variables
+            Logging output can also be controlled by the environment variables
             ``KIVY_LOG_MODE``, ``KIVY_NO_FILELOG`` and ``KIVY_NO_CONSOLELOG``.
             More information is provided in the :mod:`kivy.logger` module.
 
