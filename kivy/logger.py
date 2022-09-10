@@ -1,19 +1,37 @@
-'''
+"""
+Kivy Logging
+============
+
+By default, Kivy provides a logging system based on the standard Python
+`logging <https://docs.python.org/3/library/logging.html>`_ module with
+several additional features designed to be more convenient. These features
+include:
+
+ * simplied usage (single instance, simple configuration, works by default)
+ * color-coded output on supported terminals
+ * output to ``stderr`` by default
+ * message categorization via colon separation
+ * access to log history even if logging is disabled
+ * built-in handling of various cross-platform considerations
+ * any stray output written to ``sys.stderr`` is captured, and stored in the log
+   file as a warning.
+
+These features are configurable via the Config file or environment variables -
+including falling back to only using the standard Python system.
+
 Logger object
 =============
 
-The Kivy `Logger` class provides a singleton logger instance. This instance
-exposes a standard Python
-`logger <https://docs.python.org/3/library/logging.html>`_ object but adds
-some convenient features.
+The Kivy ``Logger`` class provides a singleton logging.logger instance.
 
-All the standard logging levels are available : `trace`, `debug`, `info`,
-`warning`, `error` and `critical`.
+As well as the standard logging levels (``debug``, ``info``,
+``warning``, ``error`` and ``critical``), an additional ``trace`` level is
+available.
 
 Example Usage
 -------------
 
-Use the `Logger` as you would a standard Python logger. ::
+Use the ``Logger`` as you would a standard Python logger. ::
 
     from kivy.logger import Logger
 
@@ -35,33 +53,89 @@ message. This way, you can "categorize" your messages easily. ::
 
     [INFO   ] [Application ] This is a test
 
-You can change the logging level at any time using the `setLevel` method. ::
+You can change the logging level at any time using the ``setLevel`` method. ::
 
     from kivy.logger import Logger, LOG_LEVELS
 
     Logger.setLevel(LOG_LEVELS["debug"])
 
+.. versionchanged:: 2.2.0
 
-Features
---------
+Interaction with other logging
+------------------------------
 
-Although you are free to use standard python loggers, the Kivy `Logger` offers
-some solid benefits and useful features. These include:
+The Kivy logging system will, by default, present all log messages sent from
+any logger - e.g. from third-party libraries.
 
-* simplied usage (single instance, simple configuration, works by default)
-* color-coded output
-* output to `stdout` by default
-* message categorization via colon separation
-* access to log history even if logging is disabled
-* built-in handling of various cross-platform considerations
+Additional handlers may be added.
 
-Kivys' logger was designed to be used with kivy apps and makes logging from
-Kivy apps more convenient.
+.. warning:: Handlers that output to ``sys.stderr`` may cause loops, as stderr
+   output is reported as a warning log message.
 
 Logger Configuration
---------------------
+====================
 
-The Logger can be controlled via the Kivy configuration file::
+Kivy Log Mode
+-------------
+
+At the highest level, Kivy's logging system is controlled by an environment
+variable ``KIVY_LOG_MODE``. It may be given any of three values:
+``KIVY``, ``PYTHON``, ``MIXED``
+
+.. versionadded: 2.2.0
+
+KIVY Mode (default)
+^^^^^^^^^^^^^^^^^^^
+
+In ``KIVY`` mode, all Kivy handlers are attached to the root logger, so all log
+messages in the system are output to the Kivy log files and to the console. Any
+stray output to ``sys.stderr`` is logged as a warning.
+
+If you are writing an entire Kivy app from scratch, this is the most convenient
+mode.
+
+PYTHON Mode
+^^^^^^^^^^^
+
+In ``PYTHON`` mode, no handlers are added, and ``sys.stderr`` output is not
+captured. It is left to the client to add appropriate handlers. (If none are
+added, the ``logging`` module will output them to ``stderr``.)
+
+Messages logged with ``Logger`` will be propagated to the root logger, from a
+logger named ``kivy``.
+
+If the Kivy app is part of a much larger project which has its own logging
+regimen, this is the mode that gives most control.
+
+The ``kivy.logger`` file contains a number of ``logging.handler``,
+``logging.formatter``, and other helper classes to allow
+users to adopt the features of Kivy logging that they like, including the
+stderr redirection.
+
+MIXED Mode
+^^^^^^^^^^
+
+In ``MIXED`` mode, handlers are added to the Kivy's ``Logger`` object directly,
+and propagation is turned off. ``sys.stderr`` is not redirected.
+
+Messages logged with Kivy's ``Logger`` will appear in the Kivy log file and
+output to the Console.
+
+However, messages logged with other Python loggers will not be handled by Kivy
+handlers. The client will need to add their own.
+
+If you like the features of Kivy ``Logger``, but are writing a Kivy app that
+relies on third-party libraries that don't use colon-separation of categorise
+or depend on the display of the logger name, this mode provides a compromise.
+
+Again, the ``kivy.logger`` file contains re-usable logging features that can be
+used to get the best of both systems.
+
+Config Files
+------------
+
+In ``KIVY`` and ``MIXED`` modes, the logger handlers can be controlled via the
+Kivy configuration file::
 
     [kivy]
     log_level = info
@@ -73,17 +147,21 @@ The Logger can be controlled via the Kivy configuration file::
 More information about the allowed values are described in the
 :mod:`kivy.config` module.
 
+In addition, the environment variables ``KIVY_NO_FILELOG`` and
+``KIVY_NO_CONSOLELOG`` can be used to turn off the installation of the
+corresponding handlers.
+
+
 Logger History
 --------------
 
 Even if the logger is not enabled, you still have access to the last 100
-messages::
+LogRecords::
 
     from kivy.logger import LoggerHistory
 
     print(LoggerHistory.history)
-
-'''
+"""
 
 import logging
 import os
@@ -96,7 +174,22 @@ from kivy.utils import platform
 
 
 __all__ = (
-    'Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory', 'file_log_handler')
+    "add_kivy_handlers",
+    "ColonSplittingLogRecord",
+    "ColoredLogRecord",
+    "COLORS",
+    "ConsoleHandler",
+    "file_log_handler",
+    "FileHandler",
+    "is_color_terminal",
+    "KivyFormatter",
+    "LOG_LEVELS",
+    "Logger",
+    "LoggerHistory",
+    "ProcessingStream",
+    "UncoloredLogRecord",
+)
+
 
 Logger = None
 
@@ -255,6 +348,7 @@ class ConsoleHandler(logging.StreamHandler):
         However, if the msg starts with "stderr:" it is not formatted, but
         written straight to the stream.
 
+        .. versionadded:: 2.2.0
     """
 
     def filter(self, record):
@@ -276,6 +370,8 @@ class ProcessingStream(object):
     """
         Stream-like object that takes each completed line written to it,
         adds a given prefix, and applies the given function to it.
+
+        .. versionadded:: 2.2.0
     """
 
     def __init__(self, channel, func):
@@ -302,14 +398,18 @@ class ProcessingStream(object):
 
 
 def logger_config_update(section, key, value):
-    if LOG_LEVELS.get(value) is None:
-        raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
-    Logger.setLevel(level=LOG_LEVELS.get(value))
+    if KIVY_LOG_MODE != "PYTHON":
+        if LOG_LEVELS.get(value) is None:
+            raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
+        Logger.setLevel(level=LOG_LEVELS.get(value))
 
 
 class ColonSplittingLogRecord(logging.LogRecord):
     """Clones an existing logRecord, but reformats the message field
-    if it contains a colon."""
+    if it contains a colon.
+
+    .. versionadded:: 2.2.0
+    """
 
     def __init__(self, logrecord):
         try:
@@ -337,7 +437,9 @@ class ColonSplittingLogRecord(logging.LogRecord):
 class ColoredLogRecord(logging.LogRecord):
     """Clones an existing logRecord, but reformats the levelname to add
     color, and the message to add bolding (where indicated by $BOLD
-    and $RESET in the message)."""
+    and $RESET in the message).
+
+    .. versionadded:: 2.2.0"""
 
     BLACK = 0
     RED = 1
@@ -398,7 +500,9 @@ COLORS = ColoredLogRecord.LEVEL_COLORS
 
 class UncoloredLogRecord(logging.LogRecord):
     """Clones an existing logRecord, but reformats the message
-    to remove $BOLD/$RESET markup."""
+    to remove $BOLD/$RESET markup.
+
+    .. versionadded:: 2.2.0"""
 
     @classmethod
     def _format_message(cls, message):
@@ -422,7 +526,9 @@ class UncoloredLogRecord(logging.LogRecord):
 class KivyFormatter(logging.Formatter):
     """Split out first field in message marked with a colon,
     and either apply terminal color codes to the record, or strip
-    out color markup if colored logging is not available."""
+    out color markup if colored logging is not available.
+
+    .. versionadded:: 2.2.0"""
 
     def __init__(self, *args, use_color=True, **kwargs):
         super().__init__(*args, **kwargs)
@@ -435,6 +541,11 @@ class KivyFormatter(logging.Formatter):
 
 
 def is_color_terminal():
+    """ Detect whether the environment supports color codes in output.
+
+    .. versionadded:: 2.2.0
+    """
+
     return (
             (
                     os.environ.get("WT_SESSION") or
@@ -454,6 +565,7 @@ def is_color_terminal():
 
 
 #: Kivy default logger instance
+# .. versionchanged:: 2.2.0
 Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
@@ -465,7 +577,18 @@ file_log_handler = (
 )
 
 
+# Issue #7891 describes an undocumented feature that was since removed
+# Detect if a client was depending on it.
+# .. versionchanged:: 2.2.0
+assert not hasattr(sys, '_kivy_logging_handler'), \
+    "Not supported. Try logging.root.addHandler()"
+
+
 def add_kivy_handlers(logger):
+    """ Add Kivy-specific handlers to a logger.
+
+    .. versionadded:: 2.2.0
+    """
     # add default kivy logger
     logger.addHandler(LoggerHistory())
     if file_log_handler:
@@ -473,30 +596,26 @@ def add_kivy_handlers(logger):
 
     # Use the custom handler instead of streaming one.
     if 'KIVY_NO_CONSOLELOG' not in os.environ:
-        # This attribute is undocumented, and may be removed in a future
-        # release.
-        if hasattr(sys, '_kivy_logging_handler'):
-            logger.addHandler(getattr(sys, '_kivy_logging_handler'))
+        use_color = is_color_terminal()
+        if not use_color:
+            # No additional control characters will be inserted inside the
+            # levelname field, 7 chars will fit "WARNING"
+            fmt = "[%(levelname)-7s] %(message)s"
         else:
-            use_color = is_color_terminal()
-            if not use_color:
-                # No additional control characters will be inserted inside the
-                # levelname field, 7 chars will fit "WARNING"
-                fmt = "[%(levelname)-7s] %(message)s"
-            else:
-                # levelname field width need to take into account the length of
-                # the color control codes (7+4 chars for bold+color, and reset)
-                fmt = "[%(levelname)-18s] %(message)s"
-            formatter = KivyFormatter(fmt, use_color=use_color)
-            console = ConsoleHandler()
-            console.setFormatter(formatter)
-            logger.addHandler(console)
+            # levelname field width need to take into account the length of
+            # the color control codes (7+4 chars for bold+color, and reset)
+            fmt = "[%(levelname)-18s] %(message)s"
+        formatter = KivyFormatter(fmt, use_color=use_color)
+        console = ConsoleHandler()
+        console.setFormatter(formatter)
+        logger.addHandler(console)
 
 
-# This environment variable is unsupported, and is expected to change before
-# the next release.
-if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
-    # Add the Kivy handlers to the root logger, so it will be used
+KIVY_LOG_MODE = os.environ.get("KIVY_LOG_MODE", "KIVY")
+assert KIVY_LOG_MODE in ("KIVY", "PYTHON", "MIXED"), "Unknown log mode"
+
+if KIVY_LOG_MODE == "KIVY":
+    # Add the Kivy handlers to the root logger, so they will be used
     # for all propagated log messages.
     add_kivy_handlers(logging.root)
 
@@ -510,3 +629,16 @@ if os.environ.get("KIVY_LOG_MODE", None) != "TEST":
     sys.stderr = ProcessingStream("stderr", Logger.warning)
     # Sends all messages written to stderr to the Logger, after prefixing it
     # with "stderr:"
+elif KIVY_LOG_MODE == "MIXED":
+    # Add the Kivy handlers to the Kivy logger, so they will be used
+    # for all messages sent through Logger, only.
+    add_kivy_handlers(Logger)
+
+    # Don't spread Kivy-related log messages to the root logger.
+    Logger.propagate = False
+
+    # Don't set stderr redirection: it is too likely to cause loops with other
+    # handlers. Client can manually add it, if desired.
+else:  # KIVY_LOG_MODE == "PYTHON"
+    # Don't add handlers or redirect stderr. Client can manually add if desired.
+    pass

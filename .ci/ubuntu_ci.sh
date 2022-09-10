@@ -123,8 +123,9 @@ test_kivy() {
   rm -rf kivy/tests/build || true
   # Tests with default environment variables.
   env KIVY_NO_ARGS=1 python3 -m pytest --maxfail=10 --timeout=300 --cov=kivy --cov-branch --cov-report= "$(pwd)/kivy/tests"
-  # Logging tests, with KIVY_LOG_MODE=TEST.
-  env KIVY_NO_ARGS=1 KIVY_LOG_MODE=TEST python3 -m pytest -m logmodetest --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
+  # Logging tests, with non-default log modes
+  env KIVY_NO_ARGS=1 KIVY_LOG_MODE=PYTHON python3 -m pytest -m logmodepython --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
+  env KIVY_NO_ARGS=1 KIVY_LOG_MODE=MIXED python3 -m pytest -m logmodemixed --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
 }
 
 test_kivy_benchmark() {
