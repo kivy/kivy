@@ -284,9 +284,9 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned or `App.on_pause` has no return statement, then
+    #. If False is returned or :meth:`App.on_pause` has no return statement, then
        :meth:`App.on_stop` is called.
-    #. If True is returned or `App.on_pause` is not defined, the application
+    #. If True is returned or :meth:`App.on_pause` is not defined, the application
        will sleep until the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
