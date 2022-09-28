@@ -38,7 +38,7 @@ _delayed_start = None
 
 
 class BuilderException(ParserException):
-    '''Exception raised when the Builder failed to apply a rule on a widget.
+    '''Exception raised when the Builder fails to apply a rule on a widget.
     '''
     pass
 
@@ -85,7 +85,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
-    property and rebind to the new value of the property.
+    property and rebind them to the new value of the property.
 
     For example, if the rule is `self.a.b.c.d`, then when b is changed, we
     unbind from `b`, `c` and `d`, if they were bound before (they were not
