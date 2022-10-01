@@ -246,10 +246,16 @@ class WindowSDL(WindowBase):
                 Logger.info('WindowSDL: No running App found, pause.')
 
             elif not app.dispatch('on_pause'):
-                Logger.info(
-                    'WindowSDL: App doesn\'t support pause mode, stop.')
-                stopTouchApp()
-                return 0
+                if platform == 'android':
+                    Logger.info(
+                        'WindowSDL: App stopped, on_pause() returned False.')
+                    from android import mActivity
+                    mActivity.finishAndRemoveTask()
+                else:
+                    Logger.info(
+                        'WindowSDL: App doesn\'t support pause mode, stop.')
+                    stopTouchApp()
+                    return 0
 
             self._pause_loop = True
 
