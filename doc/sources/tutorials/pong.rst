@@ -370,7 +370,7 @@ rules for the ``PongPaddle`` class at the end of this section.
 
 In Kivy, a widget can react to input by implementing the
 :meth:`on_touch_down <kivy.uix.widget.Widget.on_touch_down>`, the
-:meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the 
+:meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the
 :meth:`on_touch_up <kivy.uix.widget.Widget.on_touch_up>`
 methods. By default, the Widget class
 implements these methods by just calling the corresponding method on all its
@@ -458,7 +458,7 @@ you could do:
   functions to add or remove widgets dynamically.)
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support, so
-  wouldn't it be cool to have a player on each side and have four 
+  wouldn't it be cool to have a player on each side and have four
   people play at the same time?
 
 * Fix the simplistic collision check so hitting the ball with an end of

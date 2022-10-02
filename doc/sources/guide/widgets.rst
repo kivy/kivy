@@ -263,7 +263,7 @@ calculated like so::
 
     first child's size_hint divided by
     first child's size_hint + second child's size_hint + ...n(no of children)
-    
+
     .5/(.5+1) = .333...
 
 The rest of the BoxLayout's |width| is divided among the rest of the |children|.
@@ -372,24 +372,24 @@ Pure Python way::
     from kivy.graphics import Color, Rectangle
     from kivy.uix.floatlayout import FloatLayout
     from kivy.uix.button import Button
-    
-    
+
+
     class RootWidget(FloatLayout):
-    
+
         def __init__(self, **kwargs):
             # make sure we aren't overriding any important functionality
             super(RootWidget, self).__init__(**kwargs)
-    
+
             # let's add a Widget to this layout
             self.add_widget(
                 Button(
                     text="Hello World",
                     size_hint=(.5, .5),
                     pos_hint={'center_x': .5, 'center_y': .5}))
-    
-    
+
+
     class MainApp(App):
-    
+
         def build(self):
             self.root = root = RootWidget()
             root.bind(size=self._update_rect, pos=self._update_rect)
@@ -398,11 +398,11 @@ Pure Python way::
                 Color(0, 1, 0, 1)  # green; colors range from 0-1 not 0-255
                 self.rect = Rectangle(size=root.size, pos=root.pos)
             return root
-    
+
         def _update_rect(self, instance, value):
             self.rect.pos = instance.pos
             self.rect.size = instance.size
-    
+
     if __name__ == '__main__':
         MainApp().run()
 
@@ -453,31 +453,31 @@ Using Python::
     from kivy.uix.boxlayout import BoxLayout
     from kivy.uix.floatlayout import FloatLayout
     from kivy.uix.image import AsyncImage
-    
-    
+
+
     class RootWidget(BoxLayout):
         pass
-    
-    
+
+
     class CustomLayout(FloatLayout):
-    
+
         def __init__(self, **kwargs):
             # make sure we aren't overriding any important functionality
             super(CustomLayout, self).__init__(**kwargs)
-    
+
             with self.canvas.before:
                 Color(0, 1, 0, 1)  # green; colors range from 0-1 instead of 0-255
                 self.rect = Rectangle(size=self.size, pos=self.pos)
-    
+
             self.bind(size=self._update_rect, pos=self._update_rect)
-    
+
         def _update_rect(self, instance, value):
             self.rect.pos = instance.pos
             self.rect.size = instance.size
-    
-    
+
+
     class MainApp(App):
-    
+
         def build(self):
             root = RootWidget()
             c = CustomLayout()
@@ -496,7 +496,7 @@ Using Python::
                     pos_hint={'center_x':.5, 'center_y':.5}))
             root.add_widget(c)
             return root
-    
+
     if __name__ == '__main__':
         MainApp().run()
 
@@ -551,7 +551,7 @@ Both of the Apps should look something like this:
 
 .. image:: images/custom_layout_background.png
 
-Defining the background in the custom layout class, assures that it will be used 
+Defining the background in the custom layout class, assures that it will be used
 in every instance of CustomLayout.
 
 Now, to add an image or color to the background of a built-in Kivy layout,
