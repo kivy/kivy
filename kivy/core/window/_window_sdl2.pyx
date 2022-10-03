@@ -746,7 +746,13 @@ cdef class _WindowSDL2Storage:
             pass
 
     def flip(self):
-        SDL_GL_SwapWindow(self.win)
+        # On Android (and potentially other platforms), SDL_GL_SwapWindow may
+        # lock the thread waiting for a mutex from another thread to be
+        # released. Calling SDL_GL_SwapWindow with the GIL released allow the
+        # other thread to run (e.g. to process the event filter callback) and
+        # release the mutex SDL_GL_SwapWindow is waiting for.
+        with nogil:
+            SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
