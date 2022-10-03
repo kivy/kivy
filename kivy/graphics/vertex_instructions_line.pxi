@@ -1127,7 +1127,7 @@ cdef class Line(VertexInstruction):
         else:
             x = y = width = height = 0
             assert 0
-
+        
         # Resulting rectangle
         self._rectangle = (x, y, width, height)
         # Reset other properties
@@ -1244,7 +1244,7 @@ cdef class Line(VertexInstruction):
 
         # Resulting rounded_rectangle
         self._rounded_rectangle = (x, y, w, h, c1, c2, c3, c4, resolution)
-        # Reset another properties
+        # Reset other properties
         self._rectangle = self._ellipse = self._circle = None
 
         step = PI / resolution
@@ -1302,7 +1302,7 @@ cdef class Line(VertexInstruction):
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
-        :attr:`points`.
+        :attr:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of 2n elements, n being the number of points.
 
