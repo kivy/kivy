@@ -965,7 +965,7 @@ cdef class Line(VertexInstruction):
         
         # Resulting ellipse
         self._ellipse = (x, y, w, h, angle_start, angle_end, segments)
-        # Reset another properties
+        # Reset other properties
         self._rounded_rectangle = self._rectangle = self._circle = None
 
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
@@ -1058,7 +1058,7 @@ cdef class Line(VertexInstruction):
 
         # Resulting circle
         self._circle = (x, y, r, angle_start, angle_end, segments)
-        # Reset another properties
+        # Reset other properties
         self._rounded_rectangle = self._rectangle = self._ellipse = None
 
         segmentpoints = segments * 2
@@ -1130,7 +1130,7 @@ cdef class Line(VertexInstruction):
 
         # Resulting rectangle
         self._rectangle = (x, y, width, height)
-        # Reset another properties
+        # Reset other properties
         self._rounded_rectangle = self._circle = self._ellipse = None
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
