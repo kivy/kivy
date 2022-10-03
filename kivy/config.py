@@ -479,7 +479,7 @@ class ConfigParser(PythonConfigParser, object):
         #    self.readfp(f)
         old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
                     self.sections()}
-        PythonConfigParser.read(self, filename)
+        PythonConfigParser.read(self, filename, encoding="utf-8")
 
         # when reading new file, sections/keys are only increased, not removed
         f = self._do_callbacks
