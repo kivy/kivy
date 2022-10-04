@@ -40,13 +40,13 @@ jobs:
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
         build_and_install_universal_kivy_sys_deps
-        install_kivy_test_run_pip_deps dev
+        install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        install_kivy dev
+        install_kivy
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
