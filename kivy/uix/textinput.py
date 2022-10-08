@@ -566,6 +566,9 @@ class TextInput(FocusBehavior, Widget):
         fbind('font_family', refresh_line_options)
         fbind('base_direction', refresh_line_options)
         fbind('text_language', refresh_line_options)
+        fbind('foreground_color', refresh_line_options)
+        fbind('disabled_foreground_color', refresh_line_options)
+        fbind('hint_text_color', refresh_line_options)
 
         def handle_readonly(instance, value):
             if value and (not _is_desktop or not self.allow_copy):
@@ -2638,7 +2641,7 @@ class TextInput(FocusBehavior, Widget):
 
         kw = self._get_line_options()
         kw['color'] = self.disabled_foreground_color if self.disabled\
-            else (self.hint_text_color if not text else self.foreground_color)
+            else (self.hint_text_color if hint else self.foreground_color)
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
 
