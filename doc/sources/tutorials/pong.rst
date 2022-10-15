@@ -398,7 +398,7 @@ occurs because Kivy :mod:`~kivy.properties` automatically bind to any references
 in their corresponding kv files. When the ball
 escapes out of the sides, we'll update the score and serve the ball
 again by changing the ``update`` method in the ``PongGame`` class. The ``PongPaddle``
-class also implements a ``bounce_ball method``, so that the ball bounces
+class also implements a ``bounce_ball`` method, so that the ball bounces
 differently based on where it hits the racket. Here is the code for the
 `PongPaddle` class::
 
