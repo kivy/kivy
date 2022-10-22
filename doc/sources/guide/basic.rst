@@ -16,6 +16,7 @@ Have a look at one of these pages for detailed installation instructions:
 * :ref:`installation_windows`
 * :ref:`installation_osx`
 * :ref:`installation_linux`
+* :ref:`installation_bsd`
 * :ref:`installation_rpi`
 
 Alternatively, instructions for the development version can be found here:
