@@ -39,14 +39,11 @@ automatically pushed to the device.
 Buildozer currently works only in Linux and macOS (You can still use
 it on Windows via WSL), and can significantly simplify the apk build.
 
-You can get buildozer at `<https://github.com/kivy/buildozer>`_::
+Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation.html>`__
 
-    git clone https://github.com/kivy/buildozer.git
-    cd buildozer
-    sudo python setup.py install
+Including the "Targeting Android" section.
 
-This will install buildozer in your system. Afterwards, navigate to
-your project directory and run::
+Afterwards, navigate to your project directory and run::
 
     buildozer init
 
@@ -54,9 +51,6 @@ This creates a `buildozer.spec` file controlling your build
 configuration. You should edit it appropriately with your app name
 etc. You can set variables to control most or all of the parameters
 passed to python-for-android.
-
-Install buildozer's `dependencies
-<https://buildozer.readthedocs.io/en/latest/installation.html#targeting-android>`_.
 
 Finally, plug in your android device and run::
 
