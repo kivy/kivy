@@ -22,7 +22,7 @@ MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/re
 MACOS__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
 
 # macOS Platypus version
-MACOS__PLATYPUS__VERSION=5.4
+MACOS__PLATYPUS__VERSION=5.4.1
 
 download_cache_curl() {
   fname="$1"
