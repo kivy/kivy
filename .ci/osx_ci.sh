@@ -2,7 +2,7 @@
 set -e -x
 
 # macOS SDL2
-MACOS__SDL2__VERSION="2.24.0"
+MACOS__SDL2__VERSION="2.24.1"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
 MACOS__SDL2__FOLDER="SDL2-$MACOS__SDL2__VERSION"
 
