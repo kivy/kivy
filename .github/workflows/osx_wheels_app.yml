@@ -149,6 +149,8 @@ jobs:
             python: '3.9'
           - runs_on: macos-11     
             python: '3.10'
+          - runs_on: macos-11     
+            python: '3.11'
           - runs_on: apple-silicon-m1
             python: '3.8.13'
           - runs_on: apple-silicon-m1
