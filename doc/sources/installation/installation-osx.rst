@@ -142,7 +142,7 @@ To install the Kivy virtualenv, you must:
     3. In the GUI copy the Kivy.app to /Applications by dragging the folder icon to the right.
     4. Optionally create a symlink by running the following command::
 
-           ``ln -s /Applications/Kivy.app/Contents/Resources/script /usr/local/bin/kivy``
+           ln -s /Applications/Kivy.app/Contents/Resources/script /usr/local/bin/kivy
 
        This creates the ``kivy`` binary that you can use instead of python to run scripts.
        I.e. instead of doing ``python my_script.py`` or ``python -m pip install <module name>``, write
