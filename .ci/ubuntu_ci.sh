@@ -2,7 +2,7 @@
 set -e -x
 
 # manylinux SDL2
-MANYLINUX__SDL2__VERSION="2.24.1"
+MANYLINUX__SDL2__VERSION="2.24.2"
 MANYLINUX__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MANYLINUX__SDL2__VERSION/SDL2-$MANYLINUX__SDL2__VERSION.tar.gz"
 MANYLINUX__SDL2__FOLDER="SDL2-$MANYLINUX__SDL2__VERSION"
 
