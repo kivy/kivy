@@ -986,7 +986,7 @@ class Console(RelativeLayout):
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and 'ctrl' in modifiers:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
