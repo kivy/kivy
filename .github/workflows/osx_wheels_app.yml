@@ -42,7 +42,7 @@ jobs:
   osx_wheels_create:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
-      CIBW_BUILD: "cp37-macosx_x86_64 cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2"
+      CIBW_BUILD: "cp37-macosx_x86_64 cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2"
       CIBW_ARCHS_MACOS: "x86_64 universal2"
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
         DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
@@ -80,7 +80,7 @@ jobs:
       run: |
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        python -m pip install cibuildwheel==2.3.1
+        python -m pip install cibuildwheel==2.11.2
     - name: Build wheels
       run: |
         source .ci/osx_ci.sh
