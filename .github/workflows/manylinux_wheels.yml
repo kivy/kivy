@@ -48,22 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        cibw_archs: [x86_64]
-        cibw_build: ['cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64']
         include:
-           - os: ubuntu-latest
-             cibw_archs: aarch64
-             cibw_build: cp37-manylinux_aarch64
-           - os: ubuntu-latest
-             cibw_archs: aarch64
-             cibw_build: cp38-manylinux_aarch64
-           - os: ubuntu-latest
-             cibw_archs: aarch64
-             cibw_build: cp39-manylinux_aarch64
-           - os: ubuntu-latest
-             cibw_archs: aarch64
-             cibw_build: cp310-manylinux_aarch64
+          - os: ubuntu-latest
+            cibw_archs: x86_64
+            cibw_build: 'cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64'
+          - os: ubuntu-latest
+            cibw_archs: aarch64
+            cibw_build: 'cp37-manylinux_aarch64 cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64'
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v2
@@ -90,7 +81,7 @@ jobs:
         update_version_metadata
     - name: Install cibuildwheel
       run: |
-        python -m pip install cibuildwheel==2.3.1
+        python -m pip install cibuildwheel==2.11.2
     - name: Make wheels
       run: |
         python -m cibuildwheel --output-dir wheelhouse
@@ -145,7 +136,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
       matrix:
-        python: [ '3.7', '3.8', '3.9', '3.10' ]
+        python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
     env:
       DISPLAY: ':99.0'
     steps:
