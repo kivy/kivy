@@ -214,6 +214,7 @@ class WindowSDL(WindowBase):
                   minimum_height=self._set_minimum_size)
 
         self.bind(allow_screensaver=self._set_allow_screensaver)
+        self.bind(always_on_top=self._set_always_on_top)
 
     def get_window_info(self):
         return self._win.get_window_info()
@@ -227,6 +228,9 @@ class WindowSDL(WindowBase):
             Logger.warning(
                 'Both Window.minimum_width and Window.minimum_height must be '
                 'bigger than 0 for the size restriction to take effect.')
+
+    def _set_always_on_top(self, *args):
+        self._win.set_always_on_top(self.always_on_top)
 
     def _set_allow_screensaver(self, *args):
         self._win.set_allow_screensaver(self.allow_screensaver)
@@ -334,6 +338,7 @@ class WindowSDL(WindowBase):
             self._pos = (0, 0)
             self._set_minimum_size()
             self._set_allow_screensaver()
+            self._set_always_on_top()
 
             if state == 'hidden':
                 self._focus = False

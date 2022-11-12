@@ -221,6 +221,10 @@ class WindowBase(EventDispatcher):
             Minimum width of the window (only works for sdl2 window provider).
         `minimum_height`: int
             Minimum height of the window (only works for sdl2 window provider).
+        `always_on_top`: bool
+            When enabled, the window will be brought to the front and will keep
+            the window above the rest. If disabled, it will restore the default
+            behavior. Only works for the sdl2 window provider.
         `allow_screensaver`: bool
             Allow the device to show a screen saver, or to go to sleep
             on mobile devices. Defaults to True. Only works for sdl2 window
@@ -449,6 +453,22 @@ class WindowBase(EventDispatcher):
 
     :attr:`minimum_height` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    always_on_top = BooleanProperty(False)
+    '''When enabled, the window will be brought to the front and will keep
+    the window above the rest. If disabled, it will restore the default
+    behavior.
+
+    This option can be toggled freely during the window's lifecycle.
+
+    Only works for the sdl2 window provider. Check the :mod:`~kivy.config`
+    documentation for a more detailed explanation on the values.
+
+    .. versionadded:: 2.2.0
+
+    :attr:`always_on_top` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to False.
     '''
 
     allow_screensaver = BooleanProperty(True)
@@ -1021,6 +1041,10 @@ class WindowBase(EventDispatcher):
         if 'minimum_height' not in kwargs:
             kwargs['minimum_height'] = Config.getint('graphics',
                                                      'minimum_height')
+        if 'always_on_top' not in kwargs:
+            kwargs['always_on_top'] = Config.getboolean(
+                'graphics', 'always_on_top'
+            )
         if 'allow_screensaver' not in kwargs:
             kwargs['allow_screensaver'] = Config.getboolean(
                 'graphics', 'allow_screensaver')

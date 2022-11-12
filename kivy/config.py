@@ -249,6 +249,10 @@ Available configuration tokens
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
         make sure they display their current visual state for the given
         time.
+    `always_on_top`: int, one of ``0`` or ``1``, defaults to ``0``
+        When enabled, the window will be brought to the front and will keep
+        the window above the rest. Only works for the sdl2 window provider.
+        ``0`` is disabled, ``1`` is enabled.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
@@ -332,6 +336,9 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionadded:: 2.2.0
+    `always_on_top` have been added to the `graphics` section.
+
 .. versionchanged:: 2.2.0
     `implementation` has been added to the network section.
 
@@ -392,7 +399,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 25
+KIVY_CONFIG_VERSION = 26
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -922,6 +929,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 24:
             Config.setdefault("network", "implementation", "default")
+
+        elif version == 25:
+            Config.setdefault('graphics', 'always_on_top', '0')
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !

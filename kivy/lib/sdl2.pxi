@@ -597,6 +597,7 @@ cdef extern from "SDL.h":
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
     cdef void SDL_SetWindowMinimumSize(SDL_Window * window, int min_w, int min_h)
     cdef void SDL_SetWindowBordered(SDL_Window * window, SDL_bool bordered)
+    cdef void SDL_SetWindowAlwaysOnTop(SDL_Window * window, SDL_bool on_top)
     cdef void SDL_ShowWindow(SDL_Window * window)
     cdef int SDL_ShowCursor(int toggle)
     cdef void SDL_SetCursor(SDL_Cursor * cursor)
