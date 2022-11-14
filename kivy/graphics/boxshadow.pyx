@@ -58,6 +58,7 @@ cdef str SHADOW_fs = """
 #ifdef GL_ES
 precision highp float;
 #endif
+
 /* Outputs from the vertex shader */
 varying vec4 frag_color;
 varying vec2 tex_coord0;
@@ -93,7 +94,14 @@ float distShadow = sigmoid(
     )
 );
 
-gl_FragColor = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
+
+// Some devices require the resulting color to be blended with the texture.
+// Otherwise there will be a compilation issue.
+
+vec4 texture = texture2D(texture0, tex_coord0);
+vec4 shadow = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
+
+gl_FragColor = mix(texture, shadow, 1.0);
 
 }
 """
@@ -107,21 +115,21 @@ cdef class BoxShadow(Fbo):
 
     :Parameters:
 
-        `size`: list | tuple, defaults to `[100.0, 100.0]`.
+        `size`: list | tuple, defaults to ``[100.0, 100.0]``.
             Define the raw size of the shadow, that is, it does not take into account
             changes in the value of :attr:`blur_radius` and/or :attr:`spread_radius` properties.
-        `pos`: list | tuple, defaults to `[0.0, 0.0]`.
+        `pos`: list | tuple, defaults to ``[0.0, 0.0]``.
             Define the raw pos of the shadow, that is, it does not take into
             account changes in the value of :attr:`offset` property.
-        `offset`: list | tuple, defaults to `[0.0, 0.0]`.
+        `offset`: list | tuple, defaults to ``[0.0, 0.0]``.
             Specifies shadow offsets in `[horizontal, vertical]` format. 
             Positive values for the offset indicate that the shadow should move to the right and/or top.
             The negative ones indicate that the shadow should move to the left and/or down.
-        `blur_radius`: float, default to `5.0`.
+        `blur_radius`: float, defaults to ``5.0``.
             Define the shadow blur radius. Controls shadow expansion and softness.
-        `spread_radius`: float, default to `0.0`.
+        `spread_radius`: float, defaults to ``0.0``.
             Define the decrease/expansion of the shadow's raw :attr:`size`.
-        `border_radius`: list | tuple, defaults to `[0.0, 0.0, 0.0, 0.0]`.
+        `border_radius`: list | tuple, defaults to ``[0.0, 0.0, 0.0, 0.0]``.
             Specifies the radii used for the rounded corners clockwise:
             top-left, top-right, bottom-right, bottom-left.
     '''
@@ -218,9 +226,9 @@ cdef class BoxShadow(Fbo):
     @property
     def pos(self):
         '''Define the raw pos of the shadow, that is, it does not take into
-        account changes in the value of `offset` property.
+        account changes in the value of :attr:`offset` property.
 
-        Defaults to `[0.0, 0.0]`.
+        Defaults to ``[0.0, 0.0]``.
 
         .. note::
 
@@ -239,10 +247,10 @@ cdef class BoxShadow(Fbo):
     @property
     def size(self):
         '''Define the raw size of the shadow, that is, it does not take into
-        account changes in the value of `blur_radius` and/or `spread_radius` 
-        properties.
+        account changes in the value of :attr:`blur_radius` and/or
+        :attr:`spread_radius` properties.
 
-        Defaults to `[100.0, 100.0]`.
+        Defaults to ``[100.0, 100.0]``.
 
         .. note::
 
@@ -263,7 +271,7 @@ cdef class BoxShadow(Fbo):
         '''Specifies the radii used for the rounded corners clockwise:
         top-left, top-right, bottom-right, bottom-left.
 
-        Defaults to `[0.0, 0.0, 0.0, 0.0]`.
+        Defaults to ``[0.0, 0.0, 0.0, 0.0]``.
 
         .. image:: images/boxshadow_border_radius.svg
             :align: center
@@ -281,9 +289,9 @@ cdef class BoxShadow(Fbo):
     def spread_radius(self):
         '''Define the decrease/expansion of the shadow's inner size.
 
-        Defaults to `0.0`.
+        Defaults to ``0.0``.
 
-        In the image below, the target element has a raw size of `200 x 150px`.
+        In the image below, the target element has a raw size of ``200 x 150px``.
         Positive changes to the :attr:`spread_radius` value will cause the raw
         :attr:`size` of the shadow to increase in both horizontal and vertical
         directions, while negative values will cause the shadow to decrease.
@@ -307,10 +315,12 @@ cdef class BoxShadow(Fbo):
     @property
     def offset(self):
         '''Specifies shadow offsets in `[horizontal, vertical]` format. 
-        Positive values for the offset indicate that the shadow should move tothe right and/or top.
-        The negative ones indicate that the shadow should move to the left and/or down.
+        Positive values for the offset indicate that the shadow should move to
+        the right and/or top.
+        The negative ones indicate that the shadow should move to the left
+        and/or down.
 
-        Defaults to `[0.0, 0.0]`.
+        Defaults to ``[0.0, 0.0]``.
 
         For this property to work as expected, it is indicated that the value
         of :attr:`pos` coincides with the position of the target element of the
@@ -331,7 +341,7 @@ cdef class BoxShadow(Fbo):
     def blur_radius(self):
         '''Define the shadow blur radius. Controls shadow expansion and softness.
 
-        Defaults to `5.0`.
+        Defaults to ``5.0``
 
         In the image below, the start and end positions of the shadow blur
         effect length are indicated.
