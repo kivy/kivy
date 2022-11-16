@@ -147,6 +147,7 @@ cdef class BoxShadow(Fbo):
     cdef void _init_texture(self):
         self.shader.fs = SHADOW_fs
         self._rect = Rectangle(size=(100, 100))
+        self._rect.texture = self.texture
         with self:
             ClearColor(1, 1, 1, 0)
             ClearBuffers()
@@ -179,7 +180,6 @@ cdef class BoxShadow(Fbo):
         self["blur_radius"] = self.blur_radius
         self["border_radius"] = self.border_radius
         self["size"] = self.size
-        self._rect.texture = self.texture
 
     cdef list _adjusted_pos(self):
         cdef float x, y
