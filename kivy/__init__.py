@@ -36,6 +36,7 @@ from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
+import importlib
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
@@ -314,7 +315,9 @@ except ImportError:
 _logging_msgs = []
 for importer, modname, package in _packages:
     try:
-        mod = importer.find_module(modname).load_module(modname)
+        module_spec = importer.find_spec(modname)
+        mod = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(mod)
 
         version = ''
         if hasattr(mod, '__version__'):

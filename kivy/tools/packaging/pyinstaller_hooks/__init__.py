@@ -294,7 +294,9 @@ def add_dep_paths():
             if not ispkg:
                 continue
             try:
-                mod = importer.find_module(modname).load_module(modname)
+                module_spec = importer.find_spec(modname)
+                mod = importlib.util.module_from_spec(module_spec)
+                module_spec.loader.exec_module(mod)
             except ImportError as e:
                 logging.warning(f"deps: Error importing dependency: {e}")
                 continue
@@ -311,7 +313,9 @@ def add_dep_paths():
         if not ispkg:
             continue
         try:
-            mod = importer.find_module(modname).load_module(modname)
+            module_spec = importer.find_spec(modname)
+            mod = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(mod)
         except ImportError as e:
             logging.warning(f"deps: Error importing dependency: {e}")
             continue
