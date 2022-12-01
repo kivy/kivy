@@ -397,7 +397,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     cdef int lhh, lww, k, bare_h, dwn = append_down, pos = 0
     cdef object line, ln, val, indices
     cdef LayoutLine _line
-    cdef int is_space = 0
+    cdef int is_space
     uw = text_size[0] if text_size[0] is not None else -1
     uh = text_size[1] if text_size[1] is not None else -1
 
@@ -419,6 +419,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     # split into lines and find how many line wraps each line requires
     indices = range(n) if dwn else reversed(range(n))
     for i in indices:
+        is_space = 0
         k = <int>len(lines)
         if (max_lines > 0 and k > max_lines or uh != -1 and
             h > uh and k > 1):

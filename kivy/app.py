@@ -284,9 +284,10 @@ The currently implemented Pause mechanism is:
        System due to the user switching to another application, a phone
        shutdown or any other reason.
     #. :meth:`App.on_pause` is called:
-    #. If False is returned, then :meth:`App.on_stop` is called.
-    #. If True is returned (default case), the application will sleep until
-       the OS resumes our App.
+    #. If False is returned or :meth:`App.on_pause` has no return statement,
+       then :meth:`App.on_stop` is called.
+    #. If True is returned or :meth:`App.on_pause` is not defined, the
+       application will sleep until the OS resumes our App.
     #. When the app is resumed, :meth:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
@@ -953,7 +954,7 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         self._run_prepare()
         runTouchApp()
-        self.stop()
+        self._stop()
 
     async def async_run(self, async_lib=None):
         '''Identical to :meth:`run`, but is a coroutine and can be
@@ -965,14 +966,22 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         self._run_prepare()
         await async_runTouchApp(async_lib=async_lib)
-        self.stop()
+        self._stop()
 
     def stop(self, *largs):
         '''Stop the application.
 
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
+        Except on Android, set Android state to stop, Kivy state then follows.
         '''
+        if platform == 'android':
+            from android import mActivity
+            mActivity.finishAndRemoveTask()
+        else:
+            self._stop()
+
+    def _stop(self, *largs):
         self.dispatch('on_stop')
         stopTouchApp()
 
@@ -981,6 +990,19 @@ Context.html#getFilesDir()>`_ is returned.
             for child in self._app_window.children:
                 self._app_window.remove_widget(child)
         App._running_app = None
+
+    def pause(self, *largs):
+        '''Pause the application.
+
+        On Android set OS state to pause, Kivy app state follows.
+        No functionality on other OS.
+        .. versionadded:: 2.2.0
+        '''
+        if platform == 'android':
+            from android import mActivity
+            mActivity.moveTaskToBack(True)
+        else:
+            Logger.info('App.pause() is not available on this OS.')
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after

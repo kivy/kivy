@@ -40,7 +40,6 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
-from kivy.compat import PY2, string_types
 from kivy.config import Config
 from kivy.utils import platform
 
@@ -124,10 +123,6 @@ class LoaderBase(object):
         self._start_wanted = False
         self._trigger_update = Clock.create_trigger(self._update)
 
-        if platform in ['android', 'ios']:
-            import certifi
-            environ.setdefault('SSL_CERT_FILE', certifi.where())
-
     def __del__(self):
         if self._trigger_update is not None:
             self._trigger_update.cancel()
@@ -191,7 +186,7 @@ class LoaderBase(object):
         return self._loading_image
 
     def _set_loading_image(self, image):
-        if isinstance(image, string_types):
+        if isinstance(image, str):
             self._loading_image = ImageLoader.load(filename=image)
         else:
             self._loading_image = image
@@ -214,7 +209,7 @@ class LoaderBase(object):
         return self._error_image
 
     def _set_error_image(self, image):
-        if isinstance(image, string_types):
+        if isinstance(image, str):
             self._error_image = ImageLoader.load(filename=image)
         else:
             self._error_image = image
@@ -306,16 +301,9 @@ class LoaderBase(object):
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local().'''
-        if PY2:
-            import urllib2 as urllib_request
+        import urllib.request
+        import tempfile
 
-            def gettype(info):
-                return info.gettype()
-        else:
-            import urllib.request as urllib_request
-
-            def gettype(info):
-                return info.get_content_type()
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -326,29 +314,38 @@ class LoaderBase(object):
                 Logger.warning(
                     'Loader: can not load PySMB: make sure it is installed')
                 return
-        import tempfile
+
         data = fd = _out_osfd = None
         try:
             _out_filename = ''
 
             if proto == 'smb':
                 # read from samba shares
-                fd = urllib_request.build_opener(SMBHandler).open(filename)
+                fd = urllib.request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                request = urllib_request.Request(filename)
+                request = urllib.request.Request(filename)
                 if Config.has_option('network', 'useragent'):
                     useragent = Config.get('network', 'useragent')
                     if useragent:
                         request.add_header('User-Agent', useragent)
-                opener = urllib_request.build_opener()
-                fd = opener.open(request)
+
+                # A custom context is only needed on Android and iOS
+                # as we need to use the certs provided via certifi.
+                ssl_ctx = None
+                if platform in ['android', 'ios']:
+                    import certifi
+                    import ssl
+                    ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+                    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+
+                fd = urllib.request.urlopen(request, context=ssl_ctx)
 
             if '#.' in filename:
                 # allow extension override from URL fragment
                 suffix = '.' + filename.split('#.')[-1]
             else:
-                ctype = gettype(fd.info())
+                ctype = fd.info().get_content_type()
                 suffix = mimetypes.guess_extension(ctype)
                 suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
                 if not suffix:

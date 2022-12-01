@@ -21,17 +21,17 @@ requirements as highlighted here:
 * Comfortable with git and github
   (Kivy and its sister projects are all managed on github)
 * Comfortable with event driven programming.
-* Has suitable tools/environment for kivy or the 
+* Has suitable tools/environment for kivy or the
   sister project you are going to work on. For example to be
-  able to work on pyobjus you would need access to an iOS device, 
-  mac with xcode and a developer license, to work on pyjnius you 
-  would need an android device, and to work on plyer you would 
+  able to work on pyobjus you would need access to an iOS device,
+  mac with xcode and a developer license, to work on pyjnius you
+  would need an android device, and to work on plyer you would
   need access to hardware for both platforms.
 
-  
+
 Additional desired skills may be listed with specific projects.
 
-Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html 
+Familiarize yourself with the contributing guide http://kivy.org/docs/contribute.html
 We can help you get up to speed, however students demonstrating ability
 in advance will be given preference.
 
@@ -60,22 +60,22 @@ The mentors list is only of potential mentors for a particular project and not f
 Enhancements to Kivy
 ~~~~~~~~~~~~~~~~~~~~
 
-**Inspector:** 
+**Inspector:**
 
   Description:
     Redo or improve the inspector module to include the following features:
-      - Use Python introspection to enhance current state of inspector. 
+      - Use Python introspection to enhance current state of inspector.
       - Extend Inspectors debugging capabilities to the whole app.
       - Introduce automatic crash reporting.
       - Possibly launch debugger automatically when Kivy app crashes.
-  Reference: 
+  Reference:
       - http://kivy.org/docs/api-kivy.modules.html
       - http://kivy.org/docs/api-kivy.modules.inspector.html
 
   Expected Outcome:
     A fully functional Inspector module that facilitates debugging at any stage,
     including crash reports and a debugging console.
-  
+
   - **Mentors**: Akshay Arora, Gabriel Pettier
   - **Task level**: Intermediate
 
@@ -89,7 +89,7 @@ Enhancements to Kivy
       - Improving 3D support.
       - Add Bounding-Box calculation / selection on the tree only if requested
       - Unit tests to quantify the amount of improvements achieved.
-  Reference: 
+  Reference:
       - http://kivy.org/docs/api-kivy.graphics.html
       - http://www.khronos.org/opengles/
   Expected Outcome:
@@ -99,14 +99,14 @@ Enhancements to Kivy
   - **Task level**: Intermediate/Advanced
   - **Desired Skills**: Familiarity with OpenGL ES and Cython, desire to learn about
     advanced rendering algorithms and solve difficult puzzles.
-    
+
 **Embedded Support:**
 
   Description:
     Add full support for major embedded platforms like Beagle Board and Raspberry Pi.
     Kivy already has partial support for RPi. It would be
     great to have support for other major embedded platforms.
-  
+
   This would involve:
     - Native Keyboard Provider.
     - Window provider for Beagle board using hooks to the driver for hardware
@@ -115,12 +115,12 @@ Enhancements to Kivy
     - Ensuring at least one of the backends for each of the core providers work on
       the embedded hardware with acceptable performance. Namely: Text, Window, Audio,
       Video, Keyboard, Clipboard, and Image Providers
-  Reference: 
+  Reference:
       - https://github.com/kivy/kivy/blob/master/kivy/core/window/window_egl_rpi.py.
       - http://kivy.org/docs/api-kivy.core.html
       - http://kivy.org/docs/guide/architecture.html#architecture
       - http://kivy.org/docs/guide/architecture.html#providers
-      
+
   Expected Outcome:
     Full Working support for the embedded platforms. This would include support for
     at least one of the backends for each core providers mentioned above to achieve
@@ -142,22 +142,22 @@ Enhancements to Mobile Platforms
     commonly found on various platforms, especially mobile ones, in Python.
     The idea is to provide a stable API to the user for accessing features
     of their desktop or mobile device.
-    
-    The student would work on facades and implementation for Accelerometer, 
-    GPS, SMS, Contact etc., including porting facades from SL4A (Scripting 
+
+    The student would work on facades and implementation for Accelerometer,
+    GPS, SMS, Contact etc., including porting facades from SL4A (Scripting
     Layer for Android) to Plyer for easy integration and compatibility.
-    
+
     Under the hood you'll use PyJNIus and PyOBJus. This probably
     would also include improving PyObjus and PyJnius to handle interfaces that
     they can't right now.
-    
+
   References:
     - https://github.com/kivy/plyer
     - https://github.com/kivy/pyjnius
     - https://github.com/kivy/pyobjus
   Expected Outcome:
     Platform independent api for accessing most platform specific features.
-    
+
   - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch.
   - **Requirements**: Access to Linux, Windows, OS X, iOS device, Android device.
   - **Task level**: Intermediate/Advanced.
@@ -180,7 +180,7 @@ Enhancements to Toolchain
     - https://github.com/kivy/kivy-ios
   Expected Outcome:
     A new, modular and extendable toolchain.
-  
+
   - **Mentors**: Thomas Hansen, Mathieu Virbel
   - **Requirements**: Access to iOS, Android device along with a developer license.
   - **Task level**: Intermediate/Advanced
@@ -201,9 +201,9 @@ Enhancements to Toolchain
     extending this support to other package formats and operating systems,
     e.g. RPM, DEB, DMG, EXE. You will need to write new buildozer target code
     to support these formats.
-    
-    This project would also involve optimizations to the final package formats, 
-    e.g. introspect the python files, extract all the symbols (global 
+
+    This project would also involve optimizations to the final package formats,
+    e.g. introspect the python files, extract all the symbols (global
     variables / functions / class / class methods), mark all the necessary
     symbols (whitelist) and generate a stripped version of all the python files
     without the unnecessary symbols.
@@ -218,16 +218,16 @@ Enhancements to Toolchain
   - **Mentors**: Gabriel Pettier, Akshay Arora, Alexander Taylor, Ben Rousch
   - **Requirements**: Access to linux, Windows, OS X, iOS, Android.
   - **Task level**: Intermediate
-  
+
 
 **SDL2 Backends:**
-  
+
   Description:
     SDL2 backend providers for Kivy, including porting the mobile
     toolchains to SDL2. Part of the work is already done. What left is mostly
 
     - Hashing out distribution mechanisms for the lib.
-    - Porting mobile backends for ios and android to SDL2. Partial work on this has 
+    - Porting mobile backends for ios and android to SDL2. Partial work on this has
       already been going on.
     - Unit tests for the new sdl2 backends making sure apps work the same
       on SDL2 as on other backends.
@@ -295,4 +295,4 @@ Here's a checklist:
   the docs or somewhere else and can be found with some research. If your
   questions don't reflect that you've actually thought through what you're
   asking, it might not be well received.
-  
+

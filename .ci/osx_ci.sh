@@ -2,7 +2,7 @@
 set -e -x
 
 # macOS SDL2
-MACOS__SDL2__VERSION="2.24.0"
+MACOS__SDL2__VERSION="2.24.2"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
 MACOS__SDL2__FOLDER="SDL2-$MACOS__SDL2__VERSION"
 
@@ -22,7 +22,7 @@ MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/re
 MACOS__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
 
 # macOS Platypus version
-MACOS__PLATYPUS__VERSION=5.3
+MACOS__PLATYPUS__VERSION=5.4.1
 
 download_cache_curl() {
   fname="$1"
@@ -101,7 +101,7 @@ build_and_install_universal_kivy_sys_deps() {
 }
 
 install_platypus() {
-  download_cache_curl "platypus$MACOS__PLATYPUS__VERSION.zip" "osx-cache" "https://github.com/sveinbjornt/Platypus/releases/download/$MACOS__PLATYPUS__VERSION/platypus$MACOS__PLATYPUS__VERSION.zip"
+  download_cache_curl "platypus$MACOS__PLATYPUS__VERSION.zip" "osx-cache" "https://github.com/sveinbjornt/Platypus/releases/download/v$MACOS__PLATYPUS__VERSION/platypus$MACOS__PLATYPUS__VERSION.zip"
 
   unzip "platypus$MACOS__PLATYPUS__VERSION.zip"
   gunzip Platypus.app/Contents/Resources/platypus_clt.gz

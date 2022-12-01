@@ -84,7 +84,7 @@ Widgets
 - [:repo:`7548`]: Fixes issue #7514 ('auto_halign_r' referenced before assignment)
 - [:repo:`7610`]: Added scroll from swipe feature in TextInput
 - [:repo:`7612`]: Fixed unexpected overscrolling bug when using mouse wheel
-- [:repo:`7615`]: Fixed unexpected overscrolling bug when using mouse wheel, complement to #7612 
+- [:repo:`7615`]: Fixed unexpected overscrolling bug when using mouse wheel, complement to #7612
 - [:repo:`7618`]: Fixed TextInput visual selection bugs while scrolling
 - [:repo:`7621`]: Fixed inconsistent behavior of TextInput bubble and handles
 - [:repo:`7622`]: Fixes TextInput cursor issues when resizing/scrolling
@@ -269,7 +269,7 @@ Tests/ci
 - [:repo:`7466`]: Tests: Increase test coverage
 - [:repo:`7475`]: MouseHoverEventTestCase: Skip testing on Windows platform
 - [:repo:`7483`]: MouseHoverEventTestCase: Enable some tests on Windows CI
-- [:repo:`7493`]: GraphicUnitTest: Add clear_window_and_event_loop method 
+- [:repo:`7493`]: GraphicUnitTest: Add clear_window_and_event_loop method
 - [:repo:`7494`]: MouseHoverEventTestCase: Dispatching event on_cursor_leave to cleanup some tests
 - [:repo:`7495`]: CI: Removed unused id_rsa.enc. ssh keys are in the secret env
 - [:repo:`7502`]: MultitouchSimulatorTestCase: Don't render widgets in tests
