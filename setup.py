@@ -9,6 +9,7 @@ if "--build_examples" in sys.argv:
     build_examples = True
     sys.argv.remove("--build_examples")
 
+from setuptools import setup, Extension, find_packages
 from kivy.utils import pi_version
 from copy import deepcopy
 import os
@@ -22,7 +23,6 @@ from time import sleep
 from sysconfig import get_paths
 from pathlib import Path
 import logging
-from setuptools import setup, Extension, find_packages
 
 
 if sys.version_info[0] == 2:
