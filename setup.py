@@ -12,18 +12,16 @@ if "--build_examples" in sys.argv:
 from kivy.utils import pi_version
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir
+from os.path import join, dirname, exists, basename, isdir
 from os import walk, environ, makedirs
-from distutils.command.build_ext import build_ext
-from distutils.version import LooseVersion
-from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
-from sysconfig import get_paths
 from pathlib import Path
 import logging
-from setuptools import setup, Extension, find_packages
+import sysconfig
 
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 
 if sys.version_info[0] == 2:
     logging.critical(
@@ -34,10 +32,6 @@ if sys.version_info[0] == 2:
 
 def ver_equal(self, other):
     return self.version == other
-
-
-# fix error with py3's LooseVersion comparisons
-LooseVersion.__eq__ = ver_equal
 
 
 def get_description():
@@ -234,29 +228,8 @@ with open(join(src_path, 'kivy', '_version.py'), encoding="utf-8") as f:
 
 class KivyBuildExt(build_ext, object):
 
-    def __new__(cls, *a, **kw):
-        # Note how this class is declared as a subclass of distutils
-        # build_ext as the Cython version may not be available in the
-        # environment it is initially started in. However, if Cython
-        # can be used, setuptools will bring Cython into the environment
-        # thus its version of build_ext will become available.
-        # The reason why this is done as a __new__ rather than through a
-        # factory function is because there are distutils functions that check
-        # the values provided by cmdclass with issublcass, and so it would
-        # result in an exception.
-        # The following essentially supply a dynamically generated subclass
-        # that mix in the cython version of build_ext so that the
-        # functionality provided will also be executed.
-        if can_use_cython:
-            from Cython.Distutils import build_ext as cython_build_ext
-            build_ext_cls = type(
-                'KivyBuildExt', (KivyBuildExt, cython_build_ext), {})
-            return super(KivyBuildExt, cls).__new__(build_ext_cls)
-        else:
-            return super(KivyBuildExt, cls).__new__(cls)
-
     def finalize_options(self):
-        retval = super(KivyBuildExt, self).finalize_options()
+        super().finalize_options()
 
         # Build the extensions in parallel if the options has not been set
         if hasattr(self, 'parallel') and self.parallel is None:
@@ -272,8 +245,6 @@ class KivyBuildExt(build_ext, object):
                 not self.inplace):
             build_path = self.build_lib
             print("Updated build directory to: {}".format(build_path))
-
-        return retval
 
     def build_extensions(self):
         # build files
@@ -327,7 +298,7 @@ class KivyBuildExt(build_ext, object):
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
 
-        super(KivyBuildExt, self).build_extensions()
+        super().build_extensions()
 
     def update_if_changed(self, fn, content):
         need_update = True
@@ -392,17 +363,18 @@ cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
 
 if can_use_cython:
     import Cython
+    from packaging import version
     print('\nFound Cython at', Cython.__file__)
 
     cy_version_str = Cython.__version__
-    cy_ver = LooseVersion(cy_version_str)
+    cy_ver = version.parse(cy_version_str)
     print('Detected supported Cython version {}'.format(cy_version_str))
 
-    if cy_ver < LooseVersion(MIN_CYTHON_STRING):
+    if cy_ver < version.Version(MIN_CYTHON_STRING):
         print(cython_min_msg)
     elif cy_ver in CYTHON_UNSUPPORTED:
         print(cython_unsupported_msg)
-    elif cy_ver > LooseVersion(MAX_CYTHON_STRING):
+    elif cy_ver > version.Version(MAX_CYTHON_STRING):
         print(cython_max_msg)
     sleep(1)
 
@@ -477,7 +449,9 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             gstreamer_valid = True
             c_options['use_gstreamer'] = True
         else:
-            _includes = get_isolated_env_paths()[0] + [get_paths()['include']]
+            _includes = get_isolated_env_paths()[0] + [
+                sysconfig.get_path("include")
+            ]
             for include_dir in _includes:
                 if exists(join(include_dir, 'gst', 'gst.h')):
                     print('GStreamer found via gst.h')
@@ -644,7 +618,7 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     elif platform == 'win32':
-        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+        flags['include_dirs'] += [sysconfig.get_path('include')]
         flags['library_dirs'] += [join(sys.prefix, "libs")]
     return flags
 
