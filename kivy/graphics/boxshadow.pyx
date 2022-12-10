@@ -136,12 +136,20 @@ cdef class BoxShadow(Fbo):
 
     def __init__(self, *args, **kwargs):
         super(BoxShadow, self).__init__(size=(100, 100))
-        self._pos = kwargs.get("pos", [0.0, 0.0])
-        self._size = kwargs.get("size", [0.0, 0.0])
-        self._offset = kwargs.get("offset", [0.0, 0.0])
-        self._blur_radius = kwargs.get("blur_radius", 5.0)
-        self._spread_radius = kwargs.get("spread_radius", 0.0)
-        self._border_radius = kwargs.get("border_radius", [0.0, 0.0,0.0, 0.0])
+        pos = kwargs.get("pos", [0.0, 0.0])
+        size = kwargs.get("size", [0.0, 0.0])
+        offset = kwargs.get("offset", [0.0, 0.0])
+        blur_radius = kwargs.get("blur_radius", 5.0)
+        spread_radius = kwargs.get("spread_radius", 0.0)
+        border_radius = kwargs.get("border_radius", [0.0, 0.0,0.0, 0.0])
+
+        self._pos = self._check_iter("pos", pos)
+        self._size = self._check_iter("size", size)
+        self._offset = self._check_iter("offset", offset)
+        self._blur_radius = max(0.0, self._check_float("blur_radius", blur_radius))
+        self._spread_radius = self._check_float("spread_radius", spread_radius)
+        self._border_radius = self._check_iter("border_radius", border_radius, components=4)
+
         self._init_texture()
 
     cdef void _init_texture(self):
