@@ -165,10 +165,7 @@ cdef class BoxShadow(Fbo):
         self._update_shadow()
 
     cdef void _update_canvas(self):
-        self._rect.pos = (
-            self.pos[0] + self.offset[0],
-            self.pos[1] + self.offset[1],
-        )
+        self._rect.pos = self.pos
         self._rect.size = self.size
 
     cdef void _update_fbo(self):
@@ -177,8 +174,8 @@ cdef class BoxShadow(Fbo):
         _scale_y = 100 / self.size[1]
         self._fbo_scale.x = _scale_x
         self._fbo_scale.y = _scale_y
-        self._fbo_translate.x = -_scale_x * (self.pos[0] + self.offset[0])
-        self._fbo_translate.y = -_scale_y * (self.pos[1] + self.offset[1])
+        self._fbo_translate.x = -_scale_x * self.pos[0]
+        self._fbo_translate.y = -_scale_y * self.pos[1]
 
     cdef void _update_shadow(self):
         if 0 in self.size:
@@ -191,8 +188,8 @@ cdef class BoxShadow(Fbo):
 
     cdef tuple _adjusted_pos(self):
         cdef float x, y
-        x = self._pos[0] - self.blur_radius * 1.5 - self.spread_radius
-        y = self._pos[1] - self.blur_radius * 1.5 - self.spread_radius
+        x = self._pos[0] - self.blur_radius * 1.5 - self.spread_radius + self.offset[0]
+        y = self._pos[1] - self.blur_radius * 1.5 - self.spread_radius + self.offset[1]
         return (x, y)
 
     cdef tuple _adjusted_size(self):
