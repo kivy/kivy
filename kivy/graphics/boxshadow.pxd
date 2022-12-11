@@ -5,10 +5,10 @@ from kivy.graphics.vertex_instructions cimport VertexInstruction
 
 cdef class BoxShadow(Fbo):
 
-    cdef list _pos
-    cdef list _size
-    cdef list _offset
-    cdef list _border_radius
+    cdef tuple _pos
+    cdef tuple _size
+    cdef tuple _offset
+    cdef tuple _border_radius
     cdef float _blur_radius
     cdef float _spread_radius
     cdef VertexInstruction _rect
@@ -19,7 +19,7 @@ cdef class BoxShadow(Fbo):
     cdef void _update_canvas(self)
     cdef void _update_fbo(self)
     cdef void _update_shadow(self)
-    cdef list _adjusted_pos(self)
-    cdef list _adjusted_size(self)
+    cdef tuple _adjusted_pos(self)
+    cdef tuple _adjusted_size(self)
+    cdef tuple _check_iter(self, str property_name, object value, int components=?)
     cdef float _check_float(self, str property_name, object value, str iter_text=?)
-    cdef list _check_iter(self, str property_name, object value, int components=?)

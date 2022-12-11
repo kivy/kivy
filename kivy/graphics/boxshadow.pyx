@@ -136,12 +136,12 @@ cdef class BoxShadow(Fbo):
 
     def __init__(self, *args, **kwargs):
         super(BoxShadow, self).__init__(size=(100, 100))
-        pos = kwargs.get("pos", [0.0, 0.0])
-        size = kwargs.get("size", [0.0, 0.0])
-        offset = kwargs.get("offset", [0.0, 0.0])
+        pos = kwargs.get("pos", (0.0, 0.0))
+        size = kwargs.get("size", (0.0, 0.0))
+        offset = kwargs.get("offset", (0.0, 0.0))
         blur_radius = kwargs.get("blur_radius", 5.0)
         spread_radius = kwargs.get("spread_radius", 0.0)
-        border_radius = kwargs.get("border_radius", [0.0, 0.0,0.0, 0.0])
+        border_radius = kwargs.get("border_radius", (0.0, 0.0,0.0, 0.0))
 
         self._pos = self._check_iter("pos", pos)
         self._size = self._check_iter("size", size)
@@ -189,13 +189,13 @@ cdef class BoxShadow(Fbo):
         self["border_radius"] = self.border_radius
         self["size"] = self.size
 
-    cdef list _adjusted_pos(self):
+    cdef tuple _adjusted_pos(self):
         cdef float x, y
         x = self._pos[0] - self.blur_radius * 1.5 - self.spread_radius
         y = self._pos[1] - self.blur_radius * 1.5 - self.spread_radius
-        return [x, y]
+        return (x, y)
 
-    cdef list _adjusted_size(self):
+    cdef tuple _adjusted_size(self):
         cdef float w, h
         w = max(
             0, self._size[0] + self.blur_radius * 3 + self.spread_radius * 2
@@ -203,7 +203,7 @@ cdef class BoxShadow(Fbo):
         h = max(
             0, self._size[1] + self.blur_radius * 3 + self.spread_radius * 2
         )
-        return [w, h]
+        return (w, h)
 
     cdef float _check_float(self, str property_name, object value, str iter_text=""):
         if not isinstance(value, (int, float)):
@@ -212,7 +212,7 @@ cdef class BoxShadow(Fbo):
             )
         return float(value)
 
-    cdef list _check_iter(self, str property_name, object value, int components=2):
+    cdef tuple _check_iter(self, str property_name, object value, int components=2):
         cdef int _len
         cdef list _value = []
         if not isinstance(value, (list, tuple)):
@@ -229,7 +229,7 @@ cdef class BoxShadow(Fbo):
             _value.append(
                 self._check_float(property_name, v, iter_text="list/tuple of")
             )
-        return _value
+        return tuple(_value)
 
     @property
     def pos(self):
