@@ -12,7 +12,7 @@ Its behavior is similar to the concept of a CSS3 box-shadow.
 .. image:: images/boxshadow.png
     :align: center
 
-The BoxShadow declaration must occur inside a :class:`~kivy.graphics.instructions.Canvas` canvas statement. It works
+The BoxShadow declaration must occur inside a :class:`~kivy.graphics.instructions.Canvas` statement. It works
 similarly to other graphical instructions such as :class:`~kivy.graphics.vertex_instructions.Rectangle`,
 :class:`~kivy.graphics.vertex_instructions.RoundedRectangle`, etc.
 
@@ -115,21 +115,22 @@ cdef class BoxShadow(Fbo):
 
     :Parameters:
 
-        `size`: list | tuple, defaults to ``[100.0, 100.0]``.
-            Define the raw size of the shadow, that is, it does not take into account
-            changes in the value of :attr:`blur_radius` and/or :attr:`spread_radius` properties.
-        `pos`: list | tuple, defaults to ``[0.0, 0.0]``.
-            Define the raw pos of the shadow, that is, it does not take into
-            account changes in the value of :attr:`offset` property.
-        `offset`: list | tuple, defaults to ``[0.0, 0.0]``.
-            Specifies shadow offsets in `[horizontal, vertical]` format. 
+        `size`: list | tuple, defaults to ``(100.0, 100.0)``.
+            Define the raw size of the shadow, that is, you should not take into account
+            changes in the value of :attr:`blur_radius` and :attr:`spread_radius`
+            properties when setting this parameter.
+        `pos`: list | tuple, defaults to ``(0.0, 0.0)``.
+            Define the raw position of the shadow, that is, you should not take into account
+            changes in the value of the :attr:`offset` property when setting this parameter.
+        `offset`: list | tuple, defaults to ``(0.0, 0.0)``.
+            Specifies shadow offsets in `(horizontal, vertical)` format. 
             Positive values for the offset indicate that the shadow should move to the right and/or top.
             The negative ones indicate that the shadow should move to the left and/or down.
         `blur_radius`: float, defaults to ``5.0``.
             Define the shadow blur radius. Controls shadow expansion and softness.
         `spread_radius`: float, defaults to ``0.0``.
             Define the decrease/expansion of the shadow's raw :attr:`size`.
-        `border_radius`: list | tuple, defaults to ``[0.0, 0.0, 0.0, 0.0]``.
+        `border_radius`: list | tuple, defaults to ``(0.0, 0.0, 0.0, 0.0)``.
             Specifies the radii used for the rounded corners clockwise:
             top-left, top-right, bottom-right, bottom-left.
     '''
@@ -187,13 +188,21 @@ cdef class BoxShadow(Fbo):
         self["size"] = self.size
 
     cdef tuple _adjusted_pos(self):
+        """Returns the adjusted position of the rectangle containing the shadow
+        texture, based on the adjusted size and offset.
+        """
         cdef float x, y
+        # self.blur_radius * 1.5 - self.spread_radius → half size expansion, used in _adjusted_size method
         x = self._pos[0] - self.blur_radius * 1.5 - self.spread_radius + self.offset[0]
         y = self._pos[1] - self.blur_radius * 1.5 - self.spread_radius + self.offset[1]
         return (x, y)
 
     cdef tuple _adjusted_size(self):
+        """Returns the adjusted size of the rectangle containing the shadow
+        texture, to avoid unwanted shadow cropping.
+        """
         cdef float w, h
+        # self.blur_radius * 3 + self.spread_radius * 2 → size expansion to avoid unwanted cropping behavior
         w = max(
             0, self._size[0] + self.blur_radius * 3 + self.spread_radius * 2
         )
@@ -230,10 +239,14 @@ cdef class BoxShadow(Fbo):
 
     @property
     def pos(self):
-        '''Define the raw pos of the shadow, that is, it does not take into
-        account changes in the value of :attr:`offset` property.
+        '''Define the raw position of the shadow, that is, you should not take
+        into account changes in the value of the :attr:`offset` property when
+        setting this property.
 
-        Defaults to ``[0.0, 0.0]``.
+        Returns the adjusted position of the shadow according to the adjusted
+        :attr:`size` of the shadow and :attr:`offset` property.
+
+        Defaults to ``(0.0, 0.0)``.
 
         .. note::
 
@@ -251,11 +264,13 @@ cdef class BoxShadow(Fbo):
 
     @property
     def size(self):
-        '''Define the raw size of the shadow, that is, it does not take into
-        account changes in the value of :attr:`blur_radius` and/or
-        :attr:`spread_radius` properties.
+        '''Define the raw size of the shadow, that is, you should not take into
+        account changes in the value of :attr:`blur_radius` and :attr:`spread_radius` properties.
 
-        Defaults to ``[100.0, 100.0]``.
+        Returns the adjusted size of the shadow according to the 
+        :attr:`blur_radius` and :attr:`spread_radius` properties.
+
+        Defaults to ``(100.0, 100.0)``.
 
         .. note::
 
@@ -276,7 +291,7 @@ cdef class BoxShadow(Fbo):
         '''Specifies the radii used for the rounded corners clockwise:
         top-left, top-right, bottom-right, bottom-left.
 
-        Defaults to ``[0.0, 0.0, 0.0, 0.0]``.
+        Defaults to ``(0.0, 0.0, 0.0, 0.0)``.
 
         .. image:: images/boxshadow_border_radius.svg
             :align: center
@@ -325,7 +340,7 @@ cdef class BoxShadow(Fbo):
         The negative ones indicate that the shadow should move to the left
         and/or down.
 
-        Defaults to ``[0.0, 0.0]``.
+        Defaults to ``(0.0, 0.0)``.
 
         For this property to work as expected, it is indicated that the value
         of :attr:`pos` coincides with the position of the target element of the
@@ -346,7 +361,7 @@ cdef class BoxShadow(Fbo):
     def blur_radius(self):
         '''Define the shadow blur radius. Controls shadow expansion and softness.
 
-        Defaults to ``5.0``
+        Defaults to ``5.0``.
 
         In the image below, the start and end positions of the shadow blur
         effect length are indicated.
@@ -360,8 +375,8 @@ cdef class BoxShadow(Fbo):
 
         .. note::
             In some cases (**if this is not your intention**), placing an element
-            above the shadow (before the blur radius ends) will result in a
-            clipping/overlay effect rather than continuity, breaking the
+            above the shadow (before the blur radius ends) will result in a unwanted
+            cropping/overlay behavior rather than continuity, breaking the
             shadow's soft ending, as shown in the image below.
 
             | 
