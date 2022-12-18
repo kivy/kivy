@@ -11,6 +11,99 @@ from threading import Thread
 from kivy.tests.common import GraphicUnitTest, requires_graphics
 
 
+class BoxShadowTest(GraphicUnitTest):
+
+    def test_create(self):
+        from kivy.graphics.boxshadow import BoxShadow
+        from kivy.uix.widget import Widget
+        from kivy.graphics import Color
+
+        r = self.render
+
+        # with initial arguments
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 0, 0, 1)
+            bs = BoxShadow(
+                pos=(50, 50),
+                size=(150, 150),
+                offset=(0, 10),
+                spread_radius=10,
+                border_radius=(10, 10, 10, 10),
+                blur_radius=80,
+            )
+        r(wid)
+
+        # changing properties later
+        wid = Widget()
+        with wid.canvas:
+            Color(0, 0, 1, 1)
+            bs = BoxShadow()
+        bs.pos = [50, 50]
+        bs.size = [150, 150]
+        bs.offset = [0, 10]
+        bs.spread_radius = 10
+        bs.border_radius = [10, 10, 10, 10]
+        bs.blur_radius = 80
+        r(wid)
+
+    def test_adjusted_size(self):
+        from kivy.graphics.boxshadow import BoxShadow
+
+        raw_size = 150, 150
+
+        bs = BoxShadow()
+        bs.pos = 50, 50
+        bs.size = raw_size
+        bs.blur_radius = 80
+        bs.spread_radius = 10
+
+        # The size of the rectangle containing the FBO texture (shadow) needs
+        # to be adjusted according to the size of the shadow, otherwise there
+        # will be an unwanted cropping behavior.
+        adjusted_size = (
+            max(
+                0,
+                raw_size[0] + bs.blur_radius * 3 + bs.spread_radius * 2,
+            ),
+            max(
+                0,
+                raw_size[1] + bs.blur_radius * 3 + bs.spread_radius * 2,
+            ),
+        )
+
+        assert bs.size == adjusted_size
+
+    def test_adjusted_pos(self):
+        from kivy.graphics.boxshadow import BoxShadow
+
+        raw_pos = 50, 50
+        raw_size = 150, 150
+        offset = 10, -100
+
+        bs = BoxShadow()
+        bs.pos = raw_pos
+        bs.size = raw_size
+        bs.offset = offset
+        bs.blur_radius = 80
+        bs.spread_radius = 10
+
+        # If the size of the rectangle containing the FBO texture (shadow)
+        # changes, its position will need to be adjusted.
+        adjusted_pos = (
+            raw_pos[0]
+            - bs.blur_radius * 1.5
+            - bs.spread_radius
+            + bs.offset[0],
+            raw_pos[0]
+            - bs.blur_radius * 1.5
+            - bs.spread_radius
+            + bs.offset[1],
+        )
+
+        assert bs.pos == adjusted_pos
+
+
 class VertexInstructionTest(GraphicUnitTest):
 
     def test_circle(self):

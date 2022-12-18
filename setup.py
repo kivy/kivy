@@ -743,6 +743,9 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # all the dependencies have been found manually with:
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
+    'boxshadow.pxd': ['fbo.pxd', 'context_instructions.pxd',
+                      'vertex_instructions.pxd'],
+    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -844,7 +847,8 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags_base)
+    'graphics/svg.pyx': merge(base_flags, gl_flags_base),
+    'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base)
 }
 
 if c_options["use_sdl2"]:
