@@ -7,7 +7,7 @@ env:
 
 jobs:
   PEP8_test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
@@ -20,7 +20,7 @@ jobs:
         validate_pep8
 
   unit_test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
       DISPLAY: ':99.0'
     steps:
@@ -64,7 +64,7 @@ jobs:
         path: .benchmarks-kivy
 
   gen_docs:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
