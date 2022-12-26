@@ -767,6 +767,13 @@ class WindowBase(EventDispatcher):
     .. note::
         The 'fake' option has been deprecated, use the :attr:`borderless`
         property instead.
+
+    .. warning::
+        On iOS, setting :attr:`fullscreen` to `False` will not automatically
+        hide the status bar.
+
+        To achieve this, you must set :attr:`fullscreen` to `False`, and
+        then also set :attr:`borderless` to `False`.
     '''
 
     mouse_pos = ObjectProperty((0, 0))
