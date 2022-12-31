@@ -16,6 +16,7 @@
 import os
 import sys
 import configparser
+import sphinx
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -33,7 +34,14 @@ extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
 
-extlinks = {'repo': ('https://github.com/kivy/kivy/issues/%s', '#')}
+if sphinx.version_info[0] >= 4:
+    # In 4.0 and above has been added the support to substitute by ‘%s’ in the caption.
+    # In 6.0 if the caption is a string, it must contain %s exactly once.
+    repo_extlink_caption = '#%s'
+else:
+    repo_extlink_caption = '#'
+
+extlinks = {'repo': ('https://github.com/kivy/kivy/issues/%s', repo_extlink_caption)}
 
 # Todo configuration
 todo_include_todos = True
