@@ -136,6 +136,13 @@ class ParserException(Exception):
             self.filename, self.line + 1, sc, message)
         if cause:
             message += '\n' + ''.join(traceback.format_tb(cause))
+        if context.filename is not None:
+            # and (self.filename != '<inline>'):
+            # ^ Instead of checking for '<inline>', check context.
+            message += (
+               '\nFile "{}", line {}'
+               ''.format(self.filename, line+1)
+            )
 
         super(ParserException, self).__init__(message)
 
@@ -556,6 +563,13 @@ class Parser(object):
                             mod = importlib.__import__(module_name)
                         # resolve the whole thing
                         for part in package.split('.')[1:]:
+                            if not hasattr(mod, part):
+                                raise ParserException(
+                                    self,
+                                    ln,
+                                    "Module {} does not contain {}"
+                                    "".format(mod.__name__, part)
+                                )
                             mod = getattr(mod, part)
                     else:
                         mod = sys.modules[package]
