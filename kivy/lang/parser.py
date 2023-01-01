@@ -139,10 +139,7 @@ class ParserException(Exception):
         if context.filename is not None:
             # and (self.filename != '<inline>'):
             # ^ Instead of checking for '<inline>', check context.
-            message += (
-               '\nFile "{}", line {}'
-               ''.format(self.filename, line+1)
-            )
+            message += '\nFile "{}", line {}'.format(self.filename, line + 1)
 
         super(ParserException, self).__init__(message)
 
