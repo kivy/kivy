@@ -242,6 +242,13 @@ class FocusBehavior(object):
     This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
     `address`.
 
+    .. warning::
+        On Android, `keyboard_suggestions` relies on
+        `InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS` to work, but some keyboards
+        just ignore this flag. If you want to disable suggestions at all on
+        Android, you can set `input_type` to `null`, which will request the
+        input method to run in a limited "generate key events" mode.
+
     .. versionadded:: 2.1.0
 
     :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
