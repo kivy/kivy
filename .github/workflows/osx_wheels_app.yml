@@ -75,7 +75,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        build_and_install_universal_kivy_sys_deps
+        ./tools/build_macos_dependencies.sh
     - name: Install cibuildwheel
       run: |
         source .ci/osx_ci.sh
@@ -85,7 +85,8 @@ jobs:
       run: |
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        export REPAIR_LIBRARY_PATH=/Library/Frameworks:/Library/Frameworks/SDL2_mixer.framework/Frameworks
+        export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
+        export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks:$KIVY_DEPS_ROOT/dist/Frameworks/SDL2_mixer.framework/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v2
       with:

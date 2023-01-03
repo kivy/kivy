@@ -63,12 +63,23 @@ def getoutput(cmd, env=None):
 def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     lenviron = None
-    pconfig = join(sys.prefix, 'libs', 'pkgconfig')
 
-    if isdir(pconfig):
+    if platform == 'win32':
+        pconfig = join(sys.prefix, 'libs', 'pkgconfig')
+        if isdir(pconfig):
+            lenviron = environ.copy()
+            lenviron['PKG_CONFIG_PATH'] = '{};{}'.format(
+                environ.get('PKG_CONFIG_PATH', ''), pconfig)
+
+    if KIVY_DEPS_ROOT and platform != 'win32':
         lenviron = environ.copy()
-        lenviron['PKG_CONFIG_PATH'] = '{};{}'.format(
-            environ.get('PKG_CONFIG_PATH', ''), pconfig)
+        lenviron["PKG_CONFIG_PATH"] = "{}:{}".format(
+            environ.get("PKG_CONFIG_PATH", ""),
+            join(
+                KIVY_DEPS_ROOT, "dist", "lib", "pkgconfig"
+            ),
+        )
+
     cmd = 'pkg-config --libs --cflags {}'.format(' '.join(packages))
     results = getoutput(cmd, lenviron).split()
     for token in results:
@@ -96,6 +107,7 @@ def get_isolated_env_paths():
 
 
 # -----------------------------------------------------------------------------
+
 # Determine on which platform we are
 
 build_examples = build_examples or \
@@ -133,6 +145,22 @@ if any((exists(path) for path in mali_paths)):
 # Needed when cross-compiling
 if environ.get('KIVY_CROSS_PLATFORM'):
     platform = environ.get('KIVY_CROSS_PLATFORM')
+
+# If the user has specified a KIVY_DEPS_ROOT, use that as the root for
+# (ATM only SDL) dependencies. Otherwise, use the default locations.
+KIVY_DEPS_ROOT = os.environ.get('KIVY_DEPS_ROOT', None)
+
+# if KIVY_DEPS_ROOT is None and platform is linux or darwin show a warning
+# message, because using a system provided SDL2 is not recommended.
+# (will be shown only in verbose mode)
+if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
+    print("###############################################")
+    print("WARNING: KIVY_DEPS_ROOT is not set, using system provided SDL")
+    print("which is not recommended as it may be incompatible with Kivy.")
+    print("Please build dependencies from source via the provided script")
+    print("and set KIVY_DEPS_ROOT to the root of the dependencies directory.")
+    print("###############################################")
+
 
 # -----------------------------------------------------------------------------
 # Detect options
@@ -471,19 +499,30 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
 # detect SDL2, only on desktop and iOS, or android if explicitly enabled
 # works if we forced the options or in autodetection
 sdl2_flags = {}
+sdl2_source = None
 if platform == 'win32' and c_options['use_sdl2'] is None:
     c_options['use_sdl2'] = True
 
-if c_options['use_sdl2'] or (
-        platform not in ('android',) and c_options['use_sdl2'] is None):
+can_autodetect_sdl2 = (
+    platform not in ("android",) and c_options["use_sdl2"] is None
+)
+if c_options['use_sdl2'] or can_autodetect_sdl2:
 
     sdl2_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
+        if KIVY_DEPS_ROOT:
+            default_sdl2_frameworks_search_path = join(
+                KIVY_DEPS_ROOT, "dist", "Frameworks"
+            )
+        else:
+            default_sdl2_frameworks_search_path = "/Library/Frameworks"
         sdl2_frameworks_search_path = environ.get(
-            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH", "/Library/Frameworks"
+            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH",
+            default_sdl2_frameworks_search_path
         )
         sdl2_valid = True
+
         sdl2_flags = {
             'extra_link_args': [
                 '-F{}'.format(sdl2_frameworks_search_path),
@@ -494,6 +533,7 @@ if c_options['use_sdl2'] or (
             'include_dirs': [],
             'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
+
         for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
             f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
@@ -511,6 +551,7 @@ if c_options['use_sdl2'] or (
             print('SDL2 frameworks not found, fallback on pkg-config')
         else:
             c_options['use_sdl2'] = True
+            sdl2_source = 'macos-frameworks'
             print('Activate SDL2 compilation')
 
     if not sdl2_valid and platform != "ios":
@@ -519,6 +560,7 @@ if c_options['use_sdl2'] or (
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
+            sdl2_source = 'pkg-config'
 
 
 # -----------------------------------------------------------------------------
@@ -681,20 +723,35 @@ def determine_sdl2():
     if not c_options['use_sdl2']:
         return flags
 
-    sdl2_path = environ.get('KIVY_SDL2_PATH', None)
-
-    if sdl2_flags and not sdl2_path and platform == 'darwin':
+    # If darwin has already been configured with frameworks, don't
+    # configure sdl2 via libs.
+    # TODO: Move framework configuration here.
+    if sdl2_source == "macos-frameworks":
         return sdl2_flags
+
+    default_sdl2_path = None
+
+    if KIVY_DEPS_ROOT:
+
+        default_sdl2_path = os.pathsep.join(
+            [
+                join(KIVY_DEPS_ROOT, "dist", "lib"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
+            ]
+        )
+
+    kivy_sdl2_path = environ.get('KIVY_SDL2_PATH', default_sdl2_path)
 
     includes, _ = get_isolated_env_paths()
 
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
-    split_chr = ';' if platform == 'win32' else ':'
-    sdl2_paths = sdl2_path.split(split_chr) if sdl2_path else []
+
+    sdl2_paths = kivy_sdl2_path.split(os.pathsep) if kivy_sdl2_path else []
 
     if not sdl2_paths:
+        # Try to find sdl2 in default locations if we don't have a custom path
         sdl2_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
             sdl_inc = join(include, 'SDL2')
@@ -708,6 +765,16 @@ def determine_sdl2():
     flags['library_dirs'] = (
         sdl2_paths if sdl2_paths else
         ['/usr/local/lib/'])
+
+    if kivy_sdl2_path:
+        # If we have a custom path, we need to add the rpath to the linker
+        # so that the libraries can be found and loaded without having to
+        # set LD_LIBRARY_PATH every time.
+        flags["extra_link_args"] = [
+            f"-Wl,-rpath,{l_path}"
+            for l_path in sdl2_paths
+            if l_path.endswith("lib")
+        ]
 
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)

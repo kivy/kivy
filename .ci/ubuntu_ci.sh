@@ -1,26 +1,6 @@
 #!/bin/bash
 set -e -x
 
-# manylinux SDL2
-MANYLINUX__SDL2__VERSION="2.24.2"
-MANYLINUX__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MANYLINUX__SDL2__VERSION/SDL2-$MANYLINUX__SDL2__VERSION.tar.gz"
-MANYLINUX__SDL2__FOLDER="SDL2-$MANYLINUX__SDL2__VERSION"
-
-# manylinux SDL2_image
-MANYLINUX__SDL2_IMAGE__VERSION="2.6.2"
-MANYLINUX__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MANYLINUX__SDL2_IMAGE__VERSION/SDL2_image-$MANYLINUX__SDL2_IMAGE__VERSION.tar.gz"
-MANYLINUX__SDL2_IMAGE__FOLDER="SDL2_image-2.6.2"
-
-# manylinux SDL2_mixer
-MANYLINUX__SDL2_MIXER__VERSION="2.6.2"
-MANYLINUX__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MANYLINUX__SDL2_MIXER__VERSION/SDL2_mixer-$MANYLINUX__SDL2_MIXER__VERSION.tar.gz"
-MANYLINUX__SDL2_MIXER__FOLDER="SDL2_mixer-2.6.2"
-
-# manylinux SDL2_ttf
-MANYLINUX__SDL2_TTF__VERSION="2.20.1"
-MANYLINUX__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MANYLINUX__SDL2_TTF__VERSION/SDL2_ttf-$MANYLINUX__SDL2_TTF__VERSION.tar.gz"
-MANYLINUX__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
-
 update_version_metadata() {
   current_time=$(python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))")
   date=$(python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))")
@@ -46,7 +26,6 @@ generate_sdist() {
 install_kivy_test_run_apt_deps() {
   sudo apt-get update
   sudo apt-get -y install libunwind-dev
-  sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
   sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base gstreamer1.0-plugins-good
   sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libx11-dev libmtdev-dev
   sudo apt-get -y install build-essential libgl1-mesa-dev libgles2-mesa-dev
@@ -185,56 +164,6 @@ upload_docs_to_server() {
 install_build_deps() {
   yum install -y epel-release;
   yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig zlib-devel portmidi portmidi-devel xorg-x11-server-devel mesa-libEGL-devel mtdev-devel mesa-libEGL freetype freetype-devel openjpeg openjpeg-devel libpng libpng-devel libtiff libtiff-devel libwebp libwebp-devel dbus-devel dbus ibus-devel ibus libsamplerate-devel libsamplerate libudev-devel libmodplug-devel libmodplug libvorbis-devel libvorbis flac-devel flac libjpeg-turbo-devel libjpeg-turbo wget;
-}
-
-build_and_install_linux_kivy_sys_deps() {
-  install_build_deps
-  mkdir ~/kivy_sources;
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/kivy_build/lib;
-
-  pushd kivy_sources
-  curl -L "$MANYLINUX__SDL2__URL" -o "${MANYLINUX__SDL2__FOLDER}.tar.gz"
-  curl -L "$MANYLINUX__SDL2_MIXER__URL" -o "${MANYLINUX__SDL2_MIXER__FOLDER}.tar.gz"
-  curl -L "$MANYLINUX__SDL2_IMAGE__URL" -o "${MANYLINUX__SDL2_IMAGE__FOLDER}.tar.gz"
-  curl -L "$MANYLINUX__SDL2_TTF__URL" -o "${MANYLINUX__SDL2_TTF__FOLDER}.tar.gz"
-
-  echo "-- Build SDL2"
-  tar -xvf "${MANYLINUX__SDL2__FOLDER}.tar.gz"
-  pushd $MANYLINUX__SDL2__FOLDER
-  ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin"  --enable-alsa-shared=no  --enable-jack-shared=no  --enable-pulseaudio-shared=no  --enable-esd-shared=no  --enable-arts-shared=no  --enable-nas-shared=no  --enable-sndio-shared=no  --enable-fusionsound-shared=no  --enable-libsamplerate-shared=no  --enable-wayland-shared=no --enable-x11-shared=no --enable-directfb-shared=no --enable-kmsdrm-shared=no;
-  make;
-  make install;
-  make distclean;
-  popd
-
-  echo "-- Build SDL2_mixer"
-  tar -xvf "${MANYLINUX__SDL2_MIXER__FOLDER}.tar.gz"
-  pushd $MANYLINUX__SDL2_MIXER__FOLDER
-  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin" --enable-music-mod-modplug-shared=no --enable-music-mod-mikmod-shared=no --enable-music-midi-fluidsynth-shared=no --enable-music-ogg-shared=no --enable-music-flac-shared=no --enable-music-mp3-mpg123-shared=no;
-  PATH="$HOME/kivy_build/bin:$PATH" make;
-  make install;
-  make distclean;
-  popd
-
-  echo "-- Build SDL2_image"
-  tar -xvf "${MANYLINUX__SDL2_IMAGE__FOLDER}.tar.gz"
-  pushd $MANYLINUX__SDL2_IMAGE__FOLDER
-  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin" --enable-png-shared=no --enable-jpg-shared=no --enable-tif-shared=no --enable-webp-shared=no;
-  PATH="$HOME/kivy_build/bin:$PATH" make;
-  make install;
-  make distclean;
-  popd
-
-  echo "-- Build SDL2_ttf"
-  tar -xvf "${MANYLINUX__SDL2_TTF__FOLDER}.tar.gz"
-  pushd $MANYLINUX__SDL2_TTF__FOLDER
-  PATH="$HOME/kivy_build/bin:$PATH" PKG_CONFIG_PATH="$HOME/kivy_build/lib/pkgconfig" ./configure --prefix="$HOME/kivy_build" --bindir="$HOME/kivy_build/bin";
-  PATH="$HOME/kivy_build/bin:$PATH" make;
-  make install;
-  make distclean;
-  popd
-
-  popd
 }
 
 generate_armv7l_wheels() {
