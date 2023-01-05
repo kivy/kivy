@@ -98,7 +98,7 @@ float distShadow = sigmoid(
 vec4 texture = texture2D(texture0, tex_coord0);
 vec4 shadow = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
 
-// This check is required to prevent shader crashing on some Adreno GPUs.
+// This check is required to prevent shader crashing on some Adreno GPUs. Reference: https://github.com/kivy/kivy/pull/8098
 if (frag_color.a > 0.0) {
     gl_FragColor = shadow;
 } else {
