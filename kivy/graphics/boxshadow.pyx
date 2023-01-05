@@ -89,19 +89,21 @@ void main (void){
 
 float distShadow = sigmoid(
     roundedBoxSDF(
-        tex_coord0 * size - size/2.0, size/2.0 - blur_radius * 1.5 - vec2(2.0),
-        border_radius) / (max(1.0, blur_radius)/4.0
-    )
+        tex_coord0 * size - size/2.0,
+        size/2.0 - blur_radius * 1.5 - vec2(2.0),
+        border_radius
+    ) / (max(1.0, blur_radius) / 4.0)
 );
-
-
-// Some devices require the resulting color to be blended with the texture.
-// Otherwise there will be a compilation issue.
 
 vec4 texture = texture2D(texture0, tex_coord0);
 vec4 shadow = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
 
-gl_FragColor = mix(texture, shadow, 1.0);
+// This check is required to prevent shader crashing on some Adreno GPUs.
+if (frag_color.a > 0.0) {
+    gl_FragColor = shadow;
+} else {
+    gl_FragColor = texture;
+}
 
 }
 """
