@@ -68,11 +68,6 @@ install_kivy_test_run_pip_deps() {
       --config "kivy:log_level:error"
   )
   python3 -m pip install -I "$CYTHON_INSTALL" coveralls
-  if [ $(python3 -c 'import sys; print("{}{}".format(*sys.version_info))') -le "35" ]; then
-    python3 -m pip install twine~=1.15.0
-  else
-    python3 -m pip install twine
-  fi
 }
 
 install_kivy_test_wheel_run_pip_deps() {
