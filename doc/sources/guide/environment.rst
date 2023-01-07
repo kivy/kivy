@@ -54,6 +54,32 @@ KIVY_SDL2_PATH
         This path is required for the compilation of Kivy. It is not
         required for program execution.
 
+KIVY_SDL2_FRAMEWORKS_SEARCH_PATH
+    If set, the SDL2 frameworks from this path are used when compiling kivy
+    instead of the ones installed system-wide.
+
+    That path is used only on macOS, and must contain the SDL2.framework,
+    SDL_image.framework, SDL_mixer.framework and SDL_ttf.framework.
+
+    .. versionadded:: 2.1.0
+
+    .. warning::
+
+        This path is required for the compilation of Kivy. It is not
+        required for program execution.
+
+KIVY_DEPS_ROOT
+    If set, during build, Kivy will use this directory as the root one to
+    search for (only SDL ATM) dependencies. Please note that if `KIVY_SDL2_PATH` or
+    `KIVY_SDL2_FRAMEWORKS_SEARCH_PATH` are set, they will be used instead.
+
+    .. versionadded:: 2.2.0
+
+    .. warning::
+
+        This path is required for the compilation of Kivy. It is not
+        required for program execution.
+
 
 Configuration
 -------------
