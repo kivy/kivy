@@ -497,31 +497,133 @@ cdef class Matrix:
         cdef Matrix mr = Matrix()
         cdef double *m = <double *>self.mat
         cdef double *r = <double *>mr.mat
+
+        cdef double a11 = m[0]
+        cdef double a12 = m[1]
+        cdef double a13 = m[2]
+        cdef double a14 = m[3]
+        cdef double a21 = m[4]
+        cdef double a22 = m[5]
+        cdef double a23 = m[6]
+        cdef double a24 = m[7]
+        cdef double a31 = m[8]
+        cdef double a32 = m[9]
+        cdef double a33 = m[10]
+        cdef double a34 = m[11]
+        cdef double a41 = m[12]
+        cdef double a42 = m[13]
+        cdef double a43 = m[14]
+        cdef double a44 = m[15]
+    
+        cdef double det2231
+        cdef double det2331
+        cdef double det2332
+        cdef double det2431
+        cdef double det2432
+        cdef double det2433
+
+        cdef double det2142
+        cdef double det2143
+        cdef double det2144
+        cdef double det2243
+        cdef double det2244
+        cdef double det2344
+
+        cdef double det3142
+        cdef double det3143
+        cdef double det3144
+        cdef double det3243
+        cdef double det3244
+        cdef double det3344
+
+        cdef double det11
+        cdef double det12
+        cdef double det13
+        cdef double det14
+
+        cdef double det21
+        cdef double det22
+        cdef double det23
+        cdef double det24
+
+        cdef double det31
+        cdef double det32
+        cdef double det33
+        cdef double det34
+
+        cdef double det41
+        cdef double det42
+        cdef double det43
+        cdef double det44
+
         cdef double det
         with nogil:
-            det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
-                    - m[4] * (m[1] * m[10] - m[9] * m[2]) \
-                    + m[8] * (m[1] * m[ 6] - m[5] * m[2])
+            det2231 = a22*a31 - a21*a32
+            det2331 = a23*a31 - a21*a33
+            det2332 = a23*a32 - a22*a33
+            det2431 = a24*a31 - a21*a34
+            det2432 = a24*a32 - a22*a34
+            det2433 = a24*a33 - a23*a34
+
+            det2142 = a21*a42 - a22*a41
+            det2143 = a21*a43 - a23*a41
+            det2144 = a21*a44 - a24*a41
+            det2243 = a22*a43 - a23*a42
+            det2244 = a22*a44 - a24*a42
+            det2344 = a23*a44 - a24*a43
+
+            det3142 = a31*a42 - a32*a41
+            det3143 = a31*a43 - a33*a41
+            det3144 = a31*a44 - a34*a41
+            det3243 = a32*a43 - a33*a42
+            det3244 = a32*a44 - a34*a42
+            det3344 = a33*a44 - a34*a43
+
+            det11 =   a22*det3344 - a23*det3244 + a24*det3243
+            det12 = - a21*det3344 + a23*det3144 - a24*det3143
+            det13 =   a21*det3244 - a22*det3144 + a24*det3142
+            det14 = - a21*det3243 + a22*det3143 - a23*det3142
+
+            det21 = - a12*det3344 + a13*det3244 - a14*det3243
+            det22 =   a11*det3344 - a13*det3144 + a14*det3143
+            det23 = - a11*det3244 + a12*det3144 - a14*det3142
+            det24 =   a11*det3243 - a12*det3143 + a13*det3142
+
+            det31 =   a12*det2344 - a13*det2244 + a14*det2243
+            det32 = - a11*det2344 + a13*det2144 - a14*det2143
+            det33 =   a11*det2244 - a12*det2144 + a14*det2142
+            det34 = - a11*det2243 + a12*det2143 - a13*det2142
+
+            det41 =   a12*det2433 - a13*det2432 + a14*det2332
+            det42 = - a11*det2433 + a13*det2431 - a14*det2331
+            det43 =   a11*det2432 - a12*det2431 + a14*det2231
+            det44 = - a11*det2332 + a12*det2331 - a13*det2231
+
+            det = a11*det11 + a12*det12 + a13*det13 + a14*det14
+
         if det == 0:
             return
+        
+        cdef double idet = 1 / det
+
         with nogil:
-            det = 1.0 / det
-            r[ 0] =   det * (m[5] * m[10] - m[9] * m[6])
-            r[ 4] = - det * (m[4] * m[10] - m[8] * m[6])
-            r[ 8] =   det * (m[4] * m[ 9] - m[8] * m[5])
-            r[ 1] = - det * (m[1] * m[10] - m[9] * m[2])
-            r[ 5] =   det * (m[0] * m[10] - m[8] * m[2])
-            r[ 9] = - det * (m[0] * m[ 9] - m[8] * m[1])
-            r[ 2] =   det * (m[1] * m[ 6] - m[5] * m[2])
-            r[ 6] = - det * (m[0] * m[ 6] - m[4] * m[2])
-            r[10] =   det * (m[0] * m[ 5] - m[4] * m[1])
-            r[ 3] = 0
-            r[ 7] = 0
-            r[11] = 0
-            r[15] = 1
-            r[12] = -(m[12] * r[0] + m[13] * r[4] + m[14] * r[ 8])
-            r[13] = -(m[12] * r[1] + m[13] * r[5] + m[14] * r[ 9])
-            r[14] = -(m[12] * r[2] + m[13] * r[6] + m[14] * r[10])
+            r[ 0] = det11 * idet
+            r[ 1] = det21 * idet
+            r[ 2] = det31 * idet
+            r[ 3] = det41 * idet
+            r[ 4] = det12 * idet
+            r[ 5] = det22 * idet
+            r[ 6] = det32 * idet
+            r[ 7] = det42 * idet
+            r[ 8] = det13 * idet
+            r[ 9] = det23 * idet
+            r[10] = det33 * idet
+            r[11] = det43 * idet
+            r[12] = det14 * idet
+            r[13] = det24 * idet
+            r[14] = det34 * idet
+            r[15] = det44 * idet
+
         return mr
 
     cpdef Matrix normal_matrix(self):
@@ -558,22 +660,22 @@ cdef class Matrix:
         cdef double *b = <double *>mb.mat
         cdef double *r = <double *>mr.mat
         with nogil:
-            r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
-            r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
-            r[ 8] = a[ 8] * b[0] + a[ 9] * b[4] + a[10] * b[ 8]
-            r[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[ 8] + b[12]
-            r[ 1] = a[ 0] * b[1] + a[ 1] * b[5] + a[ 2] * b[ 9]
-            r[ 5] = a[ 4] * b[1] + a[ 5] * b[5] + a[ 6] * b[ 9]
-            r[ 9] = a[ 8] * b[1] + a[ 9] * b[5] + a[10] * b[ 9]
-            r[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[ 9] + b[13]
-            r[ 2] = a[ 0] * b[2] + a[ 1] * b[6] + a[ 2] * b[10]
-            r[ 6] = a[ 4] * b[2] + a[ 5] * b[6] + a[ 6] * b[10]
-            r[10] = a[ 8] * b[2] + a[ 9] * b[6] + a[10] * b[10]
-            r[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + b[14]
-            r[ 3] = 0
-            r[ 7] = 0
-            r[11] = 0
-            r[15] = 1
+            r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8] + a[ 3] * b[12]
+            r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8] + a[ 7] * b[12]
+            r[ 8] = a[ 8] * b[0] + a[ 9] * b[4] + a[10] * b[ 8] + a[11] * b[12]
+            r[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[ 8] + a[15] * b[12]
+            r[ 1] = a[ 0] * b[1] + a[ 1] * b[5] + a[ 2] * b[ 9] + a[ 3] * b[13]
+            r[ 5] = a[ 4] * b[1] + a[ 5] * b[5] + a[ 6] * b[ 9] + a[ 7] * b[13]
+            r[ 9] = a[ 8] * b[1] + a[ 9] * b[5] + a[10] * b[ 9] + a[11] * b[13]
+            r[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[ 9] + a[15] * b[13]
+            r[ 2] = a[ 0] * b[2] + a[ 1] * b[6] + a[ 2] * b[10] + a[ 3] * b[14]
+            r[ 6] = a[ 4] * b[2] + a[ 5] * b[6] + a[ 6] * b[10] + a[ 7] * b[14]
+            r[10] = a[ 8] * b[2] + a[ 9] * b[6] + a[10] * b[10] + a[11] * b[14]
+            r[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14]
+            r[ 3] = a[ 0] * b[3] + a[ 1] * b[7] + a[ 2] * b[11] + a[ 3] * b[15]
+            r[ 7] = a[ 4] * b[3] + a[ 5] * b[7] + a[ 6] * b[11] + a[ 7] * b[15]
+            r[11] = a[ 8] * b[3] + a[ 9] * b[7] + a[10] * b[11] + a[11] * b[15]
+            r[15] = a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15]
         return mr
 
     cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
