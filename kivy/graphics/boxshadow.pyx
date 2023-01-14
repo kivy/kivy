@@ -149,7 +149,6 @@ cdef class BoxShadow(Fbo):
         self._init_texture()
 
     cdef void _init_texture(self):
-        self.shader.fs = SHADOW_fs
         self._rect = Rectangle(size=(100, 100))
         self._rect.texture = self.texture
         with self:
