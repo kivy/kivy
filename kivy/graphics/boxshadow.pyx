@@ -131,7 +131,7 @@ cdef class BoxShadow(Fbo):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(BoxShadowTest, self).__init__(size=(100, 100), fs=SHADOW_fs)
+        super(BoxShadow, self).__init__(size=(100, 100), fs=SHADOW_fs)
         pos = kwargs.get("pos", (0.0, 0.0))
         size = kwargs.get("size", (0.0, 0.0))
         offset = kwargs.get("offset", (0.0, 0.0))
