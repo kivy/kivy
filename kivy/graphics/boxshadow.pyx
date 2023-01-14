@@ -56,7 +56,7 @@ from kivy.graphics.gl_instructions import ClearBuffers, ClearColor
 
 cdef str SHADOW_fs = """
 #ifdef GL_ES
-precision highp float;
+    precision highp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -95,15 +95,8 @@ float distShadow = sigmoid(
     ) / (max(1.0, blur_radius) / 4.0)
 );
 
-vec4 texture = texture2D(texture0, tex_coord0);
-vec4 shadow = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
-
-// This check is required to prevent shader crashing on some Adreno GPUs. Reference: https://github.com/kivy/kivy/pull/8098
-if (frag_color.a > 0.0) {
-    gl_FragColor = shadow;
-} else {
-    gl_FragColor = texture;
-}
+vec4 shadow = vec4(1.0, 1.0, 1.0, clamp((1.0 - distShadow) * (frag_color.a * 2.0), 0.0, 1.0));
+gl_FragColor = shadow;
 
 }
 """
@@ -138,7 +131,7 @@ cdef class BoxShadow(Fbo):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(BoxShadow, self).__init__(size=(100, 100))
+        super(BoxShadowTest, self).__init__(size=(100, 100), fs=SHADOW_fs)
         pos = kwargs.get("pos", (0.0, 0.0))
         size = kwargs.get("size", (0.0, 0.0))
         offset = kwargs.get("offset", (0.0, 0.0))
