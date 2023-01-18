@@ -305,36 +305,36 @@ cdef class Matrix:
         with nogil:
             if perspective:
                 t = 2.0 * near
-                self.mat[0]  = t/(right-left)
+                self.mat[0]  = t/(right - left)
                 self.mat[4]  = 0.0
-                self.mat[8]  = (right+left)/(right-left)
+                self.mat[8]  = (right + left)/(right - left)
                 self.mat[12] = 0.0
                 self.mat[1]  = 0.0
-                self.mat[5]  = t/(top-bottom)
-                self.mat[9]  = (top+bottom)/(top-bottom)
+                self.mat[5]  = t/(top - bottom)
+                self.mat[9]  = (top + bottom)/(top - bottom)
                 self.mat[13] = 0.0
                 self.mat[2]  = 0.0
                 self.mat[6]  = 0.0
-                self.mat[10] = -(far+near)/(far-near)
-                self.mat[14] = (-t*far)/(far-near)
+                self.mat[10] = -(far + near)/(far - near)
+                self.mat[14] = (-t * far)/(far - near)
                 self.mat[3]  = 0.0
                 self.mat[7]  = 0.0
                 self.mat[11] = -1.0
                 self.mat[15] = 0.0
             else:
                 #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
-                self.mat[0]  = 2.0/(right-left)
+                self.mat[0]  = 2.0/(right - left)
                 self.mat[4]  = 0.0
                 self.mat[8]  = 0.0
-                self.mat[12] = (right+left)/(left-right)
+                self.mat[12] = (right + left)/(left - right)
                 self.mat[1]  = 0.0
-                self.mat[5]  = 2.0/(top-bottom)
+                self.mat[5]  = 2.0/(top - bottom)
                 self.mat[9]  = 0.0
-                self.mat[13] = (top+bottom)/(bottom-top)
+                self.mat[13] = (top + bottom)/(bottom - top)
                 self.mat[2]  = 0.0
                 self.mat[6]  = 0.0
-                self.mat[10] = -2.0/(far-near)
-                self.mat[14] = (far+near)/(near-far)
+                self.mat[10] = -2.0/(far - near)
+                self.mat[14] = (far + near)/(near - far)
                 self.mat[3]  = 0.0
                 self.mat[7]  = 0.0
                 self.mat[11] = 0.0
@@ -443,7 +443,7 @@ cdef class Matrix:
         '''Transforms the point by the matrix and returns the transformed point
         as a ``(x, y, z)`` tuple. If the point is a vector ``v``, the returned
         values is ``v2 = matrix * v``.
-        
+
         If ``t`` is provided, it multiplies it with the last column of the matrix
         and returns the transformed ``(x, y, z, t)``.
         '''
@@ -514,7 +514,7 @@ cdef class Matrix:
         cdef double a42 = m[13]
         cdef double a43 = m[14]
         cdef double a44 = m[15]
-    
+
         cdef double det2231
         cdef double det2331
         cdef double det2332
@@ -558,52 +558,52 @@ cdef class Matrix:
 
         cdef double det
         with nogil:
-            det2231 = a22*a31 - a21*a32
-            det2331 = a23*a31 - a21*a33
-            det2332 = a23*a32 - a22*a33
-            det2431 = a24*a31 - a21*a34
-            det2432 = a24*a32 - a22*a34
-            det2433 = a24*a33 - a23*a34
+            det2231 = a22 * a31 - a21 * a32
+            det2331 = a23 * a31 - a21 * a33
+            det2332 = a23 * a32 - a22 * a33
+            det2431 = a24 * a31 - a21 * a34
+            det2432 = a24 * a32 - a22 * a34
+            det2433 = a24 * a33 - a23 * a34
 
-            det2142 = a21*a42 - a22*a41
-            det2143 = a21*a43 - a23*a41
-            det2144 = a21*a44 - a24*a41
-            det2243 = a22*a43 - a23*a42
-            det2244 = a22*a44 - a24*a42
-            det2344 = a23*a44 - a24*a43
+            det2142 = a21 * a42 - a22 * a41
+            det2143 = a21 * a43 - a23 * a41
+            det2144 = a21 * a44 - a24 * a41
+            det2243 = a22 * a43 - a23 * a42
+            det2244 = a22 * a44 - a24 * a42
+            det2344 = a23 * a44 - a24 * a43
 
-            det3142 = a31*a42 - a32*a41
-            det3143 = a31*a43 - a33*a41
-            det3144 = a31*a44 - a34*a41
-            det3243 = a32*a43 - a33*a42
-            det3244 = a32*a44 - a34*a42
-            det3344 = a33*a44 - a34*a43
+            det3142 = a31 * a42 - a32 * a41
+            det3143 = a31 * a43 - a33 * a41
+            det3144 = a31 * a44 - a34 * a41
+            det3243 = a32 * a43 - a33 * a42
+            det3244 = a32 * a44 - a34 * a42
+            det3344 = a33 * a44 - a34 * a43
 
-            det11 =   a22*det3344 - a23*det3244 + a24*det3243
-            det12 = - a21*det3344 + a23*det3144 - a24*det3143
-            det13 =   a21*det3244 - a22*det3144 + a24*det3142
-            det14 = - a21*det3243 + a22*det3143 - a23*det3142
+            det11 =   a22 * det3344 - a23 * det3244 + a24 * det3243
+            det12 = - a21 * det3344 + a23 * det3144 - a24 * det3143
+            det13 =   a21 * det3244 - a22 * det3144 + a24 * det3142
+            det14 = - a21 * det3243 + a22 * det3143 - a23 * det3142
 
-            det21 = - a12*det3344 + a13*det3244 - a14*det3243
-            det22 =   a11*det3344 - a13*det3144 + a14*det3143
-            det23 = - a11*det3244 + a12*det3144 - a14*det3142
-            det24 =   a11*det3243 - a12*det3143 + a13*det3142
+            det21 = - a12 * det3344 + a13 * det3244 - a14 * det3243
+            det22 =   a11 * det3344 - a13 * det3144 + a14 * det3143
+            det23 = - a11 * det3244 + a12 * det3144 - a14 * det3142
+            det24 =   a11 * det3243 - a12 * det3143 + a13 * det3142
 
-            det31 =   a12*det2344 - a13*det2244 + a14*det2243
-            det32 = - a11*det2344 + a13*det2144 - a14*det2143
-            det33 =   a11*det2244 - a12*det2144 + a14*det2142
-            det34 = - a11*det2243 + a12*det2143 - a13*det2142
+            det31 =   a12 * det2344 - a13 * det2244 + a14 * det2243
+            det32 = - a11 * det2344 + a13 * det2144 - a14 * det2143
+            det33 =   a11 * det2244 - a12 * det2144 + a14 * det2142
+            det34 = - a11 * det2243 + a12 * det2143 - a13 * det2142
 
-            det41 =   a12*det2433 - a13*det2432 + a14*det2332
-            det42 = - a11*det2433 + a13*det2431 - a14*det2331
-            det43 =   a11*det2432 - a12*det2431 + a14*det2231
-            det44 = - a11*det2332 + a12*det2331 - a13*det2231
+            det41 =   a12 * det2433 - a13 * det2432 + a14 * det2332
+            det42 = - a11 * det2433 + a13 * det2431 - a14 * det2331
+            det43 =   a11 * det2432 - a12 * det2431 + a14 * det2231
+            det44 = - a11 * det2332 + a12 * det2331 - a13 * det2231
 
-            det = a11*det11 + a12*det12 + a13*det13 + a14*det14
+            det = a11 * det11 + a12 * det12 + a13 * det13 + a14 * det14
 
         if det == 0:
             return
-        
+
         cdef double idet = 1 / det
 
         with nogil:
