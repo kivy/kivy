@@ -200,11 +200,11 @@ class Splitter(BoxLayout):
             self.unbind(disabled=_strp.setter('disabled'))
 
             sup.remove_widget(instance._strip)
-        else:
-            cls = instance.strip_cls
-            if isinstance(cls, string_types):
-                cls = Factory.get(cls)
-            instance._strip = _strp = cls()
+
+        cls = instance.strip_cls
+        if isinstance(cls, string_types):
+            cls = Factory.get(cls)
+        instance._strip = _strp = cls()
 
         sz_frm = instance.sizable_from[0]
         if sz_frm in ('l', 'r'):
