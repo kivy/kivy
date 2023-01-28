@@ -390,15 +390,41 @@ class TreeView(Widget):
         '''Get the node at the position (x, y).
         '''
         x, y = pos
-        for node in self.iterate_open_nodes(self.root):
+        for node in self.iterate_visible_nodes(self.root):
             if self.x <= x <= self.right and \
                node.y <= y <= node.top:
                 return node
 
+    def iterate_visible_nodes(self, node=None):
+        '''Generator to depth-first iterate over all the expanded
+        nodes and their children, starting from `node` and down. 
+        If `node` is `None`, the generator start with :attr:`root`.
+
+        To get all the visible nodes::
+
+            treeview = TreeView()
+            # ... add nodes ...
+            for node in treeview.iterate_visible_nodes():
+                print(node)
+
+        '''
+        if not node:
+            node = self.root
+        if self.hide_root and node is self.root:
+            pass
+        else:
+            yield node
+        if not node.is_open:
+            return
+        f = self.iterate_visible_nodes
+        for cnode in node.nodes:
+            for ynode in f(cnode):
+                yield ynode
+
     def iterate_open_nodes(self, node=None):
-        '''Generator to iterate over all the expended nodes starting from
-        `node` and down. If `node` is `None`, the generator start with
-        :attr:`root`.
+        '''Generator to depth-first iterate over all the open nodes 
+        starting from `node` and down. If `node` is `None`, the 
+        generator start with :attr:`root`.
 
         To get all the open nodes::
 
@@ -412,9 +438,9 @@ class TreeView(Widget):
             node = self.root
         if self.hide_root and node is self.root:
             pass
-        else:
+        if node.is_open:
             yield node
-        if not node.is_open:
+        else:
             return
         f = self.iterate_open_nodes
         for cnode in node.nodes:
@@ -422,9 +448,9 @@ class TreeView(Widget):
                 yield ynode
 
     def iterate_all_nodes(self, node=None):
-        '''Generator to iterate over all nodes from `node` and down whether
-        expanded or not. If `node` is `None`, the generator start with
-        :attr:`root`.
+        '''Generator to depth-first iterate over all nodes from 
+        `node` and down whether expanded or not. If `node` is 
+        `None`, the generator start with :attr:`root`.
         '''
         if not node:
             node = self.root
@@ -469,7 +495,7 @@ class TreeView(Widget):
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
         min_width = min_height = 0
-        for count, node in enumerate(self.iterate_open_nodes(self.root)):
+        for count, node in enumerate(self.iterate_visible_nodes(self.root)):
             node.odd = False if count % 2 else True
             min_width = max(min_width, node.right - self.x)
             min_height += node.height
