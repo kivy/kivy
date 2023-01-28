@@ -14,7 +14,7 @@ env:
 
 jobs:
   raspberrypi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
@@ -56,7 +56,7 @@ jobs:
 
   always_job:
     name: Always run job
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Always run
         run: |

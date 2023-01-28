@@ -45,8 +45,9 @@ generate_sdist() {
 
 install_kivy_test_run_apt_deps() {
   sudo apt-get update
+  sudo apt-get -y install libunwind-dev
   sudo apt-get -y install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
-  sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base
+  sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base gstreamer1.0-plugins-good
   sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libx11-dev libmtdev-dev
   sudo apt-get -y install build-essential libgl1-mesa-dev libgles2-mesa-dev
   sudo apt-get -y install xvfb pulseaudio xsel
@@ -67,11 +68,6 @@ install_kivy_test_run_pip_deps() {
       --config "kivy:log_level:error"
   )
   python3 -m pip install -I "$CYTHON_INSTALL" coveralls
-  if [ $(python3 -c 'import sys; print("{}{}".format(*sys.version_info))') -le "35" ]; then
-    python3 -m pip install twine~=1.15.0
-  else
-    python3 -m pip install twine
-  fi
 }
 
 install_kivy_test_wheel_run_pip_deps() {

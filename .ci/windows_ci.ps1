@@ -72,7 +72,6 @@ function Install-kivy-test-run-win-deps {
 
 function Install-kivy-test-run-pip-deps {
     python -m pip install pip wheel setuptools --upgrade
-    python -m pip install twine
 }
 
 function Install-kivy {
