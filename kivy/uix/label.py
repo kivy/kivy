@@ -301,7 +301,8 @@ class Label(Widget):
 
     __events__ = ['on_ref_press']
 
-    _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+    _font_properties = ('text', 'font_size', 'font_name', 'font_script_name',
+                        'font_direction', 'bold', 'italic',
                         'underline', 'strikethrough', 'font_family', 'color',
                         'disabled_color', 'halign', 'valign', 'padding_x',
                         'padding_y', 'outline_width', 'disabled_outline_color',
@@ -604,6 +605,50 @@ class Label(Widget):
     defaults to 'Roboto'. This value is taken
     from :class:`~kivy.config.Config`.
     '''
+
+    font_script_name = OptionProperty('Latn', options=['Zyyy', 'Latn', 'Hani',
+                'Cyrl', 'Hira', 'Kana', 'Thai', 'Arab', 'Hang', 'Deva', 'Grek',
+                'Hebr', 'Taml', 'Knda', 'Geor', 'Mlym', 'Telu', 'Mymr', 'Gujr',
+                'Beng', 'Guru', 'Laoo', 'Zinh', 'Khmr', 'Tibt', 'Sinh', 'Ethi',
+                'Thaa', 'Orya', 'Zzzz', 'Cans', 'Syrc', 'Bopo', 'Nkoo', 'Cher',
+                'Yiii', 'Samr', 'Copt', 'Mong', 'Glag', 'Vaii', 'Bali', 'Tfng',
+                'Bamu', 'Batk', 'Cham', 'Java', 'Kali', 'Lepc', 'Limb', 'Lisu',
+                'Mand', 'Mtei', 'Talu', 'Olck', 'Saur', 'Sund', 'Sylo', 'Tale',
+                'Lana', 'Avst', 'Brah', 'Bugi', 'Buhd', 'Cari', 'Xsux', 'Cprt',
+                'Dsrt', 'Egyp', 'Goth', 'Hano', 'Armi', 'Phli', 'Prti', 'Kthi',
+                'Khar', 'Linb', 'Lyci', 'Lydi', 'Ogam', 'Ital', 'Xpeo', 'Sarb',
+                'Orkh', 'Osma', 'Phag', 'Phnx', 'Rjng', 'Runr', 'Shaw', 'Tglg',
+                'Tagb', 'Ugar', 'Cakm', 'Merc', 'Mero', 'Plrd', 'Shrd', 'Sora',
+                'Takr', 'Brai', 'Aghb', 'Bass', 'Dupl', 'Elba', 'Gran', 'Khoj',
+                'Lina', 'Mahj', 'Mani', 'Modi', 'Mroo', 'Narb', 'Nbat', 'Palm',
+                'Pauc', 'Perm', 'Phlp', 'Sidd', 'Sind', 'Tirh', 'Wara', 'Ahom',
+                'Hluw', 'Hatr', 'Mult', 'Hung', 'Sgnw', 'Adlm', 'Bhks', 'Marc',
+                'Osge', 'Tang', 'Newa', 'Gonm', 'Nshu', 'Soyo', 'Zanb', 'Dogr',
+                'Gong', 'Rohg', 'Maka', 'Medf', 'Sogo', 'Sogd', 'Elym', 'Hmnp',
+                'Nand', 'Wcho', 'Chrs', 'Diak', 'Kits', 'Yezi', 'Cpmn', 'Ougr',
+                'Tnsa', 'Toto', 'Vith', 'Kawi', 'Nagm'])
+    '''`script_code` from https://bit.ly/TypeScriptCodes .
+
+    .. versionadded:: 2.2.0
+
+    .. warning::
+
+        font_script_name is only currently supported in SDL2 ttf providers.
+
+
+    :attr:`font_script_name` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to 'Latn'.
+    '''
+
+    font_direction = OptionProperty('ltr', options=['rtl', 'ltr', 'ttb', 'btt'])
+    '''Direction for the specific font, can be one of `ltr`, `rtl`, `ttb`,`btt`.
+
+    font_direction currently only works with SDL2 ttf providers.
+
+    .. versionadded:: 2.2.0
+
+    :attr:`font_direction` is a :class:`~kivy.properties.OptionProperty` and
+    defults to 'ltr'. '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.

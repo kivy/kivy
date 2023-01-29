@@ -755,6 +755,8 @@ cdef extern from "SDL_ttf.h":
     cdef void  TTF_SetFontStyle(TTF_Font *font, int style)
     cdef int  TTF_GetFontOutline( TTF_Font *font)
     cdef void  TTF_SetFontOutline(TTF_Font *font, int outline)
+    cdef int TTF_SetFontDirection(TTF_Font *font, int direction)
+    cdef int TTF_SetFontScriptName(TTF_Font *font, const char *script)
 
     #Set and retrieve FreeType hinter settings */
     ##define TTF_HINTING_NORMAL    0
@@ -767,6 +769,11 @@ cdef extern from "SDL_ttf.h":
     cdef int TTF_HINTING_NONE
     cdef int  TTF_GetFontHinting( TTF_Font *font)
     cdef void  TTF_SetFontHinting(TTF_Font *font, int hinting)
+
+    cdef int TTF_DIRECTION_LTR
+    cdef int TTF_DIRECTION_RTL
+    cdef int TTF_DIRECTION_TTB
+    cdef int TTF_DIRECTION_BTT
 
     #Get the total height of the font - usually equal to point size
     cdef int  TTF_FontHeight( TTF_Font *font)

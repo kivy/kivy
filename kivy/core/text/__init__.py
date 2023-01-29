@@ -235,7 +235,8 @@ class LabelBase(object):
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None, font_context=None,
-        font_features=None, base_direction=None, text_language=None,
+        font_features=None, base_direction=None, font_direction='ltr',
+        font_script_name='Latin', text_language=None,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -258,6 +259,8 @@ class LabelBase(object):
                    'font_context': font_context,
                    'font_features': font_features,
                    'base_direction': base_direction,
+                   'font_direction': font_direction,
+                   'font_script_name': font_script_name,
                    'text_language': text_language}
 
         kwargs_get = kwargs.get
