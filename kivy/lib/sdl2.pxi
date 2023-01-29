@@ -256,6 +256,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
         SDL_WINDOW_ALLOW_HIGHDPI
+        SDL_WINDOW_SKIP_TASKBAR = 0x00010000    #,   /**< window should not be added to the taskbar */
 
     ctypedef enum SDL_HitTestResult:
         SDL_HITTEST_NORMAL

@@ -253,6 +253,11 @@ Available configuration tokens
         When enabled, the window will be brought to the front and will keep
         the window above the rest. Only works for the sdl2 window provider.
         ``0`` is disabled, ``1`` is enabled.
+    `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``0``
+        Determines whether the app's icon will be added to the taskbar. Only
+        applicable for the SDL2 window provider.
+        ``0`` means the icon will not be shown in the taskbar and ``1`` means
+        it will.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
@@ -338,6 +343,7 @@ Available configuration tokens
 
 .. versionadded:: 2.2.0
     `always_on_top` have been added to the `graphics` section.
+    `show_taskbar_icon` have been added to the `graphics` section.
 
 .. versionchanged:: 2.2.0
     `implementation` has been added to the network section.
@@ -932,6 +938,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 25:
             Config.setdefault('graphics', 'always_on_top', '0')
+            Config.setdefault("graphics", "show_taskbar_icon", "1")
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
