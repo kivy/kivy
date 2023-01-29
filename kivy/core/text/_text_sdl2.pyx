@@ -86,6 +86,19 @@ cdef class _SurfaceContainer:
             if TTF_GetFontKerning(font) != 0:
                 TTF_SetFontKerning(font, 0)
 
+        direction = container.options['font_direction']
+        if direction == 'ltr':
+            TTF_SetFontDirection(font, TTF_DIRECTION_LTR)
+        elif direction == 'rtl':
+            TTF_SetFontDirection(font, TTF_DIRECTION_RTL)
+        elif direction == 'ttb':
+            TTF_SetFontDirection(font, TTF_DIRECTION_TTB)
+        elif direction == 'btt':
+            TTF_SetFontDirection(font, TTF_DIRECTION_BTT)
+
+        fontscript = container.options['font_script_name']
+        TTF_SetFontScriptName(font, fontscript)
+
         if outline_width:
             TTF_SetFontOutline(font, outline_width)
             oc.r = <int>(outline_color[0] * 255)
