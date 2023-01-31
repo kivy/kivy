@@ -45,7 +45,6 @@ if self.horizontal else 'path to vertical pressed image'
 
 __all__ = ('Splitter', )
 
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
