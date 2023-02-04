@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - runs_on: macos-11
-            python: '3.9'
+            python: '3.x'
           - runs_on: apple-silicon-m1
             python: '3.9.7'
     steps:

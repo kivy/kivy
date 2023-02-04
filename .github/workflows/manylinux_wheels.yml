@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
@@ -61,7 +61,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Set up QEMU
       if: ${{ matrix.cibw_archs == 'aarch64' }}
       uses: docker/setup-qemu-action@v1
@@ -100,7 +100,7 @@ jobs:
     - name: Set up Python 3.x
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - uses: actions/download-artifact@v3
       with:
         name: manylinux_wheels
@@ -170,7 +170,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_install
     - name: Test Kivy benchmarks
-      if: matrix.python == '3.9' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
+      if: matrix.python == '3.x' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
@@ -190,7 +190,7 @@ jobs:
       - name: Set up Python 3.x
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Generate sdist
         run: |
           source .ci/ubuntu_ci.sh

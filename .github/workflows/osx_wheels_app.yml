@@ -24,7 +24,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -52,7 +52,7 @@ jobs:
       matrix:
         include:
           - runs_on: macos-11
-            python: '3.9'
+            python: '3.x'
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -100,10 +100,10 @@ jobs:
       KIVY_GL_BACKEND: 'mock'
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: 3.x
     - uses: actions/download-artifact@v3
       with:
         name: osx_wheels
@@ -210,7 +210,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Cache macOS deps downloads
         uses: actions/cache@v3
         with:
@@ -248,10 +248,10 @@ jobs:
       KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.x
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: 3.x
       - uses: actions/download-artifact@v3
         with:
           name: osx_app
