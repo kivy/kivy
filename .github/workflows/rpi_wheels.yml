@@ -20,7 +20,7 @@ jobs:
       matrix:
         docker_images: ['balenalib/armv7hf-debian:buster']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
@@ -42,7 +42,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "raspberrypi/kivy/"
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: github.event_name == 'pull_request'
       with:
         name: armv7l_wheels

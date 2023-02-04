@@ -23,9 +23,9 @@ jobs:
         arch: ['x64', 'x86']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
@@ -53,7 +53,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: windows_wheels
         path: dist
@@ -63,12 +63,12 @@ jobs:
     needs: windows_wheels_create
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist
@@ -110,13 +110,13 @@ jobs:
         python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
         arch: [ 'x64', 'x86' ]
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist
@@ -134,7 +134,7 @@ jobs:
           . .\.ci\windows_ci.ps1
           Test-kivy-benchmark
       - name: Upload benchmarks as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: benchmarks
           path: .benchmarks-kivy
@@ -143,12 +143,12 @@ jobs:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist
