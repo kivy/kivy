@@ -157,6 +157,8 @@ jobs:
             python: '3.9.7'
           - runs_on: apple-silicon-m1
             python: '3.10.1'
+          - runs_on: apple-silicon-m1
+            python: '3.11'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
