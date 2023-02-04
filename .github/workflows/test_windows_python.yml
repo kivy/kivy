@@ -16,9 +16,9 @@ jobs:
         python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
         arch: ['x64', 'x86']
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
@@ -41,7 +41,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Test-kivy-benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: benchmarks
         path: .benchmarks-kivy

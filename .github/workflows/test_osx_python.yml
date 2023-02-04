@@ -22,15 +22,15 @@ jobs:
           - runs_on: apple-silicon-m1
             python: '3.9.7'
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.x
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python }}
       # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
       if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: Cache macOS deps downloads
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
