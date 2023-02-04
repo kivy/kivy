@@ -47,9 +47,11 @@ The easiest way to install Kivy is with ``pip``, which installs Kivy using eithe
 :ref:`pre-compiled wheel<pip-wheel>`, if available, otherwise from source (see below).
 
 Kivy provides :ref:`pre-compiled wheels<kivy-wheel-install>` for the supported Python
-versions on Windows, macOS, Linux, and RPi. If no wheels are available ``pip`` will
-build the package from sources (i.e. on *BSD). Alternatively, installing
-:ref:`from source<kivy-source-install>` is required for newer Python versions not listed
+versions on Windows, macOS, Linux, and RPi.
+
+If no wheels are available ``pip`` will build the package from sources (i.e. on *BSD).
+
+Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
 Setup terminal and pip

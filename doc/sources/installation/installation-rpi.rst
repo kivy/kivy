@@ -50,7 +50,7 @@ Using pacman::
 Source installation Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the installation guide until you reach the
+To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
 :ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
 before continuing.
 
@@ -65,17 +65,6 @@ Using apt::
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} libmtdev-dev \
        xclip xsel libjpeg-dev
-
-And then install SDL2 using either of the two options below depending on whether you
-will be running Kivy from a headless or desktop environment:
-
-Raspberry Pi 1-4 Desktop environment
-************************************
-
-If you have installed Raspbian with a desktop i.e. if your Raspberry Pi boots into a desktop environment
-then install SDL2 from apt::
-
-    sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
 Cross-Compilation for Raspberry Pi 1-3 headless installation on Raspbian Buster
 *******************************************************************************
@@ -99,57 +88,20 @@ Raspberry Pi 4 headless installation on Raspbian Buster
 *******************************************************
 
 If you run Kivy from the console and not from a desktop environment, you need to compile SDL2
-from source, as the one bundled with Buster is not compiled with the ``kmsdrm`` backend,
-so it only works under ``X11``.
+with the ``kmsdrm`` backend. This is not the default, so you need add a few extra requirements, and 
+then edit the build script located at `tools/build_linux_dependencies.sh` accordingly.
 
-Install requirements::
+Extra install requirements::
 
     sudo apt-get install libfreetype6-dev libgl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev libudev-dev libasound2-dev liblzma-dev libjpeg-dev libtiff-dev libwebp-dev git build-essential
     sudo apt-get install gir1.2-ibus-1.0 libdbus-1-dev libegl1-mesa-dev libibus-1.0-5 libibus-1.0-dev libice-dev libsm-dev libsndio-dev libwayland-bin libwayland-dev libxi-dev libxinerama-dev libxkbcommon-dev libxrandr-dev libxss-dev libxt-dev libxv-dev x11proto-randr-dev x11proto-scrnsaver-dev x11proto-video-dev x11proto-xinerama-dev
 
-Install SDL2::
+Extra flags for `configure` step of ``-- Build SDL2`` build phase ::
 
-    wget https://libsdl.org/release/SDL2-2.0.10.tar.gz
-    tar -zxvf SDL2-2.0.10.tar.gz
-    pushd SDL2-2.0.10
-    ./configure --enable-video-kmsdrm --disable-video-opengl --disable-video-x11 --disable-video-rpi
-    make -j$(nproc)
-    sudo make install
-    popd
+    --enable-video-kmsdrm --disable-video-opengl --disable-video-x11 --disable-video-rpi
 
-Install SDL2_image::
-
-    wget https://libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
-    tar -zxvf SDL2_image-2.0.5.tar.gz
-    pushd SDL2_image-2.0.5
-    ./configure
-    make -j$(nproc)
-    sudo make install
-    popd
-
-Install SDL2_mixer::
-
-    wget https://libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.tar.gz
-    tar -zxvf SDL2_mixer-2.0.4.tar.gz
-    pushd SDL2_mixer-2.0.4
-    ./configure
-    make -j$(nproc)
-    sudo make install
-    popd
-
-Install SDL2_ttf::
-
-    wget https://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15.tar.gz
-    tar -zxvf SDL2_ttf-2.0.15.tar.gz
-    pushd SDL2_ttf-2.0.15
-    ./configure
-    make -j$(nproc)
-    sudo make install
-    popd
-
-Make sure the dynamic libraries cache is updated::
-
-    sudo ldconfig -v
+Hardware acceleration
+---------------------
 
 If you are getting output similar to this when running your app::
 
@@ -165,13 +117,6 @@ You will then see an output similar to this::
     [INFO   ] GL: OpenGL vendor <b'Broadcom'>
     [INFO   ] GL: OpenGL renderer <b'V3D 4.2'>
 
-
-Arch Linux ARM
-~~~~~~~~~~~~~~
-
-Using pacman::
-
-    sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_net sdl2_ttf sdl2_mixer
 
 Raspberry Pi window provider and GL backend
 -------------------------------------------

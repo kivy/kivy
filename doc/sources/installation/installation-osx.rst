@@ -51,7 +51,7 @@ installation steps. You can read more about the installation in the
 Source installation Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the installation guide until you reach the
+To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
 :ref:`Kivy install step<kivy-source-install>` and then install the additional dependencies
 below before continuing.
 

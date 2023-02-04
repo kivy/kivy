@@ -31,7 +31,7 @@ and select, which to run, at each invocation.
 Source installation Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the installation guide until you reach the
+To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
 :ref:`Kivy install step<kivy-source-install>` and then install the compiler below before continuing.
 
 To install kivy from source, you need a compiler. On Windows, the *Visual Studio Build Tools* are
