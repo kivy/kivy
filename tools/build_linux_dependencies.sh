@@ -83,6 +83,12 @@ pushd $MANYLINUX__SDL2_IMAGE__FOLDER
     PATH="$DIST_FOLDER/bin:$PATH" make;
     make install;
   popd
+  pushd external/libtiff
+    autoreconf -i;
+    PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin"
+    PATH="$DIST_FOLDER/bin:$PATH" make;
+    make install;
+  popd
   autoreconf -i
   PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin" --enable-png-shared=no --enable-jpg-shared=no --enable-tif-shared=no --enable-webp-shared=no LDFLAGS=-Wl,-rpath="$ORIGIN";
   PATH="$DIST_FOLDER/bin:$PATH" make;
