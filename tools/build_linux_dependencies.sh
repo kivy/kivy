@@ -67,7 +67,15 @@ popd
 
 echo "-- Build SDL2_mixer"
 pushd $MANYLINUX__SDL2_MIXER__FOLDER
-  PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin" --enable-music-mod-modplug-shared=no --enable-music-mod-mikmod-shared=no --enable-music-midi-fluidsynth-shared=no --enable-music-ogg-shared=no --enable-music-flac-shared=no --enable-music-mp3-mpg123-shared=no;
+  ./external/download.sh;
+  echo "-- Build SDL2_mixer - libmodplug"
+  pushd external/libmodplug
+    autoreconf -i;
+    PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin";
+    PATH="$DIST_FOLDER/bin:$PATH" make;
+    make install;
+  popd
+  PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin" --enable-music-mod-modplug-shared=no --enable-music-mod-mikmod-shared=no --enable-music-midi-fluidsynth-shared=no --enable-music-ogg-shared=no --enable-music-flac-shared=no --enable-music-mp3-mpg123-shared=no LDFLAGS=-Wl,-rpath="$ORIGIN";
   PATH="$DIST_FOLDER/bin:$PATH" make;
   make install;
   make distclean;
@@ -83,6 +91,7 @@ pushd $MANYLINUX__SDL2_IMAGE__FOLDER
     PATH="$DIST_FOLDER/bin:$PATH" make;
     make install;
   popd
+  echo "-- Build SDL2_image - libtiff"
   pushd external/libtiff
     autoreconf -i;
     PATH="$DIST_FOLDER/bin:$PATH" PKG_CONFIG_PATH="$DIST_FOLDER/lib/pkgconfig" ./configure --prefix="$DIST_FOLDER" --bindir="$DIST_FOLDER/bin"
