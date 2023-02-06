@@ -380,6 +380,16 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
+    # Initialize our logger, if we do not log anything during this
+    # init sequence then the logger will not be `_configured`. This
+    # can occure when log level is set to a stricter level like `error`
+    # and no errors occur, then when we call the purge_logs function our
+    # handler could be un-configured and not have a log_dir attribute --
+    # resulting in the function bailing out.
+    from kivy.logger import file_log_handler
+    file_log_handler._configure()
+
+
     # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
