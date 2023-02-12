@@ -387,8 +387,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     # handler could be un-configured and not have a log_dir attribute --
     # resulting in the function bailing out.
     from kivy.logger import file_log_handler
-    file_log_handler._configure()
-
+    if file_log_handler is not None:
+        file_log_handler._configure()
 
     # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
