@@ -1,5 +1,4 @@
 .coverage
-.noseids
 Kivy.egg-info
 Kivy-*.dist-info
 *.so
