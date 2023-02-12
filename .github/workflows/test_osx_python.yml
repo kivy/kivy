@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runs_on: macos-11
+          - runs_on: macos-latest
             python: '3.x'
           - runs_on: apple-silicon-m1
             python: '3.11'
