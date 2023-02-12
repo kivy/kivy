@@ -18,9 +18,9 @@ jobs:
       matrix:
         include:
           - runs_on: macos-11
-            python: '3.9'
+            python: '3.x'
           - runs_on: apple-silicon-m1
-            python: '3.9.7'
+            python: '3.11'
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python }}
