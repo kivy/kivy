@@ -1,15 +1,119 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = [
-    "setuptools", "wheel",
-    "cython>=0.24,<=0.29.32,!=0.27,!=0.27.2",
-    'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
-    'kivy_deps.sdl2_dev~=0.5.0; sys_platform == "win32"',
-    'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
-    'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
-    'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
-    'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  "cython!=0.27,!=0.27.2,<=0.29.32,>=0.24",
+  'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
+  'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
+  'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
+  'kivy_deps.sdl2_dev~=0.5.0; sys_platform == "win32"',
+  "setuptools>=61.2",
+  "wheel",
 ]
+
+[project]
+name = "kivy"
+requires-python = ">=3.7"
+dynamic = [
+  "version",
+]
+dependencies = [
+  "docutils",
+  "Kivy-Garden>=0.1.4",
+  'kivy_deps.angle~=0.3.2; sys_platform == "win32"',
+  'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
+  "pygments",
+  'pypiwin32; sys_platform == "win32"',
+]
+[project.optional-dependencies]
+angle = [
+  'kivy_deps.angle~=0.3.2; sys_platform == "win32"',
+]
+base = [
+  "docutils",
+  'kivy_deps.angle~=0.3.2; sys_platform == "win32"',
+  'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
+  "pillow",
+  "pygments",
+  'pypiwin32; sys_platform == "win32"',
+  "requests",
+]
+dev = [
+  "flake8",
+  "funcparserlib==1.0.0a0",
+  'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
+  'kivy_deps.sdl2_dev~=0.5.0; sys_platform == "win32"',
+  "pre-commit",
+  "pyinstaller",
+  "pytest>=3.6",
+  "pytest-benchmark",
+  "pytest-cov",
+  "pytest-timeout",
+  "pytest_asyncio!=0.11.0",
+  "responses",
+  "sphinx",
+  "sphinxcontrib-actdiag",
+  "sphinxcontrib-blockdiag",
+  "sphinxcontrib-nwdiag",
+  "sphinxcontrib-seqdiag",
+]
+full = [
+  "docutils",
+  'ffpyplayer; sys_platform == "linux" or sys_platform == "darwin"',
+  'kivy_deps.angle~=0.3.2; sys_platform == "win32"',
+  'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
+  'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
+  "pillow",
+  "pygments",
+  'pypiwin32; sys_platform == "win32"',
+]
+glew = [
+  'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+]
+gstreamer = [
+  'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"', # don't use 0.4.0 because it was deleted
+]
+media = [
+  'ffpyplayer; sys_platform == "linux" or sys_platform == "darwin"',
+  'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
+]
+sdl2 = [
+  'kivy_deps.sdl2~=0.5.0; sys_platform == "win32"',
+]
+tuio = [
+  "oscpy",
+]
+
+
+[tool.coverage.run]
+branch = true
+concurrency = ["thread", "multiprocessing"]
+omit = ["*/pyinstaller/*_widget/*"]
+parallel = true
+plugins = ["kivy.tools.coverage"]
+
+[tool.kivy]
+cython_exclude = "0.27,0.27.2"
+cython_max = "0.29.32"
+cython_min = "0.24"
+python_versions = "3.7 - 3.11"
+
+[tool.nosetests]
+cover-package = "kivy"
+logging-level = "DEBUG"
+verbosity = "2"
+with-coverage = "1"
+with-id = "1"
 
 [tool.pytest.ini_options]
 addopts = "--benchmark-skip --benchmark-warmup=on --benchmark-warmup-iterations=5 --benchmark-disable-gc --benchmark-name=short --benchmark-sort=mean --benchmark-group-by=fullfunc --benchmark-storage=.benchmarks-kivy --benchmark-save=kivy"
 markers = "incremental: mark a test as incremental."
+
+[tool.setuptools]
+# dependency-links = ["https://github.com/kivy-garden/garden/archive/master.zip"]
+include-package-data = false
