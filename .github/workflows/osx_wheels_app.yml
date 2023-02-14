@@ -18,13 +18,13 @@ env:
 jobs:
   kivy_examples_create:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
-    runs-on: macos-11
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -34,7 +34,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         create_kivy_examples_wheel
     - name: Upload kivy-examples wheel as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: osx_examples_wheel
         path: dist
@@ -51,18 +51,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - runs_on: macos-11
-            python: '3.9'
+          - runs_on: macos-latest
+            python: '3.x'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
       # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
       if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: Cache macOS deps downloads
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
@@ -87,24 +87,24 @@ jobs:
         arm64_set_path_and_python_version ${{ matrix.python }}
         export REPAIR_LIBRARY_PATH=/Library/Frameworks:/Library/Frameworks/SDL2_mixer.framework/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: osx_wheels
         path: ./wheelhouse/*.whl
 
   osx_wheel_upload:
-    runs-on: macos-11
+    runs-on: macos-latest
     needs: osx_wheels_create
     if: github.event_name != 'pull_request'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
-    - uses: actions/download-artifact@v2
+        python-version: 3.x
+    - uses: actions/download-artifact@v3
       with:
         name: osx_wheels
         path: dist
@@ -141,15 +141,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - runs_on: macos-11     
+          - runs_on: macos-latest
             python: '3.7'
-          - runs_on: macos-11     
+          - runs_on: macos-latest
             python: '3.8'
-          - runs_on: macos-11     
+          - runs_on: macos-latest
             python: '3.9'
-          - runs_on: macos-11     
+          - runs_on: macos-latest
             python: '3.10'
-          - runs_on: macos-11     
+          - runs_on: macos-latest
             python: '3.11'
           - runs_on: apple-silicon-m1
             python: '3.8.13'
@@ -157,17 +157,19 @@ jobs:
             python: '3.9.7'
           - runs_on: apple-silicon-m1
             python: '3.10.1'
+          - runs_on: apple-silicon-m1
+            python: '3.11'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python }} on ${{ matrix.runs_on }}
         # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
         if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: osx_wheels
           path: dist
@@ -183,7 +185,7 @@ jobs:
           source .ci/osx_ci.sh
           arm64_set_path_and_python_version ${{ matrix.python }}
           install_kivy_wheel dev
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: osx_examples_wheel
           path: dist
@@ -201,18 +203,18 @@ jobs:
           test_kivy_install
 
   osx_app_create:
-    runs-on: macos-11
+    runs-on: macos-latest
     if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Cache macOS deps downloads
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: osx-cache
           key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
@@ -236,23 +238,23 @@ jobs:
           source .ci/osx_ci.sh
           generate_osx_app_dmg_from_bundle
       - name: Upload dmg as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: osx_app
           path: app
 
   osx_app_upload_test:
-    runs-on: macos-11
+    runs-on: macos-latest
     needs: [osx_app_create, kivy_examples_create]
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-      - uses: actions/download-artifact@v2
+          python-version: 3.x
+      - uses: actions/download-artifact@v3
         with:
           name: osx_app
           path: app
@@ -278,7 +280,7 @@ jobs:
         run: |
           source .ci/osx_ci.sh
           mount_osx_app
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: osx_examples_wheel
           path: dist

@@ -45,7 +45,6 @@ if self.horizontal else 'path to vertical pressed image'
 
 __all__ = ('Splitter', )
 
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.uix.button import Button
 from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
@@ -200,9 +199,10 @@ class Splitter(BoxLayout):
             self.unbind(disabled=_strp.setter('disabled'))
 
             sup.remove_widget(instance._strip)
-        else:
-            cls = instance.strip_cls
-            if isinstance(cls, string_types):
+
+        cls = instance.strip_cls
+        if not isinstance(_strp, cls):
+            if isinstance(cls, str):
                 cls = Factory.get(cls)
             instance._strip = _strp = cls()
 

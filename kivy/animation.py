@@ -294,8 +294,7 @@ class Animation(EventDispatcher):
         Animation._instances.add(self)
 
     def _unregister(self):
-        if self in Animation._instances:
-            Animation._instances.remove(self)
+        Animation._instances.discard(self)
 
     def _initialize(self, widget):
         d = self._widgets[widget.uid] = {

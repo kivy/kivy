@@ -9,11 +9,11 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Validate PEP8
       run: |
         source .ci/ubuntu_ci.sh
@@ -24,11 +24,11 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -58,7 +58,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: benchmarks
         path: .benchmarks-kivy
@@ -66,11 +66,11 @@ jobs:
   gen_docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -89,7 +89,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: docs
         path: doc/build/html

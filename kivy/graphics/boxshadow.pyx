@@ -56,7 +56,7 @@ from kivy.graphics.gl_instructions import ClearBuffers, ClearColor
 
 cdef str SHADOW_fs = """
 #ifdef GL_ES
-precision highp float;
+    precision highp float;
 #endif
 
 /* Outputs from the vertex shader */
@@ -89,19 +89,14 @@ void main (void){
 
 float distShadow = sigmoid(
     roundedBoxSDF(
-        tex_coord0 * size - size/2.0, size/2.0 - blur_radius * 1.5 - vec2(2.0),
-        border_radius) / (max(1.0, blur_radius)/4.0
-    )
+        tex_coord0 * size - size/2.0,
+        size/2.0 - blur_radius * 1.5 - vec2(2.0),
+        border_radius
+    ) / (max(1.0, blur_radius) / 4.0)
 );
 
-
-// Some devices require the resulting color to be blended with the texture.
-// Otherwise there will be a compilation issue.
-
-vec4 texture = texture2D(texture0, tex_coord0);
-vec4 shadow = vec4(frag_color.rgb, 1.0 - distShadow) * (frag_color.a * 2.0);
-
-gl_FragColor = mix(texture, shadow, 1.0);
+vec4 shadow = vec4(1.0, 1.0, 1.0, clamp((1.0 - distShadow) * (frag_color.a * 2.0), 0.0, 1.0));
+gl_FragColor = shadow;
 
 }
 """
@@ -136,7 +131,7 @@ cdef class BoxShadow(Fbo):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(BoxShadow, self).__init__(size=(100, 100))
+        super(BoxShadow, self).__init__(size=(100, 100), fs=SHADOW_fs)
         pos = kwargs.get("pos", (0.0, 0.0))
         size = kwargs.get("size", (0.0, 0.0))
         offset = kwargs.get("offset", (0.0, 0.0))
@@ -154,7 +149,6 @@ cdef class BoxShadow(Fbo):
         self._init_texture()
 
     cdef void _init_texture(self):
-        self.shader.fs = SHADOW_fs
         self._rect = Rectangle(size=(100, 100))
         self._rect.texture = self.texture
         with self:

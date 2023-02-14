@@ -370,8 +370,8 @@ cdef class _WindowSDL2Storage:
             mode = SDL_WINDOW_FULLSCREEN
         else:
             mode = False
-        IF not USE_IOS:
-            SDL_SetWindowFullscreen(self.win, mode)
+
+        SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
