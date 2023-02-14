@@ -129,7 +129,6 @@ clean:
 	-rm -rf build
 	-rm -rf htmlcov
 	-rm -f .coverage
-	-rm -f .noseids
 	-rm -rf kivy/tests/build
 	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyd' -exec rm {} \;
@@ -165,7 +164,7 @@ help:
 	@echo "  install        run a setup.py install"
 	@echo "  mesabuild      for a build with MesaGL"
 	@echo "  style          to check Python code for style issues"
-	@echo "  test           run unittests (nosetests)"
+	@echo "  test           run unittests (pytest)"
 	@echo "  theming        create a default theme atlas"
 	@echo "  "
 	@echo "You can also 'cd doc && make help' to build more documentation types"
