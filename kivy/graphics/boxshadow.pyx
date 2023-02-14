@@ -381,14 +381,12 @@ cdef class BoxShadow(Fbo):
         - :attr:`inset` **OFF**:
             .. image:: images/boxshadow_border_radius.svg
                 :align: center
-                :scale: 90%
         
         | 
 
         - :attr:`inset` **ON**:
             .. image:: images/boxshadow_border_radius_inset.svg
                 :align: center
-                :scale: 90%
 
         '''
         return self._bounded_value(self._border_radius, min_value=1.0, max_value=max(min(self.size) / 2, 1.0))
@@ -482,14 +480,12 @@ cdef class BoxShadow(Fbo):
         - :attr:`inset` **OFF**:
             .. image:: images/boxshadow_blur_radius.svg
                 :align: center
-                :scale: 90%
         
         | 
 
         - :attr:`inset` **ON**:
             .. image:: images/boxshadow_blur_radius_inset.svg
                 :align: center
-                :scale: 90%
         
         | 
 
