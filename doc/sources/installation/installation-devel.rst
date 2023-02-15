@@ -146,12 +146,18 @@ See :ref:`dev-install-win`.
 Installing Kivy for Development
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+    
+    We suggest to switch the verision of this doc from top left to
+    `master` or the relevant branch in order to get upto date
+    instructions for installing kivy for development.
+
 Now that you've installed all the required dependencies, it's time to
 download and compile a development version of Kivy:
 
 Download Kivy from GitHub::
 
-    $ git clone git://github.com/kivy/kivy.git
+    $ https:// clone https:://github.com/kivy/kivy.git
     $ cd kivy
 
 Compile::
