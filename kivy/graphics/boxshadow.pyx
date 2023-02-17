@@ -118,8 +118,7 @@ void main (void){
         gl_FragColor = vec4(1.0, 1.0, 1.0, distShadow);
     }
     else{
-        vec4 shadow = vec4(1.0, 1.0, 1.0, (1.0 - distShadow) * (frag_color.a * 2.0));
-        gl_FragColor = shadow;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, (1.0 - distShadow) * (frag_color.a * 2.0));
     }
 
 }
