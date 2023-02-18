@@ -17,7 +17,8 @@ main :ref:`pip installation guide<installation-canonical>`, specific to Linux.
 Installing Python
 ^^^^^^^^^^^^^^^^^
 
-Python and python-pip must be installed from the package manager:
+Python and python-pip, git and build tools are required to install Kivy. If you do not have these installed,
+please install them before continuing:
 
 Ubuntu
 ~~~~~~
@@ -53,7 +54,7 @@ continue installing dependencies::
 Source installation Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the installation guide until you reach the
+To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
 :ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
 before continuing. Additionally, if you'd like to be able to use the x11 window backend do::
 
@@ -66,10 +67,6 @@ Using apt::
 
     # Install necessary system packages
     sudo apt-get install -y \
-        libsdl2-dev \
-        libsdl2-image-dev \
-        libsdl2-mixer-dev \
-        libsdl2-ttf-dev \
         libportmidi-dev \
         libswscale-dev \
         libavformat-dev \
@@ -89,8 +86,7 @@ Fedora
 Using dnf::
 
     # Install necessary system packages
-    sudo dnf install -y ffmpeg-libs SDL2-devel SDL2_image-devel SDL2_mixer-devel \
-    SDL2_ttf-devel portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache \
+    sudo dnf install -y ffmpeg-libs portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache \
     mesa-libGL mesa-libGL-devel
     # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
     sudo dnf install -y xclip
