@@ -541,6 +541,7 @@ cdef class BoxShadow(Fbo):
 
             .. image:: images/boxshadow_example_1.png
                 :align: center
+                :width: 300px
 
             .. code-block:: kv
 
@@ -579,6 +580,7 @@ cdef class BoxShadow(Fbo):
 
             .. image:: images/boxshadow_example_2.png
                 :align: center
+                :width: 300px
 
             .. code-block:: kv
 
