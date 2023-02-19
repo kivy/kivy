@@ -413,15 +413,15 @@ cdef class BoxShadow(Fbo):
         Defaults to ``(0.0, 0.0)``.
 
         This property is especially useful for cases where you want to achieve
-        a softer shadow around the element, by setting a negative value for
+        a softer shadow around the element, by setting negative values for
         :attr:`spread_radius` and a larger value for :attr:`blur_radius` as
         in the :ref:`example <example>`.
 
         - :attr:`inset` **OFF**:
             In the image below, the target element has a raw size of ``200 x 150px``.
-            Positive changes to the :attr:`spread_radius` value will cause the raw
-            :attr:`size` of the shadow to increase in both horizontal and vertical
-            directions, while negative values will cause the shadow to shrink.
+            Positive changes to the :attr:`spread_radius` values will cause the raw
+            :attr:`size` of the shadow to increase, while negative values will cause
+            the shadow to shrink.
 
             .. image:: images/boxshadow_spread_radius.svg
                 :align: center
@@ -559,7 +559,7 @@ cdef class BoxShadow(Fbo):
                             size: self.size
                             offset: 0, -10
                             blur_radius: 25
-                            spread_radius: -10
+                            spread_radius: -10, -10
                             border_radius: 10, 10, 10, 10
                     
                     canvas:
@@ -606,7 +606,7 @@ cdef class BoxShadow(Fbo):
                             size: self.size
                             offset: 0, -10
                             blur_radius: 25
-                            spread_radius: -10
+                            spread_radius: -10, -10
                             border_radius: 10, 10, 10, 10
 
             | 
