@@ -16,6 +16,16 @@ The BoxShadow declaration must occur inside a :class:`~kivy.graphics.instruction
 similarly to other graphical instructions such as :class:`~kivy.graphics.vertex_instructions.Rectangle`,
 :class:`~kivy.graphics.vertex_instructions.RoundedRectangle`, etc.
 
+.. note::
+
+    Although the ``BoxShadow`` graphical instruction has a visually similar behavior to box-shadow (CSS), the hierarchy
+    of the drawing layer of ``BoxShadow`` in relation to the target element must be defined following the same layer
+    hierarchy rules as when declaring other canvas instructions.
+    
+    |
+
+    For more details, refer to the :attr:`~kivy.graphics.boxshadow.BoxShadow.inset` mode.
+
 .. _example:
 
 Example:
@@ -134,7 +144,8 @@ cdef class BoxShadow(Fbo):
     :Parameters:
 
         `inset`: bool, defaults to ``False``.
-            Defines whether the shadow is drawn on the outside or inside of an element.
+            Defines whether the shadow is drawn from the inside out or from the
+            outline to the inside of the ``BoxShadow`` instruction.
         `size`: list | tuple, defaults to ``(100.0, 100.0)``.
             Define the raw size of the shadow, that is, you should not take into account
             changes in the value of :attr:`blur_radius` and :attr:`spread_radius`
@@ -510,15 +521,114 @@ cdef class BoxShadow(Fbo):
 
     @property
     def inset(self):
-        """Defines whether the shadow is drawn on the outside or inside of an element.
+        """Defines whether the shadow is drawn from the inside out or from the outline to the inside of the ``BoxShadow`` instruction.
 
         Defaults to ``False``.
 
+        .. note::
+            | 
+
+            Although the inset mode determines the drawing behavior of the shadow, the position of the ``BoxShadow``
+            instruction in the ``canvas`` hierarchy depends on the other graphic instructions present in the
+            :class:`~kivy.graphics.instructions.Canvas` instruction tree.
+
+            | 
+
+            In other words, if the **target** is in the ``canvas`` layer and you want to use the default ``inset = False``
+            mode to create an elevation effect, you must declare the ``BoxShadow`` instruction in ``canvas.before`` layer.
+
+            | 
+
+            .. image:: images/boxshadow_example_1.png
+                :align: center
+                :width: 300px
+
+            .. code-block:: kv
+
+                <MyWidget@Widget>:
+                    size_hint: None, None
+                    size: 100, 100
+                    pos: 100, 100
+
+                    canvas.before:
+                        # BoxShadow statements
+                        Color:
+                            rgba: 0, 0, 0, 0.65
+                        BoxShadow:
+                            pos: self.pos
+                            size: self.size
+                            offset: 0, -10
+                            blur_radius: 25
+                            spread_radius: -10
+                            border_radius: 10, 10, 10, 10
+                    
+                    canvas:
+                        # target element statements
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+            
+            | 
+
+            Or, if the target is in the ``canvas`` layer and you want to use the ``inset = True`` mode to create an
+            insertion effect, you must declare the ``BoxShadow`` instruction in the ``canvas`` layer, immediately after
+            the **target** ``canvas`` declaration, or declare it in ``canvas.after``.
+
+            | 
+
+            .. image:: images/boxshadow_example_2.png
+                :align: center
+                :width: 300px
+
+            .. code-block:: kv
+
+                <MyWidget@Widget>:
+                    size_hint: None, None
+                    size: 100, 100
+                    pos: 100, 100
+
+                    canvas:
+                        # target element statements
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+                        # BoxShadow statements
+                        Color:
+                            rgba: 0, 0, 0, 0.65
+                        BoxShadow:
+                            inset: True
+                            pos: self.pos
+                            size: self.size
+                            offset: 0, -10
+                            blur_radius: 25
+                            spread_radius: -10
+                            border_radius: 10, 10, 10, 10
+
+            | 
+
+            **In summary:**
+
+                - Elevation effect - ``inset = False``: the ``BoxShadow`` instruction needs to be drawn **before** the target element.
+
+                - Insertion effect - ``inset = True``: the ``BoxShadow`` instruction needs to be drawn **after** the target element.
+
+            | 
+
+            In general, ``BoxShadow`` is more flexible than box-shadow (CSS) because the ``inset = False`` and
+            ``inset = True`` modes do not limit the drawing of the shadow below and above the target element,
+            respectively. Actually, you can define any hierarchy you want in the :class:`~kivy.graphics.instructions.Canvas`
+            declaration tree, to create more complex effects that go beyond common shadow effects.
+
         **Modes:**
 
-            - ``False`` (default) - The shadow is drawn outside the boundaries of the element, creating a raised effect. This makes the shadow appear to be outside the element.
+            - ``False`` (default) - The shadow is drawn inside out the ``BoxShadow`` instruction, creating a raised effect.
             
-            - ``True`` - The shadow is drawn inside the boundaries of the element, creating a inset effect. This makes the shadow appear to be inside the element.
+            - ``True`` - The shadow is drawn from the outline to the inside of the ``BoxShadow`` instruction, creating a inset effect.
 
         .. image:: images/boxshadow_inset.svg
             :align: center
