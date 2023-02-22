@@ -47,9 +47,11 @@ The easiest way to install Kivy is with ``pip``, which installs Kivy using eithe
 :ref:`pre-compiled wheel<pip-wheel>`, if available, otherwise from source (see below).
 
 Kivy provides :ref:`pre-compiled wheels<kivy-wheel-install>` for the supported Python
-versions on Windows, macOS, Linux, and RPi. If no wheels are available ``pip`` will
-build the package from sources (i.e. on *BSD). Alternatively, installing
-:ref:`from source<kivy-source-install>` is required for newer Python versions not listed
+versions on Windows, macOS, Linux, and RPi.
+
+If no wheels are available ``pip`` will build the package from sources (i.e. on *BSD).
+
+Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
 Setup terminal and pip
@@ -129,9 +131,61 @@ from source code and compiled directly on your system.
 First install the additional system dependencies listed for each platform:
 :ref:`Windows<install-source-win>`, :ref:`macOS<install-source-osx>`,
 :ref:`Linux<install-source-linux>`, :ref:`*BSD<install-source-bsd>`,
-:ref:`RPi<install-source-rpi>.
+:ref:`RPi<install-source-rpi>`
 
-With the dependencies installed, you can now install Kivy into the virtual environment.
+.. note::
+    In past, for macOS, Linux and BSD Kivy required the installation of the SDL dependencies from package
+    managers (e.g. ``apt`` or ``brew``). However, this is no longer officially supported as the version
+    of SDL provided by the package managers is often outdated and may not work with Kivy as we
+    try to keep up with the latest SDL versions in order to support the latest features and bugfixes.
+
+    **You can still install the SDL dependencies from package managers if you wish, but we no longer
+    offer support for this.**
+
+    Instead, we recommend installing the SDL dependencies from source. This is the same process
+    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a 
+    specific directory.
+
+With all the build tools installed, you can now install the SDL dependencies from source for SDL support
+(this is not needed on Windows as we provide pre-built SDL dependencies for Windows)
+
+In order to do so, we provide a script that will download and build the SDL dependencies
+from source. This script is located in the ``tools`` directory of the Kivy repository.
+
+Create a directory to store the self-built dependencies and change into it::
+
+    mkdir kivy-deps-build && cd kivy-deps-build
+
+Then download the build tool script, according to your platform:
+
+On **macOS**::
+
+    curl -O https://raw.githubusercontent.com/kivy/kivy/master/tools/build_macos_dependencies.sh -o build_kivy_deps.sh
+
+On **Linux**::
+
+    curl -O https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
+
+Make the script executable::
+
+    chmod +x build_kivy_deps.sh
+
+Finally, run the script::
+
+    ./build_kivy_deps.sh
+
+The script will download and build the SDL dependencies from source. It will also install
+the dependencies into a directory named `kivy-dependencies`. This directory will be used
+by Kivy to build and install Kivy from source with SDL support.
+
+Kivy will need to know where the SDL dependencies are installed. To do so, you must set
+the ``KIVY_DEPS_ROOT`` environment variable to the path of the ``kivy-dependencies`` directory.
+For example, if you are in the ``kivy-deps-build`` directory, you can set the environment
+variable with::
+
+    export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
+
+With the dependencies installed, and `KIVY_DEPS_ROOT` set you can now install Kivy into the virtual environment.
 
 To install the stable version of Kivy, from the terminal do::
 
@@ -185,13 +239,13 @@ The typical process is to clone Kivy locally with::
 
     git clone https://github.com/kivy/kivy.git
 
-This creates a kivy named folder in your current path. Next, install the additional
-system dependencies listed for each OS: :ref:`Windows<install-source-win>`,
-:ref:`macOS<install-source-osx>`, :ref:`Linux<install-source-linux>`,
-`*BSD<install-source-bsd>`, :ref:`RPi<install-source-rpi>`.
+This creates a kivy named folder in your current path. Next, follow the same steps of the
+:ref:`Installing from source <_kivy-source-install>` above, but instead of installing Kivy via a
+distribution package or zip file, install it as an
+`editable install <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_.
 
-Then change to the kivy directory and install Kivy as an
-`editable install <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_::
+In order to do so, first change into the Kivy folder you just cloned::
+and then install Kivy as an editable install::
 
     cd kivy
     python -m pip install -e ".[dev,full]"
