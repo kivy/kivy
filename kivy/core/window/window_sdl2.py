@@ -311,7 +311,10 @@ class WindowSDL(WindowBase):
             # setup window
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
-            show_taskbar_icon = Config.getboolean('graphics', 'show_taskbar_icon')
+            show_taskbar_icon = Config.getboolean(
+                'graphics',
+                'show_taskbar_icon'
+            )
             state = (Config.get('graphics', 'window_state')
                      if self._is_desktop else None)
             self.system_size = self._win.setup_window(
