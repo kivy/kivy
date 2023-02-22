@@ -6,12 +6,12 @@ from kivy.graphics.vertex_instructions cimport VertexInstruction
 cdef class BoxShadow(Fbo):
 
     cdef bint _inset
+    cdef float _blur_radius
     cdef tuple _pos
     cdef tuple _size
     cdef tuple _offset
     cdef tuple _border_radius
-    cdef float _blur_radius
-    cdef float _spread_radius
+    cdef tuple _spread_radius
     cdef VertexInstruction _fbo_rect
     cdef VertexInstruction _texture_container
     cdef Scale _fbo_scale
