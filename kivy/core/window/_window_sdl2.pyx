@@ -720,6 +720,11 @@ cdef class _WindowSDL2Storage:
                     'windowmoved',
                     event.window.data1, event.window.data2
                 )
+            elif event.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED:
+                action = (
+                    'windowdisplaychanged',
+                    event.window.data1, event.window.data2
+                )
             else:
                 #    print('receive unknown sdl window event', event.type)
                 pass
