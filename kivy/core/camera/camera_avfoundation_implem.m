@@ -99,7 +99,7 @@ didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 
 - (id)init {
     [super init];
-    metadata = NULL;
+    metadata = new CameraMetadata();
     newMetadata = 0;
     return self;
 }
@@ -107,17 +107,24 @@ didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
 didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 fromConnection:(AVCaptureConnection *)connection{
-    for (AVMetadataObject *object in metadataObjects) {
-        if ([object.type isEqualToString:AVMetadataObjectTypeQRCode]){
-            AVMetadataMachineReadableCodeObject *codeObject = (AVMetadataMachineReadableCodeObject *)object;
-            if (metadata == NULL)
-            {
-                metadata = new CameraMetadata();
-            }
+    for (AVMetadataObject *metadataResult in metadataObjects) {
+        if ([metadataResult.type isEqualToString:AVMetadataObjectTypeQRCode]){
+            AVMetadataMachineReadableCodeObject *codeObject = (AVMetadataMachineReadableCodeObject *)metadataResult;
             NSString *stringValue = codeObject.stringValue ? codeObject.stringValue : @"Unable to decode";
-            metadata->type = (char *)"AVMetadataMachineReadableCodeObject";
-            metadata->data = (char *)[stringValue UTF8String];
             NSLog(@"Code: %@", stringValue);
+
+            if (metadata->type != NULL){
+                free(metadata->type);
+            }
+            if (metadata->data != NULL){
+                free(metadata->data);
+            }
+            metadata->type = (char *)malloc(sizeof(char) * (strlen([metadataResult.type UTF8String]) + 1));
+            metadata->data = (char *)malloc(sizeof(char) * (strlen([stringValue UTF8String]) + 1));
+
+            strcpy(metadata->type, [metadataResult.type UTF8String]);
+            strcpy(metadata->data, [stringValue UTF8String]);
+
             newMetadata = 1;
         }
     }
