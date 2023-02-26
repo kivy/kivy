@@ -403,7 +403,24 @@ class WindowSDL(WindowBase):
         else:
             self._density = self._win._get_gl_size()[0] / self._size[0]
             if self._is_desktop:
-                self.dpi = self._density * 96.
+                # If the SDL window allows high DPI mode,
+                # then the window size and renderer size may be different.
+                # https://wiki.libsdl.org/SDL2/SDL_GetWindowSize
+                if self._density != 1.0:
+                    dpi = self._density * 96.
+                else:
+                    # Try to get the display DPI from SDL. This works in SDL2 on
+                    # the X11 SDL2 backend, given that the X11 display
+                    # is correctly configured.
+                    display_dpi = self._win._get_display_dpi()
+                    if display_dpi > 0.0:
+                        dpi = display_dpi
+
+                # Change window DPI if it has changed.
+                # This will call reset_metrics under the hood,
+                # so only do it once and if it has changed.
+                if self.dpi != dpi:
+                    self.dpi = dpi
 
     def close(self):
         self._win.teardown_window()
