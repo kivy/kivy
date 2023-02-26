@@ -703,7 +703,7 @@ class TabbedPanel(GridLayout):
         tab_layout = self._tab_layout
         tab_layout.clear_widgets()
         scrl_v = ScrollView(size_hint=(None, 1), always_overscroll=False,
-                            bar_width=self.bar_width, 
+                            bar_width=self.bar_width,
                             scroll_type=self.scroll_type)
         tabs = self._tab_strip
         parent = tabs.parent
