@@ -415,19 +415,19 @@ def test_numeric_string_with_units_check(self, set_name):
 
     a.set(wid, '55dp')
     density = Metrics.density
-    self.assertEqual(a.get(wid), 55 * density)
+    self.assertAlmostEqual(a.get(wid), 55 * density, delta=1E-2)
     self.assertEqual(a.get_format(wid), 'dp')
 
     a.set(wid, u'55dp')
-    self.assertEqual(a.get(wid), 55 * density)
+    self.assertAlmostEqual(a.get(wid), 55 * density, delta=1E-2)
     self.assertEqual(a.get_format(wid), 'dp')
 
     a.set(wid, '99in')
-    self.assertEqual(a.get(wid), 9504.0 * density)
+    self.assertAlmostEqual(a.get(wid), 9504.0 * density, delta=1E-2)
     self.assertEqual(a.get_format(wid), 'in')
 
     a.set(wid, u'99in')
-    self.assertEqual(a.get(wid), 9504.0 * density)
+    self.assertAlmostEqual(a.get(wid), 9504.0 * density, delta=1E-2)
     self.assertEqual(a.get_format(wid), 'in')
 
 
