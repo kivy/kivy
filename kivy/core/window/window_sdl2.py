@@ -392,6 +392,8 @@ class WindowSDL(WindowBase):
             self._win_dpi_watch.start()
 
     def _update_density_and_dpi(self):
+        old_dpi = self.dpi
+
         if platform == 'win':
             from ctypes import windll
             self._density = 1.
@@ -400,10 +402,21 @@ class WindowSDL(WindowBase):
                 self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
             except AttributeError:
                 pass
+            self._update_initial_size_on_dpi_change(old_dpi)
+
         else:
             self._density = self._win._get_gl_size()[0] / self._size[0]
             if self._is_desktop:
                 self.dpi = self._density * 96.
+
+    def _update_initial_size_on_dpi_change(self, old_dpi):
+        if not self.initialized:
+
+            def update_size(_):
+                ratio = self.dpi / old_dpi
+                self.size = ratio * self.size[0], ratio * self.size[1]
+
+            Clock.schedule_once(update_size, -1)
 
     def close(self):
         self._win.teardown_window()
