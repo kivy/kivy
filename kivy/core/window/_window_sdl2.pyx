@@ -112,7 +112,7 @@ cdef class _WindowSDL2Storage:
         
         # makes dpi aware of scale changes
         if platform == "win":
-            SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS , b'permonitorv2')
+            SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()

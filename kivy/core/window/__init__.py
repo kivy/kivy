@@ -420,7 +420,7 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
-        if self._density != 1:
+        if platform == 'win' or self._density != 1:
             w, h = self._win._get_gl_size()
         if self.softinput_mode == 'resize':
             h -= self.keyboard_height
@@ -519,7 +519,7 @@ class WindowBase(EventDispatcher):
     # make some property read-only
     def _get_width(self):
         _size = self._size
-        if self._density != 1:
+        if platform == 'win' or self._density != 1:
             _size = self._win._get_gl_size()
         r = self._rotation
         if r == 0 or r == 180:
@@ -536,7 +536,7 @@ class WindowBase(EventDispatcher):
         '''Rotated window height'''
         r = self._rotation
         _size = self._size
-        if self._density != 1:
+        if platform == 'win' or self._density != 1:
             _size = self._win._get_gl_size()
         kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
         if r == 0 or r == 180:
@@ -739,13 +739,13 @@ class WindowBase(EventDispatcher):
     '''
 
     def _get_effective_size(self):
-        '''On density=1 and non-ios displays, return :attr:`system_size`,
-        else return scaled / rotated :attr:`size`.
+        '''On density=1 and non-ios / non-Windows displays,
+        return :attr:`system_size`, else return scaled / rotated :attr:`size`.
 
         Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
         '''
         w, h = self.system_size
-        if platform == 'ios' or self._density != 1:
+        if platform in ('ios', 'win') or self._density != 1:
             w, h = self.size
 
         return w, h

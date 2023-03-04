@@ -481,6 +481,7 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
     cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
     cdef char *SDL_HINT_WINDOWS_DPI_AWARENESS
+    cdef char *SDL_HINT_WINDOWS_DPI_SCALING
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
