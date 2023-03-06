@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e -x
 
 # manylinux SDL2
 MANYLINUX__SDL2__VERSION="2.24.2"
@@ -21,7 +22,7 @@ MANYLINUX__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/downloa
 MANYLINUX__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
 
 # Clean the dependencies folder
-rm -r kivy-dependencies
+rm -rf kivy-dependencies
 
 # Create the dependencies folder
 mkdir kivy-dependencies
