@@ -14,15 +14,29 @@ environment variable `KIVY_HOME`::
 
     <KIVY_HOME>/config.ini
 
-On desktop, this defaults to::
+On Windows, this defaults to::
 
-    <HOME_DIRECTORY>/.kivy/config.ini
+    %APPDATA%/kivy/config.ini
 
 Therefore, if your user is named "tito", the file will be here:
 
-- Windows: ``C:\Users\tito\.kivy\config.ini``
-- macOS: ``/Users/tito/.kivy/config.ini``
-- Linux: ``/home/tito/.kivy/config.ini``
+    ``C:\Users\tito\AppData\Roaming\kivy\config.ini``
+
+On macOS, this defaults to::
+
+    <HOME_DIRECTORY>/Library/'Application Support/kivy/config.ini
+
+Therefore, if your user is named "tito", the file will be here:
+
+    ``/Users/tito/Library/'Application Support/kivy/config.ini``
+
+On Linux and BSD, this defaults to::
+
+    $XDG_DATA_HOME/kivy
+
+Therefore, if your user is named "tito", the file will be here:
+
+    ``/home/tito/.local/share/kivy``
 
 On Android, this defaults to::
 
