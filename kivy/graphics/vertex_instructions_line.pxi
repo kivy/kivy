@@ -125,6 +125,7 @@ cdef class Line(VertexInstruction):
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
     cdef int _close
+    cdef int _close_from_center
     cdef int _mode
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
@@ -150,6 +151,7 @@ cdef class Line(VertexInstruction):
         self._joint_precision = kwargs.get('joint_precision') or 10
         self._bezier_precision = kwargs.get('bezier_precision') or 180
         self._close = int(bool(kwargs.get('close', 0)))
+        self._close_from_center = int(bool(kwargs.get('close_from_center', 0)))
         self._stencil_rect = None
         self._stencil_push = None
         self._stencil_use = None
@@ -877,7 +879,8 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     property close:
-        '''If True, the line will be closed.
+        '''If True, the line will be closed by joining the two ends with a
+        straight line, and :attr:`close_from_center` will be set to False.
 
         .. versionadded:: 1.4.1
         '''
@@ -886,8 +889,30 @@ cdef class Line(VertexInstruction):
             return self._close
 
         def __set__(self, value):
-            self._close = int(bool(value))
+            close = int(bool(value))
+            if close:
+                self.close_from_center = 0
+            self._close = close
             self.flag_data_update()
+    
+    @property
+    def close_from_center(self):
+        '''If True the line will be closed from the center of the ellipse, and
+        :attr:`close` will be set to False.
+
+        .. note:: Only :attr:`ellipse` has support for this property.
+
+        .. versionadded:: 2.2.0
+        '''
+        return self._close_from_center
+
+    @close_from_center.setter
+    def close_from_center(self, value):
+        close_from_center = int(bool(value))
+        if close_from_center:
+            self.close = 0
+        self._close_from_center = close_from_center
+        self.flag_data_update()
 
     property ellipse:
         '''Use this property to build an ellipse, without calculating the
@@ -901,9 +926,12 @@ cdef class Line(VertexInstruction):
         * (optional) angle_start and angle_end are in degree. The default
           value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-          value is calculated from the range between angle.
+          value is calculated from the range between angle. You can use this
+          property to create polygons with 3 or more sides. Values smaller than
+          3 will not be represented and the number of segments will be
+          automatically calculated.
 
-        Note that it's up to you to :attr:`close` the ellipse or not.
+        Note that it's up to you to :attr:`close` or :attr:`close_from_center` the ellipse or not.
 
         For example, for building a simple ellipse, in python::
 
@@ -921,6 +949,8 @@ cdef class Line(VertexInstruction):
         .. versionchanged:: 2.2.0
             Now you can get the ellipse generated through the property.
 
+            The minimum number of segments allowed is 3. Smaller values will be
+            ignored and the number of segments will be automatically calculated.
         '''
 
         def __get__(self):
@@ -939,9 +969,12 @@ cdef class Line(VertexInstruction):
 
     cdef void prebuild_ellipse(self):
         cdef double x, y, w, h, angle_start = 0, angle_end = 360
-        cdef int angle_dir, segments = 0
+        cdef int angle_dir, segments = 0, extra_segments = 0
         cdef double angle_range
         cdef tuple args = self._mode_args
+        cdef int close_from_center = self._close_from_center
+
+        extra_segments = 3 if close_from_center else 1
 
         if len(args) == 4:
             x, y, w, h = args
@@ -949,10 +982,18 @@ cdef class Line(VertexInstruction):
             x, y, w, h, angle_start, angle_end = args
         elif len(args) == 7:
             x, y, w, h, angle_start, angle_end, segments = args
-            segments += 2
         else:
             x = y = w = h = 0
             assert 0
+
+        if 0 in (w, h):
+            return
+
+        if segments < 3:
+            segments = int(abs(angle_end - angle_start) / 2) + extra_segments
+
+        segments += extra_segments
+        segments *= 2
 
         if angle_end > angle_start:
             angle_dir = 1
@@ -971,16 +1012,28 @@ cdef class Line(VertexInstruction):
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / (segments - 2)
+        angle_range = abs(angle_end - angle_start) / (segments - extra_segments * 2)
+
 
         cdef list points = [0, ] * segments
         cdef double angle
         cdef double rx = w * 0.5
         cdef double ry = h * 0.5
+        cdef int inc_x = 0, inc_y = 1
+
+
+        if close_from_center and angle_start != angle_end:
+            points[0] = points[segments - 2] = x + rx
+            points[1] = points[segments - 1] = y + ry
+
+            inc_x = 2
+            inc_y = 3
+            segments -= 4
+
         for i in xrange(0, segments, 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
-            points[i] = (x + rx) + (rx * sin(angle))
-            points[i + 1] = (y + ry) + (ry * cos(angle))
+            angle = angle_start + (angle_dir * i * angle_range)
+            points[i + inc_x] = (x + rx) + (rx * sin(angle))
+            points[i + inc_y] = (y + ry) + (ry * cos(angle))
 
         self._points = points
 
