@@ -106,7 +106,7 @@ class CameraOpenCV(CameraBase):
 
         elif self.opencvMajorVersion in (2, 3, 4):
             # create the device
-            self._device = cv2.VideoCapture(self._index)
+            self._device = cv2.VideoCapture(self._index, cv2.CAP_DSHOW)
             # Set preferred resolution
             self._device.set(PROPERTY_WIDTH,
                              self.resolution[0])
