@@ -165,7 +165,7 @@ class MarkupLabel(MarkupLabelBase):
         # flattened later when shortening and broken up lines if broken
         # mid-word will have space mid-word when lines are joined
         uw_temp = None if shorten else uw
-        xpad = options['padding_x']
+        xpad = options['padding'][0]
         uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'] == 'justify'
@@ -453,7 +453,7 @@ class MarkupLabel(MarkupLabelBase):
         return int(w), int(h)
 
     def render_lines(self, lines, options, render_text, y, size):
-        xpad = options['padding_x']
+        xpad = options['padding'][0]
         w = size[0]
         halign = options['halign']
         refs = self._refs
@@ -669,12 +669,18 @@ class MarkupLabel(MarkupLabelBase):
         if uw is None:
             return w, h, lines
         old_opts = copy(self.options)
-        uw = max(0, int(uw - old_opts['padding_x'] * 2 - margin))
+        uw = max(
+            0,
+            int(uw - old_opts["padding"][0] - old_opts["padding"][2] - margin),
+        )
         chr = type(self.text)
         ssize = textwidth(' ')
         c = old_opts['split_str']
         line_height = old_opts['line_height']
-        xpad, ypad = old_opts['padding_x'], old_opts['padding_y']
+        xpad, ypad = (
+            old_opts["padding"][0] + old_opts["padding"][2],
+            old_opts["padding"][1] + old_opts["padding"][3],
+        )
         dir = old_opts['shorten_from'][0]
 
         # flatten lines into single line

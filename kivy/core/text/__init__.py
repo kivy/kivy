@@ -130,8 +130,7 @@ class LabelBase(object):
         `text_size`: tuple, defaults to (None, None)
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: float, defaults to None
-            If it's a float, it will set padding_x and padding_y
+        `padding`: list, defaults to [0, 0, 0, 0].
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0
@@ -181,6 +180,13 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
+
+    .. deprecated:: 2.2.0
+        `padding_x` and `padding_y` have been deprecated. Please use `padding`
+        instead.
+
+    .. versionchanged:: 2.2.0
+        `padding` is now a list and defaults to [0, 0, 0, 0].
 
     .. versionchanged:: 1.10.1
         `font_context`, `font_family`, `font_features`, `base_direction`
@@ -266,11 +272,7 @@ class LabelBase(object):
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0, 1)
-        options['padding'] = kwargs_get('padding', (0, 0))
-        if not isinstance(options['padding'], (list, tuple)):
-            options['padding'] = (options['padding'], options['padding'])
-        options['padding_x'] = kwargs_get('padding_x', options['padding'][0])
-        options['padding_y'] = kwargs_get('padding_y', options['padding'][1])
+        options['padding'] = kwargs_get('padding', (0, 0, 0, 0))
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -462,7 +464,7 @@ class LabelBase(object):
             return text
 
         opts = self.options
-        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
+        uw = max(0, int(uw - opts['padding'][0] - opts['padding'][2] - margin))
         # if larger, it won't fit so don't even try extents
         chr = type(text)
         text = text.replace(chr('\n'), chr(' '))
@@ -596,7 +598,7 @@ class LabelBase(object):
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
-        xpad = options['padding_x']
+        xpad = options['padding'][0]
         if uw is not None:
             uww = uw - 2 * xpad  # real width of just text
         w = size[0]
@@ -674,7 +676,7 @@ class LabelBase(object):
         size = self.size
         valign = options['valign']
 
-        y = ypad = options['padding_y']  # pos in the texture
+        y = ypad = options['padding'][1]  # pos in the texture
         if valign == 'bottom':
             y = size[1] - ih + ypad
         elif valign == 'middle' or valign == 'center':
@@ -825,7 +827,9 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.width - 2 * self.options['padding_x']
+        return self.texture.width - (
+            self.options['padding'][0] + self.options['padding'][2]
+        )
 
     @property
     def content_height(self):
@@ -833,7 +837,9 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.height - 2 * self.options['padding_y']
+        return self.texture.height - (
+            self.options['padding'][1] + self.options['padding'][3]
+        )
 
     @property
     def content_size(self):
