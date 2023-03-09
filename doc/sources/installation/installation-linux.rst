@@ -30,6 +30,7 @@ Using apt::
         build-essential \
         autoconf \
         libtool \
+        libxext-dev \
         curl \
         git \
         python3 \
