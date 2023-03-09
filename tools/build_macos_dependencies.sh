@@ -1,3 +1,5 @@
+set -e -x
+
 # macOS SDL2
 MACOS__SDL2__VERSION="2.24.2"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
@@ -19,7 +21,7 @@ MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/re
 MACOS__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
 
 # Clean the dependencies folder
-rm -r kivy-dependencies
+rm -rf kivy-dependencies
 
 # Create the dependencies folder
 mkdir kivy-dependencies
