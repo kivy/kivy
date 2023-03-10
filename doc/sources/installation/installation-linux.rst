@@ -17,8 +17,8 @@ main :ref:`pip installation guide<installation-canonical>`, specific to Linux.
 Installing Python
 ^^^^^^^^^^^^^^^^^
 
-Python and python-pip, git and build tools are required to install Kivy. If you do not have these installed,
-please install them before continuing:
+Python and python-pip, git and build tools are required to build Kivy and its dependencies.
+If you do not have these installed, please install them before continuing:
 
 Ubuntu
 ~~~~~~
@@ -28,6 +28,10 @@ Using apt::
     sudo apt-get install -y \
         python3-pip \
         build-essential \
+        autoconf \
+        libtool \
+        libxext-dev \
+        curl \
         git \
         python3 \
         python3-dev \
