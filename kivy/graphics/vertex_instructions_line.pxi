@@ -178,7 +178,7 @@ cdef class Line(VertexInstruction):
             self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
-        if self._width == 1.0:
+        if self._width <= 1:
             self.build_legacy()
         else:
             self.build_extended()
@@ -215,6 +215,7 @@ cdef class Line(VertexInstruction):
         return 0
 
     cdef void build_legacy(self):
+        # Builds a line with width = 1.0
         cdef int i
         cdef long count = <int>int(len(self.points) / 2.)
         cdef list p = self.points
@@ -1122,6 +1123,8 @@ cdef class Line(VertexInstruction):
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
         .. versionadded:: 1.9.0
+        .. versionchanged:: 2.1.0
+            ``resolution`` usage has changed, now it means the ammount of segments to process per corner.
         '''
         def __set__(self, args):
             if args == None:
@@ -1135,14 +1138,23 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
-        cdef resolution = 30
+        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4, step, angle
+        cdef int ccount, count, radius, index, loop
+        cdef resolution = 4
         cdef int l = <int>len(self._mode_args)
+        cdef int wh = <int>0
+        cdef list vectors, origins, v1, corners
+        origins = []
+        vectors = []
 
+        # cleans the points memory
         self._points = []
-        a = <float>-PI
-        x, y, w, h = self._mode_args [:4]
+        # assigns letters
+        x, y, w, h = self._mode_args[:4]
+        wh = int(min(h,w))
+        # a = <float>-PI
 
+        # unpacks the arguments
         if l == 5:
             c1 = c2 = c3 = c4 = self._mode_args[4]
         elif l == 6:
@@ -1153,44 +1165,60 @@ cdef class Line(VertexInstruction):
         else:  # l == 9, but else make the compiler happy about uninitialization
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
-
-        px = x + c1
-        py = y + c1
-
-        while a < - PI / 2.:
-            a += pi / resolution
-            self._points.extend([
-                px + cos(a) * c1,
-                py + sin(a) * c1])
-
-        px = x + w - c2
-        py = y + c2
-
-        while a < 0:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c2,
-                py + sin(a) * c2])
-
-        px = x + w - c3
-        py = y + h - c3
-
-        while a < PI / 2.:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c3,
-                py + sin(a) * c3])
-
-        px = x + c4
-        py = y + h - c4
-
-        while a < PI:
-            a += PI / resolution
-            self._points.extend([
-                px + cos(a) * c4,
-                py + sin(a) * c4])
-
+        resolution = min(wh//2, resolution)
+        c1 = max(1, min(((wh-1)//2), c1))
+        c2 = max(1, min(((wh-1)//2), c2))
+        c3 = max(1, min(((wh-1)//2), c3))
+        c4 = max(1, min(((wh-1)//2), c4))
+        if resolution == 0:
+            self._points = [
+                x+w,    y+h,
+                x,      y+h,
+                x,      y,
+                x+w,    y,
+            ]
+            return
+        corners = [c2, c1, c4, c3]
+        origins = [
+            [x - corners[0] + w,    y - corners[0] + h],  # Bottom Right Corner.
+            [x + corners[1],        y - corners[1] + h],  # Bottom Left Corner.
+            [x + corners[2],        y + corners[2]    ],  # Top Left Corner.
+            [x - corners[3] + w,    y + corners[3]    ],  # Top Right Corner.
+        ]
+        #
+        step = (PI / 2) / resolution # corner arc / segments
+        angle = 0
+        count = 0
+        ccount = 0
+        index = 0
+        #
+        for loop in range(4):  # calculates corners.
+            for count in range(resolution):  # calculates the segments
+                ccount = count+(resolution*loop)
+                index = ccount // resolution
+                v1 = [
+                    (origins[index][0] + (cos(step*(ccount)) * corners[index])),
+                    (origins[index][1] + (sin(step*(ccount)) * corners[index])),
+                ]
+                # adds the vector to the points list.
+                self._points.extend(v1)
+            # control point vector
+            v1 = [
+                (origins[index][0] + (cos(step*(ccount+1)) * corners[index])),
+                (origins[index][1] + (sin(step*(ccount+1)) * corners[index])),
+            ]
+            # # adds the contol poin vector to the points list at the end of the
+            #   corner.
+            self._points.extend(v1)
+        # Closes the line
+        v1 = []
+        step = 0
+        angle = 0
+        count = 0
+        ccount = 0
+        index = 0
         self._close = 1
+
 
     property bezier:
         '''Use this property to build a bezier line, without calculating the
@@ -1351,24 +1379,30 @@ cdef class SmoothLine(Line):
             raise MemoryError("indices")
 
         if self._close:
-            ax = p[-2]
-            ay = p[-1]
-            bx = p[0]
-            by = p[1]
-            rx = bx - ax
-            ry = by - ay
-            last_angle = atan2(ry, rx)
+            ax = p[-2]  # last X coord of the line
+            ay = p[-1]  # Last Y coord of the line
+            bx = p[0]   # First X coord of the line
+            by = p[1]   # First Y coord of the line
+            rx = bx - ax  # gets the vector value (X axis).
+            ry = by - ay  # gets the vector value (Y axis).
+            last_angle = atan2(ry, rx)  # Calculates the angle of the vector.
 
         max_index = len(p)
+        # unpacks the choors in 2 elemnt arrays.
         for index in range(0, max_index, 2):
-            ax = p[index]
-            ay = p[index + 1]
+            ax = p[index]  # unpacks the x value.
+            ay = p[index + 1]  # unpacks the y value.
+            # Calculates the angle between points.
             if index < max_index - 2:
-                bx = p[index + 2]
-                by = p[index + 3]
-                rx = bx - ax
-                ry = by - ay
+                bx = p[index + 2]  # unpacks the mext x value.
+                by = p[index + 3]  # unpacks the mext y value.
+                rx = bx - ax  # gets the X segment value.
+                ry = by - ay  # gets the Y segment value.
                 angle = atan2(ry, rx)
+
+            # # If the index corresponds to the last 2 coordinates
+            #   we use the value we previously calculated if it was _closed
+            #   or 0.0 if not.
             else:
                 angle = last_angle
 
@@ -1376,6 +1410,7 @@ cdef class SmoothLine(Line):
                 av_angle = angle
                 ad_angle = pi
             else:
+                # calculates the angle
                 av_angle = atan2(
                         sin(angle) + sin(last_angle),
                         cos(angle) + cos(last_angle))
@@ -1565,4 +1600,3 @@ cdef class SmoothLine(Line):
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
             self.flag_data_update()
-
