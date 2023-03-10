@@ -259,7 +259,7 @@ class MetricsBase(EventDispatcher):
         elif platform == 'ios':
             import ios
             value = ios.get_scale()
-        elif platform in ('macosx', 'win'):
+        elif platform in ('linux', 'macosx', 'win'):
             value = self.dpi / 96.
 
         sync_pixel_scale(density=value)
