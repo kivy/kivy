@@ -372,6 +372,8 @@ class TabbedPanel(GridLayout):
     '''Width of the horizontal scroll bar. The width is interpreted
     as a height for the horizontal bar.
 
+    .. versionadded:: 2.2.0
+
     :attr:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.
     '''
@@ -381,6 +383,8 @@ class TabbedPanel(GridLayout):
 
     '''Sets the type of scrolling to use for the content of the scrollview.
     Available options are: ['content'], ['bars'], ['bars', 'content'].
+
+    .. versionadded:: 2.2.0
 
     :attr:`scroll_type` is an :class:`~kivy.properties.OptionProperty` and
     defaults to ['content'].
