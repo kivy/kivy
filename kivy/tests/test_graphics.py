@@ -323,6 +323,112 @@ class VertexInstructionTest(GraphicUnitTest):
 
         r(wid)
 
+    def test_line_rounded_rectangle(self):
+        from kivy.uix.widget import Widget
+        from kivy.graphics import Line, Color
+        r = self.render
+
+        # basic rounded_rectangle
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(100, 100, 100, 100, 10, 20, 30, 40, 100)
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 10, 20, 30, 40, 100
+        )
+
+        # The largest angle allowed is equal to the smallest dimension (width
+        # or height) minus the largest angle value between the anterior angle
+        # and the posterior angle.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 20, 10, 30, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 70, 20, 10, 30, 100
+        )
+
+        # Same approach as above
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 25, 100, 50, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 50, 25, 50, 50, 100
+        )
+
+        # A circle should be generated if width and height are equal, and all
+        # angles passed are greater than or equal to the smallest dimension.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 150, 50, 50.001, 51, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 50, 50, 50, 50, 100
+        )
+
+        # Currently the minimum radius should be 1, to avoid rendering issues
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 0, 0, 0, 0, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 1, 1, 1, 1, 100
+        )
+
+        # Angles adjustment + avoid issue if radius is less than 1
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 0, 0, 0, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 99, 1, 1, 1, 100
+        )
+
+    def test_smoothline_rounded_rectangle(self):
+        from kivy.uix.widget import Widget
+        from kivy.graphics import SmoothLine, Color
+        r = self.render
+
+        # If width and/or height < 2px, the figure should not be rendered.
+        # This avoids some known SmoothLine rendering issues.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = SmoothLine(
+                rounded_rectangle=(100, 100, 0.5, 1.99, 30, 30, 30, 30, 100)
+            )
+        r(wid)
+        assert line.rounded_rectangle is None
+
 
 class FBOInstructionTestCase(GraphicUnitTest):
 
