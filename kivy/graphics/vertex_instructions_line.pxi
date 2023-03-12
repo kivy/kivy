@@ -919,8 +919,8 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.4.1
 
         .. versionchanged:: 2.2.0
-        
-        Now you can get the ellipse generated through the property.
+            Now you can get the ellipse generated through the property.
+
         '''
 
         def __get__(self):
@@ -1014,8 +1014,8 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.4.1
 
         .. versionchanged:: 2.2.0
-        
-        Now you can get the circle generated through the property.
+            Now you can get the circle generated through the property.
+
         '''
 
         def __get__(self):
@@ -1094,8 +1094,8 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.4.1
 
         .. versionchanged:: 2.2.0
+            Now you can get the rectangle generated through the property.
 
-        Now you can get the rectangle generated through the property.
         '''
 
         def __get__(self):
@@ -1161,15 +1161,16 @@ cdef class Line(VertexInstruction):
         .. versionadded:: 1.9.0
 
         .. versionchanged:: 2.2.0
-        Default value of `resolution` changed from 30 to 45.
+            Default value of `resolution` changed from 30 to 45.
 
-        Now you can get the rounded rectangle generated through the property.
+            Now you can get the rounded rectangle generated through the property.
 
-        The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
-        It was bottom-left, bottom-right, top-right, top-left in previous versions.
-        Now both are clockwise: top-left, top-right, bottom-right, bottom-left.
-        To keep the corner radius order without changing the order manually, you can use python's built-in method `reversed` or `[::-1]`,
-        to reverse the order of the corner radius.
+            The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
+            It was bottom-left, bottom-right, top-right, top-left in previous versions.
+            Now both are clockwise: top-left, top-right, bottom-right, bottom-left.
+            To keep the corner radius order without changing the order manually, you can use python's built-in method `reversed` or `[::-1]`,
+            to reverse the order of the corner radius.
+
         '''
 
         def __get__(self):
@@ -1195,7 +1196,7 @@ cdef class Line(VertexInstruction):
         x, y, w, h = self._mode_args [:4]
 
         # zero size of the figure + avoid rendering issue with SmoothLine
-        if w<=0 or h<=0 or isinstance(self, SmoothLine) and (w < 2 or h < 2):
+        if w <= 0 or h <= 0 or isinstance(self, SmoothLine) and (w < 2 or h < 2):
             return
 
         if l == 5:
@@ -1212,7 +1213,8 @@ cdef class Line(VertexInstruction):
         if resolution <= 4:
             resolution = 4
 
-        # The minimum radius needs to be limited to 1px. This avoid some known rendering issues
+        # The minimum radius needs to be limited to 1px.
+        # This avoid some known rendering issues with Line/SmoothLine.
         c1 = max(c1, 1.0)
         c2 = max(c2, 1.0)
         c3 = max(c3, 1.0)
@@ -1220,8 +1222,7 @@ cdef class Line(VertexInstruction):
         min_dimension = min(w, h)
         half_min_dimension = min_dimension / 2.0
 
-        # If larger values are passed for each corner, e will have to make some
-        #  adjustments.
+        # If larger values are passed for each corner, we will have to make some adjustments.
         if c1 > half_min_dimension:
             c2 = min(c2, half_min_dimension)
             c4 = min(c4, half_min_dimension)
