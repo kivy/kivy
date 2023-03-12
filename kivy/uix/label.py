@@ -304,7 +304,8 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'font_script_name',
                         'font_direction', 'bold', 'italic',
                         'underline', 'strikethrough', 'font_family', 'color',
-                        'disabled_color', 'halign', 'valign', 'padding',
+                        'disabled_color', 'halign', 'valign',
+                        'padding', 'padding_x', 'padding_y',
                         'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
@@ -373,8 +374,17 @@ class Label(Widget):
                 self._label.options['outline_color'] = (
                     self.disabled_outline_color if value else
                     self.outline_color)
+
+            # Compatibility with deprecated properties.
+            # Must be removed along with padding_x and padding_y
+            elif name == 'padding_x':
+                self._label.options['padding'][::2] = [value] * 2
+            elif name == 'padding_y':
+                self._label.options['padding'][1::2] = [value] * 2
+
             else:
                 self._label.options[name] = value
+
         self._trigger_texture()
 
     def texture_update(self, *largs):

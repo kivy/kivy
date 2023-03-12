@@ -131,6 +131,8 @@ class LabelBase(object):
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
         `padding`: list, defaults to [0, 0, 0, 0].
+            Padding of the text in the format [padding_left, padding_top,
+            padding_right, padding_bottom]
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0
