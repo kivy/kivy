@@ -58,8 +58,16 @@ __all__ = ('Image', 'AsyncImage')
 from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
-from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-    AliasProperty, BooleanProperty, NumericProperty, ColorProperty
+from kivy.properties import (
+    StringProperty,
+    ObjectProperty,
+    ListProperty,
+    AliasProperty,
+    BooleanProperty,
+    NumericProperty,
+    ColorProperty,
+    OptionProperty
+)
 from kivy.logger import Logger
 
 # delayed imports
@@ -67,8 +75,7 @@ Loader = None
 
 
 class Image(Widget):
-    '''Image class, see module documentation for more information.
-    '''
+    '''Image class, see module documentation for more information.'''
 
     source = StringProperty(None)
     '''Filename / source of your image.
@@ -104,7 +111,7 @@ class Image(Widget):
     def get_image_ratio(self):
         if self.texture:
             return self.texture.width / float(self.texture.height)
-        return 1.
+        return 1.0
 
     mipmap = BooleanProperty(False)
     '''Indicate if you want OpenGL mipmapping to be applied to the texture.
@@ -138,18 +145,22 @@ class Image(Widget):
         :class:`~kivy.properties.ColorProperty`.
     '''
 
-    allow_stretch = BooleanProperty(False)
+    allow_stretch = BooleanProperty(False, deprecated=True)
     '''If True, the normalized image size will be maximized to fit in the image
     box. Otherwise, if the box is too tall, the image will not be
     stretched more than 1:1 pixels.
 
     .. versionadded:: 1.0.7
 
+    .. deprecated:: 2.2.0
+        :attr:`allow_stretch` have been deprecated. Please use `fill_mode`
+        instead.
+
     :attr:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
-    keep_ratio = BooleanProperty(True)
+    keep_ratio = BooleanProperty(True, deprecated=True)
     '''If False along with allow_stretch being True, the normalized image
     size will be maximized to fit in the image box and ignores the aspect
     ratio of the image.
@@ -158,8 +169,35 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
+    .. deprecated:: 2.2.0
+        :attr:`keep_ratio` have been deprecated. Please use `fill_mode`
+        instead.
+
     :attr:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    fill_mode = OptionProperty('none', options=['none', 'stretch', 'fit', 'fill'])
+    '''If the image size is smaller than the widget size, determines how the
+    image should be stretched to fill the widget box.
+
+    Available options:
+
+    - ``"none"``: the image will not be stretched.
+
+    - ``"stretch"``: the image is stretched to fill the widget, regardless of
+    its aspect ratio or dimensions. This can lead to distortion of the image if
+    it has a different aspect ratio than the widget.
+
+    - ``"fit"``: the image will be maximized to fit in the widget box,
+    **maintaining its aspect ratio**. This can result in blank areas on the
+    widget if the image has a different aspect ratio than the widget.
+
+    - ``fill``: the image will be stretched horizontally or vertically to
+    fill the widget box, **maintaining its aspect ratio**.
+
+    :attr:`fill_mode` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to ``"none"``.
     '''
 
     keep_data = BooleanProperty(False)
@@ -172,7 +210,7 @@ class Image(Widget):
     defaults to False.
     '''
 
-    anim_delay = NumericProperty(.25)
+    anim_delay = NumericProperty(0.25)
     '''Delay the animation if the image is sequenced (like an animated gif).
     If anim_delay is set to -1, the animation will be stopped.
 
@@ -196,22 +234,25 @@ class Image(Widget):
     internal cache. The cache will simply ignore any calls trying to
     append the core image.
 
-    .. versionadded:: 1.6.0
+    .. versionadded:: 1.6.00
 
     :attr:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
     '''
 
     def get_norm_image_size(self):
-        if not self.texture:
+        if not self.texture or self.fill_mode == "fill":
             return list(self.size)
+
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
 
         # ensure that the width is always maximized to the container width
-        if self.allow_stretch:
-            if not self.keep_ratio:
+        # NOTE: self.allow_stretch and self.keep_ratio conditions should be
+        # removed along with the deprecated properties in the future
+        if self.fill_mode in ("stretch", "fit") or self.allow_stretch:
+            if self.fill_mode == "stretch" or not self.keep_ratio:
                 return [w, h]
             iw = w
         else:
@@ -221,17 +262,27 @@ class Image(Widget):
         # if the height is too higher, take the height of the container
         # and calculate appropriate width. no need to test further. :)
         if ih > h:
-            if self.allow_stretch:
+            # NOTE: self.allow_stretch condition should be removed along with
+            # the deprecated property in the future
+            if self.fill_mode == "fit" or self.allow_stretch:
                 ih = h
             else:
                 ih = min(h, th)
             iw = ih * ratio
         return [iw, ih]
 
-    norm_image_size = AliasProperty(get_norm_image_size,
-                                    bind=('texture', 'size', 'allow_stretch',
-                                          'image_ratio', 'keep_ratio'),
-                                    cache=True)
+    norm_image_size = AliasProperty(
+        get_norm_image_size,
+        bind=(
+            'texture',
+            'size',
+            'allow_stretch',
+            'image_ratio',
+            'keep_ratio',
+            'fill_mode',
+        ),
+        cache=True,
+    )
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image
@@ -240,6 +291,41 @@ class Image(Widget):
     :attr:`norm_image_size` is an :class:`~kivy.properties.AliasProperty` and
     is read-only.
     '''
+
+    def _get_adjusted_texture(self):
+        if not self.texture:
+            return None
+
+        if self.fill_mode == "fill":
+            texture = self.texture
+            image_ratio = self.image_ratio
+            widget_ratio = self.size[0] / self.size[1]
+
+            crop_width, crop_height = (
+                texture_width,
+                texture_height,
+            ) = texture.size
+
+            crop_width = texture_width
+            crop_height = texture_height
+
+            if widget_ratio > image_ratio:
+                crop_height = texture_width / widget_ratio
+            else:
+                crop_width = texture_height * widget_ratio
+
+            crop_x = (texture_width - crop_width) / 2
+            crop_y = (texture_height - crop_height) / 2
+
+            return texture.get_region(crop_x, crop_y, crop_width, crop_height)
+        else:
+            return self.texture
+
+    _adjusted_texture = AliasProperty(
+        _get_adjusted_texture,
+        bind=('texture', 'size', 'image_ratio', 'fill_mode'),
+        cache=True,
+    )
 
     def __init__(self, **kwargs):
         self._coreimage = None
