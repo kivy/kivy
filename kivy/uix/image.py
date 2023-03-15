@@ -177,7 +177,9 @@ class Image(Widget):
     defaults to True.
     '''
 
-    fill_mode = OptionProperty('none', options=['none', 'stretch', 'fit', 'fill'])
+    fill_mode = OptionProperty(
+        "none", options=["none", "stretch", "fit", "fill"]
+    )
     '''If the image size is smaller than the widget size, determines how the
     image should be stretched to fill the widget box.
 
@@ -234,7 +236,7 @@ class Image(Widget):
     internal cache. The cache will simply ignore any calls trying to
     append the core image.
 
-    .. versionadded:: 1.6.00
+    .. versionadded:: 1.6.0
 
     :attr:`nocache` is a :class:`~kivy.properties.BooleanProperty` and defaults
     to False.
