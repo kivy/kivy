@@ -1116,19 +1116,22 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
-    .. versionchanged:: 1.0.7
-
-        Added angle_start and angle_end.
-
     :Parameters:
-        `segments`: int, defaults to 180
+        `segments`: int, the default value is calculated from the range between angle.
             Define how many segments are needed for drawing the ellipse.
             You can use this property to create polygons with 3 or more sides.
-            The default value is calculated from the range between angle.
         `angle_start`: float, defaults to 0.0
             Specifies the starting angle, in degrees, of the disk portion.
         `angle_end`: float, defaults to 360.0
             Specifies the ending angle, in degrees, of the disk portion.
+
+    .. versionchanged:: 1.0.7
+        Added angle_start and angle_end.
+    
+    .. versionchanged:: 2.2.0
+        The default number of segments is no longer 180, now it is calculated
+        according to the angle range.
+
     '''
     cdef int _segments
     cdef float _angle_start
@@ -1137,7 +1140,7 @@ cdef class Ellipse(Rectangle):
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
         self.batch.set_mode('triangle_fan')
-        self._segments = kwargs.get('segments') or 180
+        self._segments = kwargs.get('segments') or 0
         self._angle_start = kwargs.get('angle_start') or 0.0
         self._angle_end = kwargs.get('angle_end') or 360.0
 
@@ -1154,7 +1157,9 @@ cdef class Ellipse(Rectangle):
         if self.w == 0 or self.h == 0:
             return
 
-        if segments < 3:
+        if segments == 0 or segments < 3:
+            if segments != 0:
+                Logger.warning('Ellipse: Number of segments not supported, they will be automatically set.')
             segments = max(1, int(abs(self._angle_end - self._angle_start) / 2))
 
         tx = tc[0]
