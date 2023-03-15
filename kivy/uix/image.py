@@ -306,9 +306,6 @@ class Image(Widget):
                 texture_height,
             ) = texture.size
 
-            crop_width = texture_width
-            crop_height = texture_height
-
             if widget_ratio > image_ratio:
                 crop_height = texture_width / widget_ratio
             else:
