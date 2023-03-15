@@ -63,10 +63,13 @@ class CameraOpenCV(CameraBase):
         # different access paths between ver. 2 and 3
         try:
             self.opencvMajorVersion = int(cv.__version__[0])
+            kwargs.setdefault('apiID', cv.CAP_ANY)
         except NameError:
             self.opencvMajorVersion = int(cv2.__version__[0])
+            kwargs.setdefault('apiID', cv2.CAP_ANY)
 
         self._device = None
+        self.apiID = kwargs.get('apiID')
         super(CameraOpenCV, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -106,7 +109,7 @@ class CameraOpenCV(CameraBase):
 
         elif self.opencvMajorVersion in (2, 3, 4):
             # create the device
-            self._device = cv2.VideoCapture(self._index, cv2.CAP_DSHOW)
+            self._device = cv2.VideoCapture(self._index, self.apiID)
             # Set preferred resolution
             self._device.set(PROPERTY_WIDTH,
                              self.resolution[0])
