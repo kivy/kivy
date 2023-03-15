@@ -185,9 +185,9 @@ class Image(Widget):
 
     - ``"none"``: the image will not be stretched.
 
-    - ``"stretch"``: the image is stretched to fill the widget, regardless of
-    its aspect ratio or dimensions. This can lead to distortion of the image if
-    it has a different aspect ratio than the widget.
+    - ``"stretch"``: the image is stretched to fill the widget, **regardless of
+    its aspect ratio or dimensions**. This can lead to distortion of the image
+    if it has a different aspect ratio than the widget.
 
     - ``"fit"``: the image will be maximized to fit in the widget box,
     **maintaining its aspect ratio**. This can result in blank areas on the
