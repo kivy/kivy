@@ -989,7 +989,9 @@ cdef class Line(VertexInstruction):
         if 0 in (w, h):
             return
 
-        if segments < 3:
+        if segments == 0 or segments < 3:
+            if segments != 0:
+                Logger.warning(f'{self.__class__.__name__} - ellipse: Number of segments not supported, they will be automatically set.')
             segments = int(abs(angle_end - angle_start) / 2) + extra_segments
 
         segments += extra_segments
