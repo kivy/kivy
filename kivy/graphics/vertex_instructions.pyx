@@ -1159,7 +1159,7 @@ cdef class Ellipse(Rectangle):
 
         if segments == 0 or segments < 3:
             if segments != 0:
-                Logger.warning('Ellipse: Number of segments not supported, they will be automatically set.')
+                Logger.warning('Ellipse: A minimum of 3 segments is required. The default value will be used instead.')
             segments = max(1, int(abs(self._angle_end - self._angle_start) / 2))
 
         tx = tc[0]
