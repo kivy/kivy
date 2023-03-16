@@ -1119,7 +1119,8 @@ cdef class Ellipse(Rectangle):
     :Parameters:
         `segments`: int, the default value is calculated from the range between angle.
             Define how many segments are needed for drawing the ellipse.
-            You can use this property to create polygons with 3 or more sides.
+            The ellipse drawing will be smoother if you have many segments,
+            however you can also use this property to create polygons with 3 or more sides.
         `angle_start`: float, defaults to 0.0
             Specifies the starting angle, in degrees, of the disk portion.
         `angle_end`: float, defaults to 360.0
@@ -1129,8 +1130,8 @@ cdef class Ellipse(Rectangle):
         Added angle_start and angle_end.
     
     .. versionchanged:: 2.2.0
-        The default number of segments is no longer 180, now it is calculated
-        according to the angle range.
+        The default number of segments is no longer 180, it is now calculated
+        according to the angle range, as this is a more efficient approach.
 
     '''
     cdef int _segments
@@ -1240,7 +1241,8 @@ cdef class Ellipse(Rectangle):
     @property
     def segments(self):
         '''Property for getting/setting the number of segments of the ellipse.
-        You can use this property to create polygons with 3 or more sides.
+        The ellipse drawing will be smoother if you have many segments, however
+        you can also use this property to create polygons with 3 or more sides.
         Values smaller than 3 will not be represented and the number of
         segments will be automatically calculated.
         
