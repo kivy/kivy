@@ -115,6 +115,11 @@ class VideoFFPy(VideoBase):
 
         super(VideoFFPy, self).__init__(**kwargs)
 
+    @property
+    def _is_stream(self):
+        # XXX: tested with RTSP streams only right now
+        return self.filename.startswith('rtsp://')
+
     def __del__(self):
         self.unload()
 
@@ -211,7 +216,7 @@ class VideoFFPy(VideoBase):
                 self._texture = fbo.texture
             else:
                 self._texture = Texture.create(size=self._size,
-                                                colorfmt='rgba')
+                                               colorfmt='rgba')
 
             # XXX FIXME
             # self.texture.add_reload_observer(self.reload_buffer)
@@ -262,8 +267,14 @@ class VideoFFPy(VideoBase):
         # wait until loaded or failed, shouldn't take long, but just to make
         # sure metadata is available.
         while not self._ffplayer_need_quit:
-            if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
-                break
+            if self._is_stream:
+                # check if src_pix_fmt instead of src_vid_size, which is (0, 0)
+                # at least with rtsp streams
+                if ffplayer.get_metadata()['src_pix_fmt'] != '':
+                    break
+            else:
+                if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
+                    break
             wait_for_wakeup(0.005)
 
         if self._ffplayer_need_quit:
@@ -345,6 +356,8 @@ class VideoFFPy(VideoBase):
         ffplayer.close_player()
 
     def seek(self, percent, precise=True):
+        if self._is_stream:
+            raise RuntimeError('Cannot seek streams')
         # still save seek while thread is setting up
         self._seek_queue.append((percent, precise,))
         self._wakeup_thread()
@@ -389,9 +402,11 @@ class VideoFFPy(VideoBase):
         # load first unloads
         self.load()
         self._out_fmt = 'rgba'
-        # it starts internally paused, but unpauses itself
+        # if no stream, it starts internally paused, but unpauses itself
+        # XXX: if stream and we start paused, we receive eof after a few frames
+        #      why does this happen?
         ff_opts = {
-            'paused': True,
+            'paused': not self._is_stream,
             'out_fmt': self._out_fmt,
             'sn': True,
             'volume': self._volume,
