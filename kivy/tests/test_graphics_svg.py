@@ -5,9 +5,7 @@ Svg tests
 Testing Svg rendering.
 '''
 
-import sys
-import pytest
-from kivy.tests.common import GraphicUnitTest, requires_graphics
+from kivy.tests.common import GraphicUnitTest
 
 
 SIMPLE_SVG = """<?xml version="1.0" standalone="no"?>
@@ -42,8 +40,6 @@ class SvgTest(GraphicUnitTest):
         from kivy.uix.widget import Widget
         from kivy.graphics.svg import Svg
 
-        r = self.render
-
         # create a root widget
         wid = Widget()
 
@@ -53,14 +49,12 @@ class SvgTest(GraphicUnitTest):
             svg.set_tree(ET.ElementTree(ET.fromstring(SIMPLE_SVG)))
 
         # render, and capture it directly
-        r(wid)
+        self.render(wid)
 
     def test_scale(self):
         import xml.etree.ElementTree as ET
         from kivy.uix.widget import Widget
         from kivy.graphics.svg import Svg
-
-        r = self.render
 
         # create a root widget
         wid = Widget()
@@ -71,14 +65,12 @@ class SvgTest(GraphicUnitTest):
             svg.set_tree(ET.ElementTree(ET.fromstring(SCALE_SVG)))
 
         # render, and capture it directly
-        r(wid)
+        self.render(wid)
 
     def test_rotate(self):
         import xml.etree.ElementTree as ET
         from kivy.uix.widget import Widget
         from kivy.graphics.svg import Svg
-
-        r = self.render
 
         # create a root widget
         wid = Widget()
@@ -89,4 +81,4 @@ class SvgTest(GraphicUnitTest):
             svg.set_tree(ET.ElementTree(ET.fromstring(ROTATE_SVG)))
 
         # render, and capture it directly
-        r(wid)
+        self.render(wid)
