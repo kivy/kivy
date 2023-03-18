@@ -1,24 +1,24 @@
 set -e -x
 
 # macOS SDL2
-MACOS__SDL2__VERSION="2.24.2"
+MACOS__SDL2__VERSION="2.26.4"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
 MACOS__SDL2__FOLDER="SDL2-${MACOS__SDL2__VERSION}"
 
 # macOS SDL2_image
-MACOS__SDL2_IMAGE__VERSION="2.6.2"
+MACOS__SDL2_IMAGE__VERSION="2.6.3"
 MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
-MACOS__SDL2_IMAGE__FOLDER="SDL2_image-2.6.2"
+MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
 
 # macOS SDL2_mixer
-MACOS__SDL2_MIXER__VERSION="2.6.2"
+MACOS__SDL2_MIXER__VERSION="2.6.3"
 MACOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL2_MIXER__VERSION/SDL2_mixer-$MACOS__SDL2_MIXER__VERSION.tar.gz"
-MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-2.6.2"
+MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-${MACOS__SDL2_MIXER__VERSION}"
 
 # macOS SDL2_ttf
-MACOS__SDL2_TTF__VERSION="2.20.1"
+MACOS__SDL2_TTF__VERSION="2.20.2"
 MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL2_TTF__VERSION/SDL2_ttf-$MACOS__SDL2_TTF__VERSION.tar.gz"
-MACOS__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
+MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
 
 # Clean the dependencies folder
 rm -rf kivy-dependencies
