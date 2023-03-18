@@ -1116,18 +1116,23 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
-    .. versionchanged:: 1.0.7
-
-        Added angle_start and angle_end.
-
     :Parameters:
-        `segments`: int, defaults to 180
+        `segments`: int, the default value is calculated from the range between angle.
             Define how many segments are needed for drawing the ellipse.
-            The drawing will be smoother if you have many segments.
+            The ellipse drawing will be smoother if you have many segments,
+            however you can also use this property to create polygons with 3 or more sides.
         `angle_start`: float, defaults to 0.0
             Specifies the starting angle, in degrees, of the disk portion.
         `angle_end`: float, defaults to 360.0
             Specifies the ending angle, in degrees, of the disk portion.
+
+    .. versionchanged:: 1.0.7
+        Added angle_start and angle_end.
+    
+    .. versionchanged:: 2.2.0
+        The default number of segments is no longer 180, it is now calculated
+        according to the angle range, as this is a more efficient approach.
+
     '''
     cdef int _segments
     cdef float _angle_start
@@ -1136,7 +1141,7 @@ cdef class Ellipse(Rectangle):
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
         self.batch.set_mode('triangle_fan')
-        self._segments = kwargs.get('segments') or 180
+        self._segments = kwargs.get('segments') or 0
         self._angle_start = kwargs.get('angle_start') or 0.0
         self._angle_end = kwargs.get('angle_end') or 360.0
 
@@ -1148,10 +1153,15 @@ cdef class Ellipse(Rectangle):
         cdef double cx, cy, tangential_factor, radial_factor, fx, fy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
-        cdef int count = self._segments
+        cdef int segments = self._segments
 
         if self.w == 0 or self.h == 0:
             return
+
+        if segments == 0 or segments < 3:
+            if segments != 0:
+                Logger.warning('Ellipse: A minimum of 3 segments is required. The default value will be used instead.')
+            segments = max(1, int(abs(self._angle_end - self._angle_start) / 2))
 
         tx = tc[0]
         ty = tc[1]
@@ -1161,11 +1171,11 @@ cdef class Ellipse(Rectangle):
         rx = 0.5 * self.w
         ry = 0.5 * self.h
 
-        vertices = <vertex_t *>malloc((count + 2) * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc((segments + 2) * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc((count + 2) * sizeof(unsigned short))
+        indices = <unsigned short *>malloc((segments + 2) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -1179,7 +1189,7 @@ cdef class Ellipse(Rectangle):
         # rad = deg * (pi / 180), where pi / 180 = 0.0174...
         angle_start = self._angle_start * 0.017453292519943295
         angle_end = self._angle_end * 0.017453292519943295
-        angle_range = -1 * (angle_end - angle_start) / self._segments
+        angle_range = -1 * (angle_end - angle_start) / segments
 
         # add start vertex in the middle
         x = self.x + rx
@@ -1205,7 +1215,7 @@ cdef class Ellipse(Rectangle):
         x = r * sin(angle_start)
         y = r * cos(angle_start)
 
-        for i in range(1, count + 2):
+        for i in range(1, segments + 2):
             ttx = (cx + x) * tw + tx
             tty = (cy + y) * th + ty
             real_x = self.x + (cx + x) * self.w
@@ -1223,7 +1233,7 @@ cdef class Ellipse(Rectangle):
             x *= radial_factor
             y *= radial_factor
 
-        self.batch.set_data(vertices, count + 2, indices, count + 2)
+        self.batch.set_data(vertices, segments + 2, indices, segments + 2)
 
         free(vertices)
         free(indices)
@@ -1231,7 +1241,16 @@ cdef class Ellipse(Rectangle):
     @property
     def segments(self):
         '''Property for getting/setting the number of segments of the ellipse.
+        The ellipse drawing will be smoother if you have many segments, however
+        you can also use this property to create polygons with 3 or more sides.
+        Values smaller than 3 will not be represented and the number of
+        segments will be automatically calculated.
+        
+        .. versionchanged:: 2.2.0
+            The minimum number of segments allowed is 3. Smaller values will be
+            ignored and the number of segments will be automatically calculated.
         '''
+        
         return self._segments
 
     @segments.setter
