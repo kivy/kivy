@@ -926,10 +926,7 @@ cdef class Line(VertexInstruction):
         * (optional) angle_start and angle_end are in degree. The default
           value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-          value is calculated from the range between angle. You can use this
-          property to create polygons with 3 or more sides. Values smaller than
-          3 will not be represented and the number of segments will be
-          automatically calculated.
+          value is calculated from the range between angle.
 
         Note that it's up to you to :attr:`close` or :attr:`close_from_center` the ellipse or not.
 
@@ -949,8 +946,6 @@ cdef class Line(VertexInstruction):
         .. versionchanged:: 2.2.0
             Now you can get the ellipse generated through the property.
 
-            The minimum number of segments allowed is 3. Smaller values will be
-            ignored and the number of segments will be automatically calculated.
         '''
 
         def __get__(self):
@@ -989,9 +984,7 @@ cdef class Line(VertexInstruction):
         if 0 in (w, h):
             return
 
-        if segments == 0 or segments < 3:
-            if segments != 0:
-                Logger.warning(f'{self.__class__.__name__} - ellipse: Number of segments not supported, they will be automatically set.')
+        if segments <= 0:
             segments = int(abs(angle_end - angle_start) / 2) + extra_segments
 
         segments += extra_segments
@@ -1001,10 +994,6 @@ cdef class Line(VertexInstruction):
             angle_dir = 1
         else:
             angle_dir = -1
-        if segments == 0:
-            segments = int(abs(angle_end - angle_start) / 2) + 3
-            if segments % 2 == 1:
-                segments += 1
         
         # Resulting ellipse
         self._ellipse = (x, y, w, h, angle_start, angle_end, segments)
