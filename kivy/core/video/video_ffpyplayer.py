@@ -339,8 +339,6 @@ class VideoFFPy(VideoBase):
         ffplayer.close_player()
 
     def seek(self, percent, precise=True):
-        if self._is_stream:
-            raise RuntimeError('Cannot seek streams')
         # still save seek while thread is setting up
         self._seek_queue.append((percent, precise,))
         self._wakeup_thread()
@@ -386,8 +384,10 @@ class VideoFFPy(VideoBase):
         self.load()
         self._out_fmt = 'rgba'
         # if no stream, it starts internally paused, but unpauses itself
-        # XXX: if stream and we start paused, we receive eof after a few frames
-        #      why does this happen?
+        # if stream and we start paused, we sometimes receive eof after a
+        # few frames, depending on the stream producer.
+        # XXX: This probably needs to be figured out in ffpyplayer, using
+        #      ffplay directly works.?
         ff_opts = {
             'paused': not self._is_stream,
             'out_fmt': self._out_fmt,
