@@ -255,7 +255,7 @@ class VideoFFPy(VideoBase):
                 wait_for_wakeup(0.005)
                 continue
 
-            if src_pix_fmt == 'yuv420p':
+            if src_pix_fmt == b'yuv420p':
                 self._out_fmt = 'yuv420p'
                 ffplayer.set_output_pix_fmt(self._out_fmt)
             break
