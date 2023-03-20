@@ -153,7 +153,7 @@ class Image(Widget):
     .. versionadded:: 1.0.7
 
     .. deprecated:: 2.2.0
-        :attr:`allow_stretch` have been deprecated. Please use `fill_mode`
+        :attr:`allow_stretch` have been deprecated. Please use `fit_mode`
         instead.
 
     :attr:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
@@ -170,36 +170,46 @@ class Image(Widget):
     .. versionadded:: 1.0.8
 
     .. deprecated:: 2.2.0
-        :attr:`keep_ratio` have been deprecated. Please use `fill_mode`
+        :attr:`keep_ratio` have been deprecated. Please use `fit_mode`
         instead.
 
     :attr:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
     '''
 
-    fill_mode = OptionProperty(
-        "none", options=["none", "stretch", "fit", "fill"]
+    fit_mode = OptionProperty(
+        "scale-down", options=["scale-down", "fill", "contain", "cover"]
     )
-    '''If the image size is smaller than the widget size, determines how the
-    image should be stretched to fill the widget box.
+    '''If the size of the image is smaller than the size of the widget,
+    determine how the image should be resized to fit inside the widget box.
 
     Available options:
 
-    - ``"none"``: the image will not be stretched.
+    - ``"scale-down"``: the image will be scaled down to fit inside the widget
+    box, **maintaining its aspect ratio and without stretching**. If the size
+    of the image is smaller than the widget, it will be displayed at its
+    original size. If the image has a different aspect ratio than the widget,
+    there will be blank areas on the widget box.
 
-    - ``"stretch"``: the image is stretched to fill the widget, **regardless of
-    its aspect ratio or dimensions**. This can lead to distortion of the image
-    if it has a different aspect ratio than the widget.
+    - ``"fill"``: the image is stretched to fill the widget, **regardless of
+    its aspect ratio or dimensions**. If the image has a different aspect ratio
+    than the widget, this option can lead to distortion of the image.
 
-    - ``"fit"``: the image will be maximized to fit in the widget box,
-    **maintaining its aspect ratio**. This can result in blank areas on the
-    widget if the image has a different aspect ratio than the widget.
+    - ``"contain"``: the image is resized to fit inside the widget box,
+    **maintaining its aspect ratio**. If the image size is larger than the
+    widget size, the behavior will be similar to ``"scale-down"``. However, if
+    the size of the image size is smaller than the widget size, unlike
+    ``"scale-down``, the image will be resized to fit inside the widget.
+    If the image has a different aspect ratio than the widget, there will be
+    blank areas on the widget box.
 
-    - ``fill``: the image will be stretched horizontally or vertically to
-    fill the widget box, **maintaining its aspect ratio**.
+    - ``"cover"``: the image will be stretched horizontally or vertically to
+    fill the widget box, **maintaining its aspect ratio**. If the image has a
+    different aspect ratio than the widget, then the image will be clipped to
+    fit.
 
-    :attr:`fill_mode` is a :class:`~kivy.properties.OptionProperty` and
-    defaults to ``"none"``.
+    :attr:`fit_mode` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to ``"scale-down"``.
     '''
 
     keep_data = BooleanProperty(False)
@@ -243,7 +253,7 @@ class Image(Widget):
     '''
 
     def get_norm_image_size(self):
-        if not self.texture or self.fill_mode == "fill":
+        if not self.texture or self.fit_mode == "cover":
             return list(self.size)
 
         ratio = self.image_ratio
@@ -253,8 +263,8 @@ class Image(Widget):
         # ensure that the width is always maximized to the container width
         # NOTE: self.allow_stretch and self.keep_ratio conditions should be
         # removed along with the deprecated properties in the future
-        if self.fill_mode in ("stretch", "fit") or self.allow_stretch:
-            if self.fill_mode == "stretch" or not self.keep_ratio:
+        if self.fit_mode in ("fill", "contain") or self.allow_stretch:
+            if self.fit_mode == "fill" or not self.keep_ratio:
                 return [w, h]
             iw = w
         else:
@@ -266,7 +276,7 @@ class Image(Widget):
         if ih > h:
             # NOTE: self.allow_stretch condition should be removed along with
             # the deprecated property in the future
-            if self.fill_mode == "fit" or self.allow_stretch:
+            if self.fit_mode == "contain" or self.allow_stretch:
                 ih = h
             else:
                 ih = min(h, th)
@@ -281,7 +291,7 @@ class Image(Widget):
             'allow_stretch',
             'image_ratio',
             'keep_ratio',
-            'fill_mode',
+            'fit_mode',
         ),
         cache=True,
     )
@@ -298,7 +308,7 @@ class Image(Widget):
         if not self.texture:
             return None
 
-        if self.fill_mode == "fill":
+        if self.fit_mode == "cover":
             texture = self.texture
             image_ratio = self.image_ratio
             widget_ratio = self.size[0] / self.size[1]
@@ -322,7 +332,7 @@ class Image(Widget):
 
     _adjusted_texture = AliasProperty(
         _get_adjusted_texture,
-        bind=('texture', 'size', 'image_ratio', 'fill_mode'),
+        bind=('texture', 'size', 'image_ratio', 'fit_mode'),
         cache=True,
     )
 
