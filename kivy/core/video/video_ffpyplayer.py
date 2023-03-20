@@ -264,23 +264,6 @@ class VideoFFPy(VideoBase):
             ffplayer.close_player()
             return
 
-        # wait until loaded or failed, shouldn't take long, but just to make
-        # sure metadata is available.
-        while not self._ffplayer_need_quit:
-            if self._is_stream:
-                # check if src_pix_fmt instead of src_vid_size, which is (0, 0)
-                # at least with rtsp streams
-                if ffplayer.get_metadata()['src_pix_fmt'] != '':
-                    break
-            else:
-                if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
-                    break
-            wait_for_wakeup(0.005)
-
-        if self._ffplayer_need_quit:
-            ffplayer.close_player()
-            return
-
         self._ffplayer = ffplayer
         self._finish_setup()
         # now, we'll be in internal paused state and loop will wait until
