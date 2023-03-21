@@ -253,12 +253,19 @@ class Image(Widget):
     '''
 
     def get_norm_image_size(self):
-        if not self.texture or self.fit_mode == "cover":
+        if not self.texture:
             return list(self.size)
 
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
+
+        if self.fit_mode == "cover":
+            widget_ratio = w / max(1, h)
+            if widget_ratio > ratio:
+                return [w, (w * th) / tw]
+            else:
+                return [(h * tw) / th, h]
 
         # ensure that the width is always maximized to the container width
         # NOTE: self.allow_stretch and self.keep_ratio conditions should be
@@ -303,38 +310,6 @@ class Image(Widget):
     :attr:`norm_image_size` is an :class:`~kivy.properties.AliasProperty` and
     is read-only.
     '''
-
-    def _get_adjusted_texture(self):
-        if not self.texture:
-            return None
-
-        if self.fit_mode == "cover":
-            texture = self.texture
-            image_ratio = self.image_ratio
-            widget_ratio = self.size[0] / self.size[1]
-
-            crop_width, crop_height = (
-                texture_width,
-                texture_height,
-            ) = texture.size
-
-            if widget_ratio > image_ratio:
-                crop_height = texture_width / widget_ratio
-            else:
-                crop_width = texture_height * widget_ratio
-
-            crop_x = (texture_width - crop_width) / 2
-            crop_y = (texture_height - crop_height) / 2
-
-            return texture.get_region(crop_x, crop_y, crop_width, crop_height)
-        else:
-            return self.texture
-
-    _adjusted_texture = AliasProperty(
-        _get_adjusted_texture,
-        bind=('texture', 'size', 'image_ratio', 'fit_mode'),
-        cache=True,
-    )
 
     def __init__(self, **kwargs):
         self._coreimage = None
