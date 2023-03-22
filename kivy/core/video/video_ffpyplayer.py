@@ -255,7 +255,9 @@ class VideoFFPy(VideoBase):
                 wait_for_wakeup(0.005)
                 continue
 
-            if src_pix_fmt == b'yuv420p':
+            # ffpyplayer reports src_pix_fmt as bytes. this may or may not
+            # change in future, so we check for both bytes and str
+            if src_pix_fmt in (b'yuv420p', 'yuv420p'):
                 self._out_fmt = 'yuv420p'
                 ffplayer.set_output_pix_fmt(self._out_fmt)
             break
@@ -387,7 +389,7 @@ class VideoFFPy(VideoBase):
         # if stream and we start paused, we sometimes receive eof after a
         # few frames, depending on the stream producer.
         # XXX: This probably needs to be figured out in ffpyplayer, using
-        #      ffplay directly works.?
+        #      ffplay directly works.
         ff_opts = {
             'paused': not self._is_stream,
             'out_fmt': self._out_fmt,
