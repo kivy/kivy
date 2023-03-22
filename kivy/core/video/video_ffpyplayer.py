@@ -117,7 +117,10 @@ class VideoFFPy(VideoBase):
 
     @property
     def _is_stream(self):
-        # XXX: tested with RTSP streams only right now
+        # This is only used when building ff_opts, to prevent starting
+        # player paused and can probably be removed as soon as the 'eof'
+        # receiving issue is solved.
+        # See https://github.com/matham/ffpyplayer/issues/142
         return self.filename.startswith('rtsp://')
 
     def __del__(self):
