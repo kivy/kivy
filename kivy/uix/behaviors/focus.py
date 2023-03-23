@@ -380,7 +380,7 @@ class FocusBehavior(object):
     keyboard as this widget (which in the case with only one keyboard),
     then as the other widgets gain focus, this widget loses focus. In addition
     to that, if this property is `True`, clicking on any widget other than this
-    widget, will remove focus form this widget.
+    widget, will remove focus from this widget.
 
     :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
