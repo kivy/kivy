@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools", "wheel",
+    "setuptools", "wheel", "packaging",
     "cython>=0.24,<=0.29.33,!=0.27,!=0.27.2",
     'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
     'kivy_deps.sdl2_dev~=0.6.0; sys_platform == "win32"',
