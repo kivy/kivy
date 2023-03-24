@@ -266,13 +266,6 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return w, h
 
-
-    def _get_display_dpi(self):
-        cdef int display_index = SDL_GetWindowDisplayIndex(self.win)
-        cdef float horizontal_dpi = 0.
-        SDL_GetDisplayDPI(display_index, NULL, &horizontal_dpi, NULL)
-        return horizontal_dpi
-
     def _set_cursor_state(self, value):
         SDL_ShowCursor(value)
 
