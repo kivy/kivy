@@ -31,9 +31,23 @@ background thread without blocking your application.
 Alignment
 ---------
 
-By default, the image is centered and fits inside the widget bounding box.
-If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
-to False.
+By default, the image is centered inside the widget bounding box.
+
+Adjustment
+----------
+
+To control how the image should be adjusted to fit inside the widget box, you
+should use the :attr:`~kivy.uix.image.Image.fit_mode` property. Available
+options include:
+
+- ``"scale-down"``: maintains aspect ratio without stretching.
+- ``"fill"``: stretches to fill widget, may cause distortion.
+- ``"contain"``: maintains aspect ratio and resizes to fit inside widget.
+- ``"cover"``: maintains aspect ratio and stretches to fill widget, may clip
+image.
+
+For more details, refer to the :attr:`~kivy.uix.image.Image.fit_mode`.
+
 
 You can also inherit from Image and create your own style. For example, if you
 want your image to be greater than the size of your widget, you could do::
@@ -87,7 +101,7 @@ class Image(Widget):
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the image. The texture represents the original, loaded
     image texture. It is stretched and positioned during rendering according to
-    the :attr:`allow_stretch` and :attr:`keep_ratio` properties.
+    the :attr:`fit_mode` property.
 
     Depending of the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or a
@@ -180,7 +194,7 @@ class Image(Widget):
     fit_mode = OptionProperty(
         "scale-down", options=["scale-down", "fill", "contain", "cover"]
     )
-    '''If the size of the image is smaller than the size of the widget,
+    '''If the size of the image is different than the size of the widget,
     determine how the image should be resized to fit inside the widget box.
 
     Available options:
@@ -266,24 +280,19 @@ class Image(Widget):
                 return [w, (w * th) / tw]
             else:
                 return [(h * tw) / th, h]
-
-        # ensure that the width is always maximized to the container width
-        # NOTE: self.allow_stretch and self.keep_ratio conditions should be
-        # removed along with the deprecated properties in the future
-        if self.fit_mode in ("fill", "contain") or self.allow_stretch:
-            if self.fit_mode == "fill" or not self.keep_ratio:
-                return [w, h]
+        elif self.fit_mode == "fill":
+            return [w, h]
+        elif self.fit_mode == "contain":
             iw = w
         else:
             iw = min(w, tw)
+
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container
         # and calculate appropriate width. no need to test further. :)
         if ih > h:
-            # NOTE: self.allow_stretch condition should be removed along with
-            # the deprecated property in the future
-            if self.fit_mode == "contain" or self.allow_stretch:
+            if self.fit_mode == "contain":
                 ih = h
             else:
                 ih = min(h, th)
@@ -295,9 +304,7 @@ class Image(Widget):
         bind=(
             'texture',
             'size',
-            'allow_stretch',
             'image_ratio',
-            'keep_ratio',
             'fit_mode',
         ),
         cache=True,
@@ -318,7 +325,24 @@ class Image(Widget):
         fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
+
+        # NOTE: Compatibility code due to deprecated properties.
+        fbind('keep_ratio', self._update_fit_mode)
+        fbind('allow_stretch', self._update_fit_mode)
         super().__init__(**kwargs)
+
+    def _update_fit_mode(self, *args):
+        keep_ratio = self.keep_ratio
+        allow_stretch = self.allow_stretch
+        if (
+            not keep_ratio and not allow_stretch
+            or keep_ratio and not allow_stretch
+        ):
+            self.fit_mode = "scale-down"
+        elif not keep_ratio and allow_stretch:
+            self.fit_mode = "fill"
+        elif keep_ratio and allow_stretch:
+            self.fit_mode = "contain"
 
     def texture_update(self, *largs):
         self.set_texture_from_resource(self.source)
