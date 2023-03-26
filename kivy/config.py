@@ -253,7 +253,7 @@ Available configuration tokens
         When enabled, the window will be brought to the front and will keep
         the window above the rest. Only works for the sdl2 window provider.
         ``0`` is disabled, ``1`` is enabled.
-    `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``0``
+    `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``1``
         Determines whether the app's icon will be added to the taskbar. Only
         applicable for the SDL2 window provider.
         ``0`` means the icon will not be shown in the taskbar and ``1`` means
