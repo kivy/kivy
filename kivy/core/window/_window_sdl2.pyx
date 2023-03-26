@@ -75,11 +75,8 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, show_taskbar_icon, state, gl_backend):
+    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
-
-        if not show_taskbar_icon:
-            self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
 
         if resizable:
             self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -106,6 +103,10 @@ cdef class _WindowSDL2Storage:
             self.win_flags |= SDL_WINDOW_MINIMIZED
         elif state == 'hidden':
             self.win_flags |= SDL_WINDOW_HIDDEN
+
+        show_taskbar_icon = Config.getboolean('graphics', 'show_taskbar_icon')
+        if not show_taskbar_icon:
+            self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
 
         SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
 

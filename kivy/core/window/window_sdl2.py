@@ -311,15 +311,11 @@ class WindowSDL(WindowBase):
             # setup window
             w, h = self.system_size
             resizable = Config.getboolean('graphics', 'resizable')
-            show_taskbar_icon = Config.getboolean(
-                'graphics',
-                'show_taskbar_icon'
-            )
             state = (Config.get('graphics', 'window_state')
                      if self._is_desktop else None)
             self.system_size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
-                self.fullscreen, resizable, show_taskbar_icon, state,
+                self.fullscreen, resizable, state,
                 self.get_gl_backend_name())
 
             # We don't have a density or dpi yet set, so let's ask for an update
