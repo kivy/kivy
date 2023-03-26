@@ -125,7 +125,7 @@ cdef class Line(VertexInstruction):
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
     cdef int _close
-    cdef int _close_from_center
+    cdef str _close_mode
     cdef int _mode
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
@@ -151,7 +151,7 @@ cdef class Line(VertexInstruction):
         self._joint_precision = kwargs.get('joint_precision') or 10
         self._bezier_precision = kwargs.get('bezier_precision') or 180
         self._close = int(bool(kwargs.get('close', 0)))
-        self._close_from_center = int(bool(kwargs.get('close_from_center', 0)))
+        self._close_mode = kwargs.get('close_mode', 'straight-line')
         self._stencil_rect = None
         self._stencil_push = None
         self._stencil_use = None
@@ -234,7 +234,7 @@ cdef class Line(VertexInstruction):
             self.batch.clear_data()
             return
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             p = p + [p[0], p[1]]
             count += 1
 
@@ -334,7 +334,7 @@ cdef class Line(VertexInstruction):
             return
 
         cap = self._cap
-        if self._close and count > 2:
+        if self._close and self._close_mode == 'straight-line' and count > 2:
             p = p + p[0:4]
             count += 2
             cap = LINE_CAP_NONE
@@ -879,8 +879,7 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     property close:
-        '''If True, the line will be closed by joining the two ends with a
-        straight line, and :attr:`close_from_center` will be set to False.
+        '''If True, the line will be closed by joining the two ends, according to :attr:`close_mode`.
 
         .. versionadded:: 1.4.1
         '''
@@ -889,29 +888,31 @@ cdef class Line(VertexInstruction):
             return self._close
 
         def __set__(self, value):
-            close = int(bool(value))
-            if close:
-                self.close_from_center = 0
-            self._close = close
+            self._close = int(bool(value))
             self.flag_data_update()
     
     @property
-    def close_from_center(self):
-        '''If True the line will be closed from the center of the ellipse, and
-        :attr:`close` will be set to False.
+    def close_mode(self):
+        '''Defines how the ends of the line will be connected.
+        Defaults to ``"straight-line"``.
 
-        .. note:: Only :attr:`ellipse` has support for this property.
+        .. note::
+            Support for the different closing modes depends on drawing shapes.
+
+        Available modes:
+
+        - ``"straight-line"`` (all drawing shapes): the ends will be closed by a straight line.
+        - ``ellipse-center`` (:attr:`ellipse` specific): the ends will be closed by a line passing through the center of the ellipse.
 
         .. versionadded:: 2.2.0
         '''
-        return self._close_from_center
+        return self._close_mode
 
-    @close_from_center.setter
-    def close_from_center(self, value):
-        close_from_center = int(bool(value))
-        if close_from_center:
-            self.close = 0
-        self._close_from_center = close_from_center
+    @close_mode.setter
+    def close_mode(self, value):
+        if value not in ("straight-line", "ellipse-center"):
+            raise GraphicException(f'{self.__class__.__name__} - Invalid close_mode, must be one of "straight-line" or "ellipse-center".')
+        self._close_mode = value
         self.flag_data_update()
 
     property ellipse:
@@ -928,7 +929,10 @@ cdef class Line(VertexInstruction):
         * (optional) segments is the precision of the ellipse. The default
           value is calculated from the range between angle.
 
-        Note that it's up to you to :attr:`close` or :attr:`close_from_center` the ellipse or not.
+        Note that it's up to you to :attr:`close` or not.
+        If you choose to close, use :attr:`close_mode` to define how the figure
+        will be closed. Whether it will be by closed by a ``"straight-line"``
+        or by ``"ellipse-center"``.
 
         For example, for building a simple ellipse, in python::
 
@@ -967,7 +971,7 @@ cdef class Line(VertexInstruction):
         cdef int angle_dir, segments = 0, extra_segments = 0
         cdef double angle_range
         cdef tuple args = self._mode_args
-        cdef int close_from_center = self._close_from_center
+        cdef bint close_from_center = self._close and self._close_mode == "ellipse-center"
 
         extra_segments = 3 if close_from_center else 1
 
@@ -1011,7 +1015,6 @@ cdef class Line(VertexInstruction):
         cdef double rx = w * 0.5
         cdef double ry = h * 0.5
         cdef int inc_x = 0, inc_y = 1
-
 
         if close_from_center and angle_start != angle_end:
             points[0] = points[segments - 2] = x + rx
@@ -1493,7 +1496,7 @@ cdef class SmoothLine(Line):
 
         vcount = <unsigned short>(count * 4)
         icount = (count - 1) * 18
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             icount += 18
 
         vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
@@ -1505,7 +1508,7 @@ cdef class SmoothLine(Line):
             free(vertices)
             raise MemoryError("indices")
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             ax = p[-2]
             ay = p[-1]
             bx = p[0]
@@ -1527,7 +1530,7 @@ cdef class SmoothLine(Line):
             else:
                 angle = last_angle
 
-            if index == 0 and not self._close:
+            if index == 0 and (not self._close or self._close_mode != 'straight-line'):
                 av_angle = angle
                 ad_angle = pi
             else:
@@ -1670,7 +1673,7 @@ cdef class SmoothLine(Line):
             tindices[17] = vindex + 7
             tindices = tindices + 18
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             vindex = vcount - 4
             i0 = vindex
             i1 = vindex + 1
