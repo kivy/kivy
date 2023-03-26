@@ -902,7 +902,7 @@ cdef class Line(VertexInstruction):
         Available modes:
 
         - ``"straight-line"`` (all drawing shapes): the ends will be closed by a straight line.
-        - ``ellipse-center`` (:attr:`ellipse` specific): the ends will be closed by a line passing through the center of the ellipse.
+        - ``"center-connected"`` (:attr:`ellipse` specific): the ends will be closed by a line passing through the center of the ellipse.
 
         .. versionadded:: 2.2.0
         '''
@@ -910,8 +910,8 @@ cdef class Line(VertexInstruction):
 
     @close_mode.setter
     def close_mode(self, value):
-        if value not in ("straight-line", "ellipse-center"):
-            raise GraphicException(f'{self.__class__.__name__} - Invalid close_mode, must be one of "straight-line" or "ellipse-center".')
+        if value not in ("straight-line", "center-connected"):
+            raise GraphicException(f'{self.__class__.__name__} - Invalid close_mode, must be one of "straight-line" or "center-connected".')
         self._close_mode = value
         self.flag_data_update()
 
@@ -932,7 +932,7 @@ cdef class Line(VertexInstruction):
         Note that it's up to you to :attr:`close` or not.
         If you choose to close, use :attr:`close_mode` to define how the figure
         will be closed. Whether it will be by closed by a ``"straight-line"``
-        or by ``"ellipse-center"``.
+        or by ``"center-connected"``.
 
         For example, for building a simple ellipse, in python::
 
@@ -971,9 +971,9 @@ cdef class Line(VertexInstruction):
         cdef int angle_dir, segments = 0, extra_segments = 0
         cdef double angle_range
         cdef tuple args = self._mode_args
-        cdef bint close_from_center = self._close and self._close_mode == "ellipse-center"
+        cdef bint center_connected = self._close and self._close_mode == "center-connected"
 
-        extra_segments = 3 if close_from_center else 1
+        extra_segments = 3 if center_connected else 1
 
         if len(args) == 4:
             x, y, w, h = args
@@ -1016,7 +1016,7 @@ cdef class Line(VertexInstruction):
         cdef double ry = h * 0.5
         cdef int inc_x = 0, inc_y = 1
 
-        if close_from_center and angle_start != angle_end:
+        if center_connected and angle_start != angle_end:
             points[0] = points[segments - 2] = x + rx
             points[1] = points[segments - 1] = y + ry
 
