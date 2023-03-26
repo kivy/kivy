@@ -981,8 +981,6 @@ class _WindowsSysDPIWatch:
         from ctypes import windll
 
         if msg == WM_DPICHANGED:
-            ow, oh = self.window.size
-            old_dpi = self.window.dpi
 
             def clock_callback(*args):
                 if x_dpi != y_dpi:
@@ -990,10 +988,6 @@ class _WindowsSysDPIWatch:
                         'Can only handle DPI that are same for x and y')
 
                 self.window.dpi = x_dpi
-
-                # maintain the same window size
-                ratio = x_dpi / old_dpi
-                self.window.size = ratio * ow, ratio * oh
 
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16
