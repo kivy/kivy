@@ -1047,7 +1047,6 @@ Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:
-        from kivy.logger import Logger
         import sys
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
