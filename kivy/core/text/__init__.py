@@ -88,6 +88,7 @@ from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
+from kivy.logger import Logger
 
 
 if 'KIVY_DOC' not in os.environ:
@@ -274,7 +275,34 @@ class LabelBase(object):
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0, 1)
-        options['padding'] = kwargs_get('padding', (0, 0, 0, 0))
+
+        options['padding'] = kwargs_get('padding', [0, 0, 0, 0])
+        if isinstance(options['padding'], (int, float)):
+            options['padding'] = [options['padding']] * 4
+        elif (
+            isinstance(options['padding'], (list, tuple))
+            and len(options['padding']) != 4
+        ):
+            if len(options['padding']) == 1:
+                options['padding'] = options['padding'] * 4
+            elif len(options['padding']) == 2:
+                options['padding'] = options['padding'] * 2
+            else:
+                raise ValueError(
+                    "padding should be int|float or a list|tuple with 1, 2 or "
+                    f"4 elements, got {type(options['padding'])} with "
+                    f"{len(options['padding'])} elements."
+                )
+
+        options['padding_x'] = kwargs_get('padding_x')
+        options['padding_y'] = kwargs_get('padding_y')
+        for padding_option in ('padding_x', 'padding_y'):
+            if kwargs_get(padding_option):
+                Logger.warning(
+                    f"The use of the {padding_option} parameter is "
+                    "deprecated, and will be removed in future versions. Use "
+                    "padding instead."
+                )
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -293,6 +321,15 @@ class LabelBase(object):
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
+        self._update_padding()
+
+    def _update_padding(self):
+        options = self.options
+        self.options['padding'] = list(self.options['padding'])
+        if options['padding_x']:
+            self.options['padding'][::2] = [options['padding_x']] * 2
+        if options['padding_y']:
+            self.options['padding'][1::2] = [options['padding_y']] * 2
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,

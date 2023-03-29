@@ -304,8 +304,7 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'font_script_name',
                         'font_direction', 'bold', 'italic',
                         'underline', 'strikethrough', 'font_family', 'color',
-                        'disabled_color', 'halign', 'valign',
-                        'padding', 'padding_x', 'padding_y',
+                        'disabled_color', 'halign', 'valign', 'padding',
                         'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
@@ -322,6 +321,11 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+
+        # NOTE: Compatibility code due to deprecated properties.
+        fbind('padding_x', update, 'padding_x')
+        fbind('padding_y', update, 'padding_y')
+
         fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
@@ -375,7 +379,7 @@ class Label(Widget):
                     self.disabled_outline_color if value else
                     self.outline_color)
 
-            # Compatibility with deprecated properties.
+            # NOTE: Compatibility code due to deprecated properties
             # Must be removed along with padding_x and padding_y
             elif name == 'padding_x':
                 self._label.options['padding'][::2] = [value] * 2
