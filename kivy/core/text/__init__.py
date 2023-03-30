@@ -131,9 +131,11 @@ class LabelBase(object):
         `text_size`: tuple, defaults to (None, None)
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: list, defaults to [0, 0, 0, 0].
+        `padding`: int|float or list|tuple, defaults to [0, 0, 0, 0].
             Padding of the text in the format [padding_left, padding_top,
-            padding_right, padding_bottom]
+            padding_right, padding_bottom].
+            ``padding`` should be int|float or a list|tuple with 1, 2 or 4
+            elements.
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0
@@ -189,7 +191,8 @@ class LabelBase(object):
         instead.
 
     .. versionchanged:: 2.2.0
-        `padding` is now a list and defaults to [0, 0, 0, 0].
+        `padding` is now a list and defaults to [0, 0, 0, 0]. `padding` accepts
+        int|float or a list|tuple with 1, 2 or 4 elements.
 
     .. versionchanged:: 1.10.1
         `font_context`, `font_family`, `font_features`, `base_direction`
@@ -321,9 +324,9 @@ class LabelBase(object):
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
-        self._update_padding()
+        self._migrate_deprecated_padding_xy()
 
-    def _update_padding(self):
+    def _migrate_deprecated_padding_xy(self):
         options = self.options
         self.options['padding'] = list(self.options['padding'])
         if options['padding_x']:
