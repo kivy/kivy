@@ -43,9 +43,7 @@ def install_gobject_iteration():
     Clock.schedule_interval(_gobject_iteration, 0)
 
 
-# -----------------------------------------------------------------------------
 # Android support
-# -----------------------------------------------------------------------------
 
 g_android_redraw_count = 0
 _redraw_event = None
