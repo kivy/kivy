@@ -312,7 +312,6 @@ class Animation(EventDispatcher):
                 original_value = original_value.copy()
             p[key] = (original_value, value)
 
-        # install clock
         self._clock_install()
 
     def _clock_install(self):
