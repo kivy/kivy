@@ -416,10 +416,6 @@ class Recognizer(EventDispatcher):
         else:
             return base64.b64encode(zlib.compress(io.getvalue(), 9))
 
-    # FIXME: match them all with protractor, and don't load exacts? or
-    # just compare the data or something; seems better to do this on import
-    # than on every subsequent call to recognize(). And fix it in general,
-    # too.
     def import_gesture(self, data=None, filename=None, **kwargs):
         '''Import a list of gestures as formatted by :meth:`export_gesture`.
         One of `data` or `filename` must be specified.
