@@ -302,7 +302,7 @@ class LabelBase(object):
         for padding_option in ('padding_x', 'padding_y'):
             if kwargs_get(padding_option):
                 Logger.warning(
-                    f"The use of the {padding_option} parameter is "
+                    f"LabelBase: The use of the {padding_option} parameter is "
                     "deprecated, and will be removed in future versions. Use "
                     "padding instead."
                 )
