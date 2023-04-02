@@ -503,7 +503,7 @@ class ConfigParser(PythonConfigParser, object):
         #    self.readfp(f)
         old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
                     self.sections()}
-        PythonConfigParser.read(self, filename)
+        PythonConfigParser.read(self, filename, encoding="utf-8-sig")
 
         # when reading new file, sections/keys are only increased, not removed
         f = self._do_callbacks
@@ -595,7 +595,7 @@ class ConfigParser(PythonConfigParser, object):
         if self.filename is None:
             return False
         try:
-            with open(self.filename, 'w') as fd:
+            with open(self.filename, 'w', encoding="utf-8") as fd:
                 PythonConfigParser.write(self, fd)
         except IOError:
             Logger.exception('Unable to write the config <%s>' % self.filename)
