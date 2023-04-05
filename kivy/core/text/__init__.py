@@ -640,9 +640,10 @@ class LabelBase(object):
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
-        xpad = options['padding'][0]
+        padding_left = options['padding'][0]
+        padding_right = options['padding'][2]
         if uw is not None:
-            uww = uw - 2 * xpad  # real width of just text
+            uww = uw - padding_left - padding_right  # real width of just text
         w = size[0]
         sw = options['space_width']
         halign = options['halign']
@@ -659,14 +660,15 @@ class LabelBase(object):
                 line = last_word.text
                 if not cur_base_dir:
                     cur_base_dir = find_base_dir(line)
-            x = xpad
+            x = padding_left
             if halign == 'auto':
                 if cur_base_dir and 'rtl' in cur_base_dir:
-                    x = max(0, int(w - lw - xpad))  # right-align RTL text
+                    # right-align RTL text
+                    x = max(0, int(w - lw - padding_right))
             elif halign == 'center':
                 x = int((w - lw) / 2.)
             elif halign == 'right':
-                x = max(0, int(w - lw - xpad))
+                x = max(0, int(w - lw - padding_right))
 
             # right left justify
             # divide left over space between `spaces`
@@ -718,12 +720,11 @@ class LabelBase(object):
         size = self.size
         valign = options['valign']
 
-        y = ypad = options['padding'][1]  # pos in the texture
+        y = padding_top = options['padding'][1]  # pos in the texture
         if valign == 'bottom':
-            y = size[1] - ih + ypad
+            y = size[1] - ih + padding_top
         elif valign == 'middle' or valign == 'center':
-            y = int((size[1] - ih) / 2 + ypad)
-
+            y = int((size[1] - ih) / 2 + padding_top)
         self._render_begin()
         self.render_lines(lines, options, self._render_text, y, size)
 
