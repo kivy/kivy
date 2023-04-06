@@ -381,7 +381,7 @@ class Bubble(BoxLayout):
 
         self._arrow_image = Image(
             source=self.arrow_image,
-            fit_mode="scale-down"
+            fit_mode="scale-down",
             color=self.arrow_color
         )
         self._arrow_image.width = self._arrow_image.texture_size[0]
