@@ -28,7 +28,7 @@ install_kivy_test_run_apt_deps() {
   sudo apt-get -y install libunwind-dev
   sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base gstreamer1.0-plugins-good
   sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libx11-dev libmtdev-dev
-  sudo apt-get -y install build-essential autoconf automake libgl1-mesa-dev libgles2-mesa-dev
+  sudo apt-get -y install build-essential autoconf libtool automake libgl1-mesa-dev libgles2-mesa-dev
   sudo apt-get -y install xvfb pulseaudio xsel
 }
 
