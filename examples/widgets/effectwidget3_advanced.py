@@ -55,8 +55,7 @@ TouchWidget:
         text: 'Some text!'
     Image:
         source: 'data/logo/kivy-icon-512.png'
-        allow_stretch: True
-        keep_ratio: False
+        fit_mode: "fill"
 ''')
 
 

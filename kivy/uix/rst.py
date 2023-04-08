@@ -393,7 +393,7 @@ Builder.load_string('''
     font_size: sp(self.document.base_font_size / 2.0)
 
 <RstVideoPlayer>:
-    options: {'allow_stretch': True}
+    options: {'fit_mode': 'contain'}
     canvas.before:
         Color:
             rgba: (1, 1, 1, 1)
