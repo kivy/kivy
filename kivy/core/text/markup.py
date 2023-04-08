@@ -453,6 +453,7 @@ class MarkupLabel(MarkupLabelBase):
         return int(w), int(h)
 
     def render_lines(self, lines, options, render_text, y, size):
+        padding_left = options['padding'][0]
         padding_right = options['padding'][2]
         w = size[0]
         halign = options['halign']
@@ -463,7 +464,7 @@ class MarkupLabel(MarkupLabelBase):
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
-            x = padding_right
+            x = padding_left
             if halign == 'center':
                 x = int((w - lw) / 2.)
             elif halign == 'right' or auto_halign_r:
