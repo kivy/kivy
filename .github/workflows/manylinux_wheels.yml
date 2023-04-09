@@ -37,13 +37,13 @@ jobs:
 
   manylinux_wheel_create:
     env:
-      CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies"
+      CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies LD_LIBRARY_PATH=$(pwd)/kivy-dependencies/dist/lib:$(pwd)/kivy-dependencies/dist/lib64"
       CIBW_BUILD_VERBOSITY_LINUX: 3
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
-        install_build_deps
+        install_manylinux_build_deps
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -73,7 +73,8 @@ jobs:
       if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
       run: |
         docker run --rm -v `pwd`:/root:rw --workdir=/root \
-           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} bash -ec './tools/build_linux_dependencies.sh'
+           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} \
+           bash -ec 'source .ci/ubuntu_ci.sh && install_manylinux_build_deps && ./tools/build_linux_dependencies.sh'
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
@@ -197,7 +198,7 @@ jobs:
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_test_run_apt_deps
+          install_ubuntu_build_deps
           ./tools/build_linux_dependencies.sh
           install_kivy_test_wheel_run_pip_deps
       - name: Setup env

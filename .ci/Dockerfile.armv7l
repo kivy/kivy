@@ -9,7 +9,7 @@ RUN [ "cross-build-start" ]
 # Install dependencies.
 RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     export PIP_EXTRA_INDEX_URL="https://www.piwheels.org/simple" && \
-    install_kivy_test_run_apt_deps && \
+    install_ubuntu_build_deps && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install xorg libxrender-dev && \
     install_python && \
     install_kivy_test_run_pip_deps'
