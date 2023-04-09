@@ -666,7 +666,14 @@ class LabelBase(object):
                     # right-align RTL text
                     x = max(0, int(w - lw - padding_right))
             elif halign == 'center':
-                x = int((w - lw) / 2.)
+                x = min(
+                    int(w - lw),
+                    max(
+                        padding_left,
+                        int((w - lw + padding_left - padding_right) / 2.0)
+                    )
+                )
+
             elif halign == 'right':
                 x = max(0, int(w - lw - padding_right))
 
