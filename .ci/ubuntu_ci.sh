@@ -23,15 +23,6 @@ generate_sdist() {
   python3 -m pip uninstall cython -y
 }
 
-install_kivy_test_run_apt_deps() {
-  sudo apt-get update
-  sudo apt-get -y install libunwind-dev
-  sudo apt-get -y install libgstreamer1.0-dev gstreamer1.0-alsa gstreamer1.0-plugins-base gstreamer1.0-plugins-good
-  sudo apt-get -y install libsmpeg-dev libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff5-dev libx11-dev libmtdev-dev
-  sudo apt-get -y install build-essential autoconf libtool automake libgl1-mesa-dev libgles2-mesa-dev
-  sudo apt-get -y install xvfb pulseaudio xsel
-}
-
 install_python() {
   sudo apt-get -y install python3 python3-dev python3-setuptools
 }
@@ -193,8 +184,8 @@ generate_armv7l_wheels() {
 
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" --build-arg KIVY_CROSS_PLATFORM="$2" --build-arg KIVY_CROSS_SYSROOT="$3" .
-  docker cp "$(docker create kivy/kivy-armv7l)":/kivy-wheel .
-  cp kivy-wheel/Kivy-* dist/
+  docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
+  cp kivy-delocated-wheel/Kivy-* dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
