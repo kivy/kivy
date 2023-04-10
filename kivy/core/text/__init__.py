@@ -669,7 +669,7 @@ class LabelBase(object):
                 x = min(
                     int(w - lw),
                     max(
-                        padding_left,
+                        int(padding_left),
                         int((w - lw + padding_left - padding_right) / 2.0)
                     )
                 )
@@ -727,12 +727,14 @@ class LabelBase(object):
         size = self.size
         valign = options['valign']
 
-        y = padding_top = options['padding'][1]  # pos in the texture
-        padding_bottom = options['padding'][3]
+        padding_top = options['padding'][1]
         if valign == 'bottom':
-            y = size[1] - ih + padding_top
-        elif valign == 'middle' or valign == 'center':
-            y = int((size[1] - ih) / 2 + (padding_top + padding_bottom) / 2)
+            y = int(size[1] - ih + padding_top)
+        elif valign == 'top':
+            y = int(padding_top)
+        elif valign in ('middle', 'center'):
+            y = int((size[1] - ih + 2 * padding_top) / 2)
+
         self._render_begin()
         self.render_lines(lines, options, self._render_text, y, size)
 
