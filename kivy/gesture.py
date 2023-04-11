@@ -243,7 +243,7 @@ class Gesture:
     # Tolerance for evaluation using the '==' operator
     DEFAULT_TOLERANCE = 0.1
 
-    def __init__(self, tolerance=None, name=None, points=None):
+    def __init__(self, tolerance=None, name=None, point_list=None):
         '''
         Gesture([tolerance=float])
         Creates a new gesture with an optional matching tolerance value.
@@ -259,8 +259,8 @@ class Gesture:
 
         if name is not None:
             self.name = name
-        if points is not None:
-            self.add_stroke(point_list=points)
+        if point_list is not None:
+            self.add_stroke(point_list=point_list)
             self.normalize()
 
     def _scale_gesture(self):
