@@ -466,7 +466,13 @@ class MarkupLabel(MarkupLabelBase):
             lw, lh = layout_line.w, layout_line.h
             x = padding_left
             if halign == 'center':
-                x = int((w - lw) / 2.)
+                x = min(
+                    int(w - lw),
+                    max(
+                        int(padding_left),
+                        int((w - lw + padding_left - padding_right) / 2.0)
+                    )
+                )
             elif halign == 'right' or auto_halign_r:
                 x = max(0, int(w - lw - padding_right))
             layout_line.x = x
