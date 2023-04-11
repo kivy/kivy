@@ -243,7 +243,7 @@ class Gesture:
     # Tolerance for evaluation using the '==' operator
     DEFAULT_TOLERANCE = 0.1
 
-    def __init__(self, tolerance=None):
+    def __init__(self, tolerance=None, name=None, points=None):
         '''
         Gesture([tolerance=float])
         Creates a new gesture with an optional matching tolerance value.
@@ -256,6 +256,12 @@ class Gesture:
             self.tolerance = Gesture.DEFAULT_TOLERANCE
         else:
             self.tolerance = tolerance
+
+        if name is not None:
+            self.name = name
+        if points is not None:
+            self.add_stroke(point_list=points)
+            self.normalize()
 
     def _scale_gesture(self):
         ''' Scales down the gesture to a unit of 1.'''
@@ -300,11 +306,24 @@ class Gesture:
             stroke.center_stroke(total_x, total_y)
         return True
 
+    ''' Define shorthand for gesture reference points as if it were a keypad
+        of a phone. Assume a 3 x 3 grid, labeled '1', '2', '3' etc
+    '''
+    _keypad = {'1': (1, 1), '2': (0, 1), '3': (-1, 1),
+       '4': (1, 0), '5': (0, 0), '6': (-1, 0),
+       '7': (1, -1), '8': (0, -1), '9': (-1, -1)
+    }
+
     def add_stroke(self, point_list=None):
         '''Adds a stroke to the gesture and returns the Stroke instance.
            Optional point_list argument is a list of the mouse points for
            the stroke.
         '''
+        if isinstance(point_list, int):
+            point_list = str(point_list)
+        if isinstance(point_list, str):
+            point_list = list(map(lambda x: self._keypad[x], str(point_list)))
+
         self.strokes.append(GestureStroke())
         if isinstance(point_list, list) or isinstance(point_list, tuple):
             for point in point_list:
