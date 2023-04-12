@@ -165,7 +165,7 @@ class MarkupLabel(MarkupLabelBase):
         # flattened later when shortening and broken up lines if broken
         # mid-word will have space mid-word when lines are joined
         uw_temp = None if shorten else uw
-        xpad = options['padding_x']
+        xpad = options['padding'][0] + options['padding'][2]
         uhh = (None if uh is not None and options['valign'] != 'top' or
                options['shorten'] else uh)
         options['strip'] = options['strip'] or options['halign'] == 'justify'
@@ -338,7 +338,7 @@ class MarkupLabel(MarkupLabelBase):
             # XXX: update refs to justified pos
             # when justify, each line should've been stripped already
             split = partial(re.split, re.compile('( +)'))
-            uww = uw - 2 * xpad
+            uww = uw - xpad
             chr = type(self.text)
             space = chr(' ')
             empty = chr('')
@@ -453,7 +453,8 @@ class MarkupLabel(MarkupLabelBase):
         return int(w), int(h)
 
     def render_lines(self, lines, options, render_text, y, size):
-        xpad = options['padding_x']
+        padding_left = options['padding'][0]
+        padding_right = options['padding'][2]
         w = size[0]
         halign = options['halign']
         refs = self._refs
@@ -463,11 +464,17 @@ class MarkupLabel(MarkupLabelBase):
 
         for layout_line in lines:  # for plain label each line has only one str
             lw, lh = layout_line.w, layout_line.h
-            x = xpad
+            x = padding_left
             if halign == 'center':
-                x = int((w - lw) / 2.)
+                x = min(
+                    int(w - lw),
+                    max(
+                        int(padding_left),
+                        int((w - lw + padding_left - padding_right) / 2.0)
+                    )
+                )
             elif halign == 'right' or auto_halign_r:
-                x = max(0, int(w - lw - xpad))
+                x = max(0, int(w - lw - padding_right))
             layout_line.x = x
             layout_line.y = y
             psp = pph = 0
@@ -669,12 +676,18 @@ class MarkupLabel(MarkupLabelBase):
         if uw is None:
             return w, h, lines
         old_opts = copy(self.options)
-        uw = max(0, int(uw - old_opts['padding_x'] * 2 - margin))
+        uw = max(
+            0,
+            int(uw - old_opts["padding"][0] - old_opts["padding"][2] - margin),
+        )
         chr = type(self.text)
         ssize = textwidth(' ')
         c = old_opts['split_str']
         line_height = old_opts['line_height']
-        xpad, ypad = old_opts['padding_x'], old_opts['padding_y']
+        xpad, ypad = (
+            old_opts["padding"][0] + old_opts["padding"][2],
+            old_opts["padding"][1] + old_opts["padding"][3],
+        )
         dir = old_opts['shorten_from'][0]
 
         # flatten lines into single line
@@ -696,8 +709,8 @@ class MarkupLabel(MarkupLabelBase):
             lh = max([word.lh for word in line] + [0]) * line_height
             self.is_shortened = False
             return (
-                lw + 2 * xpad,
-                lh + 2 * ypad,
+                lw + xpad,
+                lh + ypad,
                 [LayoutLine(0, 0, lw, lh, 1, 0, line)]
             )
 
@@ -714,8 +727,8 @@ class MarkupLabel(MarkupLabelBase):
             s = textwidth('..')
             if s[0] <= uw:
                 return (
-                    s[0] + 2 * xpad,
-                    s[1] * line_height + 2 * ypad,
+                    s[0] + xpad,
+                    s[1] * line_height + ypad,
                     [LayoutLine(
                         0, 0, s[0], s[1], 1, 0,
                         [LayoutWord(old_opts, s[0], s[1], '..')])]
@@ -724,8 +737,8 @@ class MarkupLabel(MarkupLabelBase):
             else:
                 s = textwidth('.')
                 return (
-                    s[0] + 2 * xpad,
-                    s[1] * line_height + 2 * ypad,
+                    s[0] + xpad,
+                    s[1] * line_height + ypad,
                     [LayoutLine(
                         0, 0, s[0], s[1], 1, 0,
                         [LayoutWord(old_opts, s[0], s[1], '.')])]
@@ -767,8 +780,8 @@ class MarkupLabel(MarkupLabelBase):
                 self.options = old_opts
                 self.is_shortened = True
                 return (
-                    lw + 2 * xpad,
-                    lh + 2 * ypad,
+                    lw + xpad,
+                    lh + ypad,
                     [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
                 )
 
@@ -830,8 +843,8 @@ class MarkupLabel(MarkupLabelBase):
                 self.options = old_opts
                 self.is_shortened = True
                 return (
-                    lw + 2 * xpad,
-                    lh + 2 * ypad,
+                    lw + xpad,
+                    lh + ypad,
                     [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
                 )
 
@@ -873,7 +886,7 @@ class MarkupLabel(MarkupLabelBase):
         if uw < lw:
             self.is_shortened = True
         return (
-            lw + 2 * xpad,
-            lh + 2 * ypad,
+            lw + xpad,
+            lh + ypad,
             [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
         )
