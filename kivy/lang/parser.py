@@ -753,6 +753,8 @@ class Parser(object):
                     if current_propobject is None:
                         current_propobject = ParserRuleProperty(
                             self, ln, current_property, content)
+                        if not current_property:
+                            raise ParserException(self, ln, "Invalid declaration")
                         if current_property[:3] == 'on_':
                             current_object.handlers.append(current_propobject)
                         else:
