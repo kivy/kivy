@@ -283,7 +283,7 @@ else:
 
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
-            Logger.info('MTD: <%s> axes inversion: X is %d, Y is %d' %
+            Logger.info('MTD: <%s> axes invertion: X is %d, Y is %d' %
                         (_fn, invert_x, invert_y))
 
             rotation = drs('rotation', 0)
@@ -333,11 +333,25 @@ else:
                                         range_min_position_x,
                                         range_max_position_x)
                         assign_coord(point, val, invert_x, 'xy')
+                        # some constellation not reports MTDEV_CODE_TRACKING_ID
+                        # -1 which is used to dispatch changes, thus we call
+                        # process here to ensure we not miss move events.
+                        _changes.add(_slot)
+                        process([l_points[x] for x in _changes])
+                        _changes.clear()
+                        continue
                     elif ev_code == MTDEV_CODE_POSITION_Y:
                         val = 1. - normalize(ev_value,
                                              range_min_position_y,
                                              range_max_position_y)
                         assign_coord(point, val, invert_y, 'yx')
+                        # some constellation not reports MTDEV_CODE_TRACKING_ID
+                        # -1 which is used to dispatch changes, thus we call
+                        # process here to ensure we not miss move events.
+                        _changes.add(_slot)
+                        process([l_points[x] for x in _changes])
+                        _changes.clear()
+                        continue
                     elif ev_code == MTDEV_CODE_PRESSURE:
                         point['pressure'] = normalize(ev_value,
                                                       range_min_pressure,
