@@ -88,7 +88,6 @@ from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
-from kivy.logger import Logger
 
 
 if 'KIVY_DOC' not in os.environ:
@@ -131,11 +130,8 @@ class LabelBase(object):
         `text_size`: tuple, defaults to (None, None)
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: int|float or list|tuple, defaults to [0, 0, 0, 0].
-            Padding of the text in the format [padding_left, padding_top,
-            padding_right, padding_bottom].
-            ``padding`` should be int|float or a list|tuple with 1, 2 or 4
-            elements.
+        `padding`: float, defaults to None
+            If it's a float, it will set padding_x and padding_y
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0
@@ -185,14 +181,6 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
-
-    .. deprecated:: 2.2.0
-        `padding_x` and `padding_y` have been deprecated. Please use `padding`
-        instead.
-
-    .. versionchanged:: 2.2.0
-        `padding` is now a list and defaults to [0, 0, 0, 0]. `padding` accepts
-        int|float or a list|tuple with 1, 2 or 4 elements.
 
     .. versionchanged:: 1.10.1
         `font_context`, `font_family`, `font_features`, `base_direction`
@@ -248,7 +236,7 @@ class LabelBase(object):
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None, font_context=None,
         font_features=None, base_direction=None, font_direction='ltr',
-        font_script_name='Latin', text_language=None,
+        font_script_name='Latin', text_language=None, responsive=True
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -273,39 +261,34 @@ class LabelBase(object):
                    'base_direction': base_direction,
                    'font_direction': font_direction,
                    'font_script_name': font_script_name,
-                   'text_language': text_language}
+                   'text_language': text_language,
+                   'responsive':responsive}
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0, 1)
+        options['padding'] = kwargs_get('padding', (0, 0))
+        if not isinstance(options['padding'], (list, tuple)):
+            options['padding'] = (options['padding'], options['padding'])
+        options['padding_x'] = kwargs_get('padding_x', options['padding'][0])
+        options['padding_y'] = kwargs_get('padding_y', options['padding'][1])
 
-        options['padding'] = kwargs_get('padding', [0, 0, 0, 0])
-        if isinstance(options['padding'], (int, float)):
-            options['padding'] = [options['padding']] * 4
-        elif (
-            isinstance(options['padding'], (list, tuple))
-            and len(options['padding']) != 4
-        ):
-            if len(options['padding']) == 1:
-                options['padding'] = options['padding'] * 4
-            elif len(options['padding']) == 2:
-                options['padding'] = options['padding'] * 2
-            else:
-                raise ValueError(
-                    "padding should be int|float or a list|tuple with 1, 2 or "
-                    f"4 elements, got {type(options['padding'])} with "
-                    f"{len(options['padding'])} elements."
-                )
+        if responsive:
+            self.halign = "center"
+            self.text_size = self.width,None
+            self.bind(size=self.on_resize)
+            self.bind(text=self.on_resize)
 
-        options['padding_x'] = kwargs_get('padding_x')
-        options['padding_y'] = kwargs_get('padding_y')
-        for padding_option in ('padding_x', 'padding_y'):
-            if kwargs_get(padding_option):
-                Logger.warning(
-                    f"LabelBase: The use of the {padding_option} parameter is "
-                    "deprecated, and will be removed in future versions. Use "
-                    "padding instead."
-                )
+        def on_resize(self,instance,value):
+            while instance.width+1 > instance.texture_size[0] and instance.height+1 > instance.texture_size[1]:
+                instance.font_size = instance.font_size + 2
+                instance.text_size = instance.width,None
+                instance.texture_update()
+            while instance.width < instance.texture_size[0] or instance.height < instance.texture_size[1]:
+                instance.font_size = instance.font_size - 2
+                instance.text_size = instance.width,None
+                instance.texture_update()
+
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -324,15 +307,6 @@ class LabelBase(object):
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
-        self._migrate_deprecated_padding_xy()
-
-    def _migrate_deprecated_padding_xy(self):
-        options = self.options
-        self.options['padding'] = list(self.options['padding'])
-        if options['padding_x']:
-            self.options['padding'][::2] = [options['padding_x']] * 2
-        if options['padding_y']:
-            self.options['padding'][1::2] = [options['padding_y']] * 2
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
@@ -506,7 +480,7 @@ class LabelBase(object):
             return text
 
         opts = self.options
-        uw = max(0, int(uw - opts['padding'][0] - opts['padding'][2] - margin))
+        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
         # if larger, it won't fit so don't even try extents
         chr = type(text)
         text = text.replace(chr('\n'), chr(' '))
@@ -640,10 +614,9 @@ class LabelBase(object):
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
-        padding_left = options['padding'][0]
-        padding_right = options['padding'][2]
+        xpad = options['padding_x']
         if uw is not None:
-            uww = uw - padding_left - padding_right  # real width of just text
+            uww = uw - 2 * xpad  # real width of just text
         w = size[0]
         sw = options['space_width']
         halign = options['halign']
@@ -660,22 +633,14 @@ class LabelBase(object):
                 line = last_word.text
                 if not cur_base_dir:
                     cur_base_dir = find_base_dir(line)
-            x = padding_left
+            x = xpad
             if halign == 'auto':
                 if cur_base_dir and 'rtl' in cur_base_dir:
-                    # right-align RTL text
-                    x = max(0, int(w - lw - padding_right))
+                    x = max(0, int(w - lw - xpad))  # right-align RTL text
             elif halign == 'center':
-                x = min(
-                    int(w - lw),
-                    max(
-                        int(padding_left),
-                        int((w - lw + padding_left - padding_right) / 2.0)
-                    )
-                )
-
+                x = int((w - lw) / 2.)
             elif halign == 'right':
-                x = max(0, int(w - lw - padding_right))
+                x = max(0, int(w - lw - xpad))
 
             # right left justify
             # divide left over space between `spaces`
@@ -727,13 +692,11 @@ class LabelBase(object):
         size = self.size
         valign = options['valign']
 
-        padding_top = options['padding'][1]
+        y = ypad = options['padding_y']  # pos in the texture
         if valign == 'bottom':
-            y = int(size[1] - ih + padding_top)
-        elif valign == 'top':
-            y = int(padding_top)
-        elif valign in ('middle', 'center'):
-            y = int((size[1] - ih + 2 * padding_top) / 2)
+            y = size[1] - ih + ypad
+        elif valign == 'middle' or valign == 'center':
+            y = int((size[1] - ih) / 2 + ypad)
 
         self._render_begin()
         self.render_lines(lines, options, self._render_text, y, size)
@@ -880,9 +843,7 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.width - (
-            self.options['padding'][0] + self.options['padding'][2]
-        )
+        return self.texture.width - 2 * self.options['padding_x']
 
     @property
     def content_height(self):
@@ -890,9 +851,7 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.height - (
-            self.options['padding'][1] + self.options['padding'][3]
-        )
+        return self.texture.height - 2 * self.options['padding_y']
 
     @property
     def content_size(self):
@@ -1061,6 +1020,7 @@ Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:
+        from kivy.logger import Logger
         import sys
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)
