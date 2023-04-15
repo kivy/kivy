@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
+        install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
         install_kivy_test_run_pip_deps
     - name: Setup env
@@ -76,7 +76,7 @@ jobs:
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
+        install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
         install_kivy_test_run_pip_deps
     - name: Setup env
