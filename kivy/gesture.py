@@ -21,13 +21,18 @@ gestures and compare them::
     # ...
     gdb.find(g2)
 
-.. warning::
+.. note:: :meth:`~kivy.gesture.Gesture.normalize()` resizes and moves a stroke \
+so that all points always fit in a box limited by (1, 1) and (-1, -1). \
+As a consequence, after normalization ((1, 1), (-1, -1)) and \
+((100, 100), (-100, -100)) represent the same strokes. \
+Similarly ((1, 1), (1, 0)) and ((0, 1), (0, 0)) represent the same.
 
-   You don't really want to do this: it's more of an example of how
-   to construct gestures dynamically. Typically, you would
-   need a lot more points, so it's better to record gestures in a file and
-   reload them to compare later. Look in the examples/gestures directory for
-   an example of how to do that.
+.. versionadded:: 2.2.0
+:meth:`~kivy.gesture.Gesture.add_stroke` implements a shorthand to encode
+strokes. This shorthand mimics a keypad from a phone: top-left is called '1',
+top-center is '2', top-right is '3', ... bottom-right is '9'.
+When encoding strokes, you can specify '123' or 123 for a three-point horizontal
+stroke. '147' specifies a vertical stroke, '159' specifies a diagonal stroke.
 
 '''
 
@@ -233,11 +238,22 @@ class GestureStroke:
 
 
 class Gesture:
-    '''A python implementation of a gesture recognition algorithm by
+    '''Creates a new gesture with an optional matching `tolerance` value.
+    In case `name` is specified, the Gesture will create an atttribute with
+    that name. In case `point_list` is specified, a stroke will be created
+    from this point list and will be added to the Gesture. This stroke will
+    be normalized.
+
+    A python implementation of a gesture recognition algorithm by
     Oleg Dopertchouk: http://www.gamedev.net/reference/articles/article2039.asp
 
     Implemented by Jeiel Aranal (chemikhazi@gmail.com),
     released into the public domain.
+
+    .. versionadded:: 2.1.1
+    The :meth:`~kivy.gesture.Gesture.__init__()` method was extended with the
+    `name` and the `point_list` parameters. When supplied, the stroke in
+    `point_list` will be normalized.
     '''
 
     # Tolerance for evaluation using the '==' operator
@@ -245,8 +261,7 @@ class Gesture:
 
     def __init__(self, tolerance=None, name=None, point_list=None):
         '''
-        Gesture([tolerance=float])
-        Creates a new gesture with an optional matching tolerance value.
+        Gesture([tolerance=float], name=None, point_list=None)
         '''
         self.width = 0.
         self.height = 0.
@@ -309,15 +324,16 @@ class Gesture:
     ''' Define shorthand for gesture reference points as if it were a keypad
         of a phone. Assume a 3 x 3 grid, labeled '1', '2', '3' etc
     '''
-    _keypad = {'1': (1, 1), '2': (0, 1), '3': (-1, 1),
-       '4': (1, 0), '5': (0, 0), '6': (-1, 0),
-       '7': (1, -1), '8': (0, -1), '9': (-1, -1)
+    _keypad = {'1': (-1, 1), '2': (0, 1), '3': (1, 1),
+       '4': (-1, 0), '5': (0, 0), '6': (1, 0),
+       '7': (-1, -1), '8': (0, -1), '9': (1, -1)
     }
 
     def add_stroke(self, point_list=None):
         '''Adds a stroke to the gesture and returns the Stroke instance.
-           Optional point_list argument is a list of the mouse points for
-           the stroke.
+           Optional `point_list` argument is a list of the mouse points for
+           the stroke. `point_list` can be a list of points, a string with
+           characters 1...9 or an integer.
         '''
         if isinstance(point_list, int):
             point_list = str(point_list)
