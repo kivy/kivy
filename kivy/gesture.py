@@ -21,6 +21,73 @@ gestures and compare them::
     # ...
     gdb.find(g2)
 
+And now a more elaborate example that captures gestures from touch events
+and emits events when the gesture is recognized::
+
+    from kivy.gesture import Gesture, GestureDatabase
+    from kivy.event import EventDispatcher
+
+    class MyScreenManager(ScreenManager, EventDispatcher):
+        _strokes = {
+            # straight lines
+            'right' : 13,
+            'left' : 31,
+            'down' : 14,
+            'up' : 41,
+            # triangles
+            '3down' : 7297,
+            '3up' : 1381,
+            '3left' : 1671,
+            '3right' : 3943,
+            # squares
+            'box-1' : 13971,
+            'box-3' : 39713,
+            'box-9' : 97139,
+            'box-7' : 71397,
+            'box-1-ccw' : 17931,
+            'box-3-ccw' : 31793,
+            'box-9-ccw' : 93179,
+            'box-7-ccw' : 79317,
+            # characters
+            'V' : 183,
+            'V-inv' : 729,
+            'W': 17593,
+            'M': 71539,
+            'N': 7193,
+            'Sigma': 31579
+        }
+
+        def on_touch_down(self, touch):
+            touch.ud['line'] = list()
+            touch.ud['line'].append(touch.pos)
+            return ScreenManager.on_touch_down(self, touch)
+
+        def on_touch_move(self, touch):
+            touch.ud['line'].append(touch.pos)
+            return ScreenManager.on_touch_move(self, touch)
+
+        def on_touch_up(self, touch):
+            if not hasattr(self, '_gestureDb'):
+                self._gestureDb = GestureDatabase()
+                for name, points in self._strokes.items():
+                    self._gestureDb.add_gesture(Gesture(name=name,
+                        point_list=points))
+                self.register_event_type('on_gesture')
+
+            touch.ud['line'].append(touch.pos)
+            stroke = self._gestureDb.find(Gesture(point_list= \
+                touch.ud['line']), 0.5, False)
+            if stroke is not None:
+                self.dispatch('on_gesture', stroke[1].name)
+            ScreenManager.on_touch_up(self, touch)
+
+        def on_gesture(self, *args):
+            print('Gesture dispacthed: {}'.format(args[0]))
+
+    class MyApp(App):
+        # ...
+        # ...
+
 .. note:: :meth:`~kivy.gesture.Gesture.normalize()` resizes and moves a stroke \
 so that all points always fit in a box limited by (1, 1) and (-1, -1). \
 As a consequence, after normalization ((1, 1), (-1, -1)) and \
