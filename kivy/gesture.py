@@ -48,6 +48,10 @@ from kivy.vector import Vector
 from io import BytesIO
 
 
+def sqr(x):
+    return x * x
+
+
 class GestureDatabase(object):
     '''Class to handle a gesture database.'''
 
@@ -218,8 +222,12 @@ class GestureStroke:
                 leg_index += 1
                 if leg_index == len(self.points):
                     break
+                here = next
                 next = self.points[leg_index]
                 leg_size = self.points_distance(here, next)
+
+        if len(new_points) < sample_points:
+            new_points.append(next)
 
         self.points = new_points
         return True
@@ -355,11 +363,12 @@ class Gesture:
         '''Runs the gesture normalization algorithm and calculates the dot
         product with self.
         '''
-        if not self._scale_gesture() or not self._center_gesture():
+        if not self._scale_gesture():
             self.gesture_product = False
             return False
         for stroke in self.strokes:
             stroke.normalize_stroke(stroke_samples)
+        self._center_gesture()
         self.gesture_product = self.dot_product(self)
 
     def get_rigid_rotation(self, dstpts):
@@ -408,6 +417,9 @@ class Gesture:
     def get_score(self, comparison_gesture, rotation_invariant=True):
         ''' Returns the matching score of the gesture against another gesture.
         '''
+        if len(comparison_gesture.strokes) != len(self.strokes):
+            raise Exception('Gestures not the same size. Try normalization.')
+
         if isinstance(comparison_gesture, Gesture):
             if rotation_invariant:
                 # get orientation
@@ -417,12 +429,17 @@ class Gesture:
                 comparison_gesture = comparison_gesture.rotate(angle)
 
             # this is the normal "orientation" code.
-            score = self.dot_product(comparison_gesture)
-            if score <= 0:
-                return score
-            score /= math.sqrt(
-                self.gesture_product * comparison_gesture.gesture_product)
-            return score
+            score = 0.0
+            for i in range(len(comparison_gesture.strokes)):
+                if len(comparison_gesture.strokes[i].points) != \
+                    len(self.strokes[i].points):
+                    raise Exception('Strokes not the same size')
+                for j in range(len(comparison_gesture.strokes[i].points)):
+                    score += sqr(comparison_gesture.strokes[i].points[j].x -
+                                  self.strokes[i].points[j].x)
+                    score += sqr(comparison_gesture.strokes[i].points[j].y -
+                                  self.strokes[i].points[j].y)
+            return 1.0 - score
 
     def __eq__(self, comparison_gesture):
         ''' Allows easy comparisons between gesture instances.'''
