@@ -189,7 +189,7 @@ class GestureStroke:
             return False
 
         # Calculate how long each point should be in the stroke
-        target_stroke_size = \
+        stepsize = \
             self.stroke_length(self.points) / float(sample_points - 1)
 
         new_points = list()
@@ -197,36 +197,30 @@ class GestureStroke:
         # Copy the starting point as the first new point
         here = self.points[0]
         new_points.append(here)
-        done_distance = 0.0
-        target_index = 1
-        target = self.points[target_index]
+        leg_index = 1
+        next = self.points[leg_index]
+        leg_size = self.points_distance(here, next)
+        step = stepsize
 
-        for i in range(1, sample_points - 1):
-            # Create the remaining new points
-            target_distance = target_stroke_size * i
-            d = self.points_distance(here, target)
+        while True:
+            if step < leg_size:
+                x_dir = next.x - here.x
+                y_dir = next.y - here.y
+                ratio = step / self.points_distance(here, next)
+                to_x = x_dir * ratio + here.x
+                to_y = y_dir * ratio + here.y
+                here = GesturePoint(to_x, to_y)
+                new_points.append(here)
+                leg_size -= step
+                step = stepsize
+            else:
+                step -= leg_size
+                leg_index += 1
+                if leg_index == len(self.points):
+                    break
+                next = self.points[leg_index]
+                leg_size = self.points_distance(here, next)
 
-            while target_distance > done_distance + d:
-                # The new point is needed after the current segment
-                # We'll get there in the next iteration
-                done_distance += d
-                here = target
-                target_index += 1
-                target = self.points[target_index]
-                d = self.points_distance(here, target)
-
-            # The new point(s) need to be inserted into the
-            # segment [here, target]
-            x_dir = target.x - here.x
-            y_dir = target.y - here.y
-            ratio = target_stroke_size / d
-            to_x = x_dir * ratio + here.x
-            to_y = y_dir * ratio + here.y
-            here = GesturePoint(to_x, to_y)
-            new_points.append(here)
-            done_distance = self.stroke_length(new_points)
-
-        new_points.append(target)
         self.points = new_points
         return True
 
