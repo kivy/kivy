@@ -18,7 +18,7 @@ The syntax to create a request::
     req = UrlRequest(url, on_success, on_redirect, on_failure, on_error,
                      on_progress, req_body, req_headers, chunk_size,
                      timeout, method, decode, debug, file_path, ca_file,
-                     verify)
+                     verify, cert_file, key_file, key_password)
 
 
 Only the first argument is mandatory: the rest are optional.
@@ -120,6 +120,9 @@ class UrlRequestBase(Thread):
 
         Parameters `on_finish` added.
         Parameters `auth` added.
+        Parameters `cert_file` added.
+        Parameters `key_file` added.
+        Parameters `key_password` added.
 
     :Parameters:
         `url`: str
@@ -171,6 +174,15 @@ class UrlRequestBase(Thread):
             certificates against
         `verify`: bool, defaults to True
             If False, disables SSL CA certificate verification
+        `cert_file`: str, defaults to None
+            Indicates a SSL client certificate file path to enable HTTPS
+            client authentication.
+        `key_file`: str, defaults to None
+            Indicates a SSL client key file path to enable HTTPS
+            client authentication.
+        `key_password`: str, defaults to None
+            If set, the password to unlock the SSL key file. It can be left 
+            None if any.
         `proxy_host`: str, defaults to None
             If set, the proxy host to use for this connection.
         `proxy_port`: int, defaults to None
@@ -189,7 +201,8 @@ class UrlRequestBase(Thread):
         on_failure=None, on_error=None, on_progress=None,
         req_body=None, req_headers=None, chunk_size=8192,
         timeout=None, method=None, decode=True, debug=False,
-        file_path=None, ca_file=None, verify=True, proxy_host=None,
+        file_path=None, ca_file=None, verify=True, cert_file=None,
+        key_file=None, key_password=None, proxy_host=None,
         proxy_port=None, proxy_headers=None, user_agent=None,
         on_cancel=None, on_finish=None, cookies=None, auth=None
     ):
@@ -231,6 +244,11 @@ class UrlRequestBase(Thread):
             self.ca_file = ca_file or certifi.where()
         else:
             self.ca_file = ca_file
+        
+        #: SSL certificates for client authentication
+        self.cert_file = cert_file
+        self.key_file = key_file
+        self.key_password = key_password
 
         #: Url of the request
         self.url = url
@@ -632,6 +650,9 @@ class UrlRequestUrllib(UrlRequestBase):
         timeout = self._timeout
         ca_file = self.ca_file
         verify = self.verify
+        cert_file = self.cert_file
+        key_file = self.key_file
+        key_password = self.key_password
         url = self._requested_url
 
         # parse url
@@ -670,6 +691,14 @@ class UrlRequestUrllib(UrlRequestBase):
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
+            args['context'] = ctx
+
+        if (cert_file is not None and key_file is not None and 
+                hasattr(ssl, 'SSLContext') and
+                hasattr(ssl.SSLContext, 'load_cert_chain') and
+                parse.scheme == 'https'):
+            ctx.load_cert_chain(cert_file, keyfile=key_file, 
+                    password=key_password)
             args['context'] = ctx
 
         if self._proxy_host:
