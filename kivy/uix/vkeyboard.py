@@ -735,17 +735,15 @@ class VKeyboard(Scatter):
 
         return [key, (line_nb, key_index)]
 
-    def collide_margin(self, x, y):
+    def in_keyboard_area(self, x, y):
         '''Do a collision test, and return True if the (x, y) is inside the
-        vkeyboard margin.
+        vkeyboard area.
         '''
-        mtop, mright, mbottom, mleft = self.margin_hint
         x_hint = x / self.width
         y_hint = y / self.height
-        if x_hint > mleft and x_hint < 1. - mright \
-                and y_hint > mbottom and y_hint < 1. - mtop:
-            return False
-        return True
+        if x_hint >= 0 and x_hint <= 1. and y_hint >= 0 and y_hint <= 1.:
+            return True
+        return False
 
     def process_key_on(self, touch):
         if not touch:
@@ -844,7 +842,7 @@ class VKeyboard(Scatter):
             return True
 
         x, y = self.to_local(x, y)
-        if not self.collide_margin(x, y):
+        if self.in_keyboard_area(x, y):
             if self.repeat_touch is None:
                 self._start_repeat_key_ev = Clock.schedule_once(
                     self._start_repeat_key, 0.5)
