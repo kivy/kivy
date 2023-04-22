@@ -120,6 +120,9 @@ class UrlRequestBase(Thread):
 
         Parameters `on_finish` added.
         Parameters `auth` added.
+    
+    .. versionchanged:: 2.3.0
+
         Parameters `cert_file` added.
         Parameters `key_file` added.
         Parameters `key_password` added.
