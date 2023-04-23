@@ -81,6 +81,13 @@ popd
 echo "-- Build SDL2_image"
 pushd $MANYLINUX__SDL2_IMAGE__FOLDER
   ./external/download.sh;
+  # If KIVY_CROSS_PLATFORM is set to rpi, we need to build libwebp version 1.2.4,
+  # as previous versions have issues with NEON and ARMv7.
+  if [ "$KIVY_CROSS_PLATFORM" = "rpi" ]; then
+    pushd external/libwebp
+      git checkout 1.2.4
+    popd
+  fi
   cmake -B build -DBUILD_SHARED_LIBS=ON \
           -DCMAKE_BUILD_TYPE=Release \
           -DSDL2IMAGE_TIF=ON \

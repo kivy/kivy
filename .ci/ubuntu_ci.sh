@@ -184,8 +184,8 @@ generate_armv7l_wheels() {
 
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" --build-arg KIVY_CROSS_PLATFORM="$2" --build-arg KIVY_CROSS_SYSROOT="$3" .
-  docker cp "$(docker create kivy/kivy-armv7l)":/kivy-wheel .
-  cp kivy-wheel/Kivy-* dist/
+  docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
+  cp kivy-delocated-wheel/Kivy-* dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
