@@ -24,7 +24,7 @@ function Update-version-metadata {
 }
 
 function Generate-sdist {
-    python -m pip install cython
+    python -m pip install cython packaging
     python setup.py sdist --formats=gztar
     python setup.py bdist_wheel --build_examples --universal
     python -m pip uninstall cython -y
