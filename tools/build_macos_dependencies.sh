@@ -56,27 +56,28 @@ pushd kivy-dependencies/build
 
 echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+        -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
 cp -r Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_mixer (Universal)"
 pushd $MACOS__SDL2_MIXER__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_image (Universal)"
 pushd $MACOS__SDL2_IMAGE__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_image.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_image.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_ttf (Universal)"
 pushd $MACOS__SDL2_TTF__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_ttf.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_ttf.framework ../../dist/Frameworks
 popd
