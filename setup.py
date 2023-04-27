@@ -67,10 +67,13 @@ def pkgconfig(*packages, **kw):
 
     if KIVY_DEPS_ROOT and platform != 'win32':
         lenviron = environ.copy()
-        lenviron["PKG_CONFIG_PATH"] = "{}:{}".format(
+        lenviron["PKG_CONFIG_PATH"] = "{}:{}:{}".format(
             environ.get("PKG_CONFIG_PATH", ""),
             join(
                 KIVY_DEPS_ROOT, "dist", "lib", "pkgconfig"
+            ),
+            join(
+                KIVY_DEPS_ROOT, "dist", "lib64", "pkgconfig"
             ),
         )
 
@@ -710,6 +713,7 @@ def determine_sdl2():
         default_sdl2_path = os.pathsep.join(
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
+                join(KIVY_DEPS_ROOT, "dist", "lib64"),
                 join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
             ]
         )

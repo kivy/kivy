@@ -17,24 +17,19 @@ main :ref:`pip installation guide<installation-canonical>`, specific to Linux.
 Installing Python
 ^^^^^^^^^^^^^^^^^
 
-Python and python-pip, git and build tools are required to build Kivy and its dependencies.
-If you do not have these installed, please install them before continuing:
+Python and pip are already installed on most Linux distributions. If you don't have Python installed, you can
+install it using your distribution's package manager.
 
 Ubuntu
 ~~~~~~
 
 Using apt::
 
+    sudo apt-get update
+
     sudo apt-get install -y \
         python3-pip \
-        build-essential \
-        autoconf \
-        libtool \
-        libxext-dev \
-        curl \
-        git \
-        python3 \
-        python3-dev \
+        python3
 
 Fedora
 ~~~~~~
@@ -69,19 +64,15 @@ Ubuntu
 
 Using apt::
 
-    # Install necessary system packages
-    sudo apt-get install -y \
-        libportmidi-dev \
-        libswscale-dev \
-        libavformat-dev \
-        libavcodec-dev \
-        zlib1g-dev
+    sudo apt-get update
 
-    # Install gstreamer for audio, video (optional)
-    sudo apt-get install -y \
-        libgstreamer1.0 \
-        gstreamer1.0-plugins-base \
-        gstreamer1.0-plugins-good
+    # Install build tools, and dependencies to perform a full build (including SDL2 dependencies)
+    sudo apt-get -y install python3-dev build-essential git make autoconf automake libtool \
+          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
 
 
 Fedora
@@ -89,9 +80,17 @@ Fedora
 
 Using dnf::
 
-    # Install necessary system packages
-    sudo dnf install -y ffmpeg-libs portmidi-devel libavdevice libavc1394-devel zlibrary-devel ccache \
-    mesa-libGL mesa-libGL-devel
+    sudo dnf install epel-release
+
+    # Install build tools, and dependencies to perform a full build (including SDL2 dependencies)
+    yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig \
+            ninja-build alsa-lib-devel pulseaudio-libs-devel \
+            libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel \
+            libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
+            systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
+            mesa-libEGL-devel wayland-devel wayland-protocols-devel \
+            libdrm-devel mesa-libgbm-devel libsamplerate-devel
+
     # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
     sudo dnf install -y xclip
 

@@ -285,8 +285,8 @@ from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
-    NumericProperty, BooleanProperty, ReferenceListProperty, \
-    ListProperty, ObjectProperty, DictProperty, ColorProperty
+    NumericProperty, BooleanProperty, ListProperty, \
+    ObjectProperty, DictProperty, ColorProperty, VariableListProperty
 from kivy.utils import get_hex_from_color
 
 
@@ -304,8 +304,8 @@ class Label(Widget):
     _font_properties = ('text', 'font_size', 'font_name', 'font_script_name',
                         'font_direction', 'bold', 'italic',
                         'underline', 'strikethrough', 'font_family', 'color',
-                        'disabled_color', 'halign', 'valign', 'padding_x',
-                        'padding_y', 'outline_width', 'disabled_outline_color',
+                        'disabled_color', 'halign', 'valign', 'padding',
+                        'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
@@ -321,6 +321,11 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+
+        # NOTE: Compatibility code due to deprecated properties.
+        fbind('padding_x', update, 'padding_x')
+        fbind('padding_y', update, 'padding_y')
+
         fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
@@ -373,8 +378,17 @@ class Label(Widget):
                 self._label.options['outline_color'] = (
                     self.disabled_outline_color if value else
                     self.outline_color)
+
+            # NOTE: Compatibility code due to deprecated properties
+            # Must be removed along with padding_x and padding_y
+            elif name == 'padding_x':
+                self._label.options['padding'][::2] = [value] * 2
+            elif name == 'padding_y':
+                self._label.options['padding'][1::2] = [value] * 2
+
             else:
                 self._label.options[name] = value
+
         self._trigger_texture()
 
     def texture_update(self, *largs):
@@ -732,7 +746,7 @@ class Label(Widget):
     defaults to False.
     '''
 
-    padding_x = NumericProperty(0)
+    padding_x = NumericProperty(0, deprecated=True)
     '''Horizontal padding of the text inside the widget box.
 
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
@@ -741,9 +755,12 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_x` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
+
+    .. deprecated:: 2.2.0
+        Please use :attr:`padding` instead.
     '''
 
-    padding_y = NumericProperty(0)
+    padding_y = NumericProperty(0, deprecated=True)
     '''Vertical padding of the text inside the widget box.
 
     :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
@@ -752,13 +769,23 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
+
+    .. deprecated:: 2.2.0
+        Please use :attr:`padding` instead.
     '''
 
-    padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text in the format (padding_x, padding_y)
+    padding = VariableListProperty([0, 0, 0, 0], lenght=4)
+    '''Padding of the text in the format [padding_left, padding_top,
+    padding_right, padding_bottom]
 
-    :attr:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`padding_x`, :attr:`padding_y`) properties.
+    ``padding`` also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
+
+    .. versionchanged:: 2.2.0
+        Replaced ReferenceListProperty with VariableListProperty.
+
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0, 0, 0].
     '''
 
     halign = OptionProperty('auto', options=['left', 'center', 'right',

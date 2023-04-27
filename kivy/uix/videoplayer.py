@@ -53,7 +53,7 @@ You can allow stretching by passing custom options to a
 :class:`VideoPlayer` instance::
 
     player = VideoPlayer(source='myvideo.avi', state='play',
-        options={'allow_stretch': True})
+        options={'fit_mode': 'contain'})
 
 End-of-stream behavior
 ----------------------
