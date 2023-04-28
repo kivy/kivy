@@ -70,13 +70,13 @@ and emits events when the gesture is recognized::
             if not hasattr(self, '_gestureDb'):
                 self._gestureDb = GestureDatabase()
                 for name, points in self._strokes.items():
-                    self._gestureDb.add_gesture(Gesture(name=name,
-                        point_list=points))
+                    self._gestureDb.add_gesture(Gesture(name = name, \
+point_list=points))
                 self.register_event_type('on_gesture')
 
             touch.ud['line'].append(touch.pos)
-            stroke = self._gestureDb.find(Gesture(point_list= \
-                touch.ud['line']), 0.5, False)
+            stroke = self._gestureDb.find(Gesture(point_list = \
+touch.ud['line']), 0.5, False)
             if stroke is not None:
                 self.dispatch('on_gesture', stroke[1].name)
             ScreenManager.on_touch_up(self, touch)
