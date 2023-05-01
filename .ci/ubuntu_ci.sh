@@ -23,9 +23,6 @@ generate_sdist() {
   python3 -m pip uninstall cython -y
 }
 
-install_python() {
-  sudo apt-get -y install python3 python3-dev python3-setuptools
-}
 
 install_kivy_test_run_pip_deps() {
   curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -179,11 +176,11 @@ install_ubuntu_build_deps() {
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
 }
 
-generate_armv7l_wheels() {
+generate_rpi_wheels() {
   image=$1
 
   mkdir dist
-  docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" --build-arg KIVY_CROSS_PLATFORM="$2" --build-arg KIVY_CROSS_SYSROOT="$3" .
+  docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
   cp kivy-delocated-wheel/Kivy-* dist/
 
