@@ -118,6 +118,9 @@ cdef class Line(VertexInstruction):
     .. versionchanged:: 1.11.0
         `dashes` have been added
 
+    .. versionchanged:: 2.3.0
+        `force_custom_drawing_method` has been added
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -925,7 +928,7 @@ cdef class Line(VertexInstruction):
     property force_custom_drawing_method:
            '''If True, the line will be drawn using the custom drawing method, no matter what the width is.
 
-           .. versionadded:: 2.2.0
+           .. versionadded:: 2.3.0
            '''
 
            def __get__(self):
