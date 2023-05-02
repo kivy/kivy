@@ -431,7 +431,8 @@ class VertexInstructionTest(GraphicUnitTest):
 
     def test_enlarged_line(self):
         from kivy.uix.widget import Widget
-        from kivy.graphics import Line, Color, PushMatrix, PopMatrix, Scale, Translate
+        from kivy.graphics import Line, Color, PushMatrix, PopMatrix, Scale, \
+            Translate
         r = self.render
         wid = Widget()
         with wid.canvas:
@@ -452,7 +453,7 @@ class VertexInstructionTest(GraphicUnitTest):
             # Enlarged line that should look width 3
             PushMatrix()
             Translate(30, 10, 1)  # So the enlargement goes around 0, 0, 0
-            Scale(3, 1, 1)  # If we scale x by 3, then the line width should go from 1 to 3
+            Scale(3, 1, 1)  # X scaled by 3 so the line width should become 3
             Line(
                 points=(0, 0, 0, 80),
                 width=1,
@@ -461,7 +462,6 @@ class VertexInstructionTest(GraphicUnitTest):
             PopMatrix()
 
         r(wid)
-
 
 
 class FBOInstructionTestCase(GraphicUnitTest):
