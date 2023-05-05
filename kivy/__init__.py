@@ -36,11 +36,20 @@ from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
-import importlib
+import importlib.util
+
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
 from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
     _kivy_git_hash, _kivy_build_date
+
+spec = importlib.util.find_spec('imp')
+if spec is None:
+    # imp module has already been removed
+    pass
+else:
+    imp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(imp)
 
 # internals for post-configuration
 __kivy_post_configuration = []
