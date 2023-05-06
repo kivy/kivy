@@ -232,8 +232,9 @@ Texture blit    When blitting to a texture, the data (color and
     .. versionadded:: 1.8.1
 
 KIVY_BCM_DISPMANX_ID
-    Change the default Raspberry Pi display to use. The list of available value
-    is accessible in `vc_dispmanx_types.h`. Default value is 0:
+    Change the default Raspberry Pi display to use when using the egl_rpi
+    window provider. The list of available value is accessible in 
+    `vc_dispmanx_types.h`. Default value is 0:
 
     - 0: DISPMANX_ID_MAIN_LCD
     - 1: DISPMANX_ID_AUX_LCD
@@ -244,7 +245,8 @@ KIVY_BCM_DISPMANX_ID
     - 6: DISPMANX_ID_FORCE_OTHER
 
 KIVY_BCM_DISPMANX_LAYER
-    Change the default Raspberry Pi dispmanx layer. Default value is 0.
+    Change the default Raspberry Pi dispmanx layer when using the egl_rpi
+    window provider. Default value is 0.
 
     .. versionadded:: 1.10.1
 
