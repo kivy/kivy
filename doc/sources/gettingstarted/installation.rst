@@ -54,6 +54,11 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster) and Python 3.9 (Raspberry Pi OS Bullseye),
+via the `PiWheels <https://www.piwheels.org/>`_ project. For other Python versions, on 32 bit OSes, you will need to
+install from source.
+
+
 Setup terminal and pip
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -115,9 +120,6 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
-
-For the Raspberry Pi, you must additionally install the dependencies listed in
-:ref:`source dependencies<install-source-rpi>` before installing Kivy above.
 
 .. _kivy-source-install:
 
@@ -222,9 +224,6 @@ latest **cutting-edge** :ref:`Nightly wheels <nightly-win-wheels>` from the Kivy
 
 It is done in two steps, because otherwise ``pip`` may ignore the wheels on the server and install
 an older pre-release version from PyPi.
-
-For the Raspberry Pi, remember to additionally install the dependencies listed in
-:ref:`source dependencies<install-source-rpi>` before installing Kivy above.
 
 .. _kivy-dev-install:
 
