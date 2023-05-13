@@ -13,7 +13,9 @@ if platform != 'linux':
 
 try:
     import subprocess
-    p = subprocess.Popen(['xsel'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    p = subprocess.Popen(['xsel'],
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE)
     p.communicate()
 except:
     raise
