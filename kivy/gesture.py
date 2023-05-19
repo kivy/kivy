@@ -131,7 +131,7 @@ class GestureDatabase(object):
 
     def find(self, gesture, minscore=0.9, rotation_invariant=True):
         '''Find a matching gesture in the database.'''
-        if not gesture:
+        if not gesture.gesture_product:
             return
 
         best = None
