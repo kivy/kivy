@@ -170,7 +170,8 @@ from kivy.uix.image import Image
 
 from kivy.properties import StringProperty, NumericProperty, \
     BooleanProperty, AliasProperty, OptionProperty, \
-    ListProperty, ObjectProperty, VariableListProperty, ColorProperty
+    ListProperty, ObjectProperty, VariableListProperty, ColorProperty, \
+    BoundedNumericProperty
 
 __all__ = ('TextInput', )
 
@@ -372,7 +373,7 @@ class TextInputCutCopyPaste(Bubble):
         mode = self.mode
 
         if parent:
-            self.clear_widgets()
+            self.content.clear_widgets()
             if mode == 'paste':
                 # show only paste on long touch
                 self.but_selectall.opacity = 1
@@ -387,7 +388,7 @@ class TextInputCutCopyPaste(Bubble):
                 widget_list = (self.but_cut, self.but_copy, self.but_paste)
 
             for widget in widget_list:
-                self.add_widget(widget)
+                self.content.add_widget(widget)
 
     def do(self, action):
         textinput = self.textinput
@@ -1386,8 +1387,10 @@ class TextInput(FocusBehavior, Widget):
             ):
                 cursor_x = i
                 break
+        else:
+            cursor_x = len(lines[cursor_y])
 
-        return int(cursor_x), int(cursor_y)
+        return cursor_x, cursor_y
 
     #
     # Selection control
@@ -1551,8 +1554,9 @@ class TextInput(FocusBehavior, Widget):
             if scroll_type == 'down':
                 if self.multiline:
                     if self.scroll_y > 0:
-                        self.scroll_y = max(0, self.scroll_y -
-                                            self.line_height)
+                        self.scroll_y = max(0,
+                                            self.scroll_y - self.line_height *
+                                            self.lines_to_scroll)
                         self._trigger_update_graphics()
                 else:
                     if self.scroll_x > 0:
@@ -1563,8 +1567,9 @@ class TextInput(FocusBehavior, Widget):
                 if self.multiline:
                     max_scroll_y = max(0, self.minimum_height - self.height)
                     if self.scroll_y < max_scroll_y:
-                        self.scroll_y = min(max_scroll_y, self.scroll_y +
-                                            self.line_height)
+                        self.scroll_y = min(max_scroll_y,
+                                            self.scroll_y + self.line_height *
+                                            self.lines_to_scroll)
                         self._trigger_update_graphics()
                 else:
                     minimum_width = (self._get_row_width(0) + self.padding[0] +
@@ -2101,7 +2106,7 @@ class TextInput(FocusBehavior, Widget):
 
     def _delete_line(self, idx):
         """Delete current line, and fix cursor position"""
-        assert(idx < len(self._lines))
+        assert idx < len(self._lines)
         self._lines_flags.pop(idx)
         self._lines_labels.pop(idx)
         self._lines.pop(idx)
@@ -3662,7 +3667,7 @@ class TextInput(FocusBehavior, Widget):
     you can load the system fonts by specifying a font context starting
     with the special string `system://`. This will load the system
     fontconfig configuration, and add your application-specific fonts on
-    top of it (this imposes a signifficant risk of family name collision,
+    top of it (this imposes a significant risk of family name collision,
     Pango may not use your custom font file, but pick one from the system)
 
     .. note::
@@ -3839,6 +3844,17 @@ class TextInput(FocusBehavior, Widget):
 
     :attr:`line_spacing` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
+    '''
+
+    lines_to_scroll = BoundedNumericProperty(3, min=1)
+    '''Set how many lines will be scrolled at once when using the mouse scroll
+    wheel.
+
+    .. versionadded:: 2.2.0
+
+    :attr:`lines_to_scroll is a
+    :class:`~kivy.properties.BoundedNumericProperty` and defaults to 3, the
+    minimum is 1.
     '''
 
     input_filter = ObjectProperty(None, allownone=True)

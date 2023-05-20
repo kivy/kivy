@@ -85,7 +85,7 @@ performing (drawing opaque pixels only), see test names below.
 Test names
 ----------
 
-* `OPAQUE` tests opaque pixels (normal RGB) (lossess formats)
+* `OPAQUE` tests opaque pixels (normal RGB) (lossless formats)
 * `BINARY` tests opaque + fully transparent pixels (GIF etc)
 * `ALPHA` tests semi-transparent pixels (normal RGBA) (PNG32 etc)
 * `GRAY-OPAQUE` tests opaque grayscale only (various PNG, tga, )

@@ -1323,7 +1323,7 @@ if __name__ == '__main__':
             {
                 'type': 'color',
                 'title': 'Test color',
-                'desc': 'Your choosen Color',
+                'desc': 'Your chosen Color',
                 'section': 'colorselection',
                 'key': 'testcolor'
             }])

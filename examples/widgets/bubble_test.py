@@ -16,12 +16,16 @@ Builder.load_string('''
     size_hint: (None, None)
     size: (160, 120)
     pos_hint: {'center_x': .5, 'y': .6}
-    BubbleButton:
-        text: 'Cut'
-    BubbleButton:
-        text: 'Copy'
-    BubbleButton:
-        text: 'Paste'
+    BubbleContent:
+        BubbleButton:
+            text: 'Cut'
+            size_hint_y: 1
+        BubbleButton:
+            text: 'Copy'
+            size_hint_y: 1
+        BubbleButton:
+            text: 'Paste'
+            size_hint_y: 1
 ''')
 
 

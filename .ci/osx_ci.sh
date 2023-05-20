@@ -1,22 +1,24 @@
 #!/bin/bash
 set -e -x
 
+# macOS Platypus version
+MACOS__PLATYPUS__VERSION=5.4.1
+
 download_cache_curl() {
   fname="$1"
   key="$2"
-  url_prefix="$3"
+  url="$3"
 
   if [ ! -f $key/$fname ]; then
     if [ ! -d $key ]; then
       mkdir "$key"
     fi
-    curl -O -L "$url_prefix/$fname"
+    curl -L "$url" -o "$fname"
     cp "$fname" "$key"
   else
     cp "$key/$fname" .
   fi
 }
-
 
 arm64_set_path_and_python_version(){
   python_version="$1"
@@ -29,67 +31,10 @@ arm64_set_path_and_python_version(){
   fi
 }
 
-build_and_install_universal_kivy_sys_deps() {
-
-  rm -rf deps_build
-  mkdir deps_build
-
-  pushd deps_build
-  download_cache_curl "${SDL2}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL/archive/refs/tags"
-  download_cache_curl "${SDL2_MIXER}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_mixer/archive"
-  download_cache_curl "${SDL2_IMAGE}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_image/archive"
-  download_cache_curl "${SDL2_TTF}.tar.gz" "osx-cache" "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags"
-
-  echo "-- Build SDL2 (Universal)"
-  tar -xvf "${SDL2}.tar.gz"
-  mv "SDL-${SDL2}" "SDL"
-  pushd "SDL"
-  xcodebuild ONLY_ACTIVE_ARCH=NO -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
-  popd
-
-  echo "-- Copy SDL2.framework to /Library/Frameworks"
-  sudo cp -r SDL/Xcode/SDL/build/Release/SDL2.framework /Library/Frameworks
-
-  echo "-- Build SDL2_mixer (Universal)"
-  tar -xvf "${SDL2_MIXER}.tar.gz"
-  mv "SDL_mixer-${SDL2_MIXER}" "SDL_mixer"
-  pushd "SDL_mixer"
-  xcodebuild ONLY_ACTIVE_ARCH=NO \
-          -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
-  popd
-
-  echo "-- Copy SDL2_mixer.framework to /Library/Frameworks"
-  sudo cp -r SDL_mixer/Xcode/build/Release/SDL2_mixer.framework /Library/Frameworks
-
-  echo "-- Build SDL2_image (Universal)"
-  tar -xvf "${SDL2_IMAGE}.tar.gz"
-  mv "SDL_image-${SDL2_IMAGE}" "SDL_image"
-  pushd "SDL_image"
-  xcodebuild ONLY_ACTIVE_ARCH=NO \
-          -project Xcode/SDL_image.xcodeproj -target Framework -configuration Release
-  popd
-
-  echo "-- Copy SDL2_image.framework to /Library/Frameworks"
-  sudo cp -r SDL_image/Xcode/build/Release/SDL2_image.framework /Library/Frameworks
-
-  echo "-- Build SDL2_ttf (Universal)"
-  tar -xvf "${SDL2_TTF}.tar.gz"
-  mv "SDL_ttf-${SDL2_TTF}" "SDL_ttf"
-  pushd "SDL_ttf"
-  xcodebuild ONLY_ACTIVE_ARCH=NO \
-          -project Xcode/SDL_ttf.xcodeproj -target Framework -configuration Release
-  popd
-
-  echo "-- Copy SDL2_ttf.framework to /Library/Frameworks"
-  sudo cp -r SDL_ttf/Xcode/build/Release/SDL2_ttf.framework /Library/Frameworks
-
-  popd
-}
-
 install_platypus() {
-  download_cache_curl "platypus$PLATYPUS.zip" "osx-cache" "https://github.com/sveinbjornt/Platypus/releases/download/$PLATYPUS"
+  download_cache_curl "platypus$MACOS__PLATYPUS__VERSION.zip" "osx-cache" "https://github.com/sveinbjornt/Platypus/releases/download/v$MACOS__PLATYPUS__VERSION/platypus$MACOS__PLATYPUS__VERSION.zip"
 
-  unzip "platypus$PLATYPUS.zip"
+  unzip "platypus$MACOS__PLATYPUS__VERSION.zip"
   gunzip Platypus.app/Contents/Resources/platypus_clt.gz
   gunzip Platypus.app/Contents/Resources/ScriptExec.gz
 

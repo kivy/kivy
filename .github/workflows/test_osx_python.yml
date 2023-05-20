@@ -13,45 +13,41 @@ env:
 jobs:
   unit_test:
     name: "unit_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
-    defaults:
-      run:
-        shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
-    runs-on: ${{ matrix.runs_on || 'macos-11' }}
+    runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
         include:
-          - runs_on: macos-11
-            python: '3.9'
+          - runs_on: macos-latest
+            python: '3.x'
           - runs_on: apple-silicon-m1
-            run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
-            python: '3.9.7'
+            python: '3.11'
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.x
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python }}
       # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
       if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: Cache macOS deps downloads
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: osx-cache
-        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_versions.sh') }}
+        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_versions.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        build_and_install_universal_kivy_sys_deps
-        install_kivy_test_run_pip_deps dev
+        ./tools/build_macos_dependencies.sh
+        install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
         source .ci/osx_ci.sh
         arm64_set_path_and_python_version ${{ matrix.python }}
-        install_kivy dev
+        export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
+        install_kivy
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh

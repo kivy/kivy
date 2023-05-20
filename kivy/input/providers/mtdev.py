@@ -283,7 +283,7 @@ else:
 
             invert_x = int(bool(drs('invert_x', 0)))
             invert_y = int(bool(drs('invert_y', 0)))
-            Logger.info('MTD: <%s> axes invertion: X is %d, Y is %d' %
+            Logger.info('MTD: <%s> axes inversion: X is %d, Y is %d' %
                         (_fn, invert_x, invert_y))
 
             rotation = drs('rotation', 0)

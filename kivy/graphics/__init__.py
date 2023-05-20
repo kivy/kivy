@@ -100,6 +100,7 @@ from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
     StencilUse, StencilUnUse
 from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
+from kivy.graphics.boxshadow import BoxShadow
 from kivy.graphics.scissor_instructions import ScissorPush, ScissorPop
 
 # very hacky way to avoid pyflakes warning...
@@ -118,4 +119,4 @@ __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
            ClearBuffers.__name__, gl_init_resources.__name__,
            PushState.__name__, ChangeState.__name__, PopState.__name__,
            ApplyContextMatrix.__name__, UpdateNormalMatrix.__name__,
-           LoadIdentity.__name__)
+           LoadIdentity.__name__, BoxShadow.__name__)

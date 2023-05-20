@@ -24,7 +24,7 @@ def test_kivy_get_includes():
 
 
 def test_kivy_usage():
-    """Test the kivy_usage commmand."""
+    """Test the kivy_usage command."""
     with patch('kivy.print') as mock_print:
         kivy_usage()
         mock_print.assert_called()

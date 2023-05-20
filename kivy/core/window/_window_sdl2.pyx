@@ -75,8 +75,7 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, state, gl_backend):
+    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         if resizable:
@@ -105,10 +104,18 @@ cdef class _WindowSDL2Storage:
         elif state == 'hidden':
             self.win_flags |= SDL_WINDOW_HIDDEN
 
+        show_taskbar_icon = Config.getboolean('graphics', 'show_taskbar_icon')
+        if not show_taskbar_icon:
+            self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
+
         SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
 
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
+        
+        # makes dpi aware of scale changes
+        if platform == "win":
+            SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
@@ -339,6 +346,9 @@ cdef class _WindowSDL2Storage:
     def set_minimum_size(self, w, h):
         SDL_SetWindowMinimumSize(self.win, w, h)
 
+    def set_always_on_top(self, always_on_top):
+        SDL_SetWindowAlwaysOnTop(self.win, SDL_TRUE if always_on_top else SDL_FALSE)
+
     def set_allow_screensaver(self, allow_screensaver):
         if allow_screensaver:
             SDL_EnableScreenSaver()
@@ -370,8 +380,8 @@ cdef class _WindowSDL2Storage:
             mode = SDL_WINDOW_FULLSCREEN
         else:
             mode = False
-        IF not USE_IOS:
-            SDL_SetWindowFullscreen(self.win, mode)
+
+        SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
@@ -717,6 +727,11 @@ cdef class _WindowSDL2Storage:
                     'windowmoved',
                     event.window.data1, event.window.data2
                 )
+            elif event.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED:
+                action = (
+                    'windowdisplaychanged',
+                    event.window.data1, event.window.data2
+                )
             else:
                 #    print('receive unknown sdl window event', event.type)
                 pass
@@ -746,7 +761,13 @@ cdef class _WindowSDL2Storage:
             pass
 
     def flip(self):
-        SDL_GL_SwapWindow(self.win)
+        # On Android (and potentially other platforms), SDL_GL_SwapWindow may
+        # lock the thread waiting for a mutex from another thread to be
+        # released. Calling SDL_GL_SwapWindow with the GIL released allow the
+        # other thread to run (e.g. to process the event filter callback) and
+        # release the mutex SDL_GL_SwapWindow is waiting for.
+        with nogil:
+            SDL_GL_SwapWindow(self.win)
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
