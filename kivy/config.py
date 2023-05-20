@@ -120,6 +120,12 @@ Available configuration tokens
         Path of log directory.
     `log_enable`: int, 0 or 1
         Activate file logging. 0 is disabled, 1 is enabled.
+
+        .. note::
+            Logging output can also be controlled by the environment variables
+            ``KIVY_LOG_MODE``, ``KIVY_NO_FILELOG`` and ``KIVY_NO_CONSOLELOG``.
+            More information is provided in the :mod:`kivy.logger` module.
+
     `log_level`: string, one of |log_levels|
         Set the minimum log level to use.
     `log_name`: string
@@ -243,6 +249,15 @@ Available configuration tokens
         :class:`~kivy.uix.behaviors.buttonbehavior.ButtonBehavior` to
         make sure they display their current visual state for the given
         time.
+    `always_on_top`: int, one of ``0`` or ``1``, defaults to ``0``
+        When enabled, the window will be brought to the front and will keep
+        the window above the rest. Only works for the sdl2 window provider.
+        ``0`` is disabled, ``1`` is enabled.
+    `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``1``
+        Determines whether the app's icon will be added to the taskbar. Only
+        applicable for the SDL2 window provider.
+        ``0`` means the icon will not be shown in the taskbar and ``1`` means
+        it will.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
@@ -326,6 +341,13 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionadded:: 2.2.0
+    `always_on_top` have been added to the `graphics` section.
+    `show_taskbar_icon` have been added to the `graphics` section.
+
+.. versionchanged:: 2.2.0
+    `implementation` has been added to the network section.
+
 .. versionchanged:: 2.1.0
     `vsync` has been added to the graphics section.
     `verify_gl_main_thread` has been added to the graphics section.
@@ -335,6 +357,7 @@ Available configuration tokens
     to the `graphics` section.
     `kivy_clock` has been added to the kivy section.
     `default_font` has beed added to the kivy section.
+    `useragent` has been added to the network section.
 
 .. versionchanged:: 1.9.0
     `borderless` and `window_state` have been added to the graphics section.
@@ -369,19 +392,20 @@ try:
     from ConfigParser import ConfigParser as PythonConfigParser
 except ImportError:
     from configparser import RawConfigParser as PythonConfigParser
+from collections import OrderedDict
 from os import environ
 from os.path import exists
-from kivy import kivy_config_fn
-from kivy.logger import Logger, logger_config_update
-from collections import OrderedDict
-from kivy.utils import platform
-from kivy.compat import PY2, string_types
 from weakref import ref
+
+from kivy import kivy_config_fn
+from kivy.compat import PY2, string_types
+from kivy.logger import Logger, logger_config_update
+from kivy.utils import platform
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 24
+KIVY_CONFIG_VERSION = 27
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -479,7 +503,7 @@ class ConfigParser(PythonConfigParser, object):
         #    self.readfp(f)
         old_vals = {sect: {k: v for k, v in self.items(sect)} for sect in
                     self.sections()}
-        PythonConfigParser.read(self, filename)
+        PythonConfigParser.read(self, filename, encoding="utf-8-sig")
 
         # when reading new file, sections/keys are only increased, not removed
         f = self._do_callbacks
@@ -557,7 +581,7 @@ class ConfigParser(PythonConfigParser, object):
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
-        assert("_" not in section)
+        assert "_" not in section
         if self.has_section(section):
             return
         self.add_section(section)
@@ -571,7 +595,7 @@ class ConfigParser(PythonConfigParser, object):
         if self.filename is None:
             return False
         try:
-            with open(self.filename, 'w') as fd:
+            with open(self.filename, 'w', encoding="utf-8") as fd:
                 PythonConfigParser.write(self, fd)
         except IOError:
             Logger.exception('Unable to write the config <%s>' % self.filename)
@@ -721,7 +745,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             'KIVY_NO_CONFIG' not in environ):
         try:
             Config.read(kivy_config_fn)
-        except Exception as e:
+        except Exception:
             Logger.exception('Core: error while reading local'
                              'configuration')
 
@@ -909,6 +933,17 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('graphics', 'custom_titlebar', '0')
             Config.setdefault('graphics', 'custom_titlebar_border', '5')
 
+        elif version == 24:
+            Config.setdefault("network", "implementation", "default")
+
+        elif version == 25:
+            Config.setdefault('graphics', 'always_on_top', '0')
+
+        elif version == 26:
+            Config.setdefault("graphics", "show_taskbar_icon", "1")
+
+        # WARNING: When adding a new version migration here,
+        # don't forget to increment KIVY_CONFIG_VERSION !
         else:
             # for future.
             break
@@ -928,7 +963,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             Config.filename = kivy_config_fn
             Config.write()
-        except Exception as e:
+        except Exception:
             Logger.exception('Core: Error while saving default config file')
 
     # Load configuration from env

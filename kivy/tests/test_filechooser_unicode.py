@@ -28,7 +28,7 @@ class FileChooserUnicodeTestCase(unittest.TestCase):
         self.assertIsInstance(basepathb, bytes)
         self.basepathb = basepathb
 
-        # this will test creating unicode and bytes filesnames
+        # this will test creating unicode and bytes filenames
         ufiles = [u'कीवीtestu',
                   u'कीवीtestu' + unicode_char(0xEEEE),
                   u'कीवीtestu' + unicode_char(0xEEEE - 1),

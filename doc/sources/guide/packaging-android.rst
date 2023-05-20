@@ -34,19 +34,16 @@ Buildozer
 Buildozer is a tool that automates the entire build process. It
 downloads and sets up all the prerequisites for python-for-android,
 including the android SDK and NDK, then builds an apk that can be
-automatically pushed to the device. 
+automatically pushed to the device.
 
 Buildozer currently works only in Linux and macOS (You can still use
 it on Windows via WSL), and can significantly simplify the apk build.
 
-You can get buildozer at `<https://github.com/kivy/buildozer>`_::
+Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation.html>`__
 
-    git clone https://github.com/kivy/buildozer.git
-    cd buildozer
-    sudo python setup.py install
+Including the "Targeting Android" section.
 
-This will install buildozer in your system. Afterwards, navigate to
-your project directory and run::
+Afterwards, navigate to your project directory and run::
 
     buildozer init
 
@@ -55,14 +52,11 @@ configuration. You should edit it appropriately with your app name
 etc. You can set variables to control most or all of the parameters
 passed to python-for-android.
 
-Install buildozer's `dependencies
-<https://buildozer.readthedocs.io/en/latest/installation.html#targeting-android>`_.
-
 Finally, plug in your android device and run::
 
     buildozer android debug deploy run
 
-to build, push and automatically run the apk on your device. 
+to build, push and automatically run the apk on your device.
 
 Buildozer has many available options and tools to help you, the steps
 above are just the simplest way to build and run your
@@ -90,7 +84,7 @@ Packaging your application for the Kivy Launcher
 ------------------------------------------------
 
 The Kivy launcher is an Android application that runs any Kivy examples
-stored on your SD Card. 
+stored on your SD Card.
 To install the Kivy launcher, you must:
 
 #. Go on Google Play Store and search for `Kivy Launcher` from `kivy org`
@@ -120,7 +114,7 @@ The file `android.txt` must contain::
     title=<Application Title>
     author=<Your Name>
     orientation=<portrait|landscape>
-    
+
 These options are just a very basic configuration. If you create your
 own APK using the tools above, you can choose many other settings.
 
@@ -138,7 +132,7 @@ trying the Kivy launcher. You can run them as below::
 
 #. Run the launcher and select one of the Pictures, Showcase, Touchtracer, Cymunk or other demos...
 
-    
+
 .. _release_on_the_market:
 
 Release on the market

@@ -1,7 +1,7 @@
 Package licensing
 =================
 
-.. warning:: This is not a legally authoratative guide! The Kivy organisation,
+.. warning:: This is not a legally authoritative guide! The Kivy organisation,
    authors and contributors take no responsibility for any lack of knowledge,
    information or advice presented here. The guide is merely informative and is
    meant to protect inexperienced users.
@@ -113,7 +113,7 @@ Windows redistributables) check all the files.
 of them are related to Kivy, Python or your source, but those that aren't need
 checking.
 
-**apk:** ``APK/assets/private.tar`` 
+**apk:** ``APK/assets/private.tar``
 
 **aab:** ``AAB/base/assets/private.tar``
 

@@ -18,7 +18,7 @@ In both cases, the canvas of `MyWidget` is re-drawn whenever the ``position``
 or the ``size`` of the widget changes.
 
 You can use the
-:attr:`canvas.before <kivy.graphics.Canvas.before>` or 
+:attr:`canvas.before <kivy.graphics.Canvas.before>` or
 :attr:`canvas.after <kivy.graphics.Canvas.after>` groups to separate
 your instructions based on when you want them to be executed.
 

@@ -24,6 +24,7 @@ __all__ = ("Svg", )
 
 include "common.pxi"
 
+import math
 import re
 cimport cython
 from xml.etree.cElementTree import parse
@@ -229,6 +230,21 @@ cdef class Matrix(object):
                     print("SVG: unknown how to parse: {!r}".format(value))
                 self.mat[0] = <float>float(a)
                 self.mat[3] = <float>float(b)
+            elif string.startswith('rotate('):
+                value = parse_list(string[7:-1])
+                angle = <float>float(value[0])
+                if len(value) == 3:
+                    cx, cy = map(float, value[1:])
+                else:
+                    cx = cy = 0
+                cos_a = math.cos(math.radians(angle))
+                sin_a = math.sin(math.radians(angle))
+                self.mat[0] = cos_a
+                self.mat[1] = sin_a
+                self.mat[2] = -sin_a
+                self.mat[3] = cos_a
+                self.mat[4] = -cx * cos_a + cy * sin_a + cx
+                self.mat[5] = -cx * sin_a - cy * cos_a + cy
         elif string is not None:
             i = 0
             for f in string:
@@ -386,7 +402,7 @@ cdef class Svg(RenderContext):
         :param color the default color to use for Svg elements that specify "currentColor"
 
         .. note:: if you want to use SVGs from string, you can parse the source yourself
-            using `from xml.etree.cElementTree import fromstring` and pass the result to 
+            using `from xml.etree.cElementTree import fromstring` and pass the result to
             Svg().set_tree(). This will trigger the rendering of the Svg - as an alternative
             to assigning a filepath to Svg.source. This is also viable to trigger reloading.
 
@@ -526,7 +542,7 @@ cdef class Svg(RenderContext):
     def set_tree(self, tree):
         '''
         sets the tree used to render the Svg and triggers reloading.
-	
+
         :param xml.etree.cElementTree tree: the tree parsed from the SVG source
 
         .. versionadded:: 2.0.0
@@ -937,7 +953,7 @@ cdef class Svg(RenderContext):
         x_ = cp * dx + sp * dy
         y_ = -sp * dx + cp * dy
         r2 = (((rx * ry)**2 - (rx * y_)**2 - (ry * x_)**2)/
-	      ((rx * y_)**2 + (ry * x_)**2))
+          ((rx * y_)**2 + (ry * x_)**2))
         if r2 < 0: r2 = 0
         r = sqrt(r2)
         if large_arc == sweep:

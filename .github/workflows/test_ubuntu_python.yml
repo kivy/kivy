@@ -7,32 +7,33 @@ env:
 
 jobs:
   PEP8_test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Validate PEP8
       run: |
         source .ci/ubuntu_ci.sh
         validate_pep8
 
   unit_test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
+        install_ubuntu_build_deps
+        ./tools/build_linux_dependencies.sh
         install_kivy_test_run_pip_deps
     - name: Setup env
       run: |
@@ -41,6 +42,7 @@ jobs:
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
+        export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         install_kivy
     - name: Test Kivy
       run: |
@@ -57,24 +59,25 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
-    - name: Upload benchamrks as artifact
-      uses: actions/upload-artifact@v2
+    - name: Upload benchmarks as artifact
+      uses: actions/upload-artifact@v3
       with:
         name: benchmarks
         path: .benchmarks-kivy
 
   gen_docs:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.x
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_test_run_apt_deps
+        install_ubuntu_build_deps
+        ./tools/build_linux_dependencies.sh
         install_kivy_test_run_pip_deps
     - name: Setup env
       run: |
@@ -89,7 +92,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: docs
         path: doc/build/html

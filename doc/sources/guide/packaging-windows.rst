@@ -109,7 +109,7 @@ Next, we will modify the example above to package the **touchtracer** example pr
           a.zipfiles,
           a.datas,
           *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
-          upx=True
+          upx=True,
           name='touchtracer')
 
 #. Now you can build the spec file as before with::

@@ -9,18 +9,16 @@ on:
 
 env:
   SERVER_IP: '159.203.106.198'
-  KIVY_CROSS_PLATFORM: 'rpi'
-  KIVY_CROSS_SYSROOT: '/rpi-firmware'
 
 jobs:
   raspberrypi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
-        docker_images: ['balenalib/armv7hf-debian:buster']
+        docker_images: ['balenalib/raspberrypi3-debian-python:3.7-buster', 'balenalib/raspberrypi3-debian-python:3.9-bullseye']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
@@ -28,7 +26,7 @@ jobs:
     - name: Make ${{ matrix.docker_images }} wheel
       run: |
         source .ci/ubuntu_ci.sh
-        generate_armv7l_wheels ${{ matrix.docker_images }} "$KIVY_CROSS_PLATFORM" "$KIVY_CROSS_SYSROOT"
+        generate_rpi_wheels ${{ matrix.docker_images }}
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
@@ -42,7 +40,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "raspberrypi/kivy/"
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: github.event_name == 'pull_request'
       with:
         name: armv7l_wheels
@@ -56,7 +54,7 @@ jobs:
 
   always_job:
     name: Always run job
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Always run
         run: |

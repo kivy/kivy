@@ -3,14 +3,18 @@ ShowcaseScreen:
 
     Bubble:
         size_hint_y: None
-        height: '48dp'
+        height: self.content_height + self.arrow_margin_y
 
-        BubbleButton:
-            text: 'Cut'
-        BubbleButton:
-            text: 'Copy'
-        BubbleButton:
-            text: 'Paste'
+        BubbleContent:
+            size_hint_y: None
+            height: self.minimum_height
+
+            BubbleButton:
+                text: 'Cut'
+            BubbleButton:
+                text: 'Copy'
+            BubbleButton:
+                text: 'Paste'
 
     Widget:
         size_hint_y: None
@@ -24,5 +28,6 @@ ShowcaseScreen:
 
         Bubble:
             arrow_pos: 'left_mid'
-            Label:
-                text: 'World'
+            BubbleContent:
+                Label:
+                    text: 'World'

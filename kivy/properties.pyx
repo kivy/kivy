@@ -634,7 +634,7 @@ cdef class NumericProperty(Property):
 
     It does not support numpy numbers so they must be manually converted to int/float.
     E.g. ``widget.num = np.arange(4)[0]`` will raise an exception. Numpy arrays are not
-    supported at all, even by ObjectProperty because their comparision does not return
+    supported at all, even by ObjectProperty because their comparison does not return
     a bool. But if you must use a Kivy property, use a ObjectProperty with ``comparator``
     set to ``np.array_equal``. E.g.::
 

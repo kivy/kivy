@@ -167,7 +167,7 @@ class GardenImporter(object):
             return self
 
     def load_module(self, fullname):
-        assert(fullname.startswith('kivy.garden'))
+        assert fullname.startswith('kivy.garden')
 
         moddir = join(garden_kivy_dir, fullname.split('.', 2)[-1])
         if exists(moddir):

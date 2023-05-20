@@ -2,9 +2,11 @@ from __future__ import print_function
 
 __all__ = ('FactoryBuild', )
 
-from distutils.cmd import Command
 import fnmatch
 import os
+
+from setuptools import Command
+
 import kivy
 
 ignore_list = (
