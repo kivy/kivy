@@ -667,7 +667,7 @@ class WindowBase(EventDispatcher):
             and self._vkeyboard_cls is not None
         ):
             for w in self.children:
-                if isinstance(w, VKeyboard):
+                if isinstance(w, self._vkeyboard_cls):
                     vkeyboard_height = w.height * w.scale
                     if self.softinput_mode == 'pan':
                         return vkeyboard_height

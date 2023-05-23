@@ -19,8 +19,10 @@ from time import sleep
 from pathlib import Path
 import logging
 import sysconfig
+import textwrap
+import tempfile
 
-from setuptools import Extension, find_packages, setup
+from setuptools import Distribution, Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 if sys.version_info[0] == 2:
@@ -103,6 +105,43 @@ def get_isolated_env_paths():
     return includes, libs
 
 
+def check_c_source_compiles(code, include_dirs=None):
+    """Check if C code compiles.
+    This function can be used to check if a specific feature is available on
+    the current platform, and therefore enable or disable some modules.
+    """
+
+    def get_compiler():
+        """Get the compiler instance used by setuptools.
+        This is a bit hacky, but seems the only way to get the compiler instance
+        used by setuptools, without using private APIs or the deprecated
+        distutils module. (See: https://github.com/pypa/setuptools/issues/2806)
+        """
+        fake_dist_build_ext = Distribution().get_command_obj("build_ext")
+        fake_dist_build_ext.finalize_options()
+        # register an extension to ensure a compiler is created
+        fake_dist_build_ext.extensions = [Extension("ignored", ["ignored.c"])]
+        # disable building fake extensions
+        fake_dist_build_ext.build_extensions = lambda: None
+        # run to populate self.compiler
+        fake_dist_build_ext.run()
+        return fake_dist_build_ext.compiler
+
+    # Create a temporary file which contains the code
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_file = os.path.join(tmpdir, "test.c")
+        with open(temp_file, "w", encoding="utf-8") as tf:
+            tf.write(code)
+        try:
+            get_compiler().compile(
+                [temp_file], extra_postargs=[], include_dirs=include_dirs
+            )
+        except Exception as ex:
+            print(ex)
+            return False
+    return True
+
+
 # -----------------------------------------------------------------------------
 
 # Determine on which platform we are
@@ -163,7 +202,7 @@ if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
 # Detect options
 #
 c_options = OrderedDict()
-c_options['use_rpi'] = platform == 'rpi'
+c_options['use_rpi_vidcore_lite'] = platform == 'rpi'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
@@ -954,11 +993,29 @@ if c_options['use_avfoundation']:
     else:
         print('AVFoundation cannot be used, OSX >= 10.7 is required')
 
-if c_options['use_rpi']:
-    sources['lib/vidcore_lite/egl.pyx'] = merge(
-        base_flags, gl_flags)
-    sources['lib/vidcore_lite/bcm.pyx'] = merge(
-        base_flags, gl_flags)
+if c_options['use_rpi_vidcore_lite']:
+
+    # DISPMANX is only available on old versions of Raspbian (Buster).
+    # For this reason, we need to be sure that EGL_DISPMANX_* is available
+    # before compiling the vidcore_lite module, even if we're on a RPi.
+    HAVE_DISPMANX = check_c_source_compiles(
+        textwrap.dedent(
+            """
+        #include <bcm_host.h>
+        #include <EGL/eglplatform.h>
+        int main(int argc, char **argv) {
+            EGL_DISPMANX_WINDOW_T window;
+            bcm_host_init();
+        }
+        """
+        ),
+        include_dirs=gl_flags["include_dirs"],
+    )
+    if HAVE_DISPMANX:
+        sources['lib/vidcore_lite/egl.pyx'] = merge(
+            base_flags, gl_flags)
+        sources['lib/vidcore_lite/bcm.pyx'] = merge(
+            base_flags, gl_flags)
 
 if c_options['use_x11']:
     libs = ['Xrender', 'X11']
