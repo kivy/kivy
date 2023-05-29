@@ -1068,11 +1068,16 @@ class ScreenManager(FloatLayout):
             screen.dispatch('on_pre_enter')
             screen.dispatch('on_enter')
 
+    def get_screens_with_name(self, name):
+        '''Returns a list with all the screens associated with the name
+        '''
+        return [s for s in self.screens if s.name == name]
+    
     def get_screen(self, name):
         '''Return the screen widget associated with the name or raise a
         :class:`ScreenManagerException` if not found.
         '''
-        matches = [s for s in self.screens if s.name == name]
+        matches = self.get_screens_with_name(name)
         num_matches = len(matches)
         if num_matches == 0:
             raise ScreenManagerException('No Screen with name "%s".' % name)
@@ -1085,7 +1090,7 @@ class ScreenManager(FloatLayout):
 
         .. versionadded:: 1.6.0
         '''
-        return bool([s for s in self.screens if s.name == name])
+        return bool(self.get_screens_with_name(name))
 
     def __next__(self):
         '''Py2K backwards compatibility without six or other lib.
