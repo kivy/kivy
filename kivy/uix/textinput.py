@@ -2936,9 +2936,13 @@ class TextInput(FocusBehavior, Widget):
             self.focus = False
             return True
         elif key == 9:  # tab
-            self.delete_selection()
-            self.insert_text(u'\t')
-            return True
+            if not self.write_tab:
+                self.insert_text('\t')
+                return True
+            else:
+                self.delete_selection()
+                self.insert_text(u'\t')
+                return True
 
         k = self.interesting_keys.get(key)
         if k:
