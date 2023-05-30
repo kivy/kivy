@@ -136,8 +136,8 @@ For example::
 
 __path__ = 'kivy.garden'
 
+import importlib.util
 import sys
-import imp
 from os.path import dirname, join, realpath, exists, abspath
 from kivy import kivy_home_dir
 from kivy.utils import platform
@@ -160,7 +160,7 @@ if platform == "ios":
     garden_app_dir = join(dirname(main_py_file), 'libs', 'garden')
 
 
-class GardenImporter(object):
+class GardenImporter:
 
     def find_module(self, fullname, path):
         if path == 'kivy.garden':
@@ -180,10 +180,13 @@ class GardenImporter(object):
                 return self._load_module(fullname, moddir)
 
     def _load_module(self, fullname, moddir):
-        mod = imp.load_module(fullname, None, moddir,
-                              ('', '', imp.PKG_DIRECTORY))
+        spec = importlib.util.spec_from_file_location(fullname, moddir)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
         return mod
 
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
+
+
