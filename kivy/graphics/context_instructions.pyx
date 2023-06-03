@@ -767,6 +767,19 @@ cdef class Scale(Transform):
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
+
+        x, y, z = 1.0, 1.0, 1.0
+        if len(args) == 1:
+            s = args[0]
+            x, y, z = s, s, s
+        if len(args) == 2:
+            x, y = args
+        elif len(args) == 3:
+            x, y, z = args
+        x = kwargs.pop("x", x)
+        y = kwargs.pop("y", y)
+        z = kwargs.pop("z", z)
+
         Transform.__init__(self, **kwargs)
         self._origin = (0, 0, 0)
 
@@ -779,14 +792,7 @@ cdef class Scale(Transform):
             else:
                 raise Exception('invalid number of components in origin')
 
-        if len(args) == 1:
-            s = args[0]
-            self.set_scale(s, s, s)
-        elif len(args) == 3:
-            x, y, z = args
-            self.set_scale(x, y, z)
-        else:
-            self.set_scale(1.0, 1.0, 1.0)
+        self.set_scale(x, y, z)
 
     cdef set_scale(self, double x, double y, double z):
         cdef double ox, oy, oz
