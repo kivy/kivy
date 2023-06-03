@@ -453,6 +453,35 @@ class TransformationsTestCase(GraphicUnitTest):
         mat = LoadIdentity()
         self.assertTrue(mat.stack)
 
+    def check_transform_works(self, transform_type):
+        # Normal args
+        transform = transform_type(0, 1)
+        self.assertEquals(transform.x, 0)
+        self.assertEquals(transform.y, 1)
+
+        transform = transform_type(0, 1, 2)
+        self.assertEquals(transform.x, 0)
+        self.assertEquals(transform.y, 1)
+        self.assertEquals(transform.z, 2)
+
+        # Key word args
+        transform = transform_type(x=0, y=1)
+        self.assertEquals(transform.x, 0)
+        self.assertEquals(transform.y, 1)
+
+        transform = transform_type(x=0, y=1, z=2)
+        self.assertEquals(transform.x, 0)
+        self.assertEquals(transform.y, 1)
+        self.assertEquals(transform.z, 1)
+
+    def test_translate_normal_arg_creation(self):
+        from kivy.graphics import Translate
+        self.check_transform_works(Translate)
+
+    def test_scale_normal_arg_creation(self):
+        from kivy.graphics import Scale
+        self.check_transform_works(Scale)
+
 
 class CallbackInstructionTest(GraphicUnitTest):
 
