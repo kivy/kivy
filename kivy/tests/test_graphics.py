@@ -472,7 +472,7 @@ class TransformationsTestCase(GraphicUnitTest):
         transform = transform_type(x=0, y=1, z=2)
         self.assertEquals(transform.x, 0)
         self.assertEquals(transform.y, 1)
-        self.assertEquals(transform.z, 1)
+        self.assertEquals(transform.z, 2)
 
     def test_translate_normal_arg_creation(self):
         from kivy.graphics import Translate
