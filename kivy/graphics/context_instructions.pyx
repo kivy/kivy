@@ -901,13 +901,17 @@ cdef class Translate(Transform):
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
-        Transform.__init__(self, **kwargs)
+        x, y, z = 0, 0, 0
         if len(args) == 3:
             x, y, z = args
-            self.set_translate(x, y, z)
         elif len(args) == 2:
             x, y = args
-            self.set_translate(x, y, 0)
+        x = kwargs.pop("x", x)
+        y = kwargs.pop("y", y)
+        z = kwargs.pop("z", z)
+
+        Transform.__init__(self, **kwargs)
+        self.set_translate(x, y, z)
 
     cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)
@@ -964,5 +968,3 @@ cdef class Translate(Transform):
     @xyz.setter
     def xyz(self, c):
         self.set_translate(c[0], c[1], c[2])
-
-
