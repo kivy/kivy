@@ -764,6 +764,9 @@ cdef class Scale(Transform):
     .. deprecated:: 1.6.0
         Deprecated single scale property in favor of x, y, z, xyz axis
         independent scaled factors.
+
+    .. versionchanged:: 2.3.0
+        Allowed kwargs to be used to supply x, y and z.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
@@ -904,6 +907,9 @@ cdef class Translate(Transform):
 
         Translate(x, y)         # translate in just the two axes
         Translate(x, y, z)      # translate in all three axes
+
+    .. versionchanged:: 2.3.0
+        Allowed kwargs to be used to supply x, y and z.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
