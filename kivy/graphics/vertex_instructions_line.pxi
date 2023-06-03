@@ -1494,8 +1494,8 @@ cdef class SmoothLine(Line):
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
-            double min_angle_threshold, angle_diff
-            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
+            double min_angle_threshold = 0.017453292519943295  # 1 degree in radians, determined empirically.
+            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle, ad_angle, angle_diff
             double cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
             long index, icount, iv, ii, max_vindex, count
             unsigned short i0, i1, i2, i3, i4, i5, i6, i7, vindex, vcount
@@ -1594,36 +1594,6 @@ cdef class SmoothLine(Line):
                 ra1 = last_angle + PI2
                 ra2 = angle + PI2
 
-                if line_intersection(
-                    ox + cos(la1) * width,
-                    oy + sin(la1) * width,
-                    ax + cos(la1) * width,
-                    ay + sin(la1) * width,
-                    ax + cos(la2) * width,
-                    ay + sin(la2) * width,
-                    bx + cos(la2) * width,
-                    by + sin(la2) * width,
-                    &rx, &ry) == 0:
-                    # print('ERROR LINE INTERSECTION 1')
-                    pass
-
-                l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
-
-                if line_intersection(
-                    ox + cos(ra1) * owidth,
-                    oy + sin(ra1) * owidth,
-                    ax + cos(ra1) * owidth,
-                    ay + sin(ra1) * owidth,
-                    ax + cos(ra2) * owidth,
-                    ay + sin(ra2) * owidth,
-                    bx + cos(ra2) * owidth,
-                    by + sin(ra2) * owidth,
-                    &rx, &ry) == 0:
-                    # print('ERROR LINE INTERSECTION 2')
-                    pass
-
-                ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
-
 
                 angle_diff = self._get_angle_diff(
                     ox + cos(ra1) * owidth,
@@ -1636,9 +1606,6 @@ cdef class SmoothLine(Line):
                     by + sin(ra2) * owidth,
                 )
 
-                # 1 degree in radians, determined empirically.
-                min_angle_threshold = 0.017453292519943295
-
                 # If the angle difference is too small it is not safe to use
                 # the calculated values of l or l. Otherwise, l and ol will
                 # have extremely high values, causing the line to become
@@ -1646,6 +1613,36 @@ cdef class SmoothLine(Line):
                 if angle_diff < min_angle_threshold or ad_angle < min_angle_threshold:
                     l = width
                     ol = owidth
+                else:
+                    if line_intersection(
+                        ox + cos(la1) * width,
+                        oy + sin(la1) * width,
+                        ax + cos(la1) * width,
+                        ay + sin(la1) * width,
+                        ax + cos(la2) * width,
+                        ay + sin(la2) * width,
+                        bx + cos(la2) * width,
+                        by + sin(la2) * width,
+                        &rx, &ry) == 0:
+                        # print('ERROR LINE INTERSECTION 1')
+                        pass
+
+                    l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+                    if line_intersection(
+                        ox + cos(ra1) * owidth,
+                        oy + sin(ra1) * owidth,
+                        ax + cos(ra1) * owidth,
+                        ay + sin(ra1) * owidth,
+                        ax + cos(ra2) * owidth,
+                        ay + sin(ra2) * owidth,
+                        bx + cos(ra2) * owidth,
+                        by + sin(ra2) * owidth,
+                        &rx, &ry) == 0:
+                        # print('ERROR LINE INTERSECTION 2')
+                        pass
+
+                    ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
 
             last_angle = angle
