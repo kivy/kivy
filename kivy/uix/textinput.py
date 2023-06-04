@@ -167,6 +167,8 @@ import math
 from os import environ
 from weakref import ref
 from itertools import chain, islice
+import difflib
+from bisect import bisect_left
 
 from kivy.animation import Animation
 from kivy.base import EventLoop
@@ -530,6 +532,7 @@ class TextInput(FocusBehavior, Widget):
         self._lines_flags = []
         self._lines_labels = []
         self._lines_rects = []
+        self._lines_indexes = []
         self._hint_text_flags = []
         self._hint_text_labels = []
         self._hint_text_rects = []
@@ -549,12 +552,18 @@ class TextInput(FocusBehavior, Widget):
         self._scroll_distance_y = 0
         self._enable_scroll = True
         self._have_scrolled = False
+        self._rendered_text = ""
+        self._current_text = ""
 
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
 
         super().__init__(**kwargs)
+
+        self._textinput.bind(
+            on_text_changed=self._handle_coretextinput_text_changed,
+        )
 
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
@@ -678,7 +687,7 @@ class TextInput(FocusBehavior, Widget):
     def get_cursor_from_index(self, index):
         '''Return the (col, row) of the cursor from text index.
         '''
-        index = boundary(index, 0, len(self.text))
+        index = boundary(index, 0, len(self._current_text))
         if index <= 0:
             return 0, 0
         flags = self._lines_flags
@@ -711,7 +720,7 @@ class TextInput(FocusBehavior, Widget):
         '''
         if end < start:
             raise Exception('end must be superior to start')
-        text_length = len(self.text)
+        text_length = len(self._current_text)
         self._selection_from = boundary(start, 0, text_length)
         self._selection_to = boundary(end, 0, text_length)
         self._selection_finished = True
@@ -723,14 +732,14 @@ class TextInput(FocusBehavior, Widget):
 
         .. versionadded:: 1.4.0
         '''
-        self.select_text(0, len(self.text))
+        self.select_text(0, len(self._current_text))
 
     re_indent = re.compile(r'^(\s*|)')
 
     def _auto_indent(self, substring):
         index = self.cursor_index()
         if index > 0:
-            _text = self.text
+            _text = self._current_text
             line_start = _text.rfind('\n', 0, index)
             if line_start > -1:
                 line = _text[line_start + 1:index]
@@ -768,39 +777,36 @@ class TextInput(FocusBehavior, Widget):
 
         '''
 
-        # if self.readonly or not substring or not self._lines:
-        #    return
-
         if isinstance(substring, bytes):
             substring = substring.decode('utf8')
 
-        if self.text == substring:
-            return
-
         if start_index is None:
+            # If start_index is not specified, we assume that
+            # the text will be replaced from the beginning.
             start_index = 0
 
         if end_index is None:
-            end_index = len(self.text)
+            # If end_index is not specified, we assume that
+            # the text will be replaced to the end.
+            end_index = len(self._current_text)
 
-        _text = "" + self.text
+        # We should consider when start_index > end_index.
+        lenght = abs(start_index - end_index)
 
-        if start_index <= end_index:
-            lenght = end_index - start_index
-        else:
-            lenght = start_index - end_index
+        _tmptext = "" + self._current_text
 
-        print("before: " + _text)
-        print(start_index, end_index, lenght, substring)
-        new_text = _text[:start_index] + substring + _text[start_index+lenght:]
-        print("after: " + new_text)
+        Logger.debug("Textinput: replace__before " + _tmptext)
+        _tmptext = _tmptext[:start_index] + substring + _tmptext[start_index+lenght:]
+        Logger.debug("Textinput: replace__after " + _tmptext)
 
-        # self._set_line_text(row, new_text)
+        if self._current_text == _tmptext:
+            # If the text is not changed, we don't need to do anything.
+            Logger.debug("Textinput: replace__same")
+            return
+        
+        self._current_text = _tmptext
 
-        # _t = list(self.text)
-        # _t[start_index:end_index] = substring
-        # self.text = "".join(_t)
-        self._refresh_text(new_text)
+        self._refresh_text(self._current_text, requestor="textinput")
         if move_cursor_at_end:
             self.cursor = self.get_cursor_from_index(end_index)
 
@@ -809,32 +815,6 @@ class TextInput(FocusBehavior, Widget):
         function in order to pre-process text for input validation.
         '''
         raise NotImplementedError
-
-    def _get_line_from_cursor(self, start, new_text, lines=None,
-                              lines_flags=None):
-        # get current paragraph from cursor position
-        if lines is None:
-            lines = self._lines
-        if lines_flags is None:
-            lines_flags = self._lines_flags
-        finish = start
-        _next = start + 1
-        if start > 0 and lines_flags[start] != FL_IS_LINEBREAK:
-            start -= 1
-            new_text = lines[start] + new_text
-        i = _next
-        for i in range(_next, len(lines_flags)):
-            if lines_flags[i] == FL_IS_LINEBREAK:
-                finish = i - 1
-                break
-        else:
-            finish = i
-
-        new_text = new_text + u''.join(lines[_next:finish + 1])
-        lines, lines_flags = self._split_smart(new_text)
-
-        len_lines = max(1, len(lines))
-        return start, finish, lines, lines_flags, len_lines
 
     def _set_unredo_insert(self, ci, sci, substring, from_undo):
         # handle undo and redo
@@ -1559,7 +1539,7 @@ class TextInput(FocusBehavior, Widget):
                     handle_middle.bind(on_press=self._handle_pressed,
                                        on_touch_move=self._handle_move,
                                        on_release=self._handle_released)
-                if not self._handle_middle.parent and self.text:
+                if not self._handle_middle.parent and self._current_text:
                     EventLoop.window.add_widget(handle_middle, canvas='after')
                 self._position_handles(mode='middle')
             return True
@@ -1671,7 +1651,7 @@ class TextInput(FocusBehavior, Widget):
         self._trigger_position_handles()
 
     def _position_handles(self, *args, **kwargs):
-        if not self.text:
+        if not self._current_text:
             return
         mode = kwargs.get('mode', 'both')
 
@@ -1718,7 +1698,7 @@ class TextInput(FocusBehavior, Widget):
         win.remove_widget(self._handle_middle)
 
     def _show_handles(self, dt):
-        if not self.use_handles or not self.text:
+        if not self.use_handles or not self._current_text:
             return
 
         win = EventLoop.window
@@ -1991,7 +1971,7 @@ class TextInput(FocusBehavior, Widget):
         self._get_line_options()
         self._refresh_text_from_property()
         self._refresh_hint_text()
-        self.cursor = self.get_cursor_from_index(len(self.text))
+        self.cursor = self.get_cursor_from_index(len(self._current_text))
 
     def _trigger_refresh_text(self, *largs):
         if len(largs) and largs[0] == self:
@@ -2006,96 +1986,122 @@ class TextInput(FocusBehavior, Widget):
         self._trigger_refresh_text()
 
     def _refresh_text_from_property(self, *largs):
-        self._refresh_text(self.text, *largs)
+        self._refresh_text(self._current_text, requestor="property")
 
-    def _refresh_text(self, text, *largs):
+    def _refresh_text(self, text, requestor="property"):
         """
-        Refresh all the lines from a new text.
-        By using cache in internal functions, this method should be fast.
+        If the requestor is textinput, we can apply an algorithm to update
+        only the lines that changed, instead of all the lines.
+
+        If the requestor is property, we can't do that, cause we likely need
+        to update all the lines.
+
+        Additionally, by using cache in internal functions, this method should
+        be fast.
         """
-        mode = 'all'
-        if len(largs) > 1:
-            mode, start, finish, _lines, _lines_flags, len_lines = largs
-            # start = max(0, start)
-            cursor = None
-        else:
-            cursor = self.cursor_index()
-            _lines, self._lines_flags = self._split_smart(text)
-        _lines_labels = []
-        _line_rects = []
-        _create_label = self._create_line_label
 
-        for x in _lines:
-            lbl = _create_label(x)
-            _lines_labels.append(lbl)
-            _line_rects.append(Rectangle(size=lbl.size))
+        # Get the cursor index before the text change, as we may need to compute
+        # the new cursor index after the text change.
+        cursor_index_before = self.cursor_index()
 
-        if mode == 'all':
-            self._lines_labels = _lines_labels
-            self._lines_rects = _line_rects
+        if requestor == "textinput":
+
+            replace_from_line = 0
+            start_text_index = 0
+            flags = 0
+
+            # When the requestor is textinput we try to be as fast as possible,
+            # avoiding to compute the whole text again.
+
+            # 1) Can we apply the split_smart optimization? (We need at least 2 lines, and
+            # the text needs to start with the previous text.)
+            if len(self._lines_indexes) > 1 and text.find(self._rendered_text) == 0:
+
+                insertion_point = bisect_left(self._lines_indexes, len(self._rendered_text))
+
+                if insertion_point > 1:
+                    # We need at least 1 line before the current one to update.
+                    last_untouched_line = insertion_point - 2
+                    start_text_index = self._lines_indexes[last_untouched_line]
+                    replace_from_line = last_untouched_line + 1
+                    flags = self._lines_flags[replace_from_line]
+
+                    if text[start_text_index] == "\n":
+                        # We don't want to update the line that contains the
+                        # longest_text_match, so we need to skip the "\n".
+                        start_text_index += 1
+
+            _lines, _lines_flags, _lines_indexes = self._split_smart(
+                text[start_text_index:], flags=flags
+            )
+
+            _lines = self._lines[:replace_from_line] + _lines
+            self._lines_indexes[replace_from_line:] = [
+                start_text_index + ix for ix in _lines_indexes
+            ]
+            self._lines_flags[replace_from_line:] = _lines_flags
+
+
+            # 2) We just need to get the lines that changed, and update them.
+            # This is faster than updating all the lines, and also supports
+            # what we won't be able to do with the split_smart optimization.
+            for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+                isjunk=None,
+                a=self._lines[replace_from_line:],
+                b=_lines[replace_from_line:],
+            ).get_opcodes():
+                # Since, for performance reasons, we skipped the lines that
+                # were involved in split_smart optimization, we need to
+                # adjust the indexes.
+                i1 += replace_from_line
+                i2 += replace_from_line
+                j1 += replace_from_line
+                j2 += replace_from_line
+
+                if tag == "equal":
+                    # Nothing to do, the lines are the same.
+                    continue
+
+                if tag == "delete":
+                    # We need to remove the lines that are deleted.
+                    _lines_chunk = []
+                elif tag in {"insert", "replace"}:
+                    # We need to insert the lines that are inserted or replaced.
+                    _lines_chunk = _lines[j1:j2]
+
+                self._lines[i1:i2] = _lines_chunk
+                _lines_labels = [self._create_line_label(x) for x in _lines_chunk]
+                self._lines_labels[i1:i2] = _lines_labels
+                self._lines_rects[i1:i2] = [Rectangle(size=x.size) for x in _lines_labels]
+
+        elif requestor == "property":
+            # No need to know which lines changed, since everything need to be
+            # updated. Even the _split_smart method is called without any cache.
+            _lines, self._lines_flags, self._lines_indexes = self._split_smart(text)
+            self._lines_labels[:] = [self._create_line_label(x) for x in _lines]
+            self._lines_rects[:] = [Rectangle(size=x.size) for x in self._lines_labels]
             self._lines[:] = _lines
-        elif mode == 'del':
-            if finish > start:
-                self._insert_lines(start, finish + 1, len_lines,
-                                   _lines_flags, _lines, _lines_labels,
-                                   _line_rects)
-        elif mode == 'insert':
-            self._insert_lines(start, finish + 1, len_lines, _lines_flags,
-                               _lines, _lines_labels, _line_rects)
 
         min_line_ht = self._label_cached.get_extents('_')[1]
         # with markup texture can be of height `1`
-        self.line_height = max(_lines_labels[0].height, min_line_ht)
+        self.line_height = max(self._lines_labels[0].height, min_line_ht)
         # self.line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
-        row = self.cursor_row
+        previous_cursor_row = self.cursor_row
         self.cursor = self.get_cursor_from_index(
-            self.cursor_index() if cursor is None else cursor
+            self.cursor_index() if cursor_index_before is None else cursor_index_before
         )
 
         # if we back to a new line, reset the scroll, otherwise, the effect is
         # ugly
-        if self.cursor_row != row:
+        if self.cursor_row != previous_cursor_row:
             self.scroll_x = 0
+
         # with the new text don't forget to update graphics again
         self._trigger_update_graphics()
 
-    def _insert_lines(self, start, finish, len_lines, _lines_flags,
-                      _lines, _lines_labels, _line_rects):
-        self_lines_flags = self._lines_flags
-        _lins_flags = []
-        _lins_flags.extend(self_lines_flags[:start])
-        if len_lines:
-            # if not inserting at first line then
-            if start:
-                # make sure line flags restored for first line
-                # _split_smart assumes first line to be not a new line
-                _lines_flags[0] = self_lines_flags[start]
-            _lins_flags.extend(_lines_flags)
-        _lins_flags.extend(self_lines_flags[finish:])
-        self._lines_flags = _lins_flags
-
-        _lins_lbls = []
-        _lins_lbls.extend(self._lines_labels[:start])
-        if len_lines:
-            _lins_lbls.extend(_lines_labels)
-        _lins_lbls.extend(self._lines_labels[finish:])
-        self._lines_labels = _lins_lbls
-
-        _lins_rcts = []
-        _lins_rcts.extend(self._lines_rects[:start])
-        if len_lines:
-            _lins_rcts.extend(_line_rects)
-        _lins_rcts.extend(self._lines_rects[finish:])
-        self._lines_rects = _lins_rcts
-
-        _lins = []
-        _lins.extend(self._lines[:start])
-        if len_lines:
-            _lins.extend(_lines)
-        _lins.extend(self._lines[finish:])
-        self._lines[:] = _lins
+        self._rendered_text = text
 
     def _trigger_update_graphics(self, *largs):
         self._update_graphics_ev.cancel()
@@ -2493,8 +2499,11 @@ class TextInput(FocusBehavior, Widget):
         return self._line_options
 
     def _create_line_label(self, text, hint=False):
-        # Create a label from a text, using line options
-        ntext = text.replace(u'\n', u'').replace(u'\t', u' ' * self.tab_width)
+        """
+        Create a label from a text, using line options, and cache the result.
+        If the text is the same, the same label will be returned from cache. 
+        """
+        ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
 
         if self.password and not hint:  # Don't replace hint_text with *
             ntext = self.password_mask * len(ntext)
@@ -2557,17 +2566,17 @@ class TextInput(FocusBehavior, Widget):
                 if char != u'\n':
                     if index > 0 and (prev_char in delimiters):
                         if old_index < index:
-                            yield text[old_index:index]
+                            yield text[old_index:index], index
                         old_index = index
                 else:
                     if old_index < index:
-                        yield text[old_index:index]
-                    yield text[index:index + 1]
+                        yield text[old_index:index], index
+                    yield text[index:index + 1], index
                     old_index = index + 1
             prev_char = char
-        yield text[old_index:]
+        yield text[old_index:], len(text)
 
-    def _split_smart(self, text):
+    def _split_smart(self, text, flags=0):
         """
         Do a "smart" split. If not multiline, or if wrap is set,
         we are not doing smart split, just a split on line break.
@@ -2579,35 +2588,37 @@ class TextInput(FocusBehavior, Widget):
         if not self.multiline or not self.do_wrap:
             lines = text.split(u'\n')
             lines_flags = [0] + [FL_IS_LINEBREAK] * (len(lines) - 1)
-            return lines, lines_flags
+            return lines, lines_flags, []
 
         # no autosize, do wordwrap.
-        x = flags = 0
+        x = 0
+        flags = flags
         line = []
+        line_index = 0
         lines = []
         lines_flags = []
-        _join = u''.join
-        lines_append, lines_flags_append = lines.append, lines_flags.append
+        lines_text_indexes = []
+        _join = ''.join
         padding_left = self.padding[0]
         padding_right = self.padding[2]
         width = self.width - padding_left - padding_right
-        text_width = self._get_text_width
         _tab_width, _label_cached = self.tab_width, self._label_cached
 
         # try to add each word on current line.
         words_widths = {}
-        for word in self._tokenize(text):
+        for word, word_end_index in self._tokenize(text):
             is_newline = (word == u'\n')
             try:
                 w = words_widths[word]
             except KeyError:
-                w = text_width(word, _tab_width, _label_cached)
+                w = self._get_text_width(word, _tab_width, _label_cached)
                 words_widths[word] = w
             # if we have more than the width, or if it's a newline,
             # push the current line, and create a new one
             if (x + w > width and line) or is_newline:
-                lines_append(_join(line))
-                lines_flags_append(flags)
+                lines.append(_join(line))
+                lines_flags.append(flags)
+                lines_text_indexes.append(line_index)
                 flags = 0
                 line = []
                 x = 0
@@ -2621,7 +2632,7 @@ class TextInput(FocusBehavior, Widget):
                         try:
                             cw = words_widths[c]
                         except KeyError:
-                            cw = text_width(c, _tab_width, _label_cached)
+                            cw = self._get_text_width(c, _tab_width, _label_cached)
                             words_widths[c] = cw
                         if split_width + cw > width:
                             break
@@ -2630,21 +2641,26 @@ class TextInput(FocusBehavior, Widget):
                     if split_width == split_pos == 0:
                         # can't fit the word in, give up
                         break
-                    lines_append(word[:split_pos])
-                    lines_flags_append(flags)
+                    line_index = word_end_index - split_pos
+                    lines.append(word[:split_pos])
+                    lines_flags.append(flags)
+                    lines_text_indexes.append(line_index)
                     flags = FL_IS_WORDBREAK
                     word = word[split_pos:]
                     w -= split_width
                 x = w
                 line.append(word)
+                line_index = word_end_index
             else:
                 x += w
                 line.append(word)
+                line_index = word_end_index
         if line or flags & FL_IS_LINEBREAK:
-            lines_append(_join(line))
-            lines_flags_append(flags)
+            lines.append(_join(line))
+            lines_flags.append(flags)
+            lines_text_indexes.append(line_index)
 
-        return lines, lines_flags
+        return lines, lines_flags, lines_text_indexes
 
     def _handle_coretextinput_shortcut(self, instance, key):
         # actions that can be done in readonly
@@ -2703,13 +2719,12 @@ class TextInput(FocusBehavior, Widget):
         self._refresh_hint_text()
 
     def _refresh_hint_text(self):
-        _lines, self._hint_text_flags = self._split_smart(self.hint_text)
+        _lines, self._hint_text_flags, _lines_indexes = self._split_smart(self.hint_text)
         _hint_text_labels = []
         _hint_text_rects = []
-        _create_label = self._create_line_label
 
         for x in _lines:
-            lbl = _create_label(x, hint=True)
+            lbl = self._create_line_label(x, hint=True)
             _hint_text_labels.append(lbl)
             _hint_text_rects.append(Rectangle(size=lbl.size))
 
@@ -3240,28 +3255,17 @@ class TextInput(FocusBehavior, Widget):
                 self._trigger_update_cutbuffer()
 
     def _get_text(self):
-        flags = self._lines_flags
-        lines = self._lines
-        len_lines = len(lines)
-        less_flags = len(flags) < len_lines
-        if less_flags:
-            flags.append(1)
-        text = ''.join(
-            ('\n' if (flags[i] & FL_IS_LINEBREAK) else '') + lines[i]
-            for i in range(len_lines)
-        )
-        if less_flags:
-            flags.pop()
-        return text
+        return self._current_text
 
     def _set_text(self, text):
         if isinstance(text, bytes):
             text = text.decode('utf8')
-        if self.text != text:
-            self._refresh_text(text)
-            self.cursor = self.get_cursor_from_index(len(text))
+        if self._textinput.text != text:
+            self._textinput.text = text
 
-    text = AliasProperty(_get_text, _set_text, bind=('_lines',), cache=True)
+    _current_text = StringProperty("")
+
+    text = AliasProperty(_get_text, _set_text, bind=('_current_text',))
     '''Text of the widget.
 
     Creation of a simple hello world::

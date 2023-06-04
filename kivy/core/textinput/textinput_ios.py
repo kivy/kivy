@@ -15,7 +15,7 @@ class TextInputiOS(TextInputBase):
 
         self._textfield = autoclass('KivyTextInput').alloc()
         self._textfield.initWithDelegate_(TextInputiOS._focused_textinput)
-        self._textfield.setText_(self.text)
+        self._textfield.setText_(self._text)
         self._textfield.startEditing()
 
         self.focus = True

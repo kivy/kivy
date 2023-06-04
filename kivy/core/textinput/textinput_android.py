@@ -73,7 +73,7 @@ class TextInputAndroid(TextInputBase):
 
         # Set the TextView text to the one of the TextInput
         # setText(char[] text, int start, int len)
-        self._edittext.setText(self.text, 0, len(self.text))
+        self._edittext.setText(self._text, 0, len(self._text))
 
         # Force the TextView to get focus
         self._edittext.requestFocus()

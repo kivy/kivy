@@ -1,7 +1,7 @@
+import collections
+
 from kivy.core.textinput import TextInputBase
-
 from kivy.base import EventLoop
-
 from kivy.utils import platform
 
 
@@ -31,6 +31,13 @@ INTERESTING_KEYS = {
 class TextInputWindow(TextInputBase):
     _keyboard = None
     _keyboards = {}
+
+    def __init__(self, target, validator=None):
+        super().__init__(target, validator)
+
+        # Queues of text changes that can be undone or redone.
+        self._undo_text_changes = collections.deque(maxlen=16)
+        self._redo_text_changes = collections.deque(maxlen=16)
 
     @property
     def keyboard(self):
@@ -64,6 +71,27 @@ class TextInputWindow(TextInputBase):
             self.pause()
         self._release_keyboard()
         super().stop()
+
+    def undo(self):
+        if not self._undo_text_changes:
+            return
+
+        print(self._undo_text_changes)
+
+        substring, start_index, end_index, is_deletion = self._undo_text_changes.pop()
+        self._redo_text_changes.append(
+            (substring, start_index, end_index, is_deletion)
+        )
+
+        if not is_deletion:
+            # If the change is not a deletion, we should delete the substring.
+            self._commit_text_change("", start_index, end_index, from_undo=True)
+        else:
+            # If the change is a deletion, we should add back the substring.
+            self._commit_text_change(substring, start_index, end_index, from_undo=True)
+
+    def redo(self):
+        pass
 
     def _keyboard_released(self):
         pass
@@ -199,8 +227,17 @@ class TextInputWindow(TextInputBase):
         # The key is not interesting, so it should be interpreted as text input.
         self._on_keyboard_textinput(self._keyboard, text)
 
+    def paste(self, substring):
+        self._on_keyboard_textinput(self._keyboard, substring)
+
     def _on_keyboard_textinput(self, keyboard, substring):
         start_index, end_index = self.selection
+        self._commit_text_change(substring, start_index, end_index)
+
+    def _commit_text_change(self, substring, start_index, end_index, from_undo=False):
+
+        undo_substring = substring
+        is_deletion = False
 
         if substring == "":
             # If the substring is empty, the user is trying to delete text.
@@ -211,7 +248,21 @@ class TextInputWindow(TextInputBase):
                     return
                 start_index -= 1
 
-        self.text = self.text[:start_index] + substring + self.text[end_index:]
+            # Get the fragment of text that will be deleted, so we can
+            # add it to the undo queue.
+            is_deletion = True
+            undo_substring = self._text[start_index:end_index]
+
+        self._text = self._text[:start_index] + substring + self._text[end_index:]
+
+        if not from_undo:
+            if not is_deletion:
+                undo_end_index = end_index + len(substring)
+            else:
+                undo_end_index = start_index
+            self._undo_text_changes.append(
+                (undo_substring, start_index, undo_end_index, is_deletion)
+            )
 
         self.dispatch("on_text_changed", substring, start_index, end_index)
 

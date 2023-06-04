@@ -409,10 +409,6 @@ class FocusBehavior(object):
         # our focus property accordingly.
         self.focus = value
 
-    def _handle_coretextinput_text_changed(self, instance, substring, start_index=None, end_index=None):
-        # The core textinput has changed its text.
-        pass
-
     def _handle_coretextinput_selection_changed(self, instance, start, end):
         # The core textinput has changed its selection.
         pass
@@ -448,7 +444,7 @@ class FocusBehavior(object):
             # on_keyboard_key_up=self.keyboard_on_key_up,
             # on_keyboard_textinput=self.keyboard_on_textinput,
             on_focus=self._handle_coretextinput_focus,
-            on_text_changed=self._handle_coretextinput_text_changed,
+            # on_text_changed=self._handle_coretextinput_text_changed,
             on_selection_changed=self._handle_coretextinput_selection_changed,
             on_shortcut=self._handle_coretextinput_shortcut,
             on_action=self._handle_coretextinput_action,
@@ -463,7 +459,7 @@ class FocusBehavior(object):
             # on_keyboard_key_up=self.keyboard_on_key_up,
             # on_keyboard_textinput=self.keyboard_on_textinput,
             on_focus=self._handle_coretextinput_focus,
-            on_text_changed=self._handle_coretextinput_text_changed,
+            # on_text_changed=self._handle_coretextinput_text_changed,
             on_selection_changed=self._handle_coretextinput_selection_changed,
             on_shortcut=self._handle_coretextinput_shortcut,
             on_action=self._handle_coretextinput_action,

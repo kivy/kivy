@@ -57,12 +57,12 @@ class TextInputBase(EventDispatcher):
 
     def __init__(self, target: Widget, validator: callable = None):
         self._input_type = "null"
-        self.text = ""
         self.selection = [0, 0]
         self.focus = False
         self.keyboard_suggestions = True
         self._target = target
         self._validator = validator
+        self._text = ""
 
     @property
     def keyboard(self):
@@ -136,6 +136,15 @@ class TextInputBase(EventDispatcher):
 
     def on_focus(self, value):
         pass
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.dispatch("on_text_changed", value, 0, len(value))
 
     def on_text_changed(self, value, start, end):
         print("on_text_changed", value, start, end)
