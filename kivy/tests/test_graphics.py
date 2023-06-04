@@ -455,10 +455,6 @@ class TransformationsTestCase(GraphicUnitTest):
 
     def check_transform_works(self, transform_type):
         # Normal args
-        transform = transform_type(0, 1)
-        self.assertEquals(transform.x, 0)
-        self.assertEquals(transform.y, 1)
-
         transform = transform_type(0, 1, 2)
         self.assertEquals(transform.x, 0)
         self.assertEquals(transform.y, 1)

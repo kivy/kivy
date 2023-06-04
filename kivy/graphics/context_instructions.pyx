@@ -756,28 +756,19 @@ cdef class Rotate(Transform):
 cdef class Scale(Transform):
     '''Instruction to create a non uniform scale transformation.
 
-    Create using one or three arguments::
+    Create using three arguments::
 
-       Scale(s)         # scale all three axes the same
        Scale(x, y, z)   # scale the axes independently
-
-    .. deprecated:: 1.6.0
-        Deprecated single scale property in favor of x, y, z, xyz axis
-        independent scaled factors.
 
     .. versionchanged:: 2.3.0
         Allowed kwargs to be used to supply x, y and z.
+        Removed depreciated Scale(s) in favour of Scale(x, y, z).
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
 
         x, y, z = 1.0, 1.0, 1.0
-        if len(args) == 1:
-            s = args[0]
-            x, y, z = s, s, s
-        if len(args) == 2:
-            x, y = args
-        elif len(args) == 3:
+        if len(args) == 3:
             x, y, z = args
         x = kwargs.pop("x", x)
         y = kwargs.pop("y", y)
@@ -808,28 +799,6 @@ cdef class Scale(Transform):
         matrix = matrix.multiply(Matrix().scale(x, y, z))
         matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
         self.matrix = matrix
-
-    @property
-    def scale(self):
-        '''Property for getting/setting the scale.
-
-        .. deprecated:: 1.6.0
-            Deprecated in favor of per axis scale properties x,y,z, xyz, etc.
-        '''
-        if self._x == self._y == self._z:
-            Logger.warning("scale property is deprecated, use xyz, x, " +\
-                "y, z, etc properties to get scale factor based on axis.")
-            return self._x
-        else:
-            raise Exception("trying to access deprecated property" +\
-                " 'scale' on Scale instruction with non uniform scaling!")
-
-
-    @scale.setter
-    def scale(self, s):
-        Logger.warning("scale property is deprecated, use xyz, x, " +\
-            "y, z, etc properties to get scale factor based on axis.")
-        self.set_scale(s,s,s)
 
     @property
     def x(self):
