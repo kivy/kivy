@@ -470,11 +470,11 @@ class TransformationsTestCase(GraphicUnitTest):
         self.assertEquals(transform.y, 1)
         self.assertEquals(transform.z, 2)
 
-    def test_translate_normal_arg_creation(self):
+    def test_translate_creation(self):
         from kivy.graphics import Translate
         self.check_transform_works(Translate)
 
-    def test_scale_normal_arg_creation(self):
+    def test_scale_creation(self):
         from kivy.graphics import Scale
         self.check_transform_works(Scale)
 
