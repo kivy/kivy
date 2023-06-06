@@ -49,7 +49,7 @@ Example:
                         pos: self.pos
                         size: self.size
                         offset: 0, -10
-                        spread_radius: -20
+                        spread_radius: -20, -20
                         border_radius: 10, 10, 10, 10
                         blur_radius: 80 if self.state == "normal" else 50
 
@@ -78,7 +78,7 @@ uniform sampler2D texture0;
 uniform int inset;
 uniform float blur_radius;
 uniform vec4 border_radius;
-uniform float spread_radius;
+uniform vec2 spread_radius;
 uniform vec2 size;
 uniform vec2 offset;
 
@@ -159,7 +159,7 @@ cdef class BoxShadow(Fbo):
             The negative ones indicate that the shadow should move to the left and/or down.
         `blur_radius`: float, defaults to ``15.0``.
             Define the shadow blur radius. Controls shadow expansion and softness.
-        `spread_radius`: float, defaults to ``0.0``.
+        `spread_radius`: list | tuple, defaults to ``(0.0, 0.0)``.
             Define the shrink/expansion of the shadow.
         `border_radius`: list | tuple, defaults to ``(0.0, 0.0, 0.0, 0.0)``.
             Specifies the radii used for the rounded corners clockwise:
@@ -173,7 +173,7 @@ cdef class BoxShadow(Fbo):
         size = kwargs.get("size", (100.0, 100.0))
         offset = kwargs.get("offset", (0.0, 0.0))
         blur_radius = kwargs.get("blur_radius", 15.0)
-        spread_radius = kwargs.get("spread_radius", 0.0)
+        spread_radius = kwargs.get("spread_radius", (0.0, 0.0))
         border_radius = kwargs.get("border_radius", (0.0, 0.0, 0.0, 0.0))
 
         self._inset = self._check_bool(inset)
@@ -187,7 +187,7 @@ cdef class BoxShadow(Fbo):
             self._check_float("blur_radius", blur_radius),
             min_value=0.0
         )
-        self._spread_radius = self._check_float("spread_radius", spread_radius)
+        self._spread_radius = self._check_iter("spread_radius", spread_radius)
         self._border_radius = self._bounded_value(
             self._check_iter("border_radius", border_radius, components=4),
             min_value=1.0,
@@ -249,8 +249,8 @@ cdef class BoxShadow(Fbo):
         # The position should be adjusted according to the size expansion,
         # with half the size used in the _adjusted_size method
         if not self.inset:
-            x -= self.blur_radius * 1.5 + self.spread_radius - self.offset[0]
-            y -= self.blur_radius * 1.5 + self.spread_radius - self.offset[1]
+            x -= self.blur_radius * 1.5 + self.spread_radius[0] - self.offset[0]
+            y -= self.blur_radius * 1.5 + self.spread_radius[1] - self.offset[1]
 
         return (x, y)
 
@@ -264,8 +264,8 @@ cdef class BoxShadow(Fbo):
 
         # size expansion
         if not self.inset and w > 0.0 and h > 0.0:
-            w += self.blur_radius * 3 + self.spread_radius * 2
-            h += self.blur_radius * 3 + self.spread_radius * 2
+            w += self.blur_radius * 3 + self.spread_radius[0] * 2
+            h += self.blur_radius * 3 + self.spread_radius[1] * 2
 
         w = max(0.0, w)
         h = max(0.0, h)
@@ -408,20 +408,20 @@ cdef class BoxShadow(Fbo):
 
     @property
     def spread_radius(self):
-        '''Define the shrink/expansion of the shadow.
+        '''Define the shrink/expansion of the shadow in `[horizontal, vertical]` format.
 
-        Defaults to ``0.0``.
+        Defaults to ``(0.0, 0.0)``.
 
         This property is especially useful for cases where you want to achieve
-        a softer shadow around the element, by setting a negative value for
+        a softer shadow around the element, by setting negative values for
         :attr:`spread_radius` and a larger value for :attr:`blur_radius` as
         in the :ref:`example <example>`.
 
         - :attr:`inset` **OFF**:
             In the image below, the target element has a raw size of ``200 x 150px``.
-            Positive changes to the :attr:`spread_radius` value will cause the raw
-            :attr:`size` of the shadow to increase in both horizontal and vertical
-            directions, while negative values will cause the shadow to shrink.
+            Positive changes to the :attr:`spread_radius` values will cause the raw
+            :attr:`size` of the shadow to increase, while negative values will cause
+            the shadow to shrink.
 
             .. image:: images/boxshadow_spread_radius.svg
                 :align: center
@@ -440,7 +440,7 @@ cdef class BoxShadow(Fbo):
 
     @spread_radius.setter
     def spread_radius(self, value):
-        self._spread_radius = self._check_float("spread_radius", value)
+        self._spread_radius = self._check_iter("spread_radius", value)
         self._update_shadow()
 
     @property
@@ -559,7 +559,7 @@ cdef class BoxShadow(Fbo):
                             size: self.size
                             offset: 0, -10
                             blur_radius: 25
-                            spread_radius: -10
+                            spread_radius: -10, -10
                             border_radius: 10, 10, 10, 10
                     
                     canvas:
@@ -606,7 +606,7 @@ cdef class BoxShadow(Fbo):
                             size: self.size
                             offset: 0, -10
                             blur_radius: 25
-                            spread_radius: -10
+                            spread_radius: -10, -10
                             border_radius: 10, 10, 10, 10
 
             | 

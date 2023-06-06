@@ -55,6 +55,7 @@ kivy/deps/*
 kivy.deps*
 kivy/version.py
 results.png
+kivy-dependencies
 
 MANIFEST
 

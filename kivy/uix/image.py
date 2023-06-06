@@ -31,9 +31,23 @@ background thread without blocking your application.
 Alignment
 ---------
 
-By default, the image is centered and fits inside the widget bounding box.
-If you don't want that, you can set `allow_stretch` to True and `keep_ratio`
-to False.
+By default, the image is centered inside the widget bounding box.
+
+Adjustment
+----------
+
+To control how the image should be adjusted to fit inside the widget box, you
+should use the :attr:`~kivy.uix.image.Image.fit_mode` property. Available
+options include:
+
+- ``"scale-down"``: maintains aspect ratio without stretching.
+- ``"fill"``: stretches to fill widget, may cause distortion.
+- ``"contain"``: maintains aspect ratio and resizes to fit inside widget.
+- ``"cover"``: maintains aspect ratio and stretches to fill widget, may clip
+image.
+
+For more details, refer to the :attr:`~kivy.uix.image.Image.fit_mode`.
+
 
 You can also inherit from Image and create your own style. For example, if you
 want your image to be greater than the size of your widget, you could do::
@@ -58,8 +72,16 @@ __all__ = ('Image', 'AsyncImage')
 from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
-from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-    AliasProperty, BooleanProperty, NumericProperty, ColorProperty
+from kivy.properties import (
+    StringProperty,
+    ObjectProperty,
+    ListProperty,
+    AliasProperty,
+    BooleanProperty,
+    NumericProperty,
+    ColorProperty,
+    OptionProperty
+)
 from kivy.logger import Logger
 
 # delayed imports
@@ -67,8 +89,7 @@ Loader = None
 
 
 class Image(Widget):
-    '''Image class, see module documentation for more information.
-    '''
+    '''Image class, see module documentation for more information.'''
 
     source = StringProperty(None)
     '''Filename / source of your image.
@@ -80,7 +101,7 @@ class Image(Widget):
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the image. The texture represents the original, loaded
     image texture. It is stretched and positioned during rendering according to
-    the :attr:`allow_stretch` and :attr:`keep_ratio` properties.
+    the :attr:`fit_mode` property.
 
     Depending of the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or a
@@ -104,7 +125,7 @@ class Image(Widget):
     def get_image_ratio(self):
         if self.texture:
             return self.texture.width / float(self.texture.height)
-        return 1.
+        return 1.0
 
     mipmap = BooleanProperty(False)
     '''Indicate if you want OpenGL mipmapping to be applied to the texture.
@@ -138,18 +159,22 @@ class Image(Widget):
         :class:`~kivy.properties.ColorProperty`.
     '''
 
-    allow_stretch = BooleanProperty(False)
+    allow_stretch = BooleanProperty(False, deprecated=True)
     '''If True, the normalized image size will be maximized to fit in the image
     box. Otherwise, if the box is too tall, the image will not be
     stretched more than 1:1 pixels.
 
     .. versionadded:: 1.0.7
 
+    .. deprecated:: 2.2.0
+        :attr:`allow_stretch` have been deprecated. Please use `fit_mode`
+        instead.
+
     :attr:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
     '''
 
-    keep_ratio = BooleanProperty(True)
+    keep_ratio = BooleanProperty(True, deprecated=True)
     '''If False along with allow_stretch being True, the normalized image
     size will be maximized to fit in the image box and ignores the aspect
     ratio of the image.
@@ -158,8 +183,47 @@ class Image(Widget):
 
     .. versionadded:: 1.0.8
 
+    .. deprecated:: 2.2.0
+        :attr:`keep_ratio` have been deprecated. Please use `fit_mode`
+        instead.
+
     :attr:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    fit_mode = OptionProperty(
+        "scale-down", options=["scale-down", "fill", "contain", "cover"]
+    )
+    '''If the size of the image is different than the size of the widget,
+    determine how the image should be resized to fit inside the widget box.
+
+    Available options:
+
+    - ``"scale-down"``: the image will be scaled down to fit inside the widget
+    box, **maintaining its aspect ratio and without stretching**. If the size
+    of the image is smaller than the widget, it will be displayed at its
+    original size. If the image has a different aspect ratio than the widget,
+    there will be blank areas on the widget box.
+
+    - ``"fill"``: the image is stretched to fill the widget, **regardless of
+    its aspect ratio or dimensions**. If the image has a different aspect ratio
+    than the widget, this option can lead to distortion of the image.
+
+    - ``"contain"``: the image is resized to fit inside the widget box,
+    **maintaining its aspect ratio**. If the image size is larger than the
+    widget size, the behavior will be similar to ``"scale-down"``. However, if
+    the size of the image size is smaller than the widget size, unlike
+    ``"scale-down``, the image will be resized to fit inside the widget.
+    If the image has a different aspect ratio than the widget, there will be
+    blank areas on the widget box.
+
+    - ``"cover"``: the image will be stretched horizontally or vertically to
+    fill the widget box, **maintaining its aspect ratio**. If the image has a
+    different aspect ratio than the widget, then the image will be clipped to
+    fit.
+
+    :attr:`fit_mode` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to ``"scale-down"``.
     '''
 
     keep_data = BooleanProperty(False)
@@ -172,7 +236,7 @@ class Image(Widget):
     defaults to False.
     '''
 
-    anim_delay = NumericProperty(.25)
+    anim_delay = NumericProperty(0.25)
     '''Delay the animation if the image is sequenced (like an animated gif).
     If anim_delay is set to -1, the animation will be stopped.
 
@@ -205,33 +269,46 @@ class Image(Widget):
     def get_norm_image_size(self):
         if not self.texture:
             return list(self.size)
+
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
 
-        # ensure that the width is always maximized to the container width
-        if self.allow_stretch:
-            if not self.keep_ratio:
-                return [w, h]
+        if self.fit_mode == "cover":
+            widget_ratio = w / max(1, h)
+            if widget_ratio > ratio:
+                return [w, (w * th) / tw]
+            else:
+                return [(h * tw) / th, h]
+        elif self.fit_mode == "fill":
+            return [w, h]
+        elif self.fit_mode == "contain":
             iw = w
         else:
             iw = min(w, tw)
+
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container
         # and calculate appropriate width. no need to test further. :)
         if ih > h:
-            if self.allow_stretch:
+            if self.fit_mode == "contain":
                 ih = h
             else:
                 ih = min(h, th)
             iw = ih * ratio
         return [iw, ih]
 
-    norm_image_size = AliasProperty(get_norm_image_size,
-                                    bind=('texture', 'size', 'allow_stretch',
-                                          'image_ratio', 'keep_ratio'),
-                                    cache=True)
+    norm_image_size = AliasProperty(
+        get_norm_image_size,
+        bind=(
+            'texture',
+            'size',
+            'image_ratio',
+            'fit_mode',
+        ),
+        cache=True,
+    )
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image
@@ -248,7 +325,24 @@ class Image(Widget):
         fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
+
+        # NOTE: Compatibility code due to deprecated properties.
+        fbind('keep_ratio', self._update_fit_mode)
+        fbind('allow_stretch', self._update_fit_mode)
         super().__init__(**kwargs)
+
+    def _update_fit_mode(self, *args):
+        keep_ratio = self.keep_ratio
+        allow_stretch = self.allow_stretch
+        if (
+            not keep_ratio and not allow_stretch
+            or keep_ratio and not allow_stretch
+        ):
+            self.fit_mode = "scale-down"
+        elif not keep_ratio and allow_stretch:
+            self.fit_mode = "fill"
+        elif keep_ratio and allow_stretch:
+            self.fit_mode = "contain"
 
     def texture_update(self, *largs):
         self.set_texture_from_resource(self.source)

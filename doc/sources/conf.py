@@ -32,7 +32,8 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
+    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks',
+    'sphinxcontrib.jquery']
 
 if sphinx.version_info[0] >= 4:
     # In 4.0 and above has been added the support to substitute by ‘%s’ in the caption.

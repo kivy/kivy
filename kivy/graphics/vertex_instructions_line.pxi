@@ -125,6 +125,7 @@ cdef class Line(VertexInstruction):
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
     cdef int _close
+    cdef str _close_mode
     cdef int _mode
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
@@ -133,6 +134,7 @@ cdef class Line(VertexInstruction):
     cdef Instruction _stencil_pop
     cdef double _bxmin, _bxmax, _bymin, _bymax
     cdef tuple _mode_args
+    cdef tuple _rounded_rectangle, _rectangle, _ellipse, _circle
 
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -149,6 +151,7 @@ cdef class Line(VertexInstruction):
         self._joint_precision = kwargs.get('joint_precision') or 10
         self._bezier_precision = kwargs.get('bezier_precision') or 180
         self._close = int(bool(kwargs.get('close', 0)))
+        self._close_mode = kwargs.get('close_mode', 'straight-line')
         self._stencil_rect = None
         self._stencil_push = None
         self._stencil_use = None
@@ -231,7 +234,7 @@ cdef class Line(VertexInstruction):
             self.batch.clear_data()
             return
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             p = p + [p[0], p[1]]
             count += 1
 
@@ -331,7 +334,7 @@ cdef class Line(VertexInstruction):
             return
 
         cap = self._cap
-        if self._close and count > 2:
+        if self._close and self._close_mode == 'straight-line' and count > 2:
             p = p + p[0:4]
             count += 2
             cap = LINE_CAP_NONE
@@ -876,7 +879,7 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     property close:
-        '''If True, the line will be closed.
+        '''If True, the line will be closed by joining the two ends, according to :attr:`close_mode`.
 
         .. versionadded:: 1.4.1
         '''
@@ -887,10 +890,34 @@ cdef class Line(VertexInstruction):
         def __set__(self, value):
             self._close = int(bool(value))
             self.flag_data_update()
+    
+    @property
+    def close_mode(self):
+        '''Defines how the ends of the line will be connected.
+        Defaults to ``"straight-line"``.
+
+        .. note::
+            Support for the different closing modes depends on drawing shapes.
+
+        Available modes:
+
+        - ``"straight-line"`` (all drawing shapes): the ends will be closed by a straight line.
+        - ``"center-connected"`` (:attr:`ellipse` specific): the ends will be closed by a line passing through the center of the ellipse.
+
+        .. versionadded:: 2.2.0
+        '''
+        return self._close_mode
+
+    @close_mode.setter
+    def close_mode(self, value):
+        if value not in ("straight-line", "center-connected"):
+            raise GraphicException(f'{self.__class__.__name__} - Invalid close_mode, must be one of "straight-line" or "center-connected".')
+        self._close_mode = value
+        self.flag_data_update()
 
     property ellipse:
         '''Use this property to build an ellipse, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (x, y, width, height, angle_start,
         angle_end, segments):
@@ -900,9 +927,15 @@ cdef class Line(VertexInstruction):
         * (optional) angle_start and angle_end are in degree. The default
           value is 0 and 360.
         * (optional) segments is the precision of the ellipse. The default
-          value is calculated from the range between angle.
+          value is calculated from the range between angle. You can use this
+          property to create polygons with 3 or more sides. Values smaller than
+          3 will not be represented and the number of segments will be
+          automatically calculated.
 
-        Note that it's up to you to :attr:`close` the ellipse or not.
+        Note that it's up to you to :attr:`close` or not.
+        If you choose to close, use :attr:`close_mode` to define how the figure
+        will be closed. Whether it will be by closed by a ``"straight-line"``
+        or by ``"center-connected"``.
 
         For example, for building a simple ellipse, in python::
 
@@ -916,7 +949,16 @@ cdef class Line(VertexInstruction):
             Line(ellipse=(0, 0, 150, 150, 90, 180, 20))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+            Now you can get the ellipse generated through the property.
+
+            The minimum number of segments allowed is 3. Smaller values will be
+            ignored and the number of segments will be automatically calculated.
         '''
+
+        def __get__(self):
+            return self._ellipse
 
         def __set__(self, args):
             if args == None:
@@ -931,9 +973,12 @@ cdef class Line(VertexInstruction):
 
     cdef void prebuild_ellipse(self):
         cdef double x, y, w, h, angle_start = 0, angle_end = 360
-        cdef int angle_dir, segments = 0
+        cdef int angle_dir, segments = 0, extra_segments = 0
         cdef double angle_range
         cdef tuple args = self._mode_args
+        cdef bint center_connected = self._close and self._close_mode == "center-connected"
+
+        extra_segments = 3 if center_connected else 1
 
         if len(args) == 4:
             x, y, w, h = args
@@ -941,39 +986,61 @@ cdef class Line(VertexInstruction):
             x, y, w, h, angle_start, angle_end = args
         elif len(args) == 7:
             x, y, w, h, angle_start, angle_end, segments = args
-            segments += 2
         else:
             x = y = w = h = 0
             assert 0
+
+        if 0 in (w, h):
+            return
+
+        if segments < 3:
+            if segments != 0:
+                Logger.warning(f'{self.__class__.__name__} - ellipse: A minimum of 3 segments is required. The default value will be used instead.')
+            segments = int(abs(angle_end - angle_start) / 2) + extra_segments
+
+        segments += extra_segments
+        segments *= 2
 
         if angle_end > angle_start:
             angle_dir = 1
         else:
             angle_dir = -1
-        if segments == 0:
-            segments = int(abs(angle_end - angle_start) / 2) + 3
-            if segments % 2 == 1:
-                segments += 1
+
+        # Resulting ellipse
+        self._ellipse = (x, y, w, h, angle_start, angle_end, segments)
+        # Reset other properties
+        self._rounded_rectangle = self._rectangle = self._circle = None
+
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
-        angle_range = abs(angle_end - angle_start) / (segments - 2)
+        angle_range = abs(angle_end - angle_start) / (segments - extra_segments * 2)
+
 
         cdef list points = [0, ] * segments
         cdef double angle
         cdef double rx = w * 0.5
         cdef double ry = h * 0.5
+        cdef int inc_x = 0, inc_y = 1
+
+        if center_connected and angle_start != angle_end:
+            points[0] = points[segments - 2] = x + rx
+            points[1] = points[segments - 1] = y + ry
+
+            inc_x = 2
+            inc_y = 3
+            segments -= 4
+
         for i in xrange(0, segments, 2):
-            angle = angle_start + (angle_dir * (i - 1) * angle_range)
-            points[i] = (x + rx) + (rx * sin(angle))
-            points[i + 1] = (y + ry) + (ry * cos(angle))
+            angle = angle_start + (angle_dir * i * angle_range)
+            points[i + inc_x] = (x + rx) + (rx * sin(angle))
+            points[i + inc_y] = (y + ry) + (ry * cos(angle))
 
         self._points = points
 
-
     property circle:
         '''Use this property to build a circle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
         angle_end, segments):
@@ -999,7 +1066,14 @@ cdef class Line(VertexInstruction):
             Line(circle=(150, 150, 50, 90, 180, 20))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+            Now you can get the circle generated through the property.
+
         '''
+
+        def __get__(self):
+            return self._circle
 
         def __set__(self, args):
             if args == None:
@@ -1036,6 +1110,11 @@ cdef class Line(VertexInstruction):
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
 
+        # Resulting circle
+        self._circle = (x, y, r, angle_start, angle_end, segments)
+        # Reset other properties
+        self._rounded_rectangle = self._rectangle = self._ellipse = None
+
         segmentpoints = segments * 2
 
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
@@ -1053,7 +1132,7 @@ cdef class Line(VertexInstruction):
 
     property rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of (x, y, width, height):
 
@@ -1067,7 +1146,14 @@ cdef class Line(VertexInstruction):
             Line(rectangle=(0, 0, 200, 200))
 
         .. versionadded:: 1.4.1
+
+        .. versionchanged:: 2.2.0
+            Now you can get the rectangle generated through the property.
+
         '''
+
+        def __get__(self):
+            return self._rectangle
 
         def __set__(self, args):
             if args == None:
@@ -1095,13 +1181,18 @@ cdef class Line(VertexInstruction):
         else:
             x = y = width = height = 0
             assert 0
+        
+        # Resulting rectangle
+        self._rectangle = (x, y, width, height)
+        # Reset other properties
+        self._rounded_rectangle = self._circle = self._ellipse = None
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
         self._close = 1
 
     property rounded_rectangle:
         '''Use this property to build a rectangle, without calculating the
-        :attr:`points`. You can only set this property, not get it.
+        :attr:`points`.
 
         The argument must be a tuple of one of the following forms:
 
@@ -1110,10 +1201,10 @@ cdef class Line(VertexInstruction):
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4)
         * (x, y, width, height, corner_radius1, corner_radius2, corner_radius3, corner_radius4, resolution)
 
-        * x and y represent the bottom-left position of the rectangle
-        * width and height represent the size
-        * corner_radius is the number of pixels between two borders and the center of the circle arc joining them
-        * resolution is the number of line segment that will be used to draw the circle arc at each corner (defaults to 30)
+        * `x` and `y` represent the bottom-left position of the rectangle.
+        * `width` and `height` represent the size.
+        * `corner_radius` specifies the radius used for the rounded corners clockwise: top-left, top-right, bottom-right, bottom-left.
+        * `resolution` is the number of line segment that will be used to draw the circle arc at each corner (defaults to 45).
 
         The line is automatically closed.
 
@@ -1122,11 +1213,27 @@ cdef class Line(VertexInstruction):
             Line(rounded_rectangle=(0, 0, 200, 200, 10, 20, 30, 40, 100))
 
         .. versionadded:: 1.9.0
+
+        .. versionchanged:: 2.2.0
+            Default value of `resolution` changed from 30 to 45.
+
+            Now you can get the rounded rectangle generated through the property.
+
+            The order of `corner_radius` has been changed to match the RoundedRectangle radius property (clockwise).
+            It was bottom-left, bottom-right, top-right, top-left in previous versions.
+            Now both are clockwise: top-left, top-right, bottom-right, bottom-left.
+            To keep the corner radius order without changing the order manually, you can use python's built-in method `reversed` or `[::-1]`,
+            to reverse the order of the corner radius.
+
         '''
+
+        def __get__(self):
+            return self._rounded_rectangle
+
         def __set__(self, args):
             if args == None:
                 raise GraphicException(
-                    'Invlid rounded rectangle value: {0!r}'.format(args))
+                    'Invalid rounded rectangle value: {0!r}'.format(args))
             if len(args) not in (5, 6, 8, 9):
                 raise GraphicException('invalid number of arguments:'
                         '{0} not in (5, 6, 8, 9)'.format(len(args)))
@@ -1135,13 +1242,16 @@ cdef class Line(VertexInstruction):
             self.flag_data_update()
 
     cdef void prebuild_rounded_rectangle(self):
-        cdef float a, px, py, x, y, w, h, c1, c2, c3, c4
-        cdef resolution = 30
+        cdef float a, max_a, px, py, x, y, w, h, c1, c2, c3, c4, step, min_dimension, half_min_dimension
+        cdef resolution = 45
         cdef int l = <int>len(self._mode_args)
 
         self._points = []
-        a = <float>-PI
         x, y, w, h = self._mode_args [:4]
+
+        # zero size of the figure + avoid rendering issue with SmoothLine
+        if w <= 0 or h <= 0 or isinstance(self, SmoothLine) and (w < 2 or h < 2):
+            return
 
         if l == 5:
             c1 = c2 = c3 = c4 = self._mode_args[4]
@@ -1154,41 +1264,94 @@ cdef class Line(VertexInstruction):
             c1, c2, c3, c4 = self._mode_args[4:8]
             resolution = self._mode_args[8]
 
+        if resolution <= 4:
+            resolution = 4
+
+        # The minimum radius needs to be limited to 1px.
+        # This avoid some known rendering issues with Line/SmoothLine.
+        c1 = max(c1, 1.0)
+        c2 = max(c2, 1.0)
+        c3 = max(c3, 1.0)
+        c4 = max(c4, 1.0)
+        min_dimension = min(w, h)
+        half_min_dimension = min_dimension / 2.0
+
+        # If larger values are passed for each corner, we will have to make some adjustments.
+        if c1 > half_min_dimension:
+            c2 = min(c2, half_min_dimension)
+            c4 = min(c4, half_min_dimension)
+            c1 = min(c1, min_dimension - c2, min_dimension - c4)
+
+        if c2 > half_min_dimension:
+            c1 = min(c1, half_min_dimension)
+            c3 = min(c3, half_min_dimension)
+            c2 = min(c2, min_dimension - c1, min_dimension - c3)
+        
+        if c3 > half_min_dimension:
+            c2 = min(c2, half_min_dimension)
+            c4 = min(c4, half_min_dimension)
+            c3 = min(c3, min_dimension - c2, min_dimension - c4)
+        
+        if c4 > half_min_dimension:
+            c3 = min(c3, half_min_dimension)
+            c1 = min(c1, half_min_dimension)
+            c4 = min(c4, min_dimension - c3, min_dimension - c1)
+
+        # Resulting rounded_rectangle
+        self._rounded_rectangle = (x, y, w, h, c1, c2, c3, c4, resolution)
+        # Reset other properties
+        self._rectangle = self._ellipse = self._circle = None
+
+        step = PI / resolution
+        max_a = PI / 2.0 - step
+        
+        # top-left
+        a = 0.0
         px = x + c1
-        py = y + c1
+        py = y + h - c1
 
-        while a < - PI / 2.:
-            a += pi / resolution
+        while a < max_a:
+            a += step
             self._points.extend([
-                px + cos(a) * c1,
-                py + sin(a) * c1])
+                px - cos(a) * c1,
+                py + sin(a) * c1
+            ])
 
+        # top-right
+        a = 0.0
         px = x + w - c2
-        py = y + c2
+        py = y + h - c2
 
-        while a < 0:
-            a += PI / resolution
+        while a < max_a:
+            a += step
             self._points.extend([
-                px + cos(a) * c2,
-                py + sin(a) * c2])
+                px + sin(a) * c2,
+                py + cos(a) * c2
+            ])
 
+        # bottom-right
+        a = 0.0
         px = x + w - c3
-        py = y + h - c3
+        py = y + c3
 
-        while a < PI / 2.:
-            a += PI / resolution
+        while a < max_a:
+            a += step
             self._points.extend([
                 px + cos(a) * c3,
-                py + sin(a) * c3])
+                py - sin(a) * c3
+            ])
 
+        # bottom-left
+        a = 0.0
         px = x + c4
-        py = y + h - c4
+        py = y + c4
 
-        while a < PI:
-            a += PI / resolution
+        while a < max_a:
+            a += step
             self._points.extend([
-                px + cos(a) * c4,
-                py + sin(a) * c4])
+                px - sin(a) * c4,
+                py - cos(a) * c4
+            ])
 
         self._close = 1
 
@@ -1317,6 +1480,8 @@ cdef class SmoothLine(Line):
         VertexInstruction.apply(self)
         return 0
 
+    # FIXME: Some artifacts can be observed, depending on the line width,
+    # overdraw_width and radius.
     cdef void build_smooth(self):
         cdef:
             list p = self.points
@@ -1338,7 +1503,7 @@ cdef class SmoothLine(Line):
 
         vcount = <unsigned short>(count * 4)
         icount = (count - 1) * 18
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             icount += 18
 
         vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
@@ -1350,7 +1515,7 @@ cdef class SmoothLine(Line):
             free(vertices)
             raise MemoryError("indices")
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             ax = p[-2]
             ay = p[-1]
             bx = p[0]
@@ -1372,7 +1537,7 @@ cdef class SmoothLine(Line):
             else:
                 angle = last_angle
 
-            if index == 0 and not self._close:
+            if index == 0 and (not self._close or self._close_mode != 'straight-line'):
                 av_angle = angle
                 ad_angle = pi
             else:
@@ -1515,7 +1680,7 @@ cdef class SmoothLine(Line):
             tindices[17] = vindex + 7
             tindices = tindices + 18
 
-        if self._close:
+        if self._close and self._close_mode == 'straight-line':
             vindex = vcount - 4
             i0 = vindex
             i1 = vindex + 1

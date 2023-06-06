@@ -41,7 +41,7 @@ Builder.load_string('''
             background_color: .8811, .8811, .8811, 1
             foreground_color: 0, 0, 0, 1
             font_name: fnt_spnr.font_name
-            font_size: fntsz_spnr.text + 'sp'
+            font_size: sp(fntsz_spnr.text or 0)
             text: root.unicode_string
             size_hint: 1, None
             height: self.minimum_height

@@ -12,18 +12,18 @@ if "--build_examples" in sys.argv:
 from kivy.utils import pi_version
 from copy import deepcopy
 import os
-from os.path import join, dirname, sep, exists, basename, isdir
+from os.path import join, dirname, exists, basename, isdir
 from os import walk, environ, makedirs
-from distutils.command.build_ext import build_ext
-from distutils.version import LooseVersion
-from distutils.sysconfig import get_python_inc
 from collections import OrderedDict
 from time import sleep
-from sysconfig import get_paths
 from pathlib import Path
 import logging
-from setuptools import setup, Extension, find_packages
+import sysconfig
+import textwrap
+import tempfile
 
+from setuptools import Distribution, Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 
 if sys.version_info[0] == 2:
     logging.critical(
@@ -34,10 +34,6 @@ if sys.version_info[0] == 2:
 
 def ver_equal(self, other):
     return self.version == other
-
-
-# fix error with py3's LooseVersion comparisons
-LooseVersion.__eq__ = ver_equal
 
 
 def get_description():
@@ -73,10 +69,13 @@ def pkgconfig(*packages, **kw):
 
     if KIVY_DEPS_ROOT and platform != 'win32':
         lenviron = environ.copy()
-        lenviron["PKG_CONFIG_PATH"] = "{}:{}".format(
+        lenviron["PKG_CONFIG_PATH"] = "{}:{}:{}".format(
             environ.get("PKG_CONFIG_PATH", ""),
             join(
                 KIVY_DEPS_ROOT, "dist", "lib", "pkgconfig"
+            ),
+            join(
+                KIVY_DEPS_ROOT, "dist", "lib64", "pkgconfig"
             ),
         )
 
@@ -104,6 +103,43 @@ def get_isolated_env_paths():
     includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
     libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
     return includes, libs
+
+
+def check_c_source_compiles(code, include_dirs=None):
+    """Check if C code compiles.
+    This function can be used to check if a specific feature is available on
+    the current platform, and therefore enable or disable some modules.
+    """
+
+    def get_compiler():
+        """Get the compiler instance used by setuptools.
+        This is a bit hacky, but seems the only way to get the compiler instance
+        used by setuptools, without using private APIs or the deprecated
+        distutils module. (See: https://github.com/pypa/setuptools/issues/2806)
+        """
+        fake_dist_build_ext = Distribution().get_command_obj("build_ext")
+        fake_dist_build_ext.finalize_options()
+        # register an extension to ensure a compiler is created
+        fake_dist_build_ext.extensions = [Extension("ignored", ["ignored.c"])]
+        # disable building fake extensions
+        fake_dist_build_ext.build_extensions = lambda: None
+        # run to populate self.compiler
+        fake_dist_build_ext.run()
+        return fake_dist_build_ext.compiler
+
+    # Create a temporary file which contains the code
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_file = os.path.join(tmpdir, "test.c")
+        with open(temp_file, "w", encoding="utf-8") as tf:
+            tf.write(code)
+        try:
+            get_compiler().compile(
+                [temp_file], extra_postargs=[], include_dirs=include_dirs
+            )
+        except Exception as ex:
+            print(ex)
+            return False
+    return True
 
 
 # -----------------------------------------------------------------------------
@@ -166,7 +202,7 @@ if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
 # Detect options
 #
 c_options = OrderedDict()
-c_options['use_rpi'] = platform == 'rpi'
+c_options['use_rpi_vidcore_lite'] = platform == 'rpi'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
@@ -234,29 +270,8 @@ with open(join(src_path, 'kivy', '_version.py'), encoding="utf-8") as f:
 
 class KivyBuildExt(build_ext, object):
 
-    def __new__(cls, *a, **kw):
-        # Note how this class is declared as a subclass of distutils
-        # build_ext as the Cython version may not be available in the
-        # environment it is initially started in. However, if Cython
-        # can be used, setuptools will bring Cython into the environment
-        # thus its version of build_ext will become available.
-        # The reason why this is done as a __new__ rather than through a
-        # factory function is because there are distutils functions that check
-        # the values provided by cmdclass with issublcass, and so it would
-        # result in an exception.
-        # The following essentially supply a dynamically generated subclass
-        # that mix in the cython version of build_ext so that the
-        # functionality provided will also be executed.
-        if can_use_cython:
-            from Cython.Distutils import build_ext as cython_build_ext
-            build_ext_cls = type(
-                'KivyBuildExt', (KivyBuildExt, cython_build_ext), {})
-            return super(KivyBuildExt, cls).__new__(build_ext_cls)
-        else:
-            return super(KivyBuildExt, cls).__new__(cls)
-
     def finalize_options(self):
-        retval = super(KivyBuildExt, self).finalize_options()
+        super().finalize_options()
 
         # Build the extensions in parallel if the options has not been set
         if hasattr(self, 'parallel') and self.parallel is None:
@@ -272,8 +287,6 @@ class KivyBuildExt(build_ext, object):
                 not self.inplace):
             build_path = self.build_lib
             print("Updated build directory to: {}".format(build_path))
-
-        return retval
 
     def build_extensions(self):
         # build files
@@ -327,7 +340,7 @@ class KivyBuildExt(build_ext, object):
             for e in self.extensions:
                 e.extra_link_args += ['-lm']
 
-        super(KivyBuildExt, self).build_extensions()
+        super().build_extensions()
 
     def update_if_changed(self, fn, content):
         need_update = True
@@ -392,17 +405,18 @@ cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
 
 if can_use_cython:
     import Cython
+    from packaging import version
     print('\nFound Cython at', Cython.__file__)
 
     cy_version_str = Cython.__version__
-    cy_ver = LooseVersion(cy_version_str)
+    cy_ver = version.parse(cy_version_str)
     print('Detected supported Cython version {}'.format(cy_version_str))
 
-    if cy_ver < LooseVersion(MIN_CYTHON_STRING):
+    if cy_ver < version.Version(MIN_CYTHON_STRING):
         print(cython_min_msg)
     elif cy_ver in CYTHON_UNSUPPORTED:
         print(cython_unsupported_msg)
-    elif cy_ver > LooseVersion(MAX_CYTHON_STRING):
+    elif cy_ver > version.Version(MAX_CYTHON_STRING):
         print(cython_max_msg)
     sleep(1)
 
@@ -477,7 +491,9 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             gstreamer_valid = True
             c_options['use_gstreamer'] = True
         else:
-            _includes = get_isolated_env_paths()[0] + [get_paths()['include']]
+            _includes = get_isolated_env_paths()[0] + [
+                sysconfig.get_path("include")
+            ]
             for include_dir in _includes:
                 if exists(join(include_dir, 'gst', 'gst.h')):
                     print('GStreamer found via gst.h')
@@ -644,7 +660,7 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     elif platform == 'win32':
-        flags['include_dirs'] += [get_python_inc(prefix=sys.prefix)]
+        flags['include_dirs'] += [sysconfig.get_path('include')]
         flags['library_dirs'] += [join(sys.prefix, "libs")]
     return flags
 
@@ -736,6 +752,7 @@ def determine_sdl2():
         default_sdl2_path = os.pathsep.join(
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
+                join(KIVY_DEPS_ROOT, "dist", "lib64"),
                 join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
             ]
         )
@@ -976,11 +993,29 @@ if c_options['use_avfoundation']:
     else:
         print('AVFoundation cannot be used, OSX >= 10.7 is required')
 
-if c_options['use_rpi']:
-    sources['lib/vidcore_lite/egl.pyx'] = merge(
-        base_flags, gl_flags)
-    sources['lib/vidcore_lite/bcm.pyx'] = merge(
-        base_flags, gl_flags)
+if c_options['use_rpi_vidcore_lite']:
+
+    # DISPMANX is only available on old versions of Raspbian (Buster).
+    # For this reason, we need to be sure that EGL_DISPMANX_* is available
+    # before compiling the vidcore_lite module, even if we're on a RPi.
+    HAVE_DISPMANX = check_c_source_compiles(
+        textwrap.dedent(
+            """
+        #include <bcm_host.h>
+        #include <EGL/eglplatform.h>
+        int main(int argc, char **argv) {
+            EGL_DISPMANX_WINDOW_T window;
+            bcm_host_init();
+        }
+        """
+        ),
+        include_dirs=gl_flags["include_dirs"],
+    )
+    if HAVE_DISPMANX:
+        sources['lib/vidcore_lite/egl.pyx'] = merge(
+            base_flags, gl_flags)
+        sources['lib/vidcore_lite/bcm.pyx'] = merge(
+            base_flags, gl_flags)
 
 if c_options['use_x11']:
     libs = ['Xrender', 'X11']
@@ -1167,6 +1202,7 @@ if not build_examples:
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',

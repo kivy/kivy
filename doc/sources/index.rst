@@ -48,4 +48,4 @@ For a list of authors, please see the file AUTHORS that accompanies the
 Kivy source code distribution (next to LICENSE).
 
 
-Kivy -- Copyright 2010-2022, The Kivy Authors.
+Kivy -- Copyright 2010-2023, The Kivy Authors.

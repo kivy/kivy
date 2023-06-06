@@ -72,8 +72,7 @@
         pos: (root.value_pos[0] - root.cursor_width / 2, root.center_y - root.cursor_height / 2) if root.orientation == 'horizontal' else (root.center_x - root.cursor_width / 2, root.value_pos[1] - root.cursor_height / 2)
         size: root.cursor_size
         source: root.cursor_disabled_image if root.disabled else root.cursor_image
-        allow_stretch: True
-        keep_ratio: False
+        fit_mode: "fill"
 
 <ProgressBar>:
     canvas:
@@ -98,7 +97,7 @@
     Image:
         pos: root.pos
         size: root.size
-        allow_stretch: True
+        fit_mode: "contain"
         source: 'atlas://data/images/defaulttheme/splitter_grip' + root.horizontal
 
 <Scatter>:
@@ -119,6 +118,12 @@
         PopMatrix
 
 <Image,AsyncImage>:
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
     canvas:
         Color:
             rgba: self.color
@@ -126,6 +131,12 @@
             texture: self.texture
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
+    canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
 
 <EffectWidget>:
     canvas.before:
@@ -175,7 +186,7 @@
 
 <Selector>
     color: 148. / 255, 208 / 255., 230 / 255., 1
-    allow_stretch: True
+    fit_mode: "contain"
 
 <TextInput>:
     canvas.before:
@@ -604,7 +615,7 @@
     color: self.color[:3] + [0 if (root.icon and not root.inside_group) else 1]
 
     Image:
-        allow_stretch: True
+        fit_mode: "contain"
         opacity: 1 if (root.icon and not root.inside_group) else 0
         source: root.icon
         mipmap: root.mipmap
@@ -655,7 +666,7 @@
                     id: prev_icon_image
                     source: root.previous_image
                     opacity: 1 if root.with_previous else 0
-                    allow_stretch: True
+                    fit_mode: "contain"
                     size_hint_x: None
                     temp_width: root.previous_image_width or dp(prev_icon_image.texture_size[0])
                     temp_height: root.previous_image_height or dp(prev_icon_image.texture_size[1])
@@ -667,7 +678,7 @@
                 ActionPreviousImage:
                     id: app_icon_image
                     source: root.app_icon
-                    allow_stretch: True
+                    fit_mode: "contain"
                     size_hint_x: None
                     temp_width: root.app_icon_width or dp(app_icon_image.texture_size[0])
                     temp_height: root.app_icon_height or dp(app_icon_image.texture_size[1])
@@ -1086,21 +1097,21 @@
             video: root
             width: '44dp'
             source: root.image_stop
-            allow_stretch: True
+            fit_mode: "contain"
 
         VideoPlayerPlayPause:
             size_hint_x: None
             video: root
             width: '44dp'
             source: root.image_pause if root.state == 'play' else root.image_play
-            allow_stretch: True
+            fit_mode: "contain"
 
         VideoPlayerVolume:
             video: root
             size_hint_x: None
             width: '44dp'
             source: root.image_volumehigh if root.volume > 0.8 else (root.image_volumemedium if root.volume > 0.4 else (root.image_volumelow if root.volume > 0 else root.image_volumemuted))
-            allow_stretch: True
+            fit_mode: "contain"
 
         Widget:
             size_hint_x: None

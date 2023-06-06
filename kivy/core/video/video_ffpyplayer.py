@@ -115,6 +115,14 @@ class VideoFFPy(VideoBase):
 
         super(VideoFFPy, self).__init__(**kwargs)
 
+    @property
+    def _is_stream(self):
+        # This is only used when building ff_opts, to prevent starting
+        # player paused and can probably be removed as soon as the 'eof'
+        # receiving issue is solved.
+        # See https://github.com/matham/ffpyplayer/issues/142
+        return self.filename.startswith('rtsp://')
+
     def __del__(self):
         self.unload()
 
@@ -211,7 +219,7 @@ class VideoFFPy(VideoBase):
                 self._texture = fbo.texture
             else:
                 self._texture = Texture.create(size=self._size,
-                                                colorfmt='rgba')
+                                               colorfmt='rgba')
 
             # XXX FIXME
             # self.texture.add_reload_observer(self.reload_buffer)
@@ -250,21 +258,12 @@ class VideoFFPy(VideoBase):
                 wait_for_wakeup(0.005)
                 continue
 
-            if src_pix_fmt == 'yuv420p':
+            # ffpyplayer reports src_pix_fmt as bytes. this may or may not
+            # change in future, so we check for both bytes and str
+            if src_pix_fmt in (b'yuv420p', 'yuv420p'):
                 self._out_fmt = 'yuv420p'
                 ffplayer.set_output_pix_fmt(self._out_fmt)
             break
-
-        if self._ffplayer_need_quit:
-            ffplayer.close_player()
-            return
-
-        # wait until loaded or failed, shouldn't take long, but just to make
-        # sure metadata is available.
-        while not self._ffplayer_need_quit:
-            if ffplayer.get_metadata()['src_vid_size'] != (0, 0):
-                break
-            wait_for_wakeup(0.005)
 
         if self._ffplayer_need_quit:
             ffplayer.close_player()
@@ -389,9 +388,13 @@ class VideoFFPy(VideoBase):
         # load first unloads
         self.load()
         self._out_fmt = 'rgba'
-        # it starts internally paused, but unpauses itself
+        # if no stream, it starts internally paused, but unpauses itself
+        # if stream and we start paused, we sometimes receive eof after a
+        # few frames, depending on the stream producer.
+        # XXX: This probably needs to be figured out in ffpyplayer, using
+        #      ffplay directly works.
         ff_opts = {
-            'paused': True,
+            'paused': not self._is_stream,
             'out_fmt': self._out_fmt,
             'sn': True,
             'volume': self._volume,

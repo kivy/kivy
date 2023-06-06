@@ -123,7 +123,7 @@ events bubble up from the first child upwards through the other children.
 If a widget has children, the event is passed through its children before
 being passed on to the widget after it.
 
-As the :meth:`~kivy.uix.widget.Widget.on_touch_up` method inserts widgets at
+As the :meth:`~kivy.uix.widget.Widget.add_widget` method inserts widgets at
 index 0 by default, this means the event goes from the most recently added
 widget back to the first one added. Consider the following:
 

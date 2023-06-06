@@ -9,8 +9,6 @@ on:
 
 env:
   SERVER_IP: '159.203.106.198'
-  KIVY_CROSS_PLATFORM: 'rpi'
-  KIVY_CROSS_SYSROOT: '/rpi-firmware'
 
 jobs:
   raspberrypi:
@@ -18,7 +16,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
-        docker_images: ['balenalib/armv7hf-debian:buster']
+        docker_images: ['balenalib/raspberrypi3-debian-python:3.7-buster', 'balenalib/raspberrypi3-debian-python:3.9-bullseye']
     steps:
     - uses: actions/checkout@v3
     - name: Generate version metadata
@@ -28,7 +26,7 @@ jobs:
     - name: Make ${{ matrix.docker_images }} wheel
       run: |
         source .ci/ubuntu_ci.sh
-        generate_armv7l_wheels ${{ matrix.docker_images }} "$KIVY_CROSS_PLATFORM" "$KIVY_CROSS_SYSROOT"
+        generate_rpi_wheels ${{ matrix.docker_images }}
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |

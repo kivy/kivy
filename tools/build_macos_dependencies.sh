@@ -1,25 +1,27 @@
+set -e -x
+
 # macOS SDL2
-MACOS__SDL2__VERSION="2.24.2"
+MACOS__SDL2__VERSION="2.26.4"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
 MACOS__SDL2__FOLDER="SDL2-${MACOS__SDL2__VERSION}"
 
 # macOS SDL2_image
-MACOS__SDL2_IMAGE__VERSION="2.6.2"
+MACOS__SDL2_IMAGE__VERSION="2.6.3"
 MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
-MACOS__SDL2_IMAGE__FOLDER="SDL2_image-2.6.2"
+MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
 
 # macOS SDL2_mixer
-MACOS__SDL2_MIXER__VERSION="2.6.2"
+MACOS__SDL2_MIXER__VERSION="2.6.3"
 MACOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL2_MIXER__VERSION/SDL2_mixer-$MACOS__SDL2_MIXER__VERSION.tar.gz"
-MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-2.6.2"
+MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-${MACOS__SDL2_MIXER__VERSION}"
 
 # macOS SDL2_ttf
-MACOS__SDL2_TTF__VERSION="2.20.1"
+MACOS__SDL2_TTF__VERSION="2.20.2"
 MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL2_TTF__VERSION/SDL2_ttf-$MACOS__SDL2_TTF__VERSION.tar.gz"
-MACOS__SDL2_TTF__FOLDER="SDL2_ttf-2.20.1"
+MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
 
 # Clean the dependencies folder
-rm -r kivy-dependencies
+rm -rf kivy-dependencies
 
 # Create the dependencies folder
 mkdir kivy-dependencies
@@ -54,27 +56,28 @@ pushd kivy-dependencies/build
 
 echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+        -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
 cp -r Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_mixer (Universal)"
 pushd $MACOS__SDL2_MIXER__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_image (Universal)"
 pushd $MACOS__SDL2_IMAGE__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_image.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_image.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_ttf (Universal)"
 pushd $MACOS__SDL2_TTF__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_ttf.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_ttf.framework ../../dist/Frameworks
 popd

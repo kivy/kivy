@@ -368,6 +368,28 @@ class TabbedPanel(GridLayout):
     defaults to 100.
     '''
 
+    bar_width = NumericProperty('2dp')
+    '''Width of the horizontal scroll bar. The width is interpreted
+    as a height for the horizontal bar.
+
+    .. versionadded:: 2.2.0
+
+    :attr:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 2.
+    '''
+
+    scroll_type = OptionProperty(['content'], options=(['content'], ['bars'],
+                                 ['bars', 'content'], ['content', 'bars']))
+
+    '''Sets the type of scrolling to use for the content of the scrollview.
+    Available options are: ['content'], ['bars'], ['bars', 'content'].
+
+    .. versionadded:: 2.2.0
+
+    :attr:`scroll_type` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to ['content'].
+    '''
+
     do_default_tab = BooleanProperty(True)
     '''Specifies whether a default_tab head is provided.
 
@@ -684,7 +706,9 @@ class TabbedPanel(GridLayout):
         tab_pos = self.tab_pos
         tab_layout = self._tab_layout
         tab_layout.clear_widgets()
-        scrl_v = ScrollView(size_hint=(None, 1), always_overscroll=False)
+        scrl_v = ScrollView(size_hint=(None, 1), always_overscroll=False,
+                            bar_width=self.bar_width,
+                            scroll_type=self.scroll_type)
         tabs = self._tab_strip
         parent = tabs.parent
         if parent:

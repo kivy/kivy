@@ -18,13 +18,13 @@ Installing Python
 
 Python and python-pip must be installed from the package manager:
 
-Raspbian Jessie/Stretch/Buster
+Raspberry Pi OS Buster/Bullseye
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using apt::
 
     sudo apt update
-    sudo apt install python3-setuptools git-core python3-dev
+    sudo apt install python3 python3-pip
 
 Arch Linux ARM
 ~~~~~~~~~~~~~~
@@ -54,51 +54,71 @@ To install Kivy from source, please follow the :ref:`installation guide<kivy-whe
 :ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
 before continuing.
 
-Raspbian Jessie/Stretch/Buster
+Raspberry Pi OS Buster/Bullseye
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using apt::
 
     sudo apt update
-    sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       libgstreamer1.0-dev \
-       gstreamer1.0-plugins-{bad,base,good,ugly} \
-       gstreamer1.0-{omx,alsa} libmtdev-dev \
-       xclip xsel libjpeg-dev
+    apt-get -y install build-essential git make autoconf automake libtool \
+          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
 
-Cross-Compilation for Raspberry Pi 1-3 headless installation on Raspbian Buster
-*******************************************************************************
+    apt-get install xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers
 
-The Raspberry OS project uses `pi-gen` project to create bootable images for Raspberry PI.
+    # If we're on Debian buster, we need to install cmake from backports as the cmake version
+    # in buster is too old to build sdl2
+    if [ "$(lsb_release -cs)" = "buster" ]; then \
+        echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list; \
+        apt-get update; \
+        apt-get -y install -t buster-backports cmake; \
+    fi
 
-Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi.
-In order to build Kivy in such `pi-gen` environment, the auto-detection of the Raspberry Pi hardware version needs to be disabled.
+Cross-Compilation for Raspberry Pi OS Buster/Bullseye (32 bit)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When cross-compiling using e.g. `pi-gen`, the build system can be forced into compiling for Raspberry Pi with `egl_rpi` support by setting the environment variable `KIVY_RPI_VERSION` to any number < 4, e.g. `3`.
+Kivy performs a dockerized cross-compilation for Raspberry Pi OS Buster/Bullseye (32 bit) wheels.
+The base images used for cross-compilation are the `balenalib`_ images for raspberrypi3 (buster and bullseye).
 
-The install command then looks something like this::
+.. _balenalib: https://www.balena.io/docs/reference/base-images/base-images-ref/
 
-    apt install build-essential libraspberrypi-dev raspberrypi-kernel-headers
-    KIVY_RPI_VERSION=3 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
+The docker images are built using the `Dockerfile.armv7l` file in the `.ci` directory.
+
+The raspberrypi3 balenalib images have almost the same environment as the real Raspberry Pi OS Buster/Bullseye (32 bit) system,
+which makes it possible to include/exclude RPi specific features (like the `egl_rpi` window provider) during the build process.
+
+We have an helper, named `generate_rpi_wheels`, that can be used to easily generate the wheels and copy the artifacts for Raspberry Pi OS Buster/Bullseye (32 bit).
+To cross-compile the wheels, you need to run the following commands::
+
+    source .ci/ubuntu_ci.sh
+
+    # Generate wheels for Raspberry Pi OS Buster (32 bit, Python 3.7)
+    generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.7-buster
+
+    # Generate wheels for Raspberry Pi OS Bullseye (32 bit, Python 3.9)
+    generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.9-bullseye
+
+
+Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that 
+uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi with Raspberry Pi OS Buster (32 bit), as it is the only
+platform that still  supports it.
 
 Please note that the `egl_rpi` window handler is not supported on Raspberry Pi 4 and higher.
-The existing version check will refuse to compile the `egl_rpi` provider when detecting or forcing the Raspberry Pi version to 4 or higher.
 
-Raspberry Pi 4 headless installation on Raspbian Buster
-*******************************************************
+Headless support on Raspberry Pi
+--------------------------------
 
-If you run Kivy from the console and not from a desktop environment, you need to compile SDL2
-with the ``kmsdrm`` backend. This is not the default, so you need add a few extra requirements, and 
-then edit the build script located at `tools/build_linux_dependencies.sh` accordingly.
+If you followed the previous steps, or you're using the pre-built wheels, the headless support is enabled by default.
 
-Extra install requirements::
+On supported platforms (RPi 1-3 with Raspberry Pi OS Buster), the `egl_rpi` window provider is used by default. This window provider uses the
+(deprecated, will be removed in future) DISPMANX API to create a headless GL context.
 
-    sudo apt-get install libfreetype6-dev libgl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev libudev-dev libasound2-dev liblzma-dev libjpeg-dev libtiff-dev libwebp-dev git build-essential
-    sudo apt-get install gir1.2-ibus-1.0 libdbus-1-dev libegl1-mesa-dev libibus-1.0-5 libibus-1.0-dev libice-dev libsm-dev libsndio-dev libwayland-bin libwayland-dev libxi-dev libxinerama-dev libxkbcommon-dev libxrandr-dev libxss-dev libxt-dev libxv-dev x11proto-randr-dev x11proto-scrnsaver-dev x11proto-video-dev x11proto-xinerama-dev
-
-Extra flags for `configure` step of ``-- Build SDL2`` build phase ::
-
-    --enable-video-kmsdrm --disable-video-opengl --disable-video-x11 --disable-video-rpi
+On other platforms (e.g RPi 4 or 64 bit OS), the `sdl2` window provider is used by default. If during the build process for the `sdl2` 
+dependencies the `kmsdrm` headers and libraries are found, the `kmsdrm` backend is enabled. This backend allows to create a headless 
+GL context using the KMS/DRM API.
 
 Hardware acceleration
 ---------------------
@@ -121,9 +141,7 @@ You will then see an output similar to this::
 Raspberry Pi window provider and GL backend
 -------------------------------------------
 
-By default the Raspberry Pi 1-3 will use the ``egl_rpi`` window provider and the ``gl`` GL backend.
-
-Since the ``egl_rpi`` window provider is not available on the Raspberry Pi 4 it uses the ``sdl2`` window provider and the ``sdl2`` GL backend by default.
+Where applicable, Kivy will use the `egl_rpi` window provider by default.
 
 The window provider and GL backend can be changed at runtime by setting the `KIVY_WINDOW`_ and `KIVY_GL_BACKEND`_ environmental variables.
 
@@ -136,8 +154,10 @@ The table below shows the supported combinations of window provider and GL backe
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
 | x11                                | gl                                | y     | y     | y     | y     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
-| egl_rpi                            | gl                                | y     | y     | y     | n     |
+| egl_rpi                            | gl                                | y*    | y*    | y*    | n     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
+
+*The ``egl_rpi`` (deprecated) window provider is only available on Raspberry Pi OS Buster (32 bit).
 
 .. _KIVY_WINDOW: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
 .. _KIVY_GL_BACKEND: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
@@ -152,6 +172,8 @@ HDMI, use::
     KIVY_BCM_DISPMANX_ID=2 python3 main.py
 
 Check :ref:`environment` to see all the possible values.
+
+Note that this is only available on Raspberry Pi OS Buster (32 bit) and only when using the `egl_rpi` window provider.
 
 Using Official RPi touch display
 --------------------------------

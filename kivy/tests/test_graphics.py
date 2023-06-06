@@ -28,7 +28,7 @@ class BoxShadowTest(GraphicUnitTest):
                 pos=(50, 50),
                 size=(150, 150),
                 offset=(0, 10),
-                spread_radius=10,
+                spread_radius=(10, -10),
                 border_radius=(10, 10, 10, 10),
                 blur_radius=80,
             )
@@ -42,7 +42,7 @@ class BoxShadowTest(GraphicUnitTest):
                 pos=(50, 50),
                 size=(150, 150),
                 offset=(0, 10),
-                spread_radius=10,
+                spread_radius=(10, -10),
                 border_radius=(10, 10, 10, 10),
                 blur_radius=80,
             )
@@ -57,7 +57,7 @@ class BoxShadowTest(GraphicUnitTest):
         bs.pos = [50, 50]
         bs.size = [150, 150]
         bs.offset = [0, 10]
-        bs.spread_radius = 10
+        bs.spread_radius = [10, -10]
         bs.border_radius = [10, 10, 10, 10]
         bs.blur_radius = 40
         r(wid)
@@ -71,7 +71,7 @@ class BoxShadowTest(GraphicUnitTest):
         bs.pos = 50, 50
         bs.size = raw_size
         bs.blur_radius = 80
-        bs.spread_radius = 10
+        bs.spread_radius = -10, 10
 
         # The size of the rectangle containing the FBO texture (shadow) needs
         # to be adjusted according to the size of the shadow, otherwise there
@@ -79,11 +79,11 @@ class BoxShadowTest(GraphicUnitTest):
         adjusted_size = (
             max(
                 0,
-                raw_size[0] + bs.blur_radius * 3 + bs.spread_radius * 2,
+                raw_size[0] + bs.blur_radius * 3 + bs.spread_radius[0] * 2,
             ),
             max(
                 0,
-                raw_size[1] + bs.blur_radius * 3 + bs.spread_radius * 2,
+                raw_size[1] + bs.blur_radius * 3 + bs.spread_radius[1] * 2,
             ),
         )
 
@@ -104,16 +104,16 @@ class BoxShadowTest(GraphicUnitTest):
             pos=(50, 50),
             size=raw_size,
             blur_radius=80,
-            spread_radius=10
+            spread_radius=(10, -10)
         )
         adjusted_size = (
             max(
                 0,
-                raw_size[0] + bs.blur_radius * 3 + bs.spread_radius * 2,
+                raw_size[0] + bs.blur_radius * 3 + bs.spread_radius[0] * 2,
             ),
             max(
                 0,
-                raw_size[1] + bs.blur_radius * 3 + bs.spread_radius * 2,
+                raw_size[1] + bs.blur_radius * 3 + bs.spread_radius[1] * 2,
             ),
         )
 
@@ -140,18 +140,18 @@ class BoxShadowTest(GraphicUnitTest):
         bs.size = raw_size
         bs.offset = offset
         bs.blur_radius = 80
-        bs.spread_radius = 10
+        bs.spread_radius = -10, 10
 
         # If the size of the rectangle containing the FBO texture (shadow)
         # changes, its position will need to be adjusted.
         adjusted_pos = (
             raw_pos[0]
             - bs.blur_radius * 1.5
-            - bs.spread_radius
+            - bs.spread_radius[0]
             + bs.offset[0],
             raw_pos[0]
             - bs.blur_radius * 1.5
-            - bs.spread_radius
+            - bs.spread_radius[1]
             + bs.offset[1],
         )
 
@@ -173,16 +173,16 @@ class BoxShadowTest(GraphicUnitTest):
             size=raw_size,
             offset=offset,
             blur_radius=80,
-            spread_radius=10
+            spread_radius=(10, -10)
         )
         adjusted_pos = (
             raw_pos[0]
             - bs.blur_radius * 1.5
-            - bs.spread_radius
+            - bs.spread_radius[0]
             + bs.offset[0],
             raw_pos[0]
             - bs.blur_radius * 1.5
-            - bs.spread_radius
+            - bs.spread_radius[1]
             + bs.offset[1],
         )
 
@@ -205,7 +205,7 @@ class BoxShadowTest(GraphicUnitTest):
         bs.size = 150, 150
         bs.offset = 10, -100
         bs.blur_radius = -80
-        bs.spread_radius = -200
+        bs.spread_radius = -200, -100
         bs.border_radius = 0, 0, 100, 0
 
         assert bs.size == (0, 0)
@@ -226,7 +226,7 @@ class BoxShadowTest(GraphicUnitTest):
             size=(150, 150),
             offset=(10, -100),
             blur_radius=-80,
-            spread_radius=-200,
+            spread_radius=(-200, -100),
             border_radius=(0, 0, 100, 0),
         )
 
@@ -322,6 +322,112 @@ class VertexInstructionTest(GraphicUnitTest):
         p.add_point(50, 10)
 
         r(wid)
+
+    def test_line_rounded_rectangle(self):
+        from kivy.uix.widget import Widget
+        from kivy.graphics import Line, Color
+        r = self.render
+
+        # basic rounded_rectangle
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(100, 100, 100, 100, 10, 20, 30, 40, 100)
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 10, 20, 30, 40, 100
+        )
+
+        # The largest angle allowed is equal to the smallest dimension (width
+        # or height) minus the largest angle value between the anterior angle
+        # and the posterior angle.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 20, 10, 30, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 70, 20, 10, 30, 100
+        )
+
+        # Same approach as above
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 25, 100, 50, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 50, 25, 50, 50, 100
+        )
+
+        # A circle should be generated if width and height are equal, and all
+        # angles passed are greater than or equal to the smallest dimension.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 150, 50, 50.001, 51, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 50, 50, 50, 50, 100
+        )
+
+        # Currently the minimum radius should be 1, to avoid rendering issues
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 0, 0, 0, 0, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 1, 1, 1, 1, 100
+        )
+
+        # Angles adjustment + avoid issue if radius is less than 1
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = Line(
+                rounded_rectangle=(
+                    100, 100, 100, 100, 100, 0, 0, 0, 100
+                )
+            )
+        r(wid)
+        assert line.rounded_rectangle == (
+            100, 100, 100, 100, 99, 1, 1, 1, 100
+        )
+
+    def test_smoothline_rounded_rectangle(self):
+        from kivy.uix.widget import Widget
+        from kivy.graphics import SmoothLine, Color
+        r = self.render
+
+        # If width and/or height < 2px, the figure should not be rendered.
+        # This avoids some known SmoothLine rendering issues.
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+            line = SmoothLine(
+                rounded_rectangle=(100, 100, 0.5, 1.99, 30, 30, 30, 30, 100)
+            )
+        r(wid)
+        assert line.rounded_rectangle is None
 
 
 class FBOInstructionTestCase(GraphicUnitTest):
