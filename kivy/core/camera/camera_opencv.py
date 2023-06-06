@@ -60,21 +60,21 @@ class CameraOpenCV(CameraBase):
     _update_ev = None
 
     def __init__(self, **kwargs):
-        # 0 is the apiID of CAP_ANY for both cv and cv2
-        kwargs.setdefault('apiID', 0)
-        self.apiID = kwargs.get('apiID')
+        # 0 is the api_id of CAP_ANY for both cv and cv2
+        kwargs.setdefault('api_id', 0)
+        self.api_id = kwargs.get('api_id')
         
         # we will need it, because constants have
         # different access paths between ver. 2 and 3
         try:
             self.opencvMajorVersion = int(cv.__version__[0])
-            if platform == 'win' and self.apiID == 0:
-                self.apiID = cv.CAP_DSHOW
+            if platform == 'win' and self.api_id == 0:
+                self.api_id = cv.CAP_DSHOW
 
         except NameError:
             self.opencvMajorVersion = int(cv2.__version__[0])
-            if platform == 'win' and self.apiID == 0:
-                self.apiID = cv2.CAP_DSHOW
+            if platform == 'win' and self.api_id == 0:
+                self.api_id = cv2.CAP_DSHOW
 
         self._device = None
         super(CameraOpenCV, self).__init__(**kwargs)
@@ -98,7 +98,7 @@ class CameraOpenCV(CameraBase):
 
         if self.opencvMajorVersion == 1:
             # create the device
-            self._device = hg.cvCreateCameraCapture(self._index, self.apiID)
+            self._device = hg.cvCreateCameraCapture(self._index, self.api_id)
             # Set preferred resolution
             cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
                                   self.resolution[0])
@@ -116,7 +116,7 @@ class CameraOpenCV(CameraBase):
 
         elif self.opencvMajorVersion in (2, 3, 4):
             # create the device
-            self._device = cv2.VideoCapture(self._index, self.apiID)
+            self._device = cv2.VideoCapture(self._index, self.api_id)
             # Set preferred resolution
             self._device.set(PROPERTY_WIDTH,
                              self.resolution[0])

@@ -79,9 +79,11 @@ class Camera(Image):
     to [-1, -1].
     '''
     
-    apiID = NumericProperty(0)
+    api_id = NumericProperty(0)
     '''Preferred video capture API ID to use when invoking the camera. If you are using
     0, the API will be the default one::
+    
+    .. versionadded:: 2.3.0
 
     :attr:`apiID` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 0.
@@ -108,10 +110,10 @@ class Camera(Image):
         if self.index < 0:
             return
         if self.resolution[0] < 0 or self.resolution[1] < 0:
-            self._camera = CoreCamera(index=self.index, stopped=True, apiID=self.apiID)
+            self._camera = CoreCamera(index=self.index, stopped=True, apiID=self.api_id)
         else:
             self._camera = CoreCamera(index=self.index,
-                                      resolution=self.resolution, stopped=True, apiID=self.apiID)
+                                      resolution=self.resolution, stopped=True, apiID=self.api_id)
         if self.play:
             self._camera.start()
 
