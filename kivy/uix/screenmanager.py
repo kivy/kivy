@@ -982,8 +982,6 @@ class ScreenManager(FloatLayout):
         '''
         .. versionchanged:: 2.1.0
             Renamed argument `screen` to `widget`.
-        .. versionchanged:: 2.3.0
-            Raising exception for repeated screen name.
         '''
         if not isinstance(widget, Screen):
             raise ScreenManagerException(
