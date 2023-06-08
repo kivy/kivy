@@ -980,6 +980,8 @@ class ScreenManager(FloatLayout):
 
     def add_widget(self, widget, *args, **kwargs):
         '''
+        .. versionchanged:: 2.1.0
+            Renamed argument `screen` to `widget`.
         .. versionchanged:: 2.3.0
             Raising exception for repeated screen name.
         '''
@@ -994,9 +996,6 @@ class ScreenManager(FloatLayout):
                     '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
-        if self.has_screen(widget.name): 
-            raise ScreenManagerException(
-                'Cannot add new screen with non-unique name "%s", please change it to another one.' % widget.name)
         
         widget.manager = self
         widget.bind(name=self._screen_name_changed)
