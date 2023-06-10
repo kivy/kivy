@@ -118,20 +118,18 @@
         PopMatrix
 
 <Image,AsyncImage>:
-    canvas.before:
+    canvas:
+        Color:
+            rgba: self.color
         StencilPush
         Rectangle:
             pos: self.pos
             size: self.size
         StencilUse
-    canvas:
-        Color:
-            rgba: self.color
         Rectangle:
             texture: self.texture
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
-    canvas.after:
         StencilUnUse
         Rectangle:
             pos: self.pos
