@@ -429,6 +429,40 @@ class VertexInstructionTest(GraphicUnitTest):
         r(wid)
         assert line.rounded_rectangle is None
 
+    def test_enlarged_line(self):
+        from kivy.uix.widget import Widget
+        from kivy.graphics import Line, Color, PushMatrix, PopMatrix, Scale, \
+            Translate
+        r = self.render
+        wid = Widget()
+        with wid.canvas:
+            Color(1, 1, 1)
+
+            # Normal line with width 1
+            Line(
+                points=(10, 10, 10, 90),
+                width=1
+            )
+
+            # Normal line with width 3
+            Line(
+                points=(20, 10, 20, 90),
+                width=3
+            )
+
+            # Enlarged line that should look width 3
+            PushMatrix()
+            Translate(30, 10, 1)  # So the enlargement goes around 0, 0, 0
+            Scale(3, 1, 1)  # X scaled by 3 so the line width should become 3
+            Line(
+                points=(0, 0, 0, 80),
+                width=1,
+                force_custom_drawing_method=True
+            )
+            PopMatrix()
+
+        r(wid)
+
 
 class FBOInstructionTestCase(GraphicUnitTest):
 
