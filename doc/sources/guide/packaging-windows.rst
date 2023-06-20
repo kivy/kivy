@@ -112,6 +112,13 @@ Next, we will modify the example above to package the **touchtracer** example pr
           upx=True,
           name='touchtracer')
 
+
+#. Don't forget to include this in your code if you want to disable console::
+
+    if hasattr(sys, '_MEIPASS') or sys.__stdout__ is None or sys.__stderr__ is None:
+    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+
+
 #. Now you can build the spec file as before with::
 
      python -m PyInstaller touchtracer.spec
