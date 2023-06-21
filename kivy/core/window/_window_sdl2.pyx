@@ -607,9 +607,9 @@ cdef class _WindowSDL2Storage:
         finally:
             PyMem_Free(<void *>rect)
 
-    def hide_keyboard(self):
-        if SDL_IsTextInputActive():
-            SDL_StopTextInput()
+	def hide_keyboard(self):
+		if (platform == 'android' or platform == 'ios') and SDL_IsTextInputActive():
+			SDL_StopTextInput()
 
     def is_keyboard_shown(self):
         return SDL_IsTextInputActive()
