@@ -328,7 +328,11 @@ class LabelBase(object):
 
     def _migrate_deprecated_padding_xy(self):
         options = self.options
-        self.options['padding'] = list(self.options['padding'])
+        if self.options['padding'] is not None:
+            self.options['padding'] = list(self.options['padding'])
+        else:
+            self.options['padding'] = [0, 0, 0, 0]
+        
         if options['padding_x']:
             self.options['padding'][::2] = [options['padding_x']] * 2
         if options['padding_y']:
