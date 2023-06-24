@@ -394,6 +394,14 @@ cdef class _WindowSDL2Storage:
     def set_window_pos(self, x, y):
         SDL_SetWindowPosition(self.win, x, y)
 
+    def set_window_opacity(self, opacity):
+        SDL_SetWindowOpacity(self.win, opacity)
+
+    def get_window_opacity(self):
+        cdef float opacity
+        SDL_GetWindowOpacity(self.win, &opacity)
+        return opacity
+
     def get_window_info(self):
         cdef SDL_SysWMinfo wm_info
         SDL_GetVersion(&wm_info.version)
