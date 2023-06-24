@@ -489,6 +489,12 @@ class WindowSDL(WindowBase):
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
 
+    def _get_window_opacity(self):
+        return self._win.get_window_opacity()
+
+    def _set_window_opacity(self, opacity):
+        self._win.set_window_opacity(opacity)
+
     # Transparent Window background
     def _is_shaped(self):
         return self._win.is_window_shaped()
