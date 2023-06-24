@@ -76,22 +76,29 @@ class TextInputWindow(TextInputBase):
         if not self._undo_text_changes:
             return
 
-        print(self._undo_text_changes)
+        undo_step = self._undo_text_changes.pop()
+        self._redo_text_changes.append(undo_step)
 
-        substring, start_index, end_index, is_deletion = self._undo_text_changes.pop()
-        self._redo_text_changes.append(
-            (substring, start_index, end_index, is_deletion)
+        self._commit_text_change(
+            undo_step["previous"]["substring"],
+            undo_step["after"]["start_index"],
+            undo_step["after"]["end_index"],
+            from_undo_redo=True,
         )
 
-        if not is_deletion:
-            # If the change is not a deletion, we should delete the substring.
-            self._commit_text_change("", start_index, end_index, from_undo=True)
-        else:
-            # If the change is a deletion, we should add back the substring.
-            self._commit_text_change(substring, start_index, end_index, from_undo=True)
-
     def redo(self):
-        pass
+        if not self._redo_text_changes:
+            return
+
+        redo_step = self._redo_text_changes.pop()
+        self._undo_text_changes.append(redo_step)
+
+        self._commit_text_change(
+            redo_step["after"]["substring"],
+            redo_step["previous"]["start_index"],
+            redo_step["previous"]["end_index"],
+            from_undo_redo=True,
+        )
 
     def _keyboard_released(self):
         pass
@@ -138,24 +145,24 @@ class TextInputWindow(TextInputBase):
             # interpreted as text input.
             self._on_keyboard_textinput(self._keyboard, displayed_str)
 
-        elif internal_action in ('del', 'backspace'):
+        elif internal_action in ("del", "backspace"):
             # Signal the TextInput that we want to delete the selection
             # or the character before the cursor current position.
             self._on_keyboard_textinput(self._keyboard, "")
 
-        elif internal_action in ('shift', 'shift_L', 'shift_R'):
+        elif internal_action in ("shift", "shift_L", "shift_R"):
             # TODO: is not working
             # The user pressed shift, so it likely wants to select text.
             # We should start the selection process.
             self.dispatch("on_action", "shift")
 
-        elif internal_action.startswith('cursor_'):
+        elif internal_action.startswith("cursor_"):
             # The user wants to move inside the textinput by using the
             # arrow keys. We should signal the TextInput to move the cursor
             # accordingly.
             self.dispatch("on_action", internal_action)
 
-        elif internal_action == 'enter':
+        elif internal_action == "enter":
             if self._validator("\n"):
                 # The validator has accepted the 'enter' key as valid, so we should
                 # add a new line to the text.
@@ -165,7 +172,7 @@ class TextInputWindow(TextInputBase):
                 # We should signal the TextInput to submit the text or act accordingly.
                 self.dispatch("on_action", "enter")
 
-        elif internal_action == 'tab':
+        elif internal_action == "tab":
             if self._validator("\t"):
                 # The validator has accepted the 'tab' key as valid, so we should
                 # add a tab to the text.
@@ -178,7 +185,7 @@ class TextInputWindow(TextInputBase):
                 else:
                     self.dispatch("on_action", "tab")
 
-        elif internal_action == 'escape':
+        elif internal_action == "escape":
             # FIXME: The app is closing! (but it's not related)
             # The user pressed escape, so it likely wants to cancel the
             # focus. We should signal the TextInput to cancel the focus.
@@ -186,7 +193,7 @@ class TextInputWindow(TextInputBase):
 
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
-        if internal_action in ('shift', 'shift_L', 'shift_R'):
+        if internal_action in ("shift", "shift_L", "shift_R"):
             # TODO: The user released shift, so it likely wants to stop
             # selecting text. We should stop the selection process.
             pass
@@ -230,17 +237,22 @@ class TextInputWindow(TextInputBase):
     def paste(self, substring):
         self._on_keyboard_textinput(self._keyboard, substring)
 
+    def cut(self):
+        data = self.selected_text
+        self._on_keyboard_textinput(self._keyboard, "")
+        return data
+
     def _on_keyboard_textinput(self, keyboard, substring):
         start_index, end_index = self.selection
         self._commit_text_change(substring, start_index, end_index)
 
-    def _commit_text_change(self, substring, start_index, end_index, from_undo=False):
-
-        undo_substring = substring
-        is_deletion = False
+    def _commit_text_change(
+        self, substring, start_index, end_index, from_undo_redo=False
+    ):
+        previous_substring = ""
 
         if substring == "":
-            # If the substring is empty, the user is trying to delete text.
+            # The change is a deletion or a replacement.
             if start_index == end_index:
                 # No selection, delete one character (before the cursor).
                 if start_index < 1:
@@ -248,21 +260,27 @@ class TextInputWindow(TextInputBase):
                     return
                 start_index -= 1
 
-            # Get the fragment of text that will be deleted, so we can
-            # add it to the undo queue.
-            is_deletion = True
-            undo_substring = self._text[start_index:end_index]
+        if self._text[start_index:end_index] != "":
+
+            # The change is a replacement.
+            previous_substring = self._text[start_index:end_index]
+
+
+        if not from_undo_redo:
+            self._undo_text_changes.append({
+                "previous": {
+                    "substring": previous_substring,
+                    "start_index": start_index,
+                    "end_index": end_index,
+                },
+                "after": {
+                    "substring": substring,
+                    "start_index": start_index,
+                    "end_index": start_index + len(substring),
+                },
+            })
 
         self._text = self._text[:start_index] + substring + self._text[end_index:]
-
-        if not from_undo:
-            if not is_deletion:
-                undo_end_index = end_index + len(substring)
-            else:
-                undo_end_index = start_index
-            self._undo_text_changes.append(
-                (undo_substring, start_index, undo_end_index, is_deletion)
-            )
 
         self.dispatch("on_text_changed", substring, start_index, end_index)
 
