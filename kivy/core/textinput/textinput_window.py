@@ -249,7 +249,6 @@ class TextInputWindow(TextInputBase):
     def _commit_text_change(
         self, substring, start_index, end_index, from_undo_redo=False
     ):
-        previous_substring = ""
 
         if substring == "":
             # The change is a deletion or a replacement.
@@ -260,16 +259,11 @@ class TextInputWindow(TextInputBase):
                     return
                 start_index -= 1
 
-        if self._text[start_index:end_index] != "":
-
-            # The change is a replacement.
-            previous_substring = self._text[start_index:end_index]
-
-
         if not from_undo_redo:
+
             self._undo_text_changes.append({
                 "previous": {
-                    "substring": previous_substring,
+                    "substring": self._text[start_index:end_index],
                     "start_index": start_index,
                     "end_index": end_index,
                 },
