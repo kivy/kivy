@@ -501,32 +501,24 @@ class TextInputGraphicTest(GraphicUnitTest):
     def test_selectall_copy_paste(self):
         text = 'test'
         ti = TextInput(multiline=False, text=text)
-        ti.focus = True
         self.render(ti)
 
-        from kivy.base import EventLoop
-        win = EventLoop.window
+        ti.focus = True
 
         # select all
-        # win.dispatch(event_name, key, scancode, kstr, modifiers)
-        win.dispatch('on_key_down', 97, 4, 'a', ['capslock', 'ctrl'])
-        win.dispatch('on_key_up', 97, 4)
+        ti.select_all()
         self.advance_frames(1)
 
         # copy
-        win.dispatch('on_key_down', 99, 6, 'c',
-                     ['capslock', 'numlock', 'ctrl'])
-        win.dispatch('on_key_up', 99, 6)
+        ti.copy()
         self.advance_frames(1)
 
-        # home
-        win.dispatch('on_key_down', 278, 74, None, ['capslock'])
-        win.dispatch('on_key_up', 278, 74)
+        # move cursor to the end and remove selection
+        ti.select_text(len(text), len(text))
         self.advance_frames(1)
 
         # paste
-        win.dispatch('on_key_down', 118, 25, 'v', ['numlock', 'ctrl'])
-        win.dispatch('on_key_up', 118, 25)
+        ti.paste()
         self.advance_frames(1)
 
         assert ti.text == 'testtest'

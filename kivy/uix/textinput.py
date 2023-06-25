@@ -181,6 +181,7 @@ from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
 
 from kivy.core.text import Label, DEFAULT_FONT
+from kivy.core.textinput import TextInput as CoreTextInput
 from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, Callback
 from kivy.graphics.context_instructions import Transform
 from kivy.graphics.texture import Texture
@@ -508,6 +509,46 @@ class TextInput(FocusBehavior, Widget):
         is now inherited from :class:`~kivy.uix.behaviors.FocusBehavior`.
     '''
 
+    keyboard_suggestions = BooleanProperty(True)
+    '''If True provides auto suggestions on top of keyboard.
+    This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
+    `address`.
+
+    .. warning::
+        On Android, `keyboard_suggestions` relies on
+        `InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS` to work, but some keyboards
+        just ignore this flag. If you want to disable suggestions at all on
+        Android, you can set `input_type` to `null`, which will request the
+        input method to run in a limited "generate key events" mode.
+
+    .. versionadded:: 2.1.0
+
+    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
+    and defaults to True
+    '''
+
+    def _set_on_input_type(self, instance, value):
+        self._textinput.input_type = value
+
+    input_type = OptionProperty('null', options=('null', 'text', 'number',
+                                                 'url', 'mail', 'datetime',
+                                                 'tel', 'address'))
+    '''The kind of input keyboard to request.
+
+    .. versionadded:: 1.8.0
+
+    .. versionchanged:: 2.1.0
+        Changed default value from `text` to `null`. Added `null` to options.
+
+        .. warning::
+            As the default value has been changed, you may need to adjust
+            `input_type` in your code.
+
+    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
+    defaults to 'null'. Can be one of 'null', 'text', 'number', 'url', 'mail',
+    'datetime', 'tel' or 'address'.
+    '''
+
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
                   'on_quad_touch')
 
@@ -517,6 +558,7 @@ class TextInput(FocusBehavior, Widget):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
         self.is_focusable = kwargs.get('is_focusable', True)
+        self.focus_provider = "external"
         self._cursor = [0, 0]
         self._selection = False
         self._selection_finished = True
@@ -559,11 +601,12 @@ class TextInput(FocusBehavior, Widget):
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
 
-        super().__init__(**kwargs)
-
+        self._textinput = CoreTextInput(target=self, validator=self.validator)
         self._textinput.bind(
             on_text_changed=self._handle_coretextinput_text_changed,
         )
+
+        super().__init__(**kwargs)
 
         fbind = self.fbind
         refresh_line_options = self._trigger_refresh_line_options
@@ -598,6 +641,7 @@ class TextInput(FocusBehavior, Widget):
         fbind('halign', trigger_update_graphics)
         fbind('readonly', handle_readonly)
         fbind('focus', self._on_textinput_focused)
+        fbind('input_type', self._set_on_input_type)
         handle_readonly(self, self.readonly)
 
         handles = self._trigger_position_handles = Clock.create_trigger(
@@ -757,7 +801,6 @@ class TextInput(FocusBehavior, Widget):
     def _handle_coretextinput_selection_changed(
         self, instance, start, end
     ):
-        print("_handle_coretextinput_selection_changed", start, end)
         # The core textinput has changed its selection.
         # We need to update the textinput.
         self.select_text(start, end)
@@ -803,7 +846,7 @@ class TextInput(FocusBehavior, Widget):
             # If the text is not changed, we don't need to do anything.
             Logger.debug("Textinput: replace__same")
             return
-        
+
         self._current_text = _tmptext
 
         self._refresh_text(self._current_text, requestor="textinput")
@@ -1856,6 +1899,24 @@ class TextInput(FocusBehavior, Widget):
             self._do_blink_cursor_ev.cancel()
             self._hide_handles(win)
 
+    def _enter_focused_mode(self):
+        self._textinput.bind(
+            on_focus=self._handle_coretextinput_focus,
+            on_action=self._handle_coretextinput_action,
+        )
+        self._textinput.start()
+
+        super()._enter_focused_mode()
+
+    def _exit_focused_mode(self):
+        self._textinput.unbind(
+            on_focus=self._handle_coretextinput_focus,
+            on_action=self._handle_coretextinput_action,
+        )
+        self._textinput.pause()
+
+        super()._exit_focused_mode()
+
     def _ensure_clipboard(self):
         global Clipboard, CutBuffer
         if not Clipboard:
@@ -2682,11 +2743,22 @@ class TextInput(FocusBehavior, Widget):
         elif key == ord('r'):  # redo
             self.do_redo()
 
-    def _handle_coretextinput_action(self, instance, action):
+    def _handle_coretextinput_focus(self, instance, value):
+        # The core textinput has gained or lost focus, so we need to update
+        # our focus property accordingly.
+        self.focus = value
 
+    def _handle_coretextinput_action(self, instance, action):
         # Handle any FocusBehavior action before TextInput's
         # (e.g: tab, escape)
-        super()._handle_coretextinput_action(instance, action)
+        if action == "escape":
+            self.focus = False
+
+        if action == "tab":
+            self.move_focus(direction="next")
+
+        if action == "shifttab":
+            self.move_focus(direction="previous")
 
         if action == "enter":
             self.dispatch("on_text_validate")
@@ -2698,11 +2770,6 @@ class TextInput(FocusBehavior, Widget):
 
         if action.startswith("cursor_"):
             self.do_cursor_movement(action)
-
-    def keyboard_on_textinput(self, window, text):
-        if self._selection:
-            self.delete_selection()
-        self.insert_text(text, False)
 
     # current IME composition in progress by the IME system, or '' if nothing
     _ime_composition = StringProperty('')
