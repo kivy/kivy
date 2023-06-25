@@ -1006,89 +1006,6 @@ class TextInput(FocusBehavior, Widget):
             rto += 1
         return max(0, rfrom), min(rmax, rto)
 
-    def _shift_lines(
-        self, direction, rows=None, old_cursor=None
-    ):
-        lines = self._lines
-        flags = list(reversed(self._lines_flags))
-        labels = self._lines_labels
-        rects = self._lines_rects
-        orig_cursor = self.cursor
-        sel = None
-        if old_cursor is not None:
-            self.cursor = old_cursor
-
-        if not rows:
-            sindex = self.selection_from
-            eindex = self.selection_to
-            if (sindex or eindex) and sindex != eindex:
-                sindex, eindex = tuple(sorted((sindex, eindex)))
-                sindex, eindex = self._expand_range(sindex, eindex)
-            else:
-                sindex, eindex = self._expand_range(self.cursor_index())
-            srow = self.get_cursor_from_index(sindex)[1]
-            erow = self.get_cursor_from_index(eindex)[1]
-            sel = sindex, eindex
-
-            if direction < 0 and srow > 0:
-                psrow, perow = self._expand_rows(srow - 1)
-                rows = ((srow, erow), (psrow, perow))
-            elif direction > 0 and erow < len(lines) - 1:
-                psrow, perow = self._expand_rows(erow)
-                rows = ((srow, erow), (psrow, perow))
-
-        else:
-            (srow, erow), (psrow, perow) = rows
-            if direction < 0:
-                m1srow, m1erow = psrow, perow
-                m2srow, m2erow = srow, erow
-                cdiff = psrow - perow
-                xdiff = srow - erow
-            else:
-                m1srow, m1erow = srow, erow
-                m2srow, m2erow = psrow, perow
-                cdiff = perow - psrow
-                xdiff = erow - srow
-
-            self._lines_flags = list(reversed(chain(
-                flags[:m1srow],
-                flags[m2srow:m2erow],
-                flags[m1srow:m1erow],
-                flags[m2erow:],
-            )))
-            self._lines[:] = (
-                lines[:m1srow]
-                + lines[m2srow:m2erow]
-                + lines[m1srow:m1erow]
-                + lines[m2erow:]
-            )
-            self._lines_labels = (
-                labels[:m1srow]
-                + labels[m2srow:m2erow]
-                + labels[m1srow:m1erow]
-                + labels[m2erow:]
-            )
-            self._lines_rects = (
-                rects[:m1srow]
-                + rects[m2srow:m2erow]
-                + rects[m1srow:m1erow]
-                + rects[m2erow:]
-            )
-            self._trigger_update_graphics()
-            csrow = srow + cdiff
-            cerow = erow + cdiff
-            sel = (
-                self.cursor_index((0, csrow)),
-                self.cursor_index((0, cerow))
-            )
-            self.cursor = self.cursor_col, self.cursor_row + cdiff
-
-        if sel:
-            def cb(dt):
-                self.select_text(*sel)
-                self._selection_callback = None
-            self._selection_callback = Clock.schedule_once(cb)
-
     @property
     def pgmove_speed(self):
         """how much vertical distance hitting pg_up or pg_down will move
@@ -1102,7 +1019,8 @@ class TextInput(FocusBehavior, Widget):
         if self.multiline and control:
             self.scroll_y = max(0, self.scroll_y - self.line_height)
         elif not self.readonly and self.multiline and alt:
-            self._shift_lines(-1)
+            # self._shift_lines(-1)
+            # FIXME: We need to implement _shift_lines again.
             return
         else:
             row = max(row - 1, 0)
@@ -1118,7 +1036,8 @@ class TextInput(FocusBehavior, Widget):
                 min(maxy, self.scroll_y + self.line_height)
             )
         elif not self.readonly and self.multiline and alt:
-            self._shift_lines(1)
+            # self._shift_lines(1)
+            # FIXME: We need to implement _shift_lines again.
             return
         else:
             row = min(row + 1, len(self._lines) - 1)
@@ -1868,6 +1787,8 @@ class TextInput(FocusBehavior, Widget):
         self._textinput.bind(
             on_focus=self._handle_coretextinput_focus,
             on_action=self._handle_coretextinput_action,
+            on_shortcut=self._handle_coretextinput_shortcut,
+            on_selection_changed=self._handle_coretextinput_selection_changed,
         )
         self._textinput.start()
 
@@ -1877,6 +1798,8 @@ class TextInput(FocusBehavior, Widget):
         self._textinput.unbind(
             on_focus=self._handle_coretextinput_focus,
             on_action=self._handle_coretextinput_action,
+            on_shortcut=self._handle_coretextinput_shortcut,
+            on_selection_changed=self._handle_coretextinput_selection_changed,
         )
         self._textinput.pause()
 
