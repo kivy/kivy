@@ -109,16 +109,16 @@ For example, to write only in capitalized characters::
 
     class CapitalInput(TextInput):
 
-        def insert_text(self, substring, from_undo=False):
+        def insert_text(self, substring):
             s = substring.upper()
-            return super().insert_text(s, from_undo=from_undo)
+            return super().insert_text(s)
 
 Or to only allow floats (0 - 9 and a single period)::
 
     class FloatInput(TextInput):
 
         pat = re.compile('[^0-9]')
-        def insert_text(self, substring, from_undo=False):
+        def insert_text(self, substring):
             pat = self.pat
             if '.' in self.text:
                 s = re.sub(pat, '', substring)
@@ -127,7 +127,7 @@ Or to only allow floats (0 - 9 and a single period)::
                     re.sub(pat, '', s)
                     for s in substring.split('.', 1)
                 )
-            return super().insert_text(s, from_undo=from_undo)
+            return super().insert_text(s)
 
 Default shortcuts
 -----------------
@@ -581,9 +581,6 @@ class TextInput(FocusBehavior, Widget):
         self._label_cached = None
         self._line_options = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
-        self._command_mode = False
-        self._command = ''
-        self.reset_undo()
         self._touch_count = 0
         self._refresh_text_from_property_ev = None
         self._long_touch_ev = None
@@ -781,6 +778,7 @@ class TextInput(FocusBehavior, Widget):
     re_indent = re.compile(r'^(\s*|)')
 
     def _auto_indent(self, substring):
+        # FIXME: We need to handle it.
         index = self.cursor_index()
         if index > 0:
             _text = self._current_text
@@ -853,22 +851,12 @@ class TextInput(FocusBehavior, Widget):
         if move_cursor_at_end:
             self.cursor = self.get_cursor_from_index(end_index)
 
-    def insert_text(self, substring, from_undo=False):
+    def insert_text(self, substring):
         '''Insert new text at the current cursor position. Override this
         function in order to pre-process text for input validation.
         '''
+        # FIXME: We need to handle it.
         raise NotImplementedError
-
-    def _set_unredo_insert(self, ci, sci, substring, from_undo):
-        # handle undo and redo
-        if from_undo:
-            return
-        self._undo.append({
-            'undo_command': ('insert', ci, sci),
-            'redo_command': (ci, substring)
-        })
-        # reset redo when undo is appended to
-        self._redo = []
 
     def reset_undo(self):
         '''Reset undo and redo lists from memory.
@@ -876,7 +864,8 @@ class TextInput(FocusBehavior, Widget):
         .. versionadded:: 1.3.0
 
         '''
-        self._redo = self._undo = []
+        # FIXME: reset_undo is not implemented in core textinput
+        self._textinput.reset_undo()
 
     def do_redo(self):
         '''Do redo operation.
@@ -900,7 +889,7 @@ class TextInput(FocusBehavior, Widget):
         '''
         self._textinput.undo()
 
-    def do_backspace(self, from_undo=False, mode='bkspc'):
+    def do_backspace(self):
         '''Do backspace operation from the current cursor position.
         This action might do several things:
 
@@ -909,14 +898,15 @@ class TextInput(FocusBehavior, Widget):
             - do nothing, if we are at the start.
 
         '''
-        # IME system handles its own backspaces
         if self.readonly:
             return
+        # FIXME: backspace is not implemented in core textinput
         self._textinput.backspace()
 
     _re_whitespace = re.compile(r'\s+')
 
     def _move_cursor_word_left(self, index=None):
+        # FIXME: Not tested as we need to implement control in action handler in core textinput
         pos = index or self.cursor_index()
         if pos == 0:
             return self.cursor
@@ -955,6 +945,7 @@ class TextInput(FocusBehavior, Widget):
             return col, row
 
     def _move_cursor_word_right(self, index=None):
+        # FIXME: Not tested as we need to implement control in action handler in core textinput
         pos = index or self.cursor_index()
         col, row = self.get_cursor_from_index(pos)
         lines = self._lines
@@ -1016,14 +1007,8 @@ class TextInput(FocusBehavior, Widget):
         return max(0, rfrom), min(rmax, rto)
 
     def _shift_lines(
-        self, direction, rows=None, old_cursor=None, from_undo=False
+        self, direction, rows=None, old_cursor=None
     ):
-        if self._selection_callback:
-            if from_undo:
-                self._selection_callback.cancel()
-            else:
-                return
-
         lines = self._lines
         flags = list(reversed(self._lines_flags))
         labels = self._lines_labels
@@ -1097,16 +1082,6 @@ class TextInput(FocusBehavior, Widget):
                 self.cursor_index((0, cerow))
             )
             self.cursor = self.cursor_col, self.cursor_row + cdiff
-
-            if not from_undo:
-                undo_rows = ((srow + cdiff, erow + cdiff),
-                             (psrow - xdiff, perow - xdiff))
-                self._undo.append({
-                    'undo_command': ('shiftln', direction * -1, undo_rows,
-                                     self.cursor),
-                    'redo_command': ('shiftln', direction, rows, orig_cursor),
-                })
-                self._redo = []
 
         if sel:
             def cb(dt):
@@ -1339,24 +1314,14 @@ class TextInput(FocusBehavior, Widget):
         self._selection_touch = None
         self._trigger_update_graphics()
 
-    def delete_selection(self, from_undo=False):
+    def delete_selection(self):
         '''Delete the current text selection (if any).
         '''
+        # FIXME: call backspace in core textinput when available
         if self.readonly:
             return
         self._hide_handles(EventLoop.window)
         raise NotImplementedError
-
-    def _set_unredo_delsel(self, a, b, substring, from_undo):
-        # handle undo and redo for backspace
-        if from_undo:
-            return
-
-        self._undo.append({
-            'undo_command': ('delsel', a, substring),
-            'redo_command': (a, b)})
-        # reset redo when undo is appended to
-        self._redo = []
 
     def _update_selection(self, finished=False):
         '''Update selection text and order of from/to if finished is True.
@@ -2771,17 +2736,6 @@ class TextInput(FocusBehavior, Widget):
         if action.startswith("cursor_"):
             self.do_cursor_movement(action)
 
-    # current IME composition in progress by the IME system, or '' if nothing
-    _ime_composition = StringProperty('')
-    # cursor position of last IME event
-    _ime_cursor = ListProperty(None, allownone=True)
-
-    def _bind_keyboard(self):
-        super()._bind_keyboard()
-
-    def _unbind_keyboard(self):
-        super()._unbind_keyboard()
-
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
 
@@ -3315,6 +3269,7 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     def on_selection_text(self, instance, value):
+        # FIXME: Why CutBuffer?
         if value:
             if self.use_handles:
                 self._trigger_show_handles()
