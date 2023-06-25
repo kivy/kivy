@@ -490,12 +490,6 @@ class FocusBehavior:
             else:
                 return None
 
-    def validator(self, substring: str) -> bool:
-        '''By default it just returns True, but the user can override it
-        to provide custom validation.
-        '''
-        return True
-
     def get_focus_next(self):
         '''Returns the next focusable widget using either :attr:`focus_next`
            or the :attr:`children` similar to the order when tabbing forwards
