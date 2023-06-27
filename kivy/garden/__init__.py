@@ -188,5 +188,3 @@ class GardenImporter:
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
-
-
