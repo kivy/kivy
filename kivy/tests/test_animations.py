@@ -160,7 +160,7 @@ class TestAnimation:
         from kivy.graphics import Scale
         from kivy.animation import Animation
         a = Animation(x=100, d=1)
-        instruction = Scale(3)
+        instruction = Scale(3, 3, 3)
         a.start(instruction)
         assert a.animated_properties == {'x': 100, }
         assert instruction.x == pytest.approx(3)

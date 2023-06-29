@@ -3,6 +3,25 @@
 Changelog
 =========
 
+2.2.1
+=====
+
+Highlights
+----------
+
+- [:repo:`8283`]: backport (#8276): Limit stencil to inner instructions on Image widget
+
+Tests/ci
+--------
+
+- [:repo:`8288`]: backport (#8263): Increase timeout of httpbin tests to reduce risk of failures on CI runs
+
+Documentation
+-------------
+
+- [:repo:`8252`]: backport (#8251): Ensures that jQuery is always installed (on newer sphinx versions is not the default)
+
+
 2.2.0
 =====
 
