@@ -1069,7 +1069,7 @@ class ScreenManager(FloatLayout):
             screen.dispatch('on_pre_enter')
             screen.dispatch('on_enter')
 
-    def get_screens_with_name(self, name):
+    def _get_screens_with_name(self, name):
         '''Returns a list with all the screens associated with the name
         '''
         return [s for s in self.screens if s.name == name]
