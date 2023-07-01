@@ -22,6 +22,7 @@ class WindowBaseTest(GraphicUnitTest):
 
 class WindowOpacityTest(GraphicUnitTest):
 
+
     def test_window_opacity_property(self):
         from kivy.core.window import Window
 
@@ -32,7 +33,7 @@ class WindowOpacityTest(GraphicUnitTest):
         from kivy.logger import LoggerHistory
 
         Window.opacity = 15
-        self.assertEqual(LoggerHistory.history[0].msg, 
+        self.assertEqual(LoggerHistory.history[0].msg,
                          'Window: The opacity value of '
                          'the window should be in the '
                          'range from 0.0 to 1.0.')
