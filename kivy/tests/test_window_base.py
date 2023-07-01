@@ -22,7 +22,6 @@ class WindowBaseTest(GraphicUnitTest):
 
 class WindowOpacityTest(GraphicUnitTest):
 
-
     def test_window_opacity_property(self):
         from kivy.core.window import Window
 
