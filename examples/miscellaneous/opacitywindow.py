@@ -15,6 +15,7 @@ Builder.load_string('''
 class OpacitySlider(Slider):
     pass
 
+
 class OpacityWindowApp(App):
 
     def build(self):
