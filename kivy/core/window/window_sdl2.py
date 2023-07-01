@@ -290,7 +290,7 @@ class WindowSDL(WindowBase):
                     self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
                 if platform == 'win':
-                    # use custom behaviour
+                    # use custom behavior
                     # To handle aero snapping and rounded corners
                     self.borderless = False
         if self.fullscreen == 'fake':

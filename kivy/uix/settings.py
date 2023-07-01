@@ -1106,7 +1106,7 @@ class Settings(BoxLayout):
 
 class SettingsWithSidebar(Settings):
     '''A settings widget that displays settings panels with a sidebar to
-    switch between them. This is the default behaviour of
+    switch between them. This is the default behavior of
     :class:`Settings`, and this widget is a trivial wrapper subclass.
 
     '''
@@ -1147,7 +1147,7 @@ class SettingsWithNoMenu(Settings):
 
         This Settings panel does *not* provide a Close
         button, and so it is impossible to leave the settings screen
-        unless you also add other behaviour or override
+        unless you also add other behavior or override
         :meth:`~kivy.app.App.display_settings` and
         :meth:`~kivy.app.App.close_settings`.
 
