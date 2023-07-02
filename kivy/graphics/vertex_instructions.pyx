@@ -876,7 +876,11 @@ cdef class Rectangle(VertexInstruction):
 
     @property
     def points(self):
-        '''Property for getting the points used to draw the vertices.'''
+        '''Property for getting the points used to draw the vertices.
+
+        .. versionadded:: 2.3.0
+
+        '''
         return self._points
 
 
