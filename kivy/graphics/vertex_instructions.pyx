@@ -1999,6 +1999,8 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
         texture is defined using either ``texture`` or ``source``,
         antialiasing will be disabled.
 
+    .. versionadded:: 2.3.0
+
     """
 
     cdef AntiAliasingLine _antialiasing_line
@@ -2056,6 +2058,8 @@ cdef class SmoothRectangle(Rectangle):
         texture is defined using either ``texture`` or ``source``,
         antialiasing will be disabled.
 
+    .. versionadded:: 2.3.0
+
     """
 
     cdef AntiAliasingLine _antialiasing_line
@@ -2111,6 +2115,8 @@ cdef class SmoothEllipse(Ellipse):
         There is still no support for texture antialiasing. Therefore, if a
         texture is defined using either ``texture`` or ``source``,
         antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
 
     """
 
@@ -2171,6 +2177,8 @@ cdef class SmoothQuad(Quad):
         texture is defined using either ``texture`` or ``source``,
         antialiasing will be disabled.
 
+    .. versionadded:: 2.3.0
+
     """
 
     cdef AntiAliasingLine _antialiasing_line
@@ -2215,6 +2223,8 @@ cdef class SmoothTriangle(Triangle):
         There is still no support for texture antialiasing. Therefore, if a
         texture is defined using either ``texture`` or ``source``,
         antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
 
     """
 
