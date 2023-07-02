@@ -102,7 +102,7 @@ class CameraBase(EventDispatcher):
                        doc='Return the camera texture with the latest capture')
 
     def init_camera(self):
-        '''Initialise the camera (internal)'''
+        '''Initialize the camera (internal)'''
         pass
 
     def start(self):

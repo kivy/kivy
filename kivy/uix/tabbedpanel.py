@@ -468,7 +468,7 @@ class TabbedPanel(GridLayout):
 
     .. Note:: For convenience, the automatically provided default tab is
               deleted when you change default_tab to something else.
-              As of 1.5.0, this behaviour has been extended to every
+              As of 1.5.0, this behavior has been extended to every
               `default_tab` for consistency and not just the automatically
               provided one.
 

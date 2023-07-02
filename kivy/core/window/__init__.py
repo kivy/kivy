@@ -1319,7 +1319,7 @@ class WindowBase(EventDispatcher):
         If you set the property `draggable` on a layout,
         all the child in the layout will receive touch events
 
-        If you want to override default behaviour, add function `in_drag_area(x,y)`
+        If you want to override default behavior, add function `in_drag_area(x,y)`
         to the widget
 
         The function is call with two args x,y which are mouse.x, and mouse.y
