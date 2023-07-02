@@ -157,15 +157,6 @@ class Sound(EventDispatcher):
         Use :attr:`state` instead.
     '''
 
-    def _get_filename(self):
-        return self.source
-    filename = AliasProperty(
-        _get_filename, None, bind=('source', ), deprecated=True)
-    '''
-    .. deprecated:: 1.3.0
-        Use :attr:`source` instead.
-    '''
-
     __events__ = ('on_play', 'on_stop')
 
     def on_source(self, instance, filename):
