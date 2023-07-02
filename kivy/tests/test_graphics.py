@@ -520,7 +520,6 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         # check the width, defined through tests with the custom texture.
         assert aa_line.width == 2.5
 
-
         # This set of points must remain unchanged.
         points_1 = [51.0, 649.0, 199.0, 649.0, 199.0, 501.0, 51.0, 501.0]
 
