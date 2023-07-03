@@ -145,13 +145,16 @@ class Sound(EventDispatcher):
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.'''
 
-    def _get_filename(self):
-        return self.source
-    filename = AliasProperty(
-        _get_filename, None, bind=('source', ), deprecated=True)
+    #
+    # deprecated
+    #
+    def _get_status(self):
+        return self.state
+    status = AliasProperty(
+        _get_status, None, bind=('state', ), deprecated=True)
     '''
     .. deprecated:: 1.3.0
-        Use :attr:`source` instead.
+        Use :attr:`state` instead.
     '''
 
     __events__ = ('on_play', 'on_stop')

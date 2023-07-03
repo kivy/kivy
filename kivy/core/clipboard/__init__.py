@@ -45,7 +45,7 @@ class ClipboardBase(object):
         return []
 
     def _ensure_clipboard(self):
-        ''' Ensure that the clipboard has been properly initialised.
+        ''' Ensure that the clipboard has been properly initialized.
         '''
 
         if hasattr(self, '_clip_mime_type'):

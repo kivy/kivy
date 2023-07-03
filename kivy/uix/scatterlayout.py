@@ -17,7 +17,7 @@ widget, you can also translate, rotate and scale the layout using touches
 or clicks, just like in the case of a normal Scatter widget, and the child
 widgets will behave as expected.
 
-In contrast to a Scatter, the Layout favours 'hint' properties, such as
+In contrast to a Scatter, the Layout favors 'hint' properties, such as
 size_hint, size_hint_x, size_hint_y and pos_hint.
 
 .. note::

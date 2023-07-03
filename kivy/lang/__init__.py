@@ -27,7 +27,7 @@ The language consists of several constructs that you can use:
         A rule is similar to a CSS rule. A rule applies to specific widgets (or
         classes thereof) in your widget tree and modifies them in a
         certain way.
-        You can use rules to specify interactive behaviour or use them to add
+        You can use rules to specify interactive behavior or use them to add
         graphical representations of the widgets they apply to.
         You can target a specific class of widgets (similar to the CSS
         concept of a *class*) by using the ``cls`` attribute (e.g.
@@ -271,7 +271,7 @@ The Kivy language detects properties in your `value` expression and will create
 callbacks to automatically update the property via your expression when changes
 occur.
 
-Here's a simple example that demonstrates this behaviour::
+Here's a simple example that demonstrates this behavior::
 
     Button:
         text: str(self.state)

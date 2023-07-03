@@ -130,7 +130,7 @@ class ModalView(AnchorLayout):
     background_color = ColorProperty([1, 1, 1, 1])
     '''Background color, in the format (r, g, b, a).
 
-    This acts as a *multiplier* to the texture colour. The default
+    This acts as a *multiplier* to the texture color. The default
     texture is grey, so just setting the background color will give
     a darker result. To set a plain color, set the
     :attr:`background_normal` to ``''``.

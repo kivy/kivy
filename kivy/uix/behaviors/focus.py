@@ -345,7 +345,7 @@ class FocusBehavior(object):
 
     keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
     '''Determines how the keyboard visibility should be managed. 'auto' will
-    result in the standard behaviour of showing/hiding on focus. 'managed'
+    result in the standard behavior of showing/hiding on focus. 'managed'
     requires setting the keyboard visibility manually, or calling the helper
     functions :meth:`show_keyboard` and :meth:`hide_keyboard`.
 
