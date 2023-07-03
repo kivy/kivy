@@ -1158,10 +1158,14 @@ class ScreenManager(FloatLayout):
         self.transition.stop()
 
         # ensure the screen name will be unique or warns if it was previously added
-        if self.has_screen(screen.name):
+        screens_with_name = self._get_screens_with_name(screen.name)
+        has_screen = len(screens_with_name) > 0
+        found_repeated_names = len(screens_with_name) > 1
+
+        if has_screen:
             if screen not in self.screens:
                 screen.name = self._generate_screen_name()
-            else:
+            elif found_repeated_names:
                 Logger.warn('Attempting to switch to screen with non-unique name "%s" may not have a visible effect. Consider changing it.' %(screen.name))
 
         # change the transition if given explicitly
