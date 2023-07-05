@@ -57,6 +57,14 @@ and emits events when the gesture is recognized::
             'Sigma': 31579
         }
 
+        def __init__(self, **kwargs):
+            self._gestureDb = GestureDatabase()
+            for name, points in self._strokes.items():
+                self._gestureDb.add_gesture(Gesture(name=name, \
+point_list=points))
+            self.register_event_type('on_gesture')
+            super(MyScreenManager, self).__init__(**kwargs)
+
         def on_touch_down(self, touch):
             touch.ud['line'] = list()
             touch.ud['line'].append(touch.pos)
@@ -67,13 +75,6 @@ and emits events when the gesture is recognized::
             return ScreenManager.on_touch_move(self, touch)
 
         def on_touch_up(self, touch):
-            if not hasattr(self, '_gestureDb'):
-                self._gestureDb = GestureDatabase()
-                for name, points in self._strokes.items():
-                    self._gestureDb.add_gesture(Gesture(name = name, \
-point_list=points))
-                self.register_event_type('on_gesture')
-
             touch.ud['line'].append(touch.pos)
             stroke = self._gestureDb.find(Gesture(point_list = \
 touch.ud['line']), 0.5, False)
