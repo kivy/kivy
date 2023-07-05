@@ -83,7 +83,7 @@ touch.ud['line']), 0.5, False)
             ScreenManager.on_touch_up(self, touch)
 
         def on_gesture(self, *args):
-            print('Gesture dispacthed: {}'.format(args[0]))
+            print('Gesture dispatched: {}'.format(args[0]))
 
     class MyApp(App):
         # ...
@@ -95,7 +95,7 @@ As a consequence, after normalization ((1, 1), (-1, -1)) and \
 ((100, 100), (-100, -100)) represent the same strokes. \
 Similarly ((1, 1), (1, 0)) and ((0, 1), (0, 0)) represent the same.
 
-.. versionadded:: 2.2.0
+.. versionadded:: 2.3.0
 :meth:`~kivy.gesture.Gesture.add_stroke` implements a shorthand to encode
 strokes. This shorthand mimics a keypad from a phone: top-left is called '1',
 top-center is '2', top-right is '3', ... bottom-right is '9'.
@@ -320,7 +320,7 @@ class Gesture:
     Implemented by Jeiel Aranal (chemikhazi@gmail.com),
     released into the public domain.
 
-    .. versionadded:: 2.1.1
+    .. versionadded:: 2.3.0
     The :meth:`~kivy.gesture.Gesture.__init__()` method was extended with the
     `name` and the `point_list` parameters. When supplied, the stroke in
     `point_list` will be normalized.
