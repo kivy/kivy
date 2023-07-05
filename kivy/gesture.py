@@ -338,8 +338,8 @@ class Gesture:
         else:
             self.tolerance = tolerance
 
-        if name is not None:
-            self.name = name
+        self.name = name
+
         if point_list is not None:
             self.add_stroke(point_list=point_list)
             self.normalize()
