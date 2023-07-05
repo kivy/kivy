@@ -45,12 +45,14 @@ cdef class Line(VertexInstruction):
     The line has 3 internal drawing modes that you should be aware of
     for optimal results:
 
-    #. If the :attr:`width` is 1.0, then the standard GL_LINE drawing from
-       OpenGL will be used. :attr:`dash_length`, :attr:`dash_offset`, and :attr:`dashes` will
-       work, while properties for cap and joint have no meaning here.
-    #. If the :attr:`width` is greater than 1.0, then a custom drawing method,
-       based on triangulation, will be used. :attr:`dash_length`,
-       :attr:`dash_offset`, and :attr:`dashes` do not work in this mode.
+    #. If the :attr:`width` is 1.0 and :attr:`force_custom_drawing_method` is False, then the
+       standard GL_LINE drawing from OpenGL will be used. :attr:`dash_length`,
+       :attr:`dash_offset`, and :attr:`dashes` will work, while properties for
+       cap and joint have no meaning here.
+    #. If the :attr:`width` is greater than 1.0 or :attr:`force_custom_drawing_method`
+       is True, then a custom drawing method, based on triangulation,
+       will be used. :attr:`dash_length`, :attr:`dash_offset`,
+       and :attr:`dashes` do not work in this mode.
        Additionally, if the current color has an alpha less than 1.0, a
        stencil will be used internally to draw the line.
 
@@ -99,6 +101,9 @@ cdef class Line(VertexInstruction):
             :attr:`bezier` for more information.
         `bezier_precision`: int, defaults to 180
             Precision of the Bezier drawing.
+        `force_custom_drawing_method`: bool, defaults to False
+            Should the custom drawing method be used, instead of it depending on :attr:`width`
+            being equal to 1.o or not.
 
     .. versionchanged:: 1.0.8
         `dash_offset` and `dash_length` have been added.
@@ -113,6 +118,9 @@ cdef class Line(VertexInstruction):
     .. versionchanged:: 1.11.0
         `dashes` have been added
 
+    .. versionchanged:: 2.3.0
+        `force_custom_drawing_method` has been added
+
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -126,6 +134,7 @@ cdef class Line(VertexInstruction):
     cdef int _use_stencil
     cdef int _close
     cdef str _close_mode
+    cdef int _force_custom_drawing_method
     cdef int _mode
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
@@ -152,6 +161,7 @@ cdef class Line(VertexInstruction):
         self._bezier_precision = kwargs.get('bezier_precision') or 180
         self._close = int(bool(kwargs.get('close', 0)))
         self._close_mode = kwargs.get('close_mode', 'straight-line')
+        self._force_custom_drawing_method = int(bool(kwargs.get('force_custom_drawing_method', 0)))
         self._stencil_rect = None
         self._stencil_push = None
         self._stencil_use = None
@@ -181,7 +191,7 @@ cdef class Line(VertexInstruction):
             self.prebuild_rounded_rectangle()
         elif self._mode == LINE_MODE_BEZIER:
             self.prebuild_bezier()
-        if self._width == 1.0:
+        if self._width == 1.0 and self._force_custom_drawing_method == 0:
             self.build_legacy()
         else:
             self.build_extended()
@@ -195,7 +205,7 @@ cdef class Line(VertexInstruction):
             self._stencil_unuse = StencilUnUse()
 
     cdef int apply(self) except -1:
-        if self._width == 1.:
+        if self._width == 1. and self._force_custom_drawing_method == 0:
             VertexInstruction.apply(self)
             return 0
 
@@ -890,7 +900,7 @@ cdef class Line(VertexInstruction):
         def __set__(self, value):
             self._close = int(bool(value))
             self.flag_data_update()
-    
+
     @property
     def close_mode(self):
         '''Defines how the ends of the line will be connected.
@@ -914,6 +924,19 @@ cdef class Line(VertexInstruction):
             raise GraphicException(f'{self.__class__.__name__} - Invalid close_mode, must be one of "straight-line" or "center-connected".')
         self._close_mode = value
         self.flag_data_update()
+
+    property force_custom_drawing_method:
+           '''If True, the line will be drawn using the custom drawing method, no matter what the width is.
+
+           .. versionadded:: 2.3.0
+           '''
+
+           def __get__(self):
+               return self._force_custom_drawing_method
+
+           def __set__(self, value):
+               self._force_custom_drawing_method = int(bool(value))
+               self.flag_data_update()
 
     property ellipse:
         '''Use this property to build an ellipse, without calculating the
@@ -1181,7 +1204,7 @@ cdef class Line(VertexInstruction):
         else:
             x = y = width = height = 0
             assert 0
-        
+
         # Resulting rectangle
         self._rectangle = (x, y, width, height)
         # Reset other properties
@@ -1286,12 +1309,12 @@ cdef class Line(VertexInstruction):
             c1 = min(c1, half_min_dimension)
             c3 = min(c3, half_min_dimension)
             c2 = min(c2, min_dimension - c1, min_dimension - c3)
-        
+
         if c3 > half_min_dimension:
             c2 = min(c2, half_min_dimension)
             c4 = min(c4, half_min_dimension)
             c3 = min(c3, min_dimension - c2, min_dimension - c4)
-        
+
         if c4 > half_min_dimension:
             c3 = min(c3, half_min_dimension)
             c1 = min(c1, half_min_dimension)
@@ -1304,7 +1327,7 @@ cdef class Line(VertexInstruction):
 
         step = PI / resolution
         max_a = PI / 2.0 - step
-        
+
         # top-left
         a = 0.0
         px = x + c1
@@ -1730,4 +1753,3 @@ cdef class SmoothLine(Line):
                 raise GraphicException('Invalid width value, must be > 0')
             self._owidth = value
             self.flag_data_update()
-
