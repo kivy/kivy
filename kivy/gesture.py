@@ -116,10 +116,6 @@ from kivy.vector import Vector
 from io import BytesIO
 
 
-def sqr(x):
-    return x * x
-
-
 class GestureDatabase(object):
     '''Class to handle a gesture database.'''
 
@@ -485,6 +481,9 @@ class Gesture:
     def get_score(self, comparison_gesture, rotation_invariant=True):
         ''' Returns the matching score of the gesture against another gesture.
         '''
+        def sqr(x):
+            return x * x
+
         if len(comparison_gesture.strokes) != len(self.strokes):
             raise Exception('Gestures not the same size. Try normalization.')
 
