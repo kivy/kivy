@@ -1704,6 +1704,42 @@ cdef class AAStencilPop(Instruction):
         return 0
 
 
+"""
+The functions below are extended versions of the radd, rinsert and rremove from
+VertexInstruction, with the ability to add/remove more than one instruction set
+(BindTexture + VertexInstruction) to/from a instruction group.
+"""
+
+cdef void radd_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding
+    ig.children.append(target_graphic.texture_binding)
+    ig.children.append(target_graphic)
+    ig.children.append(aa_line.texture_binding)
+    ig.children.append(aa_line)
+    instr.set_parent(ig)
+    target_graphic.set_parent(ig)
+
+
+cdef void rinsert_instructions(InstructionGroup ig, int index, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding
+    ig.children.insert(index, target_graphic.texture_binding)
+    ig.children.insert(index + 1, target_graphic)
+    ig.children.insert(index + 2, aa_line.texture_binding)
+    ig.children.insert(index + 3, aa_line)
+    instr.set_parent(ig)
+    target_graphic.set_parent(ig)
+
+
+cdef void rremove_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding
+    ig.children.remove(target_graphic.texture_binding)
+    ig.children.remove(target_graphic)
+    ig.children.remove(aa_line.texture_binding)
+    ig.children.remove(aa_line)
+    instr.set_parent(None)
+    target_graphic.set_parent(None)
+
+
 cdef class AntiAliasingLine(VertexInstruction):
     """(internal) An instruction similar to SmoothLine, adjusted for antialiasing purposes.
 
@@ -1775,6 +1811,18 @@ cdef class AntiAliasingLine(VertexInstruction):
         cdef bytes GRADIENT_DATA = (
             b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\x00")
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
+
+    cdef void radd(self, InstructionGroup ig):
+        """Disabled because logic management is done on the radd of the target graphic (sencil_mask)"""
+        pass
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        """Disabled because logic management is done on the rinsert of the target graphic (sencil_mask)"""
+        pass
+
+    cdef void rremove(self, InstructionGroup ig):
+        """Disabled because logic management is done on the rremove of the target graphic (sencil_mask)"""
+        pass
 
     cdef void ensure_stencil(self):
         if self._stencil_push == None:
@@ -2011,10 +2059,18 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
     cdef Texture _default_texture
 
     def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         RoundedRectangle.__init__(self, **kwargs)
         self._default_texture = self.texture
-        # Color(0, 0, 0, 1)  # for debug
-        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
 
     cdef void adjust_params(self, int delta):
         """Adjust the parameters that define the size of the drawing.
@@ -2070,10 +2126,18 @@ cdef class SmoothRectangle(Rectangle):
     cdef Texture _default_texture
 
     def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Rectangle.__init__(self, **kwargs)
         self._default_texture = self.texture
-        # Color(0, 0, 0, 1)  # for debug
-        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
 
     cdef void adjust_params(self, int delta):
         """Adjust the parameters that define the size of the drawing.
@@ -2128,10 +2192,18 @@ cdef class SmoothEllipse(Ellipse):
     cdef Texture _default_texture
 
     def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Ellipse.__init__(self, **kwargs)
         self._default_texture = self.texture
-        # Color(0, 0, 0, 1)  # for debug
-        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
 
     cdef void adjust_params(self, int delta):
         """Adjust the parameters that define the size of the drawing.
@@ -2189,10 +2261,18 @@ cdef class SmoothQuad(Quad):
     cdef Texture _default_texture
 
     def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Quad.__init__(self, **kwargs)
         self._default_texture = self.texture
-        # Color(0, 0, 0, 1)  # for debug
-        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
 
     # NOTE: Not implemented.
     cdef void adjust_params(self, int delta):
@@ -2236,11 +2316,19 @@ cdef class SmoothTriangle(Triangle):
     cdef Texture _default_texture
 
     def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Triangle.__init__(self, **kwargs)
         self._default_texture = self.texture
-        # Color(0, 0, 0, 1)  # for debug
-        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
     
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
     # NOTE: Not implemented.
     cdef void adjust_params(self, int delta):
         """Adjust the parameters that define the size of the drawing.
