@@ -395,7 +395,12 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowPosition(self.win, x, y)
 
     def set_window_opacity(self, opacity):
-        SDL_SetWindowOpacity(self.win, opacity)
+        result = SDL_SetWindowOpacity(self.win, opacity)
+        if result == -1:
+            Logger.warning('Window: setting the opacity is not supported')
+        elif result != 0:
+            message = <bytes>SDL_GetError()
+            Logger.error(f'Window: setting the opacity failed - {message}')
 
     def get_window_opacity(self):
         cdef float opacity
