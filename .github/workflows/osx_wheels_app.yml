@@ -70,6 +70,12 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
+    - name: Install build dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        source .ci/osx_ci.sh
+        arm64_set_path_and_python_version ${{ matrix.python }}
+        brew install pkg-config cmake ninja
     - name: Build universal Kivy dependencies
       run: |
         source .ci/ubuntu_ci.sh

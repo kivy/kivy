@@ -34,6 +34,12 @@ jobs:
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
+    - name: Install build dependencies
+      run: |
+        source .ci/ubuntu_ci.sh
+        source .ci/osx_ci.sh
+        arm64_set_path_and_python_version ${{ matrix.python }}
+        brew install pkg-config cmake ninja
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
