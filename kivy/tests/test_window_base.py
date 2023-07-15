@@ -19,21 +19,30 @@ class WindowBaseTest(GraphicUnitTest):
         finally:
             win.system_size = old_system_size
 
+
+class WindowOpacityTest(GraphicUnitTest):
+
+    def setUp(self):
+        super().setUp()
+        self._prev_window_opacity = self.Window.opacity
+
+    def tearDown(self):
+        self.Window.opacity = self._prev_window_opacity
+        super().tearDown()
+
     def test_window_opacity_property(self):
-        window = self.Window
-        opacity = 0.5
-        window.opacity = opacity
-        self.assertEqual(window.opacity, opacity)
-
         from kivy.logger import LoggerHistory
-
-        window.opacity = 15
-        self.assertEqual(LoggerHistory.history[0].msg,
-                         'Window: The opacity value of '
-                         'the window should be in the '
-                         'range from 0.0 to 1.0.')
-
         LoggerHistory.clear_history()
 
-        window.opacity = -15
-        assert len(LoggerHistory.history) == 1
+        self.Window.opacity = 0.2
+
+        if not LoggerHistory.history:  # check if opacity is supported
+            opacity = 0.5
+            self.Window.opacity = opacity
+            self.assertEqual(self.Window.opacity, opacity)
+
+            self.Window.opacity = -1.5
+            self.assertEqual(self.Window.opacity, 0.0)
+
+            self.Window.opacity = 1.5
+            self.assertEqual(self.Window.opacity, 1.0)
