@@ -16,7 +16,7 @@ In-memory image loading
 .. versionadded:: 1.9.0
 
     Official support for in-memory loading. Not all the providers support it,
-    but currently SDL2, pygame, pil and imageio work.
+    but currently SDL2, pil and imageio work.
 
 To load an image with a filename, you would usually do::
 
@@ -975,8 +975,7 @@ image_libs += [
     ('dds', 'img_dds')]
 if USE_SDL2:
     image_libs += [('sdl2', 'img_sdl2')]
-else:
-    image_libs += [('pygame', 'img_pygame')]
+
 image_libs += [
     ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil')]

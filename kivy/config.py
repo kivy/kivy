@@ -141,7 +141,7 @@ Available configuration tokens
 
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
-        pygame icon.
+        icon.
 
 :postproc:
 
