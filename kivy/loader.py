@@ -506,10 +506,6 @@ if 'KIVY_DOC' in environ:
 
 else:
 
-    #
-    # Try to use pygame as our first choice for loader
-    #
-
     from kivy.compat import queue
     from threading import Thread
 

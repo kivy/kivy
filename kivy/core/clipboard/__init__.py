@@ -131,9 +131,6 @@ elif platform == 'linux':
 if USE_SDL2:
     _clipboards.append(
         ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
-else:
-    _clipboards.append(
-        ('pygame', 'clipboard_pygame', 'ClipboardPygame'))
 
 _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
