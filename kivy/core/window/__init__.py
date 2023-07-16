@@ -1180,15 +1180,6 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    @deprecated
-    def toggle_fullscreen(self):
-        '''Toggle between fullscreen and windowed mode.
-
-        .. deprecated:: 1.9.0
-            Use :attr:`fullscreen` instead.
-        '''
-        pass
-
     def maximize(self):
         '''Maximizes the window. This method should be used on desktop
         platforms only.
