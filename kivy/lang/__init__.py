@@ -83,7 +83,7 @@ definitions and templates::
     <NewWidget@BaseClass>:
         # .. definitions ..
 
-    # Syntax for create a template
+    # Syntax for creating a template
     [TemplateName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
