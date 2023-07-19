@@ -299,7 +299,7 @@ change to 'Release me!'.
 More precisely, the kivy language parser detects all substrings of the form
 `X.a.b` where `X` is `self` or `root` or `app` or a known id, and `a` and `b`
 are properties: it then adds the appropriate dependencies to cause the
-the constraint to be reevaluated whenever something changes. For example,
+constraint to be reevaluated whenever something changes. For example,
 this works exactly as expected::
 
     <IndexedExample>:
