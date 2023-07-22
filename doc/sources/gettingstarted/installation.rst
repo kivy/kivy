@@ -74,7 +74,7 @@ subsequent commands outside the virtual environment)::
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+Create a new `virtual environment <https://docs.python.org/3/library/venv.html>`_
 for your Kivy project. A virtual environment will prevent possible installation conflicts
 with other Python versions and packages. It's optional **but strongly recommended**:
 
