@@ -2095,8 +2095,8 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
             or self.source
             or (-4 < self.w < 4 or -4 < self.h < 4)
         ):
-            RoundedRectangle.build(self)
             self._antialiasing_line.points = []
+            RoundedRectangle.build(self)
         else:
             self.adjust_params(-1)
             RoundedRectangle.build(self)
@@ -2161,8 +2161,8 @@ cdef class SmoothRectangle(Rectangle):
             or self.source
             or (-4 < self.w < 4 or -4 < self.h < 4)
         ):
-            Rectangle.build(self)
             self._antialiasing_line.points = []
+            Rectangle.build(self)
         else:
             self.adjust_params(-1)
             Rectangle.build(self)
@@ -2229,8 +2229,8 @@ cdef class SmoothEllipse(Ellipse):
             or self.source
             or (-4 < self.w < 4 or -4 < self.h < 4)
         ):
-            Ellipse.build(self)
             self._antialiasing_line.points = []
+            Ellipse.build(self)
         else:
             self.adjust_params(-1)
             Ellipse.build(self)
@@ -2285,8 +2285,8 @@ cdef class SmoothQuad(Quad):
 
     cdef void build(self):
         if (self.texture and self.texture != self._default_texture) or self.source:
-            Quad.build(self)
             self._antialiasing_line.points = []
+            Quad.build(self)
         else:
             # self.adjust_params(-1)
             Quad.build(self)
@@ -2340,8 +2340,8 @@ cdef class SmoothTriangle(Triangle):
 
     cdef void build(self):
         if (self.texture and self.texture != self._default_texture) or self.source:
-            Triangle.build(self)
             self._antialiasing_line.points = []
+            Triangle.build(self)
         else:
             # self.adjust_params(-1)
             Triangle.build(self)
