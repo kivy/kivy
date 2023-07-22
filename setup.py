@@ -597,10 +597,6 @@ class CythonExtension(Extension):
             'language_level': 3,
             'unraisable_tracebacks': True,
         }
-        # XXX with pip, setuptools is imported before distutils, and change
-        # our pyx to c, then, cythonize doesn't happen. So force again our
-        # sources
-        self.sources = args[1]
 
 
 def merge(d1, *args):
