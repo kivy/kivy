@@ -118,7 +118,7 @@ class CameraBase(EventDispatcher):
         pass
 
     def _copy_to_gpu(self):
-        '''Copy the the buffer into the texture'''
+        '''Copy the buffer into the texture.'''
         if self._texture is None:
             Logger.debug('Camera: copy_to_gpu() failed, _texture is None !')
             return

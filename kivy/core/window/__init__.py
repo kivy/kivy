@@ -252,7 +252,7 @@ class WindowBase(EventDispatcher):
             Fired when the event loop wants to close the window, or if the
             escape key is pressed and `exit_on_escape` is `True`. If a function
             bound to this event returns `True`, the window will not be closed.
-            If the the event is triggered because of the keyboard escape key,
+            If the event is triggered because of the keyboard escape key,
             the keyword argument `source` is dispatched along with a value of
             `keyboard` to the bound functions.
 
@@ -289,7 +289,7 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 1.10.0
 
         `on_show`:
-            Fired when when the window is shown.
+            Fired when the window is shown.
 
             .. versionadded:: 1.10.0
 
@@ -1919,7 +1919,7 @@ class WindowBase(EventDispatcher):
 
     def on_request_close(self, *largs, **kwargs):
         '''Event called before we close the window. If a bound function returns
-        `True`, the window will not be closed. If the the event is triggered
+        `True`, the window will not be closed. If the event is triggered
         because of the keyboard escape key, the keyword argument `source` is
         dispatched along with a value of `keyboard` to the bound functions.
 
