@@ -594,6 +594,11 @@ class TextInput(FocusBehavior, Widget):
         self._rendered_text = ""
         self._current_text = ""
 
+        # Modifier keys status (where supported)
+        self._shift = False
+        self._ctrl = False
+        self._alt = False
+
         # [from; to) range of lines being partially or fully rendered
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
@@ -1015,11 +1020,111 @@ class TextInput(FocusBehavior, Widget):
             / (self.line_height + self.line_spacing) - 1
         )
 
+    def _shift_lines(
+        self, direction, rows=None, old_cursor=None, from_undo=False
+    ):
+        if self._selection_callback:
+            if from_undo:
+                self._selection_callback.cancel()
+            else:
+                return
+
+        lines = self._lines
+        flags = list(reversed(self._lines_flags))
+        labels = self._lines_labels
+        rects = self._lines_rects
+        orig_cursor = self.cursor
+        sel = None
+        if old_cursor is not None:
+            self.cursor = old_cursor
+
+        if not rows:
+            sindex = self.selection_from
+            eindex = self.selection_to
+            if (sindex or eindex) and sindex != eindex:
+                sindex, eindex = tuple(sorted((sindex, eindex)))
+                sindex, eindex = self._expand_range(sindex, eindex)
+            else:
+                sindex, eindex = self._expand_range(self.cursor_index())
+            srow = self.get_cursor_from_index(sindex)[1]
+            erow = self.get_cursor_from_index(eindex)[1]
+            sel = sindex, eindex
+
+            if direction < 0 and srow > 0:
+                psrow, perow = self._expand_rows(srow - 1)
+                rows = ((srow, erow), (psrow, perow))
+            elif direction > 0 and erow < len(lines) - 1:
+                psrow, perow = self._expand_rows(erow)
+                rows = ((srow, erow), (psrow, perow))
+
+        else:
+            (srow, erow), (psrow, perow) = rows
+            if direction < 0:
+                m1srow, m1erow = psrow, perow
+                m2srow, m2erow = srow, erow
+                cdiff = psrow - perow
+                xdiff = srow - erow
+            else:
+                m1srow, m1erow = srow, erow
+                m2srow, m2erow = psrow, perow
+                cdiff = perow - psrow
+                xdiff = erow - srow
+
+            self._lines_flags = list(reversed(chain(
+                flags[:m1srow],
+                flags[m2srow:m2erow],
+                flags[m1srow:m1erow],
+                flags[m2erow:],
+            )))
+            self._lines[:] = (
+                lines[:m1srow]
+                + lines[m2srow:m2erow]
+                + lines[m1srow:m1erow]
+                + lines[m2erow:]
+            )
+            self._lines_labels = (
+                labels[:m1srow]
+                + labels[m2srow:m2erow]
+                + labels[m1srow:m1erow]
+                + labels[m2erow:]
+            )
+            self._lines_rects = (
+                rects[:m1srow]
+                + rects[m2srow:m2erow]
+                + rects[m1srow:m1erow]
+                + rects[m2erow:]
+            )
+            self._trigger_update_graphics()
+            csrow = srow + cdiff
+            cerow = erow + cdiff
+            sel = (
+                self.cursor_index((0, csrow)),
+                self.cursor_index((0, cerow))
+            )
+            self.cursor = self.cursor_col, self.cursor_row + cdiff
+
+            if not from_undo:
+                undo_rows = ((srow + cdiff, erow + cdiff),
+                             (psrow - xdiff, perow - xdiff))
+                self._undo.append({
+                    'undo_command': ('shiftln', direction * -1, undo_rows,
+                                     self.cursor),
+                    'redo_command': ('shiftln', direction, rows, orig_cursor),
+                })
+                self._redo = []
+
+        if sel:
+            def cb(dt):
+                self.select_text(*sel)
+                self._selection_callback = None
+            self._selection_callback = Clock.schedule_once(cb)
+
     def _move_cursor_up(self, col, row, control=False, alt=False):
+        print("move_cursor_up", col, row, control, alt)
         if self.multiline and control:
             self.scroll_y = max(0, self.scroll_y - self.line_height)
         elif not self.readonly and self.multiline and alt:
-            # self._shift_lines(-1)
+            self._shift_lines(-1)
             # FIXME: We need to implement _shift_lines again.
             return
         else:
@@ -1036,7 +1141,7 @@ class TextInput(FocusBehavior, Widget):
                 min(maxy, self.scroll_y + self.line_height)
             )
         elif not self.readonly and self.multiline and alt:
-            # self._shift_lines(1)
+            self._shift_lines(1)
             # FIXME: We need to implement _shift_lines again.
             return
         else:
@@ -2639,6 +2744,7 @@ class TextInput(FocusBehavior, Widget):
     def _handle_coretextinput_action(self, instance, action):
         # Handle any FocusBehavior action before TextInput's
         # (e.g: tab, escape)
+        print(action)
         if action == "escape":
             self.focus = False
 
@@ -2653,11 +2759,26 @@ class TextInput(FocusBehavior, Widget):
             if self.text_validate_unfocus:
                 self.focus = False
 
-        if action == "shift":
-            Logger.debug("TextInput: shift pressed")
+        if action == "shift_key_down":
+            self._shift = True
+
+        if action == "shift_key_up":
+            self._shift = False
+
+        if action == "ctrl_key_down":
+            self._ctrl = True
+
+        if action == "ctrl_key_up":
+            self._ctrl = False
+
+        if action == "alt_key_down":
+            self._alt = True
+
+        if action == "alt_key_up":
+            self._alt = False
 
         if action.startswith("cursor_"):
-            self.do_cursor_movement(action)
+            self.do_cursor_movement(action, control=self._ctrl, alt=self._alt)
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()

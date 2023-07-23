@@ -152,9 +152,19 @@ class TextInputWindow(TextInputBase):
 
         elif internal_action in ("shift", "shift_L", "shift_R"):
             # TODO: is not working
-            # The user pressed shift, so it likely wants to select text.
-            # We should start the selection process.
-            self.dispatch("on_action", "shift")
+            # The user pressed shift, and the textinput should receive the
+            # shift_key_down event, so it can act accordingly.
+            self.dispatch("on_action", "shift_key_down")
+
+        elif internal_action in ("alt_L", "alt_R"):
+            # The user pressed alt, and the textinput should receive the
+            # alt_key_down event, so it can act accordingly.
+            self.dispatch("on_action", "alt_key_down")
+
+        elif internal_action in ("ctrl_L", "ctrl_R"):
+            # The user pressed ctrl, and the textinput should receive the
+            # ctrl_key_down event, so it can act accordingly.
+            self.dispatch("on_action", "ctrl_key_down")
 
         elif internal_action.startswith("cursor_"):
             # The user wants to move inside the textinput by using the
@@ -193,10 +203,21 @@ class TextInputWindow(TextInputBase):
 
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
+
         if internal_action in ("shift", "shift_L", "shift_R"):
-            # TODO: The user released shift, so it likely wants to stop
-            # selecting text. We should stop the selection process.
-            pass
+            # The user released shift, so it should be interpreted as a
+            # shift_key_up event, so the TextInput can act accordingly.
+            self.dispatch("on_action", "shift_key_up")
+
+        elif internal_action in ("alt_L", "alt_R"):
+            # The user released alt, so it should be interpreted as a
+            # alt_key_up event, so the TextInput can act accordingly.
+            self.dispatch("on_action", "alt_key_up")
+        
+        elif internal_action in ("ctrl_L", "ctrl_R"):
+            # The user released ctrl, so it should be interpreted as a
+            # ctrl_key_up event, so the TextInput can act accordingly.
+            self.dispatch("on_action", "ctrl_key_up")
 
     def _on_keyboard_key_up(self, keyboard, keycode):
         key = keycode[0]
