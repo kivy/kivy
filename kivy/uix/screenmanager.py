@@ -994,6 +994,7 @@ class ScreenManager(FloatLayout):
                     '`current`?)')
             raise ScreenManagerException(
                 'Screen already managed by another ScreenManager.')
+        
         widget.manager = self
         widget.bind(name=self._screen_name_changed)
         self.screens.append(widget)
@@ -1068,11 +1069,16 @@ class ScreenManager(FloatLayout):
             screen.dispatch('on_pre_enter')
             screen.dispatch('on_enter')
 
+    def _get_screens_with_name(self, name):
+        '''Returns a list with all the screens associated with the name
+        '''
+        return [s for s in self.screens if s.name == name]
+    
     def get_screen(self, name):
         '''Return the screen widget associated with the name or raise a
         :class:`ScreenManagerException` if not found.
         '''
-        matches = [s for s in self.screens if s.name == name]
+        matches = self._get_screens_with_name(name)
         num_matches = len(matches)
         if num_matches == 0:
             raise ScreenManagerException('No Screen with name "%s".' % name)
@@ -1085,7 +1091,7 @@ class ScreenManager(FloatLayout):
 
         .. versionadded:: 1.6.0
         '''
-        return bool([s for s in self.screens if s.name == name])
+        return bool(self._get_screens_with_name(name))
 
     def __next__(self):
         '''Py2K backwards compatibility without six or other lib.
@@ -1151,10 +1157,16 @@ class ScreenManager(FloatLayout):
         # stop any transition that might be happening already
         self.transition.stop()
 
-        # ensure the screen name will be unique
-        if screen not in self.screens:
-            if self.has_screen(screen.name):
+        # ensure the screen name will be unique or warns if it was previously added
+        screens_with_name = self._get_screens_with_name(screen.name)
+        has_screen = len(screens_with_name) > 0
+        found_repeated_names = len(screens_with_name) > 1
+
+        if has_screen:
+            if screen not in self.screens:
                 screen.name = self._generate_screen_name()
+            elif found_repeated_names:
+                Logger.warn('Attempting to switch to screen with non-unique name "%s" may not have a visible effect. Consider changing it.' %(screen.name))
 
         # change the transition if given explicitly
         old_transition = self.transition
