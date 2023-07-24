@@ -496,6 +496,10 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
             del p[:2]
         return p
 
+    def _get_texture(self):
+        from kivy.graphics.texture import Texture
+        return Texture.create()
+
     def test_antialiasing_line(self):
         from kivy.uix.widget import Widget
         from kivy.graphics import Color, Rectangle, Instruction
@@ -635,7 +639,7 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         )
 
         # disabling antialiasing.
-        rect.source = "kivy/tests/test_button.png"
+        rect.texture = self._get_texture()
         r(wid)
         assert rect.antialiasing_line_points == []
 
@@ -704,7 +708,7 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         )
 
         # disabling antialiasing.
-        rounded_rect.source = "kivy/tests/test_button.png"
+        rounded_rect.texture = self._get_texture()
         r(wid)
         assert rounded_rect.antialiasing_line_points == []
 
@@ -791,7 +795,7 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         )
 
         # disabling antialiasing.
-        ellipse.source = "kivy/tests/test_button.png"
+        ellipse.texture = self._get_texture()
         r(wid)
         assert ellipse.antialiasing_line_points == []
 
@@ -899,7 +903,7 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         )
 
         # disabling antialiasing.
-        triangle.source = "kivy/tests/test_button.png"
+        triangle.texture = self._get_texture()
         r(wid)
         assert triangle.antialiasing_line_points == []
 
@@ -958,7 +962,7 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
         )
 
         # disabling antialiasing.
-        quad.source = "kivy/tests/test_button.png"
+        quad.texture = self._get_texture()
         r(wid)
         assert quad.antialiasing_line_points == []
 
