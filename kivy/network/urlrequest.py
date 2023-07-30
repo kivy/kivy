@@ -233,37 +233,54 @@ class UrlRequestBase(Thread, UrlRequestABC, ABC):
         `auth`: HTTPBasicAuth, defaults to None
             If set, request will use basicauth to authenticate.
             Only used in "Requests" implementation
+        `start`: bool, defaults to True
+            If True, the request will be started automatically. Otherwise, the
+            user may work with the request object before starting the request.
+            This enables binding callbacks in a similar manner to kivy's
+            event-driven paradigm.
+        `on_start`: callback(request)
+            Callback function to call when the request is sent. Useful when
+            preparing requests in advance of execution.
     '''
 
     def __init__(
-        self, url, on_success=None, on_redirect=None,
-        on_failure=None, on_error=None, on_progress=None,
-        req_body=None, req_headers=None, chunk_size=8192,
-        timeout=None, method=None, decode=True, debug=False,
-        file_path=None, ca_file=None, verify=True, proxy_host=None,
-        proxy_port=None, proxy_headers=None, user_agent=None,
-        on_cancel=None, on_finish=None, cookies=None, auth=None
+            self, url, on_success=None, on_redirect=None,
+            on_failure=None, on_error=None, on_progress=None,
+            req_body=None, req_headers=None, chunk_size=8192,
+            timeout=None, method=None, decode=True, debug=False,
+            file_path=None, ca_file=None, verify=True, proxy_host=None,
+            proxy_port=None, proxy_headers=None, user_agent=None,
+            on_cancel=None, on_finish=None, cookies=None, auth=None,
+            start=True, on_start=None,
     ):
         super().__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
-        self.on_success = WeakMethod(on_success) if on_success else None
-        self.on_redirect = WeakMethod(on_redirect) if on_redirect else None
-        self.on_failure = WeakMethod(on_failure) if on_failure else None
-        self.on_error = WeakMethod(on_error) if on_error else None
-        self.on_progress = WeakMethod(on_progress) if on_progress else None
-        self.on_cancel = WeakMethod(on_cancel) if on_cancel else None
-        self.on_finish = WeakMethod(on_finish) if on_finish else None
-        self.decode = decode
-        self.file_path = file_path
-        self._debug = debug
+
+        # weak methods corresponding to callbacks
+        self.on_start = [WeakMethod(on_start)] if on_start else []
+        self.on_success = [WeakMethod(on_success)] if on_success else []
+        self.on_redirect = [WeakMethod(on_redirect)] if on_redirect else []
+        self.on_failure = [WeakMethod(on_failure)] if on_failure else []
+        self.on_error = [WeakMethod(on_error)] if on_error else []
+        self.on_progress = [WeakMethod(on_progress)] if on_progress else []
+        self.on_cancel = [WeakMethod(on_cancel)] if on_cancel else []
+        self.on_finish = [WeakMethod(on_finish)] if on_finish else []
+
+        # internal values not set via parameters
         self._result = None
         self._error = None
         self._is_finished = False
         self._resp_status = None
         self._resp_headers = None
         self._resp_length = -1
+        self._cancel_event = Event()
+
+        # internal values set via parameters
+        self.decode = decode
+        self.file_path = file_path
+        self._debug = debug
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
@@ -271,7 +288,6 @@ class UrlRequestBase(Thread, UrlRequestABC, ABC):
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
-        self._cancel_event = Event()
         self._user_agent = user_agent
         self._cookies = cookies
         self._requested_url = url
@@ -295,7 +311,13 @@ class UrlRequestBase(Thread, UrlRequestABC, ABC):
         # save our request to prevent GC
         g_requests.append(self)
 
-        self.start()
+        # allow manually starting the request
+        if start:
+            self.start()
+
+    def start(self) -> None:
+        self._dispatch_callbacks(self.on_start)
+        super().start()
 
     def run(self):
 
@@ -314,11 +336,13 @@ class UrlRequestBase(Thread, UrlRequestABC, ABC):
                 q(('killed', None, None))
 
         # using trigger can result in a missed on_success event
+        # noinspection PyArgumentList
         self._trigger_result()
 
         # clean ourselves when the queue is empty
         while len(self._queue):
             sleep(.1)
+            # noinspection PyArgumentList
             self._trigger_result()
 
         # ok, authorize the GC to clean us.
@@ -618,6 +642,70 @@ class UrlRequestBase(Thread, UrlRequestABC, ABC):
         .. versionadded:: 1.11.0
         '''
         self._cancel_event.set()
+
+    def bind(self, **kwargs):
+        '''Mimics the standard event binding present throughout kivy, without
+        creating the overhead of actually binding and unbinding methods for a
+        request object that is typically short-lived.
+
+        To use this method, the UrlRequest object must be created with the
+        parameter start set to False. This allows assigning callbacks after
+        object creation, similar to the way that callbacks are bound to kivy
+        events. The UrlRequest must be manually started after the fact, usually
+        immediately after the binding is done.
+
+        The advantage of using bind is derived from code reuse; it is
+        possible to create multiple, similar requests that may handle their
+        responses differently given different app states. It is also possible
+        to easily bind multiple requests to similar sets of callbacks,
+        without defining a helper function for each request.
+
+        The following code snippets are equivalent:
+
+        > r = UrlRequest(url, on_success=callback)
+
+        > r = UrlRequest(url, start=False)
+        > r.bind(on_success=callback)
+        > r.start()
+
+        An advantage is demonstrated in the following equivalent snippets:
+
+        > def my_on_success_callback_helper(request, response):
+        >     update_app_display(request, response)
+        >     update_app_state(request, response)
+        >
+        > def my_on_cancel_callback_helper(request, response):
+        >     update_app_state(request)
+        >
+        > r = UrlRequest(
+        >     url,
+        >     on_success=my_on_success_callback_helper,
+        >     on_cancel=my_on_cancel_callback_helper,
+        > )
+
+        > r = UrlRequest(url, start=False)
+        > r.bind(on_success=[update_app_display, update_app_state])
+        > r.bind(on_cancel=update_app_state)
+        > r.start()
+
+        '''
+
+        # ensure thread has not been started as callbacks may otherwise be
+        # missed when they are assigned after states are reached
+        assert not self._started.is_set()
+
+        for callback_type, methods in kwargs.items():
+            # iterable
+            try:
+                for method in methods:
+                    callbacks_list = getattr(self, callback_type)
+                    callbacks_list.append(WeakMethod(method))
+
+            # not iterable
+            except TypeError:
+                method = methods
+                callbacks_list = getattr(self, callback_type)
+                callbacks_list.append(WeakMethod(method))
 
 
 class UrlRequestUrllib(UrlRequestBase):
