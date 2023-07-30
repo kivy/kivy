@@ -85,7 +85,60 @@ except ImportError:
 g_requests = []
 
 
-class UrlRequestBase(Thread):
+class UrlRequestABC:
+    """Grouping of abstract methods that must be defined by implementations.
+    Currently, urllib and requests are supported.
+    """
+
+    @abstractmethod
+    def get_chunks(self, resp, chunk_size, total_size, report_progress, q,
+                   trigger, fd):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_response(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_total_size(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_content_type(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_status_code(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_all_headers(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def close_connection(self, req):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _parse_url(self, url):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_connection_for_scheme(self, scheme):
+        '''Return the Connection class for a particular scheme.
+        This is an internal function that can be expanded to support custom
+        schemes.
+
+        Actual supported schemes: http, https.
+        '''
+        raise NotImplementedError
+
+    @abstractmethod
+    def call_request(self, body, headers):
+        raise NotImplementedError
+
+
+class UrlRequestBase(Thread, UrlRequestABC, ABC):
     '''A UrlRequest. See module documentation for usage.
 
     .. versionchanged:: 1.5.1
