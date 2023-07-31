@@ -60,22 +60,134 @@ class CameraOpenCV(CameraBase):
     _update_ev = None
 
     def __init__(self, **kwargs):
-        # 0 is the api_id of CAP_ANY for both cv and cv2
-        kwargs.setdefault('api_id', 0)
-        self.api_id = kwargs.get('api_id')
+        kwargs.setdefault('api_name', "CAP_ANY")
+        self.api_name = kwargs.get('api_name')
+        
+        #Handle generic default value in the camera class
+        if self.api_name == "default":
+            self.api_name == "CAP_ANY"
+        
+        # Provide a default api for opencv that doesn't lag on windows
+        if platform == 'win' and self.api_name == "CAP_ANY":
+            self.api_name = "CAP_DSHOW"
         
         # we will need it, because constants have
         # different access paths between ver. 2 and 3
         try:
             self.opencvMajorVersion = int(cv.__version__[0])
-            if platform == 'win' and self.api_id == 0:
-                self.api_id = cv.CAP_DSHOW
 
         except NameError:
             self.opencvMajorVersion = int(cv2.__version__[0])
-            if platform == 'win' and self.api_id == 0:
-                self.api_id = cv2.CAP_DSHOW
 
+        #ID names used from here:
+        #https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html#ga023786be1ee68a9105bf2e48c700294d
+        if self.opencvMajorVersion in (3, 4):
+            api_ids = { "CAP_ANY": cv2.CAP_ANY,
+                        "CAP_VFW": cv2.CAP_VFW,
+                        "CAP_V4L": cv2.CAP_V4L,
+                        "CAP_V4L2": cv2.CAP_V4L2,
+                        "CAP_FIREWIRE": cv2.CAP_FIREWIRE,
+                        "CAP_FIREWARE": cv2.CAP_FIREWARE,
+                        "CAP_IEEE1394": cv2.CAP_IEEE1394,
+                        "CAP_DC1394": cv2.CAP_DC1394,
+                        "CAP_CMU1394": cv2.CAP_CMU1394,
+                        "CAP_QT": cv2.CAP_QT,
+                        "CAP_UNICAP": cv2.CAP_UNICAP,
+                        "CAP_DSHOW": cv2.CAP_DSHOW,
+                        "CAP_PVAPI": cv2.CAP_PVAPI,
+                        "CAP_OPENNI": cv2.CAP_OPENNI,
+                        "CAP_OPENNI_ASUS": cv2.CAP_OPENNI_ASUS,
+                        "CAP_ANDROID": cv2.CAP_ANDROID,
+                        "CAP_XIAPI": cv2.CAP_XIAPI,
+                        "CAP_AVFOUNDATION": cv2.CAP_AVFOUNDATION,
+                        "CAP_GIGANETIX": cv2.CAP_GIGANETIX,
+                        "CAP_MSMF": cv2.CAP_MSMF,
+                        "CAP_WINRT": cv2.CAP_WINRT,
+                        "CAP_INTELPERC": cv2.CAP_INTELPERC,
+                        "CAP_OPENNI2": cv2.CAP_OPENNI2,
+                        "CAP_OPENNI2_ASUS": cv2.CAP_OPENNI2_ASUS,
+                        "CAP_GPHOTO2": cv2.CAP_GPHOTO2,
+                        "CAP_GSTREAMER": cv2.CAP_GSTREAMER,
+                        "CAP_FFMPEG": cv2.CAP_FFMPEG,
+                        "CAP_IMAGES": cv2.CAP_IMAGES,
+                        "CAP_ARAVIS": cv2.CAP_ARAVIS,
+                        "CAP_OPENCV_MJPEG": cv2.CAP_OPENCV_MJPEG,
+                        "CAP_INTEL_MFX": cv2.CAP_INTEL_MFX,
+                        "CAP_XINE": cv2.CAP_XINE}
+
+        elif self.opencvMajorVersion == 2:
+            api_ids = { "CAP_ANY": cv2.cv.CAP_ANY,
+                        "CAP_VFW": cv2.cv.CAP_VFW,
+                        "CAP_V4L": cv2.cv.CAP_V4L,
+                        "CAP_V4L2": cv2.cv.CAP_V4L2,
+                        "CAP_FIREWIRE": cv2.cv.CAP_FIREWIRE,
+                        "CAP_FIREWARE": cv2.cv.CAP_FIREWARE,
+                        "CAP_IEEE1394": cv2.cv.CAP_IEEE1394,
+                        "CAP_DC1394": cv2.cv.CAP_DC1394,
+                        "CAP_CMU1394": cv2.cv.CAP_CMU1394,
+                        "CAP_QT": cv2.cv.CAP_QT,
+                        "CAP_UNICAP": cv2.cv.CAP_UNICAP,
+                        "CAP_DSHOW": cv2.cv.CAP_DSHOW,
+                        "CAP_PVAPI": cv2.cv.CAP_PVAPI,
+                        "CAP_OPENNI": cv2.cv.CAP_OPENNI,
+                        "CAP_OPENNI_ASUS": cv2.cv.CAP_OPENNI_ASUS,
+                        "CAP_ANDROID": cv2.cv.CAP_ANDROID,
+                        "CAP_XIAPI": cv2.cv.CAP_XIAPI,
+                        "CAP_AVFOUNDATION": cv2.cv.CAP_AVFOUNDATION,
+                        "CAP_GIGANETIX": cv2.cv.CAP_GIGANETIX,
+                        "CAP_MSMF": cv2.cv.CAP_MSMF,
+                        "CAP_WINRT": cv2.cv.CAP_WINRT,
+                        "CAP_INTELPERC": cv2.cv.CAP_INTELPERC,
+                        "CAP_OPENNI2": cv2.cv.CAP_OPENNI2,
+                        "CAP_OPENNI2_ASUS": cv2.cv.CAP_OPENNI2_ASUS,
+                        "CAP_GPHOTO2": cv2.cv.CAP_GPHOTO2,
+                        "CAP_GSTREAMER": cv2.cv.CAP_GSTREAMER,
+                        "CAP_FFMPEG": cv2.cv.CAP_FFMPEG,
+                        "CAP_IMAGES": cv2.cv.CAP_IMAGES,
+                        "CAP_ARAVIS": cv2.cv.CAP_ARAVIS,
+                        "CAP_OPENCV_MJPEG": cv2.cv.CAP_OPENCV_MJPEG,
+                        "CAP_INTEL_MFX": cv2.cv.CAP_INTEL_MFX,
+                        "CAP_XINE": cv2.cv.CAP_XINE}
+
+        elif self.opencvMajorVersion == 1:
+            api_ids = { "CAP_ANY": cv.CAP_ANY,
+                        "CAP_VFW": cv.CAP_VFW,
+                        "CAP_V4L": cv.CAP_V4L,
+                        "CAP_V4L2": cv.CAP_V4L2,
+                        "CAP_FIREWIRE": cv.CAP_FIREWIRE,
+                        "CAP_FIREWARE": cv.CAP_FIREWARE,
+                        "CAP_IEEE1394": cv.CAP_IEEE1394,
+                        "CAP_DC1394": cv.CAP_DC1394,
+                        "CAP_CMU1394": cv.CAP_CMU1394,
+                        "CAP_QT": cv.CAP_QT,
+                        "CAP_UNICAP": cv.CAP_UNICAP,
+                        "CAP_DSHOW": cv.CAP_DSHOW,
+                        "CAP_PVAPI": cv.CAP_PVAPI,
+                        "CAP_OPENNI": cv.CAP_OPENNI,
+                        "CAP_OPENNI_ASUS": cv.CAP_OPENNI_ASUS,
+                        "CAP_ANDROID": cv.CAP_ANDROID,
+                        "CAP_XIAPI": cv.CAP_XIAPI,
+                        "CAP_AVFOUNDATION": cv.CAP_AVFOUNDATION,
+                        "CAP_GIGANETIX": cv.CAP_GIGANETIX,
+                        "CAP_MSMF": cv.CAP_MSMF,
+                        "CAP_WINRT": cv.CAP_WINRT,
+                        "CAP_INTELPERC": cv.CAP_INTELPERC,
+                        "CAP_OPENNI2": cv.CAP_OPENNI2,
+                        "CAP_OPENNI2_ASUS": cv.CAP_OPENNI2_ASUS,
+                        "CAP_GPHOTO2": cv.CAP_GPHOTO2,
+                        "CAP_GSTREAMER": cv.CAP_GSTREAMER,
+                        "CAP_FFMPEG": cv.CAP_FFMPEG,
+                        "CAP_IMAGES": cv.CAP_IMAGES,
+                        "CAP_ARAVIS": cv.CAP_ARAVIS,
+                        "CAP_OPENCV_MJPEG": cv.CAP_OPENCV_MJPEG,
+                        "CAP_INTEL_MFX": cv.CAP_INTEL_MFX,
+                        "CAP_XINE": cv.CAP_XINE}
+
+        
+        self.api_id = api_ids.get(self.api_name, 0) #0 is the API ID of CAP_ANY for both cv and cv2
+        if self.api_name not in api_ids:
+            Logger.exception('OpenCV: The API name provided is not valid.  Using the default instead.')
+            
         self._device = None
         super(CameraOpenCV, self).__init__(**kwargs)
 
