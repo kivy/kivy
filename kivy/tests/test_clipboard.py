@@ -1,4 +1,5 @@
 from kivy.tests.common import GraphicUnitTest
+import random
 
 
 class ClipboardTestCase(GraphicUnitTest):
@@ -32,7 +33,7 @@ class ClipboardTestCase(GraphicUnitTest):
             clippy.copy(u"Hello World")
         except:
             self.fail(
-                'Can not get put data to clipboard')
+                'Can not put data to clipboard')
 
     def test_clipboard_copy_paste(self):
         clippy = self._clippy
@@ -40,3 +41,17 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy.copy(txt1)
         ret = clippy.paste()
         self.assertEqual(txt1, ret)
+
+    def test_clipboard_copy_paste_with_emoji(self):
+        clippy = self._clippy
+        emoji_list = [
+            '😀', '😁', '🤣',
+            '😃', '😄', '😅',
+            '😆', '😉', '😊',
+            '😋', '😎', '😍',
+            '😘', '😗', '😎'
+        ]
+        target_string = " kivy ".join(random.choices(emoji_list, k=3))
+        clippy.copy(target_string)
+        ret = clippy.paste()
+        self.assertEqual(target_string, ret)
