@@ -614,6 +614,11 @@ def add_kivy_handlers(logger):
 KIVY_LOG_MODE = os.environ.get("KIVY_LOG_MODE", "KIVY")
 assert KIVY_LOG_MODE in ("KIVY", "PYTHON", "MIXED"), "Unknown log mode"
 
+# if run from pythonw or pyinstaller v5.7, sys.stderr is None
+# If sys.stderr is None the ConsoleHandler() must not be loaded
+if sys.stderr is None:
+    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+
 if KIVY_LOG_MODE == "KIVY":
     # Add the Kivy handlers to the root logger, so they will be used
     # for all propagated log messages.
