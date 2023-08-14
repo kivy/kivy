@@ -595,7 +595,9 @@ def add_kivy_handlers(logger):
         logger.addHandler(file_log_handler)
 
     # Use the custom handler instead of streaming one.
-    if 'KIVY_NO_CONSOLELOG' not in os.environ:
+    # Don't output to stderr if it is set to None
+    # stderr is set to None by pythonw and pyinstaller 5.7+
+    if (sys.stderr is not None) and ('KIVY_NO_CONSOLELOG' not in os.environ):
         use_color = is_color_terminal()
         if not use_color:
             # No additional control characters will be inserted inside the
@@ -613,11 +615,6 @@ def add_kivy_handlers(logger):
 
 KIVY_LOG_MODE = os.environ.get("KIVY_LOG_MODE", "KIVY")
 assert KIVY_LOG_MODE in ("KIVY", "PYTHON", "MIXED"), "Unknown log mode"
-
-# if run from pythonw or pyinstaller v5.7, sys.stderr is None
-# If sys.stderr is None the ConsoleHandler() must not be loaded
-if sys.stderr is None:
-    os.environ['KIVY_NO_CONSOLELOG'] = '1'
 
 if KIVY_LOG_MODE == "KIVY":
     # Add the Kivy handlers to the root logger, so they will be used
