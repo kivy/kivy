@@ -938,6 +938,7 @@ class WindowBase(EventDispatcher):
 
     def _set_opacity(self, opacity):
         self._set_window_opacity(opacity)
+        return True
 
     def _get_window_opacity(self):
         Logger.warning('Window: Opacity is not implemented in the current '
