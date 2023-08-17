@@ -133,8 +133,12 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have a window.
         '''
-        import kivy.core.window  # NOQA
-        if not self.window:
+        if self.window:
+            return
+        from kivy.core.window import Window # NOQA
+        
+        Window.initialize_window_setup()
+        if not Window.initialized or not self.window:
             Logger.critical('App: Unable to get a Window, abort.')
             sys.exit(1)
 
