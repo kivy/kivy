@@ -2761,9 +2761,15 @@ class TextInput(FocusBehavior, Widget):
 
         if action == "shift_key_down":
             self._shift = True
+            if not self._selection:
+                self._selection_from = self._selection_to = self.cursor_index()
+                self._selection = True
+            self._selection_finished = False
 
         if action == "shift_key_up":
             self._shift = False
+            if self._selection:
+                self._update_selection(True)
 
         if action == "ctrl_key_down":
             self._ctrl = True
@@ -2779,6 +2785,11 @@ class TextInput(FocusBehavior, Widget):
 
         if action.startswith("cursor_"):
             self.do_cursor_movement(action, control=self._ctrl, alt=self._alt)
+            if self._selection and not self._selection_finished:
+                self._selection_to = self.cursor_index()
+                self._update_selection()
+            else:
+                self.cancel_selection()
 
     def on__hint_text(self, instance, value):
         self._refresh_hint_text()
