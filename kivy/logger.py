@@ -597,7 +597,7 @@ def add_kivy_handlers(logger):
     # Use the custom handler instead of streaming one.
     # Don't output to stderr if it is set to None
     # stderr is set to None by pythonw and pyinstaller 5.7+
-    if (sys.stderr is not None) and ('KIVY_NO_CONSOLELOG' not in os.environ):
+    if sys.stderr and 'KIVY_NO_CONSOLELOG' not in os.environ:
         use_color = is_color_terminal()
         if not use_color:
             # No additional control characters will be inserted inside the
