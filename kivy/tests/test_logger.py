@@ -510,5 +510,5 @@ def test_logger_fix_8345():
     sys.stderr = original_sys_stderr  # restore sys.stderr
     console_handler_found = any(isinstance(handler, ConsoleHandler)
                                 for handler in Logger.handlers)
-    assert not console_handler_found, \
-        "Console handler added, despite sys.stderr being None"
+    assert (not console_handler_found,
+            "Console handler added, despite sys.stderr being None")
