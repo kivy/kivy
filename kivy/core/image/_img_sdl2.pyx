@@ -14,14 +14,14 @@ cdef struct SDL_RWops:
     int (* close) (SDL_RWops * context)
 
 
-cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num):
+cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num) noexcept:
     cdef char *c_string = <char *>ptr
     byteio = <object>context.hidden.unknown.data1
     byteio.write(c_string[:size * num])
     return size * num
 
 
-cdef int rwops_bytesio_close(SDL_RWops *context):
+cdef int rwops_bytesio_close(SDL_RWops *context) noexcept:
     byteio = <object>context.hidden.unknown.data1
     byteio.seek(0)
 
