@@ -508,7 +508,9 @@ def test_logger_fix_8345():
     sys.stderr = None
     add_kivy_handlers(Logger)
     sys.stderr = original_sys_stderr  # restore sys.stderr
-    console_handler_found = any(isinstance(handler, ConsoleHandler)
-                                for handler in Logger.handlers)
-    assert not console_handler_found, \
-        "Console handler added, despite sys.stderr being None"
+    console_handler_found = any(
+        isinstance(handler, ConsoleHandler) for handler in Logger.handlers
+    )
+    assert (
+        not console_handler_found
+    ), "Console handler added, despite sys.stderr being None"
