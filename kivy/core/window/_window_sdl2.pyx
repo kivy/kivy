@@ -399,6 +399,8 @@ cdef class _WindowSDL2Storage:
             message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
             Logger.error(f'WindowSDL: Setting opacity to {opacity} failed - '
                          f'{message}')
+            return False
+        return True
 
     def get_window_opacity(self):
         cdef float opacity
