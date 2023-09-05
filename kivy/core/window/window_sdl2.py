@@ -493,7 +493,8 @@ class WindowSDL(WindowBase):
         return self._win.get_window_opacity()
 
     def _set_window_opacity(self, opacity):
-        self._win.set_window_opacity(opacity)
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     # Transparent Window background
     def _is_shaped(self):
