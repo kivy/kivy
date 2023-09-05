@@ -937,8 +937,8 @@ class WindowBase(EventDispatcher):
         return self._get_window_opacity()
 
     def _set_opacity(self, opacity):
-        self._set_window_opacity(opacity)
-        return True
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     def _get_window_opacity(self):
         Logger.warning('Window: Opacity is not implemented in the current '
@@ -948,7 +948,7 @@ class WindowBase(EventDispatcher):
         Logger.warning('Window: Opacity is not implemented in the current '
                        'window provider')
 
-    opacity = AliasProperty(_get_opacity, _set_opacity)
+    opacity = AliasProperty(_get_opacity, _set_opacity, cache=True)
     '''Opacity of the window. Accepts a value between 0.0 (transparent) and
     1.0 (opaque).
 
