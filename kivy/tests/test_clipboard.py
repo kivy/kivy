@@ -1,5 +1,4 @@
 from kivy.tests.common import GraphicUnitTest
-import random
 
 
 class ClipboardTestCase(GraphicUnitTest):
@@ -44,14 +43,6 @@ class ClipboardTestCase(GraphicUnitTest):
 
     def test_clipboard_copy_paste_with_emoji(self):
         clippy = self._clippy
-        emoji_list = [
-            '😀', '😁', '🤣',
-            '😃', '😄', '😅',
-            '😆', '😉', '😊',
-            '😋', '😎', '😍',
-            '😘', '😗', '😎'
-        ]
-        target_string = " kivy ".join(random.choices(emoji_list, k=3))
-        clippy.copy(target_string)
-        ret = clippy.paste()
-        self.assertEqual(target_string, ret)
+        test_emoji_str = 'kivy 😀 😁 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗'
+        clippy.copy(test_emoji_str)
+        self.assertEqual(test_emoji_str, clippy.paste())
