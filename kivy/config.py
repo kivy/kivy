@@ -942,7 +942,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
 
-         elif version == 27:
+        elif version == 27:
             Config.setdefault("graphics", "lazy_window_initialization", "0")
 
         # WARNING: When adding a new version migration here,
