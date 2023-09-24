@@ -786,8 +786,9 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_textinput', text)
 
             elif action == 'textedit':
-                text = args[0]
-                self.dispatch('on_textedit', text)
+                composition, cursor, selection_len = args
+                # sbrang
+                self.dispatch('on_textedit', composition, cursor, selection_len)
 
             # unhandled event !
             else:

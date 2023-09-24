@@ -474,6 +474,11 @@ class TextInput(FocusBehavior, Widget):
             Fired when four fingers are touching the text input. The default
             behavior selects the whole text. More info at
             :meth:`on_quad_touch`.
+        `on_text_refreshed`
+            Fired when the text refresh is completed. This is useful to know
+            when the text replaced (by setting :attr:`text` or by the underlying
+            TextInput implementation) is fully refreshed and rendered into the
+            widget.
 
     .. warning::
         When changing a :class:`TextInput` property that requires re-drawing,
@@ -557,7 +562,7 @@ class TextInput(FocusBehavior, Widget):
     '''
 
     __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
-                  'on_quad_touch')
+                  'on_quad_touch', 'on_text_refreshed')
 
     _resolved_base_dir = None
 
@@ -1130,10 +1135,11 @@ class TextInput(FocusBehavior, Widget):
     def _move_cursor_up(self, col, row, control=False, alt=False):
         print("move_cursor_up", col, row, control, alt)
         if self.multiline and control:
+            # FIXME: Untestable on macOS
             self.scroll_y = max(0, self.scroll_y - self.line_height)
         elif not self.readonly and self.multiline and alt:
+            # FIXME: Seems to not work even on master
             self._shift_lines(-1)
-            # FIXME: We need to implement _shift_lines again.
             return
         else:
             row = max(row - 1, 0)
@@ -1143,14 +1149,15 @@ class TextInput(FocusBehavior, Widget):
 
     def _move_cursor_down(self, col, row, control, alt):
         if self.multiline and control:
+            # FIXME: Untestable on macOS
             maxy = self.minimum_height - self.height
             self.scroll_y = max(
                 0,
                 min(maxy, self.scroll_y + self.line_height)
             )
         elif not self.readonly and self.multiline and alt:
+            # FIXME: Seems to not work even on master
             self._shift_lines(1)
-            # FIXME: We need to implement _shift_lines again.
             return
         else:
             row = min(row + 1, len(self._lines) - 1)
@@ -1427,6 +1434,9 @@ class TextInput(FocusBehavior, Widget):
         you can bind to this event to provide additional functionality.
         '''
         Clock.schedule_once(lambda dt: self.select_all())
+
+    def on_text_refreshed(self):
+        pass
 
     def on_touch_down(self, touch):
         if self.disabled:
@@ -2165,6 +2175,8 @@ class TextInput(FocusBehavior, Widget):
 
         self._rendered_text = text
 
+        self.dispatch('on_text_refreshed')
+
     def _trigger_update_graphics(self, *largs):
         self._update_graphics_ev.cancel()
         self._update_graphics_ev()
@@ -2752,9 +2764,9 @@ class TextInput(FocusBehavior, Widget):
     def _handle_coretextinput_action(self, instance, action):
         # Handle any FocusBehavior action before TextInput's
         # (e.g: tab, escape)
-        print(action)
-        if action == "escape":
+        if action == "escape" and self.focus:
             self.focus = False
+            return True
 
         if action == "tab":
             self.move_focus(direction="next")

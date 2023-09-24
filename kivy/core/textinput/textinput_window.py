@@ -9,6 +9,7 @@ INTERESTING_KEYS = {
     8: "backspace",
     9: "tab",
     13: "enter",
+    27: "escape",
     127: "del",
     271: "enter",
     273: "cursor_up",
@@ -151,9 +152,17 @@ class TextInputWindow(TextInputBase):
             # interpreted as text input.
             self._on_keyboard_textinput(self._keyboard, displayed_str)
 
-        elif internal_action in ("del", "backspace"):
+        elif internal_action == "backspace":
             # Signal the TextInput that we want to delete the selection
             # or the character before the cursor current position.
+            self._on_keyboard_textinput(self._keyboard, "")
+
+        elif internal_action == "del":
+            # Signal the TextInput that we want to delete the selection
+            # or the character after the cursor current position.
+            # TODO: I do not like it. We have a better way to do it?
+            if self.selection[0] == self.selection[1]:
+                self.selection = [self.selection[0], self.selection[0] + 1]
             self._on_keyboard_textinput(self._keyboard, "")
 
         elif internal_action in ("shift", "shift_L", "shift_R"):
@@ -202,10 +211,9 @@ class TextInputWindow(TextInputBase):
                     self.dispatch("on_action", "tab")
 
         elif internal_action == "escape":
-            # FIXME: The app is closing! (but it's not related)
             # The user pressed escape, so it likely wants to cancel the
             # focus. We should signal the TextInput to cancel the focus.
-            self.dispatch("on_action", "escape")
+            return self.dispatch("on_action", "escape")
 
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
@@ -244,22 +252,20 @@ class TextInputWindow(TextInputBase):
 
         # That seems like a shortcut, so call the on_shortcut event.
         if is_shortcut and not is_interesting_key and text:
-            self.dispatch("on_shortcut", key)
-            return
+            return self.dispatch("on_shortcut", key)
 
         # Is a key we are interested in (like backspace, enter, etc.).
         if is_interesting_key:
             key = (None, None, INTERESTING_KEYS.get(key), 1, modifiers)
-            self._key_down(key)
-            return
+            return self._key_down(key)
 
         # The Window says the input is managed via the textinput event,
         # so other keys (text keys) should be ignored.
         if EventLoop.window.managed_textinput:
-            return
+            return False
 
         # The key is not interesting, so it should be interpreted as text input.
-        self._on_keyboard_textinput(self._keyboard, text)
+        return self._on_keyboard_textinput(self._keyboard, text)
 
     def paste(self, substring):
         self._on_keyboard_textinput(self._keyboard, substring)
@@ -272,6 +278,18 @@ class TextInputWindow(TextInputBase):
     def _on_keyboard_textinput(self, keyboard, substring):
         start_index, end_index = self.selection
         self._commit_text_change(substring, start_index, end_index)
+        return True
+
+    def _on_keyboard_textedit(self, keyboard, composition, start_index, selection_length):
+        print("_on_keyboard_textedit", composition, start_index, selection_length)
+
+        if selection_length == 0 and len(composition) != 0:
+            # Add the last character of the composition to the text.
+            self._commit_text_change(composition[-1], start_index, start_index)
+            return True
+
+        self._commit_text_change(composition[start_index:start_index + selection_length], start_index, start_index + selection_length)
+        return True
 
     def _commit_text_change(
         self, substring, start_index, end_index, from_undo_redo=False
@@ -325,11 +343,11 @@ class TextInputWindow(TextInputBase):
         # We now own the keyboard.
         TextInputWindow._keyboards[keyboard] = self
 
-        print("bind", keyboard, self)
         keyboard.bind(
             on_key_down=self._on_keyboard_key_down,
             on_key_up=self._on_keyboard_key_up,
             on_textinput=self._on_keyboard_textinput,
+            on_textedit=self._on_keyboard_textedit,
         )
 
     def _unbind_keyboard(self):
@@ -344,4 +362,5 @@ class TextInputWindow(TextInputBase):
             on_key_down=self._on_keyboard_key_down,
             on_key_up=self._on_keyboard_key_up,
             on_textinput=self._on_keyboard_textinput,
+            on_textedit=self._on_keyboard_textedit,
         )

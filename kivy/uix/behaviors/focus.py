@@ -434,7 +434,8 @@ class FocusBehavior:
         FocusBehavior._focusables.append(self)
 
     def _exit_focused_mode(self):
-        FocusBehavior._focusables.remove(self)
+        if self in FocusBehavior._focusables:
+            FocusBehavior._focusables.remove(self)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
