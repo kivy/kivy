@@ -33,14 +33,19 @@ class WindowOpacityTest(GraphicUnitTest):
         LoggerHistory.history[:] = self._prev_history
         super().tearDown()
 
+    def get_new_opacity_value(self):
+        opacity = self.Window.opacity
+        opacity = opacity - 0.1 if opacity >= 0.9 else opacity + 0.1
+        return round(opacity, 2)
+
     def check_opacity_support(self):
         LoggerHistory.clear_history()
-        self.Window.opacity = 0.2
+        self.Window.opacity = self.get_new_opacity_value()
         return not LoggerHistory.history
 
     def test_window_opacity_property(self):
         if self.check_opacity_support():
-            opacity = 0.5
+            opacity = self.get_new_opacity_value()
             self.Window.opacity = opacity
             self.assertEqual(self.Window.opacity, opacity)
 
