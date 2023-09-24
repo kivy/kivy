@@ -128,7 +128,13 @@ class TextInputBase(EventDispatcher):
     def redo(self):
         raise NotImplementedError
 
+    def reset_redo(self):
+        raise NotImplementedError
+
     def undo(self):
+        raise NotImplementedError
+    
+    def reset_undo(self):
         raise NotImplementedError
 
     def backspace(self):

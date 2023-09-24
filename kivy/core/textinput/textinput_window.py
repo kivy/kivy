@@ -86,6 +86,9 @@ class TextInputWindow(TextInputBase):
             from_undo_redo=True,
         )
 
+    def reset_undo(self):
+        self._undo_text_changes.clear()
+
     def redo(self):
         if not self._redo_text_changes:
             return
@@ -99,6 +102,9 @@ class TextInputWindow(TextInputBase):
             redo_step["previous"]["end_index"],
             from_undo_redo=True,
         )
+
+    def reset_redo(self):
+        self._redo_text_changes.clear()
 
     def _keyboard_released(self):
         pass

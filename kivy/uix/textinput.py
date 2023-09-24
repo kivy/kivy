@@ -876,8 +876,8 @@ class TextInput(FocusBehavior, Widget):
         .. versionadded:: 1.3.0
 
         '''
-        # FIXME: reset_undo is not implemented in core textinput
         self._textinput.reset_undo()
+        self._textinput.reset_redo()
 
     def do_redo(self):
         '''Do redo operation.
@@ -912,7 +912,8 @@ class TextInput(FocusBehavior, Widget):
         '''
         if self.readonly:
             return
-        # FIXME: backspace is not implemented in core textinput
+
+        # FIXME: Do we have control in core textinput?
         self._textinput.backspace()
 
     _re_whitespace = re.compile(r'\s+')
