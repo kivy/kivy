@@ -9,8 +9,12 @@ Text Input
 
 The :class:`TextInput` widget provides a box for editable plain text.
 
-Unicode, multiline, cursor navigation, selection and clipboard features
-are supported.
+The :class:`TextInput` does not handle the input directly, instead it
+offers an interface for the underlying implementation to interact with
+it. The default implementation is choosen depending on the platform, as
+any other Core provider. Please see :mod:`~kivy.core.textinput` for more
+information about the available implementations and available features on
+each platform.
 
 The :class:`TextInput` uses two different coordinate systems:
 
@@ -101,15 +105,19 @@ Filtering
 ---------
 
 You can control which text can be added to the :class:`TextInput` by
-overwriting :meth:`TextInput.insert_text`. Every string that is typed, pasted
-or inserted by any other means into the :class:`TextInput` is passed through
-this function. By overwriting it you can reject or change unwanted characters.
+overwriting :meth:`TextInput.validator`.
+The :meth:`TextInput.validator` is called  whenever the underlying
+:class:`CoreTextInput` receives a new input (e.g. from the user typing or
+pasting text). If the :meth:`TextInput.validator` returns False, the input is
+discarded.
+
+FIXME: The validator now does not support changing the text. And it should?
 
 For example, to write only in capitalized characters::
 
     class CapitalInput(TextInput):
 
-        def insert_text(self, substring):
+        def validator(self, substring):
             s = substring.upper()
             return super().insert_text(s)
 
@@ -175,7 +183,6 @@ from kivy.base import EventLoop
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.config import Config
-from kivy.core.window import Window
 from kivy.metrics import inch
 from kivy.utils import boundary, platform
 from kivy.uix.behaviors import FocusBehavior
