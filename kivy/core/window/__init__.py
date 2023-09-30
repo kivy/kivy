@@ -951,16 +951,6 @@ class WindowBase(EventDispatcher):
     '''Opacity of the window. Accepts a value between 0.0 (transparent) and
     1.0 (opaque).
 
-    Kivy does not perform range checking on this property's value, and it does 
-    not raise an error if you assign value outside the valid range of [0.0 - 1.0]. 
-    Instead, the Window provider will clamp the value to the valid range, ensuring 
-    that the opacity remains within [0.0 - 1.0].
-
-    This property is cached, which means that the value dispatching event will 
-    only be raised when you set a new value that is different from the current 
-    cached value. This behavior ensures that unnecessary events are not 
-    dispatched when the value remains the same.
-
     .. note::
         This feature requires the SDL2 window provider.
 
