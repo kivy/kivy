@@ -8,7 +8,7 @@ BoxLayout:
     orientation: 'vertical'
     Label:
         text: f'Window opacity: {window.opacity}'
-        font_size: 25
+        font_size: '25sp'
     Slider:
         size_hint_y: 4
         min: 0.0
