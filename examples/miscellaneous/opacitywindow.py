@@ -1,10 +1,10 @@
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 
-Builder.load_string('''
+kv = '''
 #:import window kivy.core.window.Window
-<Layout>:
+
+BoxLayout:
     orientation: 'vertical'
     Label:
         text: f'Window opacity: {window.opacity}'
@@ -15,18 +15,14 @@ Builder.load_string('''
         max: 1.0
         value: window.opacity
         on_value: window.opacity = args[1]
-''')
+'''
 
 
-class Layout(BoxLayout):
-    pass
-
-
-class OpacityWindowApp(App):
+class WindowOpacityApp(App):
 
     def build(self):
-        return Layout()
+        return Builder.load_string(kv)
 
 
 if __name__ == '__main__':
-    OpacityWindowApp().run()
+    WindowOpacityApp().run()
