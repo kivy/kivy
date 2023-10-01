@@ -40,6 +40,11 @@ class TextInputWindow(TextInputBase):
         self._undo_text_changes = collections.deque(maxlen=16)
         self._redo_text_changes = collections.deque(maxlen=16)
 
+        # current IME composition in progress by the IME system, or '' if nothing
+        self._ime_composition = ""
+        # index position of last IME event
+        self._ime_index = None
+
     @property
     def keyboard(self):
         return self._keyboard
@@ -155,6 +160,10 @@ class TextInputWindow(TextInputBase):
         elif internal_action == "backspace":
             # Signal the TextInput that we want to delete the selection
             # or the character before the cursor current position.
+            if self._ime_composition:
+                # An IME composition is in progress, and the IME takes care of
+                # the backspace, so we should not do anything.
+                return
             self._on_keyboard_textinput(self._keyboard, "")
 
         elif internal_action == "del":
@@ -227,7 +236,7 @@ class TextInputWindow(TextInputBase):
             # The user released alt, so it should be interpreted as a
             # alt_key_up event, so the TextInput can act accordingly.
             self.dispatch("on_action", "alt_key_up")
-        
+
         elif internal_action in ("ctrl_L", "ctrl_R"):
             # The user released ctrl, so it should be interpreted as a
             # ctrl_key_up event, so the TextInput can act accordingly.
@@ -247,7 +256,9 @@ class TextInputWindow(TextInputBase):
         # This allows *either* ctrl *or* cmd, but not both.
         modifiers = set(modifiers) - {"capslock", "numlock"}
         is_shortcut = (
-            modifiers == {"ctrl"} or (platform == "macosx") and modifiers == {"meta"}
+            modifiers == {"ctrl"}
+            or (platform == "macosx")
+            and modifiers == {"meta"}
         )
 
         # That seems like a shortcut, so call the on_shortcut event.
@@ -280,21 +291,47 @@ class TextInputWindow(TextInputBase):
         self._commit_text_change(substring, start_index, end_index)
         return True
 
-    def _on_keyboard_textedit(self, keyboard, composition, start_index, selection_length):
-        print("_on_keyboard_textedit", composition, start_index, selection_length)
+    def _on_keyboard_textedit(
+        self, keyboard, composition, start_index, selection_length
+    ):
+        # A legacy IME composition via SDL2. Unusable on Android and
+        # iOS software keyboard, but still used on desktop platforms
+        # for CJK languages.
+        # (on macOS, the IME UI is opened in a separate window, at
+        # [0,0] of the screen.
+        # This looks bad, but it is the best we can do with SDL2)
 
-        if selection_length == 0 and len(composition) != 0:
-            # Add the last character of the composition to the text.
-            self._commit_text_change(composition[-1], start_index, start_index)
-            return True
+        end_index = None
 
-        self._commit_text_change(composition[start_index:start_index + selection_length], start_index, start_index + selection_length)
+        if self._ime_composition:
+            start_index = self._ime_index - len(self._ime_composition)
+            end_index = self._ime_index
+            new_ime_index = end_index
+
+            if self._text[start_index:end_index] == self._ime_composition:
+                self._commit_text_change("", start_index, end_index)
+
+        if composition:
+            # Delete the selection, if any.
+            selection_length = abs(self.selection[1] - self.selection[0])
+            if selection_length:
+                self._commit_text_change(
+                    "", self.selection[0], self.selection[1]
+                )
+
+            # Insert the composition.
+            start_index, end_index = self.selection
+            new_ime_index = start_index + len(composition)
+            self._commit_text_change(composition, start_index, end_index)
+
+        self._ime_composition = composition
+        self._ime_index = new_ime_index
+
         return True
 
     def _commit_text_change(
         self, substring, start_index, end_index, from_undo_redo=False
     ):
-
         if substring == "":
             # The change is a deletion or a replacement.
             if start_index == end_index:
@@ -305,21 +342,24 @@ class TextInputWindow(TextInputBase):
                 start_index -= 1
 
         if not from_undo_redo:
+            self._undo_text_changes.append(
+                {
+                    "previous": {
+                        "substring": self._text[start_index:end_index],
+                        "start_index": start_index,
+                        "end_index": end_index,
+                    },
+                    "after": {
+                        "substring": substring,
+                        "start_index": start_index,
+                        "end_index": start_index + len(substring),
+                    },
+                }
+            )
 
-            self._undo_text_changes.append({
-                "previous": {
-                    "substring": self._text[start_index:end_index],
-                    "start_index": start_index,
-                    "end_index": end_index,
-                },
-                "after": {
-                    "substring": substring,
-                    "start_index": start_index,
-                    "end_index": start_index + len(substring),
-                },
-            })
-
-        self._text = self._text[:start_index] + substring + self._text[end_index:]
+        self._text = (
+            self._text[:start_index] + substring + self._text[end_index:]
+        )
 
         self.dispatch("on_text_changed", substring, start_index, end_index)
 
