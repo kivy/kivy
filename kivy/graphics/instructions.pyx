@@ -289,7 +289,7 @@ cdef class VertexInstruction(Instruction):
     Triangles, Lines, Ellipse and so on.
     '''
     def __init__(self, **kwargs):
-        # avoid multiple values for 'noadd' in BindTexture bellow
+        # avoid multiple values for 'noadd' in BindTexture below
         noadd_value = kwargs.pop('noadd', False)
 
         # Set a BindTexture instruction to bind the texture used for
