@@ -157,8 +157,8 @@ class Keyboard(EventDispatcher):
     def _on_window_textinput(self, instance, text):
         return self.dispatch('on_textinput', text)
 
-    def _on_window_textedit(self, instance, composition, cursor, selection_len):
-        return self.dispatch('on_textedit', composition, cursor, selection_len)
+    def _on_window_textedit(self, instance, composition):
+        return self.dispatch('on_textedit', composition)
 
     def _on_window_key_down(self, instance, keycode, scancode, text,
                             modifiers):

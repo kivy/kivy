@@ -763,10 +763,8 @@ cdef class _WindowSDL2Storage:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
         elif event.type == SDL_TEXTEDITING:
-            composition = event.edit.text.decode('utf-8')
-            cursor = event.edit.start
-            selection_len = event.edit.length
-            return ('textedit', composition, cursor, selection_len)
+            s = event.edit.text.decode('utf-8')
+            return ('textedit', s)
         elif event.type == SDL_DROPFILE:
             return ('dropfile', event.drop.file)
         elif event.type == SDL_DROPTEXT:

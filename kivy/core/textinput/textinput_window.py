@@ -291,9 +291,7 @@ class TextInputWindow(TextInputBase):
         self._commit_text_change(substring, start_index, end_index)
         return True
 
-    def _on_keyboard_textedit(
-        self, keyboard, composition, start_index, selection_length
-    ):
+    def _on_keyboard_textedit(self, keyboard, composition):
         # A legacy IME composition via SDL2. Unusable on Android and
         # iOS software keyboard, but still used on desktop platforms
         # for CJK languages.
