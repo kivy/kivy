@@ -1060,7 +1060,7 @@ class Settings(BoxLayout):
                 data = json.loads(fd.read())
         else:
             data = json.loads(data)
-        if isinstance(data, list):
+        if not isinstance(data, list):
             raise ValueError('The first element must be a list')
         panel = SettingsPanel(title=title, settings=self, config=config)
 
