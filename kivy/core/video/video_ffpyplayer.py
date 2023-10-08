@@ -121,6 +121,8 @@ class VideoFFPy(VideoBase):
         # player paused and can probably be removed as soon as the 'eof'
         # receiving issue is solved.
         # See https://github.com/matham/ffpyplayer/issues/142
+        if self.filename is None:
+            return False
         return self.filename.startswith('rtsp://')
 
     def __del__(self):
