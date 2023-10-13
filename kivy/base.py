@@ -247,20 +247,29 @@ class EventLoopBase(EventDispatcher):
             return
 
     def post_dispatch_input(self, etype, me):
-        '''This function is called by :meth:`EventLoopBase.dispatch_input()`
+        '''This function is called by :meth:EventLoopBase.dispatch_input()
         when we want to dispatch an input event. The event is dispatched to
         all listeners and if grabbed, it's dispatched to grabbed widgets.
         '''
+        self.update_me_list(etype, me)
+        self.dispatch_to_listeners(etype, me)
+        self.dispatch_grabbed_touch(etype, me)
+
+    def update_me_list(self, etype, me):
         # update available list
         if etype == 'begin':
             self.me_list.append(me)
         elif etype == 'end':
             if me in self.me_list:
                 self.me_list.remove(me)
+
+    def dispatch_to_listeners(self, etype, me):
         # dispatch to listeners
         if not me.grab_exclusive_class:
             for listener in self.event_listeners:
                 listener.dispatch('on_motion', etype, me)
+
+    def dispatch_grabbed_touch(self, etype, me):
         # dispatch grabbed touch
         if not me.is_touch:
             # Non-touch event must be handled by the event manager
@@ -273,39 +282,41 @@ class EventLoopBase(EventDispatcher):
                 # object is gone, stop.
                 me.grab_list.remove(weak_widget)
                 continue
-            root_window = wid.get_root_window()
-            if wid != root_window and root_window is not None:
-                me.push()
-                try:
-                    root_window.transform_motion_event_2d(me, wid)
-                except AttributeError:
-                    me.pop()
-                    continue
-            me.grab_current = wid
-            wid._context.push()
-            if etype == 'begin':
-                # don't dispatch again touch in on_touch_down
-                # a down event are nearly uniq here.
-                # wid.dispatch('on_touch_down', touch)
-                pass
-            elif etype == 'update':
-                if wid._context.sandbox:
-                    with wid._context.sandbox:
-                        wid.dispatch('on_touch_move', me)
-                else:
-                    wid.dispatch('on_touch_move', me)
-            elif etype == 'end':
-                if wid._context.sandbox:
-                    with wid._context.sandbox:
-                        wid.dispatch('on_touch_up', me)
-                else:
-                    wid.dispatch('on_touch_up', me)
-            wid._context.pop()
-            me.grab_current = None
-            if wid != root_window and root_window is not None:
-                me.pop()
+            self.dispatch_grabbed_widget(etype, me, wid)
         me.grab_state = False
         me.dispatch_done()
+
+    def dispatch_grabbed_widget(self, etype, me, wid):
+        root_window = wid.get_root_window()
+        if wid != root_window and root_window is not None:
+            me.push()
+            try:
+                root_window.transform_motion_event_2d(me, wid)
+            except AttributeError:
+                me.pop()
+                return
+        me.grab_current = wid
+        wid._context.push()
+        if etype == 'begin':
+            # don't dispatch again touch in on_touch_down
+            # a down event are nearly uniq here.
+            # wid.dispatch('on_touch_down', touch)
+            pass
+        elif etype == 'update':
+            dispatch_widget_touch(etype, me, wid)
+        elif etype == 'end':
+            dispatch_widget_touch(etype, me, wid)
+        wid._context.pop()
+        me.grab_current = None
+        if wid != root_window and root_window is not None:
+            me.pop()
+
+    def dispatch_widget_touch(self, etype, me, wid):
+        if wid._context.sandbox:
+            with wid._context.sandbox:
+                wid.dispatch('on_touch_{}'.format(etype), me)
+        else:
+            wid.dispatch('on_touch_{}'.format(etype), me)
 
     def _dispatch_input(self, *ev):
         # remove the save event for the touch if exist
