@@ -1488,12 +1488,13 @@ cdef class SmoothLine(Line):
     cdef void build_smooth(self):
         cdef:
             list p = self.points
-            int close = self._close
+            int must_close_line = self._close
             double width = max(0, (self._width - 1.))
             double owidth = width + self._owidth
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
+            float min_distance_threshold = 0.1
             double min_angle_threshold = 0.017453292519943295  # 1 degree in radians, determined empirically.
             double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle, ad_angle, angle_diff
             double cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
@@ -1503,14 +1504,14 @@ cdef class SmoothLine(Line):
 
         # Points that are very close (with a distance less than 0.1) will
         # be discarded. This increases the reliability of line rendering.
-        p = self._remove_close_points(p)
+        p = self._remove_too_nearby_points(p, min_distance_threshold)
 
         # If it is just a line segment, there will be no support to close the line.
         if len(p) <= 4:
-            close = False
+            must_close_line = False
 
         # A new point needs to meet a minimum distance threshold before being added.
-        if close and not (abs(p[-2] - p[0]) < 0.1 and abs(p[-1] - p[1]) < 0.1):
+        if must_close_line and not (abs(p[-2] - p[0]) < min_distance_threshold and abs(p[-1] - p[1]) < min_distance_threshold):
             p = p + p[:2]
 
         iv = vindex = 0
@@ -1531,7 +1532,7 @@ cdef class SmoothLine(Line):
             free(vertices)
             raise MemoryError("indices")
 
-        if close and self._close_mode == 'straight-line':
+        if must_close_line and self._close_mode == 'straight-line':
             ax = p[-4]
             ay = p[-3]
             bx = p[0]
@@ -1552,7 +1553,7 @@ cdef class SmoothLine(Line):
                 ry = by - ay
                 angle = atan2(ry, rx)
 
-            elif close and index == max_index - 2:
+            elif must_close_line and index == max_index - 2:
                 ax = p[0]
                 ay = p[1]
                 bx = p[2]
@@ -1564,7 +1565,7 @@ cdef class SmoothLine(Line):
             else:
                 angle = last_angle
 
-            if index == 0 and (not close or self._close_mode != 'straight-line'):
+            if index == 0 and (not must_close_line or self._close_mode != 'straight-line'):
                 av_angle = angle
                 ad_angle = pi
             else:
@@ -1578,7 +1579,7 @@ cdef class SmoothLine(Line):
             a2 = av_angle + PI2
 
 
-            if (index == 0 or index >= max_index - 2) and (not close or self._close_mode != 'straight-line'):
+            if (index == 0 or index >= max_index - 2) and (not must_close_line or self._close_mode != 'straight-line'):
                 l = width
                 ol = owidth
             else:
@@ -1717,14 +1718,14 @@ cdef class SmoothLine(Line):
         free(vertices)
         free(indices)
     
-    cdef list _remove_close_points(self, list p):
+    cdef list _remove_too_nearby_points(self, list p, float min_distance_threshold):
         cdef int index = 0
         cdef double x1, y1, x2, y2
 
         while index < len(p) - 2:
             x1, y1 = p[index], p[index + 1]
             x2, y2 = p[index + 2], p[index + 3]
-            if abs(x2 - x1) < 0.1 and abs(y2 - y1) < 0.1:
+            if abs(x2 - x1) < min_distance_threshold and abs(y2 - y1) < min_distance_threshold:
                 del p[index + 2: index + 4]
             else:
                 index += 2
