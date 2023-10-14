@@ -224,6 +224,18 @@ cdef void stencil_apply_state(dict state, restore_only):
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
+
+    .. versionadded:: 2.3.0
+        ``clear_stencil`` was added to allow disabling stencil clearing in the
+        ``StencilPush`` phase. This option essentially disables the invocation
+        of the functions ``cgl.glClearStencil(0)`` and ``cgl.glClear(GL_STENCIL_BUFFER_BIT).``
+
+    .. note::
+        It is **highly recommended** to set ``clear_stencil=False`` for improved
+        performance and reduced GPU usage. However, if any side effects (such as
+        artifacts or inaccurate functioning of ``StencilPush``) occur, it is
+        advisable to re-enable the clearing instructions with ``clear_stencil=True.``
+
     '''
 
     def __init__(self, **kwargs):
