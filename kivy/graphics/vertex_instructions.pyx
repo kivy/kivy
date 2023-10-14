@@ -1779,7 +1779,7 @@ cdef class AntiAliasingLine(VertexInstruction):
 
     cdef void ensure_stencil(self):
         if self._stencil_push == None:
-            self._stencil_push = StencilPush(optimize=True)
+            self._stencil_push = StencilPush(clear_stencil=False)
             self._stencil_pop = StencilPop()
             self._stencil_use = StencilUse(op="greater")
             self._stencil_unuse = StencilUnUse()
