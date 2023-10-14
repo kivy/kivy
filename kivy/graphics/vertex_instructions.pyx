@@ -58,7 +58,6 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'RoundedRectangle', 'BorderImage', '
 include "../include/config.pxi"
 include "common.pxi"
 include "memory.pxi"
-include "opcodes.pxi"
 
 from os import environ
 from kivy.graphics.vbo cimport *
@@ -1659,52 +1658,6 @@ similar to the custom stencil instructions bellow, to ensure efficiency.
 
 
 """
-Custom stencil instructions used in AntiAliasingLine.
-It is basically identical to the instructions in the stencil_instructions.pyx
-module, however, there is a limitation on the number of calls to the functions
-that clear the stencil. This significantly improved performance with no
-noticeable side effects!
-"""
-
-cdef class AAStencilPush(Instruction):
-    cdef int apply(self) except -1:
-        cgl.glStencilMask(0xff)
-        if self.flags & GI_NEEDS_UPDATE:
-            cgl.glClearStencil(0)
-            cgl.glClear(GL_STENCIL_BUFFER_BIT)  # GL_STENCIL_BUFFER_BIT is a bit expensive, so its use will be limited.
-        cgl.glEnable(GL_STENCIL_TEST)
-        cgl.glStencilFunc(GL_ALWAYS, 1, 0xff)
-        cgl.glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-        cgl.glColorMask(False, False, False, False)
-        return 0
-
-
-cdef class AAStencilUse(Instruction):
-    cdef int apply(self) except -1:
-        cgl.glColorMask(True, True, True, True)
-        cgl.glStencilFunc(GL_GREATER, 1, 0xff)
-        cgl.glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        return 0
-
-
-cdef class AAStencilUnUse(Instruction):
-    cdef int apply(self) except -1:
-        cgl.glStencilFunc(GL_GREATER, 0xff, 0xff)
-        cgl.glStencilOp(GL_DECR, GL_DECR, GL_DECR)
-        cgl.glColorMask(False, False, False, False)
-        return 0
-
-
-cdef class AAStencilPop(Instruction):
-    cdef int apply(self) except -1:
-        cgl.glColorMask(True, True, True, True)
-        cgl.glDisable(GL_STENCIL_TEST)
-        cgl.glStencilFunc(GL_EQUAL, 1, 0xff)
-        cgl.glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        return 0
-
-
-"""
 The functions below are extended versions of the radd, rinsert and rremove from
 VertexInstruction, with the ability to add/remove more than one instruction set
 (BindTexture + VertexInstruction) to/from a instruction group.
@@ -1826,10 +1779,10 @@ cdef class AntiAliasingLine(VertexInstruction):
 
     cdef void ensure_stencil(self):
         if self._stencil_push == None:
-            self._stencil_push = AAStencilPush()
-            self._stencil_pop = AAStencilPop()
-            self._stencil_use = AAStencilUse()
-            self._stencil_unuse = AAStencilUnUse()
+            self._stencil_push = StencilPush(optimize=True)
+            self._stencil_pop = StencilPop()
+            self._stencil_use = StencilUse(op="greater")
+            self._stencil_unuse = StencilUnUse()
 
     cdef int apply(self) except -1:
         cdef double alpha = getActiveContext()['color'][-1]
