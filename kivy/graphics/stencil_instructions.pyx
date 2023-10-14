@@ -105,7 +105,9 @@ cdef dict DEFAULT_STATE = {
     "level": 0,
     "in_push": False,
     "op": None,
-    "gl_stencil_func": None}
+    "gl_stencil_func": None,
+    "clear_stencil": True
+}
 
 cdef dict _stencil_state = DEFAULT_STATE.copy()
 
@@ -156,10 +158,11 @@ cdef void stencil_apply_state(dict state, restore_only):
         if state["level"] == 1:
             cgl.glStencilMask(0xff)
             log_gl_error('StencilPush.apply-glStencilMask')
-            cgl.glClearStencil(0)
-            log_gl_error('StencilPush.apply-glClearStencil')
-            cgl.glClear(GL_STENCIL_BUFFER_BIT)
-            log_gl_error('StencilPush.apply-glClear(GL_STENCIL_BUFFER_BIT)')
+            if state["clear_stencil"]:
+                cgl.glClearStencil(0)
+                log_gl_error('StencilPush.apply-glClearStencil')
+                cgl.glClear(GL_STENCIL_BUFFER_BIT)
+                log_gl_error('StencilPush.apply-glClear(GL_STENCIL_BUFFER_BIT)')
         elif state["level"] > 128:
             raise Exception('Cannot push more than 128 level of stencil.'
                             ' (stack overflow)')
@@ -221,9 +224,27 @@ cdef void stencil_apply_state(dict state, restore_only):
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
+
+    .. versionadded:: 2.3.0
+        ``clear_stencil`` was added to allow disabling stencil clearing in the
+        ``StencilPush`` phase. This option essentially disables the invocation
+        of the functions ``cgl.glClearStencil(0)`` and ``cgl.glClear(GL_STENCIL_BUFFER_BIT).``
+
+    .. note::
+        It is **highly recommended** to set ``clear_stencil=False`` for improved
+        performance and reduced GPU usage. However, if any side effects (such as
+        artifacts or inaccurate functioning of ``StencilPush``) occur, it is
+        advisable to re-enable the clearing instructions with ``clear_stencil=True.``
+
     '''
+
+    def __init__(self, **kwargs):
+        super(StencilPush, self).__init__(**kwargs)
+        self._clear_stencil = kwargs.get('clear_stencil', True)
+
     cdef int apply(self) except -1:
         _stencil_state["op"] = "push"
+        _stencil_state["clear_stencil"] = self._clear_stencil
         stencil_apply_state(_stencil_state, False)
         return 0
 
