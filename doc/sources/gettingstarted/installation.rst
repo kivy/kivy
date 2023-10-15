@@ -367,7 +367,7 @@ Following are the ``kivy_deps`` dependency wheels:
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
   (the default), ``angle_sdl2``, or ``sdl2``. Here, ``angle_sdl2`` is a substitute for
-  ``glew`` but requires ``kivy_deps.sdl2`` be installed as well.
+  ``glew`` but requires ``kivy_deps.sdl2`` to be installed as well.
 
 * `sdl2 <https://libsdl.org>`_
 

@@ -76,6 +76,27 @@ The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
 :attr:`TextInput.selection_text` property.
 
+Handles
+-------
+
+One can enable :attr:`TextInput.use_handles` property to enable or disable
+the usage of selection handles. This property is True by default on mobiles.
+
+Selection Handles uses the class :class:`Selector` as the base class for
+the selection handles. You can customize the color for selection handles
+like so ::
+
+    <Selector>
+        color: 0, 1, 0, 1
+        # or <Textinput_instance>.selection_color or app.selection_color
+
+TextInput instantiates the selection handles and stores it in the following
+properties. :attr:`TextInput._handle_middle`,
+:attr:`TextInput._handle_left`, :attr:`TextInput._handle_right`.
+
+You should set the selection template before the Instantiating TextInput,
+so as to get the selection handles to take the changes you set to apply.
+
 Filtering
 ---------
 
@@ -238,7 +259,14 @@ if 'KIVY_DOC' not in environ:
 
 
 class Selector(ButtonBehavior, Image):
-    # Internal class for managing the selection Handles.
+    '''Default template for the selection Handles
+
+    In order to customize the look of the Selection Handles,
+    you should adjust its template like so ::
+
+        <Selector>
+            color: 1, 0, 1, 1
+    '''
 
     window = ObjectProperty()
     target = ObjectProperty()
