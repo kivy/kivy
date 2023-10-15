@@ -507,12 +507,12 @@ class SmoothVertexInstructionTest(GraphicUnitTest):
 
         r = self.render
 
-        # We expect a value error to be thrown if stencil_mask is not an object
+        # We expect a type error to be thrown if stencil_mask is not an object
         # of type Instruction.
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             AntiAliasingLine(None, points=[10, 20, 30, 20, 30, 10])
 
-        # No ValueError here.
+        # No TypeError here.
         target_rect = Rectangle()
         AntiAliasingLine(target_rect, points=[10, 20, 30, 40, 50, 60])
 

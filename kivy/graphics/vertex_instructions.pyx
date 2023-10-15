@@ -1749,7 +1749,7 @@ cdef class AntiAliasingLine(VertexInstruction):
         if isinstance(stencil_mask, Instruction):
             self._stencil_mask = stencil_mask  # the stencil mask
         else:
-            raise ValueError(f"'stencil_mask' needs to be a graphics Instruction, got {type(stencil_mask)}")
+            raise TypeError(f"'stencil_mask' needs to be a graphics Instruction, got {type(stencil_mask)}")
 
     def premultiplied_texture(self):
         texture = Cache.get('kv.graphics.texture', 'antialiasing_line')
