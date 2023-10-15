@@ -1638,8 +1638,8 @@ NOTE: Texture antialiasing is currently not supported. If a texture is defined
 for any of the graphics with antialiasing, then antialiasing will be disabled.
 
 The antialiasing is also disabled for graphics with "fixed" shapes, such as
-Rectangle, RoundedRectangle and Ellipse if -4 < width < 4px
-or -4 < height < 4px. Reasons for it:
+Rectangle, RoundedRectangle and Ellipse through verification in
+``too_small_for_antialiasing`` function. Reasons for it:
 
     - Drawing an antialiasing line on figures with very small dimensions does
     not bring great visual improvements. 
@@ -1994,6 +1994,52 @@ cdef class AntiAliasingLine(VertexInstruction):
         self.flag_data_update()
 
 
+
+
+cdef int has_texture_set(VertexInstruction instruction):
+    if (instruction.texture and instruction.texture != instruction.default_texture) or instruction.source:
+        return 1
+    return 0
+
+
+cdef int too_small_for_antialiasing(VertexInstruction instruction):
+    if not isinstance(instruction, (SmoothRectangle, SmoothRoundedRectangle, SmoothEllipse)):
+        raise NotImplementedError()
+
+    return (-4 < instruction.size[0] < 4 or -4 < instruction.size[1] < 4)
+
+
+cdef void adjust_params(VertexInstruction instruction, int delta):
+        """Adjust the parameters that define the size of the drawing.
+        This adjustment needs to be made before building the points, in order
+        to compensate for the antialiasing line drawn around the contour of
+        the figure.
+        """
+        if not isinstance(instruction, (SmoothRectangle, SmoothRoundedRectangle, SmoothEllipse)):
+            raise NotImplementedError()
+
+        cdef int sign_x, sign_y
+
+        x, y = instruction.pos
+        w, h = instruction.size
+
+        sign_x = 1 if w < 0 else -1
+        sign_y = 1 if h < 0 else -1
+
+        x += delta * sign_x
+        y += delta * sign_y
+        w += delta * 2 * sign_x * -1
+        h += delta * 2 * sign_y * -1
+
+        instruction.pos = [x, y]
+        instruction.size = [w, h]
+
+        if isinstance(instruction, SmoothRoundedRectangle):
+            instruction.radius = [(max(0, rx + delta), max(0, ry + delta)) for rx, ry in instruction.radius]
+
+
+
+
 cdef class SmoothRoundedRectangle(RoundedRectangle):
     """RoundedRectangle with antialiasing.
 
@@ -2009,12 +2055,12 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
     """
 
     cdef AntiAliasingLine _antialiasing_line
-    cdef Texture _default_texture
+    cdef public Texture default_texture
 
     def __init__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         RoundedRectangle.__init__(self, **kwargs)
-        self._default_texture = self.texture
+        self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
         radd_instructions(ig, self, self._antialiasing_line)
@@ -2025,36 +2071,15 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
-    cdef void adjust_params(self, int delta):
-        """Adjust the parameters that define the size of the drawing.
-        This adjustment needs to be made before building the points, in order
-        to compensate for the antialiasing line drawn around the contour of
-        the figure.
-        """
-        cdef int sign_x, sign_y
-
-        sign_x = 1 if self.w < 0 else -1
-        sign_y = 1 if self.h < 0 else -1
-
-        self.x += delta * sign_x
-        self.y += delta * sign_y
-        self.w += delta * 2 * sign_x * -1
-        self.h += delta * 2 * sign_y * -1
-        self._radius = [(max(0, rx + delta), max(0, ry + delta)) for rx, ry in self._radius]
-
     cdef void build(self):
-        if (
-            (self.texture and self.texture != self._default_texture)
-            or self.source
-            or (-4 < self.w < 4 or -4 < self.h < 4)
-        ):
+        if has_texture_set(self) or too_small_for_antialiasing(self):
             self._antialiasing_line.points = []
             RoundedRectangle.build(self)
         else:
-            self.adjust_params(-1)
+            adjust_params(self, -1)
             RoundedRectangle.build(self)
             self._antialiasing_line.points = self._points
-            self.adjust_params(1)
+            adjust_params(self, 1)
     
     @property
     def antialiasing_line_points(self):
@@ -2076,12 +2101,12 @@ cdef class SmoothRectangle(Rectangle):
     """
 
     cdef AntiAliasingLine _antialiasing_line
-    cdef Texture _default_texture
+    cdef public Texture default_texture
 
     def __init__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Rectangle.__init__(self, **kwargs)
-        self._default_texture = self.texture
+        self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
         radd_instructions(ig, self, self._antialiasing_line)
@@ -2092,35 +2117,15 @@ cdef class SmoothRectangle(Rectangle):
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
-    cdef void adjust_params(self, int delta):
-        """Adjust the parameters that define the size of the drawing.
-        This adjustment needs to be made before building the points, in order
-        to compensate for the antialiasing line drawn around the contour of
-        the figure.
-        """
-        cdef int sign_x, sign_y
-
-        sign_x = 1 if self.w < 0 else -1
-        sign_y = 1 if self.h < 0 else -1
-
-        self.x += delta * sign_x
-        self.y += delta * sign_y
-        self.w += delta * 2 * sign_x * -1
-        self.h += delta * 2 * sign_y * -1
-
     cdef void build(self):
-        if (
-            (self.texture and self.texture != self._default_texture)
-            or self.source
-            or (-4 < self.w < 4 or -4 < self.h < 4)
-        ):
+        if has_texture_set(self) or too_small_for_antialiasing(self):
             self._antialiasing_line.points = []
             Rectangle.build(self)
         else:
-            self.adjust_params(-1)
+            adjust_params(self, -1)
             Rectangle.build(self)
             self._antialiasing_line.points = self._points
-            self.adjust_params(1)
+            adjust_params(self, 1)
     
     @property
     def antialiasing_line_points(self):
@@ -2142,12 +2147,12 @@ cdef class SmoothEllipse(Ellipse):
     """
 
     cdef AntiAliasingLine _antialiasing_line
-    cdef Texture _default_texture
+    cdef public Texture default_texture
 
     def __init__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Ellipse.__init__(self, **kwargs)
-        self._default_texture = self.texture
+        self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
         radd_instructions(ig, self, self._antialiasing_line)
@@ -2158,38 +2163,18 @@ cdef class SmoothEllipse(Ellipse):
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
-    cdef void adjust_params(self, int delta):
-        """Adjust the parameters that define the size of the drawing.
-        This adjustment needs to be made before building the points, in order
-        to compensate for the antialiasing line drawn around the contour of
-        the figure.
-        """
-        cdef int sign_x, sign_y
-
-        sign_x = 1 if self.w < 0 else -1
-        sign_y = 1 if self.h < 0 else -1
-
-        self.x += delta * sign_x
-        self.y += delta * sign_y
-        self.w += delta * 2 * sign_x * -1
-        self.h += delta * 2 * sign_y * -1
-
     cdef void build(self):
         cdef list ellipse_center = []
 
-        if (
-            (self.texture and self.texture != self._default_texture)
-            or self.source
-            or (-4 < self.w < 4 or -4 < self.h < 4)
-        ):
+        if has_texture_set(self) or too_small_for_antialiasing(self):
             self._antialiasing_line.points = []
             Ellipse.build(self)
         else:
-            self.adjust_params(-1)
+            adjust_params(self, -1)
             Ellipse.build(self)
             ellipse_center = [self.x + self.w / 2, self.y + self.h / 2]
             self._antialiasing_line.points = self._points + ellipse_center
-            self.adjust_params(1)
+            adjust_params(self, 1)
 
     @property
     def antialiasing_line_points(self):
@@ -2211,12 +2196,12 @@ cdef class SmoothQuad(Quad):
     """
 
     cdef AntiAliasingLine _antialiasing_line
-    cdef Texture _default_texture
+    cdef public Texture default_texture
 
     def __init__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Quad.__init__(self, **kwargs)
-        self._default_texture = self.texture
+        self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
         radd_instructions(ig, self, self._antialiasing_line)
@@ -2227,24 +2212,15 @@ cdef class SmoothQuad(Quad):
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
-    # NOTE: Not implemented.
-    cdef void adjust_params(self, int delta):
-        """Adjust the parameters that define the size of the drawing.
-        This adjustment needs to be made before building the points, in order
-        to compensate for the antialiasing line drawn around the contour of
-        the figure.
-        """
-        pass
-
     cdef void build(self):
-        if (self.texture and self.texture != self._default_texture) or self.source:
+        if has_texture_set(self):
             self._antialiasing_line.points = []
             Quad.build(self)
         else:
-            # self.adjust_params(-1)
+            # adjust_params(self, -1)
             Quad.build(self)
             self._antialiasing_line.points = self._points
-            # self.adjust_params(1)
+            # adjust_params(self, 1)
     
     @property
     def antialiasing_line_points(self):
@@ -2266,12 +2242,12 @@ cdef class SmoothTriangle(Triangle):
     """
 
     cdef AntiAliasingLine _antialiasing_line
-    cdef Texture _default_texture
+    cdef public Texture default_texture
 
     def __init__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
         Triangle.__init__(self, **kwargs)
-        self._default_texture = self.texture
+        self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
         radd_instructions(ig, self, self._antialiasing_line)
@@ -2282,24 +2258,15 @@ cdef class SmoothTriangle(Triangle):
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
-    # NOTE: Not implemented.
-    cdef void adjust_params(self, int delta):
-        """Adjust the parameters that define the size of the drawing.
-        This adjustment needs to be made before building the points, in order
-        to compensate for the antialiasing line drawn around the contour of
-        the figure.
-        """
-        pass
-
     cdef void build(self):
-        if (self.texture and self.texture != self._default_texture) or self.source:
+        if has_texture_set(self):
             self._antialiasing_line.points = []
             Triangle.build(self)
         else:
-            # self.adjust_params(-1)
+            # adjust_params(self, -1)
             Triangle.build(self)
             self._antialiasing_line.points = self._points[:6]
-            # self.adjust_params(1)
+            # adjust_params(self, 1)
         
     @property
     def antialiasing_line_points(self):
