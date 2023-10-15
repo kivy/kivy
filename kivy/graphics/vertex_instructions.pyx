@@ -1766,15 +1766,15 @@ cdef class AntiAliasingLine(VertexInstruction):
         texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
 
     cdef void radd(self, InstructionGroup ig):
-        """Disabled because logic management is done on the radd of the target graphic (sencil_mask)"""
+        """Disabled because logic management is done on the radd of the target graphic (stencil_mask)"""
         pass
 
     cdef void rinsert(self, InstructionGroup ig, int index):
-        """Disabled because logic management is done on the rinsert of the target graphic (sencil_mask)"""
+        """Disabled because logic management is done on the rinsert of the target graphic (stencil_mask)"""
         pass
 
     cdef void rremove(self, InstructionGroup ig):
-        """Disabled because logic management is done on the rremove of the target graphic (sencil_mask)"""
+        """Disabled because logic management is done on the rremove of the target graphic (stencil_mask)"""
         pass
 
     cdef void ensure_stencil(self):
