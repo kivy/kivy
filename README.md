@@ -44,15 +44,11 @@ Kivy ships with many examples which can be found in the `examples` folder.
 Support
 -------
 
-If you need assistance, you can ask for help on our mailing list:
+If you need help, please feel free to seek assistance through our support channels:
 
-* User Group : https://groups.google.com/group/kivy-users
-* Email      : kivy-users@googlegroups.com
+Join the  [Kivy Users Google Group](https://groups.google.com/group/kivy-users).
+Participate in discussions on [Discord](https://chat.kivy.org).
 
-We also have a Discord channel:
-
-* Server     : https://chat.kivy.org
-* Channel    : #support
 
 Contributing
 ------------
