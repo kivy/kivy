@@ -54,7 +54,8 @@ class ClipboardWindows(ClipboardBase):
 
         # this allocates memory for the string and returns a handle to it
         # allocates fixed memory, len + 2 is for the null character
-        # todo: discuss, do we not need to free this memory?
+        # no need to  call GlobalFree here as SetClipboardData will do for you
+        # see: https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setclipboarddata#parameters
         GMEM_FIXED = 0x0000
         hCd = GlobalAlloc(GMEM_FIXED, len(text) + 2)
 
