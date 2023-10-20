@@ -229,7 +229,7 @@ cdef class StencilPush(Instruction):
 
     def __init__(self, **kwargs):
         super(StencilPush, self).__init__(**kwargs)
-        self._clear_stencil = kwargs.get('clear_stencil', True)
+        self._clear_stencil = int(kwargs.get('clear_stencil', True))
 
     cdef int apply(self) except -1:
         _stencil_state["op"] = "push"
