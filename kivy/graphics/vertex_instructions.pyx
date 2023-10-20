@@ -1664,31 +1664,38 @@ VertexInstruction, with the ability to add/remove more than one instruction set
 """
 
 cdef void radd_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
-    cdef Instruction instr = target_graphic.texture_binding
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
     ig.children.append(target_graphic.texture_binding)
     ig.children.append(target_graphic)
     ig.children.append(aa_line.texture_binding)
     ig.children.append(aa_line)
+    aa_instr.set_parent(ig)
+    aa_line.set_parent(ig)
     instr.set_parent(ig)
     target_graphic.set_parent(ig)
 
 
 cdef void rinsert_instructions(InstructionGroup ig, int index, VertexInstruction target_graphic, AntiAliasingLine aa_line):
-    cdef Instruction instr = target_graphic.texture_binding
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
+    cdef int index_adjust = 0 if index < 0 else 1
     ig.children.insert(index, target_graphic.texture_binding)
-    ig.children.insert(index + 1, target_graphic)
-    ig.children.insert(index + 2, aa_line.texture_binding)
-    ig.children.insert(index + 3, aa_line)
+    ig.children.insert(index + 1 * index_adjust, target_graphic)
+    ig.children.insert(index + 2 * index_adjust, aa_line.texture_binding)
+    ig.children.insert(index + 3 * index_adjust, aa_line)
+    aa_instr.set_parent(ig)
+    aa_line.set_parent(ig)
     instr.set_parent(ig)
     target_graphic.set_parent(ig)
 
 
 cdef void rremove_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
-    cdef Instruction instr = target_graphic.texture_binding
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
     ig.children.remove(target_graphic.texture_binding)
     ig.children.remove(target_graphic)
     ig.children.remove(aa_line.texture_binding)
     ig.children.remove(aa_line)
+    aa_instr.set_parent(None)
+    aa_line.set_parent(None)
     instr.set_parent(None)
     target_graphic.set_parent(None)
 
