@@ -102,7 +102,7 @@ cdef extern from "gl_redirect.h":
     void (__stdcall *glSampleCoverage)(GLclampf value, GLboolean invert) nogil
     void (__stdcall *glScissor)(GLint, GLint, GLsizei, GLsizei) nogil
     void (__stdcall *glShaderBinary)(GLsizei, const GLuint *, GLenum, const void *, GLsizei) nogil
-    void (__stdcall *glShaderSource)(GLuint, GLsizei, const GLchar* const*, const GLint *) nogil
+    void (__stdcall *glShaderSource)(GLuint, GLsizei, const GLchar**, const GLint *) nogil
     void (__stdcall *glStencilFunc)(GLenum func, GLint ref, GLuint mask) nogil
     void (__stdcall *glStencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask) nogil
     void (__stdcall *glStencilMask)(GLuint mask) nogil
