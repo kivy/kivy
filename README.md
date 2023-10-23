@@ -46,8 +46,9 @@ Support
 
 If you need help, please feel free to seek assistance through our support channels:
 
-Join the  [Kivy Users Google Group](https://groups.google.com/group/kivy-users).
-Participate in discussions on [Discord](https://chat.kivy.org).
+Join the [Kivy Users Google Group](https://groups.google.com/group/kivy-users).
+- Ask questions using [discussions](https://github.com/orgs/kivy/discussions/new?category=q-a) on github
+- Use support-channels on our official [Discord](https://chat.kivy.org) server.
 
 
 Contributing
