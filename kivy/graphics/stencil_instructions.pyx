@@ -229,14 +229,21 @@ cdef class StencilPush(Instruction):
 
     def __init__(self, **kwargs):
         super(StencilPush, self).__init__(**kwargs)
-        self._clear_stencil = int(kwargs.get('clear_stencil', True))
+        self._clear_stencil = self._check_bool(kwargs.get('clear_stencil', True))
+
+    cdef bint _check_bool(self, object value):
+        if not isinstance(value, bool):
+            raise TypeError(
+                f"'clear_stencil' accept only boolean values (True or False), got {type(value)}."
+            )
+        return value
 
     cdef int apply(self) except -1:
         _stencil_state["op"] = "push"
         _stencil_state["clear_stencil"] = self._clear_stencil
         stencil_apply_state(_stencil_state, False)
         return 0
-    
+
     @property
     def clear_stencil(self):
         '''``clear_stencil`` allow to disable stencil clearing in the ``StencilPush``
@@ -256,10 +263,10 @@ cdef class StencilPush(Instruction):
         .. versionadded:: 2.3.0
         '''
         return self._clear_stencil
-    
+
     @clear_stencil.setter
     def clear_stencil(self, value):
-        cdef int clear_stencil = int(value)
+        cdef int clear_stencil = self._check_bool(value)
         if clear_stencil != self._clear_stencil:
             self._clear_stencil = clear_stencil
             self.flag_data_update()
