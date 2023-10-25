@@ -207,6 +207,7 @@ c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
 c_options['use_sdl2'] = None
+c_options['use_glfw'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
 c_options['use_android'] = False
@@ -578,6 +579,20 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
             c_options['use_sdl2'] = True
             sdl2_source = 'pkg-config'
 
+# GLFW3
+if platform in ('linux', 'win32'):
+    glfw_flags = pkgconfig('glfw3')
+    if 'libraries' in glfw_flags:
+        print('GLFW3 found via pkg-config')
+        c_options['use_glfw'] = True
+    # At Windows OS we should create kivy-deps.glfw-dev package and
+    # check if it is installed. Now you have to manually add headers
+    # to the include folder and static libraries to the lib folder
+    # (they are located on the sys.prefix path)
+    elif platform == 'win32':
+        c_options['use_glfw'] = True
+        glfw_flags = []
+
 
 # -----------------------------------------------------------------------------
 # declare flags
@@ -815,6 +830,37 @@ def determine_sdl2():
     return flags
 
 
+def determine_glfw():
+    flags = {}
+    if not c_options['use_glfw']:
+        return flags
+
+    flags['extra_link_args'] = []
+    flags['extra_compile_args'] = []
+
+    if not glfw_flags:
+        flags['include_dirs'] = [os.path.join(sys.prefix, 'Include')]
+        flags['library_dirs'] = [os.path.join(sys.prefix, 'libs')]
+
+    if platform == 'win32':
+        flags['libraries'] = ['glfw3dll']
+
+    if glfw_flags:
+        flags = merge(flags, glfw_flags)
+
+    for d in flags['include_dirs']:
+        fn = join(d, 'GLFW', 'glfw3.h')
+        if exists(fn):
+            print('GLFW: found glfw3.h header at {}'.format(fn))
+            break
+    else:
+        print('GLFW: glfw3.h header - not found')
+        c_options['use_glfw'] = False
+        return {}
+
+    return flags
+
+
 base_flags = determine_base_flags()
 gl_flags, gl_flags_base = determine_gl_flags()
 
@@ -945,6 +991,13 @@ if c_options['use_sdl2'] and sdl2_flags:
                         'core/clipboard/_clipboard_sdl2.pyx'):
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends)
+
+if c_options["use_glfw"]:
+    glfw_flags = determine_glfw()
+
+if c_options['use_glfw'] and glfw_flags:
+    sources['core/window/_window_glfw.pyx'] = merge(
+        base_flags, glfw_flags, {'depends': ['lib/glfw.pxi']})
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
                                       'android', 'ios', 'win32'):
