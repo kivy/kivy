@@ -1,4 +1,4 @@
-include "glfw.pxi"
+include "../../../kivy/lib/glfw.pxi"
 
 from kivy.logger import Logger
 from kivy.config import Config
