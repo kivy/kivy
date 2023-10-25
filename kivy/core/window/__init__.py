@@ -1504,7 +1504,7 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            if platform == 'linux' or Window.__class__.__name__ == 'WindowSDL':
+            if platform == 'linux' or Window.__class__.__name__ in ('WindowSDL', 'WindowGLFW'):
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_pre_resize', *self.size)
 
@@ -2512,4 +2512,6 @@ else:
         ('pygame', 'window_pygame', 'WindowPygame')]
 if platform == 'linux':
     window_impl += [('x11', 'window_x11', 'WindowX11')]
+if platform not in ('android', 'ios'):
+    window_impl += [('glfw', 'window_glfw', 'WindowGLFW')]
 Window = core_select_lib('window', window_impl, True)
