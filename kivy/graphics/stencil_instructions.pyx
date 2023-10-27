@@ -225,28 +225,51 @@ cdef class StencilPush(Instruction):
     '''Push the stencil stack. See the module documentation for more
     information.
 
-    .. versionadded:: 2.3.0
-        ``clear_stencil`` was added to allow disabling stencil clearing in the
-        ``StencilPush`` phase. This option essentially disables the invocation
-        of the functions ``cgl.glClearStencil(0)`` and ``cgl.glClear(GL_STENCIL_BUFFER_BIT).``
-
-    .. note::
-        It is **highly recommended** to set ``clear_stencil=False`` for improved
-        performance and reduced GPU usage. However, if any side effects (such as
-        artifacts or inaccurate functioning of ``StencilPush``) occur, it is
-        advisable to re-enable the clearing instructions with ``clear_stencil=True.``
-
     '''
 
     def __init__(self, **kwargs):
         super(StencilPush, self).__init__(**kwargs)
-        self._clear_stencil = kwargs.get('clear_stencil', True)
+        self._clear_stencil = self._check_bool(kwargs.get('clear_stencil', True))
+
+    cdef bint _check_bool(self, object value):
+        if not isinstance(value, bool):
+            raise TypeError(
+                f"'clear_stencil' accept only boolean values (True or False), got {type(value)}."
+            )
+        return value
 
     cdef int apply(self) except -1:
         _stencil_state["op"] = "push"
         _stencil_state["clear_stencil"] = self._clear_stencil
         stencil_apply_state(_stencil_state, False)
         return 0
+
+    @property
+    def clear_stencil(self):
+        '''``clear_stencil`` allow to disable stencil clearing in the ``StencilPush``
+        phase. This option essentially disables the invocation of the functions
+        ``cgl.glClearStencil(0)`` and ``cgl.glClear(GL_STENCIL_BUFFER_BIT).``
+
+        If ``True``, the stencil will be cleaned in the ``StencilPush`` phase, if
+        ``False``, it will not be cleaned.
+
+        .. note::
+            It is **highly recommended** to set ``clear_stencil=False`` for improved
+            performance and reduced GPU usage (especially if there are hundreds of
+            instructions). However, if any side effects (such as artifacts or inaccurate
+            behavior of ``StencilPush``) occur, it is advisable to re-enable the clearing
+            instructions with ``clear_stencil=True.``
+
+        .. versionadded:: 2.3.0
+        '''
+        return self._clear_stencil
+
+    @clear_stencil.setter
+    def clear_stencil(self, value):
+        cdef int clear_stencil = self._check_bool(value)
+        if clear_stencil != self._clear_stencil:
+            self._clear_stencil = clear_stencil
+            self.flag_data_update()
 
 
 cdef class StencilPop(Instruction):
