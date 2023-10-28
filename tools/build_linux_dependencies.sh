@@ -146,7 +146,6 @@ pushd $MANYLINUX__GLFW__FOLDER
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DCMAKE_BUILD_TYPE=Release \
           -DPNG_TESTS=OFF \
-          -DPNG_EXECUTABLES=OFF \
           -GNinja
   cmake --build build/ --config Release --verbose --parallel
   cmake --install build/ --config Release
