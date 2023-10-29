@@ -160,6 +160,7 @@ if platform == "ios":
     main_py_file = __main__.__file__
     garden_app_dir = join(dirname(main_py_file), 'libs', 'garden')
 
+
 class GardenImporter(MetaPathFinder):
 
     def find_spec(self, fullname, path, target=None):
@@ -179,6 +180,7 @@ class GardenImporter(MetaPathFinder):
                 return importlib.util.spec_from_file_location(fullname, moddir)
 
         return None
+
 
 # insert the garden importer as ultimate importer
 sys.meta_path.append(GardenImporter())
