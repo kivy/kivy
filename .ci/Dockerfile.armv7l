@@ -26,7 +26,11 @@ RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
 
 # Install patchelf (needed during delocation)
 RUN /bin/bash -c 'wget https://github.com/NixOS/patchelf/releases/download/0.18.0/patchelf-0.18.0-armv7l.tar.gz'
-RUN /bin/bash -c 'tar -xvf patchelf-0.18.0-armv7l.tar.gz -C /'
+RUN /bin/bash -c 'mkdir patchelf-0.18.0-armv7l'
+RUN /bin/bash -c 'tar -xvf patchelf-0.18.0-armv7l.tar.gz -C ./patchelf-0.18.0-armv7l && \
+    cp patchelf-0.18.0-armv7l/bin/patchelf /usr/local/bin/ && \
+    chmod +x /usr/local/bin/patchelf'
+RUN /bin/bash -c 'rm -rf patchelf-0.18.0-armv7l'
 RUN /bin/bash -c 'rm patchelf-0.18.0-armv7l.tar.gz'
 
 # Install auditwheel for delocation
