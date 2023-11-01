@@ -748,7 +748,7 @@ cdef class NumericProperty(Property):
             return self.parse_list(obj, x[0], x[1], ps)
         else:
             raise ValueError(
-                '%s.%s has an invalid format (got %r). Consider using ObjectProperty'
+                '%s.%s has an invalid format (got %r). Consider using ObjectProperty '
                 'or use errorhandler to convert to a number' % (
                 obj.__class__.__name__,
                 self.name, x))

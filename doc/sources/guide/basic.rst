@@ -97,7 +97,7 @@ Further on to line 10::
 
     def build(self):
 
-As highlighted by the image above, show casing the `Kivy App Life Cycle`, this
+As highlighted by the image above, showcasing the `Kivy App Life Cycle`, this
 is the function where you should initialize and return your `Root Widget`. This
 is what we do on line 11::
 

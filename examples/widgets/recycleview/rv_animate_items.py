@@ -86,7 +86,7 @@ class Application(App):
     @triggered(timeout=0.05)
     def animate_item(self, index):
         # the animation we actually want to do on the item, note that any
-        # property animated here needs to be synchronised from the proxy to the
+        # property animated here needs to be synchronized from the proxy to the
         # animated widget (in on_animation_proxy and using methods for each
         # animation)
         proxy = Widget(opacity=1)

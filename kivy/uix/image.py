@@ -212,7 +212,7 @@ class Image(Widget):
     - ``"contain"``: the image is resized to fit inside the widget box,
     **maintaining its aspect ratio**. If the image size is larger than the
     widget size, the behavior will be similar to ``"scale-down"``. However, if
-    the size of the image size is smaller than the widget size, unlike
+    the size of the image is smaller than the widget size, unlike
     ``"scale-down``, the image will be resized to fit inside the widget.
     If the image has a different aspect ratio than the widget, there will be
     blank areas on the widget box.

@@ -38,6 +38,7 @@ static int g_width, g_height;
 		GLX_BLUE_SIZE, 8,
 		GLX_ALPHA_SIZE, 8,
 		GLX_DEPTH_SIZE, 16,
+		GLX_STENCIL_SIZE, 8,
 		None
 	};
 #else
@@ -94,7 +95,7 @@ static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg)
 	static void describe_fbconfig(GLXFBConfig fbconfig)
 	{
 		int doublebuffer;
-		int red_bits, green_bits, blue_bits, alpha_bits, depth_bits;
+		int red_bits, green_bits, blue_bits, alpha_bits, depth_bits, stencil_bits;
 
 		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_DOUBLEBUFFER, &doublebuffer);
 		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_RED_SIZE, &red_bits);
@@ -102,12 +103,13 @@ static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg)
 		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_BLUE_SIZE, &blue_bits);
 		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_ALPHA_SIZE, &alpha_bits);
 		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_DEPTH_SIZE, &depth_bits);
+		glXGetFBConfigAttrib(Xdisplay, fbconfig, GLX_STENCIL_SIZE, &stencil_bits);
 
 		fprintf(stderr, "FBConfig selected:\n"
 				"Doublebuffer: %s\n"
-				"Red Bits: %d, Green Bits: %d, Blue Bits: %d, Alpha Bits: %d, Depth Bits: %d\n",
+				"Red Bits: %d, Green Bits: %d, Blue Bits: %d, Alpha Bits: %d, Depth Bits: %d, Stencil Bits: %d\n",
 				doublebuffer == True ? "Yes" : "No",
-				red_bits, green_bits, blue_bits, alpha_bits, depth_bits);
+				red_bits, green_bits, blue_bits, alpha_bits, depth_bits, stencil_bits);
 	}
 #endif
 

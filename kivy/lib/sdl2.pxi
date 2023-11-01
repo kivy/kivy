@@ -924,6 +924,10 @@ cdef extern from "SDL_audio.h":
     )
     cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
+cdef extern from "SDL_video.h":
+    cdef int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
+    cdef int SDL_GetWindowOpacity(SDL_Window *window, float *opacity)
+
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated

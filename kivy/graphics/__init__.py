@@ -95,7 +95,8 @@ from kivy.graphics.context_instructions import BindTexture, Color, \
     UpdateNormalMatrix, gl_init_resources
 from kivy.graphics.vertex_instructions import Bezier, BorderImage, Ellipse, \
     GraphicException, Line, Mesh, Point, Quad, Rectangle, RoundedRectangle, \
-    Triangle, SmoothLine
+    Triangle, SmoothLine, SmoothRectangle, SmoothEllipse, \
+    SmoothRoundedRectangle, SmoothQuad, SmoothTriangle
 from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
     StencilUse, StencilUnUse
 from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
@@ -119,4 +120,7 @@ __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
            ClearBuffers.__name__, gl_init_resources.__name__,
            PushState.__name__, ChangeState.__name__, PopState.__name__,
            ApplyContextMatrix.__name__, UpdateNormalMatrix.__name__,
-           LoadIdentity.__name__, BoxShadow.__name__)
+           LoadIdentity.__name__, BoxShadow.__name__, SmoothEllipse.__name__,
+           SmoothRoundedRectangle.__name__, SmoothRectangle.__name__,
+           SmoothQuad.__name__, SmoothTriangle.__name__,
+           )

@@ -18,7 +18,7 @@ update_version_metadata() {
 }
 
 generate_sdist() {
-  python3 -m pip install cython packaging
+  python3 -m pip install cython packaging setuptools
   python3 setup.py sdist --formats=gztar
   python3 -m pip uninstall cython -y
 }

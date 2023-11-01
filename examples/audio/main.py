@@ -33,7 +33,7 @@ class AudioButton(Button):
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
         # stop the sound if it's currently playing
-        if self.sound.status != 'stop':
+        if self.sound.state != 'stop':
             self.sound.stop()
         self.sound.volume = self.volume
         self.sound.play()

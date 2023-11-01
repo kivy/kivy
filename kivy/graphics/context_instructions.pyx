@@ -756,17 +756,24 @@ cdef class Rotate(Transform):
 cdef class Scale(Transform):
     '''Instruction to create a non uniform scale transformation.
 
-    Create using one or three arguments::
+    Create using three arguments::
 
-       Scale(s)         # scale all three axes the same
        Scale(x, y, z)   # scale the axes independently
 
-    .. deprecated:: 1.6.0
-        Deprecated single scale property in favor of x, y, z, xyz axis
-        independent scaled factors.
+    .. versionchanged:: 2.3.0
+        Allowed kwargs to be used to supply x, y and z.
+        Removed depreciated Scale(s) in favour of Scale(x, y, z).
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
+
+        x, y, z = 1.0, 1.0, 1.0
+        if len(args) == 3:
+            x, y, z = args
+        x = kwargs.pop("x", x)
+        y = kwargs.pop("y", y)
+        z = kwargs.pop("z", z)
+
         Transform.__init__(self, **kwargs)
         self._origin = (0, 0, 0)
 
@@ -779,14 +786,7 @@ cdef class Scale(Transform):
             else:
                 raise Exception('invalid number of components in origin')
 
-        if len(args) == 1:
-            s = args[0]
-            self.set_scale(s, s, s)
-        elif len(args) == 3:
-            x, y, z = args
-            self.set_scale(x, y, z)
-        else:
-            self.set_scale(1.0, 1.0, 1.0)
+        self.set_scale(x, y, z)
 
     cdef set_scale(self, double x, double y, double z):
         cdef double ox, oy, oz
@@ -799,28 +799,6 @@ cdef class Scale(Transform):
         matrix = matrix.multiply(Matrix().scale(x, y, z))
         matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
         self.matrix = matrix
-
-    @property
-    def scale(self):
-        '''Property for getting/setting the scale.
-
-        .. deprecated:: 1.6.0
-            Deprecated in favor of per axis scale properties x,y,z, xyz, etc.
-        '''
-        if self._x == self._y == self._z:
-            Logger.warning("scale property is deprecated, use xyz, x, " +\
-                "y, z, etc properties to get scale factor based on axis.")
-            return self._x
-        else:
-            raise Exception("trying to access deprecated property" +\
-                " 'scale' on Scale instruction with non uniform scaling!")
-
-
-    @scale.setter
-    def scale(self, s):
-        Logger.warning("scale property is deprecated, use xyz, x, " +\
-            "y, z, etc properties to get scale factor based on axis.")
-        self.set_scale(s,s,s)
 
     @property
     def x(self):
@@ -898,16 +876,23 @@ cdef class Translate(Transform):
 
         Translate(x, y)         # translate in just the two axes
         Translate(x, y, z)      # translate in all three axes
+
+    .. versionchanged:: 2.3.0
+        Allowed kwargs to be used to supply x, y and z.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
-        Transform.__init__(self, **kwargs)
+        x, y, z = 0, 0, 0
         if len(args) == 3:
             x, y, z = args
-            self.set_translate(x, y, z)
         elif len(args) == 2:
             x, y = args
-            self.set_translate(x, y, 0)
+        x = kwargs.pop("x", x)
+        y = kwargs.pop("y", y)
+        z = kwargs.pop("z", z)
+
+        Transform.__init__(self, **kwargs)
+        self.set_translate(x, y, z)
 
     cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)
@@ -964,5 +949,3 @@ cdef class Translate(Transform):
     @xyz.setter
     def xyz(self, c):
         self.set_translate(c[0], c[1], c[2])
-
-

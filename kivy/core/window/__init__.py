@@ -252,7 +252,7 @@ class WindowBase(EventDispatcher):
             Fired when the event loop wants to close the window, or if the
             escape key is pressed and `exit_on_escape` is `True`. If a function
             bound to this event returns `True`, the window will not be closed.
-            If the the event is triggered because of the keyboard escape key,
+            If the event is triggered because of the keyboard escape key,
             the keyword argument `source` is dispatched along with a value of
             `keyboard` to the bound functions.
 
@@ -289,7 +289,7 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 1.10.0
 
         `on_show`:
-            Fired when when the window is shown.
+            Fired when the window is shown.
 
             .. versionadded:: 1.10.0
 
@@ -933,6 +933,33 @@ class WindowBase(EventDispatcher):
     the position set in :class:`~kivy.config.Config`.
     '''
 
+    def _get_opacity(self):
+        return self._get_window_opacity()
+
+    def _set_opacity(self, opacity):
+        return self._set_window_opacity(opacity)
+
+    def _get_window_opacity(self):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    def _set_window_opacity(self, opacity):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    opacity = AliasProperty(_get_opacity, _set_opacity, cache=True)
+    '''Opacity of the window. Accepts a value between 0.0 (transparent) and
+    1.0 (opaque).
+
+    .. note::
+        This feature requires the SDL2 window provider.
+
+    .. versionadded:: 2.3.0
+
+    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to `1.0`.
+    '''
+
     @property
     def __self__(self):
         return self
@@ -1180,15 +1207,6 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    @deprecated
-    def toggle_fullscreen(self):
-        '''Toggle between fullscreen and windowed mode.
-
-        .. deprecated:: 1.9.0
-            Use :attr:`fullscreen` instead.
-        '''
-        pass
-
     def maximize(self):
         '''Maximizes the window. This method should be used on desktop
         platforms only.
@@ -1319,7 +1337,7 @@ class WindowBase(EventDispatcher):
         If you set the property `draggable` on a layout,
         all the child in the layout will receive touch events
 
-        If you want to override default behaviour, add function `in_drag_area(x,y)`
+        If you want to override default behavior, add function `in_drag_area(x,y)`
         to the widget
 
         The function is call with two args x,y which are mouse.x, and mouse.y
@@ -1928,7 +1946,7 @@ class WindowBase(EventDispatcher):
 
     def on_request_close(self, *largs, **kwargs):
         '''Event called before we close the window. If a bound function returns
-        `True`, the window will not be closed. If the the event is triggered
+        `True`, the window will not be closed. If the event is triggered
         because of the keyboard escape key, the keyword argument `source` is
         dispatched along with a value of `keyboard` to the bound functions.
 

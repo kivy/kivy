@@ -21,6 +21,11 @@ MANYLINUX__SDL2_TTF__VERSION="2.20.2"
 MANYLINUX__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MANYLINUX__SDL2_TTF__VERSION/SDL2_ttf-$MANYLINUX__SDL2_TTF__VERSION.tar.gz"
 MANYLINUX__SDL2_TTF__FOLDER="SDL2_ttf-$MANYLINUX__SDL2_TTF__VERSION"
 
+# manylinux libpng
+MANYLINUX__LIBPNG__VERSION="1.6.40"
+MANYLINUX__LIBPNG__URL="https://downloads.sourceforge.net/project/libpng/libpng16/$MANYLINUX__LIBPNG__VERSION/libpng-$MANYLINUX__LIBPNG__VERSION.tar.gz"
+MANYLINUX__LIBPNG__FOLDER="libpng-$MANYLINUX__LIBPNG__VERSION"
+
 # Clean the dependencies folder
 rm -rf kivy-dependencies
 
@@ -35,6 +40,7 @@ curl -L $MANYLINUX__SDL2__URL -o "${MANYLINUX__SDL2__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL2_IMAGE__URL -o "${MANYLINUX__SDL2_IMAGE__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL2_MIXER__URL -o "${MANYLINUX__SDL2_MIXER__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL2_TTF__URL -o "${MANYLINUX__SDL2_TTF__FOLDER}.tar.gz"
+curl -L $MANYLINUX__LIBPNG__URL -o "${MANYLINUX__LIBPNG__FOLDER}.tar.gz"
 popd
 
 # Extract the dependencies into build folder
@@ -45,6 +51,7 @@ tar -xzf ../download/${MANYLINUX__SDL2__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL2_IMAGE__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL2_MIXER__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL2_TTF__FOLDER}.tar.gz
+tar -xzf ../download/${MANYLINUX__LIBPNG__FOLDER}.tar.gz
 popd
 
 # Create distribution folder
@@ -59,6 +66,19 @@ pushd $MANYLINUX__SDL2__FOLDER
   cmake -S . -B build \
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DCMAKE_BUILD_TYPE=Release \
+          -GNinja
+  cmake --build build/ --config Release --verbose --parallel
+  cmake --install build/ --config Release
+popd
+
+
+echo "-- Build libpng"
+pushd $MANYLINUX__LIBPNG__FOLDER
+  cmake -S . -B build \
+          -DCMAKE_INSTALL_PREFIX=../../dist \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DPNG_TESTS=OFF \
+          -DPNG_EXECUTABLES=OFF \
           -GNinja
   cmake --build build/ --config Release --verbose --parallel
   cmake --install build/ --config Release
@@ -105,6 +125,7 @@ pushd $MANYLINUX__SDL2_TTF__FOLDER
   cmake -B build-cmake \
           -DBUILD_SHARED_LIBS=ON \
           -DSDL2TTF_HARFBUZZ=ON \
+          -DFT_DISABLE_PNG=OFF \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=../../dist \

@@ -883,11 +883,11 @@ cdef void __stdcall gil_dbgScissor (GLint x, GLint y, GLsizei width, GLsizei hei
     gl_check_error()
 # Skipping generation of: "#cdef void __stdcall dbgShaderBinary (cgl_native.GLsizei n,  cgl_native.GLuint* shaders, cgl_native.GLenum binaryformat,  cgl_native.GLvoid* binary, cgl_native.GLsizei length)"
 
-cdef void __stdcall dbgShaderSource (GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) nogil:
+cdef void __stdcall dbgShaderSource (GLuint shader, GLsizei count, const GLchar** string, const GLint* length) nogil:
     with gil:
         gil_dbgShaderSource(shader, count, string, length)
 
-cdef void __stdcall gil_dbgShaderSource (GLuint shader, GLsizei count,  const GLchar* const* string, const GLint* length) with gil:
+cdef void __stdcall gil_dbgShaderSource (GLuint shader, GLsizei count,  const GLchar** string, const GLint* length) with gil:
     gl_debug_print("GL glShaderSource( shader = ", shader, ", count = ", count, ", string**=", repr(hex(<long long> string)), ", length*=", repr(hex(<long long> length)), ", )")
     cgl_native.glShaderSource ( shader, count, <const_char_ptr*>string, length)
     gl_check_error()

@@ -208,7 +208,7 @@ cdef void __stdcall mockScissor(GLint x, GLint y, GLsizei width, GLsizei height)
     pass
 cdef void __stdcall mockShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length) nogil:
     pass
-cdef void __stdcall mockShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) nogil:
+cdef void __stdcall mockShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length) nogil:
     pass
 cdef void __stdcall mockStencilFunc(GLenum func, GLint ref, GLuint mask) nogil:
     pass

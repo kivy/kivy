@@ -290,7 +290,7 @@ class WindowSDL(WindowBase):
                     self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
                 if platform == 'win':
-                    # use custom behaviour
+                    # use custom behavior
                     # To handle aero snapping and rounded corners
                     self.borderless = False
         if self.fullscreen == 'fake':
@@ -450,13 +450,6 @@ class WindowSDL(WindowBase):
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
 
-    @deprecated
-    def toggle_fullscreen(self):
-        if self.fullscreen in (True, 'auto'):
-            self.fullscreen = False
-        else:
-            self.fullscreen = 'auto'
-
     def set_title(self, title):
         self._win.set_window_title(title)
 
@@ -488,6 +481,13 @@ class WindowSDL(WindowBase):
 
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
+
+    def _get_window_opacity(self):
+        return self._win.get_window_opacity()
+
+    def _set_window_opacity(self, opacity):
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     # Transparent Window background
     def _is_shaped(self):
