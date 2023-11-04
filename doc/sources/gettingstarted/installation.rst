@@ -54,9 +54,10 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster) and Python 3.9 (Raspberry Pi OS Bullseye),
-via the `PiWheels <https://www.piwheels.org/>`_ project. For other Python versions, on 32 bit OSes, you will need to
-install from source.
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster), Python 3.9 (Raspberry Pi OS Bullseye)
+and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
+
+For other Python versions, on 32 bit OSes, you will need to install from source.
 
 
 Setup terminal and pip
@@ -120,6 +121,15 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
+
+.. note::
+
+    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional 
+    dependencies to ensure Kivy functions properly.
+
+    For instance, on Raspberry Pi OS Lite, you will be required to install the following dependencies::
+
+        apt-get install libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
 
 .. _kivy-source-install:
 
