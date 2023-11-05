@@ -370,7 +370,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except:
+            except shutil.Error:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -380,11 +380,12 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
+    opts, args = [], []
     # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
             'KIVY_PACKAGING' not in environ and
             environ.get('KIVY_NO_ARGS', "false") not in ('true', '1', 'yes')):
-        # save sys argv, otherwise, gstreamer use it and display help..
+        # save sys argv, otherwise, gstreamer use it and display help.
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 
@@ -395,29 +396,17 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 'multiprocessing-fork', 'display=', 'size=', 'rotate=',
                 'config=', 'debug', 'dpi='])
 
+            # set argv to the non-read args
+            sys.argv = sys_argv[0:1] + args
+            if any(filter(lambda x: x[0] == '--multiprocessing-fork', opts)):
+                # Needs to be first opt for support_freeze to work
+                sys.argv.insert(1, '--multiprocessing-fork')
+
+            # todo: as multiprocessing-fork is used here many times maybe it should be a variable
         except GetoptError as err:
-            Logger.error('Core: %s' % str(err))
+            Logger.error(f'Core: {err}')
             kivy_usage()
             sys.exit(2)
-
-        mp_fork = None
-        try:
-            for opt, arg in opts:
-                if opt == '--multiprocessing-fork':
-                    mp_fork = True
-                    break
-        except:
-            pass
-
-        # set argv to the non-read args
-        sys.argv = sys_argv[0:1] + args
-        if mp_fork is not None:
-            # Needs to be first opt for support_freeze to work
-            sys.argv.insert(1, '--multiprocessing-fork')
-
-    else:
-        opts = []
-        args = []
 
     need_save = False
     for opt, arg in opts:
