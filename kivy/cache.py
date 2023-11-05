@@ -127,7 +127,7 @@ class Cache(object):
         try:
             Cache._objects[category][key]['lastaccess'] = Clock.get_time()
             return Cache._objects[category][key]['object']
-        except Exception:
+        except (KeyError, Exception):
             return default
 
     @staticmethod
@@ -144,7 +144,7 @@ class Cache(object):
         '''
         try:
             return Cache._objects[category][key]['timestamp']
-        except Exception:
+        except (KeyError, Exception):
             return default
 
     @staticmethod
@@ -161,7 +161,7 @@ class Cache(object):
         '''
         try:
             return Cache._objects[category][key]['lastaccess']
-        except Exception:
+        except (KeyError, Exception):
             return default
 
     @staticmethod
@@ -184,7 +184,7 @@ class Cache(object):
                 Cache._objects[category] = {}
                 Logger.trace('Cache: Flushed category %s from cache' %
                              category)
-        except Exception:
+        except (KeyError, Exception):
             pass
 
     @staticmethod
@@ -203,10 +203,10 @@ class Cache(object):
         while n <= maxpurge:
             try:
                 n += 1
-                lastaccess, key = heapq.heappop(heap_list)
+                last_access, key = heapq.heappop(heap_list)
                 Logger.trace('Cache: %d => %s %f %f' %
-                             (n, key, lastaccess, Clock.get_time()))
-            except Exception:
+                             (n, key, last_access, Clock.get_time()))
+            except (IndexError, Exception):
                 return
             Cache.remove(category, key)
 
