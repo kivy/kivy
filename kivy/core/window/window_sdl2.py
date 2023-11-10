@@ -367,7 +367,6 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl2 input provider')
-        from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
 
@@ -481,6 +480,13 @@ class WindowSDL(WindowBase):
 
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
+
+    def _get_window_opacity(self):
+        return self._win.get_window_opacity()
+
+    def _set_window_opacity(self, opacity):
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     # Transparent Window background
     def _is_shaped(self):

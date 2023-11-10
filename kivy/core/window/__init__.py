@@ -933,6 +933,33 @@ class WindowBase(EventDispatcher):
     the position set in :class:`~kivy.config.Config`.
     '''
 
+    def _get_opacity(self):
+        return self._get_window_opacity()
+
+    def _set_opacity(self, opacity):
+        return self._set_window_opacity(opacity)
+
+    def _get_window_opacity(self):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    def _set_window_opacity(self, opacity):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    opacity = AliasProperty(_get_opacity, _set_opacity, cache=True)
+    '''Opacity of the window. Accepts a value between 0.0 (transparent) and
+    1.0 (opaque).
+
+    .. note::
+        This feature requires the SDL2 window provider.
+
+    .. versionadded:: 2.3.0
+
+    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to `1.0`.
+    '''
+
     @property
     def __self__(self):
         return self

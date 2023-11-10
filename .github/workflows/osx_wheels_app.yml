@@ -56,8 +56,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
-      # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-      if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
@@ -72,25 +70,15 @@ jobs:
         update_version_metadata
     - name: Install build dependencies
       run: |
-        source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         brew install pkg-config cmake ninja
     - name: Build universal Kivy dependencies
       run: |
-        source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         ./tools/build_macos_dependencies.sh
     - name: Install cibuildwheel
       run: |
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         python -m pip install cibuildwheel==2.11.2
     - name: Build wheels
       run: |
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks:$KIVY_DEPS_ROOT/dist/Frameworks/SDL2_mixer.framework/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
@@ -147,32 +135,21 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        include:
-          - runs_on: macos-latest
+        runs_on: ['macos-latest', 'apple-silicon-m1']
+        python: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        exclude:
+          # apple-silicon-m1 does not support older python versions (3.7, 3.8, 3.9)
+          - runs_on: apple-silicon-m1
             python: '3.7'
-          - runs_on: macos-latest
+          - runs_on: apple-silicon-m1
             python: '3.8'
-          - runs_on: macos-latest
+          - runs_on: apple-silicon-m1
             python: '3.9'
-          - runs_on: macos-latest
-            python: '3.10'
-          - runs_on: macos-latest
-            python: '3.11'
-          - runs_on: apple-silicon-m1
-            python: '3.8.13'
-          - runs_on: apple-silicon-m1
-            python: '3.9.7'
-          - runs_on: apple-silicon-m1
-            python: '3.10.1'
-          - runs_on: apple-silicon-m1
-            python: '3.11'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python }} on ${{ matrix.runs_on }}
-        # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-        if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
@@ -183,14 +160,10 @@ jobs:
       - name: Install test dependencies
         run: |
           source .ci/ubuntu_ci.sh
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           install_kivy_test_wheel_run_pip_deps dev
       - name: Install Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           install_kivy_wheel dev
       - uses: actions/download-artifact@v3
         with:
@@ -199,14 +172,10 @@ jobs:
       - name: Install kivy-examples wheel
         run: |
           source .ci/ubuntu_ci.sh
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           install_kivy_examples_wheel dev
       - name: Test Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           test_kivy_install
 
   osx_app_create:
