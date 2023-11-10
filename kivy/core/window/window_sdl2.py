@@ -397,6 +397,7 @@ class WindowSDL(WindowBase):
             try:
                 hwnd = windll.user32.GetActiveWindow()
                 self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
+                self._density = self.dpi / 96
             except AttributeError:
                 pass
         else:
