@@ -23,7 +23,7 @@ it into a playable pong game, describing each step along the way.
 
 Here is a check list before starting this tutorial:
 
-- You have a working Kivy installation. See the :doc:`/installation/installation`
+- You have a working Kivy installation. See the :doc:`/gettingstarted/installation`
   section for detailed descriptions
 - You know how to run a basic Kivy application. See :ref:`quickstart`
   if you don't.
@@ -35,8 +35,8 @@ steps and go straight to step 3.
 
 .. note::
 
-    You can find the entire source code, and source code files for each step in
-    the Kivy examples directory under `tutorials/pong/`
+    You can find the entire source code--and source code files for each step--in
+    the Kivy examples directory under `tutorials/pong/`.
 
 Ready? Sweet, let's get started!
 
@@ -122,7 +122,7 @@ them because it would define these rules for all Widget instances.
 Inside a rule section, you can add various blocks to define the style and
 contents of the widgets they will be applied to. You can:
 
-- set property values,
+- set property values
 - add child widgets
 - define a `canvas` section in which you can add Graphics instructions that
   define how the widget is rendered.
@@ -370,7 +370,7 @@ rules for the ``PongPaddle`` class at the end of this section.
 
 In Kivy, a widget can react to input by implementing the
 :meth:`on_touch_down <kivy.uix.widget.Widget.on_touch_down>`, the
-:meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the 
+:meth:`on_touch_move <kivy.uix.widget.Widget.on_touch_move>` and the
 :meth:`on_touch_up <kivy.uix.widget.Widget.on_touch_up>`
 methods. By default, the Widget class
 implements these methods by just calling the corresponding method on all its
@@ -398,7 +398,7 @@ occurs because Kivy :mod:`~kivy.properties` automatically bind to any references
 in their corresponding kv files. When the ball
 escapes out of the sides, we'll update the score and serve the ball
 again by changing the ``update`` method in the ``PongGame`` class. The ``PongPaddle``
-class also implements a ``bounce_ball method``, so that the ball bounces
+class also implements a ``bounce_ball`` method, so that the ball bounces
 differently based on where it hits the racket. Here is the code for the
 `PongPaddle` class::
 
@@ -455,10 +455,10 @@ you could do:
   :class:`~kivy.uix.button.Button` and
   :class:`~kivy.uix.label.Label`
   classes, and figure out how to use their `add_widget` and `remove_widget`
-  functions to add or remove widgets dynamically.
+  functions to add or remove widgets dynamically.)
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support, so
-  wouldn't it be cool to have a player on each side and have four 
+  wouldn't it be cool to have a player on each side and have four
   people play at the same time?
 
 * Fix the simplistic collision check so hitting the ball with an end of
@@ -466,5 +466,5 @@ you could do:
 
 .. note::
 
-    You can find the entire source code and source code files for each step in
-    the Kivy examples directory under tutorials/pong/
+    You can find the entire source code--and source code files for each step--in
+    the Kivy examples directory under `tutorials/pong/`.

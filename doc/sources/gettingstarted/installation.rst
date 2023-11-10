@@ -12,8 +12,9 @@ Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
 ‎           Platform            Installation                                        Packaging
 ==========  ==================  ==================================================  =======================================================================
 |w_logo|    Windows             :ref:`pip<install-pip>`                             :ref:`PyInstaller<packaging-win>`
-|m_logo|    OS X                :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
+|m_logo|    macOS               :ref:`pip<install-pip>`, :ref:`Kivy.app<osx-app>`   :ref:`Kivy.app<packaging-osx-sdk>`, :ref:`PyInstaller<osx_pyinstaller>`
 |l_logo|    Linux               :ref:`pip<install-pip>`, :ref:`PPA<linux-ppa>`      ---
+|b_logo|    *BSD (FreeBSD,..)   :ref:`pip<install-pip>`                             ---
 |r_logo|    RPi                 :ref:`pip<install-pip>`                             ---
 |a_logo|    Android             :ref:`python-for-android<packaging_android>`        :ref:`python-for-android<packaging_android>`
 |i_logo|    iOS                 :ref:`kivy-ios<packaging_ios>`                      :ref:`kivy-ios<packaging_ios>`
@@ -25,6 +26,8 @@ Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
 .. |m_logo| image:: ../images/macosx.png
    :height: 20pt
 .. |l_logo| image:: ../images/linux.png
+   :height: 20pt
+.. |b_logo| image:: ../images/freebsd.png
    :height: 20pt
 .. |r_logo| image:: ../images/raspberrypi.png
    :height: 20pt
@@ -44,9 +47,18 @@ The easiest way to install Kivy is with ``pip``, which installs Kivy using eithe
 :ref:`pre-compiled wheel<pip-wheel>`, if available, otherwise from source (see below).
 
 Kivy provides :ref:`pre-compiled wheels<kivy-wheel-install>` for the supported Python
-versions on Windows, OS X, Linux, and RPi. Alternatively, installing
-:ref:`from source<kivy-source-install>` is required for newer Python versions not listed
+versions on Windows, macOS, Linux, and RPi.
+
+If no wheels are available ``pip`` will build the package from sources (i.e. on *BSD).
+
+Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
+
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster), Python 3.9 (Raspberry Pi OS Bullseye)
+and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
+
+For other Python versions, on 32 bit OSes, you will need to install from source.
+
 
 Setup terminal and pip
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -63,13 +75,13 @@ subsequent commands outside the virtual environment)::
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+Create a new `virtual environment <https://docs.python.org/3/library/venv.html>`_
 for your Kivy project. A virtual environment will prevent possible installation conflicts
 with other Python versions and packages. It's optional **but strongly recommended**:
 
 #. Create the virtual environment named ``kivy_venv`` in your current directory::
 
-       python -m virtualenv kivy_venv
+       python -m venv kivy_venv
 
 #. Activate the virtual environment. You will have to do this step from the current directory
    **every time** you start a new terminal. This sets up the environment so the new ``kivy_venv``
@@ -83,7 +95,7 @@ with other Python versions and packages. It's optional **but strongly recommende
 
        source kivy_venv/Scripts/activate
 
-   If you are in **linux**, instead do::
+   If you are in **linux** or **macOS**, instead do::
 
        source kivy_venv/bin/activate
 
@@ -110,8 +122,14 @@ This also installs the minimum dependencies of Kivy. To additionally install Kiv
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
-For the Raspberry Pi, you must additionally install the dependencies listed in
-:ref:`source dependencies<install-source-rpi>` before installing Kivy above.
+.. note::
+
+    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional 
+    dependencies to ensure Kivy functions properly.
+
+    For instance, on Raspberry Pi OS Lite, you will be required to install the following dependencies::
+
+        apt-get install libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
 
 .. _kivy-source-install:
 
@@ -123,10 +141,63 @@ with some additional steps. Installing from source means that Kivy will be insta
 from source code and compiled directly on your system.
 
 First install the additional system dependencies listed for each platform:
-:ref:`Windows<install-source-win>`, :ref:`OS X<install-source-osx>`,
-:ref:`Linux<install-source-linux>`, :ref:`RPi<install-source-rpi>`.
+:ref:`Windows<install-source-win>`, :ref:`macOS<install-source-osx>`,
+:ref:`Linux<install-source-linux>`, :ref:`*BSD<install-source-bsd>`,
+:ref:`RPi<install-source-rpi>`
 
-With the dependencies installed, you can now install Kivy into the virtual environment.
+.. note::
+    In past, for macOS, Linux and BSD Kivy required the installation of the SDL dependencies from package
+    managers (e.g. ``apt`` or ``brew``). However, this is no longer officially supported as the version
+    of SDL provided by the package managers is often outdated and may not work with Kivy as we
+    try to keep up with the latest SDL versions in order to support the latest features and bugfixes.
+
+    **You can still install the SDL dependencies from package managers if you wish, but we no longer
+    offer support for this.**
+
+    Instead, we recommend installing the SDL dependencies from source. This is the same process
+    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a 
+    specific directory.
+
+With all the build tools installed, you can now install the SDL dependencies from source for SDL support
+(this is not needed on Windows as we provide pre-built SDL dependencies for Windows)
+
+In order to do so, we provide a script that will download and build the SDL dependencies
+from source. This script is located in the ``tools`` directory of the Kivy repository.
+
+Create a directory to store the self-built dependencies and change into it::
+
+    mkdir kivy-deps-build && cd kivy-deps-build
+
+Then download the build tool script, according to your platform:
+
+On **macOS**::
+
+    curl -O https://raw.githubusercontent.com/kivy/kivy/master/tools/build_macos_dependencies.sh -o build_kivy_deps.sh
+
+On **Linux**::
+
+    curl https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
+
+Make the script executable::
+
+    chmod +x build_kivy_deps.sh
+
+Finally, run the script::
+
+    ./build_kivy_deps.sh
+
+The script will download and build the SDL dependencies from source. It will also install
+the dependencies into a directory named `kivy-dependencies`. This directory will be used
+by Kivy to build and install Kivy from source with SDL support.
+
+Kivy will need to know where the SDL dependencies are installed. To do so, you must set
+the ``KIVY_DEPS_ROOT`` environment variable to the path of the ``kivy-dependencies`` directory.
+For example, if you are in the ``kivy-deps-build`` directory, you can set the environment
+variable with::
+
+    export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
+
+With the dependencies installed, and `KIVY_DEPS_ROOT` set you can now install Kivy into the virtual environment.
 
 To install the stable version of Kivy, from the terminal do::
 
@@ -164,9 +235,6 @@ latest **cutting-edge** :ref:`Nightly wheels <nightly-win-wheels>` from the Kivy
 It is done in two steps, because otherwise ``pip`` may ignore the wheels on the server and install
 an older pre-release version from PyPi.
 
-For the Raspberry Pi, remember to additionally install the dependencies listed in
-:ref:`source dependencies<install-source-rpi>` before installing Kivy above.
-
 .. _kivy-dev-install:
 
 Development install
@@ -178,15 +246,15 @@ The following steps assumes git is pre-installed and available in the terminal.
 
 The typical process is to clone Kivy locally with::
 
-    git clone git://github.com/kivy/kivy.git
+    git clone https://github.com/kivy/kivy.git
 
-This creates a kivy named folder in your current path. Next, install the additional
-system dependencies listed for each OS: :ref:`Windows<install-source-win>`,
-:ref:`OS X<install-source-osx>`, :ref:`Linux<install-source-linux>`,
-:ref:`RPi<install-source-rpi>`.
+This creates a kivy named folder in your current path. Next, follow the same steps of the
+:ref:`Installing from source <_kivy-source-install>` above, but instead of installing Kivy via a
+distribution package or zip file, install it as an
+`editable install <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_.
 
-Then change to the kivy directory and install Kivy as an
-`editable install <https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`_::
+In order to do so, first change into the Kivy folder you just cloned::
+and then install Kivy as an editable install::
 
     cd kivy
     python -m pip install -e ".[dev,full]"
@@ -210,17 +278,25 @@ or in bash or Linux::
 
     make test
 
+On *BSD Unix remember to use ``gmake`` (GNU) in place of ``make`` (BSD).
+
 Checking the demo
 ^^^^^^^^^^^^^^^^^
 
 Kivy should now be installed. You should be able to ``import kivy`` in Python or,
-if you installed the Kivy examples, run the demo (on Windows)::
+if you installed the Kivy examples, run the demo.
+
+on Windows::
 
     python kivy_venv\share\kivy-examples\demo\showcase\main.py
 
-or in bash or Linux::
+in bash, Linux and macOS::
 
     python kivy_venv/share/kivy-examples/demo/showcase/main.py
+
+on *BSD Unix:
+
+    python3 kivy_venv/share/kivy-examples/demo/showcase/main.py
 
 The exact path to the Kivy examples directory is also stored in ``kivy.kivy_examples_dir``.
 
@@ -280,7 +356,7 @@ version).
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
     `sdl2`: The window/image/audio backend, if it's available (currently only on Windows,
-        on OSX and Linux it is already included in the main Kivy wheel).
+        on macOS, Linux and *BSD Unix is already included in the main Kivy wheel).
     `glew`: A alternate OpenGL backend, if it's available (currently only on Windows)
 
 Following are the ``kivy_deps`` dependency wheels:
@@ -301,7 +377,7 @@ Following are the ``kivy_deps`` dependency wheels:
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
   (the default), ``angle_sdl2``, or ``sdl2``. Here, ``angle_sdl2`` is a substitute for
-  ``glew`` but requires ``kivy_deps.sdl2`` be installed as well.
+  ``glew`` but requires ``kivy_deps.sdl2`` to be installed as well.
 
 * `sdl2 <https://libsdl.org>`_
 
@@ -326,8 +402,9 @@ Multiple versions of Python can be installed side by side, but Kivy needs to
 be installed as package under each Python version that you want to use Kivy in.
 
 To install Python, see the instructions for each platform:
-:ref:`Windows<install-python-win>`, :ref:`OS X<install-python-osx>`,
-:ref:`Linux<install-python-linux>`, :ref:`RPi<install-python-rpi>`.
+:ref:`Windows<install-python-win>`, :ref:`macOS<install-python-osx>`,
+:ref:`Linux<install-python-linux>`, :ref:`RPi<install-python-rpi>`,
+:ref:`*BSD<install-python-bsd>`.
 
 Once Python is installed, open the :ref:`console <command-line>` and make sure
 Python is available by typing ``python --version``.
@@ -337,7 +414,7 @@ Python is available by typing ``python --version``.
 How to use the command line
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To execute any of the ``pip`` or ``wheel`` commands given here, you need a *command line* (here also called *console*, *terminal*, `shell <https://en.wikipedia.org/wiki/Unix_shell>`_ or `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_, where the last two refer to Linux style command lines) and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
+To execute any of the ``pip`` or ``wheel`` commands given here, you need a *command line* (here also called *console*, *terminal*, `shell <https://en.wikipedia.org/wiki/Unix_shell>`_ or `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_, where the last two refer to Linux / *BSD Unix style command lines) and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
 The default command line on Windows is the
 `command prompt <http://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The

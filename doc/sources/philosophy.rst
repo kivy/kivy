@@ -48,16 +48,16 @@ Flexible
 ~~~~~~~~
 
 Kivy is flexible. This means it can be run on *a variety of different devices*,
-including Android powered smartphones and tablets. We support *all major
-operating systems* (Windows, Linux, OS X). Being flexible also means that Kivy's
-fast-paced development allows it to *adapt to new technologies quickly*.
+including iOS and Android powered smartphones and tablets. We support *all major
+operating systems* (Windows, Linux, macOS, *BSD). Being flexible also means that
+Kivy's fast-paced development allows it to *adapt to new technologies quickly*.
 More than once have we added support for new external devices and software
 protocols, sometimes even before they were released. Lastly, Kivy is also
 flexible in that it is possible to use it in combination with a great number of
 different third-party solutions. For example, on Windows we support WM_TOUCH,
 which means that any device that has Windows 7 Pen & Touch drivers will *just
-work* with Kivy. On OS X you can use Apple's Multi-Touch capable devices, such
-as trackpads and mice. On Linux, you can use HID kernel input events.
+work* with Kivy. On macOS you can use Apple's Multi-Touch capable devices, such
+as trackpads and mice. On Linux and *BSD, you can use HID kernel input events.
 In addition to that, we support TUIO (Tangible User Interface Objects) and a
 number of other input sources.
 

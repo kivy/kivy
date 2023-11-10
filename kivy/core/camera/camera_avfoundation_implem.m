@@ -4,13 +4,14 @@
  * by Mathieu Virbel
  *
  * TODO:
- * - add interface for setting some capabilities as focus/exposure/...
+ * - add iOS native photo and video capture
+ * - add support for telephoto and wide angle lenses
+ *     needs iOS10 AVCaptureDeviceDiscoverySession   discoverySessionWithDeviceTypes:mediaType:position: 
  * I've let the code concerning caps, even if it's not yet used. uncomment
  * WITH_CAMERA_CAPS to compile with it.
  */
 
 //#define WITH_CAMERA_CAPS
-
 
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/NSException.h>
@@ -50,6 +51,17 @@ public:
     char *data;
 };
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+@interface PhotoAppDelegate : NSObject {}
+- (void) thisImage:(UIImage *)image photoAppCallback:(NSError *)error usingContextInfo:(void*)ctxInfo;
+@end
+
+@implementation PhotoAppDelegate
+- (void) thisImage:(UIImage *)image photoAppCallback:(NSError *)error usingContextInfo:(void*)ctxInfo {
+    free(ctxInfo);
+}
+@end
+#endif
 
 @interface CaptureDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {
@@ -87,7 +99,7 @@ didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 
 - (id)init {
     [super init];
-    metadata = NULL;
+    metadata = new CameraMetadata();
     newMetadata = 0;
     return self;
 }
@@ -95,17 +107,24 @@ didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
 didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects
 fromConnection:(AVCaptureConnection *)connection{
-    for (AVMetadataObject *object in metadataObjects) {
-        if ([object.type isEqualToString:AVMetadataObjectTypeQRCode]){
-            AVMetadataMachineReadableCodeObject *codeObject = (AVMetadataMachineReadableCodeObject *)object;
-            if (metadata == NULL)
-            {
-                metadata = new CameraMetadata();
-            }
+    for (AVMetadataObject *metadataResult in metadataObjects) {
+        if ([metadataResult.type isEqualToString:AVMetadataObjectTypeQRCode]){
+            AVMetadataMachineReadableCodeObject *codeObject = (AVMetadataMachineReadableCodeObject *)metadataResult;
             NSString *stringValue = codeObject.stringValue ? codeObject.stringValue : @"Unable to decode";
-            metadata->type = (char *)"AVMetadataMachineReadableCodeObject";
-            metadata->data = (char *)[stringValue UTF8String];
             NSLog(@"Code: %@", stringValue);
+
+            if (metadata->type != NULL){
+                free(metadata->type);
+            }
+            if (metadata->data != NULL){
+                free(metadata->data);
+            }
+            metadata->type = (char *)malloc(sizeof(char) * (strlen([metadataResult.type UTF8String]) + 1));
+            metadata->data = (char *)malloc(sizeof(char) * (strlen([stringValue UTF8String]) + 1));
+
+            strcpy(metadata->type, [metadataResult.type UTF8String]);
+            strcpy(metadata->data, [stringValue UTF8String]);
+
             newMetadata = 1;
         }
     }
@@ -139,8 +158,12 @@ public:
     bool attemptCapturePreset(NSString *preset);
     bool attemptStartMetadataAnalysis();
     bool haveNewMetadata();
-    bool setVideoOrientation(int orientation);
-
+    void setVideoOrientation(int orientation);
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    PhotoAppDelegate             *photoapp;
+    void changeCameraInput(int _cameraNum);
+    void zoomLevel(float zoomLevel);
+#endif
 #ifdef WITH_CAMERA_CAPS
     double getProperty(int property_id);
     bool setProperty(int property_id, double value);
@@ -361,6 +384,7 @@ int Camera::startCaptureDevice() {
         mCaptureSession = [[AVCaptureSession alloc] init] ;
 
         #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        photoapp = [[PhotoAppDelegate alloc] init];
         /* AVCaptureMetadataOutput is not available on MacOS */
         metadata = [[MetadataDelegate alloc] init];
         mMetadataOutput = [[AVCaptureMetadataOutput alloc] init];
@@ -426,12 +450,55 @@ int Camera::startCaptureDevice() {
     return 0;
 }
 
-bool Camera::setVideoOrientation(int orientation) {
+void Camera::setVideoOrientation(int orientation) {
     AVCaptureConnection *conn = [mCaptureDecompressedVideoOutput connectionWithMediaType:AVMediaTypeVideo];
     if([conn isVideoOrientationSupported]){
         [conn setVideoOrientation:(AVCaptureVideoOrientation) orientation];
     }
 }
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+void Camera::changeCameraInput(int _cameraNum) {
+    NSError* error;
+    NSArray *devices;
+    AVCaptureDevice *device;
+
+    devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    if (_cameraNum >= 0) {
+        int camNum = _cameraNum % [devices count];
+        if (camNum != _cameraNum) {
+            NSLog(@"Warning: Max Camera Num is %lu; Using camera %d\n",
+                  (unsigned long)([devices count] - 1), camNum);
+        }
+        device = [devices objectAtIndex:camNum];
+        cameraNum = _cameraNum;
+    } else {
+        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo]  ;
+        cameraNum = 0;
+    }
+
+    if (device) {
+        [mCaptureSession beginConfiguration];
+        [mCaptureSession removeInput:mCaptureDeviceInput];
+        mCaptureDeviceInput = [[AVCaptureDeviceInput alloc] initWithDevice:device error:&error];
+        [mCaptureSession addInput:mCaptureDeviceInput];
+        [mCaptureSession commitConfiguration];
+        setVideoOrientation([[UIDevice currentDevice] orientation]);
+    }
+}
+
+void Camera::zoomLevel(float zoomLevel) {
+    // iOS 7.x+ with compatible hardware
+    if ([mCaptureDevice respondsToSelector:@selector(setVideoZoomFactor:)]
+        && mCaptureDevice.activeFormat.videoMaxZoomFactor >= zoomLevel) {
+       if ([mCaptureDevice lockForConfiguration:nil]) {
+           [mCaptureDevice setVideoZoomFactor:zoomLevel];
+           [mCaptureDevice unlockForConfiguration];
+       }
+   }
+}
+#endif
 
 #ifdef WITH_CAMERA_CAPS
 void Camera::setWidthHeight() {
@@ -736,7 +803,75 @@ bool avf_camera_have_new_metadata(camera_t camera){
     return ((Camera *)camera)->haveNewMetadata();
 }
 
-bool avf_camera_set_video_orientation(camera_t camera, int orientation){
-    return ((Camera *)camera)->setVideoOrientation(orientation);
+void avf_camera_set_video_orientation(camera_t camera, int orientation){
+    ((Camera *)camera)->setVideoOrientation(orientation);
 }
 
+int avf_camera_get_device_orientation() {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    return (int)[[UIDevice currentDevice] orientation];
+#else
+    return 0;
+#endif
+}
+
+void avf_camera_change_input(camera_t camera, int _cameraNum) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    ((Camera *)camera)->changeCameraInput(_cameraNum);
+#endif
+}
+
+void avf_camera_zoom_level(camera_t camera, float zoomLevel) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    ((Camera *)camera)->zoomLevel(zoomLevel);
+#endif
+}
+
+char *avf_camera_documents_directory() {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *basePath = paths.firstObject;
+    return (char *)[basePath UTF8String];
+#else
+    return "";
+#endif
+}
+
+void avf_camera_save_pixels(camera_t camera, unsigned char *pixels, int width, int height, char *path, float quality) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    int size = width * height * 4;
+    if (strcmp(path,"") == 0) {
+        unsigned char *local_pixels = pixels;
+        pixels = (unsigned char *)malloc(size);
+        memcpy(pixels, local_pixels, size*sizeof(char));
+    }
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, pixels, size, NULL);
+    int bitsPerComponent = 8;
+    int bitsPerPixel = 32;
+    int bytesPerRow = 4*width;
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Big|kCGImageAlphaLast;
+    CGColorRenderingIntent renderingIntent = kCGRenderingIntentDefault;
+    CGImageRef imageRef = CGImageCreate(width,
+                                        height,
+                                        8,
+                                        32,
+                                        4*width,colorSpaceRef,
+                                        bitmapInfo,
+                                        provider,NULL,NO,renderingIntent);
+    UIImage *newImage = [UIImage imageWithCGImage:imageRef];
+
+    if (strcmp(path,"") == 0) {
+
+        UIImageWriteToSavedPhotosAlbum(newImage, ((Camera *)camera)->photoapp,
+                                     @selector(thisImage:photoAppCallback:usingContextInfo:), pixels);
+    } else {
+        NSString* filePath = @(path);
+        [UIImageJPEGRepresentation(newImage, quality) writeToFile:filePath atomically:YES];
+    }
+
+    CGColorSpaceRelease(colorSpaceRef);
+    CGDataProviderRelease(provider);
+    CGImageRelease(imageRef);
+#endif
+}

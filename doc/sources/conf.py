@@ -16,6 +16,7 @@
 import os
 import sys
 import configparser
+import sphinx
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -31,9 +32,17 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
+    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks',
+    'sphinxcontrib.jquery']
 
-extlinks = {'repo': ('https://github.com/kivy/kivy/issues/%s', '#')}
+if sphinx.version_info[0] >= 4:
+    # In 4.0 and above has been added the support to substitute by ‘%s’ in the caption.
+    # In 6.0 if the caption is a string, it must contain %s exactly once.
+    repo_extlink_caption = '#%s'
+else:
+    repo_extlink_caption = '#'
+
+extlinks = {'repo': ('https://github.com/kivy/kivy/issues/%s', repo_extlink_caption)}
 
 # Todo configuration
 todo_include_todos = True
@@ -226,9 +235,11 @@ config_parser.read(os.path.join(base_dir, '..', '..', 'setup.cfg'))
 # .. parse-literal::, otherwise it won't be replaced
 # !!! doesn't work for "::", ".. code::" or ".. code-block::"
 python_versions = config_parser['kivy']['python_versions'].strip()
+cython_max_version = config_parser['kivy']['cython_max'].strip()
 replacements = {
     'python_versions': python_versions,
     'kivy_version': kivy.__version__,
+    'cython_install': f"Cython=={cython_max_version}",
     'python_versions_bold': f'**{python_versions}**',
     'kivy_version_bold': f'**{kivy.__version__}**',
 }

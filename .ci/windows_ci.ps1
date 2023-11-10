@@ -24,7 +24,7 @@ function Update-version-metadata {
 }
 
 function Generate-sdist {
-    python -m pip install cython
+    python -m pip install cython packaging
     python setup.py sdist --formats=gztar
     python setup.py bdist_wheel --build_examples --universal
     python -m pip uninstall cython -y
@@ -72,7 +72,6 @@ function Install-kivy-test-run-win-deps {
 
 function Install-kivy-test-run-pip-deps {
     python -m pip install pip wheel setuptools --upgrade
-    python -m pip install twine
 }
 
 function Install-kivy {
@@ -106,11 +105,17 @@ function Install-kivy-sdist {
 }
 
 function Test-kivy {
-    python -m pytest --timeout=300 --cov=kivy --cov-report term --cov-branch "$(pwd)/kivy/tests"
+    # Tests with default environment variables.
+    python -m pytest --timeout=400 --cov=kivy --cov-branch --cov-report= "$(pwd)/kivy/tests"
+    # Logging tests, with non-default log modes
+    $env:KIVY_LOG_MODE = 'PYTHON'
+    python -m pytest -m logmodepython --timeout=400 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
+    $env:KIVY_LOG_MODE = 'MIXED'
+    python -m pytest -m logmodemixed --timeout=400 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
 }
 
 function Test-kivy-benchmark {
-    python -m pytest "$(pwd)/kivy/tests" --benchmark-only
+    pytest --pyargs kivy.tests --benchmark-only
 }
 
 function Test-kivy-installed {
@@ -120,7 +125,7 @@ function Test-kivy-installed {
     cd "$test_path"
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
-    raise-only-error -Func {python -m pytest --timeout=300 .}
+    raise-only-error -Func {python -m pytest --timeout=400 .}
 }
 
 function Upload-artifacts-to-pypi {

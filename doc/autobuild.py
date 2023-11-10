@@ -15,7 +15,8 @@ ignore_list = (
     'kivy.graphics.vertex',
     'kivy.uix.recycleview.__init__',
     'kivy.setupconfig',
-    'kivy.version'
+    'kivy.version',
+    'kivy._version'
 )
 
 import os
@@ -241,7 +242,7 @@ refid = 0
 for module in m:
     summary = extract_summary_line(sys.modules[module].__doc__)
     if summary is None or summary == '':
-        summary = 'NO DOCUMENTATION (module %s)' % package
+        summary = 'NO DOCUMENTATION (module %s)' % module
 
     # search examples
     example_output = []

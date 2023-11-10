@@ -260,6 +260,7 @@ cdef class CyClockBase(object):
         self._del_safe_lock = RLock()
         self._del_safe_done = False
         self.has_ended = False
+        self.has_started = False
 
     def start_clock(self):
         """Must be called to start the clock.
@@ -268,7 +269,10 @@ cdef class CyClockBase(object):
         """
         self._lock_acquire()
         try:
-            pass
+            if self.has_started:
+                return
+
+            self.has_started = True
             # for now don't raise an exception when restarting because kivy's
             # graphical tests are not setup to handle clock isolation so they try
             # to restart the clock

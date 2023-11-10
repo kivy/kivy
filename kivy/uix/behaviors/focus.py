@@ -242,6 +242,13 @@ class FocusBehavior(object):
     This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
     `address`.
 
+    .. warning::
+        On Android, `keyboard_suggestions` relies on
+        `InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS` to work, but some keyboards
+        just ignore this flag. If you want to disable suggestions at all on
+        Android, you can set `input_type` to `null`, which will request the
+        input method to run in a limited "generate key events" mode.
+
     .. versionadded:: 2.1.0
 
     :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
@@ -249,17 +256,19 @@ class FocusBehavior(object):
     '''
 
     def _set_on_focus_next(self, instance, value):
-        ''' If changing code, ensure following code is not infinite loop:
+        '''If changing focus, ensure your code does not create an infinite loop.
+        eg:
+        ```python
         widget.focus_next = widget
         widget.focus_previous = widget
-        widget.focus_previous = widget2
+        ```
         '''
-        next = self._old_focus_next
-        if next is value:   # prevent infinite loop
+        next_ = self._old_focus_next
+        if next_ is value:   # prevent infinite loop
             return
 
-        if isinstance(next, FocusBehavior):
-            next.focus_previous = None
+        if isinstance(next_, FocusBehavior):
+            next_.focus_previous = None
         self._old_focus_next = value
         if value is None or value is StopIteration:
             return
@@ -336,7 +345,7 @@ class FocusBehavior(object):
 
     keyboard_mode = OptionProperty('auto', options=('auto', 'managed'))
     '''Determines how the keyboard visibility should be managed. 'auto' will
-    result in the standard behaviour of showing/hiding on focus. 'managed'
+    result in the standard behavior of showing/hiding on focus. 'managed'
     requires setting the keyboard visibility manually, or calling the helper
     functions :meth:`show_keyboard` and :meth:`hide_keyboard`.
 
@@ -344,15 +353,22 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    input_type = OptionProperty('text', options=('text', 'number', 'url',
-                                                 'mail', 'datetime', 'tel',
-                                                 'address'))
+    input_type = OptionProperty('null', options=('null', 'text', 'number',
+                                                 'url', 'mail', 'datetime',
+                                                 'tel', 'address'))
     '''The kind of input keyboard to request.
 
     .. versionadded:: 1.8.0
 
+    .. versionchanged:: 2.1.0
+        Changed default value from `text` to `null`. Added `null` to options.
+
+        .. warning::
+            As the default value has been changed, you may need to adjust
+            `input_type` in your code.
+
     :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'text'. Can be one of 'text', 'number', 'url', 'mail',
+    defaults to 'null'. Can be one of 'null', 'text', 'number', 'url', 'mail',
     'datetime', 'tel' or 'address'.
     '''
 
@@ -361,11 +377,10 @@ class FocusBehavior(object):
     '''Whether a instance should lose focus when clicked outside the instance.
 
     When a user clicks on a widget that is focus aware and shares the same
-    keyboard as this widget (which in the case of only one keyboard, are
-    all focus aware widgets), then as the other widgets gains focus, this
-    widget loses focus. In addition to that, if this property is `True`,
-    clicking on any widget other than this widget, will remove focus form this
-    widget.
+    keyboard as this widget (which in the case with only one keyboard),
+    then as the other widgets gain focus, this widget loses focus. In addition
+    to that, if this property is `True`, clicking on any widget other than this
+    widget, will remove focus from this widget.
 
     :attr:`unfocus_on_touch` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False` if the `keyboard_mode` in :attr:`~kivy.config.Config`
@@ -511,7 +526,7 @@ class FocusBehavior(object):
     def get_focus_previous(self):
         '''Returns the previous focusable widget using either
            :attr:`focus_previous` or the :attr:`children` similar to the
-           order when ``tab`` + ``shift`` key are triggered together.
+           order when the ``tab`` + ``shift`` keys are triggered together.
         '''
         return self._get_focus_next('focus_previous')
 

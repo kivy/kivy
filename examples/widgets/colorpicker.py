@@ -90,7 +90,7 @@ Builder.load_string('''
         Image:
             color: app.color_selector.color
             source: '../demo/touchtracer/particle.png'
-            allow_stretch: True
+            fit_mode: "contain"
             size: self.parent.size
             pos: self.parent.pos
     Button:

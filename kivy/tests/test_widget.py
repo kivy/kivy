@@ -118,3 +118,10 @@ class WidgetTestCase(unittest.TestCase):
         rmtree(tmp)
 
         self.root.remove_widget(wid)
+
+    def test_disabled(self):
+        from kivy.uix.widget import Widget
+        w = Widget(disabled=None)
+        w.disabled = False
+        w.disabled = True
+        self.assertEqual(w.disabled, True)

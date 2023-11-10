@@ -1060,7 +1060,7 @@ class Settings(BoxLayout):
                 data = json.loads(fd.read())
         else:
             data = json.loads(data)
-        if type(data) != list:
+        if not isinstance(data, list):
             raise ValueError('The first element must be a list')
         panel = SettingsPanel(title=title, settings=self, config=config)
 
@@ -1106,7 +1106,7 @@ class Settings(BoxLayout):
 
 class SettingsWithSidebar(Settings):
     '''A settings widget that displays settings panels with a sidebar to
-    switch between them. This is the default behaviour of
+    switch between them. This is the default behavior of
     :class:`Settings`, and this widget is a trivial wrapper subclass.
 
     '''
@@ -1147,7 +1147,7 @@ class SettingsWithNoMenu(Settings):
 
         This Settings panel does *not* provide a Close
         button, and so it is impossible to leave the settings screen
-        unless you also add other behaviour or override
+        unless you also add other behavior or override
         :meth:`~kivy.app.App.display_settings` and
         :meth:`~kivy.app.App.close_settings`.
 
@@ -1323,7 +1323,7 @@ if __name__ == '__main__':
             {
                 'type': 'color',
                 'title': 'Test color',
-                'desc': 'Your choosen Color',
+                'desc': 'Your chosen Color',
                 'section': 'colorselection',
                 'key': 'testcolor'
             }])

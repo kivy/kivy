@@ -251,7 +251,7 @@ use the :attr:`pos_hint` property:
 .. versionchanged:: 1.7.0
     Prior to version 1.7.0, the :class:`RelativeLayout` was implemented as a
     :class:`~kivy.uix.floatlayout.FloatLayout` inside a
-    :class:`~kivy.uix.scatter.Scatter`. This behaviour/widget has
+    :class:`~kivy.uix.scatter.Scatter`. This behavior/widget has
     been renamed to `ScatterLayout`. The :class:`RelativeLayout` now only
     supports relative positions (and can't be rotated, scaled or translated on
     a multitouch system using two or more fingers). This was done so that the
@@ -289,6 +289,15 @@ class RelativeLayout(FloatLayout):
     def _apply_transform(self, m, pos=None):
         m.translate(self.x, self.y, 0)
         return super(RelativeLayout, self)._apply_transform(m, (0, 0))
+
+    def on_motion(self, etype, me):
+        if me.type_id in self.motion_filter and 'pos' in me.profile:
+            me.push()
+            me.apply_transform_2d(self.to_local)
+            ret = super().on_motion(etype, me)
+            me.pop()
+            return ret
+        return super().on_motion(etype, me)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y

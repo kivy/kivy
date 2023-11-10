@@ -59,7 +59,7 @@ class CameraAndroid(CameraBase):
         self.fps = 30.
 
         pf = params.getPreviewFormat()
-        assert(pf == ImageFormat.NV21)  # default format is NV21
+        assert pf == ImageFormat.NV21  # default format is NV21
         self._bufsize = int(ImageFormat.getBitsPerPixel(pf) / 8. *
                             width * height)
 

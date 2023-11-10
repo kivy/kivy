@@ -11,8 +11,7 @@ from kivy.properties import StringProperty, OptionProperty, \
 class AnimatedButton(Label):
 
     state = OptionProperty('normal', options=('normal', 'down'))
-    allow_stretch = BooleanProperty(True)
-    keep_ratio = BooleanProperty(False)
+    fit_mode = StringProperty("fill")
     border = ObjectProperty(None)
     anim_delay = ObjectProperty(None)
     background_normal = StringProperty(
@@ -31,8 +30,7 @@ class AnimatedButton(Label):
         # Image to display depending on state
         self.img = Image(
             source=self.background_normal,
-            allow_stretch=self.allow_stretch,
-            keep_ratio=self.keep_ratio,
+            fit_mode=self.fit_mode,
             mipmap=True)
 
         # reset animation if anim_delay is changed
@@ -81,7 +79,7 @@ class AnimatedButton(Label):
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
-        assert(repr(self) in touch.ud)
+        assert repr(self) in touch.ud
         touch.ungrab(self)
         _animdelay = self.img._coreimage.anim_delay
         self.img.source = self.background_normal

@@ -361,6 +361,10 @@ class SafeList(list):
         Usage of the iterate() function will decrease your performance.
     '''
 
+    @deprecated
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def clear(self):
         del self[:]
 

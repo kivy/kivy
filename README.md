@@ -19,7 +19,6 @@ widgets are built with multitouch support.
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the [Kivy Organization](https://kivy.org/#organization).
 
-[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=42681)](https://www.bountysource.com/trackers/42681-kivy?utm_source=42681&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
@@ -44,15 +43,12 @@ Kivy ships with many examples which can be found in the `examples` folder.
 Support
 -------
 
-If you need assistance, you can ask for help on our mailing list:
+If you need help, please feel free to seek assistance through our support channels:
 
-* User Group : https://groups.google.com/group/kivy-users
-* Email      : kivy-users@googlegroups.com
+- Join the [Kivy Users Google Group](https://groups.google.com/group/kivy-users).
+- Ask questions using [discussions](https://github.com/orgs/kivy/discussions/new?category=q-a) on github
+- Use support-channels on our official [Discord](https://chat.kivy.org) server.
 
-We also have a Discord channel:
-
-* Server     : https://chat.kivy.org
-* Channel    : #support
 
 Contributing
 ------------
@@ -92,7 +88,7 @@ Sister projects
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.
-* [Oscpy](https://github.com/kivy/oscpy/): a fast and tested python2/3
+- [Oscpy](https://github.com/kivy/oscpy/): a fast and tested python2/3
   implementation of OSC.
 
 Licenses

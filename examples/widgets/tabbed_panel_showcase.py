@@ -236,8 +236,7 @@ Builder.load_string('''
                 source: 'sequenced_images/data/images/info.png'\
                     if my_header.state == 'normal' else 'cityCC0.png'
                 size: my_header.size
-                allow_stretch: True
-                keep_ratio: False
+                fit_mode: "fill"
 ''')
 
 

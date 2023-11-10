@@ -40,8 +40,6 @@ class ClipboardWindows(ClipboardBase):
         return data
 
     def put(self, text, mimetype='text/plain'):
-        text = text.decode(self._encoding)  # auto converted later
-        text += u'\x00'
 
         SetClipboardData = user32.SetClipboardData
         SetClipboardData.argtypes = [wintypes.UINT, wintypes.HANDLE]
@@ -51,14 +49,23 @@ class ClipboardWindows(ClipboardBase):
         GlobalAlloc.argtypes = [wintypes.UINT, ctypes.c_size_t]
         GlobalAlloc.restype = wintypes.HGLOBAL
 
-        CF_UNICODETEXT = 13
-
         user32.OpenClipboard(user32.GetActiveWindow())
         user32.EmptyClipboard()
-        hCd = GlobalAlloc(0, len(text) * ctypes.sizeof(ctypes.c_wchar))
 
-        # ignore null character for strSource pointer
-        msvcrt.wcscpy_s(c_wchar_p(hCd), len(text), c_wchar_p(text[:-1]))
+        # this allocates memory for the string and returns a handle to it
+        # allocates fixed memory, len + 2 is for the null character
+        # no need to  call GlobalFree here as SetClipboardData will do for you
+        # noqa: E501 see: https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setclipboarddata#parameters
+        GMEM_FIXED = 0x0000
+        hCd = GlobalAlloc(GMEM_FIXED, len(text) + 2)
+
+        # copy the string into the allocated memory
+        msvcrt.wcscpy(c_wchar_p(hCd), text)
+
+        # standard clipboard format for unicode text
+        # noqa: E501 see https://learn.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats#constants
+        CF_UNICODETEXT = 13
+        # set the clipboard data, later used by GetClipboardData()
         SetClipboardData(CF_UNICODETEXT, hCd)
         user32.CloseClipboard()
 

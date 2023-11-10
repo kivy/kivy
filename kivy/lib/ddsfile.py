@@ -195,12 +195,8 @@ class DDSFile(object):
         with open(filename, 'rb') as fd:
             data = fd.read()
 
-        # ensure magic
-        magic_header = data[:4]
-        if isinstance(magic_header, bytes):
-            magic_header = magic_header.decode()
-        if data[:4] != 'DDS ':
-            raise DDSException('Invalid magic header')
+        if data[:4] != b'DDS ':
+            raise DDSException('Invalid magic header {}'.format(data[:4]))
 
         # read header
         fmt = 'I' * 31
@@ -320,16 +316,16 @@ class DDSFile(object):
                 fd.write(image)
 
     def add_image(self, level, bpp, fmt, width, height, data):
-        assert(bpp == 32)
-        assert(fmt in ('rgb', 'rgba', 'dxt1', 'dxt2', 'dxt3', 'dxt4', 'dxt5'))
-        assert(width > 0)
-        assert(height > 0)
-        assert(level >= 0)
+        assert bpp == 32
+        assert fmt in ('rgb', 'rgba', 'dxt1', 'dxt2', 'dxt3', 'dxt4', 'dxt5')
+        assert width > 0
+        assert height > 0
+        assert level >= 0
 
         meta = self.meta
         images = self.images
         if len(images) == 0:
-            assert(level == 0)
+            assert level == 0
 
             # first image, set defaults !
             for k in meta.keys():
@@ -354,8 +350,8 @@ class DDSFile(object):
             meta.pf_aBitMask = 0xff000000
 
             if fmt in ('rgb', 'rgba'):
-                assert(True)
-                assert(bpp == 32)
+                assert True
+                assert bpp == 32
                 meta.pf_flags |= DDPF_RGB
                 meta.pf_rgbBitCount = 32
                 meta.pf_rBitMask = 0x00ff0000
@@ -380,8 +376,8 @@ class DDSFile(object):
 
             images.append(data)
         else:
-            assert(level == len(images))
-            assert(fmt == self._fmt)
+            assert level == len(images)
+            assert fmt == self._fmt
 
             images.append(data)
 

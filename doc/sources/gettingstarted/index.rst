@@ -14,6 +14,5 @@ Getting Started
     layouts
     drawing
     packaging
-    examples
     diving
 

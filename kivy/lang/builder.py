@@ -4,9 +4,7 @@ Builder
 
 Class used for the registering and application of rules for specific widgets.
 '''
-import codecs
 import sys
-import types
 from os import environ
 from os.path import join
 from copy import copy
@@ -14,8 +12,13 @@ from types import CodeType
 from functools import partial
 
 from kivy.factory import Factory
-from kivy.lang.parser import Parser, ParserException, _handlers, global_idmap,\
-    ParserRuleProperty
+from kivy.lang.parser import (
+    Parser,
+    ParserException,
+    _handlers,
+    global_idmap,
+    ParserRuleProperty,
+)
 from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
@@ -40,7 +43,7 @@ _delayed_start = None
 
 
 class BuilderException(ParserException):
-    '''Exception raised when the Builder failed to apply a rule on a widget.
+    '''Exception raised when the Builder fails to apply a rule on a widget.
     '''
     pass
 
@@ -87,7 +90,7 @@ def update_intermediates(base, keys, bound, s, fn, args, instance, value):
     ''' Function that is called when an intermediate property is updated
     and `rebind` of that property is True. In that case, we unbind
     all bound funcs that were bound to attrs of the old value of the
-    property and rebind to the new value of the property.
+    property and rebind them to the new value of the property.
 
     For example, if the rule is `self.a.b.c.d`, then when b is changed, we
     unbind from `b`, `c` and `d`, if they were bound before (they were not
@@ -557,13 +560,13 @@ class BuilderBase(object):
         # rootrule: the current root rule (for children of a rule)
 
         # will collect reference to all the id in children
-        assert(rule not in self.rulectx)
+        assert rule not in self.rulectx
         self.rulectx[rule] = rctx = {
             'ids': {'root': widget.proxy_ref},
             'set': [], 'hdl': []}
 
         # extract the context of the rootrule (not rule!)
-        assert(rootrule in self.rulectx)
+        assert rootrule in self.rulectx
         rctx = self.rulectx[rootrule]
 
         # if a template context is passed, put it as "ctx"
@@ -580,11 +583,11 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in _ids.keys():
-                if _ids[_key] == _root:
+            for _key, _value in _ids.items():
+                if _value == _root:
                     # skip on self
                     continue
-                _new_ids[_key] = _ids[_key]
+                _new_ids[_key] = _value
             _root.ids = _new_ids
 
         # first, ensure that the widget have all the properties used in
@@ -689,7 +692,7 @@ class BuilderBase(object):
             rule = None
             for widget_set, rules in reversed(rctx['set']):
                 for rule in rules:
-                    assert(isinstance(rule, ParserRuleProperty))
+                    assert isinstance(rule, ParserRuleProperty)
                     key = rule.name
                     value = rule.co_value
                     if type(value) is CodeType:
@@ -718,8 +721,8 @@ class BuilderBase(object):
             crule = None
             for widget_set, rules in rctx['hdl']:
                 for crule in rules:
-                    assert(isinstance(crule, ParserRuleProperty))
-                    assert(crule.name.startswith('on_'))
+                    assert isinstance(crule, ParserRuleProperty)
+                    assert crule.name.startswith('on_')
                     key = crule.name
                     if not widget_set.is_event_type(key):
                         key = key[3:]
@@ -938,7 +941,7 @@ Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
 if 'KIVY_PROFILE_LANG' in environ:
     import atexit
-    import cgi
+    from html import escape
 
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
@@ -967,7 +970,7 @@ if 'KIVY_PROFILE_LANG' in environ:
             '<style type="text/css">\n',
             'pre { margin: 0; }\n',
             '</style>']
-        files = set([x[1].ctx.filename for x in Builder.rules])
+        files = {x[1].ctx.filename for x in Builder.rules}
         for fn in files:
             try:
                 with open(fn) as f:
@@ -978,12 +981,12 @@ if 'KIVY_PROFILE_LANG' in environ:
             count = 0
             for index, line in enumerate(lines):
                 line = line.rstrip()
-                line = cgi.escape(line)
+                line = escape(line)
                 matched_prp = []
                 for psn, rule in Builder.rules:
-                    matched_prp += list(match_rule(fn, index, rule))
+                    matched_prp.extend(match_rule(fn, index, rule))
 
-                count = sum(set([x.count for x in matched_prp]))
+                count = sum({x.count for x in matched_prp})
 
                 color = (255, 155, 155) if count else (255, 255, 255)
                 html += ['<tr style="background-color: rgb{}">'.format(color),
@@ -993,7 +996,7 @@ if 'KIVY_PROFILE_LANG' in environ:
                          '</tr>']
             html += ['</table>']
         html += ['</body></html>']
-        with open('builder_stats.html', 'w') as fd:
+        with open('builder_stats.html', 'w', encoding='utf-8') as fd:
             fd.write(''.join(html))
 
         print('Profiling written at builder_stats.html')

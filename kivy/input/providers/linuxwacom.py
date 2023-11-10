@@ -34,8 +34,12 @@ from kivy.input.shape import ShapeRect
 
 class LinuxWacomMotionEvent(MotionEvent):
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+
     def depack(self, args):
-        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
@@ -47,7 +51,7 @@ class LinuxWacomMotionEvent(MotionEvent):
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(LinuxWacomMotionEvent, self).depack(args)
+        super().depack(args)
 
     def __str__(self):
         return '<LinuxWacomMotionEvent id=%d pos=(%f, %f) device=%s>' \

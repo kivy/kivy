@@ -1,7 +1,7 @@
 Package licensing
 =================
 
-.. warning:: This is not a legally authoratative guide! The Kivy organisation,
+.. warning:: This is not a legally authoritative guide! The Kivy organisation,
    authors and contributors take no responsibility for any lack of knowledge,
    information or advice presented here. The guide is merely informative and is
    meant to protect inexperienced users.
@@ -27,12 +27,12 @@ only pasting a copyright notice in your app and not pretending you wrote the
 code.
 
 .. |mixer| replace:: SDL_mixer has them
-.. _mixer: http://hg.libsdl.org/SDL_mixer/file/default/VisualC/external/lib/x86
+.. _mixer: https://github.com/libsdl-org/SDL_mixer/tree/master/external
 .. |dcutil| replace:: docutils
-.. _dcutil: https://sf.net/p/docutils/code/HEAD/tree/trunk/docutils/COPYING.txt
+.. _dcutil: https://docutils.sourceforge.io/COPYING.html
 
 * |dcutil|_
-* `pygments <https://bitbucket.org/birkenfeld/pygments-main/src/tip/LICENSE>`_
+* `pygments https://github.com/pygments/pygments/blob/master/LICENSE`_
 * `sdl2 <https://www.libsdl.org/license.php>`_
 * `glew <http://glew.sourceforge.net/glew.txt>`_
 * `gstreamer <https://github.com/GStreamer/gstreamer/blob/master/COPYING>`_
@@ -106,29 +106,28 @@ attributions into your app or not.
 Android
 -------
 
-As APK is just an archive of files: you can extract files from it and (as in
+As APK or AAB are just an archive of files: you can extract files from them and (as in
 Windows redistributables) check all the files.
 
-``APK/assets/private.mp3/private.mp3/`` contains all the included files. Most
+``private.tar`` contains all the included files. Most
 of them are related to Kivy, Python or your source, but those that aren't need
 checking.
 
-Known packages:
+**apk:** ``APK/assets/private.tar``
 
-* `pygame <https://bitbucket.org/pygame/pygame/src/tip/LGPL>`_
-  (if old_toolchain is used)
-* `sqlite3 <https://github.com/ghaering/pysqlite/blob/master/LICENSE>`_
-* `six <https://bitbucket.org/gutworth/six/src/tip/LICENSE>`_
+**aab:** ``AAB/base/assets/private.tar``
 
 There are other included libraries, included either by Kivy directly or through
-Pygame/SDL2, that are located in ``APK/lib/armeabi/``. Most of them are related
+SDL2, that are located in ``APK/lib/*`` or ``AAB/base/lib/*``. Most of them are related
 to dependencies or are produced by python-for-android and are part of its source
 (and licensing).
 
-* libapplication.so
+.. warning::
+    ``libpybundle.so`` is actually a ``tarball`` that contains python ``modules`` and ``site-packages``.
+    You'll probably want to inspect it for licensing purposes via ``tar -xvf libpybundle.so``.
 
-Mac
----
+macOS
+-----
 
 Missing.
 

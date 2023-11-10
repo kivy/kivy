@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="no"?><svg width="256" height="256"
+  viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<path d="M102,42 Q 165,22 59 48 T 197 164" stroke="green" stroke-width="5.0"
+    fill="none" stroke-opacity="0.375" transform="" />
+<path d="M102,42 Q 165,22 59 48 T 197 164" stroke="green" stroke-width="5.0"
+    fill="none" stroke-opacity="0.375" transform=" rotate(120.0 128 128)" />
+<path d="M102,42 Q 165,22 59 48 T 197 164" stroke="green" stroke-width="5.0"
+    fill="none" stroke-opacity="0.375" transform=" rotate(240.0 128 128)" />
+
+<rect stroke="blue" stroke-width="3.75" x="24" y="98" width="59" height="132"
+    fill="none" stroke-opacity="0.75" transform="" />
+<rect stroke="blue" stroke-width="3.75" x="24" y="98" width="59" height="132"
+    fill="none" stroke-opacity="0.75" transform=" rotate(-120.0 128 128)" />
+<rect stroke="blue" stroke-width="3.75" x="24" y="98" width="59" height="132"
+    fill="none" stroke-opacity="0.75" transform=" rotate(-240.0 128 128)" />
+
+<path d="M6,39 Q 230,177 256 149 T 37 164" stroke="red" stroke-width="1.75"
+    fill="none" stroke-opacity="0.625" transform="" />
+<path d="M6,39 Q 230,177 256 149 T 37 164" stroke="red" stroke-width="1.75"
+    fill="none" stroke-opacity="0.625" transform=" rotate(120.0 128 128)" />
+<path d="M6,39 Q 230,177 256 149 T 37 164" stroke="red" stroke-width="1.75"
+    fill="none" stroke-opacity="0.625" transform=" rotate(240.0 128 128)" />
+</svg>

@@ -284,14 +284,6 @@ class WindowPygame(WindowBase):
         pygame.display.flip()
         super(WindowPygame, self).flip()
 
-    @deprecated
-    def toggle_fullscreen(self):
-        if self.flags & pygame.FULLSCREEN:
-            self.flags &= ~pygame.FULLSCREEN
-        else:
-            self.flags |= pygame.FULLSCREEN
-        self._pygame_set_mode()
-
     def mainloop(self):
         for event in pygame.event.get():
 
@@ -394,7 +386,8 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.USEREVENT and \
                     hasattr(pygame, 'USEREVENT_DROPFILE') and \
                     event.code == pygame.USEREVENT_DROPFILE:
-                self.dispatch('on_dropfile', event.filename)
+                drop_x, drop_y = pygame.mouse.get_pos()
+                self.dispatch('on_drop_file', event.filename, drop_x, drop_y)
 
             '''
             # unhandled event !

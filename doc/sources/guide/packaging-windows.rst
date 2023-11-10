@@ -25,7 +25,7 @@ Requirements
 .. _Create-the-spec-file:
 
 PyInstaller default hook
-========================
+------------------------
 
 This section applies to PyInstaller (>= 3.1) that includes the kivy hooks.
 To overwrite the default hook the
@@ -59,7 +59,7 @@ to the examples as ``examples-path``. The touchtracer example is in
     python -m PyInstaller --name touchtracer --icon examples-path\demo\touchtracer\icon.ico examples-path\demo\touchtracer\main.py
 
    For more options, please consult the
-   `PyInstaller Manual <http://pythonhosted.org/PyInstaller/>`_.
+   `PyInstaller Manual <https://pyinstaller.readthedocs.io/en/stable/>`_.
 
 #. The spec file will be ``touchtracer.spec`` located in ``TouchApp``. Now we
    need to edit the spec file to add the dependencies hooks to correctly build
@@ -109,7 +109,7 @@ Next, we will modify the example above to package the **touchtracer** example pr
           a.zipfiles,
           a.datas,
           *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
-          upx=True
+          upx=True,
           name='touchtracer')
 
 #. Now you can build the spec file as before with::
@@ -193,7 +193,7 @@ which when run will play a video.
 .. _overwrite-win-hook:
 
 Overwriting the default hook
-============================
+----------------------------
 
 Including/excluding video and audio and reducing app size
 ---------------------------------------------------------

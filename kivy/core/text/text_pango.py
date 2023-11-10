@@ -61,7 +61,7 @@ Known limitations
 * Kivy's text layout is used, not Pango. This means we do not use Pango's
   line-breaking feature (which is superior to Kivy's), and we can't use
   Pango's bidirectional cursor helpers in TextInput.
-* Font family collissions can happen. For example, if you use a `system://`
+* Font family collisions can happen. For example, if you use a `system://`
   context and add a custom `Arial.ttf`, using `arial` as the `font_family`
   may or may not draw with your custom font (depending on whether or not
   there is already a system-wide "arial" font installed)

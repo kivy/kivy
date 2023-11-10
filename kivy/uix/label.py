@@ -4,14 +4,13 @@
 .. image:: images/label.png
     :align: right
 
-The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings::
+The :class:`Label` widget is for rendering text::
 
     # hello world text
     l = Label(text='Hello world')
 
     # unicode text; can only display glyphs that are available in the font
-    l = Label(text=u'Hello world ' + unichr(2764))
+    l = Label(text='Hello world ' + chr(2764))
 
     # multiline text
     l = Label(text='Multi\\nLine')
@@ -286,8 +285,8 @@ from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
-    NumericProperty, BooleanProperty, ReferenceListProperty, \
-    ListProperty, ObjectProperty, DictProperty, ColorProperty
+    NumericProperty, BooleanProperty, ListProperty, \
+    ObjectProperty, DictProperty, ColorProperty, VariableListProperty
 from kivy.utils import get_hex_from_color
 
 
@@ -302,10 +301,11 @@ class Label(Widget):
 
     __events__ = ['on_ref_press']
 
-    _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+    _font_properties = ('text', 'font_size', 'font_name', 'font_script_name',
+                        'font_direction', 'bold', 'italic',
                         'underline', 'strikethrough', 'font_family', 'color',
-                        'disabled_color', 'halign', 'valign', 'padding_x',
-                        'padding_y', 'outline_width', 'disabled_outline_color',
+                        'disabled_color', 'halign', 'valign', 'padding',
+                        'outline_width', 'disabled_outline_color',
                         'outline_color', 'text_size', 'shorten', 'mipmap',
                         'line_height', 'max_lines', 'strip', 'shorten_from',
                         'split_str', 'ellipsis_options', 'unicode_errors',
@@ -321,6 +321,11 @@ class Label(Widget):
         d = Label._font_properties
         fbind = self.fbind
         update = self._trigger_texture_update
+
+        # NOTE: Compatibility code due to deprecated properties.
+        fbind('padding_x', update, 'padding_x')
+        fbind('padding_y', update, 'padding_y')
+
         fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
@@ -373,8 +378,17 @@ class Label(Widget):
                 self._label.options['outline_color'] = (
                     self.disabled_outline_color if value else
                     self.outline_color)
+
+            # NOTE: Compatibility code due to deprecated properties
+            # Must be removed along with padding_x and padding_y
+            elif name == 'padding_x':
+                self._label.options['padding'][::2] = [value] * 2
+            elif name == 'padding_y':
+                self._label.options['padding'][1::2] = [value] * 2
+
             else:
                 self._label.options[name] = value
+
         self._trigger_texture()
 
     def texture_update(self, *largs):
@@ -466,10 +480,6 @@ class Label(Widget):
 
         widget = Label(text='Hello world')
 
-    If you want to create the widget with an unicode string, use::
-
-        widget = Label(text=u'My unicode string')
-
     :attr:`text` is a :class:`~kivy.properties.StringProperty` and defaults to
     ''.
     '''
@@ -551,7 +561,7 @@ class Label(Widget):
     you can load the system fonts by specifying a font context starting
     with the special string `system://`. This will load the system
     fontconfig configuration, and add your application-specific fonts on
-    top of it (this imposes a signifficant risk of family name collision,
+    top of it (this imposes a significant risk of family name collision,
     Pango may not use your custom font file, but pick one from the system)
 
     .. note::
@@ -609,6 +619,50 @@ class Label(Widget):
     defaults to 'Roboto'. This value is taken
     from :class:`~kivy.config.Config`.
     '''
+
+    font_script_name = OptionProperty('Latn', options=['Zyyy', 'Latn', 'Hani',
+                'Cyrl', 'Hira', 'Kana', 'Thai', 'Arab', 'Hang', 'Deva', 'Grek',
+                'Hebr', 'Taml', 'Knda', 'Geor', 'Mlym', 'Telu', 'Mymr', 'Gujr',
+                'Beng', 'Guru', 'Laoo', 'Zinh', 'Khmr', 'Tibt', 'Sinh', 'Ethi',
+                'Thaa', 'Orya', 'Zzzz', 'Cans', 'Syrc', 'Bopo', 'Nkoo', 'Cher',
+                'Yiii', 'Samr', 'Copt', 'Mong', 'Glag', 'Vaii', 'Bali', 'Tfng',
+                'Bamu', 'Batk', 'Cham', 'Java', 'Kali', 'Lepc', 'Limb', 'Lisu',
+                'Mand', 'Mtei', 'Talu', 'Olck', 'Saur', 'Sund', 'Sylo', 'Tale',
+                'Lana', 'Avst', 'Brah', 'Bugi', 'Buhd', 'Cari', 'Xsux', 'Cprt',
+                'Dsrt', 'Egyp', 'Goth', 'Hano', 'Armi', 'Phli', 'Prti', 'Kthi',
+                'Khar', 'Linb', 'Lyci', 'Lydi', 'Ogam', 'Ital', 'Xpeo', 'Sarb',
+                'Orkh', 'Osma', 'Phag', 'Phnx', 'Rjng', 'Runr', 'Shaw', 'Tglg',
+                'Tagb', 'Ugar', 'Cakm', 'Merc', 'Mero', 'Plrd', 'Shrd', 'Sora',
+                'Takr', 'Brai', 'Aghb', 'Bass', 'Dupl', 'Elba', 'Gran', 'Khoj',
+                'Lina', 'Mahj', 'Mani', 'Modi', 'Mroo', 'Narb', 'Nbat', 'Palm',
+                'Pauc', 'Perm', 'Phlp', 'Sidd', 'Sind', 'Tirh', 'Wara', 'Ahom',
+                'Hluw', 'Hatr', 'Mult', 'Hung', 'Sgnw', 'Adlm', 'Bhks', 'Marc',
+                'Osge', 'Tang', 'Newa', 'Gonm', 'Nshu', 'Soyo', 'Zanb', 'Dogr',
+                'Gong', 'Rohg', 'Maka', 'Medf', 'Sogo', 'Sogd', 'Elym', 'Hmnp',
+                'Nand', 'Wcho', 'Chrs', 'Diak', 'Kits', 'Yezi', 'Cpmn', 'Ougr',
+                'Tnsa', 'Toto', 'Vith', 'Kawi', 'Nagm'])
+    '''`script_code` from https://bit.ly/TypeScriptCodes .
+
+    .. versionadded:: 2.2.0
+
+    .. warning::
+
+        font_script_name is only currently supported in SDL2 ttf providers.
+
+
+    :attr:`font_script_name` is a :class:`~kivy.properties.OptionProperty` and
+    defaults to 'Latn'.
+    '''
+
+    font_direction = OptionProperty('ltr', options=['rtl', 'ltr', 'ttb', 'btt'])
+    '''Direction for the specific font, can be one of `ltr`, `rtl`, `ttb`,`btt`.
+
+    font_direction currently only works with SDL2 ttf providers.
+
+    .. versionadded:: 2.2.0
+
+    :attr:`font_direction` is a :class:`~kivy.properties.OptionProperty` and
+    defults to 'ltr'. '''
 
     font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
@@ -692,7 +746,7 @@ class Label(Widget):
     defaults to False.
     '''
 
-    padding_x = NumericProperty(0)
+    padding_x = NumericProperty(0, deprecated=True)
     '''Horizontal padding of the text inside the widget box.
 
     :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
@@ -701,9 +755,12 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_x` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
+
+    .. deprecated:: 2.2.0
+        Please use :attr:`padding` instead.
     '''
 
-    padding_y = NumericProperty(0)
+    padding_y = NumericProperty(0, deprecated=True)
     '''Vertical padding of the text inside the widget box.
 
     :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
@@ -712,13 +769,23 @@ class Label(Widget):
     .. versionchanged:: 1.9.0
         `padding_y` has been fixed to work as expected.
         In the past, the text was padded by the negative of its values.
+
+    .. deprecated:: 2.2.0
+        Please use :attr:`padding` instead.
     '''
 
-    padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text in the format (padding_x, padding_y)
+    padding = VariableListProperty([0, 0, 0, 0], lenght=4)
+    '''Padding of the text in the format [padding_left, padding_top,
+    padding_right, padding_bottom]
 
-    :attr:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:attr:`padding_x`, :attr:`padding_y`) properties.
+    ``padding`` also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
+
+    .. versionchanged:: 2.2.0
+        Replaced ReferenceListProperty with VariableListProperty.
+
+    :attr:`padding` is a :class:`~kivy.properties.VariableListProperty` and
+    defaults to [0, 0, 0, 0].
     '''
 
     halign = OptionProperty('auto', options=['left', 'center', 'right',

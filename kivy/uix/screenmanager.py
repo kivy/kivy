@@ -1142,7 +1142,7 @@ class ScreenManager(FloatLayout):
 
         .. versionadded: 1.8.0
         '''
-        assert(screen is not None)
+        assert screen is not None
 
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
@@ -1198,6 +1198,11 @@ class ScreenManager(FloatLayout):
                  child == self.transition.screen_out):
                 continue
             child.pos = value
+
+    def on_motion(self, etype, me):
+        if self.transition.is_active:
+            return False
+        return super().on_motion(etype, me)
 
     def on_touch_down(self, touch):
         if self.transition.is_active:

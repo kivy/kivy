@@ -1239,7 +1239,7 @@ cdef class EventObservers:
         If dispatch_reverse is True, we dispatch starting with last bound callback,
         otherwise we start with the first.
 
-        The logic and reason for locking callbacks is as followes. During a dispatch,
+        The logic and reason for locking callbacks is as follows. During a dispatch,
         arbitrary code can be executed, therefore, as we traverse and execute
         each callback, the callback may in turn bind. unbind or even cause a
         new dispatch recursively many times. Therefore, our goal should be to

@@ -76,18 +76,6 @@ using it. In the kivy directory, do::
 Android FAQ
 -----------
 
-could not extract public data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This error message can occur under various circumstances. Ensure that:
-
-* you have a phone with an sdcard
-* you are not currently in "USB Mass Storage" mode
-* you have permissions to write to the sdcard
-
-In the case of the "USB Mass Storage" mode error, and if you don't want to keep
-unplugging the device, set the usb option to Power.
-
 Crash on touch interaction on Android 2.3.x
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -181,9 +169,12 @@ clever optimizations to make your application run smoothly.
 Does Kivy support Python 3.x?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! As of version 1.8.0 Kivy supports both Python >= 2.7 and Python
->= 3.4 with the same codebase. Python 3 is also now supported by
-python-for-android and kivy-ios.
+Yes! Kivy |kivy_version_bold| officially supports Python versions |python_versions_bold|.
+
+As of version **2.0.0** Kivy dropped support for Python 2. You can still use older versions with
+Python 2 support.
+
+Python 3 is also supported by python-for-android and kivy-ios.
 
 
 How is Kivy related to PyMT?

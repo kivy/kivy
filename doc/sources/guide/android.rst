@@ -1,4 +1,3 @@
-.. _Kivy Launcher: https://play.google.com/store/apps/details?id=org.kivy.pygame&hl=en
 .. _android:
 
 Kivy on Android
@@ -10,7 +9,7 @@ devices; Google reports the requirement is met by `99.9% of devices
 <https://developer.android.com/about/dashboards/index.html>`_.
 
 Kivy APKs are normal Android apps that you can distribute like any
-other, including on stores like the Play store. They behave
+other, including on stores like the Google Play Store. They behave
 properly when paused or restarted, may utilise Android services and
 have access to most of the normal java API as described below.
 
@@ -25,9 +24,9 @@ Package for Android
 -------------------
 
 The Kivy project provides all the necessary tools to package your app
-on Android, including building your own standalone APK that may be
-distributed on a market like the Play store. This is covered fully in
-the :ref:`packaging_android` documentation.
+on Android, including building your own standalone APK or AAB that may be
+distributed on a market like the Google Play Store.
+This is covered fully in the :ref:`packaging_android` documentation.
 
 
 .. _debug_android:
@@ -50,14 +49,14 @@ logger.
 If you packaged your app with Buildozer, the `adb` tool may not be in
 your :code:`$PATH` and the above command may not work. You can instead run::
 
-    buildozer android logcat 
+    buildozer android logcat
 
 to run the version installed by Buildozer, or
 find the SDK tools at
 :code:`$HOME/.buildozer/android/platform`.
 
-You can also run and debug your application using the `Kivy Launcher`_.
-If you run your application this way, you will find log files inside the 
+You can also run and debug your application using the Kivy Launcher.
+If you run your application this way, you will find log files inside the
 "/.kivy/logs" sub-folder within your application folder.
 
 
@@ -176,10 +175,6 @@ The Android tools are now quite stable, and should work with
 practically any device; our minimum requirements are OpenGL ES
 2.0 and Android 2.2. These are very common now - Kivy has
 even been run on an Android smartwatch!
-
-A current technical limitation is that the Android build tools compile
-only ARM APKs, which will not run on Android devices with x86
-processors (these are currently rare). This should be added soon.
 
 As Kivy works fine on most devices, the list of supported
 phones/tablets has been retired - all Android devices are likely to

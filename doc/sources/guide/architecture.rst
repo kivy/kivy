@@ -30,10 +30,10 @@ spelling correction and so on. We call these *core* tasks.
 This makes the API both easy to use and easy to extend. Most importantly, it
 allows us to use -- what we call -- specific providers for the respective
 scenarios in which your app is being run.
-For example, on OSX, Linux and Windows, there are different native APIs for the
-different core tasks. A piece of code that uses one of these specific APIs to
-talk to the operating system on one side and to Kivy on the other (acting as an
-intermediate communication layer) is what we call a *core provider*.
+For example, on macOS, Linux, *BSD Unix and Windows, there are different native
+APIs for the different core tasks. A piece of code that uses one of these specific
+APIs to talk to the operating system on one side and to Kivy on the other (acting
+as an intermediate communication layer) is what we call a *core provider*.
 The advantage of using specialized core providers for each platform is that we
 can fully leverage the functionality exposed by the operating system and act as
 efficiently as possible. It also gives users a choice. Furthermore, by using

@@ -1,15 +1,11 @@
 .. _packaging_ios:
 
-Create a package for IOS
+Create a package for iOS
 ========================
 
-.. note::
+The overall process for creating a package for iOS can be explained in 4 steps:
 
-    Currently, kivy-iOS builds packages with Python 3.8.x
-
-The overall process for creating a package for IOS can be explained in 4 steps:
-
-#. :ref:`Compile the distribution` (python + modules for IOS)
+#. :ref:`Compile the distribution` (python + modules for iOS)
 #. :ref:`Create an Xcode project` (and link your source code)
 #. :ref:`Update the Xcode project`
 #. :ref:`Customize`
@@ -18,7 +14,7 @@ Prerequisites
 -------------
 
 You need to install some dependencies, like Cython, autotools, etc. We
-encourage you to use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install
+encourage you to use `Homebrew <https://brew.sh>`_ to install
 those dependencies:
 
 .. parsed-literal::
@@ -27,7 +23,7 @@ those dependencies:
     $ brew link libtool
     $ pip install |cython_install|
 
-For more detail, see :ref:`IOS Prerequisites <packaging_ios_prerequisites>`.
+For more detail, see :ref:`iOS Prerequisites <packaging_ios_prerequisites>`.
 Just ensure that everything is ok before starting the second step!
 
 .. _Compile the distribution:
@@ -124,13 +120,10 @@ FAQ
 Application quit abnormally!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, all the print statements to the console and files are ignored. If
-you have an issue when running your application, you can activate the log by
-commenting out this line in `main.m`::
-
-    putenv("KIVY_NO_CONSOLELOG=1");
-
-Then you should see all the Kivy logging on the Xcode console.
+In debug mode, all the print statements are sent to the Xcode console.
+Looking and grep'ing these logs is highly encouraged. You'll probably find
+that you missed to build/install a required dependency. Not your case?
+Feel free to ask on our Discord ``support`` channels.
 
 How can Apple accept a python app?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -142,10 +135,4 @@ nothing is dynamically loaded.
 Have you already submitted a Kivy application to the App store?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes, check:
-
-- `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_,
-- `ProcessCraft on iTunes <http://itunes.apple.com/us/app/processcraft/id526377075>`_
-
-For a more complete list, visit the
-`Kivy wiki <https://github.com/kivy/kivy/wiki/List-of-Kivy-Projects>`_.
+Yes, absolutely. `Kivy Apps in the Apple App Store <https://github.com/kivy/kivy/wiki/List-of-Kivy-Projects#kivy-apps-in-the-apple-app-store>`_.

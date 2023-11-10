@@ -105,12 +105,16 @@ SDLK_F15 = 1073741896
 
 
 class SDL2MotionEvent(MotionEvent):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('is_touch', True)
+        kwargs.setdefault('type_id', 'touch')
+        super().__init__(*args, **kwargs)
+        self.profile = ('pos', 'pressure')
+
     def depack(self, args):
-        self.is_touch = True
-        self.profile = ('pos', )
-        self.sx, self.sy = args
-        win = EventLoop.window
-        super(SDL2MotionEvent, self).depack(args)
+        self.sx, self.sy, self.pressure = args
+        super().depack(args)
 
 
 class SDL2MotionEventProvider(MotionEventProvider):
@@ -126,13 +130,15 @@ class SDL2MotionEventProvider(MotionEventProvider):
             except IndexError:
                 return
 
-            action, fid, x, y = value
+            action, fid, x, y, pressure = value
             y = 1 - y
             if fid not in touchmap:
-                touchmap[fid] = me = SDL2MotionEvent('sdl', fid, (x, y))
+                touchmap[fid] = me = SDL2MotionEvent(
+                    'sdl', fid, (x, y, pressure)
+                )
             else:
                 me = touchmap[fid]
-                me.move((x, y))
+                me.move((x, y, pressure))
             if action == 'fingerdown':
                 dispatch_fn('begin', me)
             elif action == 'fingerup':
@@ -153,6 +159,8 @@ class WindowSDL(WindowBase):
 
     def __init__(self, **kwargs):
         self._pause_loop = False
+        self._cursor_entered = False
+        self._drop_pos = None
         self._win = _WindowSDL2Storage()
         super(WindowSDL, self).__init__()
         self.titlebar_widget = None
@@ -206,6 +214,7 @@ class WindowSDL(WindowBase):
                   minimum_height=self._set_minimum_size)
 
         self.bind(allow_screensaver=self._set_allow_screensaver)
+        self.bind(always_on_top=self._set_always_on_top)
 
     def get_window_info(self):
         return self._win.get_window_info()
@@ -219,6 +228,9 @@ class WindowSDL(WindowBase):
             Logger.warning(
                 'Both Window.minimum_width and Window.minimum_height must be '
                 'bigger than 0 for the size restriction to take effect.')
+
+    def _set_always_on_top(self, *args):
+        self._win.set_always_on_top(self.always_on_top)
 
     def _set_allow_screensaver(self, *args):
         self._win.set_allow_screensaver(self.allow_screensaver)
@@ -238,10 +250,16 @@ class WindowSDL(WindowBase):
                 Logger.info('WindowSDL: No running App found, pause.')
 
             elif not app.dispatch('on_pause'):
-                Logger.info(
-                    'WindowSDL: App doesn\'t support pause mode, stop.')
-                stopTouchApp()
-                return 0
+                if platform == 'android':
+                    Logger.info(
+                        'WindowSDL: App stopped, on_pause() returned False.')
+                    from android import mActivity
+                    mActivity.finishAndRemoveTask()
+                else:
+                    Logger.info(
+                        'WindowSDL: App doesn\'t support pause mode, stop.')
+                    stopTouchApp()
+                    return 0
 
             self._pause_loop = True
 
@@ -272,7 +290,7 @@ class WindowSDL(WindowBase):
                     self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
                 if platform == 'win':
-                    # use custom behaviour
+                    # use custom behavior
                     # To handle aero snapping and rounded corners
                     self.borderless = False
         if self.fullscreen == 'fake':
@@ -295,31 +313,20 @@ class WindowSDL(WindowBase):
             resizable = Config.getboolean('graphics', 'resizable')
             state = (Config.get('graphics', 'window_state')
                      if self._is_desktop else None)
-            self.system_size = _size = self._win.setup_window(
+            self.system_size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable, state,
                 self.get_gl_backend_name())
 
-            # calculate density/dpi
-            if platform == 'win':
-                from ctypes import windll
-                self._density = 1.
-                try:
-                    hwnd = windll.user32.GetActiveWindow()
-                    self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                except AttributeError:
-                    pass
-            else:
-                sz = self._win._get_gl_size()[0]
-                self._density = density = sz / _size[0]
-                if self._is_desktop and self.size[0] != _size[0]:
-                    self.dpi = density * 96.
+            # We don't have a density or dpi yet set, so let's ask for an update
+            self._update_density_and_dpi()
 
             # never stay with a None pos, application using w.center
             # will be fired.
             self._pos = (0, 0)
             self._set_minimum_size()
             self._set_allow_screensaver()
+            self._set_always_on_top()
 
             if state == 'hidden':
                 self._focus = False
@@ -360,7 +367,6 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl2 input provider')
-        from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
 
@@ -383,6 +389,21 @@ class WindowSDL(WindowBase):
         if platform == 'win' and self._win_dpi_watch is None:
             self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
             self._win_dpi_watch.start()
+
+    def _update_density_and_dpi(self):
+        if platform == 'win':
+            from ctypes import windll
+            self._density = 1.
+            try:
+                hwnd = windll.user32.GetActiveWindow()
+                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
+                self._density = self.dpi / 96
+            except AttributeError:
+                pass
+        else:
+            self._density = self._win._get_gl_size()[0] / self._size[0]
+            if self._is_desktop:
+                self.dpi = self._density * 96.
 
     def close(self):
         self._win.teardown_window()
@@ -429,13 +450,6 @@ class WindowSDL(WindowBase):
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
 
-    @deprecated
-    def toggle_fullscreen(self):
-        if self.fullscreen in (True, 'auto'):
-            self.fullscreen = False
-        else:
-            self.fullscreen = 'auto'
-
     def set_title(self, title):
         self._win.set_window_title(title)
 
@@ -467,6 +481,13 @@ class WindowSDL(WindowBase):
 
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
+
+    def _get_window_opacity(self):
+        return self._win.get_window_opacity()
+
+    def _set_window_opacity(self, opacity):
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     # Transparent Window background
     def _is_shaped(self):
@@ -520,8 +541,10 @@ class WindowSDL(WindowBase):
         self._win._set_cursor_state(value)
 
     def _fix_mouse_pos(self, x, y):
-        self.mouse_pos = (x * self._density,
-                          (self.system_size[1] - y - 1) * self._density)
+        self.mouse_pos = (
+            x * self._density,
+            (self.system_size[1] - 1 - y) * self._density
+        )
         return x, y
 
     def mainloop(self):
@@ -537,12 +560,11 @@ class WindowSDL(WindowBase):
             event = self._win.poll()
             if event is None:
                 continue
-            # As dropfile is send was the app is still in pause.loop
+            # A drop is send while the app is still in pause.loop
             # we need to dispatch it
             action, args = event[0], event[1:]
-            if action == 'dropfile':
-                dropfile = args
-                self.dispatch('on_dropfile', dropfile[0])
+            if action.startswith('drop'):
+                self._dispatch_drop_event(action, args)
             # app_terminating event might be received while the app is paused
             # in this case EventLoop.quit will be set at _event_filter
             elif EventLoop.quit:
@@ -578,6 +600,9 @@ class WindowSDL(WindowBase):
                 x, y = self._fix_mouse_pos(x, y)
                 self._mouse_x = x
                 self._mouse_y = y
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
                 # don't dispatch motion if no button are pressed
                 if len(self._mouse_buttons_down) == 0:
                     continue
@@ -587,6 +612,11 @@ class WindowSDL(WindowBase):
             elif action in ('mousebuttondown', 'mousebuttonup'):
                 x, y, button = args
                 x, y = self._fix_mouse_pos(x, y)
+                self._mouse_x = x
+                self._mouse_y = y
+                if not self._cursor_entered:
+                    self._cursor_entered = True
+                    self.dispatch('on_cursor_enter')
                 btn = 'left'
                 if button == 3:
                     btn = 'right'
@@ -601,10 +631,13 @@ class WindowSDL(WindowBase):
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
                     self._mouse_buttons_down.remove(button)
-                self._mouse_x = x
-                self._mouse_y = y
                 self.dispatch(eventname, x, y, btn, self.modifiers)
             elif action.startswith('mousewheel'):
+                x, y = self._win.get_relative_mouse_pos()
+                if not self._collide_and_dispatch_cursor_enter(x, y):
+                    # Ignore if the cursor position is on the window title bar
+                    # or on its edges
+                    continue
                 self._update_modifiers()
                 x, y, button = args
                 btn = 'scrolldown'
@@ -627,9 +660,8 @@ class WindowSDL(WindowBase):
                 self.dispatch('on_mouse_up',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
 
-            elif action == 'dropfile':
-                dropfile = args
-                self.dispatch('on_dropfile', dropfile[0])
+            elif action.startswith('drop'):
+                self._dispatch_drop_event(action, args)
             # video resize
             elif action == 'windowresized':
                 self._size = self._win.window_size
@@ -640,6 +672,12 @@ class WindowSDL(WindowBase):
                     self._do_resize_ev = ev
                 else:
                     ev()
+            elif action == 'windowdisplaychanged':
+                Logger.info(f"WindowSDL: Window is now on display {args[0]}")
+
+                # The display has changed, so the density and dpi
+                # may have changed too.
+                self._update_density_and_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
@@ -672,9 +710,11 @@ class WindowSDL(WindowBase):
                 self._focus = False
 
             elif action == 'windowenter':
-                self.dispatch('on_cursor_enter')
+                x, y = self._win.get_relative_mouse_pos()
+                self._collide_and_dispatch_cursor_enter(x, y)
 
             elif action == 'windowleave':
+                self._cursor_entered = False
                 self.dispatch('on_cursor_leave')
 
             elif action == 'joyaxismotion':
@@ -752,6 +792,30 @@ class WindowSDL(WindowBase):
             # unhandled event !
             else:
                 Logger.trace('WindowSDL: Unhandled event %s' % str(event))
+
+    def _dispatch_drop_event(self, action, args):
+        x, y = (0, 0) if self._drop_pos is None else self._drop_pos
+        if action == 'dropfile':
+            self.dispatch('on_drop_file', args[0], x, y)
+        elif action == 'droptext':
+            self.dispatch('on_drop_text', args[0], x, y)
+        elif action == 'dropbegin':
+            self._drop_pos = x, y = self._win.get_relative_mouse_pos()
+            self._collide_and_dispatch_cursor_enter(x, y)
+            self.dispatch('on_drop_begin', x, y)
+        elif action == 'dropend':
+            self._drop_pos = None
+            self.dispatch('on_drop_end', x, y)
+
+    def _collide_and_dispatch_cursor_enter(self, x, y):
+        # x, y are relative to window left/top position
+        w, h = self._win.window_size
+        if 0 <= x < w and 0 <= y < h:
+            self._mouse_x, self._mouse_y = self._fix_mouse_pos(x, y)
+            if not self._cursor_entered:
+                self._cursor_entered = True
+                self.dispatch('on_cursor_enter')
+            return True
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
@@ -917,8 +981,6 @@ class _WindowsSysDPIWatch:
         from ctypes import windll
 
         if msg == WM_DPICHANGED:
-            ow, oh = self.window.size
-            old_dpi = self.window.dpi
 
             def clock_callback(*args):
                 if x_dpi != y_dpi:
@@ -926,10 +988,6 @@ class _WindowsSysDPIWatch:
                         'Can only handle DPI that are same for x and y')
 
                 self.window.dpi = x_dpi
-
-                # maintain the same window size
-                ratio = x_dpi / old_dpi
-                self.window.size = ratio * ow, ratio * oh
 
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16

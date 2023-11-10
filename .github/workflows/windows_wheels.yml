@@ -19,13 +19,13 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
         arch: ['x64', 'x86']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
@@ -53,7 +53,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: windows_wheels
         path: dist
@@ -63,12 +63,12 @@ jobs:
     needs: windows_wheels_create
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist
@@ -88,10 +88,8 @@ jobs:
           . .\.ci\windows_ci.ps1
           Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+        uses: softprops/action-gh-release@v0.1.14
         if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_release }}
         with:
           files: dist/*
           draft: true
@@ -109,16 +107,16 @@ jobs:
     needs: windows_wheels_create
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8', '3.9' ]
+        python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
         arch: [ 'x64', 'x86' ]
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist
@@ -131,12 +129,12 @@ jobs:
           . .\.ci\windows_ci.ps1
           Test-kivy-installed
       - name: Test Kivy benchmarks
-        if: matrix.python == '3.9' && matrix.arch == 'x64' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
+        if: matrix.python == '3.x' && matrix.arch == 'x64' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
         run: |
           . .\.ci\windows_ci.ps1
           Test-kivy-benchmark
-      - name: Upload benchamrks as artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload benchmarks as artifact
+        uses: actions/upload-artifact@v3
         with:
           name: benchmarks
           path: .benchmarks-kivy
@@ -145,12 +143,12 @@ jobs:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: windows_wheels
           path: dist

@@ -22,7 +22,7 @@ class AsyncImageTestCase(GraphicUnitTest):
     def setUp(self):
         from kivy.config import Config
         self.maxfps = Config.getint('graphics', 'maxfps')
-        assert(self.maxfps > 0)
+        assert self.maxfps > 0
         super(AsyncImageTestCase, self).setUp()
 
     def zip_frames(self, path):

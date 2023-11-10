@@ -188,7 +188,7 @@ class ImageData(object):
         '''
         if level == 0:
             return (self.width, self.height, self.data, self.rowlength)
-        assert(level < len(self.mipmaps))
+        assert level < len(self.mipmaps)
         return self.mipmaps[level]
 
     def iterate_mipmaps(self):

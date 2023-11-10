@@ -6,20 +6,8 @@ uix.relativelayout tests
 import unittest
 
 from kivy.base import EventLoop
-from kivy.input.motionevent import MotionEvent
+from kivy.tests import UTMotionEvent
 from kivy.uix.relativelayout import RelativeLayout
-
-
-# https://gist.github.com/tito/f111b6916aa6a4ed0851
-# subclass for touch event in unit test
-class UTMotionEvent(MotionEvent):
-
-    def depack(self, args):
-        self.is_touch = True
-        self.sx = args['x']
-        self.sy = args['y']
-        self.profile = ['pos']
-        super(UTMotionEvent, self).depack(args)
 
 
 class UixRelativeLayoutTest(unittest.TestCase):
