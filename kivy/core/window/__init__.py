@@ -1504,7 +1504,8 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            if platform == 'linux' or Window.__class__.__name__ in ('WindowSDL', 'WindowGLFW'):
+            if platform == 'linux' or \
+                Window.__class__.__name__ in ('WindowSDL', 'WindowGLFW'):
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_pre_resize', *self.size)
 
