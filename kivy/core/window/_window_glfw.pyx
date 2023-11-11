@@ -137,6 +137,7 @@ cdef void _window_close_callback(GLFWwindow* window) with gil:
 cdef class WindowGLFWStorage:
 
     cdef GLFWwindow *win
+    cdef float _maxfps
     cdef str _fullscreen
     cdef tuple _window_pos
     cdef tuple _window_size
@@ -148,6 +149,9 @@ cdef class WindowGLFWStorage:
         self._window_pos = (0, 0)
         self._window_size = (0, 0)
         self._window_object = None
+        maxfps = Config.getint('graphics', 'maxfps')
+        if maxfps > 0:
+            self._maxfps = 1 / maxfps
 
     def __init__(self):
         if not glfwInit():
@@ -341,13 +345,13 @@ cdef class WindowGLFWStorage:
         glfwPollEvents()  # must only be called from the main thread
 
     def wait_events(self):
-        glfwWaitEventsTimeout(1 / 60)  # 60 should be replaced with maxfps
+        glfwWaitEventsTimeout(self._maxfps)
 
     def terminate(self):
         glfwDestroyWindow(self.win)
         glfwTerminate()
 
-    def mainloop(self):
+    def mainloop(self):   # for testing
         while not glfwWindowShouldClose(self.win):
             glfwSwapBuffers(self.win)
             glfwPollEvents()
