@@ -3,29 +3,34 @@ Kivy
 
 <img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
-Innovative user interfaces made easy.
+[Kivy](http://kivy.org) is an open-source Python framework for developing 
+GUI apps that work cross-platform, including desktop, mobile and embedded 
+platforms.
 
-Kivy is an open source, cross-platform [Python](https://www.python.org)
-framework for the development of applications that make use of innovative,
-multi-touch user interfaces.
 The aim is to allow for quick and easy interaction design and rapid prototyping
-whilst making your code reusable and deployable.
+whilst making your code reusable and deployable: Innovative user interfaces made
+easy.
 
-Kivy is written in Python and [Cython](http://cython.org/), based on OpenGL ES
-2, supports various input devices and has an extensive widget library. With the
-same codebase, you can target Windows, macOS, Linux, Android and iOS. All Kivy
-widgets are built with multitouch support.
+Kivy is written in Python and [Cython](http://cython.org/), supports various input devices and
+has an extensive (and extensible) widget library. With the
+same codebase, you can target Windows, OSX, Linux, Android, iOS and Raspberry
+Pi. All Kivy widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the [Kivy Organization](https://kivy.org/#organization).
 
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
-[![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
+![PyPI - Version](https://img.shields.io/pypi/v/kivy)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/kivy)
+
 [![Windows Unittests Status](https://github.com/kivy/kivy/workflows/Windows%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+Unittests%22)
 [![Ubuntu Unittests Status](https://github.com/kivy/kivy/workflows/Ubuntu%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Ubuntu+Unittests%22)
 [![OSX Unittests Status](https://github.com/kivy/kivy/workflows/OSX%20Unittests/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22OSX+Unittests%22)
+[![Coverage Status](https://coveralls.io/repos/kivy/kivy/badge.svg?branch=master)](https://coveralls.io/r/kivy/kivy?branch=master)
+
 [![Windows wheels Status](https://github.com/kivy/kivy/workflows/Windows%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Windows+wheels%22)
 [![Manylinux wheels Status](https://github.com/kivy/kivy/workflows/Manylinux%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22Manylinux+wheels%22)
 [![Raspberry Pi wheels Status](https://github.com/kivy/kivy/workflows/RPi%20wheels/badge.svg)](https://github.com/kivy/kivy/actions?query=workflow%3A%22RPi+wheels%22)
@@ -43,33 +48,29 @@ Kivy ships with many examples which can be found in the `examples` folder.
 Support
 -------
 
-If you need help, please feel free to seek assistance through our support channels:
+Are you having trouble using the Kivy framework, or any of its related projects?
+Is there an error you don’t understand? Are you trying to figure out how to use 
+it? We have volunteers who can help!
 
-- Join the [Kivy Users Google Group](https://groups.google.com/group/kivy-users).
-- Ask questions using [discussions](https://github.com/orgs/kivy/discussions/new?category=q-a) on github
-- Use support-channels on our official [Discord](https://chat.kivy.org) server.
-
+The best channels to contact us for support are listed in the latest 
+[Contact Us](https://kivy.org/doc/master/contact.html) section in the 
+documentation.
 
 Contributing
 ------------
 
 We love pull requests and discussing novel ideas. Check out our
-[contribution guide](https://kivy.org/docs/contribute.html) and
+[latest contribution guide](https://kivy.org/doc/master/contribute.html) and
 feel free to improve Kivy.
 
-The following mailing list and Discord channel are used exclusively for
-discussions about developing the Kivy framework and its sister projects:
+It gives details of the best places online to discuss the development with the
+core developers and other enthusiasts.
 
-* Dev Group : https://groups.google.com/group/kivy-dev
-* Email     : kivy-dev@googlegroups.com
+Sibling projects
+----------------
 
-Discord channel:
-
-* Server     : https://chat.kivy.org
-* Channel    : #dev
-
-Sister projects
----------------
+The Kivy team manager a number of additional projects that support the Kivy 
+eco-system.
 
 - [Buildozer](https://github.com/kivy/buildozer): generic Python packager
   for Android and iOS.
@@ -105,9 +106,9 @@ Licenses
   and is licensed under the terms of the
   [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
 
-## Contributors
+## Financial Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](.github/CONTRIBUTING.md)].
+This project exists thanks to all the people who donate. [[Donate](.github/CONTRIBUTING.md)].
 <a href="https://github.com/kivy/kivy/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
 
 
@@ -132,5 +133,3 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
-
-
