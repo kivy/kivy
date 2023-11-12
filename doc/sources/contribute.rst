@@ -1,64 +1,137 @@
 .. _contributing:
 
-Contributing
-============
+Contribution Guidelines
+=======================
 
-There are many ways in which you can contribute to Kivy.
-Code patches are just one thing amongst others that you can submit to help the
-project. We also welcome feedback, bug reports, feature requests, documentation
-improvements, advertisement & advocating, testing, graphics contributions and
-many other ideas. Just talk to us if you want to help, and we will help you
-help us.
+Kivy is a large product used by many thousands of developers for free,
+but it is built entirely by the contributions of volunteers. We welcome (and rely on)
+users who want to give back to the community by contributing to the project.
 
-Discussions
------------
+Contributions can come in many forms (See :ref:`Ways you can help out`.).
+This chapter discusses how you can help us.
 
-Discussions around Kivy development happens on Github's issues and pull
-requests for specific things. For things that don't fit in either, discussions
-happen on the `#dev Discord channel <https://chat.kivy.org/>`_, and on the
-`kivy-dev google group <https://groups.google.com/forum/#!forum/kivy-dev>`_.
-Please come ask for guidance if you are unsure about how to contribute, or you
-want confirmation about your ideas fitting in the project before working on
-them. If you want to ask for — or contribute — support, you can join the
-`#support Discord channel <https://chat.kivy.org/>`_,
-and the `kivy-users google group <https://groups.google.com/forum/#!forum/kivy-users>`_.
+This chapter applies to the entire Kivy eco-system: the Kivy framework and all of
+the sibling projects. However, check the documentation of individual projects in
+case they have special instructions.
 
+.. _Ways you can help out:
+
+Ways you can help out
+---------------------
+
+* The most direct way is submitting source code changes: bug-fixes, new code and
+  documentation amendments to improve the products. See :ref:`Code Contributions`
+  and :ref:`Documentation Contributions` below for detailed instructions.
+
+* Submitting bug reports and new feature suggestions in our Issue trackers is also
+  welcome.
+
+  If you are asking "Why did I get this error?" or "How do I implement this?"
+  please **don't** raise an issue yet. Take it to our support channels instead (see :doc:`contact`); until we
+  can be fairly confident it is a bug in the Kivy eco-system, it isn't ready to be raised
+  as an issue. That said, we *do* want to hear about even the most minor typos or problems
+  you find.
+
+  See :ref:`reporting_issues` below for detailed instructions.
+
+* You could help out by looking at the issues that other people have raised.
+
+  * Tell us whether you can reproduce the error (on similar and/or different platforms). If the problem has already
+    been fixed and no-one noticed, let us know!
+
+  * If the submitter was unclear, shed whatever light you can. Submitting a short piece of code that
+    demonstrates the problem is incredibly helpful. Providing details logs can give others the clues that
+    they need.
+
+  * Got some coding skills?
+
+    * If you are new to Kivy, consider looking at the `Easy` or `Good First Issue` tags on each
+      project while you learn the process.
+
+    * Try some debugging? Even if you can't propose a solution, pointing out where
+      the current code (or documentation) is wrong can be the difference between an issue
+      floundering and getting quickly solved.
+
+    * If you are a little more experienced, then take a look for issues where someone has
+      proposed a detailed solution without submitting a PR. That's a great opportunity for
+      a quick win.
+
+    * Want to be a real hero? Become a foster parent for an old open PR, where the submitter
+      has bitten off more than they can chew. It will need you to understand the problem they
+      were solving, and understand how they were trying to solve it. You'll need to review it,
+      and fix problems yourself. You will need to rebase it, so it can be merged. Then submit it again,
+      and advocate for it until it is merged.
+
+  * You know what is even rarer than coding skills on an open source project? Writing skills!
+    If you can write clearly, there are plenty of documentation improvements that have been identified.
+
+    * Can you identify a common question from support? Add the answer to the FAQ and save people time.
+
+* You don't need to find a bug or come up with a new idea to contribute to the code base.
+
+  * Review some code. See if you can spot flaws before they become bugs.
+
+  * Refactor some code. Make it easier for the next person to understand and modify.
+
+  * Add some unit-tests. It can be difficult to persuade occasional contributors to
+    include sufficient unit tests. A solid bank of unit-tests makes further development
+    much faster - your small effort can have long term benefits. See :doc:`contribute-unittest` for
+    more about how our unit-tests are structured.
+
+* Kivy is extensible. You can add a new Widget or a new Python-For-Android recipe, and have your
+  code re-used by the community.
+
+* Outside of the code and documentation, there are still so many ways to help.
+
+  * Monitor the Discussions and Support Channels, and help beginners out.
+
+  * Evangelise: Tell people about Kivy and what you are using it for. Give a talk about Kivy.
+
+  * Submit your project to the Kivy gallery to show people what it can do.
+
+    * Even if you don't want it showcased, tell us what you've done! It is very motivational to see others
+      using your code successfully.
+
+  * Persuade your organization to become a `sponsor <https://opencollective.com/kivy>`_.
+
+There is no shortage of ways you can help The Open Source community is built on volunteers contributing what they can
+when they can. Even if you aren't an experienced coder, you can make those that are more productive.
+
+
+Planning
+--------
+If you want to discuss your contributions before you make them,
+to get feedback and advice, you can ask us on the `#dev` channel of our `Discord <https://chat.kivy.org>`_ server.
+
+The issue trackers are a more formal tracking mechanism, and
+offer lots of opportunities to help out in ways that aren't just
+submitting new code.
 
 Code of Conduct
 ---------------
 
 In the interest of fostering an open and welcoming community, we as
 contributors and maintainers need to ensure participation in our project and our
-sister projects is a harassment-free and positive experience for everyone.
+sister projects is a harassment-free and positive experience for everyone. It is
+vital that all interaction is conducted in a manner conveying respect, open-mindedness and gratitude.
 
-As such, it is vital that all interaction is conducted in a manner conveying
-respect, open-mindedness and gratitude. For a more comprehensive discussion of
-these guidelines, please refer to the `Contributor Covenant
-<https://www.contributor-covenant.org/version/1/4/code-of-conduct.html>`_. This
-document provides an accurate description of what is expected of you, both as a
-core developer or a first time contributor.
+We have adopted V2.1 of the `Contributor Covenant Code of Conduct
+<https://www.contributor-covenant.org/version/2/1/code-of-conduct.html>`_.  Instances of abusive, harassing, or
+otherwise unacceptable behavior may be reported to any of our `core developers <https://kivy.org/about.html>`_
+via `Discord <https://chat.kivy.org>`_. (You might like to check which have been recently active on Discord to get a faster
+response.)
 
-Feedback
---------
-
-This is by far the easiest way to contribute something. If you're using
-Kivy for your own project, don't hesitate sharing. It doesn't have to be a
-high-class enterprise app, obviously. It's just incredibly motivating to
-know that people use the things you develop and what it enables them to
-do. If you have something that you would like to tell us, please don't
-hesitate. Screenshots and videos are also very welcome!
-We're also interested in the problems you had when getting started. Please
-feel encouraged to report any obstacles you encountered such as missing
-documentation, misleading directions or similar.
-We are perfectionists, so even if it's just a typo, let us know.
 
 .. _reporting_issues:
 
 Reporting an Issue
 ------------------
 
-If you found anything wrong, a crash, segfault, missing documentation, invalid
-spelling or just weird examples, please take 2 minutes to report the issue.
+If you found anything wrong - a bug in Kivy, missing documentation, incorrect
+spelling or just unclear examples -  please take two minutes to report the issue.
+(If you are unsure, please try our support channels first; see :doc:`contact` for details.)
+
+If you can produce a small example of a program that fails, it helps immensely:
 
 #. Move your logging level to debug by editing `<user_directory>/.kivy/config.ini`::
 
@@ -67,15 +140,16 @@ spelling or just weird examples, please take 2 minutes to report the issue.
 
 #. Execute your code again, and copy/paste the complete output to http://gist.github.com/,
    including the log from Kivy and the python backtrace.
-#. Open https://github.com/kivy/kivy/issues/
+
+To raise the issue:
+
+#. Open the Github issue database appropriate for the project - e.g. `Kivy Framework <https://github.com/kivy/kivy/issues/>`_, `Buildozer <https://github.com/kivy/buildozer/issues/>`_, `python-for-android <https://github.com/kivy/python-for-android/issues/>`_, `kivy-ios <https://github.com/kivy/kivy-ios/issues/>`_, etc.
 #. Set the title of your issue
 #. Explain exactly what to do to reproduce the issue and paste the link of the output
    posted on http://gist.github.com/
 #. Validate the issue and you're done!
 
-
-If you are feeling up to it, you can also try to resolve the bug, and contribute by sending
-us the patch :) Read the next section to find out how to do this.
+.. _Code Contributions:
 
 Code Contributions
 ------------------
@@ -94,26 +168,31 @@ Coding style
 - If you haven't done it yet, read the
   `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ about coding style in python.
 
-- Activate the pep8 and other basic checks on git commits like this::
+- If you  are working on the Kivy Framework, you can automate style checks on
+  Github commit:
+
+  If are developing on Unix or OSX or otherwise have ``make`` installed, change to the Kivy source directory, and
+  simply run::
 
     make hook
 
-This will pass the code added to the git staging zone (about to be committed)
-through a checker program when you do a commit, and ensure that you didn't
-introduce style errors. If you did, the commit will be rejected: please correct the
-errors and try again.
 
-The checker used is `pre-commit <https://pre-commit.com/>`_. If you need to skip
-a particular check see `documentation <https://pre-commit.com/#temporarily-disabling-hooks>`_,
-TLDR being that putting `SKIP=hookname` in front of `git commit` will skip that hook, the
-name of the offending hook is shown when it fails.
+  This will pass the code added to the git staging zone (about to be committed)
+  through a checker program when you do a commit, and ensure that you didn't
+  introduce style errors. If you did, the commit will be rejected: please correct the
+  errors and try again.
+
+  The checker used is `pre-commit <https://pre-commit.com/>`_. If you need to skip
+  a particular check see `documentation <https://pre-commit.com/#temporarily-disabling-hooks>`_,
+  but, in summmary, putting `SKIP=hookname` in front of `git commit` will skip that hook. The
+  name of the offending hook is shown when it fails.
 
 Performance
 ~~~~~~~~~~~
 
-- take care of performance issues: read
+- Take care of performance issues: read
   `Python performance tips <http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`_
-- cpu intensive parts of Kivy are written in cython: if you are doing a lot of
+- CPU-intensive parts of Kivy are written in Cython: if you are doing a lot of
   computation, consider using it too.
 
 Git & GitHub
@@ -136,64 +215,61 @@ base. If you don't want to use GitHub, we assume you know what you are doing any
 Code Workflow
 ~~~~~~~~~~~~~
 
-So here is the initial setup to begin with our workflow (you only need to do
-this once to install Kivy). Basically you follow the installation
-instructions from :ref:`kivy-dev-install`, but you don't clone our repository,
-you fork it. Here are the steps:
+These instructions are written from the perspective of the Kivy framework, but their
+equivalents apply to other Kivy sibling projects.
 
-    #. Log in to GitHub
-    #. Create a fork of the `Kivy repository <https://github.com/kivy/kivy>`_ by
-       clicking the *fork* button.
-    #. Clone your fork of our repository to your computer. Your fork will have
-       the git remote name 'origin' and you will be on branch 'master'::
+The initial setup to begin with our workflow only needs to be done once.
+Follow the installation instructions from :ref:`kivy-dev-install`, but don't clone our repository.
+Instead, make a fork. Here are the steps:
+
+#. Log in to GitHub
+#. Create a fork of the `Kivy repository <https://github.com/kivy/kivy>`_ by
+   clicking the *fork* button.
+#. Clone your fork of our repository to your computer. Your fork will have
+   the git remote name 'origin' and you will be on branch 'master'::
 
         git clone https://github.com/username/kivy.git
 
-    #. Compile and set up PYTHONPATH or install (see :ref:`kivy-dev-install`).
-    #. Install our pre-commit hook that ensures your code doesn't violate our
-       styleguide by executing `make hook` from the root directory of your
-       clone. This will run our styleguide check whenever you do a commit,
-       and if there are violations in the parts that you changed, your commit
-       will be aborted. Fix & retry.
-    #. Add the kivy repo as a remote source::
+#. Compile and set up PYTHONPATH or install (see :ref:`kivy-dev-install`_).
+#. Add the kivy repo as a remote source::
 
         git remote add kivy https://github.com/kivy/kivy.git
 
-Now, whenever you want to create a patch, you follow the following steps:
+    Now, whenever you want to create a patch, you follow the following steps:
 
-    #. See if there is a ticket in our bug tracker for the fix or feature and
-       announce that you'll be working on it if it doesn't yet have an assignee.
-    #. Create a new, appropriately named branch in your local repository for
-       that specific feature or bugfix.
-       (Keeping a new branch per feature makes sure we can easily pull in your
-       changes without pulling any other stuff that is not supposed to be pulled.)::
+#.  See if there is a ticket in our bug tracker for the fix or feature and
+    announce that you'll be working on it if it doesn't yet have an assignee.
+#.  Create a new, appropriately named branch in your local repository for
+    that specific feature or bugfix.
+    (Keeping a new branch per feature makes sure we can easily pull in your
+    changes without pulling any other stuff that is not supposed to be pulled.)::
 
         git checkout -b new_feature
 
-    #. Modify the code to do what you want (e.g. fix it).
-    #. Test the code. Try to do this even for small fixes. You never know
-       whether you have introduced some weird bug without testing.
-    #. Do one or more minimal, atomic commits per fix or per feature.
-       Minimal/Atomic means *keep the commit clean*. Don't commit other stuff that
-       doesn't logically belong to this fix or feature. This is **not** about
-       creating one commit per line changed. Use ``git add -p`` if necessary.
-    #. Give each commit an appropriate commit message, so that others who are
-       not familiar with the matter get a good idea of what you changed.
-    #. Once you are satisfied with your changes, pull our upstream repository and
-       merge it with you local repository. We can pull your stuff, but since you know
-       exactly what's changed, you should do the merge::
+#. Modify the code to do what you want (e.g. fix it).
+#. Test the code. Add automated unit-tests to show it works. Do this even for small fixes.
+   You never know whether you have introduced some weird bug without testing.
+#. Do one or more minimal, atomic commits per fix or per feature.
+   Minimal/Atomic means *keep the commit clean*. Don't commit other stuff that
+   doesn't logically belong to this fix or feature. This is **not** about
+   creating one commit per line changed. Use ``git add -p`` if necessary.
+#. Give each commit an appropriate commit message, so that others who are
+   not familiar with the matter get a good idea of what you changed.
+#. Once you are satisfied with your changes, pull our upstream repository and
+   merge it with you local repository. We can pull your stuff, but since you know
+   exactly what's changed, you should do the merge::
 
         git pull kivy master
 
-    #. Push your local branch into your remote repository on GitHub::
+#. Push your local branch into your remote repository on GitHub::
 
         git push origin new_feature
 
-    #. Send a *Pull Request* with a description of what you changed via the button
-       in the GitHub interface of your repository. (This is why we forked
-       initially. Your repository is linked against ours.)
+#. Send a *Pull Request* with a description of what you changed via the button
+   in the GitHub interface of your repository. (This is why we forked
+   initially. Your repository is linked against ours.)
 
-    .. warning::
+.. warning::
         If you change parts of the code base that require compilation, you
         will have to recompile in order for your changes to take effect. The ``make``
         command will do that for you (see the Makefile if you want to know
@@ -209,47 +285,47 @@ told you whether it makes sense or not). If so, we will pull them and you will
 get instant karma. Congratulations, you're a hero!
 
 
+.. _Documentation Contributions:
+
 Documentation Contributions
 ---------------------------
 
 Documentation contributions generally follow the same workflow as code contributions,
 but are just a bit more lax.
 
-    #. Following the instructions above,
+#. Follow the instructions above
 
-        #. Fork the repository.
+   #. Fork the repository.
+   #. Clone your fork to your computer.
+   #. Setup kivy repo as a remote source.
 
-        #. Clone your fork to your computer.
+#. Install python-sphinx. (See ``docs/README`` for assistance.)
 
-        #. Setup kivy repo as a remote source.
-
-    #. Install python-sphinx. (See ``docs/README`` for assistance.)
-
-    #. Use ReStructuredText_Markup_ to make changes to the HTML documentation in docs/sources.
+#. Use ReStructuredText_Markup_ to make changes to the HTML documentation in docs/sources.
 
 .. _ReStructuredText_Markup: http://docutils.sourceforge.net/rst.html
 
 To submit a documentation update, use the following steps:
 
-    #. Create a new, appropriately named branch in your local repository::
+#. Create a new, appropriately named branch in your local repository::
 
         git checkout -b my_docs_update
 
-    #. Modify the documentation with your correction or improvement.
-    #. Re-generate the HTML pages, and review your update::
+#. Modify the documentation with your correction or improvement.
+#. Re-generate the HTML pages, and review your update::
 
             make html
 
-    #. Give each commit an appropriate commit message, so that others who are not familiar with
-       the matter get a good idea of what you changed.
-    #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't
-       logically belong to this update.
+#. Give each commit an appropriate commit message, so that others who are not familiar with
+   the matter get a good idea of what you changed.
+#. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't
+   logically belong to this update.
 
-    #. Push to your remote repository on GitHub::
+#. Push to your remote repository on GitHub::
 
         git push
 
-    #. Send a *Pull Request* with a description of what you changed via the button in the
+#. Send a *Pull Request* with a description of what you changed via the button in the
        GitHub interface of your repository.
 
 We don't ask you to go through all the hassle just to correct a single typo, but for more
@@ -282,7 +358,7 @@ Examples::
         .. warning:: Please take a seat before trying this feature
         """
 
-Will result in:
+Will result in::
 
     def my_new_feature(self, arg):
         New feature is awesome
@@ -311,14 +387,14 @@ using using '.' to separate modules referring to imbricated modules, e.g::
     :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
     :doc:`/api-kivy.core.window`
 
-Will result in:
+Will result in::
 
-    :mod:`~kivy.uix.floatlayout`
-    :class:`~kivy.uix.floatlayout.FloatLayout`
-    :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
-    :doc:`/api-kivy.core.window`
+ :mod:`~kivy.uix.floatlayout`
+ :class:`~kivy.uix.floatlayout.FloatLayout`
+ :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
+ :doc:`/api-kivy.core.window`
 
-`:doc:` and `:mod:` are essentially the same, except for an anchor in the url
+The markers `:doc:` and `:mod:` are essentially the same, except for an anchor in the url
 which makes `:doc:` preferred for the cleaner url.
 
 To build your documentation, run::
@@ -344,12 +420,3 @@ same approach as the `Code Workflow` to submit new tests.
     :maxdepth: 2
 
     contribute-unittest
-
-
-GSOC
-----
-
-.. toctree::
-    :maxdepth: 3
-
-    gsoc
