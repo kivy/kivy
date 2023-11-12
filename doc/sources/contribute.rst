@@ -116,7 +116,7 @@ sister projects is a harassment-free and positive experience for everyone. It is
 vital that all interaction is conducted in a manner conveying respect, open-mindedness and gratitude.
 
 We have adopted V2.1 of the `Contributor Covenant Code of Conduct
-<https://www.contributor-covenant.org/version/2/1/code-of-conduct.html>`_.  Instances of abusive, harassing, or
+<https://www.contributor-covenant.org/version/2/1/code-of-conduct/>`_.  Instances of abusive, harassing, or
 otherwise unacceptable behavior may be reported to any of our `core developers <https://kivy.org/about.html>`_
 via `Discord <https://chat.kivy.org>`_. (You might like to check which have been recently active on Discord to get a faster
 response.)

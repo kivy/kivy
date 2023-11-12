@@ -3,7 +3,7 @@
 ## Introduction
 [Kivy](http://kivy.org) is an open-source Python framework for developing 
 GUI apps that work cross-platform, including desktop, mobile and embedded 
-platforms, including desktop, mobile and embedded platforms.
+platforms.
 
 ### Sibling Projects with FAQs:
 
