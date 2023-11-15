@@ -3,18 +3,18 @@ Kivy
 
 <img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
-[Kivy](http://kivy.org) is an open-source Python framework for developing 
-GUI apps that work cross-platform, including desktop, mobile and embedded 
-platforms.
+[Kivy](https://kivy.org) is an open-source [Python](https://www.python.org/)
+framework for developing GUI apps that work cross-platform, including desktop, 
+mobile and embedded platforms.
 
 The aim is to allow for quick and easy interaction design and rapid prototyping
 whilst making your code reusable and deployable: Innovative user interfaces made
 easy.
 
-Kivy is written in Python and [Cython](http://cython.org/), supports various input devices and
+Kivy is written in Python and [Cython](https://cython.org/), supports various input devices and
 has an extensive (and extensible) widget library. With the
-same codebase, you can target Windows, OSX, Linux, Android, iOS and Raspberry
-Pi. All Kivy widgets are built with multitouch support.
+same codebase, you can target Windows, macOS, Linux (including Raspberry Pi OS),
+Android and iOS. All Kivy widgets are built with multitouch support.
 
 Kivy is MIT licensed, actively developed by a great community and is supported
 by many projects managed by the [Kivy Organization](https://kivy.org/#organization).
@@ -106,18 +106,17 @@ Licenses
   and is licensed under the terms of the
   [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
 
-## Financial Contributors
+## Contributors
 
-This project exists thanks to all the people who donate. [[Donate](.github/CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute.
+[[Become a contributor](https://kivy.org/doc/master/contribute.html)]
 <a href="https://github.com/kivy/kivy/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
-
 
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
 
 <a href="https://opencollective.com/kivy#backers" target="_blank"><img src="https://opencollective.com/kivy/backers.svg?width=890"></a>
-
 
 ## Sponsors
 
