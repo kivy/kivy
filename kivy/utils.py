@@ -331,6 +331,7 @@ def deprecated(func=None, msg=''):
         return func(*args, **kwargs)
     return new_func
 
+
 @deprecated
 def interpolate(value_from, value_to, step=10):
     '''Interpolate between two values, by providing the
@@ -351,7 +352,6 @@ def interpolate(value_from, value_to, step=10):
         return out
     else:
         return value_from + (value_to - value_from) / float(step)
-
 
 
 class SafeList(list):
@@ -393,7 +393,8 @@ class QueryDict(dict):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            return super(QueryDict, self).__getattr__(attr)
+            raise AttributeError("%r object has no attribute %r" % (
+                self.__class__.__name__self, attr))
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
