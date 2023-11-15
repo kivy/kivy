@@ -5,10 +5,7 @@ utils tests
 
 import os
 import unittest
-try:
-    from unittest.mock import patch   # python 3.x
-except:
-    from mock import patch   # python 2.x
+from unittest.mock import patch
 
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
