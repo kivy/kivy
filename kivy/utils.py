@@ -41,29 +41,6 @@ def difference(set1, set2):
     return [s for s in set1 if s not in set2]
 
 
-def interpolate(value_from, value_to, step=10):
-    '''Interpolate between two values. This can be useful for smoothing some
-    transitions. For example::
-
-        # instead of setting directly
-        self.pos = pos
-
-        # use interpolate, and you'll have a nicer transition
-        self.pos = interpolate(self.pos, new_pos)
-
-    .. warning::
-        These interpolations work only on lists/tuples/doubles with the same
-        dimensions. No test is done to check the dimensions are the same.
-    '''
-    if type(value_from) in (list, tuple):
-        out = []
-        for x, y in zip(value_from, value_to):
-            out.append(interpolate(x, y, step))
-        return out
-    else:
-        return value_from + (value_to - value_from) / float(step)
-
-
 def strtotuple(s):
     '''Convert a tuple string into a tuple
     with some security checks. Designed to be used
@@ -352,6 +329,28 @@ def deprecated(func=None, msg=''):
                 Logger.warning(func.__doc__)
         return func(*args, **kwargs)
     return new_func
+
+@deprecated
+def interpolate(value_from, value_to, step=10):
+    '''Interpolate between two values, by providing the
+    reciprocal of the proportion between two points.
+
+    .. deprecated:: 2.3.0
+        For animations, consider using the
+        `AnimationTransition.linear()` for a similar purpose.
+
+    .. warning::
+        These interpolations work only on lists/tuples/doubles with the same
+        dimensions. No test is done to check the dimensions are the same.
+    '''
+    if type(value_from) in (list, tuple):
+        out = []
+        for x, y in zip(value_from, value_to):
+            out.append(interpolate(x, y, step))
+        return out
+    else:
+        return value_from + (value_to - value_from) / float(step)
+
 
 
 class SafeList(list):
