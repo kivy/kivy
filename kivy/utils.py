@@ -18,7 +18,8 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version')
+           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version',
+           'format_bytes_to_human')
 
 from os import environ, path
 from sys import platform as _sys_platform
