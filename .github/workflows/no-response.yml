@@ -20,7 +20,7 @@ jobs:
         # done by `github-actions[bot]` as the `no-response` Action needs to be compiled.
         with:
           token: ${{ github.token }}
-          daysUntilClose: 14
+          daysUntilClose: 42
           responseRequiredLabel: 'awaiting-reply'
           closeComment: >
                 This issue has been automatically closed because there has been no response

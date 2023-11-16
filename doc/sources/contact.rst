@@ -3,51 +3,44 @@
 Contact Us
 ==========
 
-You can contact us in several different ways:
+Are you having trouble using the Kivy framework, or any of its related projects? Is
+there an error you don't understand? Are you trying to figure out how to use it? We
+have volunteers who can help!
 
+Before you start, please read our :ref:`FAQ <faq>`:
+It is the fastest way to solve the most common problems.
 
-Issue Tracker
--------------
+The `Kivy Discord Server <https://chat.kivy.org>`_ allows you to chat with people in
+real-time and share code snippets. There are several channels marked for support (if
+you aren't sure which to use, try #support1).
 
-If you have found an issue with the code or have a feature request, please see
-our `issue tracker <https://github.com/kivy/kivy/issues>`_. If there is no issue
-yet that matches your inquiry, feel free to create a new one. Please make sure
-you receive the mails that github sends if we comment on the issue in case we
-need more information.
-For bugs, please provide all the information necessary, like the operating
-system you're using, the **full error message** or any other logs, a description
-of what you did to trigger the bug and what the actual bug was,
-as well as anything else that might be of interest. Obviously, we can only help
-if you tell us precisely what the actual problem is.
+Please **hang around** in Discord for an answer. We are mostly based in Europe, so
+take into account any timezone issues. If you leave before a response, we can't get
+back to you.
 
+`Kivy's GitHub Discussions <https://github.com/orgs/kivy/discussions>`_ is another
+forum where support questions are welcome, and our volunteers are listening. If it
+takes more time to consider an answer, you will be notified when you get a response.
 
-Mail
-----
+You might like to check our issue trackers out on GitHub. There is the main
+`Kivy issue tracker <https://github.com/kivy/kivy/issues>`_, and one for each Kivy
+subproject. Feel free to check if others have had the same problem as you, but please
+don't submit an issue until it is confirmed as very likely to be a bug in Kivy. Ask
+us for help at one of the above forums before submitting an issue.
 
-For users of our framework, there is a mailing list for support inquiries on the
-`kivy-users Google Group <https://groups.google.com/group/kivy-users>`_. Use
-this list if you have issues with your Kivy-based app.
-We also have a mailing list for matters that deal with development of the actual
-Kivy framework code on the
-`kivy-dev Google Group <https://groups.google.com/group/kivy-dev>`_.
+There are also independent communities on
+`StackOverflow <https://stackoverflow.com/questions/tagged/kivy>`_ and
+`Reddit <https://www.reddit.com/r/kivy/>`_ that accept Kivy-related support requests.
 
+Other Ways to Contact Us
+========================
 
-Discord
----------
+The Kivy team is built of volunteer developers like you, and we always need more help.
 
-**Kivy on Discord at https://chat.kivy.org**
+If you want to give back to the community, please see our
+:ref:`Contribution Guide <contributing>`.
+for plenty of ideas about you can help out with your time, no matter your level of expertise.
 
-Discord is great for real-time communication, but please make sure to **wait** after
-you asked your question. If you just join, ask and quit we have **no way** of
-knowing who you were and where we're supposed to send our answer. Also, keep
-in mind we're mostly based in Europe, so take into account any timezone issues.
-If you're unlucky more than once, try the mailing list.
-
-If you don't have the Discord app, you can also use
-`Discord's web client <https://chat.kivy.org>`_, but please, don't leave
-too soon. Just make sure to ask on the ``support`` channels.
-
-
-Please read our
-`Community Guidelines <https://github.com/kivy/kivy/wiki/Community-Guidelines/>`_
-before asking for help on the mailing list or Discord channel.
+If you would like to help with your wallet or purse instead, we gratefully accept
+`backers and sponsors and donations <https://opencollective.com/kivy>`_. Come and talk to
+us on `Discord <https://chat.kivy.org>`_ if you have questions.
