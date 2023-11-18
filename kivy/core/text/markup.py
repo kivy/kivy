@@ -484,12 +484,13 @@ class MarkupLabel(MarkupLabelBase):
                 wh = options['line_height'] * word.lh
                 # calculate sub/super script pos
                 if options['script'] == 'superscript':
-                    script_pos = max(0, psp if psp else self.get_descent())
+                    script_pos = max(0, psp if psp and (wh < pph)
+                                     else self.get_descent())
                     psp = script_pos
                     pph = wh
                 elif options['script'] == 'subscript':
                     script_pos = min(lh - wh, ((psp + pph) - wh)
-                                     if pph else (lh - wh))
+                                     if pph and (wh < pph) else (lh - wh))
                     pph = wh
                     psp = script_pos
                 else:
