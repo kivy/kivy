@@ -139,7 +139,7 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: sdl2, pygame, x11, egl_rpi
+    Values: sdl2, pygame, x11, egl_rpi, glfw
 
 KIVY_TEXT
     Implementation to use for rendering text
