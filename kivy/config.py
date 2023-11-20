@@ -179,10 +179,10 @@ Available configuration tokens
         If set to `1`, removes the window border/decoration. Window resizing
         must also be disabled to hide the resizing border.
     `custom_titlebar`: int, one of 0 or 1
-        If set to `1`, removes the window border and allows user to set a Widget
-        as a titlebar
+        If set to `1`, removes the window border and allows user to set
+        a Widget as a titlebar
         see :meth:`~kivy.core.window.WindowBase.set_custom_titlebar`
-        for detailed usage
+        for detailed usage.
     `custom_titlebar_border`: int, defaults to 5
         sets the how many pixles off the border should be used as the
         rezising frame
@@ -263,10 +263,10 @@ Available configuration tokens
         on mobile devices. Only works for the sdl2 window provider.
     `vsync`: `none`, empty value, or integers
         Whether vsync is enabled, currently only used with sdl2 and glfw
-        window providers. Possible values are `none` or empty value -- 
+        window providers. Possible values are `none` or empty value --
         leaves it unchanged, ``0`` -- disables vsync, ``1`` or larger --
-        sets vsync interval, ``-1`` sets adaptive vsync. It falls back 
-        to 1 if setting to ``2+`` or ``-1`` failed. See 
+        sets vsync interval, ``-1`` sets adaptive vsync. It falls back
+        to 1 if setting to ``2+`` or ``-1`` failed. See
         ``SDL_GL_SetSwapInterval`` or ``glfwSwapInterval``.
     `verify_gl_main_thread`: int, 1 or 0, defaults to 1
         Whether to check if code that changes any gl instructions is
