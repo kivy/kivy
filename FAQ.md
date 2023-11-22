@@ -102,7 +102,7 @@ Yes, we love patches. Obviously we don't accept every patch. Your patch has to b
 with our styleguide and, more importantly, make sense. Come talk to us on Discord before you come up with bigger
 changes, especially new features.
 
-Make sure to read [our contribution guidelines](https://kivy.org/doc/stable/contribute.html).
+Make sure to read [our contribution guidelines](FAQ.md).
 
 ### Does the Kivy project participate in Google's Summer of Code?
 
