@@ -61,7 +61,7 @@ to build, push and automatically run the apk on your device.
 Buildozer has many available options and tools to help you, the steps
 above are just the simplest way to build and run your
 APK. The full documentation is available `here
-<http://buildozer.readthedocs.org/en/latest/>`_. You can also check
+<https://buildozer.readthedocs.org/en/latest/>`_. You can also check
 the Buildozer README at `<https://github.com/kivy/buildozer>`_.
 
 .. _Packaging your application into APK:

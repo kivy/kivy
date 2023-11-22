@@ -4645,5 +4645,5 @@ Xperia 10.
 * Native input support: Tuio, WM_Touch, MacOSX MT, mtdev, wacom...
 * Multitouch widgets: Label, Button, Image, Scatter, Video, Camera...
 * Stable and documented API
-* Extensive documentation at http://kivy.org/docs/
+* Extensive documentation at https://kivy.org/docs/
 * Continuous integration via buildbot (coverage and gl unit tests)
