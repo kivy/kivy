@@ -24,10 +24,9 @@ Contributions](#documentation-contributions) below for   detailed instructions.
 
   If you are asking "Why did I get this error?" or "How do I implement this?"
   please **don't** raise an issue yet. Take it to our support channels instead
-  (see [Contact Us](CONTACT.md)); until we
-  can be fairly confident it is a bug in the Kivy ecosystem, it isn't ready
-  to be raised as an issue. That said, we *do* want to hear about even the most
-  minor typos or problems you find.
+  (see [Contact Us](CONTACT.md)); until we   can be fairly confident it is a bug
+  in the Kivy ecosystem, it isn't ready to be raised as an issue. That said,
+  we *do* want to hear about even the most minor typos or problems you find.
 
   See [Reporting An Issue](#reporting-an-issue) below for detailed instructions.
 
@@ -66,7 +65,8 @@ Contributions](#documentation-contributions) below for   detailed instructions.
     improvements that have been identified.
 
     * Can you identify a common question from support? Add the answer to the
-      FAQ and save people time.
+      appropriate project's FAQ (e.g. [the Kivy Framework FAQ](FAQ.md)) and 
+      save people time.
 
 * You don't need to find a bug or come up with a new idea to contribute to the
   code base.
@@ -86,6 +86,8 @@ Contributions](#documentation-contributions) below for   detailed instructions.
 
 * Kivy is extensible. You can add a new Widget or a new Python-For-Android
   recipe, and have your code re-used by the community.
+  [Kivy Garden](https://kivy-garden.github.io/) is an independent project to
+  publish and promote third-party Widgets for Kivy.
 
 * Outside the code and documentation, there are still so many ways to help.
 
@@ -119,17 +121,9 @@ submitting new code.
 
 ## Code of Conduct
 
-In the interest of fostering an open and welcoming community, we as 
-contributors and maintainers need to ensure participation in our project and 
-our sister projects is a harassment-free and positive experience for everyone. 
-It is vital that all interaction is conducted in a manner conveying respect, 
-open-mindedness and gratitude.
-
-We have adopted V2.1 of the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code-of-conduct/). Instances 
-of abusive, harassing, or otherwise unacceptable behavior may be reported to 
-any of our [core developers](https://kivy.org/about.html) via 
-[Discord](https://chat.kivy.org). (You might like to check which have been recently 
-active on Discord to get a faster response.)
+We have adopted a Code of Conduct in the interest of fostering an open and
+welcoming community. See our [Code of Conduct](CODE_OF_CONDUCT.md) for the
+details.
 
 ## Reporting an Issue
 
@@ -405,7 +399,7 @@ Tests are located in the `kivy/tests` folder. If you find a bug in Kivy, a good
 thing to do is to write a minimal case showing the issue and to ask on the 
 support chnnels if the behaviour shown is intended or a real bug. If you 
 contribute your code as a 
-[unittest](http://docs.python.org/2/library/unittest.html), it will prevent the 
+[unittest](https://docs.python.org/3/library/unittest.html), it will prevent the 
 bug from coming back unnoticed in the future (a "regression"), and will
 make Kivy a better, stronger project. Writing a unittest is a great
 way to get familiar with Kivy's code while contributing something useful.

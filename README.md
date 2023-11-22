@@ -3,7 +3,7 @@ Kivy
 
 <img align="right" height="256" src="https://raw.githubusercontent.com/kivy/kivy/master/kivy/data/logo/kivy-icon-256.png"/>
 
-[Kivy](http://kivy.org) is an open-source [Python](https://python.org) framework
+[Kivy](https://www.kivy.org) is an open-source [Python](https://python.org) framework
 for developing GUI apps that work cross-platform, including desktop, mobile and
 embedded platforms.
 
@@ -14,12 +14,12 @@ easy.
 Kivy is written in Python and [Cython](https://cython.org/) and is built on
 [OpenGL ES 2.0](https://www.khronos.org/opengles/). It supports various input 
 devices and has an extensive (and extensible) widget library. With the
-same codebase, you can target Windows, OSX, Linux (including Raspberry Pi OS),
+same codebase, you can target Windows, macOS, Linux (including Raspberry Pi OS),
 Android, and iOS. All Kivy widgets are built with multitouch support.
 
 Kivy is [MIT licensed](LICENSE), actively developed by a great community and is
 supported by many projects managed by the 
-[Kivy Organization](https://kivy.org/#organization).
+[Kivy Organization](https://www.kivy.org/about.html).
 
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
@@ -42,7 +42,7 @@ Installation, Documentation and Examples
 ----------------------------------------
 
 Extensive installation instructions as well as tutorials and general
-documentation, including an API reference, can be found at https://kivy.org/docs.
+documentation, including an API reference, can be found at https://www.kivy.org/docs.
 A [PDF version](https://media.readthedocs.org/pdf/kivy/latest/kivy.pdf) is also available.
 
 Kivy ships with many examples which can be found in the `examples` folder.
@@ -110,7 +110,7 @@ Licenses
 ## Contributors
 
 This project exists thanks to all the people who contribute.
-[[Become a contributor](.github/CONTRIBUTING.md)].
+[[Become a contributor](CONTRIBUTING.md)].
 <a href="https://github.com/kivy/kivy/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
 
 

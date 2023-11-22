@@ -21,11 +21,11 @@ listening. If it takes more time to consider an answer, you will be notified
 when you get a response.
 
 You might like to check our issue trackers out on GitHub. There is the main 
-[Kivy issue tracker](https://github.com/kivy/kivy/issues), and one for each 
-Kivy subproject. Feel free to check if others have had the same problem as you,
- but please don't submit an issue until it is confirmed as very likely to be a 
-bug in Kivy. Ask us for help at one of the above forums before submitting an 
-issue.
+[Kivy issue tracker](https://github.com/kivy/kivy/issues), and one for each Kivy subproject. Feel free to check 
+if others have had the same problem as you, but please don't submit a bug report
+until it is confirmed as very likely to be a bug in Kivy. (New feature requests
+are welcome.) Please ask us for help at one of the above forums about what
+to check and what information to include before submitting an issue.
 
 There are also independent communities on 
 [StackOverflow](https://stackoverflow.com/questions/tagged/kivy) and 
