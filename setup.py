@@ -1158,8 +1158,9 @@ if not build_examples:
         },
         license='MIT',
         description=(
-            'A software library for rapid development of '
-            'hardware-accelerated multitouch applications.'),
+            'An open-source Python framework for developing '
+            'GUI apps that work cross-platform, including '
+            'desktop, mobile and embedded platforms.'),
         long_description=get_description(),
         long_description_content_type='text/markdown',
         ext_modules=ext_modules,

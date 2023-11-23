@@ -4,7 +4,7 @@ Configure Kivy
 ==============
 
 The configuration file for kivy is named `config.ini`, and adheres
-to the `standard INI <http://en.wikipedia.org/wiki/INI_file>`_ format.
+to the `standard INI <https://en.wikipedia.org/wiki/INI_file>`_ format.
 
 Locating the configuration file
 -------------------------------

@@ -77,7 +77,7 @@ Using PyInstaller and Homebrew
 
 Complete guide
 ~~~~~~~~~~~~~~
-#. Install `Homebrew <http://brew.sh>`_
+#. Install `Homebrew <https://brew.sh>`_
 #. Install Python::
 
     $ brew install python
@@ -190,7 +190,7 @@ Once you have kivy and its deps installed, you need to install PyInstaller.
 Let's assume we use a folder like `testpackaging`::
 
     cd testpackaging
-    git clone http://github.com/pyinstaller/pyinstaller
+    git clone https://github.com/pyinstaller/pyinstaller
 
 Create a file named touchtracer.spec in this directory and add the following
 code to it::
