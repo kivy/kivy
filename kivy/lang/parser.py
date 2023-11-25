@@ -756,7 +756,8 @@ class Parser(object):
                         current_propobject = ParserRuleProperty(
                             self, ln, current_property, content)
                         if not current_property:
-                            raise ParserException(self, ln, "Invalid indentation.")
+                            raise ParserException(self, ln,
+                                                  "Invalid indentation")
                         if current_property[:3] == 'on_':
                             current_object.handlers.append(current_propobject)
                         else:
