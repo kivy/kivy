@@ -248,7 +248,7 @@ class LabelBase(object):
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None, font_context=None,
         font_features=None, base_direction=None, font_direction='ltr',
-        font_script_name='Latin', text_language=None,
+        font_script_name='Latin', text_language=None,best_fit=False,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -273,7 +273,8 @@ class LabelBase(object):
                    'base_direction': base_direction,
                    'font_direction': font_direction,
                    'font_script_name': font_script_name,
-                   'text_language': text_language}
+                   'text_language': text_language,
+                   'best_fit':best_fit}
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
@@ -320,11 +321,32 @@ class LabelBase(object):
         self._internal_size = 0, 0  # the real computed text size (inclds pad)
         self._cached_lines = []
 
+        if best_fit:
+            options['halign'] = "center"
+            options['text_size'] = self.width,None
+            # self.bind(size=self.set_best_fit)
+            # self.bind(text=self.set_best_fit)
+            options['on_size'] = self.set_best_fit
+            options['on_text'] = self.set_best_fit
+            
         self.options = options
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
         self._migrate_deprecated_padding_xy()
+
+
+
+    def set_best_fit(self,instance,value):
+        while instance.width+1 > instance.texture_size[0] and instance.height+1 > instance.texture_size[1]:
+            instance.font_size = instance.font_size + 2
+            instance.text_size = instance.width,None
+            instance.texture_update()
+        while instance.width < instance.texture_size[0] or instance.height < instance.texture_size[1]:
+            instance.font_size = instance.font_size - 2
+            instance.text_size = instance.width,None
+            instance.texture_update()
+
 
     def _migrate_deprecated_padding_xy(self):
         options = self.options
