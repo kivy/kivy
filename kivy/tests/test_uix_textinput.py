@@ -30,10 +30,10 @@ class TextInputTest(unittest.TestCase):
         self.test_txt = "Firstlongline\n\nSecondveryverylongline"
 
         ti = TextInput(width='30dp', size_hint_x=None)
-        ti.bind(text=self.on_text)
+        ti.bind(on_text_refreshed=self.on_text_refreshed)
         ti.text = self.test_txt
 
-    def on_text(self, instance, value):
+    def on_text_refreshed(self, instance):
         # Check if text is modified while recreating from lines and lines_flags
         self.assertEqual(instance.text, self.test_txt)
 
@@ -80,12 +80,13 @@ class TextInputGraphicTest(GraphicUnitTest):
         ti.bind(on_text_validate=lambda *_: setattr(
             ti, 'validate_test', True
         ))
-        ti._key_down(
+        ti._textinput._key_down(
             (
                 None,     # displayed_str
                 None,     # internal_str
                 'enter',  # internal_action
-                1         # scale
+                1,        # scale
+                {}
             ),
             repeat=False
         )
@@ -97,8 +98,8 @@ class TextInputGraphicTest(GraphicUnitTest):
         ti.focus = True
         self.assertTrue(ti.focus)
 
-        ti._key_down(
-            (None, None, 'enter', 1),
+        ti._textinput._key_down(
+            (None, None, 'enter', 1, {}),
             repeat=False
         )
         self.assertTrue(ti.validate_test)
@@ -125,21 +126,22 @@ class TextInputGraphicTest(GraphicUnitTest):
         # move and check position
         # mult$iline
         # text
-        ti._key_down(     # push selection
+        ti._textinput._key_down(     # push selection
             (
                 None,     # displayed_str
                 None,     # internal_str
                 'shift',  # internal_action
-                1         # scale
+                1,        # scale
+                {}
             ),
             repeat=False
         )
-        ti._key_down(
-            (None, None, 'cursor_up', 1),
+        ti._textinput._key_down(
+            (None, None, 'cursor_up', 1, {}),
             repeat=False
         )
         # pop selection
-        ti._key_up(
+        ti._textinput._key_up(
             (None, None, 'shift', 1),
             repeat=False
         )
@@ -152,8 +154,8 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.assertEqual(ti.text, text)
 
         # overwrite selection with \n
-        ti._key_down(
-            (None, None, 'enter', 1),
+        ti._textinput._key_down(
+            (None, None, 'enter', 1, {}),
             repeat=False
         )
         self.assertEqual(ti.text, text[:4] + '\n')
@@ -182,15 +184,15 @@ class TextInputGraphicTest(GraphicUnitTest):
         ))
         for key, txt in options:
             # push selection
-            ti._key_down((None, None, 'shift', 1), repeat=False)
+            ti._textinput._key_down((None, None, 'shift', 1, {}), repeat=False)
             for _ in range(steps):
-                ti._key_down(
-                    (None, None, 'cursor_left', 1),
+                ti._textinput._key_down(
+                    (None, None, 'cursor_left', 1, {}),
                     repeat=False
                 )
 
             # pop selection
-            ti._key_up((None, None, 'shift', 1), repeat=False)
+            ti._textinput._key_up((None, None, 'shift', 1), repeat=False)
             self.assertEqual(
                 ti.cursor, (len(text[:-steps]), 0)
             )
@@ -198,12 +200,12 @@ class TextInputGraphicTest(GraphicUnitTest):
 
             # try to overwrite selection with \n
             # (shouldn't work because single line)
-            ti._key_down(
-                (None, None, key, 1),
+            ti._textinput._key_down(
+                (None, None, key, 1, {}),
                 repeat=False
             )
             self.assertEqual(ti.text, txt)
-            ti._key_down((None, None, 'cursor_end', 1), repeat=False)
+            ti._textinput._key_down((None, None, 'cursor_end', 1, {}), repeat=False)
 
     def test_del(self):
         text = 'some_random_text'
@@ -221,23 +223,23 @@ class TextInputGraphicTest(GraphicUnitTest):
         del_key = 'del'
 
         for _ in range(steps_skip):
-            ti._key_down(
-                (None, None, 'cursor_left', 1),
+            ti._textinput._key_down(
+                (None, None, 'cursor_left', 1, {}),
                 repeat=False
             )
         # cursor at the place of ^
         # some_random_te^xt
 
         # push selection
-        ti._key_down((None, None, 'shift', 1), repeat=False)
+        ti._textinput._key_down((None, None, 'shift', 1, {}), repeat=False)
         for _ in range(steps_select):
-            ti._key_down(
-                (None, None, 'cursor_left', 1),
+            ti._textinput._key_down(
+                (None, None, 'cursor_left', 1, {}),
                 repeat=False
             )
 
         # pop selection
-        ti._key_up((None, None, 'shift', 1), repeat=False)
+        ti._textinput._key_up((None, None, 'shift', 1), repeat=False)
 
         # cursor at the place of ^, selection between * chars
         # some_rando*^m_te*xt
@@ -247,15 +249,15 @@ class TextInputGraphicTest(GraphicUnitTest):
         )
         self.assertEqual(ti.text, text)
 
-        ti._key_down(
-            (None, None, del_key, 1),
+        ti._textinput._key_down(
+            (None, None, del_key, 1, {}),
             repeat=False
         )
         # cursor now at: some_rando^xt
         self.assertEqual(ti.text, 'some_randoxt')
 
-        ti._key_down(
-            (None, None, del_key, 1),
+        ti._textinput._key_down(
+            (None, None, del_key, 1, {}),
             repeat=False
         )
         self.assertEqual(ti.text, 'some_randot')
@@ -269,8 +271,8 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.render(ti)
         self.assertTrue(ti.focus)
 
-        ti._key_down(
-            (None, None, escape_key, 1),
+        ti._textinput._key_down(
+            (None, None, escape_key, 1, {}),
             repeat=False
         )
         self.assertFalse(ti.focus)
@@ -291,29 +293,29 @@ class TextInputGraphicTest(GraphicUnitTest):
         steps_select = 4
 
         for _ in range(steps_skip):
-            ti._key_down(
-                (None, None, 'cursor_left', 1),
+            ti._textinput._key_down(
+                (None, None, 'cursor_left', 1, {}),
                 repeat=False
             )
         # cursor at the place of ^
         # some_random_te^xt
 
         # push selection
-        ti._key_down((None, None, 'shift', 1), repeat=False)
+        ti._textinput._key_down((None, None, 'shift', 1, {}), repeat=False)
         for _ in range(steps_select):
-            ti._key_down(
-                (None, None, 'cursor_left', 1),
+            ti._textinput._key_down(
+                (None, None, 'cursor_left', 1, {}),
                 repeat=False
             )
 
         # pop selection
-        ti._key_up((None, None, 'shift', 1), repeat=False)
+        ti._textinput._key_up((None, None, 'shift', 1), repeat=False)
 
         # cursor at the place of ^, selection between * chars
         # some_rando*^m_te*xt
 
-        ti._key_down(
-            (None, None, 'cursor_right', 1),
+        ti._textinput._key_down(
+            (None, None, 'cursor_right', 1, {}),
             repeat=False
         )
         self.assertEqual(ti.cursor, (len(text) - steps_skip, 0))
@@ -343,12 +345,12 @@ class TextInputGraphicTest(GraphicUnitTest):
                 ('cursor_right', (4, 1)))
 
         for key, pos in options:
-            ti._key_down((None, None, 'ctrl_L', 1), repeat=False)
-            ti._key_down((None, None, key, 1), repeat=False)
+            ti._textinput._key_down((None, None, 'ctrl_L', 1, {}), repeat=False)
+            ti._textinput._key_down((None, None, key, 1, {}), repeat=False)
 
             self.assertEqual(ti.cursor, pos)
 
-            ti._key_up((None, None, 'ctrl_L', 1), repeat=False)
+            ti._textinput._key_up((None, None, 'ctrl_L', 1), repeat=False)
 
     def test_cursor_blink(self):
         ti = TextInput(cursor_blink=True)
@@ -501,32 +503,24 @@ class TextInputGraphicTest(GraphicUnitTest):
     def test_selectall_copy_paste(self):
         text = 'test'
         ti = TextInput(multiline=False, text=text)
-        ti.focus = True
         self.render(ti)
 
-        from kivy.base import EventLoop
-        win = EventLoop.window
+        ti.focus = True
 
         # select all
-        # win.dispatch(event_name, key, scancode, kstr, modifiers)
-        win.dispatch('on_key_down', 97, 4, 'a', ['capslock', 'ctrl'])
-        win.dispatch('on_key_up', 97, 4)
+        ti.select_all()
         self.advance_frames(1)
 
         # copy
-        win.dispatch('on_key_down', 99, 6, 'c',
-                     ['capslock', 'numlock', 'ctrl'])
-        win.dispatch('on_key_up', 99, 6)
+        ti.copy()
         self.advance_frames(1)
 
-        # home
-        win.dispatch('on_key_down', 278, 74, None, ['capslock'])
-        win.dispatch('on_key_up', 278, 74)
+        # move cursor to the end and remove selection
+        ti.select_text(len(text), len(text))
         self.advance_frames(1)
 
         # paste
-        win.dispatch('on_key_down', 118, 25, 'v', ['numlock', 'ctrl'])
-        win.dispatch('on_key_up', 118, 25)
+        ti.paste()
         self.advance_frames(1)
 
         assert ti.text == 'testtest'

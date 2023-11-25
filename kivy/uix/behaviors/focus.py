@@ -93,7 +93,7 @@ if Config:
     _keyboard_mode = Config.get('kivy', 'keyboard_mode')
 
 
-class FocusBehavior(object):
+class FocusBehavior:
     '''Provides keyboard focus behavior. When combined with other
     FocusBehavior widgets it allows one to cycle focus among them by pressing
     tab. Please see the
@@ -106,7 +106,8 @@ class FocusBehavior(object):
 
     _requested_keyboard = False
     _keyboard = ObjectProperty(None, allownone=True)
-    _keyboards = {}
+
+    _focusables = []
 
     ignored_touch = []
     '''A list of touches that should not be used to defocus. After on_touch_up,
@@ -125,18 +126,25 @@ class FocusBehavior(object):
     Notice that you need to access this as a class, not an instance variable.
     '''
 
+    focus_provider = OptionProperty('internal', options=('internal', 'external'))
+    ''' The provider used to handle focus change requests. Can be one of
+    'internal' or 'external'. Defaults to 'internal'.
+
+    When set to 'internal', the FocusBehavior widget will automatically
+    request and release the keyboard when it gains or loses focus in order to
+    receive keyboard input. When set to 'external', the FocusBehavior widget
+    will not request or release the keyboard, and it is responsibility of the
+    user to call :meth:`move_focus` to move the focus accordingly.
+
+    `external` is used by the :class:`~kivy.uix.textinput.TextInput` class
+    as the keyboard is handled by the TextInput Core Provider.
+
+    .. versionadded:: 2.3.0
+
+    '''
+
     def _set_keyboard(self, value):
-        focus = self.focus
-        keyboard = self._keyboard
-        keyboards = FocusBehavior._keyboards
-        if keyboard:
-            self.focus = False    # this'll unbind
-            if self._keyboard:  # remove assigned keyboard from dict
-                del keyboards[keyboard]
-        if value and value not in keyboards:
-            keyboards[value] = None
-        self._keyboard = value
-        self.focus = focus
+        pass
 
     def _get_keyboard(self):
         return self._keyboard
@@ -144,7 +152,8 @@ class FocusBehavior(object):
                              bind=('_keyboard', ))
     '''The keyboard to bind to (or bound to the widget) when focused.
 
-    When None, a keyboard is requested and released whenever the widget comes
+    When None and `focus_provider` is set to `internal`, 
+    a keyboard is requested and released whenever the widget comes
     into and out of focus. If not None, it must be a keyboard, which gets
     bound and unbound from the widget whenever it's in or out of focus. It is
     useful only when more than one keyboard is available, so it is recommended
@@ -235,24 +244,6 @@ class FocusBehavior(object):
     .. warning::
         :attr:`focused` is an alias of :attr:`focus` and will be removed in
         2.0.0.
-    '''
-
-    keyboard_suggestions = BooleanProperty(True)
-    '''If True provides auto suggestions on top of keyboard.
-    This will only work if :attr:`input_type` is set to `text`, `url`, `mail` or
-    `address`.
-
-    .. warning::
-        On Android, `keyboard_suggestions` relies on
-        `InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS` to work, but some keyboards
-        just ignore this flag. If you want to disable suggestions at all on
-        Android, you can set `input_type` to `null`, which will request the
-        input method to run in a limited "generate key events" mode.
-
-    .. versionadded:: 2.1.0
-
-    :attr:`keyboard_suggestions` is a :class:`~kivy.properties.BooleanProperty`
-    and defaults to True
     '''
 
     def _set_on_focus_next(self, instance, value):
@@ -353,25 +344,6 @@ class FocusBehavior(object):
     defaults to 'auto'. Can be one of 'auto' or 'managed'.
     '''
 
-    input_type = OptionProperty('null', options=('null', 'text', 'number',
-                                                 'url', 'mail', 'datetime',
-                                                 'tel', 'address'))
-    '''The kind of input keyboard to request.
-
-    .. versionadded:: 1.8.0
-
-    .. versionchanged:: 2.1.0
-        Changed default value from `text` to `null`. Added `null` to options.
-
-        .. warning::
-            As the default value has been changed, you may need to adjust
-            `input_type` in your code.
-
-    :attr:`input_type` is an :class:`~kivy.properties.OptionsProperty` and
-    defaults to 'null'. Can be one of 'null', 'text', 'number', 'url', 'mail',
-    'datetime', 'tel' or 'address'.
-    '''
-
     unfocus_on_touch = BooleanProperty(_keyboard_mode not in
                                        ('multi', 'systemandmulti'))
     '''Whether a instance should lose focus when clicked outside the instance.
@@ -388,10 +360,10 @@ class FocusBehavior(object):
     '''
 
     def __init__(self, **kwargs):
+        
         self._old_focus_next = None
         self._old_focus_previous = None
         super(FocusBehavior, self).__init__(**kwargs)
-
         self._keyboard_mode = _keyboard_mode
         fbind = self.fbind
         fbind('focus', self._on_focus)
@@ -405,61 +377,65 @@ class FocusBehavior(object):
             self.focus = False
 
     def _on_focus(self, instance, value, *largs):
-        if self.keyboard_mode == 'auto':
+        if self.focus_provider == "internal" and self.keyboard_mode == 'auto':
             if value:
                 self._bind_keyboard()
             else:
                 self._unbind_keyboard()
+        if value:
+            self._enter_focused_mode()
+        else:
+            self._exit_focused_mode()
 
     def _ensure_keyboard(self):
         if self._keyboard is None:
             self._requested_keyboard = True
-            keyboard = self._keyboard = EventLoop.window.request_keyboard(
+            self._keyboard = EventLoop.window.request_keyboard(
                 self._keyboard_released,
                 self,
-                input_type=self.input_type,
-                keyboard_suggestions=self.keyboard_suggestions,
+                input_type=None,
+                keyboard_suggestions=False,
             )
-            keyboards = FocusBehavior._keyboards
-            if keyboard not in keyboards:
-                keyboards[keyboard] = None
 
     def _bind_keyboard(self):
         self._ensure_keyboard()
-        keyboard = self._keyboard
 
-        if not keyboard or self.disabled or not self.is_focusable:
-            self.focus = False
-            return
-        keyboards = FocusBehavior._keyboards
-        old_focus = keyboards[keyboard]  # keyboard should be in dict
-        if old_focus:
-            old_focus.focus = False
-            # keyboard shouldn't have been released here, see keyboard warning
-        keyboards[keyboard] = self
-        keyboard.bind(on_key_down=self.keyboard_on_key_down,
-                      on_key_up=self.keyboard_on_key_up,
-                      on_textinput=self.keyboard_on_textinput)
+        # This keyboard may already be bound to another focusable widget.
+        # If so, we need to unfocus the previous one.
+        for focusable in FocusBehavior._focusables:
+            if focusable is not self and focusable._keyboard is self._keyboard:
+                focusable.focus = False
+                break
+
+        self._keyboard.bind(
+            on_key_down=self.keyboard_on_key_down, on_key_up=self.keyboard_on_key_up
+        )
 
     def _unbind_keyboard(self):
-        keyboard = self._keyboard
-        if keyboard:
-            keyboard.unbind(on_key_down=self.keyboard_on_key_down,
-                            on_key_up=self.keyboard_on_key_up,
-                            on_textinput=self.keyboard_on_textinput)
-            if self._requested_keyboard:
-                keyboard.release()
-                self._keyboard = None
-                self._requested_keyboard = False
-                del FocusBehavior._keyboards[keyboard]
-            else:
-                FocusBehavior._keyboards[keyboard] = None
+        if not self._keyboard:
+            return
 
-    def keyboard_on_textinput(self, window, text):
-        pass
+        self._keyboard.unbind(
+            on_key_down=self.keyboard_on_key_down, on_key_up=self.keyboard_on_key_up
+        )
+
+        if self._requested_keyboard:
+            self._keyboard.release()
+            self._keyboard = None
+            self._requested_keyboard = False
 
     def _keyboard_released(self):
         self.focus = False
+
+    def _enter_focused_mode(self):
+        if self.disabled or not self.is_focusable:
+            self.focus = False
+            return
+        FocusBehavior._focusables.append(self)
+
+    def _exit_focused_mode(self):
+        if self in FocusBehavior._focusables:
+            FocusBehavior._focusables.remove(self)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -475,14 +451,13 @@ class FocusBehavior(object):
     def _handle_post_on_touch_up(touch):
         ''' Called by window after each touch has finished.
         '''
-        touches = FocusBehavior.ignored_touch
-        if touch in touches:
-            touches.remove(touch)
+        if touch in FocusBehavior.ignored_touch:
+            FocusBehavior.ignored_touch.remove(touch)
             return
         if 'button' in touch.profile and touch.button in\
                 ('scrollup', 'scrolldown', 'scrollleft', 'scrollright'):
             return
-        for focusable in list(FocusBehavior._keyboards.values()):
+        for focusable in FocusBehavior._focusables:
             if focusable is None or not focusable.unfocus_on_touch:
                 continue
             focusable.focus = False
@@ -529,6 +504,20 @@ class FocusBehavior(object):
            order when the ``tab`` + ``shift`` keys are triggered together.
         '''
         return self._get_focus_next('focus_previous')
+
+    def move_focus(self, direction):
+        ''' Move focus to the widget in the given direction.
+        '''
+        if direction == "next":
+            _new_widget = self.get_focus_next()
+        elif direction == "previous":
+            _new_widget = self.get_focus_previous()
+        else:
+            raise ValueError("Focus direction must be 'next' or 'previous'")
+
+        if _new_widget:
+            self.focus = False
+            _new_widget.focus = True
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
         '''The method bound to the keyboard when the instance has focus.
@@ -585,11 +574,11 @@ class FocusBehavior(object):
         Convenience function to show the keyboard in managed mode.
         '''
         if self.keyboard_mode == 'managed':
-            self._bind_keyboard()
+            raise NotImplementedError
 
     def hide_keyboard(self):
         '''
         Convenience function to hide the keyboard in managed mode.
         '''
         if self.keyboard_mode == 'managed':
-            self._unbind_keyboard()
+            raise NotImplementedError
