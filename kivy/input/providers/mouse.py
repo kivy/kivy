@@ -21,7 +21,7 @@ Using multitouch interaction with the mouse
 
 By default, the middle and right mouse buttons, as well as a combination of
 ctrl + left mouse button are used for multitouch emulation.
-Mutli-touch simulation behavior:
+Multi-touch simulation behavior:
     A right-click or middle-click or ctrl+left-click: a red dot appears. The
     dot represents a held touch.  The dot follows the cursor until mouse
     button is released, the touch sticks where it's been left until it's
@@ -171,7 +171,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.waiting_event = deque()
         self.touches = {}
         self.counter = 0
-        self.current_drag = {} # holds a touch for each held button, button is key
+        self.current_drag = {}
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
@@ -362,7 +362,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        found_touch = None if self.disable_multitouch else self.find_touch(win, nx, ny)  #area of concern
+        found_touch = None if self.disable_multitouch else \
+            self.find_touch(win, nx, ny)
         if found_touch:
             # a multi-touch red dot has been pressed
             self.current_drag['mt_simulation'] = found_touch
