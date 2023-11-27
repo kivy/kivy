@@ -36,7 +36,7 @@ Multi-touch simulation behavior:
     mouse cursor until the mouse button is released.  The dot will then
     disappear.
 
-If you want to use mouse buttons for other purposes, you can disable this 
+If you want to use mouse buttons for other purposes, you can disable this
 behavior by activating the "disable_multitouch" token::
 
    [input]
@@ -93,14 +93,15 @@ multitouch_sim   Specifies whether multitouch is simulated or not. Accessed
 
 '''
 
-__all__ = ('MouseMotionEventProvider', )
+__all__ = ('MouseMotionEventProvider',)
+
+from collections import deque
 
 from kivy.base import EventLoop
-from collections import deque
-from kivy.logger import Logger
-from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
+from kivy.input.provider import MotionEventProvider
+from kivy.logger import Logger
 
 # late binding
 Color = Ellipse = None
@@ -312,8 +313,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             # (because in that case, we wait to see if multitouch_sim
             # is True or not before doing the multitouch)
             create_flag = (
-                not self.disable_multitouch
-                and not self.multitouch_on_demand
+                    not self.disable_multitouch
+                    and not self.multitouch_on_demand
             )
             touch.update_graphics(win, create_flag)
         self.waiting_event.append(('begin', touch))
@@ -370,8 +371,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             # is_double_tap = 'shift' in modifiers
             do_graphics = (
-                not self.disable_multitouch
-                and (button != 'left' or 'ctrl' in modifiers)
+                    not self.disable_multitouch
+                    and (button != 'left' or 'ctrl' in modifiers)
             )
             self.create_touch(win, nx, ny, do_graphics, button)
 
@@ -392,9 +393,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             )
             not_ctrl = 'ctrl' not in modifiers
             not_multi = (
-                self.disable_multitouch
-                or 'multitouch_sim' not in touch.profile
-                or not touch.multitouch_sim
+                    self.disable_multitouch
+                    or 'multitouch_sim' not in touch.profile
+                    or not touch.multitouch_sim
             )
             if not_right and not_ctrl or not_multi:
                 self.remove_touch(win, touch)
