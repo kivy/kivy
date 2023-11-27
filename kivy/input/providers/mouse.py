@@ -351,12 +351,10 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_motion(self, win, x, y, modifiers):
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        for button in self.current_drag.keys():
-            if self.current_drag.get(button, None):
-                touch = self.current_drag[button]
-                touch.move([nx, ny])
-                touch.update_graphics(win)
-                self.waiting_event.append(('update', touch))
+        for touch in self.current_drag.values():
+            touch.move([nx, ny])
+            touch.update_graphics(win)
+            self.waiting_event.append(('update', touch))
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
