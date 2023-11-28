@@ -12,6 +12,17 @@ function raise-only-error{
     }
 }
 
+function Handle-NonZero-ExitCode {
+    param (
+        [int]$ExitCode
+    )
+
+    Write-Host "Exit code is: $ExitCode"
+    if ($ExitCode -ne 0) {
+        throw "Exiting due to non-zero exit code"
+    }
+}
+
 function Update-version-metadata {
     $current_time = python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))"
     $date = python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))"
@@ -107,6 +118,15 @@ function Install-kivy-sdist {
 function Test-kivy {
     # Tests with default environment variables.
     python -m pytest --timeout=400 --cov=kivy --cov-branch --cov-report= "$(pwd)/kivy/tests"
+
+    # Check the exit code.
+    # For some reason, if we get a Windows Fatal Error during the tests, pytest
+    # stops the tests, but does not fail.
+    # Since we do not have an option like -e for bash, we need to check the exit
+    # code manually, so the CI job fails if something goes wrong.
+    # See issue https://github.com/kivy/kivy/issues/8484 for more details.
+    Handle-NonZero-ExitCode -ExitCode $LastExitCode
+
     # Logging tests, with non-default log modes
     $env:KIVY_LOG_MODE = 'PYTHON'
     python -m pytest -m logmodepython --timeout=400 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
