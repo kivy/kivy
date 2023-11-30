@@ -583,8 +583,13 @@ class Widget(WidgetBase):
             If False, the event will continue to be dispatched to the rest
             of the widget tree.
         '''
-        if self.disabled and self.collide_point(*touch.pos):
-            return True
+        if not self.collide_point(*touch.pos):
+            return
+        if self.disabled:
+            if self.opacity == 0:
+                return
+            else:
+                return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
