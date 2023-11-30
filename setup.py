@@ -824,8 +824,9 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
     'boxshadow.pxd': ['fbo.pxd', 'context_instructions.pxd',
-                      'vertex_instructions.pxd'],
-    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd'],
+                      'vertex_instructions.pxd', 'instructions.pxd'],
+    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd',
+                      'instructions.pyx'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -1157,8 +1158,9 @@ if not build_examples:
         },
         license='MIT',
         description=(
-            'A software library for rapid development of '
-            'hardware-accelerated multitouch applications.'),
+            'An open-source Python framework for developing '
+            'GUI apps that work cross-platform, including '
+            'desktop, mobile and embedded platforms.'),
         long_description=get_description(),
         long_description_content_type='text/markdown',
         ext_modules=ext_modules,

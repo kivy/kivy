@@ -21,7 +21,7 @@ Installing Python
 Homebrew
 ~~~~~~~~
 
-If you're using `Homebrew <http://brew.sh>`_, you can install Python with::
+If you're using `Homebrew <https://brew.sh>`_, you can install Python with::
 
     brew install python3
 

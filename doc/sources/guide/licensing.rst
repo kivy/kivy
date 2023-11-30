@@ -34,7 +34,7 @@ code.
 * |dcutil|_
 * `pygments https://github.com/pygments/pygments/blob/master/LICENSE`_
 * `sdl2 <https://www.libsdl.org/license.php>`_
-* `glew <http://glew.sourceforge.net/glew.txt>`_
+* `glew <https://glew.sourceforge.net/glew.txt>`_
 * `gstreamer <https://github.com/GStreamer/gstreamer/blob/master/COPYING>`_
   (if used)
 * image & audio libraries(e.g. |mixer|_)
@@ -142,7 +142,7 @@ Avoiding binaries
 -----------------
 
 .. |cons| replace:: consequences
-.. _cons: http://programmers.stackexchange.com/a/234295
+.. _cons: https://programmers.stackexchange.com/a/234295
 
 There might be a way how to avoid this licensing process by avoiding creating
 a distribution with third-party stuff completely. With Python you can create

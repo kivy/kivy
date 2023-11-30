@@ -26,7 +26,11 @@ RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
 
 # Install patchelf (needed during delocation)
 RUN /bin/bash -c 'wget https://github.com/NixOS/patchelf/releases/download/0.17.2/patchelf-0.17.2-armv7l.tar.gz'
-RUN /bin/bash -c 'tar -xvf patchelf-0.17.2-armv7l.tar.gz -C /'
+RUN /bin/bash -c 'mkdir patchelf-0.17.2-armv7l'
+RUN /bin/bash -c 'tar -xvf patchelf-0.17.2-armv7l.tar.gz -C ./patchelf-0.17.2-armv7l && \
+    cp patchelf-0.17.2-armv7l/bin/patchelf /usr/local/bin/ && \
+    chmod +x /usr/local/bin/patchelf'
+RUN /bin/bash -c 'rm -rf patchelf-0.17.2-armv7l'
 RUN /bin/bash -c 'rm patchelf-0.17.2-armv7l.tar.gz'
 
 # Install auditwheel for delocation
@@ -40,13 +44,13 @@ RUN ./tools/build_linux_dependencies.sh
 RUN KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_SDL_GL_ALPHA_SIZE=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
 
 # Delocate the wheel.
-# if we're on buster, platform is manylinux_2_28_armv7l, if bullseye, manylinux_2_31_armv7l, otherwise let's just try manylinux2014_armv7l
+# buster: manylinux_2_28_armv7l, bullseye: manylinux_2_31_armv7l, bookworm: manylinux_2_35_armv7l
 RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
         MANYLINUX_PLATFORM=manylinux_2_28_armv7l; \
     elif [ "$(lsb_release -cs)" = "bullseye" ]; then \
         MANYLINUX_PLATFORM=manylinux_2_31_armv7l; \
-    else \
-        MANYLINUX_PLATFORM=manylinux2014_armv7l; \
+    elif [ "$(lsb_release -cs)" = "bookworm" ]; then \
+        MANYLINUX_PLATFORM=manylinux_2_35_armv7l; \
     fi; \
     auditwheel repair /kivy-wheel/Kivy-*.whl -w /kivy-delocated-wheel --plat "$MANYLINUX_PLATFORM" --no-update-tags --exclude libbrcmGLESv2.so --exclude libbcm_host.so --exclude libbrcmEGL.so'
 

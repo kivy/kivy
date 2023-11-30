@@ -289,6 +289,9 @@ cdef class VertexInstruction(Instruction):
     Triangles, Lines, Ellipse and so on.
     '''
     def __init__(self, **kwargs):
+        # avoid multiple values for 'noadd' in BindTexture below
+        noadd_value = kwargs.pop('noadd', False)
+
         # Set a BindTexture instruction to bind the texture used for
         # this instruction before the actual vertex instruction
         self.texture_binding = BindTexture(noadd=True, **kwargs)
@@ -297,7 +300,7 @@ cdef class VertexInstruction(Instruction):
         if tex_coords:
             self.tex_coords = tex_coords
 
-        Instruction.__init__(self, **kwargs)
+        Instruction.__init__(self, noadd=noadd_value, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
 

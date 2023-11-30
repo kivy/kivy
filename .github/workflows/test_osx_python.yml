@@ -16,47 +16,28 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        include:
-          - runs_on: macos-latest
-            python: '3.x'
-          - runs_on: apple-silicon-m1
-            python: '3.11'
+        runs_on: ['macos-latest', 'apple-silicon-m1']
+        python: ['3.11'] # Change me to 3.x when support for 3.12 is available
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python }}
-      # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-      if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - name: Cache macOS deps downloads
-      uses: actions/cache@v3
-      with:
-        path: osx-cache
-        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
     - name: Install build dependencies
       run: |
-        source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         brew install pkg-config cmake ninja
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         ./tools/build_macos_dependencies.sh
         install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         install_kivy
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         test_kivy
