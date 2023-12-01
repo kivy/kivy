@@ -73,7 +73,7 @@ class ClipboardWindows(ClipboardBase):
 
         # The wsclen function returns the number of
         # wide characters in a string (not including the null character)
-        text_len = msvcrt.wcslen(text)
+        text_len = msvcrt.wcslen(text) + 1
 
         # According to the docs regarding SetClipboardDatam, if the hMem
         # parameter identifies a memory object, the object must have
@@ -82,13 +82,18 @@ class ClipboardWindows(ClipboardBase):
         # The size of the memory object is the number of wide characters in
         # the string plus one for the terminating null character
         hCd = GlobalAlloc(
-            GMEM_MOVEABLE, ctypes.sizeof(ctypes.c_wchar) * (text_len + 1)
+            GMEM_MOVEABLE, ctypes.sizeof(ctypes.c_wchar) * text_len
         )
 
         # Since the memory object is allocated with GMEM_MOVEABLE, should be
         # locked to get the actual pointer to the data.
         hCd_locked = GlobalLock(hCd)
-        msvcrt.wcscpy(c_wchar_p(hCd_locked), text)
+        # msvcrt.wcscpy(c_wchar_p(hCd_locked), text)
+        ctypes.memmove(
+            c_wchar_p(hCd_locked),
+            c_wchar_p(text),
+            ctypes.sizeof(ctypes.c_wchar) * text_len,
+        )
         GlobalUnlock(hCd)
 
         # Finally, set the clipboard data (and then close the clipboard)
