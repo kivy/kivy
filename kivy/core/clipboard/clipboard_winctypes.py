@@ -32,6 +32,10 @@ GMEM_MOVEABLE = 0x0002
 
 class ClipboardWindows(ClipboardBase):
 
+    def _copy(self, data):
+        self._ensure_clipboard()
+        self.put(data, self._clip_mime_type)
+
     def get(self, mimetype='text/plain'):
         GetClipboardData = user32.GetClipboardData
         GetClipboardData.argtypes = [wintypes.UINT]
