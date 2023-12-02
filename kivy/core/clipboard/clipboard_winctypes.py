@@ -92,7 +92,6 @@ class ClipboardWindows(ClipboardBase):
         # Since the memory object is allocated with GMEM_MOVEABLE, should be
         # locked to get the actual pointer to the data.
         hCd_locked = GlobalLock(hCd)
-        # msvcrt.wcscpy(c_wchar_p(hCd_locked), text)
         ctypes.memmove(
             c_wchar_p(hCd_locked),
             c_wchar_p(text),
