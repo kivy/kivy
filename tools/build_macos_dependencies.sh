@@ -7,7 +7,7 @@ MACOS__SDL2__FOLDER="SDL2-${MACOS__SDL2__VERSION}"
 
 # macOS SDL2_image
 MACOS__SDL2_IMAGE__VERSION="2.7.1"
-MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
+MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/prerelease-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
 MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
 
 # macOS SDL2_mixer
