@@ -1420,6 +1420,16 @@ class TextInput(FocusBehavior, Widget):
 
         return cursor_x, cursor_y
 
+    def get_max_scroll_x(self):
+        '''
+        Return how many pixels it needs to scroll to the right
+        to reveal the remaining content of a text that extends
+        beyond the visible width of a TextInput
+        '''
+        minimum_width = self._get_row_width(0) + self.padding[0] + self.padding[2]
+        max_scroll_x = max(0, minimum_width - self.width)
+        return max_scroll_x
+
     #
     # Selection control
     #
