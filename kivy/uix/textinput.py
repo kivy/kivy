@@ -936,6 +936,7 @@ class TextInput(FocusBehavior, Widget):
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
             self._redo.append(x_item)
+            self.scroll_x = self.get_max_scroll_x()
         except IndexError:
             # reached at top of undo list
             pass
@@ -995,6 +996,7 @@ class TextInput(FocusBehavior, Widget):
             cursor_index,
             cursor_index - 1,
             substring, from_undo, mode)
+        self.scroll_x = self.get_max_scroll_x()
 
     def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
                           mode):
