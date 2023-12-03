@@ -2086,6 +2086,8 @@ class TextInput(FocusBehavior, Widget):
         self._ensure_clipboard()
         data = Clipboard.paste()
         self.delete_selection()
+        if not self.multiline:
+            data = data.replace('\n', ' ')
         self.insert_text(data)
 
     def _update_cutbuffer(self, *args):
