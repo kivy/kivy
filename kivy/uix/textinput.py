@@ -1428,7 +1428,8 @@ class TextInput(FocusBehavior, Widget):
         to reveal the remaining content of a text that extends
         beyond the visible width of a TextInput
         '''
-        minimum_width = self._get_row_width(0) + self.padding[0] + self.padding[2]
+        minimum_width = self._get_row_width(0) + self.padding[0] + \
+            self.padding[2]
         max_scroll_x = max(0, minimum_width - self.width)
         return max_scroll_x
 
@@ -1613,9 +1614,7 @@ class TextInput(FocusBehavior, Widget):
                                             self.lines_to_scroll)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._get_row_width(0) + self.padding[0] +
-                                     self.padding[2])
-                    max_scroll_x = max(0, minimum_width - self.width)
+                    max_scroll_x = self.get_max_scroll_x()
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +
                                             self.line_height)
@@ -1765,11 +1764,7 @@ class TextInput(FocusBehavior, Widget):
                 max_scroll_y
             )
         else:
-            minimum_width = (
-                self._get_row_width(0)
-                + self.padding[0] + self.padding[2]
-            )
-            max_scroll_x = max(0, minimum_width - self.width)
+            max_scroll_x = self.get_max_scroll_x()
             self.scroll_x = min(
                 max(0, self.scroll_x - touch.dx),
                 max_scroll_x
