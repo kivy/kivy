@@ -12,7 +12,7 @@ The ActionBar widget is like Android's `ActionBar
 are stacked horizontally. When the area becomes to small, widgets are moved
 into the :class:`ActionOverflow` area.
 
-An :class:`ActionBar` contains an :class:`ActionView` with various
+An :class:`ActionBar` must contain an :class:`ActionView` with various
 :class:`ContextualActionViews <kivy.uix.actionbar.ContextualActionView>`.
 An :class:`ActionView` must contain a child :class:`ActionPrevious` which may
 have title, app_icon and previous_icon properties. :class:`ActionView` children
