@@ -1,12 +1,12 @@
 set -e -x
 
 # macOS SDL2
-MACOS__SDL2__VERSION="2.26.4"
+MACOS__SDL2__VERSION="2.28.5"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
 MACOS__SDL2__FOLDER="SDL2-${MACOS__SDL2__VERSION}"
 
 # macOS SDL2_image
-MACOS__SDL2_IMAGE__VERSION="2.6.3"
+MACOS__SDL2_IMAGE__VERSION="2.8.0"
 MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
 MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
 
