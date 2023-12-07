@@ -499,6 +499,7 @@ class Widget(WidgetBase):
         elif etype == "end":
             event_to_dispatch = "on_touch_up"
         return self.dispatch_children(event_to_dispatch, touch)
+    
     #
     # Collision
     #
@@ -656,7 +657,7 @@ class Widget(WidgetBase):
 
         if self.is_visibly_disabled("begin", touch):
             return True
-        
+
         self._curr_touch = touch
         if self.child_handled_event("begin", touch):
             return True
