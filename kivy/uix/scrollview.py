@@ -697,7 +697,7 @@ class ScrollView(StencilView):
             # temporary fix for failing test will be removed in later
             # refactoring
             if (self.dispatch_children('on_scroll_start', touch)
-                or self.dispatch_children('on_touch_down', touch)):
+            or self.dispatch_children('on_touch_down', touch)):
                 touch.pop()
                 return True
             touch.pop()
