@@ -336,6 +336,9 @@ class Widget(WidgetBase):
     )
     _proxy_ref = None
 
+    _curr_touch = None
+    _prev_touch = None
+
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
@@ -471,6 +474,31 @@ class Widget(WidgetBase):
             self, ignored_consts=ignored_consts,
             rule_children=rule_children)
 
+    def child_handled_event(self, etype, touch):
+        '''
+        Check if any of the widgets children handled the touch
+
+        :Parameters:
+            `etype`: str
+                Event type, one of "begin", "update" or "end"
+            `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
+                Touch received. The touch is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
+
+        :Returns:
+            A bool. True if any of the widgets children handled the touch,
+            False otherwise.
+
+        '''
+        event_to_dispatch = None
+        if etype == "begin":
+            event_to_dispatch = "on_touch_down"
+        elif etype == "update":
+            event_to_dispatch = "on_touch_move"
+        elif etype == "end":
+            event_to_dispatch = "on_touch_up"
+        return self.dispatch_children(event_to_dispatch, touch)
     #
     # Collision
     #
@@ -529,6 +557,46 @@ class Widget(WidgetBase):
             return False
         return True
 
+    def is_event_relevant(self, etype, touch):
+        '''
+        Check if the event is relevant to the widget and its children
+
+        :Parameters:
+            `etype`: str
+                Event type, one of "begin", "update" or "end"
+            `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
+                Touch received. The touch is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
+
+        :Returns:
+            A bool. True if the event is relevant to the widget and its
+            children, False otherwise.
+
+        '''
+        # TODO: can two touch be equivalent after a touch up?
+        # If yes, we need to add etype check
+        return self.collide_point(*touch.pos) or (self._curr_touch is touch)
+
+    def is_visibly_disabled(self, etype, touch):
+        '''
+        Check if the widget is visible and disabled
+
+        :Parameters:
+            `etype`: str
+                Event type, one of "begin", "update" or "end"
+            `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
+                Touch received. The touch is in parent coordinates. See
+                :mod:`~kivy.uix.relativelayout` for a discussion on
+                coordinate systems.
+
+        :Returns:
+            A bool. True if the widget is visible and disabled, False
+            otherwise.
+
+        '''
+        return self.disabled and self.opacity != 0
+
     def on_motion(self, etype, me):
         '''Called when a motion event is received.
 
@@ -583,38 +651,50 @@ class Widget(WidgetBase):
             If False, the event will continue to be dispatched to the rest
             of the widget tree.
         '''
-        if not self.collide_point(*touch.pos):
-            return
-        if self.disabled:
-            if self.opacity == 0:
-                return
-            else:
-                return True
-        for child in self.children[:]:
-            if child.dispatch('on_touch_down', touch):
-                return True
+        if not self.is_event_relevant("begin", touch):
+            return False
+
+        if self.is_visibly_disabled("begin", touch):
+            return True
+        
+        self._curr_touch = touch
+        if self.child_handled_event("begin", touch):
+            return True
+
+        return False
 
     def on_touch_move(self, touch):
         '''Receive a touch move event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
-        if self.disabled:
-            return
-        for child in self.children[:]:
-            if child.dispatch('on_touch_move', touch):
-                return True
+        if not self.is_event_relevant("update", touch):
+            return False
+
+        if self.is_visibly_disabled("update", touch):
+            return True
+
+        self._curr_touch = None
+        if self.child_handled_event("update", touch):
+            return True
+
+        return False
 
     def on_touch_up(self, touch):
         '''Receive a touch up event. The touch is in parent coordinates.
 
         See :meth:`on_touch_down` for more information.
         '''
-        if self.disabled:
-            return
-        for child in self.children[:]:
-            if child.dispatch('on_touch_up', touch):
-                return True
+        if not self.is_event_relevant("end", touch):
+            return False
+
+        if self.is_visibly_disabled("end", touch):
+            return True
+
+        if self.child_handled_event("end", touch):
+            return True
+
+        return False
 
     def on_kv_post(self, base_widget):
         pass
