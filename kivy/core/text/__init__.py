@@ -89,7 +89,8 @@ from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
 from kivy.logger import Logger
-
+from arabic_reshaper import reshape
+from bidi.algorithm import get_display
 
 if 'KIVY_DOC' not in os.environ:
     _default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
@@ -849,7 +850,7 @@ class LabelBase(object):
 
     def _set_text(self, text):
         if text != self._text:
-            self._text = text
+            self._text = get_display(reshape(text))
 
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
