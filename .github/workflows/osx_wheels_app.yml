@@ -42,7 +42,7 @@ jobs:
   osx_wheels_create:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
-      CIBW_BUILD: "cp37-macosx_x86_64 cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2"
+      CIBW_BUILD: "cp37-macosx_x86_64 cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2 cp312-macosx_universal2"
       CIBW_ARCHS_MACOS: "x86_64 universal2"
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
         DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
@@ -76,7 +76,7 @@ jobs:
         ./tools/build_macos_dependencies.sh
     - name: Install cibuildwheel
       run: |
-        python -m pip install cibuildwheel==2.11.2
+        python -m pip install cibuildwheel==2.16.2
     - name: Build wheels
       run: |
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
@@ -136,7 +136,7 @@ jobs:
     strategy:
       matrix:
         runs_on: ['macos-latest', 'apple-silicon-m1']
-        python: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         exclude:
           # apple-silicon-m1 does not support older python versions (3.7, 3.8, 3.9)
           - runs_on: apple-silicon-m1
