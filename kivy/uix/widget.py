@@ -579,7 +579,7 @@ class Widget(WidgetBase):
         # If yes, we need to add etype check
         return self.collide_point(*touch.pos) or (self._curr_touch is touch)
 
-    def is_visibly_disabled(self, etype, touch):
+    def is_visible(self, etype, touch):
         '''
         Check if the widget is visible and disabled
 
@@ -592,11 +592,11 @@ class Widget(WidgetBase):
                 coordinate systems.
 
         :Returns:
-            A bool. True if the widget is visible and disabled, False
+            A bool. True if the widget is visible, False
             otherwise.
 
         '''
-        return self.disabled and self.opacity != 0
+        return self.opacity != 0
 
     def on_motion(self, etype, me):
         '''Called when a motion event is received.
@@ -655,8 +655,8 @@ class Widget(WidgetBase):
         if not self.is_event_relevant("begin", touch):
             return False
 
-        if self.is_visibly_disabled("begin", touch):
-            return True
+        if self.disabled:
+            return self.is_visible("begin", touch)
 
         self._curr_touch = touch
         if self.child_handled_event("begin", touch):
@@ -672,8 +672,8 @@ class Widget(WidgetBase):
         if not self.is_event_relevant("update", touch):
             return False
 
-        if self.is_visibly_disabled("update", touch):
-            return True
+        if self.disabled:
+            return self.is_visible("update", touch)
 
         self._curr_touch = None
         if self.child_handled_event("update", touch):
@@ -689,8 +689,8 @@ class Widget(WidgetBase):
         if not self.is_event_relevant("end", touch):
             return False
 
-        if self.is_visibly_disabled("end", touch):
-            return True
+        if self.disabled:
+            return self.is_visible("end", touch)
 
         if self.child_handled_event("end", touch):
             return True
