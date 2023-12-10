@@ -34,11 +34,16 @@ class LabelPIL(LabelBase):
 
     def get_extents(self, text):
         font = self._select_font()
-        w, h = font.getsize(text)
+        try:
+            w, h = font.getsize(text)
+        except AttributeError:
+            left, top, right, bottom = font.getbbox(text)
+            w = right - left
+            h = bottom
         return w, h
 
     def get_cached_extents(self):
-        return self._select_font().getsize
+        return self.get_extents
 
     def _render_begin(self):
         # create a surface, context, font...
