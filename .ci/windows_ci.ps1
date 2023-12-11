@@ -86,7 +86,7 @@ function Install-kivy-test-run-pip-deps {
 }
 
 function Install-kivy {
-    python -m pip install --prefer-binary -e .[dev,full]
+    python -m pip install --only-binary Pillow -e .[dev,full]
 }
 
 function Install-kivy-wheel {
