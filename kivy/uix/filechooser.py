@@ -85,46 +85,33 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
            'FileChooserProgressBase', 'FileSystemAbstract',
            'FileSystemLocal')
 
-from weakref import ref
-from time import time
-
-from kivy.core.text import DEFAULT_FONT
-from kivy.compat import string_types
-from kivy.factory import Factory
-from kivy.clock import Clock
-from kivy.lang import Builder
-from kivy.logger import Logger
-from kivy.utils import platform as core_platform
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import (
-    StringProperty, ListProperty, BooleanProperty, ObjectProperty,
-    NumericProperty, AliasProperty)
 import collections.abc
+from fnmatch import fnmatch
+import os
 from os import listdir
 from os.path import (
     basename, join, sep, normpath, expanduser, altsep,
     splitdrive, realpath, getsize, isdir, abspath, isfile, dirname)
-from fnmatch import fnmatch
+import stat
+from time import time
+from weakref import ref
+
+from kivy.clock import Clock
+from kivy.compat import string_types
+from kivy.core.text import DEFAULT_FONT
+from kivy.factory import Factory
+from kivy.lang import Builder
+from kivy.logger import Logger
+from kivy.properties import (
+    StringProperty, ListProperty, BooleanProperty, ObjectProperty,
+    NumericProperty, AliasProperty)
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.utils import platform as core_platform
 
 platform = core_platform
 filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
-
-_have_win32file = False
-if platform == 'win':
-    # Import that module here as it's not available on non-windows machines.
-    # See http://bit.ly/i9klJE except that the attributes are defined in
-    # win32file not win32com (bug on page).
-    # Note: For some reason this doesn't work after a os.chdir(), no matter to
-    #       what directory you change from where. Windows weirdness.
-    try:
-        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesExW, \
-                              error
-        _have_win32file = True
-    except ImportError:
-        Logger.error('filechooser: win32file module is missing')
-        Logger.error('filechooser: we cannot check if a file is hidden or not')
 
 
 def alphanumeric_folders_first(files, filesystem):
@@ -174,16 +161,15 @@ class FileSystemLocal(FileSystemAbstract):
 
     def is_hidden(self, fn):
         if platform == 'win':
-            if not _have_win32file:
-                return False
-            try:
-                return GetFileAttributesExW(fn)[0] & FILE_ATTRIBUTE_HIDDEN
-            except error:
-                # This error can occurred when a file is already accessed by
-                # someone else. So don't return to True, because we have lot
-                # of chances to not being able to do anything with it.
-                Logger.exception('unable to access to <%s>' % fn)
+            return (
+                    os.path.exists(fn) and
+                    os.stat(fn).st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
+        if platform == 'darwin':
+            if os.stat(fn).st_flags & stat.UF_HIDDEN:
                 return True
+            # Even if not UF_HIDDEN, dot prefix rule applies.
+            # Other hiding rules on macOS not supported: e.g. CoreFoundation's
+            # blacklist.
 
         return basename(fn).startswith('.')
 
