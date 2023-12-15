@@ -37,8 +37,11 @@ class LabelPIL(LabelBase):
         left, top, right, bottom = font.getbbox(text)
         ascent, descent = font.getmetrics()
 
+        if self.options['limit_render_to_text_bbox']:
+            h = bottom - top
+        else:
+            h = ascent + descent
         w = right - left
-        h = ascent + descent
 
         return w, h
 
@@ -52,6 +55,14 @@ class LabelPIL(LabelBase):
 
     def _render_text(self, text, x, y):
         color = tuple([int(c * 255) for c in self.options['color']])
+
+        # Adjust x and y position to avoid text cutoff
+        if self.options['limit_render_to_text_bbox']:
+            font = self._select_font()
+            bbox = font.getbbox(text)
+            x -= bbox[0]
+            y -= bbox[1]
+
         self._pil_draw.text((int(x), int(y)),
                             text, font=self._select_font(), fill=color)
 
