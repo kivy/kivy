@@ -186,16 +186,16 @@ class LabelBase(object):
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
         `limit_render_to_text_bbox`: bool, defaults to False. PIL only.
-            If set to ``True``, this parameter indicates that rendering should be
-            limited to the bounding box of the text, excluding any additional
-            white spaces designated for ascent and descent.
+            If set to ``True``, this parameter indicates that rendering should
+            be limited to the bounding box of the text, excluding any
+            additional white spaces designated for ascent and descent.
             By limiting the rendering to the bounding box of the text, it
             ensures a more precise alignment with surrounding elements when
             utilizing properties such as `valign`, `y`, `pos`, `pos_hint`, etc.
 
     .. versionadded:: 2.3.0
-        `limit_render_to_text_bbox` was added to allow to limit text rendering to
-        the text bounding box (PIL only).
+        `limit_render_to_text_bbox` was added to allow to limit text rendering
+        to the text bounding box (PIL only).
 
     .. deprecated:: 2.2.0
         `padding_x` and `padding_y` have been deprecated. Please use `padding`

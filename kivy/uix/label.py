@@ -1183,7 +1183,7 @@ class Label(Widget):
     '''If set to ``True``, this parameter indicates that rendering should be
     limited to the bounding box of the text, excluding any additional white
     spaces designated for ascent and descent.
-    
+
     By limiting the rendering to the bounding box of the text, it ensures a
     more precise alignment with surrounding elements when utilizing properties
     such as `valign`, `y`, `pos`, `pos_hint`, etc.
