@@ -198,6 +198,9 @@ jobs:
         run: |
           source .ci/ubuntu_ci.sh
           update_version_metadata
+      - name: Install build dependencies
+        run: |
+          brew install pkg-config cmake ninja
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
