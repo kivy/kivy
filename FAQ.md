@@ -10,22 +10,20 @@ platforms.
 As well as the [Kivy framework](https://github.com/kivy/kivy), there are a
 number of sibling projects maintained by the same team. Some have their own FAQs, including: 
 
-* [FAQ](https://github.com/kivy/python-for-android/blob/develop/FAQ.md) for 
-[python-for-android](https://python-for-android.readthedocs.io/en/latest/)
-build tool to let you package Python code (incuding Kivy apps)
-into standalone Android apps. 
-<!--
-Add references as they become available.
-* Buildozer: generic Python packager for Android and iOS.
-* Plyer: platform-independent Python wrapper for platform-dependent APIs.
-* Pyjnius: dynamic access to the Java/Android API from Python.
-* Pyobjus: dynamic access to the Objective-C/iOS API from Python.
-* Kivy iOS: toolchain for building and packaging Kivy applications for iOS.
-* Audiostream: library for direct access to the microphone and speaker.
-* KivEnt: entity-based game engine for Kivy.
-* Garden: widgets and libraries created and maintained by users.
-* Oscpy: a fast and tested python2/3 implementation of OSC.
--->
+* [FAQ](https://github.com/kivy/buildozer/blob/master/FAQ.md) for 
+[Buildozer](https://github.com/kivy/buildozer/): a development tool for turning Python applications into binary 
+packages ready for installation on any of a number of platforms, including mobile devices.
+* [FAQ](https://github.com/kivy/plyer/blob/master/FAQ.md) for [Plyer](https://github.com/kivy/plyer):
+a platform-independent Python API for accessing hardware features of various platforms (Android, iOS, macOS, Linux and
+Windows).
+* [FAQ](https://github.com/kivy/pyjnius/blob/master/FAQ.md) for [PyJNIus](https://github.com/kivy/pyjnius):
+a Python library for accessing Java classes using the Java Native Interface (JNI).
+* [FAQ](https://github.com/kivy/python-for-android/blob/master/FAQ.md) for 
+[python-for-android](https://github.com/kivy/python-for-android):
+a development tool that packages Python apps into binaries that can run on Android devices.
+* [FAQ](https://github.com/kivy/kivy-ios/blob/master/FAQ.md) for [Kivy for iOS](https://github.com/kivy/kivy-ios):
+a toolchain to compile the necessary libraries for iOS to run Kivy applications, and manage the creation of Xcode
+projects.
 
 ## Project Questions
 

@@ -23,7 +23,8 @@ supported by many projects managed by the
 
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![GitHub contributors](https://img.shields.io/github/contributors-anon/kivy/kivy)](https://github.com/kivy/kivy/graphs/contributors)
 
 ![PyPI - Version](https://img.shields.io/pypi/v/kivy)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/kivy)
@@ -73,25 +74,22 @@ Sibling projects
 The Kivy team manager a number of additional projects that support the Kivy 
 eco-system.
 
-- [Buildozer](https://github.com/kivy/buildozer): generic Python packager
-  for Android and iOS.
-- [Plyer](https://github.com/kivy/plyer): platform-independent Python wrapper
-  for platform-dependent APIs.
-- [Pyjnius](https://github.com/kivy/pyjnius): dynamic access to the Java/Android
-  API from Python.
-- [Pyobjus](https://github.com/kivy/pyobjus): dynamic access to the
-  Objective-C/iOS API from Python.
-- [Python for Android](https://github.com/kivy/python-for-android): toolchain
-  for building and packaging Python applications for Android.
-- [Kivy iOS](https://github.com/kivy/kivy-ios): toolchain for building and
-  packaging Kivy applications for iOS.
+- [Buildozer](https://github.com/kivy/buildozer):  a development tool for turning Python applications into binary packages ready for installation on
+  any of a number of platforms, including mobile devices.
+- [Plyer](https://github.com/kivy/plyer): a platform-independent Python API for accessing hardware features of various platforms (Android, iOS,
+  macOS, Linux and Windows).
+- [PyJNIus](https://github.com/kivy/pyjnius): a Python library for accessing Java classes using the Java Native Interface (JNI).
+- [Pyobjus](https://github.com/kivy/pyobjus): Python module for accessing Objective-C classes as Python classes using 
+  Objective-C runtime reflection.
+- [Python for Android](https://github.com/kivy/python-for-android): a development tool that packages Python apps into binaries that can run on Android devices.
+- [Kivy iOS](https://github.com/kivy/kivy-ios): a toolchain to compile the necessary libraries for iOS to run Kivy applications, and manage the
+  creation of Xcode projects.
 - [Audiostream](https://github.com/kivy/audiostream): library for direct access
   to the microphone and speaker.
 - [KivEnt](https://github.com/kivy/kivent): entity-based game engine for Kivy.
+- [Oscpy](https://github.com/kivy/oscpy/): a Python implementation of Open Sound Control (OSC) network protocol.
 - [Garden](https://github.com/kivy-garden): widgets and libraries created and
   maintained by users.
-- [Oscpy](https://github.com/kivy/oscpy/): a fast and tested python2/3
-  implementation of OSC.
 
 Licenses
 --------
@@ -107,52 +105,59 @@ Licenses
   and is licensed under the terms of the
   [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
 
+
+## Code of Conduct
+
+In the interest of fostering an open and welcoming community, we as 
+contributors and maintainers need to ensure participation in our project and 
+our sister projects is a harassment-free and positive experience for everyone. 
+It is vital that all interaction is conducted in a manner conveying respect, 
+open-mindedness and gratitude.
+
+Please consult the [latest Code of Conduct](https://github.com/kivy/kivy/blob/master/CODE_OF_CONDUCT.md).
+
 ## Contributors
 
-This project exists thanks to all the people who contribute.
+This project exists thanks to 
+[all the people who contribute](https://github.com/kivy/kivy/graphs/contributors).
 [[Become a contributor](CONTRIBUTING.md)].
-<a href="https://github.com/kivy/kivy/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
 
+<img src="https://contrib.nn.ci/api?repo=kivy/kivy&pages=5&no_bot=true&radius=22&cols=18">
 
 ## Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
+Thank you to [all of our backers](https://opencollective.com/kivy)! 
+🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
 
-<a href="https://opencollective.com/kivy#backers" target="_blank"><img src="https://opencollective.com/kivy/backers.svg?width=890"></a>
-
+<img src="https://opencollective.com/kivy/backers.svg?width=890&avatarHeight=44&button=false">
 
 ## Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/kivy#sponsor)]
+Special thanks to 
+[all of our sponsors, past and present](https://opencollective.com/kivy).
+Support this project by 
+[[becoming a sponsor](https://opencollective.com/kivy#sponsor)].
 
+Here are our top current sponsors. Please click through to see their websites,
+and support them as they support us. 
+
+<!--- See https://github.com/orgs/kivy/discussions/15 for explanation of this code. -->
 <a href="https://opencollective.com/kivy/sponsor/0/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/1/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/1/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/2/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/2/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/3/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/3/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/4/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/4/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/5/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/5/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/6/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/6/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/10/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/10/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/11/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/11/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/12/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/12/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/13/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/13/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/14/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/14/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/15/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/15/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/16/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/16/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/17/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/17/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/18/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/18/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/19/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/19/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/20/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/20/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/21/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/21/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/22/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/22/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/23/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/23/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/24/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/24/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/25/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/25/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/26/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/26/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/27/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/27/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/28/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/28/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/29/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/29/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/30/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
