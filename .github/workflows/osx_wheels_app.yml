@@ -209,9 +209,8 @@ jobs:
           install_kivy_test_run_pip_deps dev
       - name: Make app bundle
         run: |
-          py_version=$(python3 -c "import platform; print(platform.python_version())")
           source .ci/osx_ci.sh
-          generate_osx_app_bundle "$py_version"
+          generate_osx_app_bundle
       - name: Create dmg from bundle
         run: |
           source .ci/osx_ci.sh
