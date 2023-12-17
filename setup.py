@@ -1155,6 +1155,8 @@ if not build_examples:
         url='http://kivy.org',
         project_urls={
             'Source': 'https://github.com/kivy/kivy',
+            'Documentation': 'https://kivy.org/doc/stable/',
+            'Bug Reports': "https://github.com/kivy/kivy/issues",
         },
         license='MIT',
         description=(
