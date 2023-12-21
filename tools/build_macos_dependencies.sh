@@ -25,6 +25,10 @@ MACOS__LIBPNG__VERSION="1.6.40"
 MACOS__LIBPNG__URL="https://download.sourceforge.net/libpng/libpng16/${MACOS__LIBPNG__VERSION}/libpng-${MACOS__LIBPNG__VERSION}.tar.gz"
 MACOS__LIBPNG__FOLDER="libpng-${MACOS__LIBPNG__VERSION}"
 
+MACOS__ANGLE__VERSION="chromium-6261_rev1"
+MACOS__ANGLE_URL="https://github.com/kivy/angle-builder/releases/download/${MACOS__ANGLE__VERSION}/angle-macos-universal.tar.gz"
+MACOS__ANGLE__FOLDER="angle-macos-universal"
+
 # Clean the dependencies folder
 rm -rf kivy-dependencies
 
@@ -40,6 +44,7 @@ curl -L $MACOS__SDL2_IMAGE__URL -o "${MACOS__SDL2_IMAGE__FOLDER}.tar.gz"
 curl -L $MACOS__SDL2_MIXER__URL -o "${MACOS__SDL2_MIXER__FOLDER}.tar.gz"
 curl -L $MACOS__SDL2_TTF__URL -o "${MACOS__SDL2_TTF__FOLDER}.tar.gz"
 curl -L $MACOS__LIBPNG__URL -o "${MACOS__LIBPNG__FOLDER}.tar.gz"
+curl -L $MACOS__ANGLE_URL -o "${MACOS__ANGLE__FOLDER}.tar.gz"
 popd
 
 # Extract the dependencies into build folder
@@ -57,6 +62,18 @@ popd
 echo "Creating distribution folder..."
 mkdir kivy-dependencies/dist
 mkdir kivy-dependencies/dist/Frameworks
+mkdir kivy-dependencies/dist/include
+mkdir kivy-dependencies/dist/lib
+
+# Extract ANGLE in distribution folder
+echo "Extracting ANGLE..."
+pushd kivy-dependencies/dist
+mkdir $MACOS__ANGLE__FOLDER
+tar -xzf ../download/${MACOS__ANGLE__FOLDER}.tar.gz -C $MACOS__ANGLE__FOLDER
+cp -r ${MACOS__ANGLE__FOLDER}/include/* include
+cp ${MACOS__ANGLE__FOLDER}/*.dylib lib
+rm -r $MACOS__ANGLE__FOLDER
+popd
 
 LIBPNG_SEARCH_PATH="$(pwd)/kivy-dependencies/dist/Frameworks/png.framework/Headers"
 FRAMEWORK_SEARCH_PATHS="$(pwd)/kivy-dependencies/dist/Frameworks"
@@ -89,7 +106,8 @@ popd
 echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
-        -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
+        -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release \
+        GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
 cp -r Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
 popd
 

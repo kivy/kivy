@@ -9,6 +9,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
 from kivy.graphics.cgl cimport *
+from kivy.graphics.egl_backend.egl_angle cimport EGLANGLE
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
@@ -35,6 +36,9 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Surface *icon
     cdef int win_flags
     cdef object event_filter
+    cdef str gl_backend_name
+    cdef int sdl_manages_egl_context
+    cdef EGLANGLE egl_angle_storage
 
     def __cinit__(self):
         self.win = NULL
@@ -42,6 +46,8 @@ cdef class _WindowSDL2Storage:
         self.surface = NULL
         self.win_flags = 0
         self.event_filter = None
+        self.gl_backend_name = None
+        self.egl_angle_storage = None
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -78,13 +84,19 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Window * _setup_sdl_window(self, x, y, width, height, multisamples, shaped):
 
         if multisamples:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(
-                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-            )
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+                SDL_GL_SetAttribute(
+                    SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
+                )
+            else:
+                # Non-SDL GL context, so we can't set the multisample
+                # attributes.
+                return NULL
         else:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
 
         if shaped:
             return SDL_CreateShapedWindow(
@@ -95,8 +107,75 @@ cdef class _WindowSDL2Storage:
                 NULL, x, y, width, height, self.win_flags
             )
 
+    cdef _create_egl_context(self):
+
+        cdef void *native_layer
+
+        if self.gl_backend_name == "mock":
+            return
+
+        if self.sdl_manages_egl_context:
+            self.ctx = SDL_GL_CreateContext(self.win)
+            if not self.ctx:
+                self.die()
+            return
+
+        if self.gl_backend_name == "angle":
+
+            if platform in ("macosx", "ios"):
+                native_layer = SDL_Metal_GetLayer(SDL_Metal_CreateView(self.win))
+            else:
+                Logger.error("WindowSDL: ANGLE is only supported on iOS and macOS")
+                self.die()
+
+            self.egl_angle_storage = EGLANGLE()
+            self.egl_angle_storage.set_native_layer(native_layer)
+            self.egl_angle_storage.create_context()
+
+    cdef _destroy_egl_context(self):
+
+        if self.gl_backend_name == "mock":
+            return
+
+        if self.sdl_manages_egl_context:
+            if self.ctx != NULL:
+                SDL_GL_DeleteContext(self.ctx)
+            return
+
+        if self.gl_backend_name == "angle":
+            self.egl_angle_storage.destroy_context()
+            return
+
+    def _set_sdl_gl_common_attributes(self):
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, KIVY_SDL_GL_ALPHA_SIZE)
+        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
+
+        if self.gl_backend_name == "angle_sdl2":
+            Logger.info("Window: Activate GLES2/ANGLE context")
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
+            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
+
     def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
-        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+        self.gl_backend_name = gl_backend
+        self.sdl_manages_egl_context = gl_backend != "angle"
+
+        self.win_flags  = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+
+        if self.sdl_manages_egl_context:
+            self.win_flags |= SDL_WINDOW_OPENGL
+
+        if not self.sdl_manages_egl_context and platform in ("macosx", "ios"):
+            self.win_flags |= SDL_WINDOW_METAL
 
         if resizable:
             self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -158,25 +237,13 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
 
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, KIVY_SDL_GL_ALPHA_SIZE)
-        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-
-        if gl_backend == "angle_sdl2":
-            Logger.info("Window: Activate GLES2/ANGLE context")
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
-            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
-
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
+
+        if self.sdl_manages_egl_context:
+            self._set_sdl_gl_common_attributes()
 
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
@@ -224,17 +291,11 @@ cdef class _WindowSDL2Storage:
         if not self.win:
             self.die()
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
-
-        if gl_backend != "mock":
-            self.ctx = SDL_GL_CreateContext(self.win)
-            if not self.ctx:
-                self.die()
+        self._create_egl_context()
 
         # vsync
         vsync = Config.get('graphics', 'vsync')
-        if vsync and vsync != 'none':
+        if self.sdl_manages_egl_context and vsync and vsync != 'none':
             vsync = Config.getint('graphics', 'vsync')
 
             Logger.debug(f'WindowSDL: setting vsync interval=={vsync}')
@@ -510,9 +571,8 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        if self.ctx != NULL:
-            SDL_GL_DeleteContext(self.ctx)
-            self.ctx = NULL
+        self._destroy_egl_context()
+
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
@@ -782,8 +842,11 @@ cdef class _WindowSDL2Storage:
         # released. Calling SDL_GL_SwapWindow with the GIL released allow the
         # other thread to run (e.g. to process the event filter callback) and
         # release the mutex SDL_GL_SwapWindow is waiting for.
-        with nogil:
-            SDL_GL_SwapWindow(self.win)
+        if self.sdl_manages_egl_context:
+            with nogil:
+                SDL_GL_SwapWindow(self.win)
+        else:
+            self.egl_angle_storage.swap_buffers()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
