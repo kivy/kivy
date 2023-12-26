@@ -34,12 +34,12 @@ class LabelPIL(LabelBase):
 
     def get_extents(self, text):
         font = self._select_font()
-        try:
-            w, h = font.getsize(text)
-        except AttributeError:
-            left, top, right, bottom = font.getbbox(text)
-            w = right - left
-            h = bottom
+        left, top, right, bottom = font.getbbox(text)
+        ascent, descent = font.getmetrics()
+
+        w = right - left
+        h = ascent + descent
+
         return w, h
 
     def get_cached_extents(self):
