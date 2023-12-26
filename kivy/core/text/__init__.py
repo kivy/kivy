@@ -185,6 +185,17 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
+        `limit_render_to_text_bbox`: bool, defaults to False. PIL only.
+            If set to ``True``, this parameter indicates that rendering should
+            be limited to the bounding box of the text, excluding any
+            additional white spaces designated for ascent and descent.
+            By limiting the rendering to the bounding box of the text, it
+            ensures a more precise alignment with surrounding elements when
+            utilizing properties such as `valign`, `y`, `pos`, `pos_hint`, etc.
+
+    .. versionadded:: 2.3.0
+        `limit_render_to_text_bbox` was added to allow to limit text rendering
+        to the text bounding box (PIL only).
 
     .. deprecated:: 2.2.0
         `padding_x` and `padding_y` have been deprecated. Please use `padding`
@@ -249,6 +260,7 @@ class LabelBase(object):
         outline_width=None, outline_color=None, font_context=None,
         font_features=None, base_direction=None, font_direction='ltr',
         font_script_name='Latin', text_language=None,
+        limit_render_to_text_bbox=False,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -273,7 +285,8 @@ class LabelBase(object):
                    'base_direction': base_direction,
                    'font_direction': font_direction,
                    'font_script_name': font_script_name,
-                   'text_language': text_language}
+                   'text_language': text_language,
+                   'limit_render_to_text_bbox': limit_render_to_text_bbox}
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
