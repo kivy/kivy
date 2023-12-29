@@ -39,7 +39,7 @@ class LabelPIL(LabelBase):
         font = self._select_font()
         if not font:
             return 0, 0
-        
+
         left, top, right, bottom = font.getbbox(text)
         ascent, descent = font.getmetrics()
 
