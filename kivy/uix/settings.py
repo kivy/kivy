@@ -672,7 +672,7 @@ class SettingTitle(Label):
     '''A simple title label, used to organize the settings in sections.
     '''
 
-    title = Label.text
+    title = StringProperty()
 
     panel = ObjectProperty(None)
 
