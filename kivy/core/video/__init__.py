@@ -83,7 +83,7 @@ class VideoBase(EventDispatcher):
             self.eos = 'stop'
         self.filename = kwargs.get('filename')
 
-        Clock.schedule_interval(self._update, 1 / 30.)
+        Clock.schedule_interval(self._update, 0)
 
         if self._autoplay:
             self.play()
