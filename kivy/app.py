@@ -1195,6 +1195,10 @@ Context.html#getFilesDir()>`_ is returned.
         if platform == 'android' and not USE_SDL2:
             import pygame
             setting_key = pygame.K_MENU
+        # another android hack, key is SDL2_AC_BACK
+        elif platform == 'android' and USE_SDL2:
+            SDLK_AC_BACK = 1073742094
+            setting_key = SDLK_AC_BACK
 
         if key == setting_key:
             # toggle settings panel
