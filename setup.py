@@ -597,10 +597,6 @@ class CythonExtension(Extension):
             'language_level': 3,
             'unraisable_tracebacks': True,
         }
-        # XXX with pip, setuptools is imported before distutils, and change
-        # our pyx to c, then, cythonize doesn't happen. So force again our
-        # sources
-        self.sources = args[1]
 
 
 def merge(d1, *args):
@@ -828,8 +824,9 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
     'boxshadow.pxd': ['fbo.pxd', 'context_instructions.pxd',
-                      'vertex_instructions.pxd'],
-    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd'],
+                      'vertex_instructions.pxd', 'instructions.pxd'],
+    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd',
+                      'instructions.pyx'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -1158,11 +1155,14 @@ if not build_examples:
         url='http://kivy.org',
         project_urls={
             'Source': 'https://github.com/kivy/kivy',
+            'Documentation': 'https://kivy.org/doc/stable/',
+            'Bug Reports': "https://github.com/kivy/kivy/issues",
         },
         license='MIT',
         description=(
-            'A software library for rapid development of '
-            'hardware-accelerated multitouch applications.'),
+            'An open-source Python framework for developing '
+            'GUI apps that work cross-platform, including '
+            'desktop, mobile and embedded platforms.'),
         long_description=get_description(),
         long_description_content_type='text/markdown',
         ext_modules=ext_modules,
@@ -1203,6 +1203,7 @@ if not build_examples:
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
+            'Programming Language :: Python :: 3.12',
             'Topic :: Artistic Software',
             'Topic :: Games/Entertainment',
             'Topic :: Multimedia :: Graphics :: 3D Rendering',

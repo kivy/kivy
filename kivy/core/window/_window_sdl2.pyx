@@ -263,7 +263,7 @@ cdef class _WindowSDL2Storage:
         for joy_i in range(SDL_NumJoysticks()):
             SDL_JoystickOpen(joy_i)
 
-        SDL_SetEventFilter(_event_filter, <void *>self)
+        SDL_SetEventFilter(<SDL_EventFilter *>_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
@@ -394,6 +394,23 @@ cdef class _WindowSDL2Storage:
     def set_window_pos(self, x, y):
         SDL_SetWindowPosition(self.win, x, y)
 
+    def set_window_opacity(self, opacity):
+        if SDL_SetWindowOpacity(self.win, opacity):
+            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            Logger.error(f'WindowSDL: Setting opacity to {opacity} failed - '
+                         f'{message}')
+            return False
+        return True
+
+    def get_window_opacity(self):
+        cdef float opacity
+        if SDL_GetWindowOpacity(self.win, &opacity):
+            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            Logger.error(f'WindowSDL: Getting opacity failed - {message}')
+            return 1.0
+        else:
+            return opacity
+
     def get_window_info(self):
         cdef SDL_SysWMinfo wm_info
         SDL_GetVersion(&wm_info.version)
@@ -437,7 +454,7 @@ cdef class _WindowSDL2Storage:
     def set_shape(self, shape, mode, cutoff, color_key):
         cdef SDL_Surface * sdl_shape
 
-        cpdef SDL_WindowShapeMode sdl_window_mode
+        cdef SDL_WindowShapeMode sdl_window_mode
         cdef SDL_WindowShapeParams parameters
         cdef SDL_Color color
         cdef int result
@@ -793,7 +810,7 @@ cdef class _WindowSDL2Storage:
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
-        return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
+        return SDL_SetWindowHitTest(self.win, <SDL_HitTest>custom_titlebar_handler_callback,<void *>titlebar_widget)
 
     @property
     def window_size(self):

@@ -54,9 +54,10 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster) and Python 3.9 (Raspberry Pi OS Bullseye),
-via the `PiWheels <https://www.piwheels.org/>`_ project. For other Python versions, on 32 bit OSes, you will need to
-install from source.
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster), Python 3.9 (Raspberry Pi OS Bullseye)
+and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
+
+For other Python versions, on 32 bit OSes, you will need to install from source.
 
 
 Setup terminal and pip
@@ -74,13 +75,13 @@ subsequent commands outside the virtual environment)::
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+Create a new `virtual environment <https://docs.python.org/3/library/venv.html>`_
 for your Kivy project. A virtual environment will prevent possible installation conflicts
 with other Python versions and packages. It's optional **but strongly recommended**:
 
 #. Create the virtual environment named ``kivy_venv`` in your current directory::
 
-       python -m virtualenv kivy_venv
+       python -m venv kivy_venv
 
 #. Activate the virtual environment. You will have to do this step from the current directory
    **every time** you start a new terminal. This sets up the environment so the new ``kivy_venv``
@@ -120,6 +121,29 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
+
+.. note::
+
+    The ``Pillow`` library is a dependency of both ``kivy[base]`` and ``kivy[full]``.
+
+    For Windows 32-bit users, please note that the latest releases of `Pillow` are 
+    not available as binary distributions on PyPI. However, Kivy also supports ``Pillow==9.5.0``, 
+    which have a binary distribution for all supported Python versions, even on Windows 32-bit.
+
+    If you are on Windows 32-bit and prefer not to build Pillow from source, 
+    you can use the ``--only-binary Pillow`` flag with the following command to instruct pip 
+    to install the binary distribution of Pillow, albeit not the latest version::
+
+        python -m pip install --only-binary Pillow "kivy[base]"
+
+.. note::
+
+    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional 
+    dependencies to ensure Kivy functions properly.
+
+    For instance, on Raspberry Pi OS Lite, you will be required to install the following dependencies::
+
+        apt-get install libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
 
 .. _kivy-source-install:
 
@@ -166,7 +190,7 @@ On **macOS**::
 
 On **Linux**::
 
-    curl -O https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
+    curl https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
 
 Make the script executable::
 
@@ -362,7 +386,7 @@ Following are the ``kivy_deps`` dependency wheels:
   We only provide it on Windows, for other platforms it must be installed independently.
   Alternatively, use `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_  instead.
 
-* `glew <http://glew.sourceforge.net/>`_ and/or
+* `glew <https://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_
 
   ``kivy_deps.glew`` and ``kivy_deps.angle`` are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_.
@@ -372,7 +396,7 @@ Following are the ``kivy_deps`` dependency wheels:
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
   (the default), ``angle_sdl2``, or ``sdl2``. Here, ``angle_sdl2`` is a substitute for
-  ``glew`` but requires ``kivy_deps.sdl2`` be installed as well.
+  ``glew`` but requires ``kivy_deps.sdl2`` to be installed as well.
 
 * `sdl2 <https://libsdl.org>`_
 
@@ -412,7 +436,7 @@ How to use the command line
 To execute any of the ``pip`` or ``wheel`` commands given here, you need a *command line* (here also called *console*, *terminal*, `shell <https://en.wikipedia.org/wiki/Unix_shell>`_ or `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_, where the last two refer to Linux / *BSD Unix style command lines) and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
 The default command line on Windows is the
-`command prompt <http://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
+`command prompt <https://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
 quickest way to open it is to press `Win+R` on your keyboard.
 In the window that opens, type ``cmd`` and then press enter.
 
@@ -427,8 +451,8 @@ If you have installed Python using the default options, then the path to Python 
 
 If however Python is not on your PATH, follow the these instructions to add it:
 
-* Instructions for `the windows command line <http://www.computerhope.com/issues/ch000549.htm>`_
-* Instructions for `bash command lines <http://stackoverflow.com/q/14637979>`_
+* Instructions for `the windows command line <https://www.computerhope.com/issues/ch000549.htm>`_
+* Instructions for `bash command lines <https://stackoverflow.com/q/14637979>`_
 
 .. _pip-wheel:
 

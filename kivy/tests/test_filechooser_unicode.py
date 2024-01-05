@@ -1,95 +1,82 @@
 # -*- coding: utf-8 -*-
 # XXX: please be careful to only save this file with an utf-8 editor
+
+from os import remove, rmdir, mkdir
+from os.path import join, dirname, isdir
 import unittest
+from zipfile import ZipFile
+
 import pytest
-from kivy import platform
+
+from kivy.clock import Clock
+from kivy.uix.filechooser import FileChooserListView
+from kivy.utils import platform
+
 unicode_char = chr
 
 
 class FileChooserUnicodeTestCase(unittest.TestCase):
-
     def setUp(self):
-        self.skip_test = platform == 'macosx' or platform == 'ios'
-        # on mac, files ending in \uffff etc. simply are changed so don't
-        # do any tests because we cannot predict the real filenames that will
-        # be created. If it works on win and linux it also works on mac.
-        # note filechooser should still work, it's only the test that fail
-        # because we have to create file ourselves.
-        if self.skip_test:
-            return
-        import os
-        from os.path import join
-        from zipfile import ZipFile
-        basepath = os.path.dirname(__file__) + u''
-        basepathu = join(basepath, u'filechooser_files')
-        self.basepathu = basepathu
-        basepathb = os.path.dirname(__file__.encode())
-        basepathb = join(basepathb, b'filechooser_files')
-        self.assertIsInstance(basepathb, bytes)
-        self.basepathb = basepathb
+        basepath = dirname(__file__)
+        subdir = join(basepath, "filechooser_files")
+        self.subdir = subdir
 
-        # this will test creating unicode and bytes filenames
-        ufiles = [u'कीवीtestu',
-                  u'कीवीtestu' + unicode_char(0xEEEE),
-                  u'कीवीtestu' + unicode_char(0xEEEE - 1),
-                  u'कीवीtestu' + unicode_char(0xEE)]
-        # don't use non-ascii directly because that will test source file
-        # text conversion, not path issues :)
-        bfiles = [b'\xc3\xa0\xc2\xa4\xe2\x80\xa2\xc3\xa0\xc2\xa5\xe2\x82\xac\
-        \xc3\xa0\xc2\xa4\xc2\xb5\xc3\xa0\xc2\xa5\xe2\x82\xactestb',
-        b'oor\xff\xff\xff\xff\xee\xfe\xef\x81\x8D\x99testb']
-        self.ufiles = [join(basepathu, f) for f in ufiles]
-        self.bfiles = []
-        if not os.path.isdir(basepathu):
-            os.mkdir(basepathu)
-        for f in self.ufiles:
-            open(f, 'wb').close()
-        for f in self.bfiles:
-            open(f, 'wb').close()
+        ufiles = [
+            "कीवीtestu",
+            "कीवीtestu" + unicode_char(0xEEEE),
+            "कीवीtestu" + unicode_char(0xEEEE - 1),
+            "कीवीtestu" + unicode_char(0xEE),
+        ]
+        self.files = [join(subdir, f) for f in ufiles]
+        if not isdir(subdir):
+            mkdir(subdir)
+        for f in self.files:
+            open(f, "wb").close()
 
         # existing files
-        existfiles = [u'à¤•à¥€à¤µà¥€test', u'à¤•à¥€à¤’µà¥€test',
-                      u'Ã Â¤â€¢Ã Â¥â‚¬Ã Â¤ÂµÃ Â¥â‚¬test', u'testl\ufffe',
-                      u'testl\uffff']
-        self.exitsfiles = [join(basepathu, f) for f in existfiles]
-        with ZipFile(join(basepath, u'unicode_files.zip'), 'r') as myzip:
-            myzip.extractall(path=basepathu)
-        for f in self.exitsfiles:
-            open(f, 'rb').close()
+        existfiles = [
+            "à¤•à¥€à¤µà¥€test",
+            "à¤•à¥€à¤’µà¥€test",
+            "Ã Â¤â€¢Ã Â¥â‚¬Ã Â¤ÂµÃ Â¥â‚¬test",
+            "testl\ufffe",
+            "testl\uffff",
+        ]
+        self.existfiles = [join(subdir, f) for f in existfiles]
+        with ZipFile(join(basepath, "unicode_files.zip"), "r") as myzip:
+            myzip.extractall(path=subdir)
+        for f in self.existfiles:
+            open(f, "rb").close()
 
     @pytest.fixture(autouse=True)
     def set_clock(self, kivy_clock):
         self.kivy_clock = kivy_clock
 
+    @pytest.mark.skipif(
+        platform == "macosx" or platform == "ios",
+        reason="Unicode files unpredictable on MacOS and iOS",
+    )
+    # On macOS and iOS, files ending in \uffff etc. are changed.
+    # We cannot predict the filenames that will be created.
+    # If it works on Window and Linux, we can safely assume it also works
+    # on macOS and iOS.
     def test_filechooserlistview_unicode(self):
-        if self.skip_test:
-            return
-        from kivy.uix.filechooser import FileChooserListView
-        from kivy.clock import Clock
-        from os.path import join
 
-        wid = FileChooserListView(path=self.basepathu)
-        for i in range(1):
-            Clock.tick()
-        files = [join(self.basepathu, f) for f in wid.files]
-        for f in self.ufiles:
+        wid = FileChooserListView(path=self.subdir)
+        Clock.tick()
+        files = [join(self.subdir, f) for f in wid.files]
+        for f in self.files:
             self.assertIn(f, files)
-        # we cannot test the bfiles because we'd have to know the system
-        # unicode encoding to be able to compare to returned unicode
-        for f in self.exitsfiles:
+
+        for f in self.existfiles:
             self.assertIn(f, files)
 
     def tearDown(self):
-        if self.skip_test:
-            return
-        from os import remove, rmdir
+        for f in self.files + self.existfiles:
+            try:
+                remove(f)
+            except (OSError, FileNotFoundError):
+                pass
         try:
-            for f in self.ufiles:
-                remove(f)
-            for f in self.exitsfiles:
-                remove(f)
-            for f in self.bfiles:
-                remove(f)
-            rmdir(self.basepathu)
-        except:
+            rmdir(self.subdir)
+        except (OSError, FileNotFoundError):
             pass

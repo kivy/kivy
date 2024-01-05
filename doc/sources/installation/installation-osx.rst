@@ -21,7 +21,7 @@ Installing Python
 Homebrew
 ~~~~~~~~
 
-If you're using `Homebrew <http://brew.sh>`_, you can install Python with::
+If you're using `Homebrew <https://brew.sh>`_, you can install Python with::
 
     brew install python3
 
@@ -55,10 +55,10 @@ To install Kivy from source, please follow the :ref:`installation guide<kivy-whe
 :ref:`Kivy install step<kivy-source-install>` and then install the additional dependencies
 below before continuing.
 
-**pkg-config** is required to build Kivy from source. If you're using ``brew`` as your
+**pkg-config**, **cmake**, **ninja** are required to build Kivy from source. If you're using ``brew`` as your
 package manager, you can install it with::
 
-    brew install pkg-config
+    brew install pkg-config cmake ninja
 
 Now that you have all the dependencies for kivy, you need to make sure
 you have the command line tools installed::

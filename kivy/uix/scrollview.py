@@ -7,6 +7,10 @@ ScrollView
 The :class:`ScrollView` widget provides a scrollable/pannable viewport that is
 clipped at the scrollview's bounding box.
 
+.. note::
+    Use :class:`~kivy.uix.recycleview.RecycleView` for generating large
+    numbers of widgets in order to display many data items.
+
 
 Scrolling Behavior
 ------------------

@@ -62,6 +62,7 @@ from kivy.graphics.fbo cimport Fbo
 from kivy.graphics.vertex_instructions import Rectangle, RoundedRectangle
 from kivy.graphics.context_instructions cimport Translate, Scale
 from kivy.graphics.gl_instructions import ClearBuffers, ClearColor
+from kivy.graphics.instructions cimport InstructionGroup
 
 
 cdef str SHADOW_fs = """
@@ -135,11 +136,22 @@ void main (void){
 """
 
 
-cdef class BoxShadow(Fbo):
+cdef class BoxShadow(InstructionGroup):
 
     '''A box shadow effect.
 
     .. versionadded:: 2.2.0
+
+    .. versionchanged:: 2.3.0
+        Fixed :class:`~kivy.graphics.instructions.Canvas` management using
+        :meth:`~kivy.graphics.instructions.Canvas.add`,
+        :meth:`~kivy.graphics.instructions.Canvas.insert` and
+        :meth:`~kivy.graphics.instructions.Canvas.remove`.
+        Previously, using them to manage the :class:`~kivy.graphics.instructions.Canvas` had no effect.
+
+        The base class also changed from :class:`~kivy.graphics.fbo.Fbo`
+        to :class:`~kivy.graphics.instructions.InstructionGroup`.
+
 
     :Parameters:
 
@@ -167,7 +179,7 @@ cdef class BoxShadow(Fbo):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(BoxShadow, self).__init__(size=(100, 100), fs=SHADOW_fs)
+        super().__init__()
         inset = kwargs.get("inset", False)
         pos = kwargs.get("pos", (0.0, 0.0))
         size = kwargs.get("size", (100.0, 100.0))
@@ -196,18 +208,22 @@ cdef class BoxShadow(Fbo):
         self._init_texture()
 
     cdef void _init_texture(self):
-        with self:
+        self._fbo = Fbo(noadd=True, size=(100, 100), fs=SHADOW_fs)
+        self.add(self._fbo)
+        with self._fbo:
             ClearColor(1, 1, 1, 0)
             ClearBuffers()
             self._fbo_translate = Translate(0, 0)
             self._fbo_scale = Scale(1, 1, 1)
             self._fbo_rect = Rectangle(size=(100, 100))
         self._texture_container = RoundedRectangle(
-            texture=self.texture,
+            noadd=True,
+            texture=self._fbo.texture,
             size=(100, 100),
             radius=(1, 1, 1, 1),
             segments=45
         )
+        self.add(self._texture_container)
         self._update_shadow()
 
     cdef void _update_canvas(self):
@@ -231,12 +247,12 @@ cdef class BoxShadow(Fbo):
         self._update_canvas()
         self._update_fbo()
 
-        self["inset"] = int(self.inset)
-        self["blur_radius"] = self.blur_radius
-        self["border_radius"] = self.border_radius
-        self["spread_radius"] = self.spread_radius
-        self["offset"] = self.offset
-        self["size"] = self.size
+        self._fbo["inset"] = int(self.inset)
+        self._fbo["blur_radius"] = self.blur_radius
+        self._fbo["border_radius"] = self.border_radius
+        self._fbo["spread_radius"] = self.spread_radius
+        self._fbo["offset"] = self.offset
+        self._fbo["size"] = self.size
 
     cdef tuple _adjusted_pos(self):
         """Return the adjusted position of the shadow texture containers,
