@@ -159,9 +159,7 @@ class GraphicUnitTest(_base):
         Window.bind(on_flip=self.on_window_flip)
 
         # ensure our window is correctly created
-        Window.create_window()
-        Window.register()
-        Window.initialized = True
+        Window.initialize_window_setup()
         Window.close = lambda *s: None
         self.clear_window_and_event_loop()
 
