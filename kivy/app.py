@@ -1091,7 +1091,7 @@ Context.html#getFilesDir()>`_ is returned.
         '''.. versionadded:: 1.8.0
 
         Display the settings panel. By default, the panel is drawn directly
-        on top of the window. You can define other behaviour by overriding
+        on top of the window. You can define other behavior by overriding
         this method, such as adding it to a ScreenManager or Popup.
 
         You should return True if the display is successful, otherwise False.

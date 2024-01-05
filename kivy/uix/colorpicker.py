@@ -35,18 +35,19 @@ Usage::
 
 __all__ = ('ColorPicker', 'ColorWheel')
 
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.widget import Widget
+from math import cos, sin, pi, sqrt, atan
+from colorsys import rgb_to_hsv, hsv_to_rgb
+
+from kivy.clock import Clock
+from kivy.graphics import Mesh, InstructionGroup, Color
+from kivy.logger import Logger
 from kivy.properties import (NumericProperty, BoundedNumericProperty,
                              ListProperty, ObjectProperty,
                              ReferenceListProperty, StringProperty,
                              AliasProperty)
-from kivy.clock import Clock
-from kivy.graphics import Mesh, InstructionGroup, Color
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex, get_hex_from_color
-from kivy.logger import Logger
-from math import cos, sin, pi, sqrt, atan
-from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 def distance(pt1, pt2):
@@ -60,11 +61,11 @@ def polar_to_rect(origin, r, theta):
 def rect_to_polar(origin, x, y):
     if x == origin[0]:
         if y == origin[1]:
-            return (0, 0)
+            return 0, 0
         elif y > origin[1]:
-            return (y - origin[1], pi / 2.)
+            return y - origin[1], pi / 2
         else:
-            return (origin[1] - y, 3 * pi / 2.)
+            return origin[1] - y, 3 * pi / 2
     t = atan(float((y - origin[1])) / (x - origin[0]))
     if x - origin[0] < 0:
         t += pi
@@ -72,7 +73,7 @@ def rect_to_polar(origin, x, y):
     if t < 0:
         t += 2 * pi
 
-    return (distance((x, y), origin), t)
+    return distance((x, y), origin), t
 
 
 class ColorWheel(Widget):
@@ -96,28 +97,28 @@ class ColorWheel(Widget):
     '''The Green value of the color currently selected.
 
     :attr:`g` is a :class:`~kivy.properties.BoundedNumericProperty`
-    and can be a value from 0 to 1.
+    and can be a value from 0 to 1. It defaults to 0.
     '''
 
     b = BoundedNumericProperty(0, min=0, max=1)
     '''The Blue value of the color currently selected.
 
     :attr:`b` is a :class:`~kivy.properties.BoundedNumericProperty` and
-    can be a value from 0 to 1.
+    can be a value from 0 to 1. It defaults to 0.
     '''
 
     a = BoundedNumericProperty(0, min=0, max=1)
     '''The Alpha value of the color currently selected.
 
     :attr:`a` is a :class:`~kivy.properties.BoundedNumericProperty` and
-    can be a value from 0 to 1.
+    can be a value from 0 to 1. It defaults to 0.
     '''
 
     color = ReferenceListProperty(r, g, b, a)
     '''The holds the color currently selected.
 
     :attr:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
-    contains a list of `r`, `g`, `b`, `a` values.
+    contains a list of `r`, `g`, `b`, `a` values. It defaults to `[0, 0, 0, 0]`.
     '''
 
     _origin = ListProperty((100, 100))
@@ -132,22 +133,23 @@ class ColorWheel(Widget):
     _num_touches = 0
     _pinch_flag = False
 
-    _hsv = ListProperty([1, 1, 1, 0])
-
     def __init__(self, **kwargs):
-        super(ColorWheel, self).__init__(**kwargs)
+        self.arcs = []
+        self.sv_idx = 0
 
         pdv = self._piece_divisions
         self.sv_s = [(float(x) / pdv, 1) for x in range(pdv)] + [
             (1, float(y) / pdv) for y in reversed(range(pdv))]
 
-    def on__origin(self, instance, value):
-        self.init_wheel(None)
+        super(ColorWheel, self).__init__(**kwargs)
 
-    def on__radius(self, instance, value):
-        self.init_wheel(None)
+    def on__origin(self, _instance, _value):
+        self._reset_canvas()
 
-    def init_wheel(self, dt):
+    def on__radius(self, _instance, _value):
+        self._reset_canvas()
+
+    def _reset_canvas(self):
         # initialize list to hold all meshes
         self.canvas.clear()
         self.arcs = []
@@ -233,9 +235,8 @@ class ColorWheel(Widget):
                             (float(self._radius) / self._piece_divisions)))
 
         if (
-            goal_sv_idx != self.sv_idx and
-            goal_sv_idx >= 0 and
-            goal_sv_idx <= len(self.sv_s) - self._piece_divisions
+                goal_sv_idx != self.sv_idx and
+                0 <= goal_sv_idx <= len(self.sv_s) - self._piece_divisions
         ):
             # this is a pinch to zoom
             self._pinch_flag = True
@@ -430,12 +431,12 @@ class ColorPicker(RelativeLayout):
         # to prevent interaction between hsv/rgba, we work internally using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
-            text = min(255, max(0, float(text)))
+            text = min(255.0, max(0.0, float(text)))
             if mode == 'rgb':
-                self.color[clr_idx] = float(text) / 255.
+                self.color[clr_idx] = text / 255
             else:
                 hsv = list(self.hsv[:])
-                hsv[clr_idx] = float(text) / 255.
+                hsv[clr_idx] = text / 255
                 self.color[:3] = hsv_to_rgb(*hsv)
         except ValueError:
             Logger.warning('ColorPicker: invalid value : {}'.format(text))

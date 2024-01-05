@@ -3,6 +3,152 @@
 Changelog
 =========
 
+2.3.0
+=====
+
+Highlights
+----------
+
+- [:repo:`8298`]: core-providers (audio): removes deprecated `status` property
+- [:repo:`8299`]: core-providers (audio): removes deprecated `filename` property
+- [:repo:`8300`]: core-providers (window): Removes deprecated `toggle_fullscreen` method
+- [:repo:`8309`]: Add graphics with antialiasing: `SmoothRectangle`, `SmoothEllipse`, `SmoothRoundedRectangle`, `SmoothQuad` and `SmoothTriangle`
+- [:repo:`8313`]: Linux dependencies: Build `libpng16` for `freetype` so can render colored emoji
+- [:repo:`8315`]: Remove the extra position added to undo list while using Shift key
+- [:repo:`8317`]: macOS dependencies: Build `libpng16` for `freetype`, so can render colored emoji
+- [:repo:`8495`]: Honour multiline=True/False while pasting, Fix Scroll after `backspace` and `undo`.
+- [:repo:`8497`]: Added spanish layout json for the vkeyboard
+- [:repo:`8503`]: Pillow text provider: use `get_bbox` when `get_size` is not available. Allows latest versions of pillow to work along with older ones.
+
+Deprecated
+----------
+
+- [:repo:`8459`]: Deprecate `kivy.utils.interpolate` and improve related docs
+
+Kv-lang
+-------
+
+- [:repo:`8206`]: Improved KV-lang parser error info when indentation is invalid 
+
+Misc
+----
+
+- [:repo:`8301`]: Rework custom `garden` importer to avoid usage of `imp` module (removed in Python `3.12`)
+- [:repo:`8357`]: Apply style fixes as suggested by new flake8 version
+- [:repo:`8443`]: Slow down no-response bot 
+- [:repo:`8447`]: Remove bountysource link, as bountysource looks died.
+- [:repo:`8453`]: Update support-requests action
+- [:repo:`8459`]: Deprecate `kivy.utils.interpolate` and improve related docs
+
+Packaging
+---------
+
+- [:repo:`8428`]: Add `balenalib/raspberrypi3-debian-python:3.11-bookworm` to rpi builds for newer  RPi OS
+
+Widgets
+-------
+
+- [:repo:`8276`]: `Image`: Fix stencil instructions leaking to user `canvas.before`/`canvas` instructions
+- [:repo:`8315`]: Remove the extra position added to undo list while using Shift key
+- [:repo:`8389`]: Fixes a regression that prevents the setting panel to load
+- [:repo:`8492`]: `ColorWheel` and `ColorPicker`: simplify,  cleans up and add tests
+- [:repo:`8495`]: Honour multiline=True/False while pasting, Fix Scroll after `backspace` and `undo`.
+- [:repo:`8535`]: Fix text attributes not changing after the settings panel is opened
+
+Core-app
+--------
+
+- [:repo:`8345`]: Prevent apps from crashing when `sys.stderr` is `None` (pythonw and pyinstaller 5.7)
+- [:repo:`8383`]: Fix stencil operations when `KIVY_WINDOW=x11`
+
+Core-providers
+--------------
+
+- [:repo:`8218`]: Remove redundant `from kivy.base import EventLoop` import causing crashes in `window_sdl2`
+- [:repo:`8296`]: WindowSDL: Add opacity feature
+- [:repo:`8298`]: core-providers (audio): removes deprecated `status` property
+- [:repo:`8299`]: core-providers (audio): removes deprecated `filename` property
+- [:repo:`8300`]: core-providers (window): Removes deprecated `toggle_fullscreen` method
+- [:repo:`8342`]: Clipboard: fixes blank string being pasted into clipboard when using the default `win32` backend
+- [:repo:`8435`]: Fixes markup `[sup]` followed by `[sub]` doesn't work (issue #8077)
+- [:repo:`8446`]: `Window.mouse_pos` is incorrect if the scale factor in Windows is not 100%.
+- [:repo:`8490`]: `SetClipboardData` requires a memory object allocated with `GMEM_MOVEABLE` (and locks)
+- [:repo:`8503`]: Pillow text provider: use `get_bbox` when `get_size` is not available. Allows latest versions of pillow to work along with older ones.
+- [:repo:`8510`]: New feature: Add `limit_render_to_text_bbox` to `Label` to limit text rendering to the text bounding box, improving `Label` alignments.
+- [:repo:`8511`]: `PIL` text provider: Ensure consistent text height to prevent text from bouncing when typing
+- [:repo:`8540`]: `PIL` text provider: Do not render text if font size is `< 1`
+
+Core-widget
+-----------
+
+- [:repo:`8497`]: Added spanish layout json for the vkeyboard
+
+Distribution
+------------
+
+- [:repo:`8253`]: Update version to `2.3.0.dev0` for development
+- [:repo:`8310`]: pin `Pillow` version to `9.5.0`
+- [:repo:`8313`]: Linux dependencies: Build `libpng16` for `freetype` so can render colored emoji
+- [:repo:`8317`]: macOS dependencies: Build `libpng16` for `freetype`, so can render colored emoji
+- [:repo:`8326`]: Add support for `Cython==3.x.x` and increase `cython_min` version
+- [:repo:`8393`]: Add support for Python 3.12 (tests, wheels)
+- [:repo:`8479`]: Bump `SDL2` version to `2.28.5` and `SDL_image` to `2.8.0` in build dependencies script and update `kivy_deps.sdl2` on Windows
+- [:repo:`8501`]: Bump `kivy_deps.angle` version to `~=0.4.0`
+- [:repo:`8505`]: Restrict the Pillow version to `>=9.5.0,<11`
+- [:repo:`8513`]: Make sure build dependencies are installed for Kivy.app, and use default python version provided by `create-osx-bundle.sh`
+- [:repo:`8533`]: Bump to `2.3.0rc1`
+- [:repo:`8536`]: Bump to `2.3.0rc2`
+- [:repo:`8543`]: Bump to `2.3.0rc3`
+
+Documentation
+-------------
+
+- [:repo:`8251`]: Ensures that jQuery is always installed (on newer sphinx versions is not the default)
+- [:repo:`8274`]: Add disclaimer to use `RecycleView` instead of `ScrollView` for large datasets
+- [:repo:`8289`]: Update CHANGELOG for 2.2.1 (#8287)
+- [:repo:`8303`]: Copy-edit to layouts.rst
+- [:repo:`8308`]: Copy edits: Standardize on spelling
+- [:repo:`8323`]: Docs: Fix double word typos
+- [:repo:`8324`]: Fix linux dependencies build instructions
+- [:repo:`8347`]: RecycleDataAdapter: Fixed typo in class docstring
+- [:repo:`8349`]: ObjectProperty: Fixed ValueError message in "convert" method.
+- [:repo:`8377`]: Add doc for Selection handles.
+- [:repo:`8387`]: Docs: Fix grammar
+- [:repo:`8402`]: Docs: Fixes spelling errors and typos
+- [:repo:`8411`]: Removes broken support e-mail address in the README.md, and improve the support section
+- [:repo:`8440`]: Fix #8438: SyntaxWarnings during doc generation.
+- [:repo:`8442`]: Edit Contact Us page in docs
+- [:repo:`8448`]: Update Contribution Guidelines, add `FAQ`, `CONTACT` and `CONTRIBUTING` as separate documents, fix links
+- [:repo:`8464`]: Correct documentation of schedule_interval
+- [:repo:`8493`]: Correct `ActionBar` documentation
+- [:repo:`8514`]: Make doc structure consistent and up-to-date
+- [:repo:`8542`]: Happy new year! Updated copyright year to 2024
+
+Graphics
+--------
+
+- [:repo:`8228`]: Added a flag to force the use of custom drawing line function.
+- [:repo:`8270`]: Allow `Scale` and `Translate` to take `x`, `y` and `z` as `kwargs`. Removes deprecated `Scale().scale` property.
+- [:repo:`8271`]: Fix `SmoothLine` rendering issues
+- [:repo:`8309`]: Add graphics with antialiasing: `SmoothRectangle`, `SmoothEllipse`, `SmoothRoundedRectangle`, `SmoothQuad` and `SmoothTriangle`
+- [:repo:`8374`]: Avoid multiple values for `noadd` in `VertexInstruction`
+- [:repo:`8375`]: Fix use of `BoxShadow` with `canvas.add`, `canvas.insert` and `canvas.remove`
+- [:repo:`8405`]: Introduce `clear_stencil` option in `StencilPush`, to allow disabling stencil clearing and improve GPU performance when using Stencil Instructions
+- [:repo:`8413`]: Expose new `clear_stencil` property in `StencilPush`
+- [:repo:`8415`]: Fix cgl_backend build with clang 16
+
+Tests/ci
+--------
+
+- [:repo:`8263`]: Increase timeout of `httpbin` tests to reduce risk of failures on CI runs
+- [:repo:`8359`]: Correct CI comment regarding logging tests
+- [:repo:`8392`]: Now Github Actions provides python3 via setup-python also for Apple Silicon Macs
+- [:repo:`8404`]: Add tests for `create_json_panel` method of `Settings`
+- [:repo:`8426`]: Install `setuptools` before `sdist` generation, as `setuptools` is not anymore available by default on `3.12`
+- [:repo:`8483`]: Check `$LastExitCode` after `pytest` run, so we can catch Windows fatal errors
+- [:repo:`8485`]: Refactor `filechoosertest_unicode.py`
+- [:repo:`8529`]: Request `--only-binary` for Pillow on Windows when testing wheels
+
 2.2.1
 =====
 
@@ -4645,5 +4791,5 @@ Xperia 10.
 * Native input support: Tuio, WM_Touch, MacOSX MT, mtdev, wacom...
 * Multitouch widgets: Label, Button, Image, Scatter, Video, Camera...
 * Stable and documented API
-* Extensive documentation at http://kivy.org/docs/
+* Extensive documentation at https://kivy.org/docs/
 * Continuous integration via buildbot (coverage and gl unit tests)

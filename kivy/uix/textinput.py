@@ -76,6 +76,27 @@ The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
 :attr:`TextInput.selection_text` property.
 
+Handles
+-------
+
+One can enable :attr:`TextInput.use_handles` property to enable or disable
+the usage of selection handles. This property is True by default on mobiles.
+
+Selection Handles uses the class :class:`Selector` as the base class for
+the selection handles. You can customize the color for selection handles
+like so ::
+
+    <Selector>
+        color: 0, 1, 0, 1
+        # or <Textinput_instance>.selection_color or app.selection_color
+
+TextInput instantiates the selection handles and stores it in the following
+properties. :attr:`TextInput._handle_middle`,
+:attr:`TextInput._handle_left`, :attr:`TextInput._handle_right`.
+
+You should set the selection template before the Instantiating TextInput,
+so as to get the selection handles to take the changes you set to apply.
+
 Filtering
 ---------
 
@@ -238,7 +259,14 @@ if 'KIVY_DOC' not in environ:
 
 
 class Selector(ButtonBehavior, Image):
-    # Internal class for managing the selection Handles.
+    '''Default template for the selection Handles
+
+    In order to customize the look of the Selection Handles,
+    you should adjust its template like so ::
+
+        <Selector>
+            color: 1, 0, 1, 1
+    '''
 
     window = ObjectProperty()
     target = ObjectProperty()
@@ -908,6 +936,7 @@ class TextInput(FocusBehavior, Widget):
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
             self._redo.append(x_item)
+            self.scroll_x = self.get_max_scroll_x()
         except IndexError:
             # reached at top of undo list
             pass
@@ -967,6 +996,7 @@ class TextInput(FocusBehavior, Widget):
             cursor_index,
             cursor_index - 1,
             substring, from_undo, mode)
+        self.scroll_x = self.get_max_scroll_x()
 
     def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
                           mode):
@@ -1392,6 +1422,17 @@ class TextInput(FocusBehavior, Widget):
 
         return cursor_x, cursor_y
 
+    def get_max_scroll_x(self):
+        '''
+        Return how many pixels it needs to scroll to the right
+        to reveal the remaining content of a text that extends
+        beyond the visible width of a TextInput
+        '''
+        minimum_width = self._get_row_width(0) + self.padding[0] + \
+            self.padding[2]
+        max_scroll_x = max(0, minimum_width - self.width)
+        return max_scroll_x
+
     #
     # Selection control
     #
@@ -1440,7 +1481,8 @@ class TextInput(FocusBehavior, Widget):
         self.scroll_x = scroll_x
         self.scroll_y = scroll_y
         # handle undo and redo for delete selection
-        self._set_unredo_delsel(a, b, text[a:b], from_undo)
+        if text[a:b]:
+            self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
         self.cursor = self.get_cursor_from_index(a)
 
@@ -1572,9 +1614,7 @@ class TextInput(FocusBehavior, Widget):
                                             self.lines_to_scroll)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._get_row_width(0) + self.padding[0] +
-                                     self.padding[2])
-                    max_scroll_x = max(0, minimum_width - self.width)
+                    max_scroll_x = self.get_max_scroll_x()
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +
                                             self.line_height)
@@ -1724,11 +1764,7 @@ class TextInput(FocusBehavior, Widget):
                 max_scroll_y
             )
         else:
-            minimum_width = (
-                self._get_row_width(0)
-                + self.padding[0] + self.padding[2]
-            )
-            max_scroll_x = max(0, minimum_width - self.width)
+            max_scroll_x = self.get_max_scroll_x()
             self.scroll_x = min(
                 max(0, self.scroll_x - touch.dx),
                 max_scroll_x
@@ -2045,6 +2081,8 @@ class TextInput(FocusBehavior, Widget):
         self._ensure_clipboard()
         data = Clipboard.paste()
         self.delete_selection()
+        if not self.multiline:
+            data = data.replace('\n', ' ')
         self.insert_text(data)
 
     def _update_cutbuffer(self, *args):

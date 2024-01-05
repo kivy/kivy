@@ -37,7 +37,7 @@ Debugging your application on the Android platform
 You can view the normal output of your code (stdout, stderr), as well
 as the normal Kivy logs, through the Android logcat stream. This is
 accessed through adb, provided by the `Android SDK
-<http://developer.android.com/sdk/index.html>`_. You may need to
+<https://developer.android.com/sdk/index.html>`_. You may need to
 enable adb in your device's developer options, then connect your device
 to your computer and run::
 
@@ -114,7 +114,7 @@ letting you easily convert the java results to Python.
 
 Pyjnius can be obtained from `github
 <https://github.com/kivy/pyjnius>`_, and has its `own documentation
-<http://pyjnius.readthedocs.org/en/latest/>`__.
+<https://pyjnius.readthedocs.org/en/latest/>`__.
 
 Here is a simple example showing Pyjnius' ability to access
 the normal Android vibration API, the same result of the plyer code
@@ -147,7 +147,7 @@ case, though Plyer does not wrap every API available to Pyjnius.
 Pyjnius also has powerful abilities to implement java interfaces,
 which is important for wrapping some APIs, but these are not
 documented here - you can see Pyjnius' `own documentation
-<http://pyjnius.readthedocs.org/en/latest/>`__.
+<https://pyjnius.readthedocs.org/en/latest/>`__.
 
 .. _android_module:
 
@@ -159,7 +159,7 @@ java) to access a limited set of Android APIs. This has been largely
 superseded by the more flexible Pyjnius and Plyer as above, but may
 still occasionally be useful. The available functions are given in the
 `python-for-android documentation
-<http://python-for-android.readthedocs.org/en/latest/>`_.
+<https://python-for-android.readthedocs.org/en/latest/>`_.
 
 This includes code for billing/IAP and creating/accessing Android
 services, which is not yet available in the other tools above.

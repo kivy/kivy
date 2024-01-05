@@ -27,7 +27,7 @@ The language consists of several constructs that you can use:
         A rule is similar to a CSS rule. A rule applies to specific widgets (or
         classes thereof) in your widget tree and modifies them in a
         certain way.
-        You can use rules to specify interactive behaviour or use them to add
+        You can use rules to specify interactive behavior or use them to add
         graphical representations of the widgets they apply to.
         You can target a specific class of widgets (similar to the CSS
         concept of a *class*) by using the ``cls`` attribute (e.g.
@@ -83,7 +83,7 @@ definitions and templates::
     <NewWidget@BaseClass>:
         # .. definitions ..
 
-    # Syntax for create a template
+    # Syntax for creating a template
     [TemplateName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
@@ -271,7 +271,7 @@ The Kivy language detects properties in your `value` expression and will create
 callbacks to automatically update the property via your expression when changes
 occur.
 
-Here's a simple example that demonstrates this behaviour::
+Here's a simple example that demonstrates this behavior::
 
     Button:
         text: str(self.state)
@@ -299,7 +299,7 @@ change to 'Release me!'.
 More precisely, the kivy language parser detects all substrings of the form
 `X.a.b` where `X` is `self` or `root` or `app` or a known id, and `a` and `b`
 are properties: it then adds the appropriate dependencies to cause the
-the constraint to be reevaluated whenever something changes. For example,
+constraint to be reevaluated whenever something changes. For example,
 this works exactly as expected::
 
     <IndexedExample>:
