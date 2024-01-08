@@ -884,6 +884,15 @@ graphics_dependencies = {
         'cgl.pxd', 'texture.pxd', 'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
+skia_flags = {
+    'include_dirs': ["/Users/mirko/Documents/projects/skia"],
+    'libraries': ['skia', 'skparagraph', 'skshaper', 'skunicode'],
+    'library_dirs': [os.path.join(KIVY_DEPS_ROOT, 'dist', 'lib', 'skia')],
+    'extra_link_args': ['-framework', 'CoreText', '-Wl,-rpath,' + os.path.join(KIVY_DEPS_ROOT, 'dist', 'lib', 'skia')],
+    'language': 'c++',
+    'extra_compile_args': ['-std=c++17', '-stdlib=libc++'],
+}
+
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     '_clock.pyx': {},
@@ -915,6 +924,7 @@ sources = {
     'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'core/text/text_layout.pyx': base_flags,
+    'core/text/text_skia.pyx': merge(base_flags, skia_flags),
     'core/window/window_info.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
         'include_dirs': ['kivy/lib/libtess2/Include'],
