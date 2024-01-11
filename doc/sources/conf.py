@@ -32,7 +32,8 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
+    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks',
+    'sphinxcontrib.jquery']
 
 if sphinx.version_info[0] >= 4:
     # In 4.0 and above has been added the support to substitute by ‘%s’ in the caption.
@@ -65,7 +66,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2010, The Kivy Authors'
+copyright = '2010-2024, Kivy Team and other contributors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -196,7 +197,7 @@ htmlhelp_basename = 'Kivydoc'
 # (source start file, target name, title, author, document class [manual]).
 latex_documents = [
   ('index', 'Kivy.tex', 'Kivy Documentation',
-   'The Kivy Developers', 'manual'),
+   'Kivy Team and other contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

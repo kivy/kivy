@@ -24,7 +24,7 @@ Example::
             carousel = Carousel(direction='right')
             for i in range(10):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
-                image = AsyncImage(source=src, allow_stretch=True)
+                image = AsyncImage(source=src, fit_mode="contain")
                 carousel.add_widget(image)
             return carousel
 
@@ -688,7 +688,7 @@ if __name__ == '__main__':
                                 loop=True)
             for i in range(4):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
-                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                image = Factory.AsyncImage(source=src, fit_mode="contain")
                 carousel.add_widget(image)
             return carousel
 

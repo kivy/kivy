@@ -88,6 +88,7 @@ from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
+from kivy.logger import Logger
 
 
 if 'KIVY_DOC' not in os.environ:
@@ -130,8 +131,11 @@ class LabelBase(object):
         `text_size`: tuple, defaults to (None, None)
             Add constraint to render the text (inside a bounding box).
             If no size is given, the label size will be set to the text size.
-        `padding`: float, defaults to None
-            If it's a float, it will set padding_x and padding_y
+        `padding`: int|float or list|tuple, defaults to [0, 0, 0, 0].
+            Padding of the text in the format [padding_left, padding_top,
+            padding_right, padding_bottom].
+            ``padding`` should be int|float or a list|tuple with 1, 2 or 4
+            elements.
         `padding_x`: float, defaults to 0.0
             Left/right padding
         `padding_y`: float, defaults to 0.0
@@ -181,6 +185,25 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
+        `limit_render_to_text_bbox`: bool, defaults to False. PIL only.
+            If set to ``True``, this parameter indicates that rendering should
+            be limited to the bounding box of the text, excluding any
+            additional white spaces designated for ascent and descent.
+            By limiting the rendering to the bounding box of the text, it
+            ensures a more precise alignment with surrounding elements when
+            utilizing properties such as `valign`, `y`, `pos`, `pos_hint`, etc.
+
+    .. versionadded:: 2.3.0
+        `limit_render_to_text_bbox` was added to allow to limit text rendering
+        to the text bounding box (PIL only).
+
+    .. deprecated:: 2.2.0
+        `padding_x` and `padding_y` have been deprecated. Please use `padding`
+        instead.
+
+    .. versionchanged:: 2.2.0
+        `padding` is now a list and defaults to [0, 0, 0, 0]. `padding` accepts
+        int|float or a list|tuple with 1, 2 or 4 elements.
 
     .. versionchanged:: 1.10.1
         `font_context`, `font_family`, `font_features`, `base_direction`
@@ -235,7 +258,9 @@ class LabelBase(object):
         unicode_errors='replace',
         font_hinting='normal', font_kerning=True, font_blended=True,
         outline_width=None, outline_color=None, font_context=None,
-        font_features=None, base_direction=None, text_language=None,
+        font_features=None, base_direction=None, font_direction='ltr',
+        font_script_name='Latin', text_language=None,
+        limit_render_to_text_bbox=False,
         **kwargs):
 
         # Include system fonts_dir in resource paths.
@@ -258,16 +283,42 @@ class LabelBase(object):
                    'font_context': font_context,
                    'font_features': font_features,
                    'base_direction': base_direction,
-                   'text_language': text_language}
+                   'font_direction': font_direction,
+                   'font_script_name': font_script_name,
+                   'text_language': text_language,
+                   'limit_render_to_text_bbox': limit_render_to_text_bbox}
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
         options['outline_color'] = outline_color or (0, 0, 0, 1)
-        options['padding'] = kwargs_get('padding', (0, 0))
-        if not isinstance(options['padding'], (list, tuple)):
-            options['padding'] = (options['padding'], options['padding'])
-        options['padding_x'] = kwargs_get('padding_x', options['padding'][0])
-        options['padding_y'] = kwargs_get('padding_y', options['padding'][1])
+
+        options['padding'] = kwargs_get('padding', [0, 0, 0, 0])
+        if isinstance(options['padding'], (int, float)):
+            options['padding'] = [options['padding']] * 4
+        elif (
+            isinstance(options['padding'], (list, tuple))
+            and len(options['padding']) != 4
+        ):
+            if len(options['padding']) == 1:
+                options['padding'] = options['padding'] * 4
+            elif len(options['padding']) == 2:
+                options['padding'] = options['padding'] * 2
+            else:
+                raise ValueError(
+                    "padding should be int|float or a list|tuple with 1, 2 or "
+                    f"4 elements, got {type(options['padding'])} with "
+                    f"{len(options['padding'])} elements."
+                )
+
+        options['padding_x'] = kwargs_get('padding_x')
+        options['padding_y'] = kwargs_get('padding_y')
+        for padding_option in ('padding_x', 'padding_y'):
+            if kwargs_get(padding_option):
+                Logger.warning(
+                    f"LabelBase: The use of the {padding_option} parameter is "
+                    "deprecated, and will be removed in future versions. Use "
+                    "padding instead."
+                )
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
@@ -286,6 +337,15 @@ class LabelBase(object):
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
+        self._migrate_deprecated_padding_xy()
+
+    def _migrate_deprecated_padding_xy(self):
+        options = self.options
+        self.options['padding'] = list(self.options['padding'])
+        if options['padding_x']:
+            self.options['padding'][::2] = [options['padding_x']] * 2
+        if options['padding_y']:
+            self.options['padding'][1::2] = [options['padding_y']] * 2
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
@@ -439,7 +499,7 @@ class LabelBase(object):
     def shorten(self, text, margin=2):
         ''' Shortens the text to fit into a single line by the width specified
         by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
-        text text unchanged.
+        text unchanged.
 
         :attr:`split_str` and :attr:`shorten_from` determines how the text is
         shortened.
@@ -459,7 +519,7 @@ class LabelBase(object):
             return text
 
         opts = self.options
-        uw = max(0, int(uw - opts['padding_x'] * 2 - margin))
+        uw = max(0, int(uw - opts['padding'][0] - opts['padding'][2] - margin))
         # if larger, it won't fit so don't even try extents
         chr = type(text)
         text = text.replace(chr('\n'), chr(' '))
@@ -593,9 +653,10 @@ class LabelBase(object):
     def render_lines(self, lines, options, render_text, y, size):
         get_extents = self.get_cached_extents()
         uw, uh = options['text_size']
-        xpad = options['padding_x']
+        padding_left = options['padding'][0]
+        padding_right = options['padding'][2]
         if uw is not None:
-            uww = uw - 2 * xpad  # real width of just text
+            uww = uw - padding_left - padding_right  # real width of just text
         w = size[0]
         sw = options['space_width']
         halign = options['halign']
@@ -612,14 +673,22 @@ class LabelBase(object):
                 line = last_word.text
                 if not cur_base_dir:
                     cur_base_dir = find_base_dir(line)
-            x = xpad
+            x = padding_left
             if halign == 'auto':
                 if cur_base_dir and 'rtl' in cur_base_dir:
-                    x = max(0, int(w - lw - xpad))  # right-align RTL text
+                    # right-align RTL text
+                    x = max(0, int(w - lw - padding_right))
             elif halign == 'center':
-                x = int((w - lw) / 2.)
+                x = min(
+                    int(w - lw),
+                    max(
+                        int(padding_left),
+                        int((w - lw + padding_left - padding_right) / 2.0)
+                    )
+                )
+
             elif halign == 'right':
-                x = max(0, int(w - lw - xpad))
+                x = max(0, int(w - lw - padding_right))
 
             # right left justify
             # divide left over space between `spaces`
@@ -671,11 +740,13 @@ class LabelBase(object):
         size = self.size
         valign = options['valign']
 
-        y = ypad = options['padding_y']  # pos in the texture
+        padding_top = options['padding'][1]
         if valign == 'bottom':
-            y = size[1] - ih + ypad
-        elif valign == 'middle' or valign == 'center':
-            y = int((size[1] - ih) / 2 + ypad)
+            y = int(size[1] - ih + padding_top)
+        elif valign == 'top':
+            y = int(padding_top)
+        elif valign in ('middle', 'center'):
+            y = int((size[1] - ih + 2 * padding_top) / 2)
 
         self._render_begin()
         self.render_lines(lines, options, self._render_text, y, size)
@@ -822,7 +893,9 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.width - 2 * self.options['padding_x']
+        return self.texture.width - (
+            self.options['padding'][0] + self.options['padding'][2]
+        )
 
     @property
     def content_height(self):
@@ -830,7 +903,9 @@ class LabelBase(object):
         any padding.'''
         if self.texture is None:
             return 0
-        return self.texture.height - 2 * self.options['padding_y']
+        return self.texture.height - (
+            self.options['padding'][1] + self.options['padding'][3]
+        )
 
     @property
     def content_size(self):
@@ -999,7 +1074,6 @@ Text = Label = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:
-        from kivy.logger import Logger
         import sys
         Logger.critical('App: Unable to get a Text provider, abort.')
         sys.exit(1)

@@ -118,7 +118,7 @@ cdef inline LayoutLine add_line(object text, int lw, int lh, LayoutLine line,
             add_h = max(lh, line.h)
         # if we're appending to existing line don't add height twice
         h[0] = h[0] + add_h - old_lh
-        w[0] = max(w[0], line.w + 2 * xpad)
+        w[0] = max(w[0], line.w + xpad)
         if strip:
             final_strip(line)
         if pos == -1:
@@ -214,7 +214,7 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
         else:
             add_h = _line.h
 
-        w = max(w, _line.w + 2 * xpad)
+        w = max(w, _line.w + xpad)
         h += add_h - old_lh
 
     # now do the remaining lines
@@ -244,7 +244,7 @@ cdef inline layout_text_unrestricted(object text, list lines, int w, int h,
             break
 
         pos += 1
-        w = max(w, int(lw + 2 * xpad))
+        w = max(w, int(lw + xpad))
         h += add_h
         if lw:
             _line = LayoutLine(0, 0, lw, lhh, 1, 0, [LayoutWord(options, lw,
@@ -386,7 +386,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     '''
 
     cdef int uw, uh,  _do_last_line, lwe, lhe, ends_line, is_last_line
-    cdef int xpad = options['padding_x'], ypad = options['padding_y']
+    cdef int xpad = options['padding'][0] + options['padding'][2], ypad = options['padding'][1] + options['padding'][3]
     cdef int max_lines = int(options.get('max_lines', 0))
     cdef float line_height = options['line_height']
     cdef int strip = options['strip'] or options['halign'] == 'justify'
@@ -402,7 +402,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
     uh = text_size[1] if text_size[1] is not None else -1
 
     if not h:
-        h = ypad * 2
+        h = ypad
 
     if uw == -1:  # no width specified
         return layout_text_unrestricted(text, lines, w, h, uh, options,
@@ -411,7 +411,7 @@ def layout_text(object text, list lines, tuple size, tuple text_size,
 
     new_lines = text.split('\n')
     n = <int>len(new_lines)
-    uw = max(0, uw - xpad * 2)  # actual w, h allowed for rendering
+    uw = max(0, uw - xpad)  # actual w, h allowed for rendering
     _, bare_h = get_extents('')
     if dwn:
         pos = -1  # don't use pos when going down b/c we append at end of lines

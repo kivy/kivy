@@ -290,7 +290,7 @@ class WindowSDL(WindowBase):
                     self.borderless = self._fake_fullscreen = False
             elif self.custom_titlebar:
                 if platform == 'win':
-                    # use custom behaviour
+                    # use custom behavior
                     # To handle aero snapping and rounded corners
                     self.borderless = False
         if self.fullscreen == 'fake':
@@ -367,7 +367,6 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl2 input provider')
-        from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
 
@@ -398,6 +397,7 @@ class WindowSDL(WindowBase):
             try:
                 hwnd = windll.user32.GetActiveWindow()
                 self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
+                self._density = self.dpi / 96
             except AttributeError:
                 pass
         else:
@@ -450,13 +450,6 @@ class WindowSDL(WindowBase):
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
 
-    @deprecated
-    def toggle_fullscreen(self):
-        if self.fullscreen in (True, 'auto'):
-            self.fullscreen = False
-        else:
-            self.fullscreen = 'auto'
-
     def set_title(self, title):
         self._win.set_window_title(title)
 
@@ -488,6 +481,13 @@ class WindowSDL(WindowBase):
 
     def _set_window_pos(self, x, y):
         self._win.set_window_pos(x, y)
+
+    def _get_window_opacity(self):
+        return self._win.get_window_opacity()
+
+    def _set_window_opacity(self, opacity):
+        if self.opacity != opacity:
+            return self._win.set_window_opacity(opacity)
 
     # Transparent Window background
     def _is_shaped(self):
@@ -981,8 +981,6 @@ class _WindowsSysDPIWatch:
         from ctypes import windll
 
         if msg == WM_DPICHANGED:
-            ow, oh = self.window.size
-            old_dpi = self.window.dpi
 
             def clock_callback(*args):
                 if x_dpi != y_dpi:
@@ -990,10 +988,6 @@ class _WindowsSysDPIWatch:
                         'Can only handle DPI that are same for x and y')
 
                 self.window.dpi = x_dpi
-
-                # maintain the same window size
-                ratio = x_dpi / old_dpi
-                self.window.size = ratio * ow, ratio * oh
 
             x_dpi = wParam & 0xFFFF
             y_dpi = wParam >> 16

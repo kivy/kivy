@@ -75,8 +75,7 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, state, gl_backend):
+    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
         if resizable:
@@ -105,10 +104,18 @@ cdef class _WindowSDL2Storage:
         elif state == 'hidden':
             self.win_flags |= SDL_WINDOW_HIDDEN
 
+        show_taskbar_icon = Config.getboolean('graphics', 'show_taskbar_icon')
+        if not show_taskbar_icon:
+            self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
+
         SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
 
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
+        
+        # makes dpi aware of scale changes
+        if platform == "win":
+            SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
@@ -256,7 +263,7 @@ cdef class _WindowSDL2Storage:
         for joy_i in range(SDL_NumJoysticks()):
             SDL_JoystickOpen(joy_i)
 
-        SDL_SetEventFilter(_event_filter, <void *>self)
+        SDL_SetEventFilter(<SDL_EventFilter *>_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
@@ -387,6 +394,23 @@ cdef class _WindowSDL2Storage:
     def set_window_pos(self, x, y):
         SDL_SetWindowPosition(self.win, x, y)
 
+    def set_window_opacity(self, opacity):
+        if SDL_SetWindowOpacity(self.win, opacity):
+            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            Logger.error(f'WindowSDL: Setting opacity to {opacity} failed - '
+                         f'{message}')
+            return False
+        return True
+
+    def get_window_opacity(self):
+        cdef float opacity
+        if SDL_GetWindowOpacity(self.win, &opacity):
+            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            Logger.error(f'WindowSDL: Getting opacity failed - {message}')
+            return 1.0
+        else:
+            return opacity
+
     def get_window_info(self):
         cdef SDL_SysWMinfo wm_info
         SDL_GetVersion(&wm_info.version)
@@ -430,7 +454,7 @@ cdef class _WindowSDL2Storage:
     def set_shape(self, shape, mode, cutoff, color_key):
         cdef SDL_Surface * sdl_shape
 
-        cpdef SDL_WindowShapeMode sdl_window_mode
+        cdef SDL_WindowShapeMode sdl_window_mode
         cdef SDL_WindowShapeParams parameters
         cdef SDL_Color color
         cdef int result
@@ -786,7 +810,7 @@ cdef class _WindowSDL2Storage:
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
-        return SDL_SetWindowHitTest(self.win,custom_titlebar_handler_callback,<void *>titlebar_widget)
+        return SDL_SetWindowHitTest(self.win, <SDL_HitTest>custom_titlebar_handler_callback,<void *>titlebar_widget)
 
     @property
     def window_size(self):

@@ -7,7 +7,7 @@ BoxLayout:
     Video:
         id: myvideo
         source: '../widgets/cityCC0.mpg'
-        allow_stretch: True
+        fit_mode: "contain"
         on_eos: self.play = True; print('woot we are looping!')
 
     BoxLayout:

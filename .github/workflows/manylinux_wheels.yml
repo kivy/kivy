@@ -37,23 +37,23 @@ jobs:
 
   manylinux_wheel_create:
     env:
-      CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies"
+      CIBW_ENVIRONMENT_LINUX: "KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies LD_LIBRARY_PATH=$(pwd)/kivy-dependencies/dist/lib:$(pwd)/kivy-dependencies/dist/lib64"
       CIBW_BUILD_VERBOSITY_LINUX: 3
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
-        install_build_deps
+        install_manylinux_build_deps
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             cibw_archs: x86_64
-            cibw_build: 'cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64'
+            cibw_build: 'cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64'
           - os: ubuntu-latest
             cibw_archs: aarch64
-            cibw_build: 'cp37-manylinux_aarch64 cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64'
+            cibw_build: 'cp37-manylinux_aarch64 cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64'
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v3
@@ -73,14 +73,15 @@ jobs:
       if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
       run: |
         docker run --rm -v `pwd`:/root:rw --workdir=/root \
-           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} bash -ec './tools/build_linux_dependencies.sh'
+           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} \
+           bash -ec 'source .ci/ubuntu_ci.sh && install_manylinux_build_deps && ./tools/build_linux_dependencies.sh'
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
     - name: Install cibuildwheel
       run: |
-        python -m pip install cibuildwheel==2.11.2
+        python -m pip install cibuildwheel==2.16.2
     - name: Make wheels
       run: |
         python -m cibuildwheel --output-dir wheelhouse
@@ -135,7 +136,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
       matrix:
-        python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
+        python: [ '3.7', '3.8', '3.9', '3.10', '3.11', '3.12' ]
     env:
       DISPLAY: ':99.0'
     steps:
@@ -197,7 +198,7 @@ jobs:
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_test_run_apt_deps
+          install_ubuntu_build_deps
           ./tools/build_linux_dependencies.sh
           install_kivy_test_wheel_run_pip_deps
       - name: Setup env

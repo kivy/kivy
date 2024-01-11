@@ -256,6 +256,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_FULLSCREEN_DESKTOP
         SDL_WINDOW_ALLOW_HIGHDPI
+        SDL_WINDOW_SKIP_TASKBAR = 0x00010000    #,   /**< window should not be added to the taskbar */
 
     ctypedef enum SDL_HitTestResult:
         SDL_HITTEST_NORMAL
@@ -480,6 +481,8 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
     cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
     cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
+    cdef char *SDL_HINT_WINDOWS_DPI_AWARENESS
+    cdef char *SDL_HINT_WINDOWS_DPI_SCALING
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -754,6 +757,8 @@ cdef extern from "SDL_ttf.h":
     cdef void  TTF_SetFontStyle(TTF_Font *font, int style)
     cdef int  TTF_GetFontOutline( TTF_Font *font)
     cdef void  TTF_SetFontOutline(TTF_Font *font, int outline)
+    cdef int TTF_SetFontDirection(TTF_Font *font, int direction)
+    cdef int TTF_SetFontScriptName(TTF_Font *font, const char *script)
 
     #Set and retrieve FreeType hinter settings */
     ##define TTF_HINTING_NORMAL    0
@@ -766,6 +771,11 @@ cdef extern from "SDL_ttf.h":
     cdef int TTF_HINTING_NONE
     cdef int  TTF_GetFontHinting( TTF_Font *font)
     cdef void  TTF_SetFontHinting(TTF_Font *font, int hinting)
+
+    cdef int TTF_DIRECTION_LTR
+    cdef int TTF_DIRECTION_RTL
+    cdef int TTF_DIRECTION_TTB
+    cdef int TTF_DIRECTION_BTT
 
     #Get the total height of the font - usually equal to point size
     cdef int  TTF_FontHeight( TTF_Font *font)
@@ -913,6 +923,10 @@ cdef extern from "SDL_audio.h":
         int dst_rate
     )
     cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
+
+cdef extern from "SDL_video.h":
+    cdef int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
+    cdef int SDL_GetWindowOpacity(SDL_Window *window, float *opacity)
 
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:

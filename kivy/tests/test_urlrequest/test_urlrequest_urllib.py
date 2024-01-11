@@ -98,7 +98,7 @@ def test_auth_header(kivy_clock):
         req_headers=head,
         debug=True
     )
-    wait_request_is_finished(kivy_clock, req)
+    wait_request_is_finished(kivy_clock, req, timeout=60)
 
     if req.error and req.error.errno == 11001:
         pytest.skip('Cannot connect to get address')
@@ -120,7 +120,7 @@ def test_auth_auto(kivy_clock):
         on_redirect=obj._on_redirect,
         debug=True
     )
-    wait_request_is_finished(kivy_clock, req)
+    wait_request_is_finished(kivy_clock, req, timeout=60)
 
     if req.error and req.error.errno == 11001:
         pytest.skip('Cannot connect to get address')
@@ -146,7 +146,7 @@ def test_ca_file(kivy_clock, scheme):
         ca_file=certifi.where(),
         debug=True
     )
-    wait_request_is_finished(kivy_clock, req)
+    wait_request_is_finished(kivy_clock, req, timeout=60)
 
     if req.error and req.error.errno == 11001:
         pytest.skip('Cannot connect to get address')

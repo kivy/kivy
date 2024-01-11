@@ -166,7 +166,7 @@ class RecycleDataAdapter(EventDispatcher):
           are typically added to the internal cache.
 
     Typically what happens is that the layout manager lays out the data
-    and then asks for views, using :meth:`set_visible_views,` for some specific
+    and then asks for views, using :meth:`set_visible_views`, for some specific
     data items that it displays.
 
     These views are gotten from the current views, dirty or global cache. Then
