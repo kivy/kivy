@@ -529,7 +529,10 @@ else:
                 try:
                     func(*args, **kargs)
                 except Exception as e:
-                    print(e)
+                    Logger.exception(
+                        "_Worker: Pooled task failed")
+                    Logger.info(
+                        "Failed function: %s(*%r, **%r)", (func, args, kargs))
                 self.tasks.task_done()
 
     class _ThreadPool(object):
