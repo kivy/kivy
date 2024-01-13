@@ -124,8 +124,7 @@ class LoaderBase(object):
         self._trigger_update = Clock.create_trigger(self._update)
 
     def __del__(self):
-        if self._trigger_update is not None:
-            self._trigger_update.cancel()
+        self.stop()
 
     def _set_num_workers(self, num):
         if num < 2:
@@ -235,6 +234,10 @@ class LoaderBase(object):
     def stop(self):
         '''Stop the loader thread/process.'''
         self._running = False
+
+        if self._trigger_update is not None:
+            self._trigger_update.cancel()
+
         with self._resume_cond:
             self._resume_cond.notify_all()
 
