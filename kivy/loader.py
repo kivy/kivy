@@ -129,7 +129,7 @@ class LoaderBase(object):
 
     def _set_num_workers(self, num):
         if num < 2:
-            raise Exception('Must have at least 2 workers')
+            raise ValueError('Must have at least 2 workers')
         self._num_workers = num
 
     def _get_num_workers(self):
@@ -154,7 +154,7 @@ class LoaderBase(object):
 
     def _set_max_upload_per_frame(self, num):
         if num is not None and num < 1:
-            raise Exception('Must have at least 1 image processing per image')
+            raise ValueError('Must have at least 1 image processing per image')
         self._max_upload_per_frame = num
 
     def _get_max_upload_per_frame(self):
