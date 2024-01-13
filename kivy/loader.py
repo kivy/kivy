@@ -422,6 +422,7 @@ class LoaderBase(object):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:
+                # No remaining files to load.
                 return
 
             # create the image
@@ -443,7 +444,7 @@ class LoaderBase(object):
 
     def image(self, filename, load_callback=None, post_callback=None,
               **kwargs):
-        '''Load a image using the Loader. A ProxyImage is returned with a
+        '''Load an image using the Loader. A ProxyImage is returned with a
         loading image. You can use it as follows::
 
             from kivy.app import App
@@ -493,7 +494,8 @@ class LoaderBase(object):
 
         return client
 
-    def remove_from_cache(self, filename):
+    @staticmethod
+    def remove_from_cache(filename):
         Cache.remove('kv.loader', filename)
 
 #
