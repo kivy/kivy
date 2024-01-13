@@ -573,7 +573,8 @@ else:
             while self._running:
                 try:
                     parameters = self._q_load.pop()
-                except:
+                except IndexError:
+                    # Nothing to run.
                     return
                 self.pool.add_task(self._load, parameters)
 
