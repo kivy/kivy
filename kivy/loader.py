@@ -249,15 +249,13 @@ class LoaderBase(object):
         .. versionadded:: 1.6.0
         '''
         self._paused = False
-        self._resume_cond.acquire()
-        self._resume_cond.notify_all()
-        self._resume_cond.release()
+        with self._resume_cond:
+            self._resume_cond.notify_all()
 
     def _wait_for_resume(self):
         while self._running and self._paused:
-            self._resume_cond.acquire()
-            self._resume_cond.wait(0.25)
-            self._resume_cond.release()
+            with self._resume_cond:
+                self._resume_cond.wait(0.25)
 
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
