@@ -235,6 +235,8 @@ class LoaderBase(object):
     def stop(self):
         '''Stop the loader thread/process.'''
         self._running = False
+        with self._resume_cond:
+            self._resume_cond.notify_all()
 
     def pause(self):
         '''Pause the loader, can be useful during interactions.
@@ -253,9 +255,9 @@ class LoaderBase(object):
             self._resume_cond.notify_all()
 
     def _wait_for_resume(self):
-        while self._running and self._paused:
-            with self._resume_cond:
-                self._resume_cond.wait(0.25)
+        with self._resume_cond:
+            while self._running and self._paused:
+                self._resume_cond.wait()
 
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
