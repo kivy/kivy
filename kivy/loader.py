@@ -376,11 +376,12 @@ class LoaderBase(object):
         except Exception as ex:
             Logger.exception('Loader: Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
-            try:
-                if _out_osfd:
+            if _out_osfd:
+                try:
                     close(_out_osfd)
-            except OSError:
-                pass
+                    _out_osfd = None
+                except OSError:
+                    pass
 
             # update client
             for c_filename, client in self._client[:]:
@@ -395,9 +396,11 @@ class LoaderBase(object):
         finally:
             if fd:
                 fd.close()
+                fd = None
             if _out_osfd:
                 close(_out_osfd)
-            if _out_filename != '':
+                _out_osfd = None
+            if _out_filename:
                 unlink(_out_filename)
 
         return data
