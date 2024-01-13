@@ -270,13 +270,13 @@ class LoaderBase(object):
         self._wait_for_resume()
 
         filename = kwargs['filename']
+        if not filename:
+            Logger.warning("Loader: _load abandoned because filename missing")
+            return
+
         load_callback = kwargs['load_callback']
         post_callback = kwargs['post_callback']
-        try:
-            proto = filename.split(':', 1)[0]
-        except:
-            # if blank filename then return
-            return
+        proto = filename.split(':', 1)[0]
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp', 'smb'):
