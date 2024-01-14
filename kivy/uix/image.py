@@ -57,7 +57,7 @@ want your image to be greater than the size of your widget, you could do::
 
 And in your kivy language file::
 
-    <-FullImage>:
+    <FullImage>:
         canvas:
             Color:
                 rgb: (1, 1, 1)
