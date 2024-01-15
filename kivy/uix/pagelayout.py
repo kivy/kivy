@@ -135,6 +135,9 @@ class PageLayout(Layout):
         ):
             return
 
+       if self.page >= len(self.children):
+              self.page = len(self.children) - 1
+
         page = self.children[-self.page - 1]
         if self.x <= touch.x < page.x:
             touch.ud['page'] = 'previous'
