@@ -62,7 +62,7 @@ Or you can get the bytes (new in `1.11.0`):
 '''
 import re
 from base64 import b64decode
-import imghdr
+from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
@@ -79,10 +79,8 @@ from kivy.setupconfig import USE_SDL2
 import zipfile
 from io import BytesIO
 
-
 # late binding
 Texture = TextureRegion = None
-
 
 # register image caching only for keep_data=True
 Cache.register('kv.image', timeout=60)
@@ -442,6 +440,9 @@ class ImageLoader(object):
             ext = ext.split('?')[0]
 
         filename = resource_find(filename)
+
+        # Get actual image format instead of extension if possible
+        ext = guess_extension(filename) or ext
 
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
