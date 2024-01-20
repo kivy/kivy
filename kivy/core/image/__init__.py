@@ -62,7 +62,7 @@ Or you can get the bytes (new in `1.11.0`):
 '''
 import re
 from base64 import b64decode
-import imghdr
+from kivy.lib import imghdr
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
