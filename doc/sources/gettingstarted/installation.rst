@@ -54,7 +54,7 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster), Python 3.9 (Raspberry Pi OS Bullseye)
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.9 (Raspberry Pi OS Bullseye)
 and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
 
 For other Python versions, on 32 bit OSes, you will need to install from source.
@@ -126,19 +126,19 @@ See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
     The ``Pillow`` library is a dependency of both ``kivy[base]`` and ``kivy[full]``.
 
-    For Windows 32-bit users, please note that the latest releases of `Pillow` are 
-    not available as binary distributions on PyPI. However, Kivy also supports ``Pillow==9.5.0``, 
+    For Windows 32-bit users, please note that the latest releases of `Pillow` are
+    not available as binary distributions on PyPI. However, Kivy also supports ``Pillow==9.5.0``,
     which have a binary distribution for all supported Python versions, even on Windows 32-bit.
 
-    If you are on Windows 32-bit and prefer not to build Pillow from source, 
-    you can use the ``--only-binary Pillow`` flag with the following command to instruct pip 
+    If you are on Windows 32-bit and prefer not to build Pillow from source,
+    you can use the ``--only-binary Pillow`` flag with the following command to instruct pip
     to install the binary distribution of Pillow, albeit not the latest version::
 
         python -m pip install --only-binary Pillow "kivy[base]"
 
 .. note::
 
-    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional 
+    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional
     dependencies to ensure Kivy functions properly.
 
     For instance, on Raspberry Pi OS Lite, you will be required to install the following dependencies::
@@ -169,7 +169,7 @@ First install the additional system dependencies listed for each platform:
     offer support for this.**
 
     Instead, we recommend installing the SDL dependencies from source. This is the same process
-    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a 
+    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a
     specific directory.
 
 With all the build tools installed, you can now install the SDL dependencies from source for SDL support
