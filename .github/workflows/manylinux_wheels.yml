@@ -136,7 +136,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
       matrix:
-        python: [ '3.7', '3.8', '3.9', '3.10', '3.11', '3.12' ]
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12' ]
     env:
       DISPLAY: ':99.0'
     steps:
