@@ -14,7 +14,7 @@ from .shader cimport *
 from .texture cimport Texture
 from kivy._event cimport ObjectWithUid
 
-cdef void reset_gl_context()
+cpdef void reset_gl_context()
 
 cdef class Instruction
 cdef class InstructionGroup(Instruction)
