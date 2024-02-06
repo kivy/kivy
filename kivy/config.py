@@ -489,6 +489,7 @@ class ConfigParser(PythonConfigParser, object):
 
         '''
         if not isinstance(filename, string_types):
+            # todo: raise a better exception
             raise Exception('Only one filename is accepted ({})'.format(
                 string_types.__name__))
         self.filename = filename
