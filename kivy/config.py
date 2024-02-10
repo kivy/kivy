@@ -114,6 +114,10 @@ Available configuration tokens
         * 'systemanddock' - virtual docked keyboard plus input from real
           keyboard.
         * 'systemandmulti' - analogous.
+    `keep_textinput_active`: boolean True or False
+        If set to True, SDL will not stop dispatching SDL_TEXTINPUT events
+        when a TextInput is focussed or unfoccused. Desktop only as it opens
+        the on-screen-keyboard on mobile. Defaults to False.
     `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
         The clock type to use with kivy. See :mod:`kivy.clock`.
     `log_dir`: string
@@ -405,7 +409,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 27
+KIVY_CONFIG_VERSION = 28
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -765,7 +769,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     if version != KIVY_CONFIG_VERSION and 'KIVY_NO_CONFIG' not in environ:
         Logger.warning('Config: Older configuration version detected'
                        ' ({0} instead of {1})'.format(
-                           version, KIVY_CONFIG_VERSION))
+            version, KIVY_CONFIG_VERSION))
         Logger.warning('Config: Upgrading configuration in progress.')
         need_save = True
 
@@ -942,6 +946,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
 
+        elif version == 27:
+            Config.setdefault("kivy", "keep_textinput_active", False)
+
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
         else:
@@ -975,8 +982,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 _, section, name = key.split("_", 2)
             except ValueError:
                 Logger.warning((
-                    "Config: Environ `{}` invalid format, "
-                    "must be KCFG_section_name").format(key))
+                                   "Config: Environ `{}` invalid format, "
+                                   "must be KCFG_section_name").format(key))
                 continue
 
             # extract and check section
@@ -996,7 +1003,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 Logger.warning((
                     "Config: Environ `{}` unknown `{}` "
                     "option in `{}` section.").format(
-                        key, name, section))
+                    key, name, section))
                 # we don't avoid to set an unknown option, because maybe
                 # an external modules or widgets (in garden?) may want to
                 # save its own configuration here.
