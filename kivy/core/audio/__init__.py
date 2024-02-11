@@ -100,7 +100,10 @@ class Sound(EventDispatcher):
         `on_stop`: None
             Fired when the sound is stopped.
         `on_eos`: None
-            Fired when EOS is hit.
+            Fired when EOS is hit. Available only with 
+            `ffpyplayer` and `gstplayer` backends.
+
+            .. versionadded:: 3.0.0
     '''
 
     source = StringProperty(None)
@@ -147,7 +150,7 @@ class Sound(EventDispatcher):
     :attr:`loop` is a :class:`~kivy.properties.BooleanProperty` and defaults to
     False.'''
 
-    __events__ = ('on_play', 'on_stop')
+    __events__ = ('on_play', 'on_stop', 'on_eos')
 
     def on_source(self, instance, filename):
         self.unload()

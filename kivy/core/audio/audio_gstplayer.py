@@ -53,6 +53,7 @@ class SoundGstplayer(Sound):
             self.player.play()
         else:
             self.stop()
+        self.dispatch('on_eos')
 
     def load(self):
         self.unload()
