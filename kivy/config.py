@@ -767,8 +767,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     # Upgrade default configuration until we have the current version
     need_save = False
     if version != KIVY_CONFIG_VERSION and 'KIVY_NO_CONFIG' not in environ:
-        Logger.warning('Config: Older configuration version detected'
-                       ' ({0} instead of {1})'.format(version, KIVY_CONFIG_VERSION))
+        Logger.warning(
+            'Config: Older configuration version detected'
+            ' ({0} instead of {1})'.format(version, KIVY_CONFIG_VERSION)
+        )
         Logger.warning('Config: Upgrading configuration in progress.')
         need_save = True
 
