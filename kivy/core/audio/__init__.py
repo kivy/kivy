@@ -99,6 +99,8 @@ class Sound(EventDispatcher):
             Fired when the sound is played.
         `on_stop`: None
             Fired when the sound is stopped.
+        `on_eos`: None
+            Fired when EOS is hit.
     '''
 
     source = StringProperty(None)
@@ -201,6 +203,8 @@ class Sound(EventDispatcher):
     def on_stop(self):
         pass
 
+    def on_eos(self):
+        pass
 
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
