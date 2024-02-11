@@ -9,7 +9,6 @@ TODO:
 include '../../lib/sdl2.pxi'
 
 from kivy.core.image import ImageData
-from kivy.compat import PY2
 
 cdef dict sdl2_cache = {}
 cdef list sdl2_cache_order = []
@@ -218,8 +217,7 @@ def _get_extents(container, text):
     outline_width = container.options['outline_width']
     if font == NULL:
         return 0, 0
-    if not PY2:
-        text = text.encode('utf-8')
+    text = text.encode('utf-8')
     bytes_text = <bytes>text
     if outline_width:
         TTF_SetFontOutline(font, outline_width)

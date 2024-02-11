@@ -21,7 +21,6 @@ from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.weakproxy import WeakProxy
-from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
@@ -872,7 +871,7 @@ cdef class EventDispatcher(ObjectWithUid):
             cls = BooleanProperty
         elif isinstance(value, (int, float)):
             cls = NumericProperty
-        elif isinstance(value, string_types):
+        elif isinstance(value, str):
             cls = StringProperty
         elif isinstance(value, (list, tuple)):
             cls = ListProperty

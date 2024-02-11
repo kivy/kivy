@@ -58,6 +58,8 @@ class FBOPy2Py3TestCase(GraphicUnitTest):
         for i, pos in enumerate(fbow.positions):
             c = fbow.fbo.get_pixel_color(pos[0], pos[1])
             # returned class
+            print(c, values[i][0])
+            print("coucou")
             self.assertTrue(isinstance(c, values[i][0]))
             # returned types in container
             for v in c:

@@ -50,7 +50,6 @@ Kv Example::
 
 __all__ = ('Spinner', 'SpinnerOption')
 
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
 from kivy.uix.button import Button
@@ -161,7 +160,7 @@ class Spinner(Button):
             self._dropdown.dismiss()
             self._dropdown = None
         cls = self.dropdown_cls
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         self._dropdown = cls()
         self._dropdown.bind(on_select=self._on_dropdown_select)
@@ -187,7 +186,7 @@ class Spinner(Button):
         cls = self.option_cls
         values = self.values
         text_autoupdate = self.text_autoupdate
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         dp.clear_widgets()
         for value in values:

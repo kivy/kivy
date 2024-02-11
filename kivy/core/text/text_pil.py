@@ -7,7 +7,6 @@ __all__ = ('LabelPIL', )
 from PIL import Image, ImageFont, ImageDraw
 
 
-from kivy.compat import text_type
 from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 
@@ -25,7 +24,7 @@ class LabelPIL(LabelBase):
         fontsize = int(self.options['font_size'])
         fontname = self.options['font_name_r']
         try:
-            id = '%s.%s' % (text_type(fontname), text_type(fontsize))
+            id = '%s.%s' % (str(fontname), str(fontsize))
         except UnicodeDecodeError:
             id = '%s.%s' % (fontname, fontsize)
 

@@ -9,7 +9,6 @@ Text Pygame: Draw text with pygame
 
 __all__ = ('LabelPygame', )
 
-from kivy.compat import PY2
 from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 from kivy.utils import deprecated

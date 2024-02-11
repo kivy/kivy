@@ -415,7 +415,6 @@ from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
@@ -1147,7 +1146,7 @@ Context.html#getFilesDir()>`_ is returned.
         if self.settings_cls is None:
             from kivy.uix.settings import SettingsWithSpinner
             self.settings_cls = SettingsWithSpinner
-        elif isinstance(self.settings_cls, string_types):
+        elif isinstance(self.settings_cls, str):
             self.settings_cls = Factory.get(self.settings_cls)
         s = self.settings_cls()
         self.build_settings(s)

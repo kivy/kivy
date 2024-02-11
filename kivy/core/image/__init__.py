@@ -74,7 +74,6 @@ from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
 from kivy.utils import platform
-from kivy.compat import string_types
 from kivy.setupconfig import USE_SDL2
 import zipfile
 from io import BytesIO
@@ -540,7 +539,7 @@ class Image(EventDispatcher):
                 self._nocache = True
                 filename = '__inline__'
             self.load_memory(arg, ext, filename)
-        elif isinstance(arg, string_types):
+        elif isinstance(arg, str):
             groups = self.data_uri_re.findall(arg)
             if groups:
                 self._nocache = True

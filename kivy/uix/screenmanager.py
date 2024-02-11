@@ -190,7 +190,6 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
            'FallOutTransition', 'RiseInTransition', 'NoTransition',
            'CardTransition')
 
-from kivy.compat import iteritems
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -1163,7 +1162,7 @@ class ScreenManager(FloatLayout):
             self.transition = specified_transition
 
         # change the transition options
-        for key, value in iteritems(options):
+        for key, value in options.items():
             setattr(self.transition, key, value)
 
         # add and leave if we are set as the current screen

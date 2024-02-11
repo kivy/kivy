@@ -177,7 +177,6 @@ from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
-from kivy.compat import string_types, text_type
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.tabbedpanel import TabbedPanelHeader
@@ -324,7 +323,7 @@ class SettingItem(FloatLayout):
             return
         # get current value in config
         panel = self.panel
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             value = str(value)
         panel.set_value(self.section, self.key, value)
 
@@ -602,9 +601,9 @@ class SettingNumeric(SettingString):
         self._dismiss()
         try:
             if is_float:
-                self.value = text_type(float(self.textinput.text))
+                self.value = str(float(self.textinput.text))
             else:
-                self.value = text_type(int(self.textinput.text))
+                self.value = str(int(self.textinput.text))
         except ValueError:
             return
 
@@ -1023,7 +1022,7 @@ class Settings(BoxLayout):
         to the user.
         '''
         cls = self.interface_cls
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         interface = cls()
         self.interface = interface

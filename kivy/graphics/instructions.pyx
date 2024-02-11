@@ -16,7 +16,6 @@ include "../include/config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.cgl cimport *
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
 from weakref import proxy
@@ -895,10 +894,7 @@ cdef class RenderContext(Canvas):
 
     cdef int apply(self) except -1:
         cdef list keys
-        if PY2:
-            keys = self.state_stacks.keys()
-        else:
-            keys = list(self.state_stacks.keys())
+        keys = list(self.state_stacks.keys())
 
         cdef RenderContext active_context = getActiveContext()
         if self._use_parent_projection:

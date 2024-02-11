@@ -71,7 +71,6 @@ include "../include/config.pxi"
 include "opcodes.pxi"
 
 from os import environ
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
@@ -502,4 +501,4 @@ cdef class Fbo(RenderContext):
         data = py_glReadPixels(wx, wy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
         self.release()
 
-        return [ord(i) if PY2 else i for i in data]
+        return [i for i in data]

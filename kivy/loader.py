@@ -510,7 +510,7 @@ else:
     # Try to use pygame as our first choice for loader
     #
 
-    from kivy.compat import queue
+    import queue
     from threading import Thread
 
     class _Worker(Thread):
