@@ -100,7 +100,7 @@ class Sound(EventDispatcher):
         `on_stop`: None
             Fired when the sound is stopped.
         `on_eos`: None
-            Fired when EOS is hit. Available only with 
+            Fired when EOS is hit. Available only with
             `ffpyplayer` and `gstplayer` backends.
 
             .. versionadded:: 3.0.0
@@ -208,6 +208,7 @@ class Sound(EventDispatcher):
 
     def on_eos(self):
         pass
+
 
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
