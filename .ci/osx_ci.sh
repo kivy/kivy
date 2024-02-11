@@ -36,14 +36,13 @@ install_platypus() {
 }
 
 generate_osx_app_bundle() {
-  py_version="$1"
   app_ver=$(PYTHONPATH=. KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy; print(kivy.__version__)')
 
   cd ../
   git clone https://github.com/kivy/kivy-sdk-packager.git
   cd kivy-sdk-packager/osx
 
-  ./create-osx-bundle.sh -k ../../kivy -p "$py_version" -v "$app_ver"
+  ./create-osx-bundle.sh -k ../../kivy -v "$app_ver"
 }
 
 generate_osx_app_dmg_from_bundle() {

@@ -373,7 +373,7 @@ Joystick debugging
 ~~~~~~~~~~~~~~~~~~
 
 .. |vjoy| replace:: vJoy
-.. _vjoy: http://vjoystick.sourceforge.net
+.. _vjoy: https://vjoystick.sourceforge.net
 
 Mostly you'd want to debug your application with multiple controllers, or
 test it against _other_ types of controllers (e.g. different brands).

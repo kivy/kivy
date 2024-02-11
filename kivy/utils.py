@@ -18,7 +18,8 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'hex_colormap', 'colormap', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version')
+           'platform', 'escape_markup', 'reify', 'rgba', 'pi_version',
+           'format_bytes_to_human')
 
 from os import environ, path
 from sys import platform as _sys_platform
@@ -39,29 +40,6 @@ def intersection(set1, set2):
 def difference(set1, set2):
     '''Return the difference between 2 lists.'''
     return [s for s in set1 if s not in set2]
-
-
-def interpolate(value_from, value_to, step=10):
-    '''Interpolate between two values. This can be useful for smoothing some
-    transitions. For example::
-
-        # instead of setting directly
-        self.pos = pos
-
-        # use interpolate, and you'll have a nicer transition
-        self.pos = interpolate(self.pos, new_pos)
-
-    .. warning::
-        These interpolations work only on lists/tuples/doubles with the same
-        dimensions. No test is done to check the dimensions are the same.
-    '''
-    if type(value_from) in (list, tuple):
-        out = []
-        for x, y in zip(value_from, value_to):
-            out.append(interpolate(x, y, step))
-        return out
-    else:
-        return value_from + (value_to - value_from) / float(step)
 
 
 def strtotuple(s):
@@ -354,6 +332,28 @@ def deprecated(func=None, msg=''):
     return new_func
 
 
+@deprecated
+def interpolate(value_from, value_to, step=10):
+    '''Interpolate between two values, by providing the
+    reciprocal of the proportion between two points.
+
+    .. deprecated:: 2.3.0
+        For animations, consider using the
+        `AnimationTransition.linear()` for a similar purpose.
+
+    .. warning::
+        These interpolations work only on lists/tuples/doubles with the same
+        dimensions. No test is done to check the dimensions are the same.
+    '''
+    if type(value_from) in (list, tuple):
+        out = []
+        for x, y in zip(value_from, value_to):
+            out.append(interpolate(x, y, step))
+        return out
+    else:
+        return value_from + (value_to - value_from) / float(step)
+
+
 class SafeList(list):
     '''List with a clear() method.
 
@@ -393,7 +393,8 @@ class QueryDict(dict):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            return super(QueryDict, self).__getattr__(attr)
+            raise AttributeError("%r object has no attribute %r" % (
+                self.__class__.__name__self, attr))
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)

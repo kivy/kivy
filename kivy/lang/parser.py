@@ -695,6 +695,8 @@ class Parser(object):
                             self, ln, 'clear previous, `-`, not allowed here')
                     _objects, _lines = self.parse_level(
                         level + 1, lines[i:], spaces)
+                    if current_object is None:
+                        raise ParserException(self, ln, 'Invalid indentation')
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -753,6 +755,9 @@ class Parser(object):
                     if current_propobject is None:
                         current_propobject = ParserRuleProperty(
                             self, ln, current_property, content)
+                        if not current_property:
+                            raise ParserException(self, ln,
+                                                  "Invalid indentation")
                         if current_property[:3] == 'on_':
                             current_object.handlers.append(current_propobject)
                         else:

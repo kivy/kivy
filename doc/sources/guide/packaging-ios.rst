@@ -94,7 +94,7 @@ Customize the Xcode project
 ---------------------------
 
 There are various ways to customize and configure your app. Please refer
-to the `kivy-ios <http://www.github.com/kivy/kivy-ios>`_ documentation
+to the `kivy-ios <https://www.github.com/kivy/kivy-ios>`_ documentation
 for more information.
 
 .. _Known issues:

@@ -72,6 +72,32 @@ class LangTestCase(unittest.TestCase):
         Factory.register('TLangClass3', cls=TLangClass3)
         return Builder
 
+    def test_invalid_indentation(self):
+        Builder = self.import_builder()
+        from kivy.lang import ParserException
+        kv_code = dedent('''\
+            BoxLayout:
+                orientation: 'vertical'
+                    Button:
+        ''')
+
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Invalid indentation.')
+        except ParserException:
+            pass
+
+    def test_invalid_indentation2(self):
+        Builder = self.import_builder()
+        from kivy.lang import ParserException
+        kv_code = '''   BoxLayout:'''
+
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Invalid indentation.')
+        except ParserException as e:
+            pass
+
     def test_loading_failed_1(self):
         # invalid indent
         Builder = self.import_builder()

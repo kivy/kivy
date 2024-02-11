@@ -367,7 +367,6 @@ class WindowSDL(WindowBase):
 
         # auto add input provider
         Logger.info('Window: auto add sdl2 input provider')
-        from kivy.base import EventLoop
         SDL2MotionEventProvider.win = self
         EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
 
@@ -398,6 +397,7 @@ class WindowSDL(WindowBase):
             try:
                 hwnd = windll.user32.GetActiveWindow()
                 self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
+                self._density = self.dpi / 96
             except AttributeError:
                 pass
         else:

@@ -311,7 +311,8 @@ class Label(Widget):
                         'split_str', 'ellipsis_options', 'unicode_errors',
                         'markup', 'font_hinting', 'font_kerning',
                         'font_blended', 'font_context', 'font_features',
-                        'base_direction', 'text_language')
+                        'base_direction', 'text_language',
+                        'limit_render_to_text_bbox')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -1176,4 +1177,20 @@ class Label(Widget):
 
     :attr:`font_blended` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
+    '''
+
+    limit_render_to_text_bbox = BooleanProperty(False)
+    '''If set to ``True``, this parameter indicates that rendering should be
+    limited to the bounding box of the text, excluding any additional white
+    spaces designated for ascent and descent.
+
+    By limiting the rendering to the bounding box of the text, it ensures a
+    more precise alignment with surrounding elements when utilizing properties
+    such as `valign`, `y`, `pos`, `pos_hint`, etc.
+
+    .. note::
+        This feature requires the PIL text provider.
+
+    :attr:`limit_render_to_text_bbox` is a
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
     '''

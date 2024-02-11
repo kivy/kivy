@@ -47,7 +47,7 @@ write them in a minimal and reusable manner (i.e. a widget does exactly
 what its supposed to do and nothing more. If you need more, write more
 widgets or compose other widgets of smaller widgets. We try to adhere to the
 `Single Responsibility Principle
-<http://en.wikipedia.org/wiki/Single_responsibility_principle>`_).
+<https://en.wikipedia.org/wiki/Single_responsibility_principle>`_).
 
 
 Paint Widget
@@ -91,7 +91,7 @@ just nicely provide the classes defined in the file.
     You may be wondering why you have to import App and Widget separately,
     instead of doing something like ``from kivy import *``. While shorter,
     this would have the disadvantage of `polluting  your namespace
-    <http://en.wikipedia.org/wiki/Namespace_%28computer_science%29#Python>`_
+    <https://en.wikipedia.org/wiki/Namespace_%28computer_science%29#Python>`_
     and make the start of the application potentially much slower.
     It can also introduce ambiguity into class and variable naming,
     so is generally frowned upon in the Python community. The way we do it is
@@ -226,7 +226,7 @@ Here are the changes:
       float values that will represent a random RGB color. Since we do
       this in ``on_touch_down``, every new touch will get its own color.
       Don't get confused by the use of
-      `tuples <http://docs.python.org/2/tutorial/datastructures.html#tuples-and-sequences>`_.
+      `tuples <https://docs.python.org/2/tutorial/datastructures.html#tuples-and-sequences>`_.
       We're just binding the tuple to ``color`` for use as a shortcut
       within this method because we're lazy.
     * Line 12: As before, we set the color for the canvas. Only this time
@@ -304,7 +304,7 @@ Here's what happens:
       displays the text 'Clear'.
     * Line 28: We then bind the button's on_release event (which is fired when
       the button is pressed and then released) to the
-      `callback function <http://en.wikipedia.org/wiki/Callback_function#Python>`_
+      `callback function <https://en.wikipedia.org/wiki/Callback_function#Python>`_
       `clear_canvas` defined on below on Lines 33 & 34.
     * Line 29 & 30: We set up the widget hierarchy by making both the
       painter and the clearbtn children of the dummy parent widget.
@@ -314,7 +314,7 @@ Here's what happens:
       visible, and you could press it, but nothing would happen.
       We change that here: we create a small, throw-away function that is
       going to be our
-      `callback function <http://en.wikipedia.org/wiki/Callback_function#Python>`_
+      `callback function <https://en.wikipedia.org/wiki/Callback_function#Python>`_
       when the button is pressed. The function just clears the painter's
       canvas' contents, making it black again.
 

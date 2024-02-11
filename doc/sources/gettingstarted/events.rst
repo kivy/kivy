@@ -1,7 +1,7 @@
 Events
 ------
 
-Kivy is mostly `event-based <http://en.wikipedia.org/wiki/Event-driven_programming>`_, meaning the flow of the program is determined
+Kivy is mostly `event-based <https://en.wikipedia.org/wiki/Event-driven_programming>`_, meaning the flow of the program is determined
 by events.
 
 **Clock events**

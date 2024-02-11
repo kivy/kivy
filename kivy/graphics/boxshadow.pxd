@@ -1,9 +1,10 @@
 from kivy.graphics.fbo cimport Fbo
 from kivy.graphics.context_instructions cimport Translate, Scale
 from kivy.graphics.vertex_instructions cimport VertexInstruction
+from kivy.graphics.instructions cimport InstructionGroup
 
 
-cdef class BoxShadow(Fbo):
+cdef class BoxShadow(InstructionGroup):
 
     cdef bint _inset
     cdef float _blur_radius
@@ -16,6 +17,7 @@ cdef class BoxShadow(Fbo):
     cdef VertexInstruction _texture_container
     cdef Scale _fbo_scale
     cdef Translate _fbo_translate
+    cdef Fbo _fbo
 
     cdef void _init_texture(self)
     cdef void _update_canvas(self)
