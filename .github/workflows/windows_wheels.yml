@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11', '3.12' ]
-        arch: ['x64', 'x86']
+        arch: ['x64']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
     - uses: actions/checkout@v3
@@ -108,7 +108,7 @@ jobs:
     strategy:
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11', '3.12' ]
-        arch: [ 'x64', 'x86' ]
+        arch: [ 'x64' ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
