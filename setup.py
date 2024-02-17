@@ -1075,6 +1075,42 @@ def resolve_dependencies(fn, depends):
 
 
 def get_extensions_from_sources(sources):
+
+    def _get_cythonized_source_extension(cython_file: str, flags: dict) -> str:
+        # The cythonized file can be either a .c or .cpp file
+        # depending on the language tag in the .pyx file, or the
+        # flag passed to the extension.
+
+        # If the language tag or the flag is not set, we assume
+        # the file is a .c file.
+
+        def _to_extension(language: str) -> str:
+            return "cpp" if language == "c++" else "c"
+
+        if "language" in flags:
+            return _to_extension(flags["language"])
+
+        with open(cython_file, "r", encoding="utf-8") as _source_file:
+            for line in _source_file:
+
+                line = line.lstrip()
+                if not line:
+                    continue
+                if line[0] != "#":
+                    break
+
+                line = line[1:].lstrip()
+                if not line.startswith("distutils:"):
+                    continue
+
+                distutils_settings_key, _, distutils_settings_value = [
+                    s.strip() for s in line[len("distutils:") :].partition("=")
+                ]
+                if distutils_settings_key == "language":
+                    return _to_extension(distutils_settings_value)
+
+        return _to_extension("c")
+
     ext_modules = []
     if environ.get('KIVY_FAKE_BUILDEXT'):
         print('Fake build_ext asked, will generate only .h/.c')
@@ -1085,8 +1121,9 @@ def get_extensions_from_sources(sources):
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
         if not can_use_cython:
-            # can't use cython, so use the .c files instead.
-            pyx_path = '%s.c' % pyx_path[:-4]
+            # can't use cython, so use the .c or .cpp files instead.
+            _ext = _get_cythonized_source_extension(pyx_path, flags)
+            pyx_path = f"{pyx_path[:-4]}.{_ext}"
         if is_graphics:
             depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
