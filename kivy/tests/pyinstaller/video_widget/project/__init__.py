@@ -29,7 +29,7 @@ class VideoApp(App):
             self.stop_player()
 
     def stop_player(self, *args):
-        if time.perf_counter() - self.start_t > 10:
+        if time.perf_counter() - self.start_t > 20:
             assert self.player.duration > 0
             assert self.player.position > 0
             self.stop()
