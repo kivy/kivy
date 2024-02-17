@@ -1104,7 +1104,7 @@ def get_extensions_from_sources(sources):
                     continue
 
                 distutils_settings_key, _, distutils_settings_value = [
-                    s.strip() for s in line[len("distutils:") :].partition("=")
+                    s.strip() for s in line[len("distutils:"):].partition("=")
                 ]
                 if distutils_settings_key == "language":
                     return _to_extension(distutils_settings_value)
