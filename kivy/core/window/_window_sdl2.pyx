@@ -75,6 +75,26 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
+    cdef SDL_Window * _setup_sdl_window(self, x, y, width, height, multisamples, shaped):
+
+        if multisamples:
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+            SDL_GL_SetAttribute(
+                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
+            )
+        else:
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+
+        if shaped:
+            return SDL_CreateShapedWindow(
+                NULL, x, y, width, height, self.win_flags
+            )
+        else:
+            return SDL_CreateWindow(
+                NULL, x, y, width, height, self.win_flags
+            )
+
     def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
@@ -161,67 +181,37 @@ cdef class _WindowSDL2Storage:
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
-        cdef int multisamples, shaped
-        multisamples = Config.getint('graphics', 'multisamples')
+        cdef int config_multisamples, config_shaped
+        config_multisamples = Config.getint('graphics', 'multisamples')
 
         # we need to tell the window to be shaped before creation, therefore
         # it's a config property like e.g. fullscreen
-        shaped = Config.getint('graphics', 'shaped')
+        config_shaped = Config.getint('graphics', 'shaped')
 
-        if multisamples > 0 and shaped > 0:
-            # try to create shaped window with multisampling:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(
-                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-            )
-            self.win = SDL_CreateShapedWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create only shaped window:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
-                self.win = SDL_CreateShapedWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-            if not self.win:
-                # if everything fails, create an ordinary window:
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        elif multisamples > 0:
-            # try to create window with multisampling:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(
-                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-            )
-            self.win = SDL_CreateWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create window without multisampling:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        elif shaped > 0:
-            # try to create shaped window:
-            self.win = SDL_CreateShapedWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create an ordinary window:
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        else:
-            self.win = SDL_CreateWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
+        # Due to the uncertainty regarding the window's capability for shaping 
+        # and multisampling, we iterate through all possible combinations in 
+        # the most correct order:
+        # 1. Shaped window with multisampling
+        # 2. Shaped window without multisampling
+        # 3. Ordinary window with multisampling
+        # 4. Ordinary window without multisampling
+        sdl_window_configs = []
+        if config_multisamples and config_shaped:
+            sdl_window_configs.append((config_multisamples, config_shaped))
+        if config_shaped:
+            sdl_window_configs.append((0, config_shaped))
+        if config_multisamples:
+            sdl_window_configs.append((config_multisamples, 0))
+        sdl_window_configs.append((0, 0))
+
+        for multisamples, shaped in sdl_window_configs:
+            win = self._setup_sdl_window(x, y, width, height, multisamples, shaped)
+            if win:
+                self.win = win
+                break
 
         # post-creation fix for shaped window
-        if shaped > 0 and self.is_window_shaped():
+        if self.is_window_shaped():
             # because SDL just set it to (-1000, -1000)
             # -> can't use UNDEFINED nor CENTER after window creation
             self.set_window_pos(100, 100)
