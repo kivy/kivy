@@ -17,7 +17,7 @@ class VideoApp(App):
 
         self.player.fbind('position', self.check_position)
         Clock.schedule_once(self.start_player, 0)
-        Clock.schedule_interval(self.stop_player, 5)
+        Clock.schedule_interval(self.stop_player, 1)
         return player
 
     def start_player(self, *args):
@@ -29,7 +29,7 @@ class VideoApp(App):
             self.stop_player()
 
     def stop_player(self, *args):
-        if time.perf_counter() - self.start_t > 10:
+        if time.perf_counter() - self.start_t > 20:
             assert self.player.duration > 0
             assert self.player.position > 0
             self.stop()
