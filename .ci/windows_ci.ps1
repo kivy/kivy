@@ -86,7 +86,7 @@ function Install-kivy-test-run-pip-deps {
 }
 
 function Install-kivy {
-    python -m pip install --only-binary Pillow -e .[dev,full]
+    python -m pip install -e .[dev,full]
 }
 
 function Install-kivy-wheel {
@@ -102,7 +102,7 @@ function Install-kivy-wheel {
     $kivy_fname=(ls $root/dist/Kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
-    python -m pip install --only-binary Pillow "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
 }
 
 function Install-kivy-sdist {
