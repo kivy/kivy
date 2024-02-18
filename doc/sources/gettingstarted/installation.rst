@@ -124,20 +124,6 @@ See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
 .. note::
 
-    The ``Pillow`` library is a dependency of both ``kivy[base]`` and ``kivy[full]``.
-
-    For Windows 32-bit users, please note that the latest releases of `Pillow` are
-    not available as binary distributions on PyPI. However, Kivy also supports ``Pillow==9.5.0``,
-    which have a binary distribution for all supported Python versions, even on Windows 32-bit.
-
-    If you are on Windows 32-bit and prefer not to build Pillow from source,
-    you can use the ``--only-binary Pillow`` flag with the following command to instruct pip
-    to install the binary distribution of Pillow, albeit not the latest version::
-
-        python -m pip install --only-binary Pillow "kivy[base]"
-
-.. note::
-
     When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional
     dependencies to ensure Kivy functions properly.
 
