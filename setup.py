@@ -974,6 +974,7 @@ if platform in ('darwin', 'ios'):
     else:
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
+    osx_flags['extra_compile_args'] = ['-ObjC++']
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
 

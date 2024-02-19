@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 '''
 ImageIO OSX framework
 =====================
@@ -138,6 +140,16 @@ cdef extern from "Accelerate/Accelerate.h" nogil:
     int vImagePermuteChannels_ARGB8888(
             vImage_Buffer *src, vImage_Buffer *dst, unsigned char *permuteMap,
             int flags)
+
+
+cdef extern from "img_imageio_implem.mm":
+    cppclass KivyImageIOProviderSupportedExtensionList:
+        int count()
+        char* get(int index)
+
+    cppclass KivyImageIOProvider:
+        KivyImageIOProvider()
+        KivyImageIOProviderSupportedExtensionList* supported_source_image_extensions
 
 
 def load_image_data(bytes _url, bytes _data=None):
@@ -310,19 +322,36 @@ def save_image(filenm, width, height, fmt, data, flipped):
     free(pixels)
 
 
+
+cdef class _ImageIOInterface:
+    cdef KivyImageIOProvider* _provider
+
+    def __cinit__(self):
+        self._provider = new KivyImageIOProvider()
+
+    def __dealloc__(self):
+        del self._provider
+
+    cdef list get_supported_source_extensions(self):
+        cdef list ret = []
+        for i in range(self._provider.supported_source_image_extensions.count()):
+            ret.append(self._provider.supported_source_image_extensions.get(i).decode('utf-8'))
+        return ret
+
+# A list of the supported source extensions is served by the static method
+# extensions() of the ImageLoaderImageIO class.
+# To avoid the creation of a new _ImageIOInterface object each time we need to
+# get the list of supported extensions, we create a single use object and get
+# the list of supported extensions at the module level.
+cdef list _supported_source_extensions = _ImageIOInterface().get_supported_source_extensions()
+
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO OS X Framework
     '''
 
     @staticmethod
     def extensions():
-        # FIXME check which one are available on osx
-        return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
-                'gd', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
-                'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
-                'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
-                'xv', 'icns')
+        return _supported_source_extensions
 
     def load(self, filename):
         # FIXME: if the filename is unicode, the loader is failing.
