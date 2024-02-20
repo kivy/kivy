@@ -63,7 +63,7 @@ void KivyImageIOProvider::load_supported_source_extensions()
         CFStringRef uti = (CFStringRef)CFArrayGetValueAtIndex(type_identifiers, i);
         NSArray *uti_extensions;
 
-        if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *))
+        if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *))
         {
             UTType *uttype = [UTType typeWithIdentifier:(NSString *)uti];
             uti_extensions = uttype.tags[@"public.filename-extension"];
