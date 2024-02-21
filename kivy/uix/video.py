@@ -161,6 +161,7 @@ class Video(Image):
 
     def __init__(self, **kwargs):
         self._video = None
+        self.source = kwargs.pop('source')
         super(Video, self).__init__(**kwargs)
         self.fbind('source', self._trigger_video_load)
 
