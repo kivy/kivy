@@ -417,26 +417,6 @@ class WindowBase(EventDispatcher):
     :attr:`modifiers` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    def _get_size(self):
-        r = self._rotation
-        w, h = self._size
-        if platform == 'win' or self._density != 1:
-            w, h = self._win._get_gl_size()
-        if self.softinput_mode == 'resize':
-            h -= self.keyboard_height
-        if r in (0, 180):
-            return w, h
-        return h, w
-
-    def _set_size(self, size):
-        if self._size != size:
-            r = self._rotation
-            if r in (0, 180):
-                self._size = size
-            else:
-                self._size = size[1], size[0]
-            self.dispatch('on_pre_resize', *size)
-
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
 
@@ -481,9 +461,76 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
+    def _get_unrotated_size(self):
+        w, h = self._size
+
+        w *= self._density
+        h *= self._density
+
+        return w, h
+
+    unrotated_size = AliasProperty(
+        _get_unrotated_size, None, bind=("_size", "_density")
+    )
+    '''The unrotated size of the window in drawable pixels. This is the actual
+    pixel size of the drawable area of the window, and takes into account the
+    window's pixel density.
+
+    The pixel density is the ratio of the physical pixels to the size of the
+    window in window coordinates. For example, on a Retina HiDPI display, the
+    pixel density is typically 2.0, meaning that the window's drawable size in
+    pixels is twice the size in window coordinates.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`unrotated_size` is a
+    read-only :class:`~kivy.properties.AliasProperty`.
+
+    '''
+
+    def _get_size(self):
+        w, h = self._get_unrotated_size()
+
+        r = self._rotation
+
+        if r not in (0, 180):
+            h, w = w, h
+
+        return w, h
+
+    def _set_size(self, size):
+        r = self._rotation
+        new_w, new_h = size
+
+        if r not in (0, 180):
+            new_h, new_w = new_w, new_h
+
+        if (
+            new_w / self._density == self._size[0]
+            and new_h / self._density == self._size[1]
+        ):
+            # The size is the same, no need to resize anything
+            return
+
+        self._size = (new_w / self._density, new_h / self._density)
+        self.dispatch('on_pre_resize', *self._size)
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', '_rotation'))
-    '''Get the rotated size of the window. If :attr:`rotation` is set, then the
-    size will change to reflect the rotation.
+    '''The rotated size of the window in drawable pixels. This is the actual
+    pixel size of the drawable area of the window, and takes into account the
+    window's :attr:`rotation` and pixel density.
+
+    The pixel density is the ratio of the physical pixels to the size of the
+    window in window coordinates. For example, on a Retina HiDPI display, the
+    pixel density is typically 2.0, meaning that the window's drawable size in
+    pixels is twice the size in window coordinates.
+
+    Consider using :attr:`system_size` if you want to programmatically set the
+    window size, as is more portable, and will give a nicer UX across different
+    OSes and displays.
+
+    This property differs from :attr:`unrotated_size` as it also accounts for
+    the window's rotation.
 
     .. versionadded:: 1.0.9
 
@@ -518,13 +565,7 @@ class WindowBase(EventDispatcher):
 
     # make some property read-only
     def _get_width(self):
-        _size = self._size
-        if platform == 'win' or self._density != 1:
-            _size = self._win._get_gl_size()
-        r = self._rotation
-        if r == 0 or r == 180:
-            return _size[0]
-        return _size[1]
+        return self._get_size()[0]
 
     width = AliasProperty(_get_width, bind=('_rotation', '_size', '_density'))
     '''Rotated window width.
@@ -534,14 +575,7 @@ class WindowBase(EventDispatcher):
 
     def _get_height(self):
         '''Rotated window height'''
-        r = self._rotation
-        _size = self._size
-        if platform == 'win' or self._density != 1:
-            _size = self._win._get_gl_size()
-        kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
-        if r == 0 or r == 180:
-            return _size[1] - kb
-        return _size[0] - kb
+        return self._get_size()[1]
 
     height = AliasProperty(_get_height,
                            bind=('_rotation', '_size', '_density'))
@@ -729,26 +763,22 @@ class WindowBase(EventDispatcher):
 
     system_size = AliasProperty(_get_system_size, _set_system_size,
                                 bind=('_size',))
-    '''Real size of the window ignoring rotation. If the density is
-    not 1, the :attr:`system_size` is the :attr:`size` divided by
-    density.
+    '''Size in window coordinates of the window.
+
+    This property is used to set and retrieve the window size in window
+    coordinates (which is different from the drawable size).
+    The actual :attr:`size` of the window will be adjusted to account
+    for the window's rotation and pixel density.
+
+    Setting the window size in window coordinates is more portable and will
+    give a nicer UX across different OSes and displays, therefore it is
+    recommended to use this property to set the window size instead of
+    :attr:`size`.
 
     .. versionadded:: 1.0.9
 
     :attr:`system_size` is an :class:`~kivy.properties.AliasProperty`.
     '''
-
-    def _get_effective_size(self):
-        '''On density=1 and non-ios / non-Windows displays,
-        return :attr:`system_size`, else return scaled / rotated :attr:`size`.
-
-        Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
-        '''
-        w, h = self.system_size
-        if platform in ('ios', 'win') or self._density != 1:
-            w, h = self.size
-
-        return w, h
 
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
@@ -1632,7 +1662,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
         '''
-        width, height = self._get_effective_size()
+        width, height = self.unrotated_size
         me.scale_for_screen(
             width, height,
             rotation=self.rotation,
@@ -1770,7 +1800,7 @@ class WindowBase(EventDispatcher):
         from kivy.graphics.transformation import Matrix
         from math import radians
 
-        w, h = self._get_effective_size()
+        w, h = self.unrotated_size
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
