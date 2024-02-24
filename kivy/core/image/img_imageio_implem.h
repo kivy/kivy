@@ -1,3 +1,4 @@
+#include <CoreServices/CoreServices.h>
 #include <Foundation/Foundation.h>
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
