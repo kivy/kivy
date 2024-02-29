@@ -261,9 +261,11 @@ class ImageLoaderBase(object):
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                source = f"{'zip|' if fname.endswith('.zip') else ''}{self._nocache}|"
+                source = (f"{'zip|' if fname.endswith('.zip') else ''}"
+                          f"{self._nocache}|")
                 imagedata.source = f'{source}{uid}'
-                texture = Texture.create_from_data(imagedata, mipmap=self._mipmap)
+                texture = Texture.create_from_data(
+                    imagedata, mipmap=self._mipmap)
                 if not self._nocache:
                     Cache.append('kv.texture', uid, texture)
                 if imagedata.flip_vertical:
@@ -901,9 +903,9 @@ class Image(EventDispatcher):
 
     def _find_format_from_filename(self, filename):
         ext = filename.rsplit(".", 1)[-1].lower()
-        if ext in {
-            'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
-            'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
+        if (ext in
+                {'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm', 'tga',
+                 'tiff', 'webp', 'xcf', 'xpm', 'xv'}):
             return ext
         elif ext in ('jpg', 'jpeg'):
             return 'jpg'
