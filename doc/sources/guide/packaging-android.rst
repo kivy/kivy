@@ -74,7 +74,7 @@ you more control but requires you to manually download parts of the
 Android toolchain.
 
 See the `python-for-android documentation
-<https://python-for-android.readthedocs.io/en/latest/quickstart/>`__
+<https://python-for-android.readthedocs.io/en/latest/>`__
 for full details.
 
 
