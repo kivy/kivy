@@ -656,7 +656,7 @@ cdef extern from "SDL.h":
     cdef void SDL_SetTextInputRect(SDL_Rect *rect)
     cdef SDL_bool SDL_HasScreenKeyboardSupport()
     cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
-    cdef void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h)
+    cdef void SDL_GetWindowSizeInPixels(SDL_Window *window, int *w, int *h)
     cdef int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback, void *callback_data)
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */

@@ -307,31 +307,40 @@ cdef class _WindowSDL2Storage:
     def raise_window(self):
         SDL_RaiseWindow(self.win)
 
-    def _get_gl_size(self):
-        cdef int w, h
-        SDL_GL_GetDrawableSize(self.win, &w, &h)
-        return w, h
-
-    def resize_display_mode(self, w, h):
+    def _resize_fullscreen(self, w, h):
         cdef SDL_DisplayMode mode
-        cdef int draw_w, draw_h
+
+        if USE_IOS or USE_ANDROID:
+            # Changing the fullscreen size on iOS and Android is not supported
+            # When the app switches to fullscreen, it will use the size of the
+            # screen.
+            return
+
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS and self.ctx:
-            SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
-            mode.w = draw_w
-            mode.h = draw_h
-            SDL_SetWindowDisplayMode(self.win, &mode)
-        else:
-            mode.w = w
-            mode.h = h
-            SDL_SetWindowDisplayMode(self.win, &mode)
-            SDL_GetWindowDisplayMode(self.win, &mode)
+        mode.w = w
+        mode.h = h
+        SDL_SetWindowDisplayMode(self.win, &mode)
 
         return mode.w, mode.h
 
+    def _resize_windowed(self, w, h):
+        SDL_SetWindowSize(self.win, w, h)
+
     def resize_window(self, w, h):
-        if self.window_size != [w, h]:
-            SDL_SetWindowSize(self.win, w, h)
+
+        if self.window_size == [w, h]:
+            return
+
+        if SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN:
+            # If the window is in fullscreen mode, we need to change the
+            # size by setting the display mode
+            Logger.debug(f'WindowSDL: Resize fullscreen to {w}x{h}')
+            self._resize_fullscreen(w, h)
+        else:
+            # If the window is not in fullscreen mode, we can change the
+            # size of the window directly
+            Logger.debug(f'WindowSDL: Resize window to {w}x{h}')
+            self._resize_windowed(w, h)
 
     def set_minimum_size(self, w, h):
         SDL_SetWindowMinimumSize(self.win, w, h)
@@ -807,6 +816,18 @@ cdef class _WindowSDL2Storage:
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return [w, h]
+
+    @property
+    def window_pixel_size(self):
+        """
+        The window size in pixels may differ from window size
+        returned by SDL_GetWindowSize as it returns the size in
+        window coordinates, which may be different from the size
+        in pixels if the window is on a high-DPI display.
+        """
+        cdef int w, h
+        SDL_GetWindowSizeInPixels(self.win, &w, &h)
+        return w, h
 
 
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
