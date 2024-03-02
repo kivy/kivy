@@ -25,8 +25,7 @@ IF UNAME_SYSNAME == 'Windows':
     from .window_info cimport WindowInfoWindows
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
-    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
-
+    return (<_WindowSDL2Storage> userdata).cb_event_filter(event)
 
 cdef class _WindowSDL2Storage:
     cdef SDL_Window *win
@@ -132,7 +131,7 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
-        
+
         # makes dpi aware of scale changes
         if platform == "win":
             SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
@@ -156,7 +155,7 @@ cdef class _WindowSDL2Storage:
         # var. Note that this takes priority over any other setting.
         orientations = environ.get('KIVY_ORIENTATION', orientations)
 
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes> (orientations.encode('utf-8')))
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
@@ -253,7 +252,7 @@ cdef class _WindowSDL2Storage:
         for joy_i in range(SDL_NumJoysticks()):
             SDL_JoystickOpen(joy_i)
 
-        SDL_SetEventFilter(<SDL_EventFilter *>_event_filter, <void *>self)
+        SDL_SetEventFilter(<SDL_EventFilter *> _event_filter, <void *> self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
@@ -374,7 +373,7 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowFullscreen(self.win, mode)
 
     def set_window_title(self, title):
-        SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
+        SDL_SetWindowTitle(self.win, <bytes> title.encode('utf-8'))
 
     def get_window_pos(self):
         cdef int x, y
@@ -386,7 +385,7 @@ cdef class _WindowSDL2Storage:
 
     def set_window_opacity(self, opacity):
         if SDL_SetWindowOpacity(self.win, opacity):
-            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            message = (<bytes> SDL_GetError()).decode('utf-8', 'replace')
             Logger.error(f'WindowSDL: Setting opacity to {opacity} failed - '
                          f'{message}')
             return False
@@ -395,7 +394,7 @@ cdef class _WindowSDL2Storage:
     def get_window_opacity(self):
         cdef float opacity
         if SDL_GetWindowOpacity(self.win, &opacity):
-            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
+            message = (<bytes> SDL_GetError()).decode('utf-8', 'replace')
             Logger.error(f'WindowSDL: Getting opacity failed - {message}')
             return 1.0
         else:
@@ -449,11 +448,11 @@ cdef class _WindowSDL2Storage:
         cdef SDL_Color color
         cdef int result
 
-        parameters.binarizationCutoff = <Uint8>cutoff
-        color.r = <Uint8>color_key[0]
-        color.g = <Uint8>color_key[1]
-        color.b = <Uint8>color_key[2]
-        color.a = <Uint8>color_key[3]
+        parameters.binarizationCutoff = <Uint8> cutoff
+        color.r = <Uint8> color_key[0]
+        color.g = <Uint8> color_key[1]
+        color.b = <Uint8> color_key[2]
+        color.a = <Uint8> color_key[3]
         parameters.colorKey = color
         sdl_window_mode.parameters = parameters
 
@@ -466,7 +465,7 @@ cdef class _WindowSDL2Storage:
         elif mode == 'colorkey':
             sdl_window_mode.mode = ShapeModeColorKey
 
-        sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
+        sdl_shape = IMG_Load(<bytes> shape.encode('utf-8'))
         if not sdl_shape:
             Logger.error(
                 'Window: Shape image "%s" could not be loaded!' % shape
@@ -497,7 +496,7 @@ cdef class _WindowSDL2Storage:
     # twb end
 
     def set_window_icon(self, filename):
-        icon = IMG_Load(<bytes>filename.encode('utf-8'))
+        icon = IMG_Load(<bytes> filename.encode('utf-8'))
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
@@ -508,15 +507,15 @@ cdef class _WindowSDL2Storage:
         SDL_Quit()
 
     def show_keyboard(
-        self,
-        system_keyboard,
-        softinput_mode,
-        input_type,
-        keyboard_suggestions=True,
+            self,
+            system_keyboard,
+            softinput_mode,
+            input_type,
+            keyboard_suggestions=True,
     ):
         if SDL_IsTextInputActive():
             return
-        cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
+        cdef SDL_Rect *rect = <SDL_Rect *> PyMem_Malloc(sizeof(SDL_Rect))
         if not rect:
             raise MemoryError('Memory error in rect allocation')
         try:
@@ -583,21 +582,21 @@ cdef class _WindowSDL2Storage:
                 TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
 
                 input_type_value = {
-                                "null": TYPE_CLASS_NULL,
-                                "text": TYPE_CLASS_TEXT,
-                                "number": TYPE_CLASS_NUMBER,
-                                "url":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_URI,
-                                "mail":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
-                                "datetime": TYPE_CLASS_DATETIME,
-                                "tel": TYPE_CLASS_PHONE,
-                                "address":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_POSTAL_ADDRESS
-                              }.get(input_type, TYPE_CLASS_TEXT)
+                    "null": TYPE_CLASS_NULL,
+                    "text": TYPE_CLASS_TEXT,
+                    "number": TYPE_CLASS_NUMBER,
+                    "url":
+                        TYPE_CLASS_TEXT |
+                        TYPE_TEXT_VARIATION_URI,
+                    "mail":
+                        TYPE_CLASS_TEXT |
+                        TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                    "datetime": TYPE_CLASS_DATETIME,
+                    "tel": TYPE_CLASS_PHONE,
+                    "address":
+                        TYPE_CLASS_TEXT |
+                        TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+                }.get(input_type, TYPE_CLASS_TEXT)
 
                 text_keyboards = {"text", "url", "mail", "address"}
 
@@ -612,14 +611,26 @@ cdef class _WindowSDL2Storage:
 
             SDL_StartTextInput()
         finally:
-            PyMem_Free(<void *>rect)
+            PyMem_Free(<void *> rect)
 
     def hide_keyboard(self):
+        # ensure it only works on desktop
+        if Config.getboolean("kivy", "keep_textinput_active") and platform != 'android' and platform != 'ios':
+            return
+
         if SDL_IsTextInputActive():
             SDL_StopTextInput()
 
     def is_keyboard_shown(self):
         return SDL_IsTextInputActive()
+
+    def start_sdl_textinput(self) -> None:
+        if not SDL_IsTextInputActive():
+            SDL_StartTextInput()
+
+    def stop_sdl_textinput(self) -> None:
+        if SDL_IsTextInputActive():
+            SDL_StopTextInput()
 
     def wait_event(self):
         with nogil:
@@ -634,7 +645,7 @@ cdef class _WindowSDL2Storage:
             return False
         action = None
         if event.type == SDL_QUIT:
-            return ('quit', )
+            return ('quit',)
         elif event.type == SDL_MOUSEMOTION:
             x = event.motion.x
             y = event.motion.y
@@ -703,32 +714,32 @@ cdef class _WindowSDL2Storage:
             return ('joybuttonup', event.jbutton.which, event.jbutton.button)
         elif event.type == SDL_WINDOWEVENT:
             if event.window.event == SDL_WINDOWEVENT_EXPOSED:
-                action = ('windowexposed', )
+                action = ('windowexposed',)
             elif event.window.event == SDL_WINDOWEVENT_RESIZED:
                 action = (
                     'windowresized',
                     event.window.data1, event.window.data2
                 )
             elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
-                action = ('windowminimized', )
+                action = ('windowminimized',)
             elif event.window.event == SDL_WINDOWEVENT_MAXIMIZED:
-                action = ('windowmaximized', )
+                action = ('windowmaximized',)
             elif event.window.event == SDL_WINDOWEVENT_RESTORED:
-                action = ('windowrestored', )
+                action = ('windowrestored',)
             elif event.window.event == SDL_WINDOWEVENT_SHOWN:
-                action = ('windowshown', )
+                action = ('windowshown',)
             elif event.window.event == SDL_WINDOWEVENT_HIDDEN:
-                action = ('windowhidden', )
+                action = ('windowhidden',)
             elif event.window.event == SDL_WINDOWEVENT_ENTER:
-                action = ('windowenter', )
+                action = ('windowenter',)
             elif event.window.event == SDL_WINDOWEVENT_LEAVE:
-                action = ('windowleave', )
+                action = ('windowleave',)
             elif event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED:
-                action = ('windowfocusgained', )
+                action = ('windowfocusgained',)
             elif event.window.event == SDL_WINDOWEVENT_FOCUS_LOST:
-                action = ('windowfocuslost', )
+                action = ('windowfocuslost',)
             elif event.window.event == SDL_WINDOWEVENT_CLOSE:
-                action = ('windowclose', )
+                action = ('windowclose',)
             elif event.window.event == SDL_WINDOWEVENT_MOVED:
                 action = (
                     'windowmoved',
@@ -778,11 +789,11 @@ cdef class _WindowSDL2Storage:
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-            <char *>data, width, height, 24, width * 3,
+            <char *> data, width, height, 24, width * 3,
             0x0000ff, 0x00ff00, 0xff0000, 0
         )
-        cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
-        cdef char *real_filename = <char *>bytes_filename
+        cdef bytes bytes_filename = <bytes> filename.encode('utf-8')
+        cdef char *real_filename = <char *> bytes_filename
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
@@ -800,7 +811,7 @@ cdef class _WindowSDL2Storage:
 
     def set_custom_titlebar(self, titlebar_widget):
         SDL_SetWindowBordered(self.win, SDL_FALSE)
-        return SDL_SetWindowHitTest(self.win, <SDL_HitTest>custom_titlebar_handler_callback,<void *>titlebar_widget)
+        return SDL_SetWindowHitTest(self.win, <SDL_HitTest> custom_titlebar_handler_callback, <void *> titlebar_widget)
 
     @property
     def window_size(self):
@@ -808,13 +819,11 @@ cdef class _WindowSDL2Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return [w, h]
 
-
-cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:
-
+cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window * win, const SDL_Point * pts, void * data) with gil:
     cdef int border = max(
-        Config.getdefaultint('graphics','custom_titlebar_border',5),
+        Config.getdefaultint('graphics', 'custom_titlebar_border', 5),
         Config.getint('graphics', 'custom_titlebar_border')
-    ) # pixels
+    )  # pixels
     cdef int w, h
     SDL_GetWindowSize(<SDL_Window *> win, &w, &h)
     # shift y origin in widget as sdl origin is in top-left
@@ -827,13 +836,13 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const S
             return SDL_HITTEST_RESIZE_BOTTOMLEFT
         elif w - pts.x < border > pts.y:
             return SDL_HITTEST_RESIZE_TOPRIGHT
-        elif w - pts.x  > border > pts.y:
+        elif w - pts.x > border > pts.y:
             return SDL_HITTEST_RESIZE_TOP
-        elif w - pts.x  < border < h - pts.y:
+        elif w - pts.x < border < h - pts.y:
             return SDL_HITTEST_RESIZE_RIGHT
-        elif w - pts.x  < border > h - pts.y:
+        elif w - pts.x < border > h - pts.y:
             return SDL_HITTEST_RESIZE_BOTTOMRIGHT
-        elif w - pts.x  > border > h - pts.y:
+        elif w - pts.x > border > h - pts.y:
             return SDL_HITTEST_RESIZE_BOTTOM
     widget = <object> data
     if widget.collide_point(pts.x, h - pts.y):
@@ -849,24 +858,23 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const S
                 return SDL_HitTestResult.SDL_HITTEST_NORMAL
         return SDL_HITTEST_DRAGGABLE
 
-
     return SDL_HitTestResult.SDL_HITTEST_NORMAL
 # Based on the example at
 # http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
-cdef SDL_Surface* flipVert(SDL_Surface* sfc):
-    cdef SDL_Surface* result = SDL_CreateRGBSurface(
+cdef SDL_Surface * flipVert(SDL_Surface * sfc):
+    cdef SDL_Surface * result = SDL_CreateRGBSurface(
         sfc.flags, sfc.w, sfc.h, sfc.format.BytesPerPixel * 8,
         sfc.format.Rmask, sfc.format.Gmask, sfc.format.Bmask,
         sfc.format.Amask
     )
 
-    cdef Uint8* pixels = <Uint8*>sfc.pixels
-    cdef Uint8* rpixels = <Uint8*>result.pixels
+    cdef Uint8 * pixels = <Uint8 *> sfc.pixels
+    cdef Uint8 * rpixels = <Uint8 *> result.pixels
 
     cdef tuple output = (
-        <int>sfc.w, <int>sfc.h,
-        <int>sfc.format.BytesPerPixel,
-        <int>sfc.pitch
+        <int> sfc.w, <int> sfc.h,
+        <int> sfc.format.BytesPerPixel,
+        <int> sfc.pitch
     )
     Logger.debug("Window: Screenshot output dimensions {output}")
 
