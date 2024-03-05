@@ -255,7 +255,7 @@ class ImageLoaderBase(object):
 
             # first, check if a texture with the same name already exist in the
             # cache
-            uid = f'{fname}|{self._mipmap}|{count}'
+            uid = f'{fname}|{self._mipmap:d}|{count:d}'
             texture = Cache.get('kv.texture', uid)
 
             # if not create it and append to the cache
@@ -573,14 +573,12 @@ class Image(EventDispatcher):
 
         '''
         count = 0
-        f = self.filename
-        pat = type(f)(u'%s|%d|%d')
-        uid = pat % (f, self._mipmap, count)
+        uid = f'{self.filename}|{self._mipmap:d}|{count:d}'
         Cache.remove("kv.image", uid)
         while Cache.get("kv.texture", uid):
             Cache.remove("kv.texture", uid)
             count += 1
-            uid = pat % (f, self._mipmap, count)
+            uid = f'{self.filename}|{self._mipmap:d}|{count:d}'
 
     def _anim(self, *largs):
         if not self._image:
@@ -719,7 +717,7 @@ class Image(EventDispatcher):
 
         # construct uid as a key for Cache
         f = self.filename
-        uid = f'{f}|{self._mipmap}|0'
+        uid = f'{f}|{self._mipmap:d}|0'
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
@@ -940,7 +938,7 @@ class Image(EventDispatcher):
         # check bounds
         x, y = int(x), int(y)
         if not (0 <= x < data.width and 0 <= y < data.height):
-            raise IndexError(f'Position ({x}, {y}) is out of range.')
+            raise IndexError(f'Position ({x:d}, {y:d}) is out of range.')
 
         assert data.fmt in ImageData._supported_fmts
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
