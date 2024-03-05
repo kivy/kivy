@@ -1,5 +1,10 @@
 set -e -x
 
+# If USE_LEGACY_OPENGL is not set, default to "0"
+if [ -z "$USE_LEGACY_OPENGL" ]; then
+        USE_LEGACY_OPENGL="0"
+fi
+
 # macOS SDL2
 MACOS__SDL2__VERSION="2.28.5"
 MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
@@ -65,15 +70,19 @@ mkdir kivy-dependencies/dist/Frameworks
 mkdir kivy-dependencies/dist/include
 mkdir kivy-dependencies/dist/lib
 
-# Extract ANGLE in distribution folder
-echo "Extracting ANGLE..."
-pushd kivy-dependencies/dist
-mkdir $MACOS__ANGLE__FOLDER
-tar -xzf ../download/${MACOS__ANGLE__FOLDER}.tar.gz -C $MACOS__ANGLE__FOLDER
-cp -r ${MACOS__ANGLE__FOLDER}/include/* include
-cp ${MACOS__ANGLE__FOLDER}/*.dylib lib
-rm -r $MACOS__ANGLE__FOLDER
-popd
+if [ "$USE_LEGACY_OPENGL" = "0" ]; then
+        # Extract ANGLE in distribution folder
+        echo "Extracting ANGLE..."
+        pushd kivy-dependencies/dist
+        mkdir $MACOS__ANGLE__FOLDER
+        tar -xzf ../download/${MACOS__ANGLE__FOLDER}.tar.gz -C $MACOS__ANGLE__FOLDER
+        cp -r ${MACOS__ANGLE__FOLDER}/include/* include
+        cp ${MACOS__ANGLE__FOLDER}/*.dylib lib
+        rm -r $MACOS__ANGLE__FOLDER
+        popd
+else
+        echo "Using legacy OpenGL, not extracting ANGLE..."
+fi
 
 LIBPNG_SEARCH_PATH="$(pwd)/kivy-dependencies/dist/Frameworks/png.framework/Headers"
 FRAMEWORK_SEARCH_PATHS="$(pwd)/kivy-dependencies/dist/Frameworks"
@@ -105,9 +114,14 @@ popd
 
 echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
-        -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release \
-        GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
+if [ "$USE_LEGACY_OPENGL" = "1" ]; then
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+                -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
+else
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+                -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release \
+                GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
+fi
 cp -r Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
 popd
 
