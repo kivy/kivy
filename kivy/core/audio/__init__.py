@@ -100,8 +100,8 @@ class Sound(EventDispatcher):
         `on_stop`: None
             Fired when the sound is stopped.
         `on_eos`: None
-            Fired when EOS is hit. Available only with
-            `ffpyplayer` and `gstplayer` backends.
+            Fired when EOS (End Of Stream) is hit. 
+            Available only with `ffpyplayer` and `gstplayer` backends.
 
             .. versionadded:: 3.0.0
     '''
