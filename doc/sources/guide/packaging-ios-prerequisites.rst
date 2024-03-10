@@ -20,7 +20,7 @@ testing, you can use a physical device or the Xcode iOS emulator.
 Please note that in order to test on the device, you need to register these
 devices and install your "provisioning profile" on them. Please refer to the
 Apple's
-`Getting started <https://help.apple.com/developer-account/>`_
+`Getting started <https://developer.apple.com/help/account/>`_
 guide for more information.
 
 Homebrew
