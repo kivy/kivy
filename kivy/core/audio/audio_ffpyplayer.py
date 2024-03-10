@@ -115,12 +115,11 @@ class SoundFFPy(Sound):
 
     def load(self):
         self.unload()
-        ff_opts = {'vn': True, 'sn': True}  # only audio
+        ff_opts = {'vn': True, 'sn': True, 'volume': self.volume}  # only audio
         self._ffplayer = MediaPlayer(self.source,
                                      callback=self._player_callback,
                                      loglevel='info', ff_opts=ff_opts)
         player = self._ffplayer
-        player.set_volume(self.volume)
         player.toggle_pause()
         self._state = 'paused'
         # wait until loaded or failed, shouldn't take long, but just to make
