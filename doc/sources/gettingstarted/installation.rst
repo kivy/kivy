@@ -192,7 +192,7 @@ The script will download and build the SDL dependencies from source. It will als
 the dependencies into a directory named `kivy-dependencies`. This directory will be used
 by Kivy to build and install Kivy from source with SDL support.
 
-On macOS is still possible to build SDL2 with the Apple-provided OpenGL framework, but it is
+On macOS it is still possible to build SDL2 with the Apple-provided OpenGL framework, but it is
 deprecated by Apple and we recommend using (default) ANGLE via Metal backend for OpenGL support.
 
 To build SDL2 with Apple-provided OpenGL framework, you can run the script with the 

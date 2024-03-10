@@ -1,9 +1,7 @@
 set -e -x
 
 # If USE_LEGACY_OPENGL is not set, default to "0"
-if [ -z "$USE_LEGACY_OPENGL" ]; then
-        USE_LEGACY_OPENGL="0"
-fi
+USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL2
 MACOS__SDL2__VERSION="2.28.5"
