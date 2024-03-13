@@ -216,6 +216,7 @@ c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
+c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
 c_options['debug_gl'] = False
 
 # Set the alpha size, this will be 0 on the Raspberry Pi and 8 on all other
@@ -661,6 +662,39 @@ def determine_base_flags():
     return flags
 
 
+def determine_angle_flags():
+    flags = {'include_dirs': [], 'libraries': []}
+
+    default_include_dir = ""
+    default_lib_dir = ""
+
+    if KIVY_DEPS_ROOT:
+
+        default_include_dir = os.path.join(KIVY_DEPS_ROOT, "dist", "include")
+        default_lib_dir = os.path.join(KIVY_DEPS_ROOT, "dist", "lib")
+
+    kivy_angle_include_dir = environ.get(
+        "KIVY_ANGLE_INCLUDE_DIR", default_include_dir
+    )
+    kivy_angle_lib_dir = environ.get(
+        "KIVY_ANGLE_LIB_DIR", default_lib_dir
+    )
+
+    if platform == "darwin":
+        flags['libraries'] = ['EGL', 'GLESv2']
+        flags['library_dirs'] = [kivy_angle_lib_dir]
+        flags['include_dirs'] = [kivy_angle_include_dir]
+        flags['extra_link_args'] = [
+            "-Wl,-rpath,{}".format(kivy_angle_lib_dir)
+        ]
+    elif platform == "ios":
+        flags['include_dirs'] = [kivy_angle_include_dir]
+    else:
+        raise Exception("ANGLE is not supported on this platform")
+
+    return flags
+
+
 def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
@@ -669,6 +703,10 @@ def determine_gl_flags():
 
     if c_options['use_opengl_mock']:
         return flags, base_flags
+
+    if c_options['use_angle_gl_backend']:
+        return determine_angle_flags(), base_flags
+
     if platform == 'win32':
         flags['libraries'] = ['opengl32', 'glew32']
     elif platform == 'ios':
@@ -913,7 +951,9 @@ sources = {
     'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_angle.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
+    'graphics/egl_backend/egl_angle.pyx': merge(base_flags, gl_flags),
     'core/text/text_layout.pyx': base_flags,
     'core/window/window_info.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
@@ -990,6 +1030,29 @@ if c_options['use_avfoundation']:
             base_flags, osx_flags)
     else:
         print('AVFoundation cannot be used, OSX >= 10.7 is required')
+
+if c_options["use_angle_gl_backend"]:
+
+    # kivy.graphics.egl_backend.egl_angle is always compiled,
+    # but it only acts as a proxy to the real implementation.
+
+    if platform in ("darwin", "ios"):
+
+        sources["graphics/egl_backend/egl_angle_metal.pyx"] = merge(
+            base_flags,
+            merge(
+                gl_flags,
+                {
+                    "extra_compile_args": ["-ObjC++"],
+                }
+            )
+        )
+        sources["graphics/egl_backend/egl_angle.pyx"] = merge(
+            sources["graphics/egl_backend/egl_angle.pyx"],
+            {
+                "extra_compile_args": ["-ObjC++"],
+            }
+        )
 
 if c_options['use_rpi_vidcore_lite']:
 

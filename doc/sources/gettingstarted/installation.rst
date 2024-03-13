@@ -150,6 +150,8 @@ First install the additional system dependencies listed for each platform:
     managers (e.g. ``apt`` or ``brew``). However, this is no longer officially supported as the version
     of SDL provided by the package managers is often outdated and may not work with Kivy as we
     try to keep up with the latest SDL versions in order to support the latest features and bugfixes.
+    Additionally, on macOS, we now build SDL without OpenGL support by default, as is deprecated by Apple and
+    we now use ANGLE via Metal backend for OpenGL support.
 
     **You can still install the SDL dependencies from package managers if you wish, but we no longer
     offer support for this.**
@@ -190,6 +192,14 @@ The script will download and build the SDL dependencies from source. It will als
 the dependencies into a directory named `kivy-dependencies`. This directory will be used
 by Kivy to build and install Kivy from source with SDL support.
 
+On macOS it is still possible to build SDL2 with the Apple-provided OpenGL framework, but it is
+deprecated by Apple and we recommend using (default) ANGLE via Metal backend for OpenGL support.
+
+To build SDL2 with Apple-provided OpenGL framework, you can run the script with the 
+``USE_LEGACY_OPENGL`` environment variable set to ``1``::
+
+    USE_LEGACY_OPENGL=1 ./build_kivy_deps.sh
+
 Kivy will need to know where the SDL dependencies are installed. To do so, you must set
 the ``KIVY_DEPS_ROOT`` environment variable to the path of the ``kivy-dependencies`` directory.
 For example, if you are in the ``kivy-deps-build`` directory, you can set the environment
@@ -207,6 +217,12 @@ To install the latest cutting-edge Kivy from **master**, instead do::
 
     python -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
 
+If ``USE_LEGACY_OPENGL=1`` has been used to build SDL2 with Apple-provided OpenGL framework, you will need to
+build Kivy without ANGLE support. To do so, you can set the ``USE_ANGLE_GL_BACKEND`` environment variable to
+``0`` before while installing Kivy. For example::
+
+    USE_ANGLE_GL_BACKEND=0 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
+
 If you want to install Kivy from a different branch, from your forked repository, or
 from a specific commit (e.g. to test a fix from a user's PR) replace the corresponding
 components of the url.
@@ -214,6 +230,7 @@ components of the url.
 For example to install from the ``stable`` branch, the url becomes
 ``https://github.com/kivy/kivy/archive/stable.zip``. Or to try a specific commit hash, use e.g.
 ``https://github.com/kivy/kivy/archive/3d3e45dda146fef3f4758aea548da199e10eb382.zip``
+
 
 .. _kivy-nightly-install:
 

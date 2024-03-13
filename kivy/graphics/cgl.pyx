@@ -24,6 +24,8 @@ At runtime the following backends are available and can be set using
 * ``angle_sdl2`` -- Available on Windows with Python 3.5+.
   Unavailable when ``USE_SDL2=0``. Requires ``kivy_deps.sdl2`` and
   ``kivy_deps.angle`` be installed.
+* ``angle`` -- Available on macOS and iOS. Unavailable when ``USE_SDL2=0``.
+    Requires ``angle`` libEGL and libGLESv2 libraries (and includes) during Kivy build.
 * ``mock`` -- Always available. Doesn't actually do anything.
 
 
@@ -75,7 +77,7 @@ cpdef cgl_get_backend_name(allowed=[], ignored=[]):
     if name:
         return name.lower()
 
-    for name in ('glew', 'sdl2', 'gl', 'mock'):
+    for name in ('glew', 'angle', 'sdl2', 'gl', 'mock'):
         if allowed and name not in allowed:
             continue
         if name in ignored:
@@ -109,7 +111,7 @@ cpdef cgl_init(allowed=[], ignored=[]):
             raise Exception("CGL: ANGLE backend can be used only on Windows")
         backend = "sdl2"
 
-    if cgl_name not in {'glew', 'sdl2', 'angle_sdl2', 'mock', 'gl'}:
+    if cgl_name not in {'glew', 'angle', 'sdl2', 'angle_sdl2', 'mock', 'gl'}:
         raise ValueError('{} is not a recognized GL backend'.format(backend))
 
     mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(backend))

@@ -135,6 +135,7 @@ clean:
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
 	-find kivy -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs ls -d 2>/dev/null | xargs -r rm
+	-find kivy -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.cpp' \; | xargs ls -d 2>/dev/null | xargs -r rm
 
 distclean: clean
 ifneq ($(GIT_COMMAND),)
