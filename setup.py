@@ -1024,8 +1024,8 @@ if c_options['use_avfoundation']:
     if mac_ver >= [10, 7] or platform == 'ios':
         osx_flags = {
             'extra_link_args': ['-framework', 'AVFoundation'],
-            'extra_compile_args': ['-ObjC++'],
-            'depends': ['core/camera/camera_avfoundation_implem.m']}
+            'extra_compile_args': ['-ObjC++']
+        }
         sources['core/camera/camera_avfoundation.pyx'] = merge(
             base_flags, osx_flags)
     else:
