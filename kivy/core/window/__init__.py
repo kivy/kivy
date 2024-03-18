@@ -990,6 +990,26 @@ class WindowBase(EventDispatcher):
     to `1.0`.
     '''
 
+    def _get_native_handle(self):
+        return self._get_window_native_handle()
+
+    def _get_window_native_handle(self):
+        Logger.warning('Window: Native handle is not implemented in the '
+                       'current window provider')
+
+    native_handle = AliasProperty(_get_native_handle, None)
+    '''Read only property to get the native handle of the window.
+
+    .. note::
+        The value is platform-specific and is mostly meant to be passed to
+        other libraries. This feature is currently only supported on Windows
+        and Linux platforms.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`native_handle` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
     @property
     def __self__(self):
         return self

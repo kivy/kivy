@@ -507,6 +507,16 @@ cdef class _WindowSDL2Storage:
                 windows_info.hdc = wm_info.info.win.hdc
                 return windows_info
 
+    def get_native_handle(self):
+        window_info = self.get_window_info()
+
+        IF USE_WAYLAND:
+            if isinstance(window_info, WindowInfoWayland):
+                return window_info.surface
+
+        if window_info is not None:
+            return window_info.window
+
     # Transparent Window background
     def is_window_shaped(self):
         return SDL_IsShapedWindow(self.win)
