@@ -8,6 +8,7 @@ from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
+from kivy import setupconfig
 from kivy.graphics.cgl cimport *
 from kivy.graphics.egl_backend.egl_angle cimport EGLANGLE
 
@@ -510,12 +511,20 @@ cdef class _WindowSDL2Storage:
     def get_native_handle(self):
         window_info = self.get_window_info()
 
-        IF USE_WAYLAND:
+        if setupconfig.USE_X11:
+            from kivy.core.window.window_info import WindowInfoX11
+            if isinstance(window_info, WindowInfoX11):
+                return window_info.window
+
+        if setupconfig.USE_WAYLAND:
+            from kivy.core.window.window_info import WindowInfoWayland
             if isinstance(window_info, WindowInfoWayland):
                 return window_info.surface
 
-        if window_info is not None:
-            return window_info.window
+        if platform == "win":
+            from kivy.core.window.window_info import WindowInfoWindows
+            if isinstance(window_info, WindowInfoWindows):
+                return window_info.window
 
     # Transparent Window background
     def is_window_shaped(self):
