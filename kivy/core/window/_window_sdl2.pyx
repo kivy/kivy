@@ -512,17 +512,17 @@ cdef class _WindowSDL2Storage:
         window_info = self.get_window_info()
 
         if setupconfig.USE_X11:
-            from kivy.core.window.window_info import WindowInfoX11
+            from .window_info import WindowInfoX11
             if isinstance(window_info, WindowInfoX11):
                 return window_info.window
 
         if setupconfig.USE_WAYLAND:
-            from kivy.core.window.window_info import WindowInfoWayland
+            from .window_info import WindowInfoWayland
             if isinstance(window_info, WindowInfoWayland):
                 return window_info.surface
 
         if platform == "win":
-            from kivy.core.window.window_info import WindowInfoWindows
+            from .window_info import WindowInfoWindows
             if isinstance(window_info, WindowInfoWindows):
                 return window_info.window
 
