@@ -1,5 +1,6 @@
 from itertools import product
 
+from kivy import setupconfig
 from kivy.tests import GraphicUnitTest
 from kivy.logger import LoggerHistory
 
@@ -126,3 +127,19 @@ class WindowOpacityTest(GraphicUnitTest):
         if self.check_opacity_support():
             self.Window.opacity = -1.5
             self.assertEqual(self.Window.opacity, 0.0)
+
+
+class WindowNativeHandleTest(GraphicUnitTest):
+
+    def test_native_handle_non_zero(self):
+        win = self.Window
+        native_handle = win.native_handle
+
+        if setupconfig.USE_X11:
+            self.assertNotEqual(native_handle, 0)
+
+        if setupconfig.USE_WAYLAND:
+            self.assertNotEqual(native_handle, 0)
+
+        if setupconfig.PLATFORM == 'win32':
+            self.assertNotEqual(native_handle, 0)
