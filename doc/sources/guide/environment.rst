@@ -139,12 +139,12 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: sdl2, pygame, x11, egl_rpi
+    Values: sdl2, x11, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: sdl2, pil, pygame, sdlttf
+    Values: sdl2, pil, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
@@ -154,12 +154,12 @@ KIVY_VIDEO
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
+    Values: sdl2, gstplayer, ffpyplayer, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: sdl2, pil, pygame, imageio, tex, dds
+    Values: sdl2, pil, imageio, tex, dds
 
     .. versionchanged:: 2.0.0
     Removed GPL `gif` implementation
@@ -177,7 +177,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: sdl2, pygame, dummy, android
+    Values: sdl2, dummy, android
 
 Metrics
 -------
