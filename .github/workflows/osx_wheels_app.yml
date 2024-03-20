@@ -91,8 +91,6 @@ jobs:
     runs-on: macos-latest
     needs: osx_wheels_create
     if: github.event_name != 'pull_request'
-    env:
-      KIVY_GL_BACKEND: 'mock'
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -143,8 +141,6 @@ jobs:
             python: '3.8'
           - runs_on: apple-silicon-m1
             python: '3.9'
-    env:
-      KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python }} on ${{ matrix.runs_on }}
@@ -222,8 +218,6 @@ jobs:
   osx_app_upload_test:
     runs-on: macos-latest
     needs: [osx_app_create, kivy_examples_create]
-    env:
-      KIVY_GL_BACKEND: 'mock'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
