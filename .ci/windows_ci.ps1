@@ -86,7 +86,7 @@ function Install-kivy-test-run-pip-deps {
 }
 
 function Install-kivy {
-    python -m pip install -e .[dev,full]
+    python -m pip install -e .[dev,full,angle]
 }
 
 function Install-kivy-wheel {
@@ -102,7 +102,7 @@ function Install-kivy-wheel {
     $kivy_fname=(ls $root/dist/Kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
-    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+    python -m pip install "$root/dist/$kivy_fname[full,dev,angle]" "$root/dist/$kivy_examples_fname"
 }
 
 function Install-kivy-sdist {
@@ -112,7 +112,7 @@ function Install-kivy-sdist {
     python -m pip install pip wheel setuptools --upgrade
 
     $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
-    python -m pip install "$root/dist/$kivy_fname[full,dev]"
+    python -m pip install "$root/dist/$kivy_fname[full,dev,angle]"
 }
 
 function Test-kivy {
