@@ -50,6 +50,8 @@ cpdef list gl_get_extensions():
                 for x in extensions.split()]
     return _gl_extensions
 
+cdef extern from "gl_redirect.h":
+    GLboolean glewIsSupported (const char *name) nogil
 
 cpdef int gl_has_extension(name):
     '''Check if an OpenGL extension is available. If the name starts with `GL_`,
@@ -63,6 +65,9 @@ cpdef int gl_has_extension(name):
     '''
     if cgl_get_initialized_backend_name() == "mock":
         return True
+    elif cgl_get_initialized_backend_name() == "glew":
+        return glewIsSupported(name) != GL_FALSE or glewIsSupported('GL_' + name) != GL_FALSE
+
     name = name.lower()
     if name.startswith('GL_'):
         name = name[3:]

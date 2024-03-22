@@ -84,3 +84,5 @@ venv
 kivy/setupconfig.py
 
 kivy/core/clipboard/_clipboard_sdl2.c
+.eggs/
+.vscode/
