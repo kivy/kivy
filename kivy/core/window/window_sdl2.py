@@ -35,7 +35,6 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
 from kivy.utils import platform, deprecated
-from kivy.compat import unichr
 from collections import deque
 
 
@@ -756,7 +755,7 @@ class WindowSDL(WindowBase):
                 if (key not in self._modifiers and
                         key not in self.command_keys.keys()):
                     try:
-                        kstr_chr = unichr(key)
+                        kstr_chr = chr(key)
                         try:
                             # On android, there is no 'encoding' attribute.
                             # On other platforms, if stdout is redirected,

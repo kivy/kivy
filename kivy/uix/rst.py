@@ -63,7 +63,6 @@ __all__ = ('RstDocument', )
 import os
 from os.path import dirname, join, exists, abspath
 from kivy.clock import Clock
-from kivy.compat import PY2
 from kivy.properties import ObjectProperty, NumericProperty, \
     DictProperty, ListProperty, StringProperty, \
     BooleanProperty, OptionProperty, AliasProperty
@@ -604,10 +603,7 @@ class RstDocument(ScrollView):
 
             # parse the source
             document = utils.new_document('Document', self._settings)
-            text = self.text
-            if PY2 and type(text) is str:
-                text = text.decode('utf-8')
-            self._parser.parse(text, document)
+            self._parser.parse(self.text, document)
 
             # fill the current document node
             visitor = _Visitor(self, document)

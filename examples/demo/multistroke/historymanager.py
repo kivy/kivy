@@ -9,12 +9,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Line
 from kivy.properties import ObjectProperty, BooleanProperty
-from kivy.compat import PY2
 
 # local libraries
 from helpers import InformationPopup
 from settings import MultistrokeSettingsContainer
-
 
 # refuse heap permute for gestures with more strokes than 3
 # (you can increase it, but 4 strokes = 384 templates, 5 = 3840)
@@ -150,6 +148,7 @@ class RecognizerResultDetails(BoxLayout):
     '''Contains a ScrollView of RecognizerResultLabels, ie the list of
     matched gestures and their score/distance (is a child of
     GestureHistoryManager)'''
+
     def __init__(self, **kwargs):
         super(RecognizerResultDetails, self).__init__(**kwargs)
         self.register_event_type('on_reanalyze_selected')
@@ -196,12 +195,7 @@ class GestureSettingsForm(BoxLayout):
             scrollv.scroll_y = 1
             return
 
-        if PY2:
-            d = r.iteritems
-        else:
-            d = r.items
-
-        for one in sorted(d(), key=lambda x: x[1]['score'],
+        for one in sorted(r.items(), key=lambda x: x[1]['score'],
                           reverse=True):
             data = one[1]
             lbl = RecognizerResultLabel(

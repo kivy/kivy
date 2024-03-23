@@ -7,7 +7,6 @@ Based on SDL2 + SDL2_ttf
 
 __all__ = ('LabelSDL2', )
 
-from kivy.compat import PY2
 from kivy.core.text import LabelBase
 try:
     from kivy.core.text._text_sdl2 import (_SurfaceContainer, _get_extents,
@@ -27,11 +26,6 @@ class LabelSDL2(LabelBase):
                 'italic', 'underline', 'strikethrough')])
 
     def get_extents(self, text):
-        try:
-            if PY2:
-                text = text.encode('UTF-8')
-        except:
-            pass
         return _get_extents(self, text)
 
     def get_descent(self):

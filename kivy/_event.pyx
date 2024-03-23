@@ -21,7 +21,6 @@ from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.weakproxy import WeakProxy
-from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
@@ -440,7 +439,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             assert callable(value), '{!r} is not callable'.format(value)
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
@@ -469,7 +468,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
                 if observers is None:
@@ -872,7 +871,7 @@ cdef class EventDispatcher(ObjectWithUid):
             cls = BooleanProperty
         elif isinstance(value, (int, float)):
             cls = NumericProperty
-        elif isinstance(value, string_types):
+        elif isinstance(value, str):
             cls = StringProperty
         elif isinstance(value, (list, tuple)):
             cls = ListProperty

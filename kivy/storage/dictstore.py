@@ -14,7 +14,6 @@ except ImportError:
 
 import errno
 from os.path import exists, abspath, dirname
-from kivy.compat import iteritems
 from kivy.storage import AbstractStore
 
 
@@ -79,9 +78,9 @@ class DictStore(AbstractStore):
         return True
 
     def store_find(self, filters):
-        for key, values in iteritems(self._data):
+        for key, values in self._data.items():
             found = True
-            for fkey, fvalue in iteritems(filters):
+            for fkey, fvalue in filters.items():
                 if fkey not in values:
                     found = False
                     break

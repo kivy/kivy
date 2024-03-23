@@ -147,7 +147,6 @@ __all__ = ('ScrollView', )
 
 from functools import partial
 from kivy.animation import Animation
-from kivy.compat import string_types
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -550,7 +549,7 @@ class ScrollView(StencilView):
         self.canvas.add(self.canvas_viewport)
 
         effect_cls = self.effect_cls
-        if isinstance(effect_cls, string_types):
+        if isinstance(effect_cls, str):
             effect_cls = Factory.get(effect_cls)
         if self.effect_x is None and effect_cls is not None:
             self.effect_x = effect_cls(target_widget=self._viewport)
@@ -587,7 +586,7 @@ class ScrollView(StencilView):
             value.target_widget = self._viewport
 
     def on_effect_cls(self, instance, cls):
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         self.effect_x = cls(target_widget=self._viewport)
         self.effect_x.bind(scroll=self._update_effect_x)
