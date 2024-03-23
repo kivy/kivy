@@ -343,7 +343,7 @@ class WindowSDL(WindowBase):
                         # make windows dispatch,
                         # WM_NCCALCSIZE explicitly
                         ctypes.windll.user32.SetWindowPos(
-                            self._win.get_window_info().window,
+                            self.native_handle,
                             win32con.HWND_TOP,
                             *self._win.get_window_pos(),
                             *self.system_size,
@@ -490,6 +490,9 @@ class WindowSDL(WindowBase):
     def _set_window_opacity(self, opacity):
         if self.opacity != opacity:
             return self._win.set_window_opacity(opacity)
+
+    def _get_window_native_handle(self):
+        return self._win.get_native_handle()
 
     # Transparent Window background
     def _is_shaped(self):
