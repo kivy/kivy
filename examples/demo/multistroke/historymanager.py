@@ -195,9 +195,7 @@ class GestureSettingsForm(BoxLayout):
             scrollv.scroll_y = 1
             return
 
-        d = r.items
-
-        for one in sorted(d(), key=lambda x: x[1]['score'],
+        for one in sorted(r.items(), key=lambda x: x[1]['score'],
                           reverse=True):
             data = one[1]
             lbl = RecognizerResultLabel(

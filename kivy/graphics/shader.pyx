@@ -213,7 +213,7 @@ cdef class Shader:
         '''
         cgl.glUseProgram(self.program)
         log_gl_error('Shader.use-glUseProgram')
-        for k, v in self.uniform_values.iteritems():
+        for k, v in self.uniform_values.items():
             self.upload_uniform(k, v)
         if cgl_get_initialized_backend_name() == 'glew':
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call

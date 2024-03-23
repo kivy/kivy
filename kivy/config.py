@@ -488,8 +488,7 @@ class ConfigParser(PythonConfigParser, object):
 
         '''
         if not isinstance(filename, str):
-            raise Exception('Only one filename is accepted ({})'.format(
-                str.__name__))
+            raise Exception('Only one filename is accepted (str)')
         self.filename = filename
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.

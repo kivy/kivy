@@ -439,7 +439,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             assert callable(value), '{!r} is not callable'.format(value)
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
@@ -468,7 +468,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
                 if observers is None:
