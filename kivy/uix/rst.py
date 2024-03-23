@@ -603,8 +603,7 @@ class RstDocument(ScrollView):
 
             # parse the source
             document = utils.new_document('Document', self._settings)
-            text = self.text
-            self._parser.parse(text, document)
+            self._parser.parse(self.text, document)
 
             # fill the current document node
             visitor = _Visitor(self, document)
