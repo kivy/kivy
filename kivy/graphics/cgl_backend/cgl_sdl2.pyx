@@ -6,10 +6,17 @@ include "../common.pxi"
 include "../../include/config.pxi"
 
 from kivy.graphics.cgl cimport *
+from libc.stdint cimport intptr_t
 
 IF USE_SDL2:
     cdef extern from "SDL.h":
         void *SDL_GL_GetProcAddress(const char*)
+
+
+def gl_get_proc_address(name):
+    cdef char *c_name = name
+    cdef void * p = SDL_GL_GetProcAddress(c_name)
+    return <intptr_t>p
 
 
 cpdef is_backend_supported():
