@@ -40,6 +40,7 @@ cdef class _WindowSDL2Storage:
     cdef str gl_backend_name
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
+    cdef bint _is_shaped
 
     def __cinit__(self):
         self.win = NULL
@@ -49,6 +50,7 @@ cdef class _WindowSDL2Storage:
         self.event_filter = None
         self.gl_backend_name = None
         self.egl_angle_storage = None
+        self._is_shaped = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -81,8 +83,10 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    cdef SDL_Window * _setup_sdl_window(self, x, y, width, height, multisamples, shaped):
+    cdef SDL_Window * _setup_sdl_window(self, width, height, multisamples, shaped):
         cdef SDL_Window *win
+        cdef int _win_flags = self.win_flags
+
         if multisamples:
             if self.sdl_manages_egl_context:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
@@ -98,14 +102,10 @@ cdef class _WindowSDL2Storage:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
 
-        win = SDL_CreateWindow(
-            NULL, width, height, self.win_flags
-        )
-
-
         if shaped:
-            # DO Shaping
-            pass
+            _win_flags |= SDL_WINDOW_TRANSPARENT
+
+        win = SDL_CreateWindow(NULL, width, height, _win_flags)
 
         return win
 
@@ -171,7 +171,14 @@ cdef class _WindowSDL2Storage:
         self.gl_backend_name = gl_backend
         self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
-        self.win_flags  = SDL_WINDOW_HIGH_PIXEL_DENSITY
+        # Reset _is_shaped value, if the user requested a shaped window,
+        # and we have the capability to create one, we will set it later.
+        self._is_shaped = False
+
+        # Always create a hidden window first, then show it after the
+        # window is fully initialized, so we can make changes to the
+        # window without the user seeing them.
+        self.win_flags  = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY
 
         if self.sdl_manages_egl_context:
             self.win_flags |= SDL_WINDOW_OPENGL
@@ -209,11 +216,12 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
-        
+
+        # TODO: What happened to SDL_HINT_WINDOWS_DPI_SCALING ?
         # makes dpi aware of scale changes
-        if platform == "win":
+        # if platform == "win":
             # SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
-            pass
+        #     pass
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
@@ -235,11 +243,6 @@ cdef class _WindowSDL2Storage:
         orientations = environ.get('KIVY_ORIENTATION', orientations)
 
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
-
-        if x is None:
-            x = SDL_WINDOWPOS_UNDEFINED
-        if y is None:
-            y = SDL_WINDOWPOS_UNDEFINED
 
         if self.sdl_manages_egl_context:
             self._set_sdl_gl_common_attributes()
@@ -271,24 +274,24 @@ cdef class _WindowSDL2Storage:
         sdl_window_configs.append((0, 0))
 
         for multisamples, shaped in sdl_window_configs:
-            win = self._setup_sdl_window(x, y, width, height, multisamples, shaped)
+            win = self._setup_sdl_window(width, height, multisamples, shaped)
             if win:
                 self.win = win
+
+                # Get win flags after creation, as may be different
+                # from the initially requested ones.
+                self.win_flags = SDL_GetWindowFlags(win)
                 break
-
-        # post-creation fix for shaped window
-        if self.is_window_shaped():
-            # because SDL just set it to (-1000, -1000)
-            # -> can't use UNDEFINED nor CENTER after window creation
-            self.set_window_pos(100, 100)
-
-            # SDL also changed borderless, fullscreen, resizable and shown
-            # but we shouldn't care about those at __init__ as this window is
-            # a special one (borders and resizing will cripple the look,
-            # fullscreen might crash the window)
 
         if not self.win:
             self.die()
+
+        # Set shape in case the user requested a shaped window and the window
+        # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
+        if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
+            self.set_shape(Config.get('kivy', 'window_shape'), 'image', 0, None)
+
+        self.set_window_pos(x, y)
 
         self._create_egl_context()
 
@@ -323,6 +326,10 @@ cdef class _WindowSDL2Storage:
         SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, SDL_TRUE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
+
+        # At this point, the window is fully initialized, so we can show it.
+        SDL_ShowWindow(self.win)
+
         return w, h
 
     def _set_cursor_state(self, value):
@@ -454,6 +461,12 @@ cdef class _WindowSDL2Storage:
         return x, y
 
     def set_window_pos(self, x, y):
+
+        if x is None:
+            x = SDL_WINDOWPOS_UNDEFINED
+        if y is None:
+            y = SDL_WINDOWPOS_UNDEFINED
+
         SDL_SetWindowPosition(self.win, x, y)
 
     def set_window_opacity(self, opacity):
@@ -471,61 +484,33 @@ cdef class _WindowSDL2Storage:
             Logger.error(f'WindowSDL: Getting opacity failed - {message}')
             return 1.0
         else:
-            return opacity
-
-    def get_window_info(self):
-        pass
+            return opacity      
 
     def get_native_handle(self):
-        window_info = self.get_window_info()
+        # TODO: When we have support on all platforms, or at least on Linux
+        pass
 
-        if setupconfig.USE_X11:
-            from .window_info import WindowInfoX11
-            if isinstance(window_info, WindowInfoX11):
-                return window_info.window
-
-        if setupconfig.USE_WAYLAND:
-            from .window_info import WindowInfoWayland
-            if isinstance(window_info, WindowInfoWayland):
-                return window_info.surface
-
-        if platform == "win":
-            from .window_info import WindowInfoWindows
-            if isinstance(window_info, WindowInfoWindows):
-                return window_info.window
-
-    # Transparent Window background
     def is_window_shaped(self):
-        return False
+        return self._is_shaped
 
     def set_shape(self, shape, mode, cutoff, color_key):
         cdef SDL_Surface * sdl_shape
-        cdef int result
+        cdef char* error = NULL
 
         sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
         if not sdl_shape:
             Logger.error(
                 'Window: Shape image "%s" could not be loaded!' % shape
             )
-
-        result = SDL_SetWindowShape(self.win, sdl_shape)
-        #TODO: 0 is success, otherwise error (we can check error via SDL_GetError)
-
-        # SDL prevents the change with wrong input values and gives back useful
-        # return values, so we pass the values to the user instead of killing
-        #if result == SDL_NONSHAPEABLE_WINDOW:
-        #    Logger.error(
-        #        'Window: Setting shape to a non-shapeable window'
-        #    )
-        #elif result == SDL_INVALID_SHAPE_ARGUMENT:
-        #    # e.g. window.size != shape_image.size
-        #    Logger.error(
-        #        'Window: Setting shape with an invalid shape argument'
-        #    )
-        #elif result == SDL_WINDOW_LACKS_SHAPE:
-        #    Logger.error(
-        #        'Window: Missing shape for the window'
-        #    )
+            
+        if SDL_SetWindowShape(self.win, sdl_shape) < 0:
+            error = SDL_GetError()
+            Logger.error(
+                'Window: Setting shape failed: %s' % error
+            )
+            return
+        
+        self._is_shaped = True
 
     def get_shaped_mode(self):
         return None
@@ -816,20 +801,17 @@ cdef class _WindowSDL2Storage:
             self.egl_angle_storage.swap_buffers()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
-        """
-        cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-            <char *>data, width, height, 24, width * 3,
-            0x0000ff, 0x00ff00, 0xff0000, 0
+        cdef SDL_Surface *surface = SDL_CreateSurfaceFrom(
+            <char *>data, width, height, 24,
+            SDL_GetPixelFormatEnumForMasks(width * 3, 0x0000ff, 0x00ff00, 0xff0000, 0)
         )
         cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
         cdef char *real_filename = <char *>bytes_filename
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
-        SDL_FreeSurface(surface)
-        SDL_FreeSurface(flipped_surface)
-        """
-        pass
+        SDL_DestroySurface(surface)
+        SDL_DestroySurface(flipped_surface)
 
     def grab_mouse(self, grab):
         SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
@@ -908,12 +890,16 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const S
 # Based on the example at
 # http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
 
-"""
+
 cdef SDL_Surface* flipVert(SDL_Surface* sfc):
-    cdef SDL_Surface* result = SDL_CreateRGBSurface(
-        sfc.flags, sfc.w, sfc.h, sfc.format.BytesPerPixel * 8,
-        sfc.format.Rmask, sfc.format.Gmask, sfc.format.Bmask,
-        sfc.format.Amask
+    cdef SDL_Surface* result = SDL_CreateSurface(sfc.w, sfc.h,
+            SDL_GetPixelFormatEnumForMasks(
+                sfc.format.bytes_per_pixel * 8,
+                sfc.format.Rmask,
+                sfc.format.Gmask,
+                sfc.format.Bmask,
+                sfc.format.Amask
+            )
     )
 
     cdef Uint8* pixels = <Uint8*>sfc.pixels
@@ -921,7 +907,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
 
     cdef tuple output = (
         <int>sfc.w, <int>sfc.h,
-        <int>sfc.format.BytesPerPixel,
+        <int>sfc.format.bytes_per_pixel,
         <int>sfc.pitch
     )
     Logger.debug("Window: Screenshot output dimensions {output}")
@@ -937,4 +923,3 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         memcpy(&rpixels[pos], &pixels[(pxlength - pos) - pitch], pitch)
 
     return result
-"""

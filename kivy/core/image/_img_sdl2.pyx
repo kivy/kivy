@@ -7,35 +7,29 @@ from libc.stdlib cimport malloc
 
 cdef int _is_init = 0
 
-cdef struct SDL_RWops:
-    long (* seek) (SDL_RWops * context, long offset,int whence)
-    size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
-    size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
-    int (* close) (SDL_RWops * context)
-
-
-cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num) noexcept:
+"""
+cdef size_t rwops_bytesio_write(SDL_IOStream *context, const void *ptr, size_t size, size_t num) noexcept:
     cdef char *c_string = <char *>ptr
     byteio = <object>context.hidden.unknown.data1
     byteio.write(c_string[:size * num])
     return size * num
 
 
-cdef int rwops_bytesio_close(SDL_RWops *context) noexcept:
+cdef int rwops_bytesio_close(SDL_IOStream *context) noexcept:
     byteio = <object>context.hidden.unknown.data1
     byteio.seek(0)
 
 
-cdef SDL_RWops *rwops_bridge_to_bytesio(byteio):
+cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
     # works only for write.
-    cdef SDL_RWops *rwops = SDL_AllocRW()
+    cdef SDL_IOStream *rwops = SDL_AllocRW()
     rwops.hidden.unknown.data1 = <void *>byteio
     rwops.seek = NULL
     rwops.read = NULL
     rwops.write = &rwops_bytesio_write
     rwops.close =&rwops_bytesio_close
     return rwops
-
+"""
 
 def init():
     global _is_init
@@ -55,7 +49,7 @@ def init():
 
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
-    cdef SDL_RWops *rwops
+    cdef SDL_IOStream *rwops
     if not isinstance(filename, io.BytesIO):
         c_filename = filename.encode('utf-8')
     cdef int pitch
@@ -94,13 +88,13 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef SDL_Surface *image = NULL
 
     if pixelfmt == "rgba":
-        image = SDL_CreateRGBSurfaceFrom(
-            c_pixels, w, h, 32, pitch,
-            0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        image = SDL_CreateSurfaceFrom(c_pixels, w, h, 32,
+            SDL_GetPixelFormatEnumForMasks(pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        )
     elif pixelfmt == "rgb":
-        image = SDL_CreateRGBSurfaceFrom(
-            c_pixels, w, h, 24, pitch,
-            0x0000ff, 0x00ff00, 0xff0000, 0)
+        image = SDL_CreateSurfaceFrom(c_pixels, w, h, 24,
+            SDL_GetPixelFormatEnumForMasks(pitch, 0x0000ff, 0x00ff00, 0xff0000, 0)
+        )
 
     if c_filename is not None:
         if imagefmt == "png":
@@ -108,15 +102,15 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         elif imagefmt == "jpg":
             IMG_SaveJPG(image, c_filename, quality)
     else:
-        rwops = rwops_bridge_to_bytesio(filename)
+        # rwops = rwops_bridge_to_bytesio(filename)
         if imagefmt == "png":
-            IMG_SavePNG_RW(image, rwops, 1)
+            IMG_SavePNG_IO(image, rwops, 1)
         elif imagefmt == "jpg":
-            IMG_SaveJPG_RW(image, rwops, 1, quality)
-        SDL_FreeRW(rwops)
+            IMG_SaveJPG_IO(image, rwops, 1, quality)
+        SDL_CloseIO(rwops)
 
     if image:
-        SDL_FreeSurface(image)
+        SDL_DestroySurface(image)
 
 # NOTE: This must be kept up to date with ImageData supported formats. If you
 # add support for converting/uploading (for example) ARGB, you must ensure
@@ -156,7 +150,7 @@ cdef load_from_surface(SDL_Surface *image):
         fmt = 'bgra'
 
     # Alpha mask or colorkey must be converted to rgba
-    elif image.format.Amask or SDL_GetColorKey(image, NULL) == 0:
+    elif image.format.Amask or SDL_GetSurfaceColorKey(image, NULL) == 0:
         fmt = 'rgba'
         target_fmt = want_rgba
 
@@ -184,7 +178,7 @@ cdef load_from_surface(SDL_Surface *image):
         fimage = image
         if target_fmt != 0:
             with nogil:
-                image2 = SDL_ConvertSurfaceFormat(image, target_fmt, 0)
+                image2 = SDL_ConvertSurfaceFormat(image, target_fmt)
             if image2 == NULL:
                 Logger.warn('ImageSDL2: error converting {} to {}: {}'.format(
                         SDL_GetPixelFormatName(image.format.format),
@@ -198,7 +192,7 @@ cdef load_from_surface(SDL_Surface *image):
         return (fimage.w, fimage.h, fmt, pixels, fimage.pitch)
     finally:
         if image2:
-            SDL_FreeSurface(image2)
+            SDL_DestroySurface(image2)
 
 
 def load_from_filename(filename):
@@ -210,18 +204,18 @@ def load_from_filename(filename):
         return load_from_surface(image)
     finally:
         if image:
-            SDL_FreeSurface(image)
+            SDL_DestroySurface(image)
 
 def load_from_memory(bytes data):
-    cdef SDL_RWops *rw = NULL
+    cdef SDL_IOStream *rw = NULL
     cdef SDL_Surface *image = NULL
     cdef char *c_data = data
 
-    rw = SDL_RWFromMem(c_data, <int>len(data))
+    rw = SDL_IOFromMem(c_data, <int>len(data))
     if rw == NULL:
         return
 
-    image = IMG_Load_RW(rw, 0)
+    image = IMG_Load_IO(rw, 0)
     if image == NULL:
         return
 
@@ -229,6 +223,6 @@ def load_from_memory(bytes data):
         return load_from_surface(image)
     finally:
         if image:
-            SDL_FreeSurface(image)
+            SDL_DestroySurface(image)
         if rw:
-            SDL_FreeRW(rw)
+            SDL_CloseIO(rw)

@@ -975,9 +975,9 @@ if c_options['use_sdl2'] and sdl2_flags:
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
     sdl2_depends = {'depends': ['lib/sdl2.pxi']}
     for source_file in ('core/window/_window_sdl2.pyx',
-                        # 'core/image/_img_sdl2.pyx',
-                        # 'core/text/_text_sdl2.pyx',
-                        # 'core/audio/audio_sdl2.pyx',
+                        'core/image/_img_sdl2.pyx',
+                        'core/text/_text_sdl2.pyx',
+                        'core/audio/audio_sdl2.pyx',
                         'core/clipboard/_clipboard_sdl2.pyx'):
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends)

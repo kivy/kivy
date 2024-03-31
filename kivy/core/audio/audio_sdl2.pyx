@@ -53,13 +53,16 @@ cdef int mix_flags = 0
 
 
 cdef mix_init():
-    cdef int audio_rate = 44100
-    cdef unsigned short audio_format = AUDIO_S16SYS
-    cdef int audio_channels = 2
+    cdef SDL_AudioSpec desired_spec
+
     cdef int audio_buffers = 4096
     cdef int want_flags = 0
     global mix_is_init
     global mix_flags
+
+    desired_spec.freq = 44100
+    desired_spec.format = SDL_AUDIO_S16
+    desired_spec.channels = 2
 
     # avoid next call
     if mix_is_init != 0:
@@ -80,8 +83,8 @@ cdef mix_init():
     want_flags |= MIX_INIT_MOD | 0x20 | 0x4
 
     mix_flags = Mix_Init(want_flags)
-
-    if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
+    
+    if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, NULL):
         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
                         Mix_GetError()))
         mix_is_init = -1
@@ -176,6 +179,7 @@ class SoundSDL2(Sound):
         return <double>frames / <double>freq
 
     def on_pitch(self, instance, value):
+        """
         cdef ChunkContainer cc = self.cc
         cdef int freq, channels
         cdef unsigned short fmt
@@ -192,8 +196,10 @@ class SoundSDL2(Sound):
         cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
         cvt.len = cc.original_chunk.alen
         memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
-        SDL_ConvertAudio(&cvt)
+        SDL_ConvertAudio(&cvt)f
         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
+        """
+        pass
 
     def play(self):
         cdef ChunkContainer cc = self.cc

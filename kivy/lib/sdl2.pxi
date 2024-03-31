@@ -24,6 +24,7 @@ cdef extern from "SDL.h":
     ctypedef void *SDL_GLContext
     ctypedef Uint32 SDL_Keycode
     ctypedef Sint32 SDL_JoystickID
+    ctypedef Uint32 SDL_PropertiesID
 
     int SDL_WINDOWPOS_UNDEFINED
 
@@ -120,8 +121,8 @@ cdef extern from "SDL.h":
     cdef struct SDL_PixelFormat:
         Uint32 format
         SDL_Palette *palette
-        Uint8 BitsPerPixel
-        Uint8 BytesPerPixel
+        Uint8 bits_per_pixel
+        Uint8 bytes_per_pixel
         Uint8 padding[2]
         Uint32 Rmask
         Uint32 Gmask
@@ -252,6 +253,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_FOREIGN = 0x00000800         #            /**< window not created by SDL */
         SDL_WINDOW_HIGH_PIXEL_DENSITY
         SDL_WINDOW_UTILITY
+        SDL_WINDOW_TRANSPARENT
         SDL_WINDOW_METAL = 0x20000000           #,          /**< window usable for Metal view */
 
     ctypedef enum SDL_HitTestResult:
@@ -434,19 +436,11 @@ cdef extern from "SDL.h":
         int refresh_rate
         void *driverdata
 
-    cdef struct SDL_RWops_union_unknown:
-        void *data1
-
-    cdef union SDL_RWops_union:
-        SDL_RWops_union_unknown unknown
-
-    cdef struct SDL_RWops:
-        Sint64 (* seek) (SDL_RWops * context, Sint64 offset,int whence)
-        size_t(* read) ( SDL_RWops * context, void *ptr, size_t size, size_t maxnum)
-        size_t(* write) (SDL_RWops * context, void *ptr,size_t size, size_t num)
-        int (* close) (SDL_RWops * context)
-        int type
-        SDL_RWops_union hidden
+    cdef struct SDL_IOStream:
+        # SDL_IOStreamInterface iface;
+        void *userdata;
+        # SDL_IOStatus status;
+        # SDL_PropertiesID props;
 
     cdef enum SDL_Keymod:
         KMOD_NONE
@@ -466,6 +460,9 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_Scancode:
         pass
 
+    ctypedef enum SDL_PixelFormatEnum:
+        pass
+
     ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
     # for windows only see
     # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
@@ -476,10 +473,8 @@ cdef extern from "SDL.h":
 
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
-    cdef char *SDL_HINT_ACCELEROMETER_AS_JOYSTICK
     cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
     cdef char *SDL_HINT_WINDOWS_DPI_AWARENESS
-    # cdef char *SDL_HINT_WINDOWS_DPI_SCALING
 
     cdef int SDL_QUERY               = -1
     cdef int SDL_IGNORE              =  0
@@ -499,14 +494,13 @@ cdef extern from "SDL.h":
     cdef void SDL_DestroyRenderer (SDL_Renderer * renderer)
     cdef SDL_Texture * SDL_CreateTexture(SDL_Renderer * renderer, Uint32 format, int access, int w, int h)
     cdef SDL_Texture * SDL_CreateTextureFromSurface(SDL_Renderer * renderer, SDL_Surface * surface)
-    cdef SDL_Surface * SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask) nogil
     cdef int SDL_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect)
     cdef int SDL_RenderCopyEx(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect, double angle, SDL_Point *center, SDL_RendererFlip flip)
     cdef void SDL_RenderPresent(SDL_Renderer * renderer)
     cdef SDL_bool SDL_RenderTargetSupported(SDL_Renderer *renderer)
     cdef int SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
     cdef void SDL_DestroyTexture(SDL_Texture * texture)
-    cdef void SDL_FreeSurface(SDL_Surface * surface) nogil
+    cdef void SDL_DestroySurface(SDL_Surface * surface) nogil
     cdef int SDL_SetSurfaceBlendMode(SDL_Surface * surface, int blendMode)
     cdef int SDL_SetSurfaceAlphaMod(SDL_Surface * surface, char alpha)
     cdef int SDL_UpperBlit (SDL_Surface * src, SDL_Rect * srcrect, SDL_Surface * dst, SDL_Rect * dstrect)
@@ -521,10 +515,12 @@ cdef extern from "SDL.h":
     cdef int SDL_RenderClear(SDL_Renderer * renderer)
     cdef int SDL_SetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode blendMode)
     cdef int SDL_GetTextureBlendMode(SDL_Texture * texture, SDL_BlendMode *blendMode)
-    cdef SDL_Surface * SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth, int pitch, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
-    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format, Uint32 flags) nogil
+    cdef SDL_Surface * SDL_CreateSurface(int width, int height, SDL_PixelFormatEnum format)
+    cdef SDL_Surface * SDL_CreateSurfaceFrom(void *pixels, int width, int height, int pitch, SDL_PixelFormatEnum format)
+    cdef SDL_PixelFormatEnum SDL_GetPixelFormatEnumForMasks(int bpp, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+    cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
-    cdef int SDL_GetColorKey(SDL_Surface *surface, Uint32 *key)
+    cdef int SDL_GetSurfaceColorKey(SDL_Surface *surface, Uint32 *key)
     cdef int SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
@@ -533,11 +529,11 @@ cdef extern from "SDL.h":
     cdef Uint8 SDL_SetEventEnabled(Uint32 type, SDL_bool enabled)
     cdef int SDL_PollEvent(SDL_Event * event) nogil
     cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
-    cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
-    cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
-    cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
-    cdef SDL_RWops * SDL_AllocRW()
-    cdef void SDL_FreeRW(SDL_RWops *area)
+    cdef SDL_IOStream * SDL_RWFromFile(char *file, char *mode)
+    cdef SDL_IOStream * SDL_IOFromMem(void *mem, int size)
+    cdef SDL_IOStream * SDL_RWFromConstMem(void *mem, int size)
+    cdef SDL_IOStream * SDL_AllocRW()
+    cdef void SDL_CloseIO(SDL_IOStream *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
     cdef int SDL_GetCurrentDisplayMode(int displayIndex, SDL_DisplayMode * mode)
@@ -658,6 +654,8 @@ cdef extern from "SDL.h":
     cdef int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback, void *callback_data)
     cdef SDL_MetalView SDL_Metal_CreateView(SDL_Window * window)
     cdef void* SDL_Metal_GetLayer(SDL_MetalView view)
+    cdef void SDL_GetProperty(SDL_PropertiesID props, const char *name, void *default_value)
+    cdef SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
 
 
     # Sound audio formats
@@ -690,12 +688,11 @@ cdef extern from "SDL_image.h":
     cdef int IMG_Init(IMG_InitFlags flags)
     cdef char *IMG_GetError()
     cdef SDL_Surface *IMG_Load(char *file)
-    cdef SDL_Surface *IMG_Load_RW(SDL_RWops *src, int freesrc)
-    cdef SDL_Surface *IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type)
+    cdef SDL_Surface *IMG_Load_IO(SDL_IOStream *src, int freesrc)
     cdef int IMG_SavePNG(SDL_Surface *src, char *file)
-    cdef int IMG_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst)
+    cdef int IMG_SavePNG_IO(SDL_Surface *surface, SDL_IOStream *dst, int freedst)
     cdef int IMG_SaveJPG(SDL_Surface *surface, const char *file, int quality)
-    cdef int IMG_SaveJPG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst, int quality)
+    cdef int IMG_SaveJPG_IO(SDL_Surface *surface, SDL_IOStream *dst, int freedst, int quality)
 
 
 cdef extern from "SDL_ttf.h":
@@ -703,8 +700,8 @@ cdef extern from "SDL_ttf.h":
     cdef int TTF_Init()
     cdef TTF_Font *  TTF_OpenFont( char *file, int ptsize)
     cdef TTF_Font *  TTF_OpenFontIndex( char *file, int ptsize, long index)
-    cdef TTF_Font *  TTF_OpenFontRW(SDL_RWops *src, int freesrc, int ptsize)
-    cdef TTF_Font *  TTF_OpenFontIndexRW(SDL_RWops *src, int freesrc, int ptsize, long index)
+    cdef TTF_Font *  TTF_OpenFontRW(SDL_IOStream *src, int freesrc, int ptsize)
+    cdef TTF_Font *  TTF_OpenFontIndexRW(SDL_IOStream *src, int freesrc, int ptsize, long index)
     #Set and retrieve the font style
     ##define TTF_STYLE_NORMAL    0x00
     ##define TTF_STYLE_BOLD      0x01
@@ -861,31 +858,9 @@ cdef extern from "SDL_ttf.h":
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
 
 cdef extern from "SDL_audio.h":
-    cdef int AUDIO_S16SYS
+    cdef int SDL_AUDIO_S16
     ctypedef struct SDL_AudioFilter:
         pass
-    ctypedef struct SDL_AudioCVT:
-        int needed
-        int src_format
-        int dst_format
-        double rate_incr
-        Uint8 *buf
-        int len
-        int len_cvt
-        int len_mult
-        double len_ratio
-        SDL_AudioFilter filters[10]
-        int filter_index
-    cdef int SDL_BuildAudioCVT(
-        SDL_AudioCVT *cvt,
-        int src_format,
-        Uint8 src_channels,
-        int src_rate,
-        int dst_format,
-        Uint8 dst_channels,
-        int dst_rate
-    )
-    cdef int SDL_ConvertAudio(SDL_AudioCVT *cvt)
 
 cdef extern from "SDL_video.h":
     cdef int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
@@ -923,19 +898,29 @@ cdef extern from "SDL_mixer.h":
         MIX_INIT_OGG         = 0x00000010
         MIX_INIT_MID         = 0x00000020 # Previously _FLUIDSYNTH
 
+    ctypedef Uint32 SDL_AudioDeviceID
+    ctypedef Uint16 SDL_AudioFormat
+
+    ctypedef struct SDL_AudioSpec:
+        SDL_AudioFormat format
+        int channels
+        int freq
+
     cdef int MIX_MAX_VOLUME
+
+    cdef int SDL_AUDIO_DEVICE_DEFAULT_OUTPUT
 
 
     cdef int Mix_Init(int flags)
     cdef void Mix_Quit()
-    cdef int Mix_OpenAudio(int frequency, Uint16 format, int channels, int chunksize)
+    cdef int Mix_OpenAudio(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
     cdef  int  Mix_AllocateChannels(int numchans)
     cdef  int  Mix_QuerySpec(int *frequency,Uint16 *format,int *channels)
-    cdef  Mix_Chunk *  Mix_LoadWAV_RW(SDL_RWops *src, int freesrc)
+    cdef  Mix_Chunk *  Mix_LoadWAV_RW(SDL_IOStream *src, int freesrc)
     cdef  Mix_Chunk *  Mix_LoadWAV(char *file)
     cdef  Mix_Music *  Mix_LoadMUS(char *file)
-    cdef  Mix_Music *  Mix_LoadMUS_RW(SDL_RWops *rw)
-    cdef  Mix_Music *  Mix_LoadMUSType_RW(SDL_RWops *rw, Mix_MusicType type, int freesrc)
+    cdef  Mix_Music *  Mix_LoadMUS_RW(SDL_IOStream *rw)
+    cdef  Mix_Music *  Mix_LoadMUSType_RW(SDL_IOStream *rw, Mix_MusicType type, int freesrc)
     cdef  Mix_Chunk *  Mix_QuickLoad_WAV(Uint8 *mem)
     cdef  Mix_Chunk *  Mix_QuickLoad_RAW(Uint8 *mem, Uint32 len)
     cdef  void  Mix_FreeChunk(Mix_Chunk *chunk)
