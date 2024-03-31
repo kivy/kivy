@@ -1,3 +1,14 @@
+'''
+Antialisiang Example
+====================
+
+Kivy 2.3.0 introduced several vertex instrustions with with antialisiang:
+SmoothRectangle, SmoothEllipse, SmoothRoundedRectangle, SmoothQuad and
+SmoothTriangle. This demo script shows the difference between 'standard'
+(non-antialiased) and antialiased graphics.
+
+'''
+
 from kivy.app import App
 from kivy.lang import Builder
 
