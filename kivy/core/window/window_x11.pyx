@@ -17,7 +17,7 @@ from os import environ
 
 from .window_info cimport WindowInfoX11
 
-include "window_attrs.pxi"
+# include "window_attrs.pxi"
 
 # force include the file
 cdef extern from "window_x11_core.c":

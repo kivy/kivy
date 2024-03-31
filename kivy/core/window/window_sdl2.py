@@ -17,7 +17,6 @@ __all__ = ('WindowSDL', )
 
 from os.path import join
 import sys
-from typing import Optional
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.base import EventLoop
@@ -34,7 +33,7 @@ except ImportError:
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform, deprecated
+from kivy.utils import platform
 from collections import deque
 
 
@@ -149,8 +148,6 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 
 class WindowSDL(WindowBase):
-
-    _win_dpi_watch: Optional['_WindowsSysDPIWatch'] = None
 
     _do_resize_ev = None
 
@@ -318,7 +315,8 @@ class WindowSDL(WindowBase):
                 self.get_gl_backend_name())
 
             # We don't have a density or dpi yet set, so let's ask for an update
-            self._update_density_and_dpi()
+            self._update_density()
+            self._update_dpi()
 
             # never stay with a None pos, application using w.center
             # will be fired.
@@ -385,33 +383,16 @@ class WindowSDL(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
-        if platform == 'win' and self._win_dpi_watch is None:
-            self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
-            self._win_dpi_watch.start()
+    def _update_density(self):
+        self._density = self._win.get_window_pixel_density()
 
-    def _update_density_and_dpi(self):
-        if platform == 'win':
-            from ctypes import windll
-            self._density = 1.
-            try:
-                hwnd = windll.user32.GetActiveWindow()
-                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                self._density = self.dpi / 96
-            except AttributeError:
-                pass
-        else:
-            self._density = (
-                self._win.window_pixel_size[0] / self._win.window_size[0]
-            )
-            if self._is_desktop:
-                self.dpi = self._density * 96.
+    def _update_dpi(self):
+        if self._is_desktop:
+            self.dpi = self._win.get_window_display_scale() * 96.0
 
     def close(self):
         self._win.teardown_window()
         super(WindowSDL, self).close()
-        if self._win_dpi_watch is not None:
-            self._win_dpi_watch.stop()
-            self._win_dpi_watch = None
 
         self.initialized = False
 
@@ -681,7 +662,17 @@ class WindowSDL(WindowBase):
 
                 # The display has changed, so the density and dpi
                 # may have changed too.
-                self._update_density_and_dpi()
+                # Maybe in SDL3 this is not needed anymore?
+                self._update_density()
+                self._update_dpi()
+
+            elif action == 'windowpixelsizechanged':
+                print("WindowSDL: Window pixel size changed")
+                self._update_density()
+
+            elif action == 'windowdisplayscalechanged':
+                print("WindowSDL: Window display scale changed")
+                self._update_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
@@ -942,62 +933,3 @@ class WindowSDL(WindowBase):
             return
         self.titlebar_widget = titlebar_widget
         return self._win.set_custom_titlebar(self.titlebar_widget) == 0
-
-
-class _WindowsSysDPIWatch:
-
-    hwnd = None
-
-    new_windProc = None
-
-    old_windProc = None
-
-    window: WindowBase = None
-
-    def __init__(self, window: WindowBase):
-        self.window = window
-
-    def start(self):
-        from kivy.input.providers.wm_common import WNDPROC, \
-            SetWindowLong_WndProc_wrapper
-        from ctypes import windll
-
-        self.hwnd = windll.user32.GetActiveWindow()
-
-        # inject our own handler to handle messages before window manager
-        self.new_windProc = WNDPROC(self._wnd_proc)
-        self.old_windProc = SetWindowLong_WndProc_wrapper(
-            self.hwnd, self.new_windProc)
-
-    def stop(self):
-        from kivy.input.providers.wm_common import \
-            SetWindowLong_WndProc_wrapper
-
-        if self.hwnd is None:
-            return
-
-        self.new_windProc = SetWindowLong_WndProc_wrapper(
-            self.hwnd, self.old_windProc)
-        self.hwnd = self.new_windProc = self.old_windProc = None
-
-    def _wnd_proc(self, hwnd, msg, wParam, lParam):
-        from kivy.input.providers.wm_common import WM_DPICHANGED, WM_NCCALCSIZE
-        from ctypes import windll
-
-        if msg == WM_DPICHANGED:
-
-            def clock_callback(*args):
-                if x_dpi != y_dpi:
-                    raise ValueError(
-                        'Can only handle DPI that are same for x and y')
-
-                self.window.dpi = x_dpi
-
-            x_dpi = wParam & 0xFFFF
-            y_dpi = wParam >> 16
-            Clock.schedule_once(clock_callback, -1)
-        elif Config.getboolean('graphics', 'resizable') \
-                and msg == WM_NCCALCSIZE and self.window.custom_titlebar:
-            return 0
-        return windll.user32.CallWindowProcW(
-            self.old_windProc, hwnd, msg, wParam, lParam)

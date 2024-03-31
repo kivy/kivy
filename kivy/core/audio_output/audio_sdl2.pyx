@@ -42,7 +42,6 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
 __all__ = ('SoundSDL2', 'MusicSDL2')
 
 include "../../../kivy/lib/sdl2.pxi"
-include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
 
 from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
@@ -53,10 +52,7 @@ cdef int mix_flags = 0
 
 
 cdef mix_init():
-    cdef int audio_rate = 44100
-    cdef unsigned short audio_format = AUDIO_S16SYS
-    cdef int audio_channels = 2
-    cdef int audio_buffers = 4096
+    cdef SDL_AudioSpec desired_spec
     cdef int want_flags = 0
     global mix_is_init
     global mix_flags
@@ -81,7 +77,10 @@ cdef mix_init():
 
     mix_flags = Mix_Init(want_flags)
 
-    if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
+    desired_spec.freq = 44100
+    desired_spec.format = SDL_AUDIO_S16
+    desired_spec.channels = 2    
+    if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
                         Mix_GetError()))
         mix_is_init = -1
@@ -177,23 +176,29 @@ class SoundSDL2(Sound):
 
     def on_pitch(self, instance, value):
         cdef ChunkContainer cc = self.cc
-        cdef int freq, channels
-        cdef unsigned short fmt
-        cdef SDL_AudioCVT cvt
+
+        cdef Uint8 *dst_data = NULL;
+        cdef int dst_len = 0;
+
+        cdef SDL_AudioSpec src_spec
+        cdef SDL_AudioSpec dst_spec
+
         if cc.chunk == NULL:
             return
-        if not Mix_QuerySpec(&freq, &fmt, &channels):
+
+        if not Mix_QuerySpec(&src_spec.freq, &src_spec.format, &src_spec.channels):
             return
-        SDL_BuildAudioCVT(
-            &cvt,
-            fmt, channels, int(freq * self.pitch),
-            fmt, channels, freq,
-        )
-        cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
-        cvt.len = cc.original_chunk.alen
-        memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
-        SDL_ConvertAudio(&cvt)
-        cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
+
+        dst_spec.freq = int(src_spec.freq * value)
+        dst_spec.format = src_spec.format
+        dst_spec.channels = src_spec.channels
+
+        if SDL_ConvertAudioSamples(&src_spec, cc.original_chunk.abuf, cc.original_chunk.alen, &dst_spec, &dst_data, &dst_len) < 0:
+            Logger.warning("SoundSDL2: Error converting audio samples: %s" % SDL_GetError())
+            return
+
+        cc.chunk = Mix_QuickLoad_RAW(dst_data, dst_len)
+        SDL_free(dst_data)
 
     def play(self):
         cdef ChunkContainer cc = self.cc
