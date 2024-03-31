@@ -3,25 +3,31 @@ set -e -x
 # If USE_LEGACY_OPENGL is not set, default to "0"
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
-# macOS SDL2
-MACOS__SDL2__VERSION="2.30.7"
-MACOS__SDL2__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL2__VERSION/SDL2-$MACOS__SDL2__VERSION.tar.gz"
-MACOS__SDL2__FOLDER="SDL2-${MACOS__SDL2__VERSION}"
+# macOS SDL3
+# MACOS__SDL3__VERSION="3.1.2"
+MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/archive/refs/heads/main.tar.gz"
+MACOS__SDL3__FOLDER="SDL-main"
 
 # macOS SDL2_image
-MACOS__SDL2_IMAGE__VERSION="2.8.2"
-MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
-MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
+# MACOS__SDL2_IMAGE__VERSION="2.8.0"
+# MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
+# MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
+MACOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/archive/refs/heads/main.tar.gz"
+MACOS__SDL3_IMAGE__FOLDER="SDL_image-main"
 
-# macOS SDL2_mixer
-MACOS__SDL2_MIXER__VERSION="2.8.0"
-MACOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL2_MIXER__VERSION/SDL2_mixer-$MACOS__SDL2_MIXER__VERSION.tar.gz"
-MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-${MACOS__SDL2_MIXER__VERSION}"
+# macOS SDL3_mixer
+# MACOS__SDL2_MIXER__VERSION="2.6.3"
+# MACOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL2_MIXER__VERSION/SDL2_mixer-$MACOS__SDL2_MIXER__VERSION.tar.gz"
+# MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-${MACOS__SDL2_MIXER__VERSION}"
+MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/refs/heads/main.tar.gz"
+MACOS__SDL3_MIXER__FOLDER="SDL_mixer-main"
 
 # macOS SDL2_ttf
-MACOS__SDL2_TTF__VERSION="2.22.0"
-MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL2_TTF__VERSION/SDL2_ttf-$MACOS__SDL2_TTF__VERSION.tar.gz"
-MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
+# MACOS__SDL2_TTF__VERSION="2.20.2"
+# MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL2_TTF__VERSION/SDL2_ttf-$MACOS__SDL2_TTF__VERSION.tar.gz"
+# MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
+MACOS__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/archive/refs/heads/main.tar.gz"
+MACOS__SDL3_TTF__FOLDER="SDL_ttf-main"
 
 # macOS libpng
 MACOS__LIBPNG__VERSION="1.6.40"
@@ -42,10 +48,10 @@ mkdir kivy-dependencies
 echo "Downloading dependencies..."
 mkdir kivy-dependencies/download
 pushd kivy-dependencies/download
-curl -L $MACOS__SDL2__URL -o "${MACOS__SDL2__FOLDER}.tar.gz"
-curl -L $MACOS__SDL2_IMAGE__URL -o "${MACOS__SDL2_IMAGE__FOLDER}.tar.gz"
-curl -L $MACOS__SDL2_MIXER__URL -o "${MACOS__SDL2_MIXER__FOLDER}.tar.gz"
-curl -L $MACOS__SDL2_TTF__URL -o "${MACOS__SDL2_TTF__FOLDER}.tar.gz"
+curl -L $MACOS__SDL3__URL -o "${MACOS__SDL3__FOLDER}.tar.gz"
+curl -L $MACOS__SDL3_IMAGE__URL -o "${MACOS__SDL3_IMAGE__FOLDER}.tar.gz"
+curl -L $MACOS__SDL3_MIXER__URL -o "${MACOS__SDL3_MIXER__FOLDER}.tar.gz"
+curl -L $MACOS__SDL3_TTF__URL -o "${MACOS__SDL3_TTF__FOLDER}.tar.gz"
 curl -L $MACOS__LIBPNG__URL -o "${MACOS__LIBPNG__FOLDER}.tar.gz"
 curl -L $MACOS__ANGLE_URL -o "${MACOS__ANGLE__FOLDER}.tar.gz"
 popd
@@ -54,10 +60,10 @@ popd
 echo "Extracting dependencies..."
 mkdir kivy-dependencies/build
 pushd kivy-dependencies/build
-tar -xzf ../download/${MACOS__SDL2__FOLDER}.tar.gz
-tar -xzf ../download/${MACOS__SDL2_IMAGE__FOLDER}.tar.gz
-tar -xzf ../download/${MACOS__SDL2_MIXER__FOLDER}.tar.gz
-tar -xzf ../download/${MACOS__SDL2_TTF__FOLDER}.tar.gz
+tar -xzf ../download/${MACOS__SDL3__FOLDER}.tar.gz
+tar -xzf ../download/${MACOS__SDL3_IMAGE__FOLDER}.tar.gz
+tar -xzf ../download/${MACOS__SDL3_MIXER__FOLDER}.tar.gz
+tar -xzf ../download/${MACOS__SDL3_TTF__FOLDER}.tar.gz
 tar -xzf ../download/${MACOS__LIBPNG__FOLDER}.tar.gz
 popd
 
@@ -79,6 +85,7 @@ if [ "$USE_LEGACY_OPENGL" = "0" ]; then
         rm -r $MACOS__ANGLE__FOLDER
         popd
 else
+
         echo "Using legacy OpenGL, not extracting ANGLE..."
 fi
 
@@ -111,43 +118,53 @@ cp -a ../../dist/lib/png.framework ../../dist/Frameworks
 
 popd
 
-echo "-- Build SDL2 (Universal)"
-pushd $MACOS__SDL2__FOLDER
+echo "-- Build SDL3 (Universal)"
+pushd $MACOS__SDL3__FOLDER
 if [ "$USE_LEGACY_OPENGL" = "1" ]; then
         xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
-                -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
+                -project Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release
 else
         xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
-                -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release \
+                -project Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release \
                 GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
 fi
-cp -a Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
+cp -a Xcode/SDL/build/Release/SDL3.framework ../../dist/Frameworks
 popd
 
-echo "-- Build SDL2_mixer (Universal)"
-pushd $MACOS__SDL2_MIXER__FOLDER
+echo "-- Build SDL3_mixer (Universal)"
+pushd $MACOS__SDL3_MIXER__FOLDER
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
-        -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
-cp -a Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
+        FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
+        -project Xcode/SDL_mixer.xcodeproj -target SDL3_mixer -configuration Release
+cp -a Xcode/build/Release/SDL3_mixer.framework ../../dist/Frameworks
 popd
 
-echo "-- Build SDL2_image (Universal)"
-pushd $MACOS__SDL2_IMAGE__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
-        -project Xcode/SDL_image.xcodeproj -target Framework -configuration Release
-cp -a Xcode/build/Release/SDL2_image.framework ../../dist/Frameworks
+echo "-- Build SDL3_image (Universal)"
+pushd $MACOS__SDL3_IMAGE__FOLDER
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+        FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
+        -project Xcode/SDL_image.xcodeproj -target SDL3_image -configuration Release
+cp -a Xcode/build/Release/SDL3_image.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_ttf (Universal)"
-pushd $MACOS__SDL2_TTF__FOLDER
+pushd $MACOS__SDL3_TTF__FOLDER
+sh ./external/download.sh
+
+# On CI this does not get automatically built. Why?
+# We're already building SDL3, is that really needed? Better to patch SDL3_ttf?
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
-        -project Xcode/SDL_ttf.xcodeproj -target Framework -configuration Release \
+        -project external/SDL/Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release \
+        GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
+
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+        -project Xcode/SDL_ttf.xcodeproj -target SDL3_ttf -configuration Release \
         GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) FT_CONFIG_OPTION_USE_PNG=1' \
         FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
         HEADER_SEARCH_PATHS='$(HEADER_SEARCH_PATHS) '"$LIBPNG_SEARCH_PATH" \
         OTHER_LDFLAGS='$(OTHER_LDFLAGS) -framework png'
 
-cp -a Xcode/build/Release/SDL2_ttf.framework ../../dist/Frameworks
+cp -a Xcode/build/Release/SDL3_ttf.framework ../../dist/Frameworks
 popd
 
 popd

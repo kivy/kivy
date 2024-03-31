@@ -95,11 +95,11 @@ def get_isolated_env_paths():
         # sdl2_dev is installed before setup.py is run, when installing from
         # source due to pyproject.toml. However, it is installed to a
         # pip isolated env, which we need to add to compiler
-        import kivy_deps.sdl2_dev as sdl2_dev
+        import kivy_deps.sdl3_dev as sdl3_dev
     except ImportError:
         return [], []
 
-    root = os.path.abspath(join(sdl2_dev.__path__[0], '../../../..'))
+    root = os.path.abspath(join(sdl3_dev.__path__[0], '../../../..'))
     includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
     libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
     return includes, libs
@@ -548,7 +548,7 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
             'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
 
-        for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
             f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
@@ -557,8 +557,6 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
             sdl2_flags['extra_link_args'] += ['-framework', name]
             sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
             print('Found sdl2 frameworks: {}'.format(f_path))
-            if name == 'SDL2_mixer':
-                _check_and_fix_sdl2_mixer(f_path)
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
@@ -570,7 +568,7 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
 
     if not sdl2_valid and platform != "ios":
         # use pkg-config approach instead
-        sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+        sdl2_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
@@ -784,7 +782,11 @@ def determine_sdl2():
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
                 join(KIVY_DEPS_ROOT, "dist", "lib64"),
-                join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
+                join(KIVY_DEPS_ROOT, "dist", "include"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_image"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_mixer"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_ttf"),
             ]
         )
 
@@ -794,7 +796,7 @@ def determine_sdl2():
 
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
-    flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
+    flags['libraries'] = ['SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer']
 
     sdl2_paths = kivy_sdl2_path.split(os.pathsep) if kivy_sdl2_path else []
 
@@ -802,10 +804,12 @@ def determine_sdl2():
         # Try to find sdl2 in default locations if we don't have a custom path
         sdl2_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
-            sdl_inc = join(include, 'SDL2')
-            if isdir(sdl_inc):
-                sdl2_paths.append(sdl_inc)
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
+            for _sdl_sub in ['SDL3', 'SDL3_image', 'SDL3_mixer', 'SDL3_ttf']:
+                sdl_inc = join(include, _sdl_sub)
+                if isdir(sdl_inc):
+                    sdl2_paths.append(sdl_inc)
+
+        sdl2_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
 
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
@@ -827,7 +831,7 @@ def determine_sdl2():
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
 
-    # ensure headers for all the SDL2 and sub libraries are available
+    # ensure headers for all the SDL3 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
     can_compile = True
     for lib in libs_to_check:
@@ -976,13 +980,21 @@ if c_options['use_sdl2'] and sdl2_flags:
     sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
     sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+    if platform in ('ios', 'darwin'):
+        _extra_args = {
+            'extra_compile_args': ['-ObjC'],
+        }
+    else:
+        _extra_args = {}
     for source_file in ('core/window/_window_sdl2.pyx',
                         'core/image/_img_sdl2.pyx',
                         'core/text/_text_sdl2.pyx',
                         'core/audio_output/audio_sdl2.pyx',
                         'core/clipboard/_clipboard_sdl2.pyx'):
+
         sources[source_file] = merge(
-            base_flags, sdl2_flags, sdl2_depends)
+            base_flags, sdl2_flags, sdl2_depends, _extra_args
+        )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
                                       'android', 'ios', 'win32'):
@@ -1014,6 +1026,9 @@ if platform in ('darwin', 'ios'):
     osx_flags['extra_compile_args'] = ['-ObjC++']
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
+
+    sources['core/window/window_info.pyx'] = merge(
+        sources['core/window/window_info.pyx'], osx_flags)
 
 if c_options['use_avfoundation']:
     import platform as _platform

@@ -35,13 +35,17 @@ cdef class _SurfaceContainer:
     def __init__(self, w, h):
         # XXX check on OSX to see if little endian/big endian make a difference
         # here.
-        self.surface = SDL_CreateRGBSurface(0,
-            w, h, 32,
-            0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        self.surface = SDL_CreateSurface(
+            w,
+            h,
+            SDL_GetPixelFormatForMasks(
+                32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+            ),
+        )
 
     def __dealloc__(self):
         if self.surface != NULL:
-            SDL_FreeSurface(self.surface)
+            SDL_DestroySurface(self.surface)
             self.surface = NULL
 
     def render(self, container, text, x, y):
@@ -124,7 +128,7 @@ cdef class _SurfaceContainer:
                 else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
                 )
             if fgst == NULL:
-                SDL_FreeSurface(st)
+                SDL_DestroySurface(st)
                 return
             fgr.x = outline_width
             fgr.y = outline_width
@@ -132,7 +136,7 @@ cdef class _SurfaceContainer:
             fgr.h = fgst.h
             SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND)
             SDL_BlitSurface(fgst, NULL, st, &fgr)
-            SDL_FreeSurface(fgst)
+            SDL_DestroySurface(fgst)
 
         r.x = x
         r.y = y
@@ -149,7 +153,7 @@ cdef class _SurfaceContainer:
         else:
             SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
-        SDL_FreeSurface(st)
+        SDL_DestroySurface(st)
 
     def get_data(self):
         cdef int datalen = self.surface.w * self.surface.h * 4
