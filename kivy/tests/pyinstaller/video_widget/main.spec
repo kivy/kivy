@@ -1,11 +1,11 @@
 # -*- mode: python -*-
 
 block_cipher = None
-from kivy_deps import sdl2, glew
+from kivy_deps import sdl3, glew
 from kivy.tools.packaging.pyinstaller_hooks import runtime_hooks, hookspath
 import os
 
-deps = list(sdl2.dep_bins + glew.dep_bins)
+deps = list(sdl3.dep_bins + glew.dep_bins)
 try:
     import ffpyplayer
     deps.extend(ffpyplayer.dep_bins)

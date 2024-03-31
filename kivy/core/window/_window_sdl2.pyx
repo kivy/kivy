@@ -17,14 +17,13 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 if not environ.get('KIVY_DOC_INCLUDE'):
     is_desktop = Config.get('kivy', 'desktop') == '1'
 
-IF USE_WAYLAND:
-    from .window_info cimport WindowInfoWayland
-
-IF USE_X11:
-    from .window_info cimport WindowInfoX11
-
-IF UNAME_SYSNAME == 'Windows':
-    from .window_info cimport WindowInfoWindows
+from .window_info cimport (
+    WindowInfoiOS,
+    WindowInfomacOS,
+    WindowInfoX11,
+    WindowInfoWayland,
+    WindowInfoWindows
+)
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -40,6 +39,7 @@ cdef class _WindowSDL2Storage:
     cdef str gl_backend_name
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
+    cdef bint _is_shaped
 
     def __cinit__(self):
         self.win = NULL
@@ -49,6 +49,7 @@ cdef class _WindowSDL2Storage:
         self.event_filter = None
         self.gl_backend_name = None
         self.egl_angle_storage = None
+        self._is_shaped = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -58,22 +59,21 @@ cdef class _WindowSDL2Storage:
         cdef str name = None
         if not self.event_filter:
             return 1
-        if event.type == SDL_WINDOWEVENT:
-            if is_desktop and event.window.event == SDL_WINDOWEVENT_RESIZED:
-                action = ('windowresized',
-                          event.window.data1, event.window.data2)
-                return self.event_filter(*action)
-        elif event.type == SDL_APP_TERMINATING:
+        if is_desktop and event.type == SDL_EVENT_WINDOW_RESIZED:
+            action = ('windowresized',
+                        event.window.data1, event.window.data2)
+            return self.event_filter(*action)
+        elif event.type == SDL_EVENT_TERMINATING:
             name = 'app_terminating'
-        elif event.type == SDL_APP_LOWMEMORY:
+        elif event.type == SDL_EVENT_LOW_MEMORY:
             name = 'app_lowmemory'
-        elif event.type == SDL_APP_WILLENTERBACKGROUND:
+        elif event.type == SDL_EVENT_WILL_ENTER_BACKGROUND:
             name = 'app_willenterbackground'
-        elif event.type == SDL_APP_DIDENTERBACKGROUND:
+        elif event.type == SDL_EVENT_DID_ENTER_BACKGROUND:
             name = 'app_didenterbackground'
-        elif event.type == SDL_APP_WILLENTERFOREGROUND:
+        elif event.type == SDL_EVENT_WILL_ENTER_FOREGROUND:
             name = 'app_willenterforeground'
-        elif event.type == SDL_APP_DIDENTERFOREGROUND:
+        elif event.type == SDL_EVENT_DID_ENTER_FOREGROUND:
             name = 'app_didenterforeground'
         if not name:
             return 1
@@ -82,7 +82,9 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
-    cdef SDL_Window * _setup_sdl_window(self, x, y, width, height, multisamples, shaped):
+    cdef SDL_Window * _setup_sdl_window(self, width, height, multisamples, shaped):
+        cdef SDL_Window *win
+        cdef int _win_flags = self.win_flags
 
         if multisamples:
             if self.sdl_manages_egl_context:
@@ -100,13 +102,11 @@ cdef class _WindowSDL2Storage:
                 SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
 
         if shaped:
-            return SDL_CreateShapedWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-        else:
-            return SDL_CreateWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
+            _win_flags |= SDL_WINDOW_TRANSPARENT
+
+        win = SDL_CreateWindow(NULL, width, height, _win_flags)
+
+        return win
 
     cdef _create_egl_context(self):
 
@@ -140,7 +140,7 @@ cdef class _WindowSDL2Storage:
 
         if self.sdl_manages_egl_context:
             if self.ctx != NULL:
-                SDL_GL_DeleteContext(self.ctx)
+                SDL_GL_DestroyContext(self.ctx)
             return
 
         if self.gl_backend_name == "angle":
@@ -170,7 +170,14 @@ cdef class _WindowSDL2Storage:
         self.gl_backend_name = gl_backend
         self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
-        self.win_flags  = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+        # Reset _is_shaped value, if the user requested a shaped window,
+        # and we have the capability to create one, we will set it later.
+        self._is_shaped = False
+
+        # Always create a hidden window first, then show it after the
+        # window is fully initialized, so we can make changes to the
+        # window without the user seeing them.
+        self.win_flags  = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY
 
         if self.sdl_manages_egl_context:
             self.win_flags |= SDL_WINDOW_OPENGL
@@ -193,8 +200,6 @@ cdef class _WindowSDL2Storage:
         elif USE_IOS:
             if environ.get('IOS_IS_WINDOWED', 'True') == 'False':
                 self.win_flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS
-        elif fullscreen == 'auto':
-            self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
         elif fullscreen is True:
             self.win_flags |= SDL_WINDOW_FULLSCREEN
         if state == 'maximized':
@@ -206,16 +211,10 @@ cdef class _WindowSDL2Storage:
 
         show_taskbar_icon = Config.getboolean('graphics', 'show_taskbar_icon')
         if not show_taskbar_icon:
-            self.win_flags |= SDL_WINDOW_SKIP_TASKBAR
-
-        SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, b'0')
+            self.win_flags |= SDL_WINDOW_UTILITY
 
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
-        
-        # makes dpi aware of scale changes
-        if platform == "win":
-            SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
@@ -237,11 +236,6 @@ cdef class _WindowSDL2Storage:
         orientations = environ.get('KIVY_ORIENTATION', orientations)
 
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
-
-        if x is None:
-            x = SDL_WINDOWPOS_UNDEFINED
-        if y is None:
-            y = SDL_WINDOWPOS_UNDEFINED
 
         if self.sdl_manages_egl_context:
             self._set_sdl_gl_common_attributes()
@@ -273,24 +267,24 @@ cdef class _WindowSDL2Storage:
         sdl_window_configs.append((0, 0))
 
         for multisamples, shaped in sdl_window_configs:
-            win = self._setup_sdl_window(x, y, width, height, multisamples, shaped)
+            win = self._setup_sdl_window(width, height, multisamples, shaped)
             if win:
                 self.win = win
+
+                # Get win flags after creation, as may be different
+                # from the initially requested ones.
+                self.win_flags = SDL_GetWindowFlags(win)
                 break
-
-        # post-creation fix for shaped window
-        if self.is_window_shaped():
-            # because SDL just set it to (-1000, -1000)
-            # -> can't use UNDEFINED nor CENTER after window creation
-            self.set_window_pos(100, 100)
-
-            # SDL also changed borderless, fullscreen, resizable and shown
-            # but we shouldn't care about those at __init__ as this window is
-            # a special one (borders and resizing will cripple the look,
-            # fullscreen might crash the window)
 
         if not self.win:
             self.die()
+
+        # Set shape in case the user requested a shaped window and the window
+        # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
+        if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
+            self.set_shape(Config.get('kivy', 'window_shape'), 'image', 0, None)
+
+        self.set_window_pos(x, y)
 
         self._create_egl_context()
 
@@ -312,51 +306,60 @@ cdef class _WindowSDL2Storage:
 
         # Open all available joysticks
         cdef int joy_i
-        for joy_i in range(SDL_NumJoysticks()):
-            SDL_JoystickOpen(joy_i)
+        cdef int numjoysticks
+        SDL_GetJoysticks(&numjoysticks)
+        for joy_i in range(numjoysticks):
+            SDL_OpenJoystick(joy_i)
 
         SDL_SetEventFilter(<SDL_EventFilter>_event_filter, <void *>self)
 
-        SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
-        SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)
-        SDL_EventState(SDL_DROPBEGIN, SDL_ENABLE)
-        SDL_EventState(SDL_DROPCOMPLETE, SDL_ENABLE)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, SDL_TRUE)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, SDL_TRUE)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_BEGIN, SDL_TRUE)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, SDL_TRUE)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
+
+        # At this point, the window is fully initialized, so we can show it.
+        SDL_ShowWindow(self.win)
+
         return w, h
 
     def _set_cursor_state(self, value):
-        SDL_ShowCursor(value)
+        if value:
+            SDL_ShowCursor()
+        else:
+            SDL_HideCursor()
 
     def set_system_cursor(self, str name):
         # prevent the compiler to not be happy because of
         # an uninitialized value (return False in Cython is not a direct
         # return 0 in C)
-        cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_ARROW
+        cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_DEFAULT
         if name == 'arrow':
-            num = SDL_SYSTEM_CURSOR_ARROW
+            num = SDL_SYSTEM_CURSOR_DEFAULT
         elif name == 'ibeam':
-            num = SDL_SYSTEM_CURSOR_IBEAM
+            num = SDL_SYSTEM_CURSOR_TEXT
         elif name == 'wait':
             num = SDL_SYSTEM_CURSOR_WAIT
         elif name == 'crosshair':
             num = SDL_SYSTEM_CURSOR_CROSSHAIR
         elif name == 'wait_arrow':
-            num = SDL_SYSTEM_CURSOR_WAITARROW
+            num = SDL_SYSTEM_CURSOR_PROGRESS
         elif name == 'size_nwse':
-            num = SDL_SYSTEM_CURSOR_SIZENWSE
+            num = SDL_SYSTEM_CURSOR_NWSE_RESIZE
         elif name == 'size_nesw':
-            num = SDL_SYSTEM_CURSOR_SIZENESW
+            num = SDL_SYSTEM_CURSOR_NESW_RESIZE
         elif name == 'size_we':
-            num = SDL_SYSTEM_CURSOR_SIZEWE
+            num = SDL_SYSTEM_CURSOR_EW_RESIZE
         elif name == 'size_ns':
-            num = SDL_SYSTEM_CURSOR_SIZENS
+            num = SDL_SYSTEM_CURSOR_NS_RESIZE
         elif name == 'size_all':
-            num = SDL_SYSTEM_CURSOR_SIZEALL
+            num = SDL_SYSTEM_CURSOR_MOVE
         elif name == 'no':
-            num = SDL_SYSTEM_CURSOR_NO
+            num = SDL_SYSTEM_CURSOR_NOT_ALLOWED
         elif name == 'hand':
-            num = SDL_SYSTEM_CURSOR_HAND
+            num = SDL_SYSTEM_CURSOR_POINTER
         else:
             return False
         new_cursor = SDL_CreateSystemCursor(num)
@@ -370,7 +373,7 @@ cdef class _WindowSDL2Storage:
         SDL_RaiseWindow(self.win)
 
     def _resize_fullscreen(self, w, h):
-        cdef SDL_DisplayMode mode
+        cdef SDL_DisplayMode* mode
 
         if USE_IOS or USE_ANDROID:
             # Changing the fullscreen size on iOS and Android is not supported
@@ -378,10 +381,10 @@ cdef class _WindowSDL2Storage:
             # screen.
             return
 
-        SDL_GetWindowDisplayMode(self.win, &mode)
+        mode = SDL_GetWindowFullscreenMode(self.win)
         mode.w = w
         mode.h = h
-        SDL_SetWindowDisplayMode(self.win, &mode)
+        SDL_SetWindowFullscreenMode(self.win, mode)
 
         return mode.w, mode.h
 
@@ -435,9 +438,7 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowBordered(self.win, SDL_FALSE if state else SDL_TRUE)
 
     def set_fullscreen_mode(self, mode):
-        if mode == 'auto':
-            mode = SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif mode is True:
+        if mode is True:
             mode = SDL_WINDOW_FULLSCREEN
         else:
             mode = False
@@ -447,12 +448,32 @@ cdef class _WindowSDL2Storage:
     def set_window_title(self, title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
+    def get_window_pixel_density(self):
+        cdef float pixel_density
+        pixel_density = SDL_GetWindowPixelDensity(self.win)
+        if pixel_density == 0.0:
+            pixel_density = 1.0
+        return pixel_density
+
+    def get_window_display_scale(self):
+        cdef float scale
+        scale = SDL_GetWindowDisplayScale(self.win)
+        if scale == 0.0:
+            scale = 1.0
+        return scale
+
     def get_window_pos(self):
         cdef int x, y
         SDL_GetWindowPosition(self.win, &x, &y)
         return x, y
 
     def set_window_pos(self, x, y):
+
+        if x is None:
+            x = SDL_WINDOWPOS_UNDEFINED
+        if y is None:
+            y = SDL_WINDOWPOS_UNDEFINED
+
         SDL_SetWindowPosition(self.win, x, y)
 
     def set_window_opacity(self, opacity):
@@ -464,125 +485,148 @@ cdef class _WindowSDL2Storage:
         return True
 
     def get_window_opacity(self):
-        cdef float opacity
-        if SDL_GetWindowOpacity(self.win, &opacity):
-            message = (<bytes>SDL_GetError()).decode('utf-8', 'replace')
-            Logger.error(f'WindowSDL: Getting opacity failed - {message}')
-            return 1.0
-        else:
-            return opacity
+        return SDL_GetWindowOpacity(self.win)
+
+    def _get_current_video_driver(self):
+        cdef char *driver = SDL_GetCurrentVideoDriver()
+        return <str>driver
+
+    def _get_window_info_macos(self):
+        cdef WindowInfomacOS window_info
+        window_info = WindowInfomacOS()
+
+        window_info.set_window(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.cocoa.window",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_ios(self):
+        cdef WindowInfoiOS window_info
+        window_info = WindowInfoiOS()
+
+        window_info.set_window(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.uikit.window",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_wayland(self):
+        cdef WindowInfoWayland window_info
+        window_info = WindowInfoWayland()
+
+        window_info.set_display(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.wayland.display",
+                NULL,
+            )
+        )
+
+        window_info.set_surface(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.wayland.surface",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_x11(self):
+        cdef WindowInfoX11 window_info
+        window_info = WindowInfoX11()
+
+        window_info.set_display(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.x11.display",
+                NULL,
+            )
+        )
+
+        window_info.set_window(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.x11.window",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_windows(self):
+        cdef WindowInfoWindows window_info
+        window_info = WindowInfoWindows()
+
+        window_info.set_hwnd(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.win32.hwnd",
+                NULL,
+            )
+        )
+        window_info.set_hdc(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.win32.hdc",
+                NULL,
+            )
+        )
+
+        return window_info
 
     def get_window_info(self):
-        cdef SDL_SysWMinfo wm_info
-        SDL_GetVersion(&wm_info.version)
-        cdef SDL_bool success = SDL_GetWindowWMInfo(self.win, &wm_info)
-
-        if not success:
-            return
-
-        IF USE_WAYLAND:
-            cdef WindowInfoWayland wayland_info
-
-            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
-                wayland_info = WindowInfoWayland()
-                wayland_info.display = wm_info.info.wl.display
-                wayland_info.surface = wm_info.info.wl.surface
-                wayland_info.shell_surface = wm_info.info.wl.shell_surface
-                return wayland_info
-
-        IF USE_X11:
-            cdef WindowInfoX11 x11_info
-
-            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11:
-                x11_info = WindowInfoX11()
-                x11_info.display = wm_info.info.x11.display
-                x11_info.window = wm_info.info.x11.window
-                return x11_info
-
-        IF UNAME_SYSNAME == 'Windows':
-            cdef WindowInfoWindows windows_info
-
-            if wm_info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
-                windows_info = WindowInfoWindows()
-                windows_info.window = wm_info.info.win.window
-                windows_info.hdc = wm_info.info.win.hdc
-                return windows_info
+        if platform == "macosx":
+            return self._get_window_info_macos()
+        elif platform == "ios":
+            return self._get_window_info_ios()
+        elif platform == "win":
+            return self._get_window_info_windows()
+        elif platform == "linux":
+            _video_driver = self._get_current_video_driver()
+            print(_video_driver)
+            if _video_driver == "wayland":
+                return self._get_window_info_wayland()
+            elif _video_driver == "x11":
+                return self._get_window_info_x11()
 
     def get_native_handle(self):
-        window_info = self.get_window_info()
+        # TODO: When we have support on all platforms, or at least on Linux
+        pass
 
-        if setupconfig.USE_X11:
-            from .window_info import WindowInfoX11
-            if isinstance(window_info, WindowInfoX11):
-                return window_info.window
-
-        if setupconfig.USE_WAYLAND:
-            from .window_info import WindowInfoWayland
-            if isinstance(window_info, WindowInfoWayland):
-                return window_info.surface
-
-        if platform == "win":
-            from .window_info import WindowInfoWindows
-            if isinstance(window_info, WindowInfoWindows):
-                return window_info.window
-
-    # Transparent Window background
     def is_window_shaped(self):
-        return SDL_IsShapedWindow(self.win)
+        return self._is_shaped
 
     def set_shape(self, shape, mode, cutoff, color_key):
         cdef SDL_Surface * sdl_shape
-
-        cdef SDL_WindowShapeMode sdl_window_mode
-        cdef SDL_WindowShapeParams parameters
-        cdef SDL_Color color
-        cdef int result
-
-        parameters.binarizationCutoff = <Uint8>cutoff
-        color.r = <Uint8>color_key[0]
-        color.g = <Uint8>color_key[1]
-        color.b = <Uint8>color_key[2]
-        color.a = <Uint8>color_key[3]
-        parameters.colorKey = color
-        sdl_window_mode.parameters = parameters
-
-        if mode == 'default':
-            sdl_window_mode.mode = ShapeModeDefault
-        elif mode == 'binalpha':
-            sdl_window_mode.mode = ShapeModeBinarizeAlpha
-        elif mode == 'reversebinalpha':
-            sdl_window_mode.mode = ShapeModeReverseBinarizeAlpha
-        elif mode == 'colorkey':
-            sdl_window_mode.mode = ShapeModeColorKey
+        cdef char* error = NULL
 
         sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
         if not sdl_shape:
             Logger.error(
                 'Window: Shape image "%s" could not be loaded!' % shape
             )
-
-        result = SDL_SetWindowShape(self.win, sdl_shape, &sdl_window_mode)
-
-        # SDL prevents the change with wrong input values and gives back useful
-        # return values, so we pass the values to the user instead of killing
-        if result == SDL_NONSHAPEABLE_WINDOW:
+            
+        if SDL_SetWindowShape(self.win, sdl_shape) < 0:
+            error = SDL_GetError()
             Logger.error(
-                'Window: Setting shape to a non-shapeable window'
+                'Window: Setting shape failed: %s' % error
             )
-        elif result == SDL_INVALID_SHAPE_ARGUMENT:
-            # e.g. window.size != shape_image.size
-            Logger.error(
-                'Window: Setting shape with an invalid shape argument'
-            )
-        elif result == SDL_WINDOW_LACKS_SHAPE:
-            Logger.error(
-                'Window: Missing shape for the window'
-            )
+            return
+        
+        self._is_shaped = True
 
     def get_shaped_mode(self):
-        cdef SDL_WindowShapeMode mode
-        SDL_GetShapedWindowMode(self.win, &mode)
-        return mode
+        return None
     # twb end
 
     def set_window_icon(self, filename):
@@ -602,7 +646,7 @@ cdef class _WindowSDL2Storage:
         input_type,
         keyboard_suggestions=True,
     ):
-        if SDL_IsTextInputActive():
+        if SDL_TextInputActive(self.win):
             return
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
         if not rect:
@@ -628,7 +672,7 @@ cdef class _WindowSDL2Storage:
                     ) if target else 0
                     rect.w = max(0, target.width) if target else 0
                     rect.h = max(0, target.height) if target else 0
-                    SDL_SetTextInputRect(rect)
+                    SDL_SetTextInputArea(self.win, rect, 0)
                 elif softinput_mode == 'pan':
                     # tell Android the TextInput is at the screen
                     # bottom, so that it always pans
@@ -636,7 +680,7 @@ cdef class _WindowSDL2Storage:
                     rect.x = 0
                     rect.w = wx
                     rect.h = 5
-                    SDL_SetTextInputRect(rect)
+                    SDL_SetTextInputArea(self.win, rect, 0)
                 else:
                     # Supporting 'resize' needs to call the Android
                     # API to set ADJUST_RESIZE mode, and change the
@@ -645,7 +689,7 @@ cdef class _WindowSDL2Storage:
                     rect.x = 0
                     rect.w = 10
                     rect.h = 1
-                    SDL_SetTextInputRect(rect)
+                    SDL_SetTextInputArea(self.win, rect, 0)
 
                 """
                 Android input type selection.
@@ -698,16 +742,16 @@ cdef class _WindowSDL2Storage:
 
                 mActivity.changeKeyboard(input_type_value)
 
-            SDL_StartTextInput()
+            SDL_StartTextInput(self.win)
         finally:
             PyMem_Free(<void *>rect)
 
     def hide_keyboard(self):
-        if SDL_IsTextInputActive():
-            SDL_StopTextInput()
+        if SDL_TextInputActive(self.win):
+            SDL_StopTextInput(self.win)
 
     def is_keyboard_shown(self):
-        return SDL_IsTextInputActive()
+        return SDL_TextInputActive(self.win)
 
     def wait_event(self):
         with nogil:
@@ -721,19 +765,19 @@ cdef class _WindowSDL2Storage:
         if rv == 0:
             return False
         action = None
-        if event.type == SDL_QUIT:
+        if event.type == SDL_EVENT_QUIT:
             return ('quit', )
-        elif event.type == SDL_MOUSEMOTION:
+        elif event.type == SDL_EVENT_MOUSE_MOTION:
             x = event.motion.x
             y = event.motion.y
             return ('mousemotion', x, y)
-        elif event.type == SDL_MOUSEBUTTONDOWN or event.type == SDL_MOUSEBUTTONUP:
+        elif event.type == SDL_EVENT_MOUSE_BUTTON_DOWN or event.type == SDL_EVENT_MOUSE_BUTTON_UP:
             x = event.button.x
             y = event.button.y
             button = event.button.button
-            action = 'mousebuttondown' if event.type == SDL_MOUSEBUTTONDOWN else 'mousebuttonup'
+            action = 'mousebuttondown' if event.type == SDL_EVENT_MOUSE_BUTTON_DOWN else 'mousebuttonup'
             return (action, x, y, button)
-        elif event.type == SDL_MOUSEWHEEL:
+        elif event.type == SDL_EVENT_MOUSE_WHEEL:
             x = event.wheel.x
             y = event.wheel.y
             # TODO we should probably support events with both an x and y offset
@@ -748,25 +792,25 @@ cdef class _WindowSDL2Storage:
                 return None
             action = 'mousewheel' + suffix
             return (action, x, y, None)
-        elif event.type == SDL_FINGERMOTION:
-            fid = event.tfinger.fingerId
+        elif event.type == SDL_EVENT_FINGER_MOTION:
+            fid = event.tfinger.fingerID
             x = event.tfinger.x
             y = event.tfinger.y
             pressure = event.tfinger.pressure
             return ('fingermotion', fid, x, y, pressure)
-        elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
-            fid = event.tfinger.fingerId
+        elif event.type == SDL_EVENT_FINGER_DOWN or event.type == SDL_EVENT_FINGER_UP:
+            fid = event.tfinger.fingerID
             x = event.tfinger.x
             y = event.tfinger.y
             pressure = event.tfinger.pressure
-            action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
+            action = 'fingerdown' if event.type == SDL_EVENT_FINGER_DOWN else 'fingerup'
             return (action, fid, x, y, pressure)
-        elif event.type == SDL_JOYAXISMOTION:
+        elif event.type == SDL_EVENT_JOYSTICK_AXIS_MOTION:
             return (
                 'joyaxismotion',
                 event.jaxis.which, event.jaxis.axis, event.jaxis.value
             )
-        elif event.type == SDL_JOYHATMOTION:
+        elif event.type == SDL_EVENT_JOYSTICK_HAT_MOTION:
             vx = 0
             vy = 0
             if (event.jhat.value != SDL_HAT_CENTERED):
@@ -779,77 +823,83 @@ cdef class _WindowSDL2Storage:
                 elif (event.jhat.value & SDL_HAT_LEFT):
                     vx = -1
             return ('joyhatmotion', event.jhat.which, event.jhat.hat, (vx, vy))
-        elif event.type == SDL_JOYBALLMOTION:
+        elif event.type == SDL_EVENT_JOYSTICK_BALL_MOTION:
             return (
                 'joyballmotion',
                 event.jball.which, event.jball.ball,
                 event.jball.xrel, event.jball.yrel
             )
-        elif event.type == SDL_JOYBUTTONDOWN:
+        elif event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN:
             return ('joybuttondown', event.jbutton.which, event.jbutton.button)
-        elif event.type == SDL_JOYBUTTONUP:
+        elif event.type == SDL_EVENT_JOYSTICK_BUTTON_UP:
             return ('joybuttonup', event.jbutton.which, event.jbutton.button)
-        elif event.type == SDL_WINDOWEVENT:
-            if event.window.event == SDL_WINDOWEVENT_EXPOSED:
+        elif event.type >= SDL_EVENT_WINDOW_FIRST and event.type <= SDL_EVENT_WINDOW_LAST:
+            if event.type == SDL_EVENT_WINDOW_EXPOSED:
                 action = ('windowexposed', )
-            elif event.window.event == SDL_WINDOWEVENT_RESIZED:
+            elif event.type == SDL_EVENT_WINDOW_RESIZED:
                 action = (
                     'windowresized',
                     event.window.data1, event.window.data2
                 )
-            elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
+            elif event.type == SDL_EVENT_WINDOW_MINIMIZED:
                 action = ('windowminimized', )
-            elif event.window.event == SDL_WINDOWEVENT_MAXIMIZED:
+            elif event.type == SDL_EVENT_WINDOW_MAXIMIZED:
                 action = ('windowmaximized', )
-            elif event.window.event == SDL_WINDOWEVENT_RESTORED:
+            elif event.type == SDL_EVENT_WINDOW_RESTORED:
                 action = ('windowrestored', )
-            elif event.window.event == SDL_WINDOWEVENT_SHOWN:
+            elif event.type == SDL_EVENT_WINDOW_SHOWN:
                 action = ('windowshown', )
-            elif event.window.event == SDL_WINDOWEVENT_HIDDEN:
+            elif event.type == SDL_EVENT_WINDOW_HIDDEN:
                 action = ('windowhidden', )
-            elif event.window.event == SDL_WINDOWEVENT_ENTER:
+            elif event.type == SDL_EVENT_WINDOW_MOUSE_ENTER:
                 action = ('windowenter', )
-            elif event.window.event == SDL_WINDOWEVENT_LEAVE:
+            elif event.type == SDL_EVENT_WINDOW_MOUSE_LEAVE:
                 action = ('windowleave', )
-            elif event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED:
+            elif event.type == SDL_EVENT_WINDOW_FOCUS_GAINED:
                 action = ('windowfocusgained', )
-            elif event.window.event == SDL_WINDOWEVENT_FOCUS_LOST:
+            elif event.type == SDL_EVENT_WINDOW_FOCUS_LOST:
                 action = ('windowfocuslost', )
-            elif event.window.event == SDL_WINDOWEVENT_CLOSE:
+            elif event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                 action = ('windowclose', )
-            elif event.window.event == SDL_WINDOWEVENT_MOVED:
+            elif event.type == SDL_EVENT_WINDOW_MOVED:
                 action = (
                     'windowmoved',
                     event.window.data1, event.window.data2
                 )
-            elif event.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED:
+            elif event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+                action = ('windowdisplaychanged',)
+            elif event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                action = ('windowpixelsizechanged',)
+            elif event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
                 action = (
-                    'windowdisplaychanged',
+                    'windowdisplayscalechanged',
                     event.window.data1, event.window.data2
                 )
             else:
                 #    print('receive unknown sdl window event', event.type)
                 pass
             return action
-        elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
-            action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
-            mod = event.key.keysym.mod
-            scancode = event.key.keysym.scancode
-            key = event.key.keysym.sym
+        elif event.type == SDL_EVENT_KEY_DOWN or event.type == SDL_EVENT_KEY_UP:
+            action = 'keydown' if event.type == SDL_EVENT_KEY_DOWN else 'keyup'
+            mod = event.key.mod
+            scancode = event.key.scancode
+            key = event.key.key
             return (action, mod, key, scancode, None)
-        elif event.type == SDL_TEXTINPUT:
+        elif event.type == SDL_EVENT_TEXT_INPUT:
             s = event.text.text.decode('utf-8')
             return ('textinput', s)
-        elif event.type == SDL_TEXTEDITING:
+        elif event.type == SDL_EVENT_TEXT_EDITING:
             s = event.edit.text.decode('utf-8')
             return ('textedit', s)
-        elif event.type == SDL_DROPFILE:
-            return ('dropfile', event.drop.file)
-        elif event.type == SDL_DROPTEXT:
-            return ('droptext', event.drop.file)
-        elif event.type == SDL_DROPBEGIN:
+        elif event.type == SDL_EVENT_DROP_FILE:
+            # return ('dropfile', event.drop.file)
+            pass
+        elif event.type == SDL_EVENT_DROP_TEXT:
+            # return ('droptext', event.drop.file)
+            pass
+        elif event.type == SDL_EVENT_DROP_BEGIN:
             return ('dropbegin',)
-        elif event.type == SDL_DROPCOMPLETE:
+        elif event.type == SDL_EVENT_DROP_COMPLETE:
             return ('dropend',)
         else:
             #    print('receive unknown sdl window event', event.type)
@@ -868,20 +918,23 @@ cdef class _WindowSDL2Storage:
             self.egl_angle_storage.swap_buffers()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
-        cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-            <char *>data, width, height, 24, width * 3,
-            0x0000ff, 0x00ff00, 0xff0000, 0
+        cdef SDL_Surface *surface = SDL_CreateSurfaceFrom(
+            width,
+            height,
+            SDL_GetPixelFormatForMasks(width * 3, 0x0000ff, 0x00ff00, 0xff0000, 0),
+            <char *>data,
+            24
         )
         cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
         cdef char *real_filename = <char *>bytes_filename
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
         IMG_SavePNG(flipped_surface, real_filename)
-        SDL_FreeSurface(surface)
-        SDL_FreeSurface(flipped_surface)
+        SDL_DestroySurface(surface)
+        SDL_DestroySurface(flipped_surface)
 
     def grab_mouse(self, grab):
-        SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
+        SDL_SetWindowMouseGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
     def get_relative_mouse_pos(self):
         cdef int x, y
@@ -956,11 +1009,18 @@ cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const S
     return SDL_HitTestResult.SDL_HITTEST_NORMAL
 # Based on the example at
 # http://content.gpwiki.org/index.php/OpenGL:Tutorials:Taking_a_Screenshot
+
+
 cdef SDL_Surface* flipVert(SDL_Surface* sfc):
-    cdef SDL_Surface* result = SDL_CreateRGBSurface(
-        sfc.flags, sfc.w, sfc.h, sfc.format.BytesPerPixel * 8,
-        sfc.format.Rmask, sfc.format.Gmask, sfc.format.Bmask,
-        sfc.format.Amask
+    cdef SDL_PixelFormatDetails* sfc_fmt = SDL_GetPixelFormatDetails(sfc.format)
+    cdef SDL_Surface* result = SDL_CreateSurface(sfc.w, sfc.h,
+            SDL_GetPixelFormatForMasks(
+                sfc_fmt.bytes_per_pixel * 8,
+                sfc_fmt.Rmask,
+                sfc_fmt.Gmask,
+                sfc_fmt.Bmask,
+                sfc_fmt.Amask
+            )
     )
 
     cdef Uint8* pixels = <Uint8*>sfc.pixels
@@ -968,7 +1028,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
 
     cdef tuple output = (
         <int>sfc.w, <int>sfc.h,
-        <int>sfc.format.BytesPerPixel,
+        <int>sfc_fmt.bytes_per_pixel,
         <int>sfc.pitch
     )
     Logger.debug("Window: Screenshot output dimensions {output}")
