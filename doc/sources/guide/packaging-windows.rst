@@ -175,21 +175,6 @@ Then build the spec file in ``VideoPlayer`` with::
 and you should find gstvideo.exe in ``VideoPlayer\dist\gstvideo``,
 which when run will play a video.
 
-.. note::
-
-    If you're using Pygame and need PyGame in your packaging app, you'll have
-    to add the following code to your spec file due to kivy issue #1638. After
-    the imports add the following::
-
-        def getResource(identifier, *args, **kwargs):
-            if identifier == 'pygame_icon.tiff':
-                raise IOError()
-            return _original_getResource(identifier, *args, **kwargs)
-
-        import pygame.pkgdata
-        _original_getResource = pygame.pkgdata.getResource
-        pygame.pkgdata.getResource = getResource
-
 .. _overwrite-win-hook:
 
 Overwriting the default hook

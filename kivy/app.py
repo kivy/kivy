@@ -1190,11 +1190,6 @@ Context.html#getFilesDir()>`_ is returned.
         key = largs[0]
         setting_key = 282  # F1
 
-        # android hack, if settings key is pygame K_MENU
-        if platform == 'android' and not USE_SDL2:
-            import pygame
-            setting_key = pygame.K_MENU
-
         if key == setting_key:
             # toggle settings panel
             if not self.open_settings():

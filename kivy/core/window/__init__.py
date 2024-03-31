@@ -2184,8 +2184,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. warning::
-            This event currently works with sdl2 window provider, on pygame
-            window provider and OS X with a patched version of pygame.
+            This event currently works with sdl2 window provider.
             This event is left in place for further evolution
             (ios, android etc.)
 
@@ -2557,9 +2556,7 @@ if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
 if USE_SDL2:
     window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
-else:
-    window_impl += [
-        ('pygame', 'window_pygame', 'WindowPygame')]
+
 if platform == 'linux':
     window_impl += [('x11', 'window_x11', 'WindowX11')]
 Window = core_select_lib('window', window_impl, True)

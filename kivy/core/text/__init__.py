@@ -470,7 +470,7 @@ class LabelBase(object):
 
             >>> func = self._get_cached_extents()
             >>> func
-            <built-in method size of pygame.font.Font object at 0x01E45650>
+            <built-in method size of PROVIDER.font.Font object at 0x01E45650>
             >>> func('a line')
             (36, 18)
 
@@ -1065,8 +1065,7 @@ if USE_PANGOFT2:
 
 if USE_SDL2:
     label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
-else:
-    label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
+
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
 Text = Label = core_select_lib('text', label_libs)
