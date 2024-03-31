@@ -548,7 +548,7 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
             'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
         }
 
-        for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
             f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
@@ -557,8 +557,6 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
             sdl2_flags['extra_link_args'] += ['-framework', name]
             sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
             print('Found sdl2 frameworks: {}'.format(f_path))
-            if name == 'SDL2_mixer':
-                _check_and_fix_sdl2_mixer(f_path)
 
         if not sdl2_valid:
             c_options['use_sdl2'] = False
@@ -570,7 +568,7 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
 
     if not sdl2_valid and platform != "ios":
         # use pkg-config approach instead
-        sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+        sdl2_flags = pkgconfig('sdl3', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
@@ -977,9 +975,9 @@ if c_options['use_sdl2'] and sdl2_flags:
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
     sdl2_depends = {'depends': ['lib/sdl2.pxi']}
     for source_file in ('core/window/_window_sdl2.pyx',
-                        'core/image/_img_sdl2.pyx',
-                        'core/text/_text_sdl2.pyx',
-                        'core/audio/audio_sdl2.pyx',
+                        # 'core/image/_img_sdl2.pyx',
+                        # 'core/text/_text_sdl2.pyx',
+                        # 'core/audio/audio_sdl2.pyx',
                         'core/clipboard/_clipboard_sdl2.pyx'):
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends)
