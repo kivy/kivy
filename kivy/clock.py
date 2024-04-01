@@ -460,7 +460,7 @@ from functools import wraps, partial
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.compat import clock as _default_time
+from time import perf_counter as _default_time
 import time
 try:
     from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
@@ -813,10 +813,6 @@ class ClockBaseBehavior(object):
 
         if ExceptionManager.handle_exception(e) == ExceptionManager.RAISE:
             raise
-
-
-ClockBaseBehavior.time.__doc__ = \
-    '''Proxy method for :func:`~kivy.compat.clock`. '''
 
 
 class ClockBaseInterruptBehavior(ClockBaseBehavior):

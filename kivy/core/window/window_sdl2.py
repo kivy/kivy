@@ -35,7 +35,6 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
 from kivy.utils import platform, deprecated
-from kivy.compat import unichr
 from collections import deque
 
 
@@ -343,7 +342,7 @@ class WindowSDL(WindowBase):
                         # make windows dispatch,
                         # WM_NCCALCSIZE explicitly
                         ctypes.windll.user32.SetWindowPos(
-                            self._win.get_window_info().window,
+                            self.native_handle,
                             win32con.HWND_TOP,
                             *self._win.get_window_pos(),
                             *self.system_size,
@@ -401,7 +400,9 @@ class WindowSDL(WindowBase):
             except AttributeError:
                 pass
         else:
-            self._density = self._win._get_gl_size()[0] / self._size[0]
+            self._density = (
+                self._win.window_pixel_size[0] / self._win.window_size[0]
+            )
             if self._is_desktop:
                 self.dpi = self._density * 96.
 
@@ -488,6 +489,9 @@ class WindowSDL(WindowBase):
     def _set_window_opacity(self, opacity):
         if self.opacity != opacity:
             return self._win.set_window_opacity(opacity)
+
+    def _get_window_native_handle(self):
+        return self._win.get_native_handle()
 
     # Transparent Window background
     def _is_shaped(self):
@@ -751,7 +755,7 @@ class WindowSDL(WindowBase):
                 if (key not in self._modifiers and
                         key not in self.command_keys.keys()):
                     try:
-                        kstr_chr = unichr(key)
+                        kstr_chr = chr(key)
                         try:
                             # On android, there is no 'encoding' attribute.
                             # On other platforms, if stdout is redirected,

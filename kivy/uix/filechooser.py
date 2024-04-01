@@ -89,7 +89,6 @@ from weakref import ref
 from time import time
 
 from kivy.core.text import DEFAULT_FONT
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -793,7 +792,7 @@ class FileChooserController(RelativeLayout):
         if self._progress:
             return
         cls = self.progress_cls
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         self._progress = cls(path=self.path)
         self._progress.value = 0

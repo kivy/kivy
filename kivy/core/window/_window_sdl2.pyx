@@ -8,7 +8,9 @@ from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
+from kivy import setupconfig
 from kivy.graphics.cgl cimport *
+from kivy.graphics.egl_backend.egl_angle cimport EGLANGLE
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
@@ -35,6 +37,9 @@ cdef class _WindowSDL2Storage:
     cdef SDL_Surface *icon
     cdef int win_flags
     cdef object event_filter
+    cdef str gl_backend_name
+    cdef int sdl_manages_egl_context
+    cdef EGLANGLE egl_angle_storage
 
     def __cinit__(self):
         self.win = NULL
@@ -42,6 +47,8 @@ cdef class _WindowSDL2Storage:
         self.surface = NULL
         self.win_flags = 0
         self.event_filter = None
+        self.gl_backend_name = None
+        self.egl_angle_storage = None
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -75,8 +82,101 @@ cdef class _WindowSDL2Storage:
     def die(self):
         raise RuntimeError(<bytes> SDL_GetError())
 
+    cdef SDL_Window * _setup_sdl_window(self, x, y, width, height, multisamples, shaped):
+
+        if multisamples:
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+                SDL_GL_SetAttribute(
+                    SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
+                )
+            else:
+                # Non-SDL GL context, so we can't set the multisample
+                # attributes.
+                return NULL
+        else:
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+
+        if shaped:
+            return SDL_CreateShapedWindow(
+                NULL, x, y, width, height, self.win_flags
+            )
+        else:
+            return SDL_CreateWindow(
+                NULL, x, y, width, height, self.win_flags
+            )
+
+    cdef _create_egl_context(self):
+
+        cdef void *native_layer
+
+        if self.gl_backend_name == "mock":
+            return
+
+        if self.sdl_manages_egl_context:
+            self.ctx = SDL_GL_CreateContext(self.win)
+            if not self.ctx:
+                self.die()
+            return
+
+        if self.gl_backend_name == "angle":
+
+            if platform in ("macosx", "ios"):
+                native_layer = SDL_Metal_GetLayer(SDL_Metal_CreateView(self.win))
+            else:
+                Logger.error("WindowSDL: ANGLE is only supported on iOS and macOS")
+                self.die()
+
+            self.egl_angle_storage = EGLANGLE()
+            self.egl_angle_storage.set_native_layer(native_layer)
+            self.egl_angle_storage.create_context()
+
+    cdef _destroy_egl_context(self):
+
+        if self.gl_backend_name == "mock":
+            return
+
+        if self.sdl_manages_egl_context:
+            if self.ctx != NULL:
+                SDL_GL_DeleteContext(self.ctx)
+            return
+
+        if self.gl_backend_name == "angle":
+            self.egl_angle_storage.destroy_context()
+            return
+
+    def _set_sdl_gl_common_attributes(self):
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, KIVY_SDL_GL_ALPHA_SIZE)
+        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
+
+        if self.gl_backend_name == "angle_sdl2":
+            Logger.info("Window: Activate GLES2/ANGLE context")
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
+            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
+
     def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
-        self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+        self.gl_backend_name = gl_backend
+        self.sdl_manages_egl_context = gl_backend != "angle"
+
+        self.win_flags  = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+
+        if self.sdl_manages_egl_context:
+            self.win_flags |= SDL_WINDOW_OPENGL
+
+        if not self.sdl_manages_egl_context and platform in ("macosx", "ios"):
+            self.win_flags |= SDL_WINDOW_METAL
 
         if resizable:
             self.win_flags |= SDL_WINDOW_RESIZABLE
@@ -138,90 +238,48 @@ cdef class _WindowSDL2Storage:
 
         SDL_SetHint(SDL_HINT_ORIENTATIONS, <bytes>(orientations.encode('utf-8')))
 
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, KIVY_SDL_GL_ALPHA_SIZE)
-        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-
-        if gl_backend == "angle_sdl2":
-            Logger.info("Window: Activate GLES2/ANGLE context")
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
-            SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
-
         if x is None:
             x = SDL_WINDOWPOS_UNDEFINED
         if y is None:
             y = SDL_WINDOWPOS_UNDEFINED
 
+        if self.sdl_manages_egl_context:
+            self._set_sdl_gl_common_attributes()
+
         # Multisampling:
         # (The number of samples is limited to 4, because greater values
         # aren't supported with some video drivers.)
-        cdef int multisamples, shaped
-        multisamples = Config.getint('graphics', 'multisamples')
+        cdef int config_multisamples, config_shaped
+        config_multisamples = Config.getint('graphics', 'multisamples')
 
         # we need to tell the window to be shaped before creation, therefore
         # it's a config property like e.g. fullscreen
-        shaped = Config.getint('graphics', 'shaped')
+        config_shaped = Config.getint('graphics', 'shaped')
 
-        if multisamples > 0 and shaped > 0:
-            # try to create shaped window with multisampling:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(
-                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-            )
-            self.win = SDL_CreateShapedWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create only shaped window:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
-                self.win = SDL_CreateShapedWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-            if not self.win:
-                # if everything fails, create an ordinary window:
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        elif multisamples > 0:
-            # try to create window with multisampling:
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-            SDL_GL_SetAttribute(
-                SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-            )
-            self.win = SDL_CreateWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create window without multisampling:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        elif shaped > 0:
-            # try to create shaped window:
-            self.win = SDL_CreateShapedWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
-            if not self.win:
-                # if an error occurred, create an ordinary window:
-                self.win = SDL_CreateWindow(
-                    NULL, x, y, width, height, self.win_flags
-                )
-        else:
-            self.win = SDL_CreateWindow(
-                NULL, x, y, width, height, self.win_flags
-            )
+        # Due to the uncertainty regarding the window's capability for shaping 
+        # and multisampling, we iterate through all possible combinations in 
+        # the most correct order:
+        # 1. Shaped window with multisampling
+        # 2. Shaped window without multisampling
+        # 3. Ordinary window with multisampling
+        # 4. Ordinary window without multisampling
+        sdl_window_configs = []
+        if config_multisamples and config_shaped:
+            sdl_window_configs.append((config_multisamples, config_shaped))
+        if config_shaped:
+            sdl_window_configs.append((0, config_shaped))
+        if config_multisamples:
+            sdl_window_configs.append((config_multisamples, 0))
+        sdl_window_configs.append((0, 0))
+
+        for multisamples, shaped in sdl_window_configs:
+            win = self._setup_sdl_window(x, y, width, height, multisamples, shaped)
+            if win:
+                self.win = win
+                break
 
         # post-creation fix for shaped window
-        if shaped > 0 and self.is_window_shaped():
+        if self.is_window_shaped():
             # because SDL just set it to (-1000, -1000)
             # -> can't use UNDEFINED nor CENTER after window creation
             self.set_window_pos(100, 100)
@@ -234,17 +292,11 @@ cdef class _WindowSDL2Storage:
         if not self.win:
             self.die()
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
-
-        if gl_backend != "mock":
-            self.ctx = SDL_GL_CreateContext(self.win)
-            if not self.ctx:
-                self.die()
+        self._create_egl_context()
 
         # vsync
         vsync = Config.get('graphics', 'vsync')
-        if vsync and vsync != 'none':
+        if self.sdl_manages_egl_context and vsync and vsync != 'none':
             vsync = Config.getint('graphics', 'vsync')
 
             Logger.debug(f'WindowSDL: setting vsync interval=={vsync}')
@@ -317,31 +369,40 @@ cdef class _WindowSDL2Storage:
     def raise_window(self):
         SDL_RaiseWindow(self.win)
 
-    def _get_gl_size(self):
-        cdef int w, h
-        SDL_GL_GetDrawableSize(self.win, &w, &h)
-        return w, h
-
-    def resize_display_mode(self, w, h):
+    def _resize_fullscreen(self, w, h):
         cdef SDL_DisplayMode mode
-        cdef int draw_w, draw_h
+
+        if USE_IOS or USE_ANDROID:
+            # Changing the fullscreen size on iOS and Android is not supported
+            # When the app switches to fullscreen, it will use the size of the
+            # screen.
+            return
+
         SDL_GetWindowDisplayMode(self.win, &mode)
-        if USE_IOS and self.ctx:
-            SDL_GL_GetDrawableSize(self.win, &draw_w, &draw_h)
-            mode.w = draw_w
-            mode.h = draw_h
-            SDL_SetWindowDisplayMode(self.win, &mode)
-        else:
-            mode.w = w
-            mode.h = h
-            SDL_SetWindowDisplayMode(self.win, &mode)
-            SDL_GetWindowDisplayMode(self.win, &mode)
+        mode.w = w
+        mode.h = h
+        SDL_SetWindowDisplayMode(self.win, &mode)
 
         return mode.w, mode.h
 
+    def _resize_windowed(self, w, h):
+        SDL_SetWindowSize(self.win, w, h)
+
     def resize_window(self, w, h):
-        if self.window_size != [w, h]:
-            SDL_SetWindowSize(self.win, w, h)
+
+        if self.window_size == [w, h]:
+            return
+
+        if SDL_GetWindowFlags(self.win) & SDL_WINDOW_FULLSCREEN:
+            # If the window is in fullscreen mode, we need to change the
+            # size by setting the display mode
+            Logger.debug(f'WindowSDL: Resize fullscreen to {w}x{h}')
+            self._resize_fullscreen(w, h)
+        else:
+            # If the window is not in fullscreen mode, we can change the
+            # size of the window directly
+            Logger.debug(f'WindowSDL: Resize window to {w}x{h}')
+            self._resize_windowed(w, h)
 
     def set_minimum_size(self, w, h):
         SDL_SetWindowMinimumSize(self.win, w, h)
@@ -447,6 +508,24 @@ cdef class _WindowSDL2Storage:
                 windows_info.hdc = wm_info.info.win.hdc
                 return windows_info
 
+    def get_native_handle(self):
+        window_info = self.get_window_info()
+
+        if setupconfig.USE_X11:
+            from .window_info import WindowInfoX11
+            if isinstance(window_info, WindowInfoX11):
+                return window_info.window
+
+        if setupconfig.USE_WAYLAND:
+            from .window_info import WindowInfoWayland
+            if isinstance(window_info, WindowInfoWayland):
+                return window_info.surface
+
+        if platform == "win":
+            from .window_info import WindowInfoWindows
+            if isinstance(window_info, WindowInfoWindows):
+                return window_info.window
+
     # Transparent Window background
     def is_window_shaped(self):
         return SDL_IsShapedWindow(self.win)
@@ -511,9 +590,8 @@ cdef class _WindowSDL2Storage:
         SDL_SetWindowIcon(self.win, icon)
 
     def teardown_window(self):
-        if self.ctx != NULL:
-            SDL_GL_DeleteContext(self.ctx)
-            self.ctx = NULL
+        self._destroy_egl_context()
+
         SDL_DestroyWindow(self.win)
         SDL_Quit()
 
@@ -783,8 +861,11 @@ cdef class _WindowSDL2Storage:
         # released. Calling SDL_GL_SwapWindow with the GIL released allow the
         # other thread to run (e.g. to process the event filter callback) and
         # release the mutex SDL_GL_SwapWindow is waiting for.
-        with nogil:
-            SDL_GL_SwapWindow(self.win)
+        if self.sdl_manages_egl_context:
+            with nogil:
+                SDL_GL_SwapWindow(self.win)
+        else:
+            self.egl_angle_storage.swap_buffers()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
@@ -817,6 +898,18 @@ cdef class _WindowSDL2Storage:
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
         return [w, h]
+
+    @property
+    def window_pixel_size(self):
+        """
+        The window size in pixels may differ from window size
+        returned by SDL_GetWindowSize as it returns the size in
+        window coordinates, which may be different from the size
+        in pixels if the window is on a high-DPI display.
+        """
+        cdef int w, h
+        SDL_GetWindowSizeInPixels(self.win, &w, &h)
+        return w, h
 
 
 cdef SDL_HitTestResult custom_titlebar_handler_callback(SDL_Window* win, const SDL_Point* pts, void* data) with gil:

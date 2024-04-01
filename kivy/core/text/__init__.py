@@ -86,7 +86,6 @@ from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
-from kivy.compat import PY2
 from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
 from kivy.logger import Logger
 
@@ -471,7 +470,7 @@ class LabelBase(object):
 
             >>> func = self._get_cached_extents()
             >>> func
-            <built-in method size of pygame.font.Font object at 0x01E45650>
+            <built-in method size of PROVIDER.font.Font object at 0x01E45650>
             >>> func('a line')
             (36, 18)
 
@@ -1066,8 +1065,7 @@ if USE_PANGOFT2:
 
 if USE_SDL2:
     label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
-else:
-    label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
+
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
 Text = Label = core_select_lib('text', label_libs)

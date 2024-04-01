@@ -12,13 +12,6 @@ DEBUG = False
 ASSETDIR = 'image-testsuite'
 LOADERS = {x.__name__: x for x in ImageLoader.loaders}
 
-if 'ImageLoaderPygame' not in LOADERS:
-    try:
-        from kivy.core.image.img_pygame import ImageLoaderPygame
-        LOADERS['ImageLoaderPygame'] = ImageLoaderPygame
-    except:
-        pass
-
 # Kivy image test protocol v0: Pixel values
 v0_PIXELS = {  # NOTE: 't' is not included here, see match_prediction()
     'w': [0xFF, 0xFF, 0xFF], 'x': [0x00, 0x00, 0x00], 'r': [0xFF, 0x00, 0x00],
@@ -370,10 +363,6 @@ class ImageLoaderTestCase(unittest.TestCase):
 
     def test_ImageLoaderPIL(self):
         loadercls = LOADERS.get('ImageLoaderPIL')
-        ctx = self._test_imageloader(loadercls)
-
-    def test_ImageLoaderPygame(self):
-        loadercls = LOADERS.get('ImageLoaderPygame')
         ctx = self._test_imageloader(loadercls)
 
     def test_ImageLoaderFFPy(self):

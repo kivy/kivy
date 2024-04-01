@@ -141,7 +141,7 @@ Available configuration tokens
 
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
-        pygame icon.
+        icon.
 
 :postproc:
 
@@ -398,7 +398,6 @@ from os.path import exists
 from weakref import ref
 
 from kivy import kivy_config_fn
-from kivy.compat import PY2, string_types
 from kivy.logger import Logger, logger_config_update
 from kivy.utils import platform
 
@@ -488,9 +487,8 @@ class ConfigParser(PythonConfigParser, object):
             :meth:`read` now calls the callbacks if read changed any values.
 
         '''
-        if not isinstance(filename, string_types):
-            raise Exception('Only one filename is accepted ({})'.format(
-                string_types.__name__))
+        if not isinstance(filename, str):
+            raise Exception('Only one filename is accepted (str)')
         self.filename = filename
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.
@@ -523,7 +521,7 @@ class ConfigParser(PythonConfigParser, object):
         the value is implicitly converted to a string.
         '''
         e_value = value
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             # might be boolean, int, etc.
             e_value = str(value)
         ret = PythonConfigParser.set(self, section, option, e_value)
@@ -539,9 +537,6 @@ class ConfigParser(PythonConfigParser, object):
 
     def get(self, section, option, **kwargs):
         value = PythonConfigParser.get(self, section, option, **kwargs)
-        if PY2:
-            if type(value) is str:
-                return value.decode('utf-8')
         return value
 
     def setdefaults(self, section, keyvalues):

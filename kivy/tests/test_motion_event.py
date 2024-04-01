@@ -1,6 +1,6 @@
 import pytest
 
-from kivy.compat import isclose
+from math import isclose
 from kivy.input import MotionEvent
 
 

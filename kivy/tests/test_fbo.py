@@ -32,7 +32,7 @@ class FboTest(Widget):
         self.fbo.draw()
 
 
-class FBOPy2Py3TestCase(GraphicUnitTest):
+class FBOGetPixelColorTest(GraphicUnitTest):
     def test_fbo_get_pixel_color(self):
         fbow = FboTest()
         render_error = 2

@@ -145,7 +145,7 @@ class LoaderBase(object):
 
     The default value is 2 for giving a smooth user experience. You could
     increase the number of workers, then all the images will be loaded faster,
-    but the user will not been able to use the application while loading.
+    but the user will not be able to use the application while loading.
     Prior to 1.6.0, the default number was 20, and loading many full-hd images
     was completely blocking the application.
 
@@ -506,11 +506,7 @@ if 'KIVY_DOC' in environ:
 
 else:
 
-    #
-    # Try to use pygame as our first choice for loader
-    #
-
-    from kivy.compat import queue
+    import queue
     from threading import Thread
 
     class _Worker(Thread):

@@ -16,7 +16,7 @@ In-memory image loading
 .. versionadded:: 1.9.0
 
     Official support for in-memory loading. Not all the providers support it,
-    but currently SDL2, pygame, pil and imageio work.
+    but currently SDL2, pil and imageio work.
 
 To load an image with a filename, you would usually do::
 
@@ -62,7 +62,7 @@ Or you can get the bytes (new in `1.11.0`):
 '''
 import re
 from base64 import b64decode
-import imghdr
+from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
@@ -74,15 +74,12 @@ from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
 from kivy.utils import platform
-from kivy.compat import string_types
 from kivy.setupconfig import USE_SDL2
 import zipfile
 from io import BytesIO
 
-
 # late binding
 Texture = TextureRegion = None
-
 
 # register image caching only for keep_data=True
 Cache.register('kv.image', timeout=60)
@@ -187,7 +184,7 @@ class ImageData(object):
         .. versionadded:: 1.0.7
         '''
         if level == 0:
-            return (self.width, self.height, self.data, self.rowlength)
+            return self.width, self.height, self.data, self.rowlength
         assert level < len(self.mipmaps)
         return self.mipmaps[level]
 
@@ -257,17 +254,15 @@ class ImageLoaderBase(object):
 
             # first, check if a texture with the same name already exist in the
             # cache
-            chr = type(fname)
-            uid = chr(u'%s|%d|%d') % (fname, self._mipmap, count)
+            uid = f'{fname}|{self._mipmap:d}|{count:d}'
             texture = Cache.get('kv.texture', uid)
 
             # if not create it and append to the cache
             if texture is None:
                 imagedata = self._data[count]
-                source = '{}{}|'.format(
-                    'zip|' if fname.endswith('.zip') else '',
-                    self._nocache)
-                imagedata.source = chr(source) + uid
+                source = (f"{'zip|' if fname.endswith('.zip') else ''}"
+                          f"{self._nocache}|")
+                imagedata.source = f'{source}{uid}'
                 texture = Texture.create_from_data(
                     imagedata, mipmap=self._mipmap)
                 if not self._nocache:
@@ -298,7 +293,7 @@ class ImageLoaderBase(object):
     def size(self):
         '''Image size (width, height)
         '''
-        return (self._data[0].width, self._data[0].height)
+        return self._data[0].width, self._data[0].height
 
     @property
     def texture(self):
@@ -330,7 +325,6 @@ class ImageLoaderBase(object):
 
 
 class ImageLoader(object):
-
     loaders = []
 
     @staticmethod
@@ -413,8 +407,8 @@ class ImageLoader(object):
             # kv.texture cache.
             if atlas:
                 texture = atlas[uid]
-                fn = 'atlas://%s/%s' % (rfn, uid)
-                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
+                fn = f'atlas://{rfn}/{uid}'
+                cid = f'{fn}|0|0'
                 Cache.append('kv.texture', cid, texture)
                 return Image(texture)
 
@@ -429,8 +423,8 @@ class ImageLoader(object):
             Cache.append('kv.atlas', rfn, atlas)
             # first time, fill our texture cache.
             for nid, texture in atlas.textures.items():
-                fn = 'atlas://%s/%s' % (rfn, nid)
-                cid = '{}|{:d}|{:d}'.format(fn, False, 0)
+                fn = f'atlas://{rfn}/{nid}'
+                cid = f'{fn}|0|0'
                 Cache.append('kv.texture', cid, texture)
             return Image(atlas[uid])
 
@@ -438,10 +432,13 @@ class ImageLoader(object):
         ext = filename.split('.')[-1].lower()
 
         # prevent url querystrings
-        if filename.startswith((('http://', 'https://'))):
+        if filename.startswith(('http://', 'https://')):
             ext = ext.split('?')[0]
 
         filename = resource_find(filename)
+
+        # Get actual image format instead of extension if possible
+        ext = guess_extension(filename) or ext
 
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
@@ -450,17 +447,14 @@ class ImageLoader(object):
             return ImageLoader.zip_loader(filename)
         else:
             im = None
-            # Get actual image format instead of extension if possible
-            ext = imghdr.what(filename) or ext
             for loader in ImageLoader.loaders:
                 if ext not in loader.extensions():
                     continue
-                Logger.debug('Image%s: Load <%s>' %
-                             (loader.__name__[11:], filename))
+                Logger.debug(f'Image{loader.__name__[11:]}: Load <{filename}>')
                 im = loader(filename, **kwargs)
                 break
             if im is None:
-                raise Exception('Unknown <%s> type, no loader found.' % ext)
+                raise Exception(f'Unknown <{ext}> type, no loader found.')
             return im
 
 
@@ -545,7 +539,7 @@ class Image(EventDispatcher):
                 self._nocache = True
                 filename = '__inline__'
             self.load_memory(arg, ext, filename)
-        elif isinstance(arg, string_types):
+        elif isinstance(arg, str):
             groups = self.data_uri_re.findall(arg)
             if groups:
                 self._nocache = True
@@ -578,14 +572,12 @@ class Image(EventDispatcher):
 
         '''
         count = 0
-        f = self.filename
-        pat = type(f)(u'%s|%d|%d')
-        uid = pat % (f, self._mipmap, count)
+        uid = f'{self.filename}|{self._mipmap:d}|{count:d}'
         Cache.remove("kv.image", uid)
         while Cache.get("kv.texture", uid):
             Cache.remove("kv.texture", uid)
             count += 1
-            uid = pat % (f, self._mipmap, count)
+            uid = f'{self.filename}|{self._mipmap:d}|{count:d}'
 
     def _anim(self, *largs):
         if not self._image:
@@ -724,7 +716,7 @@ class Image(EventDispatcher):
 
         # construct uid as a key for Cache
         f = self.filename
-        uid = type(f)(u'%s|%d|%d') % (f, self._mipmap, 0)
+        uid = f'{f}|{self._mipmap:d}|0'
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
@@ -777,10 +769,10 @@ class Image(EventDispatcher):
                    loader.can_load_memory() and
                    ext in loader.extensions()]
         if not loaders:
-            raise Exception('No inline loader found to load {}'.format(ext))
+            raise Exception(f'No inline loader found to load {ext}')
         image = loaders[0](filename, ext=ext, rawdata=data, inline=True,
-                nocache=self._nocache, mipmap=self._mipmap,
-                keep_data=self._keep_data)
+                           nocache=self._nocache, mipmap=self._mipmap,
+                           keep_data=self._keep_data)
         if isinstance(image, Texture):
             self._texture = image
             self._size = image.size
@@ -908,9 +900,9 @@ class Image(EventDispatcher):
 
     def _find_format_from_filename(self, filename):
         ext = filename.rsplit(".", 1)[-1].lower()
-        if ext in {
-                'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm',
-                'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv'}:
+        if (ext in
+                {'bmp', 'jpe', 'lbm', 'pcx', 'png', 'pnm', 'tga',
+                 'tiff', 'webp', 'xcf', 'xpm', 'xv'}):
             return ext
         elif ext in ('jpg', 'jpeg'):
             return 'jpg'
@@ -945,7 +937,7 @@ class Image(EventDispatcher):
         # check bounds
         x, y = int(x), int(y)
         if not (0 <= x < data.width and 0 <= y < data.height):
-            raise IndexError('Position (%d, %d) is out of range.' % (x, y))
+            raise IndexError(f'Position ({x:d}, {y:d}) is out of range.')
 
         assert data.fmt in ImageData._supported_fmts
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
@@ -983,8 +975,7 @@ image_libs += [
     ('dds', 'img_dds')]
 if USE_SDL2:
     image_libs += [('sdl2', 'img_sdl2')]
-else:
-    image_libs += [('pygame', 'img_pygame')]
+
 image_libs += [
     ('ffpy', 'img_ffpyplayer'),
     ('pil', 'img_pil')]
@@ -992,6 +983,7 @@ image_libs += [
 libs_loaded = core_register_libs('image', image_libs)
 
 from os import environ
+
 if 'KIVY_DOC' not in environ and not libs_loaded:
     import sys
 

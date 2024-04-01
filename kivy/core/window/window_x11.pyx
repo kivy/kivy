@@ -225,6 +225,9 @@ class WindowX11(WindowBase):
         window_info.window = x11_get_window()
         return window_info
 
+    def _get_window_native_handle(self):
+        return self.get_window_info().window
+
     def mainloop(self):
         if x11_idle() == 0 and not self.dispatch('on_request_close'):
             EventLoop.quit = True
