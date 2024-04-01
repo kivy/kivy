@@ -55,8 +55,32 @@ class AudioTestCase(unittest.TestCase):
         self.assertAlmostEqual(SAMPLE_LENGTH, length, delta=DELTA)
 
 
-class AudioGstreamerTestCase(AudioTestCase):
+class OnEOSTest:
+
+    def test_on_eos_event(self):
+        eos = False
+
+        def callback(*args):
+            nonlocal eos
+            eos = True
+
+        import time
+        sound = self.make_sound(SAMPLE_FILE)
+        sound.bind(on_eos=callback)
+        sound.play()
+        time.sleep(SAMPLE_LENGTH)
+        assert eos == True
+
+
+class AudioGstreamerTestCase(AudioTestCase, OnEOSTest):
 
     def make_sound(self, source):
-        from kivy.core.audio import audio_gstreamer
-        return audio_gstreamer.SoundGstreamer(source)
+        from kivy.core.audio import audio_gstplayer
+        return audio_gstplayer.SoundGstplayer(source=source)
+
+
+class AudioFFPyplayerTestCase(AudioTestCase, OnEOSTest):
+
+    def make_sound(self, source):
+        from kivy.core.audio import audio_ffpyplayer
+        return audio_ffpyplayer.SoundFFPy(source=source)
