@@ -69,7 +69,7 @@ class OnEOSTest:
         sound.bind(on_eos=callback)
         sound.play()
         time.sleep(SAMPLE_LENGTH)
-        assert eos == True
+        self.assertTrue(eos)
 
 
 class AudioGstreamerTestCase(AudioTestCase, OnEOSTest):
