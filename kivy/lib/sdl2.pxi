@@ -859,8 +859,17 @@ cdef extern from "SDL_ttf.h":
 
 cdef extern from "SDL_audio.h":
     cdef int SDL_AUDIO_S16
-    ctypedef struct SDL_AudioFilter:
-        pass
+    cdef int SDL_AUDIO_DEVICE_DEFAULT_OUTPUT
+
+    ctypedef Uint32 SDL_AudioDeviceID
+    ctypedef Uint16 SDL_AudioFormat
+
+    ctypedef struct SDL_AudioSpec:
+        SDL_AudioFormat format
+        int channels
+        int freq
+
+    cdef int SDL_ConvertAudioSamples(const SDL_AudioSpec *src_spec, const Uint8 *src_data, int src_len, const SDL_AudioSpec *dst_spec, Uint8 **dst_data, int *dst_len)
 
 cdef extern from "SDL_video.h":
     cdef int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
@@ -879,17 +888,6 @@ cdef extern from "SDL_mixer.h":
         MIX_NO_FADING
         MIX_FADING_OUT
         MIX_FADING_IN
-    ctypedef enum Mix_MusicType:
-        MUS_NONE
-        MUS_CMD
-        MUS_WAV
-        MUS_MOD
-        MUS_MID
-        MUS_OGG
-        MUS_MP3
-        MUS_MP3_MAD
-        MUS_FLAC
-        MUS_MODPLUG
     ctypedef enum MIX_InitFlags:
         MIX_INIT_FLAC        = 0x00000001
         MIX_INIT_MOD         = 0x00000002
@@ -898,29 +896,15 @@ cdef extern from "SDL_mixer.h":
         MIX_INIT_OGG         = 0x00000010
         MIX_INIT_MID         = 0x00000020 # Previously _FLUIDSYNTH
 
-    ctypedef Uint32 SDL_AudioDeviceID
-    ctypedef Uint16 SDL_AudioFormat
-
-    ctypedef struct SDL_AudioSpec:
-        SDL_AudioFormat format
-        int channels
-        int freq
-
     cdef int MIX_MAX_VOLUME
-
-    cdef int SDL_AUDIO_DEVICE_DEFAULT_OUTPUT
-
 
     cdef int Mix_Init(int flags)
     cdef void Mix_Quit()
     cdef int Mix_OpenAudio(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
     cdef  int  Mix_AllocateChannels(int numchans)
     cdef  int  Mix_QuerySpec(int *frequency,Uint16 *format,int *channels)
-    cdef  Mix_Chunk *  Mix_LoadWAV_RW(SDL_IOStream *src, int freesrc)
     cdef  Mix_Chunk *  Mix_LoadWAV(char *file)
     cdef  Mix_Music *  Mix_LoadMUS(char *file)
-    cdef  Mix_Music *  Mix_LoadMUS_RW(SDL_IOStream *rw)
-    cdef  Mix_Music *  Mix_LoadMUSType_RW(SDL_IOStream *rw, Mix_MusicType type, int freesrc)
     cdef  Mix_Chunk *  Mix_QuickLoad_WAV(Uint8 *mem)
     cdef  Mix_Chunk *  Mix_QuickLoad_RAW(Uint8 *mem, Uint32 len)
     cdef  void  Mix_FreeChunk(Mix_Chunk *chunk)
@@ -929,7 +913,6 @@ cdef extern from "SDL_mixer.h":
     cdef  char *  Mix_GetChunkDecoder(int index)
     cdef int  Mix_GetNumMusicDecoders()
     cdef  char *  Mix_GetMusicDecoder(int index)
-    cdef Mix_MusicType  Mix_GetMusicType( Mix_Music *music)
     cdef void  Mix_SetPostMix(void (*mix_func)(void *udata, Uint8 *stream, int len), void *arg)
     cdef void  Mix_HookMusic(void (*mix_func) (void *udata, Uint8 *stream, int len), void *arg)
     cdef void  Mix_HookMusicFinished(void (*music_finished)())
