@@ -6,7 +6,7 @@ Audio tests
 import unittest
 import os
 import pytest
-from platform import platform
+from kivy.utils import platform
 if os.environ.get('KIVY_TEST_AUDIO') == '0':
     pytestmark = pytest.mark.skip("Audio is not available")
 
@@ -105,9 +105,10 @@ class AudioGstplayerTestCase(AudioTestCase, OnEOSTest):
 
 
 @pytest.mark.skipif(
-    not IS_FFPYPLAYER_AVAILABLE or platform() == 'macosx',
-    # It seems that there are problems with the audio card on macos (Github CI):
-    # ALSA: Couldn't open audio device: No such file or directory
+    not IS_FFPYPLAYER_AVAILABLE or platform in ('macosx', 'linux'),
+    # It seems that there are problems with the audio card on macos and linux (Github CI):
+    # From logs: SDL_OpenAudio (1 channels, 44100 Hz): ALSA:
+    #               Couldn't open audio device: No such file or directory
     reason='ffpyplayer is not available'
 )
 class AudioFFPyplayerTestCase(AudioTestCase, OnEOSTest):
