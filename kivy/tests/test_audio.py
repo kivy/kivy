@@ -106,9 +106,9 @@ class AudioGstplayerTestCase(AudioTestCase, OnEOSTest):
 
 @pytest.mark.skipif(
     not IS_FFPYPLAYER_AVAILABLE or platform in ('macosx', 'linux'),
-    # It seems that there are problems with the audio card on macos and linux (Github CI):
-    # From logs: SDL_OpenAudio (1 channels, 44100 Hz): ALSA:
-    #               Couldn't open audio device: No such file or directory
+    # It seems that there are problems with the audio card on macos and linux
+    # (Github CI). From logs:
+    # SDL_OpenAudio (1 channels, 44100 Hz): ALSA: Couldn't open audio device
     reason='ffpyplayer is not available'
 )
 class AudioFFPyplayerTestCase(AudioTestCase, OnEOSTest):
