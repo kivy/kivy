@@ -24,4 +24,4 @@ Learn how to handle custom :doc:`/api-kivy.input`.
 Familiarize yourself with the :mod:`Kivy Framework <kivy>`.
 
 Kivy is open source, so you can **contribute**. Take a look at the
-`our latest Contribution Guide <https://github.com/kivy/kivy/blob/master/CONTIBUTING.md>`_.
+`our latest Contribution Guide <https://github.com/kivy/kivy/blob/master/CONTRIBUTING.md>`_.
