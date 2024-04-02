@@ -7,29 +7,39 @@ from libc.stdlib cimport malloc
 
 cdef int _is_init = 0
 
-"""
-cdef size_t rwops_bytesio_write(SDL_IOStream *context, const void *ptr, size_t size, size_t num) noexcept:
+
+cdef struct BytesIODataContainer:
+    void* data
+
+
+cdef size_t rwops_bytesio_write(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status) noexcept:
     cdef char *c_string = <char *>ptr
-    byteio = <object>context.hidden.unknown.data1
-    byteio.write(c_string[:size * num])
-    return size * num
+    byteio = <object>(<BytesIODataContainer*>userdata).data
+    byteio.write(c_string[:size * 1])
+    return size * 1
 
 
-cdef int rwops_bytesio_close(SDL_IOStream *context) noexcept:
-    byteio = <object>context.hidden.unknown.data1
+cdef int rwops_bytesio_close(void *userdata) noexcept:
+    byteio = <object>(<BytesIODataContainer*>userdata).data
     byteio.seek(0)
 
 
 cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
-    # works only for write.
-    cdef SDL_IOStream *rwops = SDL_AllocRW()
-    rwops.hidden.unknown.data1 = <void *>byteio
-    rwops.seek = NULL
-    rwops.read = NULL
-    rwops.write = &rwops_bytesio_write
-    rwops.close =&rwops_bytesio_close
+    cdef SDL_IOStreamInterface io_interface
+    cdef SDL_IOStream *rwops
+    cdef BytesIODataContainer *bytesiocontainer
+
+    # works only for write.    
+    bytesiocontainer.data = <void *>byteio
+    io_interface.seek = NULL
+    io_interface.read = NULL
+    io_interface.write = &rwops_bytesio_write
+    io_interface.close = &rwops_bytesio_close
+
+    rwops = SDL_OpenIO(&io_interface, bytesiocontainer)
+
     return rwops
-"""
+
 
 def init():
     global _is_init
@@ -86,15 +96,22 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
 
     cdef char *c_pixels = pixels
     cdef SDL_Surface *image = NULL
+    cdef SDL_PixelFormatEnum fmt
+    cdef int depth
 
     if pixelfmt == "rgba":
-        image = SDL_CreateSurfaceFrom(c_pixels, w, h, 32,
-            SDL_GetPixelFormatEnumForMasks(pitch, 0x00000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        fmt = SDL_GetPixelFormatEnumForMasks(
+            pitch, 0x00000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
         )
+        depth = 32
+
     elif pixelfmt == "rgb":
-        image = SDL_CreateSurfaceFrom(c_pixels, w, h, 24,
-            SDL_GetPixelFormatEnumForMasks(pitch, 0x0000ff, 0x00ff00, 0xff0000, 0)
+        fmt = SDL_GetPixelFormatEnumForMasks(
+            pitch, 0x0000FF, 0x00FF00, 0xFF0000, 0
         )
+        depth = 24
+
+    image = SDL_CreateSurfaceFrom(c_pixels, w, h, depth, fmt)
 
     if c_filename is not None:
         if imagefmt == "png":
@@ -102,7 +119,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         elif imagefmt == "jpg":
             IMG_SaveJPG(image, c_filename, quality)
     else:
-        # rwops = rwops_bridge_to_bytesio(filename)
+        rwops = rwops_bridge_to_bytesio(filename)
         if imagefmt == "png":
             IMG_SavePNG_IO(image, rwops, 1)
         elif imagefmt == "jpg":

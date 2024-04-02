@@ -436,10 +436,25 @@ cdef extern from "SDL.h":
         int refresh_rate
         void *driverdata
 
+    cdef enum SDL_IOStatus:
+        SDL_IO_STATUS_READY
+        SDL_IO_STATUS_ERROR
+        SDL_IO_STATUS_EOF
+        SDL_IO_STATUS_NOT_READY
+        SDL_IO_STATUS_READONLY
+        SDL_IO_STATUS_WRITEONLY
+
+    cdef struct SDL_IOStreamInterface:
+        Sint64 (*size)(void *userdata)
+        Sint64 (*seek)(void *userdata, Sint64 offset, int whence)
+        size_t (*read)(void *userdata, void *ptr, size_t size, SDL_IOStatus *status)
+        size_t (*write)(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status)
+        int (*close)(void *userdata)
+
     cdef struct SDL_IOStream:
-        # SDL_IOStreamInterface iface;
+        SDL_IOStreamInterface iface;
         void *userdata;
-        # SDL_IOStatus status;
+        SDL_IOStatus status;
         # SDL_PropertiesID props;
 
     cdef enum SDL_Keymod:
@@ -529,10 +544,8 @@ cdef extern from "SDL.h":
     cdef Uint8 SDL_SetEventEnabled(Uint32 type, SDL_bool enabled)
     cdef int SDL_PollEvent(SDL_Event * event) nogil
     cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
-    cdef SDL_IOStream * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_IOStream * SDL_IOFromMem(void *mem, int size)
-    cdef SDL_IOStream * SDL_RWFromConstMem(void *mem, int size)
-    cdef SDL_IOStream * SDL_AllocRW()
+    cdef SDL_IOStream * SDL_OpenIO(const SDL_IOStreamInterface *iface, void *userdata)
     cdef void SDL_CloseIO(SDL_IOStream *area)
     cdef int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
     cdef int SDL_RenderSetViewport(SDL_Renderer * renderer, SDL_Rect * rect)
@@ -656,7 +669,7 @@ cdef extern from "SDL.h":
     cdef void* SDL_Metal_GetLayer(SDL_MetalView view)
     cdef void SDL_GetProperty(SDL_PropertiesID props, const char *name, void *default_value)
     cdef SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
-
+    cdef void SDL_free(void *mem)
 
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */

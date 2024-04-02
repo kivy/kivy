@@ -35,10 +35,12 @@ cdef class _SurfaceContainer:
     def __init__(self, w, h):
         # XXX check on OSX to see if little endian/big endian make a difference
         # here.
-        self.surface = SDL_CreateSurface(w, h, 
+        self.surface = SDL_CreateSurface(
+            w,
+            h,
             SDL_GetPixelFormatEnumForMasks(
-                32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
-            )
+                32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+            ),
         )
 
     def __dealloc__(self):

@@ -194,10 +194,11 @@ class SoundSDL2(Sound):
         dst_spec.channels = src_spec.channels
 
         if SDL_ConvertAudioSamples(&src_spec, cc.original_chunk.abuf, cc.original_chunk.alen, &dst_spec, &dst_data, &dst_len) < 0:
-            print("Error converting audio samples: %s" % SDL_GetError())
+            Logger.warning("SoundSDL2: Error converting audio samples: %s" % SDL_GetError())
             return
 
         cc.chunk = Mix_QuickLoad_RAW(dst_data, dst_len)
+        SDL_free(dst_data)
 
     def play(self):
         cdef ChunkContainer cc = self.cc
