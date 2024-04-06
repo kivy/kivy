@@ -568,7 +568,7 @@ if c_options['use_sdl2'] or can_autodetect_sdl2:
 
     if not sdl2_valid and platform != "ios":
         # use pkg-config approach instead
-        sdl2_flags = pkgconfig('sdl3', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
+        sdl2_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
         if 'libraries' in sdl2_flags:
             print('SDL2 found via pkg-config')
             c_options['use_sdl2'] = True
@@ -782,7 +782,10 @@ def determine_sdl2():
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
                 join(KIVY_DEPS_ROOT, "dist", "lib64"),
-                join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_image"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_mixer"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_ttf"),
             ]
         )
 
@@ -792,7 +795,7 @@ def determine_sdl2():
 
     # no pkgconfig info, or we want to use a specific sdl2 path, so perform
     # manual configuration
-    flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
+    flags['libraries'] = ['SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer']
 
     sdl2_paths = kivy_sdl2_path.split(os.pathsep) if kivy_sdl2_path else []
 
@@ -800,10 +803,10 @@ def determine_sdl2():
         # Try to find sdl2 in default locations if we don't have a custom path
         sdl2_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
-            sdl_inc = join(include, 'SDL2')
+            sdl_inc = join(include, 'SDL3')
             if isdir(sdl_inc):
                 sdl2_paths.append(sdl_inc)
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
+        sdl2_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
 
     flags['include_dirs'] = sdl2_paths
     flags['extra_link_args'] = []
@@ -825,7 +828,7 @@ def determine_sdl2():
     if sdl2_flags:
         flags = merge(flags, sdl2_flags)
 
-    # ensure headers for all the SDL2 and sub libraries are available
+    # ensure headers for all the SDL3 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
     can_compile = True
     for lib in libs_to_check:

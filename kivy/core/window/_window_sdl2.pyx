@@ -814,7 +814,7 @@ cdef class _WindowSDL2Storage:
         SDL_DestroySurface(flipped_surface)
 
     def grab_mouse(self, grab):
-        SDL_SetWindowGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
+        SDL_SetWindowMouseGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
 
     def get_relative_mouse_pos(self):
         cdef int x, y
