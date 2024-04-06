@@ -2,7 +2,7 @@
 Antialiasing Example
 ====================
 
-Kivy 2.3.0 introduced several vertex instructions with with antialiasing:
+Kivy 2.3.0 introduced several vertex instructions with antialiasing:
 SmoothRectangle, SmoothEllipse, SmoothRoundedRectangle, SmoothQuad and
 SmoothTriangle. This demo script shows the difference between 'standard'
 (non-antialiased) and antialiased graphics.
