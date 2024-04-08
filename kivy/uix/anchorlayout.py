@@ -106,7 +106,7 @@ class AnchorLayout(Layout):
                     ch = shh_max
                 c.height = ch
 
-            cw, ch = self.size
+            cw, ch = c.size
 
             if anchor_x == 'left':
                 x = x + pad_left
