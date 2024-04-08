@@ -1156,7 +1156,6 @@ cdef class Ellipse(Rectangle):
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
-        self.batch.set_mode('triangle_fan')
         self._segments = kwargs.get('segments') or 0
         self._angle_start = kwargs.get('angle_start') or 0.0
         self._angle_end = kwargs.get('angle_end') or 360.0
@@ -1170,6 +1169,8 @@ cdef class Ellipse(Rectangle):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int segments = self._segments
+        cdef int vertices_count
+        cdef bint use_first_vertex_as_last = False
 
         # reset points
         self._points = []
@@ -1191,11 +1192,22 @@ cdef class Ellipse(Rectangle):
         rx = 0.5 * self.w
         ry = 0.5 * self.h
 
-        vertices = <vertex_t *>malloc((segments + 2) * sizeof(vertex_t))
+        if (
+            abs(self._angle_start - self._angle_end) == 360
+            or self._angle_start == self._angle_end
+        ):
+            use_first_vertex_as_last = True
+
+        if use_first_vertex_as_last:
+            vertices_count = segments + 1
+        else:
+            vertices_count = segments + 2
+
+        vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc((segments + 2) * sizeof(unsigned short))
+        indices = <unsigned short *>malloc((segments * 3) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -1216,11 +1228,11 @@ cdef class Ellipse(Rectangle):
         y = self.y + ry
         ttx = ((x - self.x) / self.w) * tw + tx
         tty = ((y - self.y) / self.h) * th + ty
-        vertices[0].x = <float>(self.x + rx)
-        vertices[0].y = <float>(self.y + ry)
-        vertices[0].s0 = <float>ttx
-        vertices[0].t0 = <float>tty
-        indices[0] = 0
+
+        vertices[vertices_count - 1].x = <float>x
+        vertices[vertices_count - 1].y = <float>y
+        vertices[vertices_count - 1].s0 = <float>ttx
+        vertices[vertices_count - 1].t0 = <float>tty
 
         # super fast ellipse drawing
         # credit goes to: http://slabode.exofire.net/circle_draw.shtml
@@ -1235,7 +1247,7 @@ cdef class Ellipse(Rectangle):
         x = r * sin(angle_start)
         y = r * cos(angle_start)
 
-        for i in range(1, segments + 2):
+        for i in range(0, vertices_count - 1):
             ttx = (cx + x) * tw + tx
             tty = (cy + y) * th + ty
             real_x = self.x + (cx + x) * self.w
@@ -1244,7 +1256,6 @@ cdef class Ellipse(Rectangle):
             vertices[i].y = <float>real_y
             vertices[i].s0 = <float>ttx
             vertices[i].t0 = <float>tty
-            indices[i] = i
 
             fx = -y
             fy = x
@@ -1255,7 +1266,16 @@ cdef class Ellipse(Rectangle):
 
             self._points.extend([real_x, real_y])
 
-        self.batch.set_data(vertices, segments + 2, indices, segments + 2)
+        for i in range(0, segments * 3, 3):
+            indices[i] = vertices_count - 1
+            indices[i + 1] = i // 3
+            indices[i + 2] = i // 3 + 1
+
+        if use_first_vertex_as_last:
+            indices[(segments * 3) - 1] = 0
+            self._points.extend([vertices[0].x, vertices[0].y])
+
+        self.batch.set_data(vertices, vertices_count, indices, segments * 3)
 
         free(vertices)
         free(indices)
