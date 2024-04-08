@@ -78,6 +78,9 @@ class UIXAnchorLayoutTestcase(GraphicUnitTest):
         layout.add_widget(b(1, 0, 0))
         r(layout)
 
+
+class TestAnchorLayout:
+
     def test_anchorlayout_no_height_control(self):
         from kivy.uix.widget import Widget
         from kivy.uix.anchorlayout import AnchorLayout
@@ -92,8 +95,8 @@ class UIXAnchorLayoutTestcase(GraphicUnitTest):
 
         layout.do_layout()
 
-        self.assertEqual(widget.size, [1000, 2000])
-        self.assertEqual(widget.pos, [0, -500])
+        assert widget.size == [1000, 2000]
+        assert widget.pos == [0, -500]
 
     def test_anchorlayout_no_width_control(self):
         from kivy.uix.widget import Widget
@@ -109,5 +112,5 @@ class UIXAnchorLayoutTestcase(GraphicUnitTest):
 
         layout.do_layout()
 
-        self.assertEqual(widget.size, [2000, 1000])
-        self.assertEqual(widget.pos, [-500, 0])
+        assert widget.size == [2000, 1000]
+        assert widget.pos == [-500, 0]
