@@ -150,6 +150,13 @@ popd
 echo "-- Build SDL2_ttf (Universal)"
 pushd $MACOS__SDL3_TTF__FOLDER
 sh ./external/download.sh
+
+# On CI this does not get automatically built. Why?
+# We're already building SDL3, is that really needed? Better to patch SDL3_ttf?
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+        -project external/SDL/Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release \
+        GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
+
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL_ttf.xcodeproj -target SDL3_ttf -configuration Release \
         GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) FT_CONFIG_OPTION_USE_PNG=1' \
