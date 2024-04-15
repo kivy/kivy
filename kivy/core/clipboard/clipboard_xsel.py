@@ -14,7 +14,7 @@ if platform != 'linux':
 try:
     import subprocess
     p = subprocess.Popen(['xsel'], stdout=subprocess.PIPE)
-    p.communicate()
+    p.communicate(timeout=1)
 except:
     raise
 
