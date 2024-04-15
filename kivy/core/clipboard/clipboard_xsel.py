@@ -13,7 +13,7 @@ if platform != 'linux':
 
 try:
     import subprocess
-    p = subprocess.Popen(['xsel'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['xsel', '--version'], stdout=subprocess.PIPE)
     p.communicate(timeout=1)
 except:
     raise
