@@ -74,7 +74,7 @@ class AudioTestCase(unittest.TestCase):
 
 
 class OnEOSTest:
-    
+
     @pytest.fixture(autouse=True)
     def set_clock(self, kivy_clock):
         self.kivy_clock = kivy_clock
