@@ -74,6 +74,10 @@ class AudioTestCase(unittest.TestCase):
 
 
 class OnEOSTest:
+    
+    @pytest.fixture(autouse=True)
+    def set_clock(self, kivy_clock):
+        self.kivy_clock = kivy_clock
 
     def test_on_eos_event(self):
         eos = False
@@ -87,8 +91,7 @@ class OnEOSTest:
         sound.bind(on_eos=callback)
         sound.play()
         time.sleep(SAMPLE_LENGTH + 0.5)  # the callback is called with a delay
-        from kivy.clock import Clock
-        Clock.tick()
+        self.kivy_clock.tick()
         self.assertTrue(eos)
 
 
