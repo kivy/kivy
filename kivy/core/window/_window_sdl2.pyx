@@ -17,14 +17,13 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 if not environ.get('KIVY_DOC_INCLUDE'):
     is_desktop = Config.get('kivy', 'desktop') == '1'
 
-IF USE_WAYLAND:
-    from .window_info cimport WindowInfoWayland
-
-IF USE_X11:
-    from .window_info cimport WindowInfoX11
-
-IF UNAME_SYSNAME == 'Windows':
-    from .window_info cimport WindowInfoWindows
+from .window_info cimport (
+    WindowInfoiOS,
+    WindowInfomacOS,
+    WindowInfoX11,
+    WindowInfoWayland,
+    WindowInfoWindows
+)
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -484,7 +483,86 @@ cdef class _WindowSDL2Storage:
             Logger.error(f'WindowSDL: Getting opacity failed - {message}')
             return 1.0
         else:
-            return opacity      
+            return opacity
+
+    def _get_current_video_driver(self):
+        cdef char *driver = SDL_GetCurrentVideoDriver()
+        return <str>driver
+
+    def _get_window_info_macos(self):
+        cdef WindowInfomacOS window_info
+        window_info = WindowInfomacOS()
+
+        window_info.set_window(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.cocoa.window",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_ios(self):
+        cdef WindowInfoiOS window_info
+        window_info = WindowInfoiOS()
+
+        window_info.set_window(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.uikit.window",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def _get_window_info_wayland(self):
+        cdef WindowInfoWayland window_info
+        window_info = WindowInfoWayland()
+        
+        return window_info
+
+    def _get_window_info_x11(self):
+        cdef WindowInfoX11 window_info
+        window_info = WindowInfoX11()
+
+        return window_info
+
+    def _get_window_info_windows(self):
+        cdef WindowInfoWindows window_info
+        window_info = WindowInfoWindows()
+
+        window_info.set_hwnd(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.win32.hwnd",
+                NULL,
+            )
+        )
+        window_info.set_hdc(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.win32.hdc",
+                NULL,
+            )
+        )
+
+        return window_info
+
+    def get_window_info(self):
+        if platform == "macosx":
+            return self._get_window_info_macos()
+        elif platform == "ios":
+            return self._get_window_info_ios()
+        elif platform == "win":
+            return self._get_window_info_windows()
+        elif platform == "linux":
+            _video_driver = self._get_current_video_driver()
+            if _video_driver == "wayland":
+                return self._get_window_info_wayland()
+            elif _video_driver == "x11":
+                return self._get_window_info_x11()
 
     def get_native_handle(self):
         # TODO: When we have support on all platforms, or at least on Linux

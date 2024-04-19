@@ -666,7 +666,7 @@ cdef extern from "SDL.h":
     cdef int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback, void *callback_data)
     cdef SDL_MetalView SDL_Metal_CreateView(SDL_Window * window)
     cdef void* SDL_Metal_GetLayer(SDL_MetalView view)
-    cdef void SDL_GetProperty(SDL_PropertiesID props, const char *name, void *default_value)
+    cdef void* SDL_GetProperty(SDL_PropertiesID props, const char *name, void *default_value)
     cdef SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
     cdef void SDL_free(void *mem)
 
@@ -984,5 +984,3 @@ cdef extern from "SDL_mixer.h":
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
     cdef char * Mix_GetError()
-
-include '../core/window/window_attrs.pxi'

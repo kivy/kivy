@@ -977,13 +977,21 @@ if c_options['use_sdl2'] and sdl2_flags:
     sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
         sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
     sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+    if platform in ('ios', 'darwin'):
+        _extra_args = {
+            'extra_compile_args': ['-ObjC'],
+        }
+    else:
+        _extra_args = {}
     for source_file in ('core/window/_window_sdl2.pyx',
                         'core/image/_img_sdl2.pyx',
                         'core/text/_text_sdl2.pyx',
                         'core/audio/audio_sdl2.pyx',
                         'core/clipboard/_clipboard_sdl2.pyx'):
+
         sources[source_file] = merge(
-            base_flags, sdl2_flags, sdl2_depends)
+            base_flags, sdl2_flags, sdl2_depends, _extra_args
+        )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
                                       'android', 'ios', 'win32'):
@@ -1015,6 +1023,9 @@ if platform in ('darwin', 'ios'):
     osx_flags['extra_compile_args'] = ['-ObjC++']
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
+
+    sources['core/window/window_info.pyx'] = merge(
+        sources['core/window/window_info.pyx'], osx_flags)
 
 if c_options['use_avfoundation']:
     import platform as _platform

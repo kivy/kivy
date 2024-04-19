@@ -2,7 +2,7 @@
 set -e -x
 
 # manylinux SDL3
-MANYLINUX__SDL3__VERSION="3.1.1"
+MANYLINUX__SDL3__VERSION="3.1.2"
 MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MANYLINUX__SDL3__VERSION/SDL3-$MANYLINUX__SDL3__VERSION.tar.xz"
 MANYLINUX__SDL3__FOLDER="SDL3-$MANYLINUX__SDL3__VERSION"
 
