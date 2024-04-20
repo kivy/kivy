@@ -92,6 +92,7 @@ EOF
 }
 
 upload_coveralls() {
+  python3 -m pip install -U coveralls
   python3 -m coveralls
 }
 
