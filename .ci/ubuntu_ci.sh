@@ -18,27 +18,8 @@ update_version_metadata() {
 }
 
 generate_sdist() {
-  python3 -m pip install cython packaging setuptools
-  python3 setup.py sdist --formats=gztar
-  python3 -m pip uninstall cython -y
-}
-
-
-install_kivy_test_run_pip_deps() {
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  python3 get-pip.py --user
-
-  python3 -m pip install --upgrade pip setuptools wheel
-  CYTHON_INSTALL=$(
-    KIVY_NO_CONSOLELOG=1 python3 -c \
-      "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
-      --config "kivy:log_level:error"
-  )
-  python3 -m pip install -I "$CYTHON_INSTALL" coveralls
-}
-
-install_kivy_test_wheel_run_pip_deps() {
-  python3 -m pip install --upgrade pip setuptools wheel
+  python3 -m pip install build~=1.2.1
+  python3 -m build --sdist .
 }
 
 prepare_env_for_unittest() {
@@ -53,7 +34,8 @@ install_kivy() {
 
 
 create_kivy_examples_wheel() {
-  KIVY_BUILD_EXAMPLES=1 python3 -m pip wheel . -w dist/
+  python3 -m pip install build~=1.2.1
+  KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
 }
 
 install_kivy_examples_wheel() {
