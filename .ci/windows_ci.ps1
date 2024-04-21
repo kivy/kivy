@@ -35,10 +35,10 @@ function Update-version-metadata {
 }
 
 function Generate-sdist {
-    python -m pip install cython packaging
-    python setup.py sdist --formats=gztar
-    python setup.py bdist_wheel --build_examples --universal
-    python -m pip uninstall cython -y
+    python -m pip install -U build
+    python -m build --sdist .
+    $env:KIVY_BUILD_EXAMPLES = '1'
+    python -m build --wheel .
 }
 
 function Generate-windows-wheels {
@@ -77,14 +77,6 @@ function Upload-windows-wheels-to-server($ip) {
     C:\tools\msys64\usr\bin\bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
 }
 
-function Install-kivy-test-run-win-deps {
-
-}
-
-function Install-kivy-test-run-pip-deps {
-    python -m pip install pip wheel setuptools --upgrade
-}
-
 function Install-kivy {
     python -m pip install -e .[dev,full]
 }
@@ -94,8 +86,6 @@ function Install-kivy-wheel {
     ls $root
     ls $root/dist
     cd "$HOME"
-
-    python -m pip install pip wheel setuptools --upgrade
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $bitness=python -c "import sys; print('win_amd64' if sys.maxsize > 2**32 else 'win32')"
@@ -108,8 +98,6 @@ function Install-kivy-wheel {
 function Install-kivy-sdist {
     $root=(pwd).Path
     cd "$HOME"
-
-    python -m pip install pip wheel setuptools --upgrade
 
     $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
     python -m pip install "$root/dist/$kivy_fname[full,dev]"
