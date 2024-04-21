@@ -15,7 +15,7 @@ jobs:
     if: github.repository_owner == 'kivy'
     runs-on: ubuntu-latest
     steps:
-      - uses: lee-dohm/no-response@9bb0a4b5e6a45046f00353d5de7d90fb8bd773bb
+      - uses: lee-dohm/no-response@66174372c9c5576aa8a4287e33653f2fdd12d517
         # This commit hash targets release v0.5.0 of lee-dohm/no-response.
         # Targeting a commit hash instead of a tag has been done for security reasons.
         # Please be aware that the commit hash specifically targets the "Automatic compilation"
