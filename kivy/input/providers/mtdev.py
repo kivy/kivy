@@ -97,7 +97,7 @@ else:
         MTDEV_CODE_TOUCH_MAJOR, MTDEV_CODE_TOUCH_MINOR, \
         MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
         MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
-        MTDEV_ABS_TOUCH_MAJOR
+        MTDEV_ABS_TOUCH_MAJOR, MTDEV_TYPE_EV_SYN
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
@@ -191,6 +191,7 @@ else:
             touches_sent = []
             point = {}
             l_points = {}
+            changes = set()
 
             def assign_coord(point, value, invert, coords):
                 cx, cy = coords
@@ -206,6 +207,7 @@ else:
                     point[cy] = 1. - value
 
             def process(points):
+                changes.clear()
                 for args in points:
                     # this can happen if we have a touch going on already at
                     # the start of the app
@@ -249,7 +251,6 @@ else:
                     return
                 else:
                     raise
-            _changes = set()
 
             # prepare some vars to get limit of some component
             ab = _device.get_abs(MTDEV_ABS_POSITION_X)
@@ -328,7 +329,12 @@ else:
                     point = l_points[_slot]
                     ev_value = data.value
                     ev_code = data.code
-                    if ev_code == MTDEV_CODE_POSITION_X:
+                    if ev_code == MTDEV_CODE_TRACKING_ID:
+                        if ev_value == -1:
+                            point['delete'] = True
+                        else:
+                            point['id'] = ev_value
+                    elif ev_code == MTDEV_CODE_POSITION_X:
                         val = normalize(ev_value,
                                         range_min_position_x,
                                         range_max_position_x)
@@ -350,26 +356,17 @@ else:
                         point['size_h'] = normalize(ev_value,
                                                     range_min_minor,
                                                     range_max_minor)
-                    elif ev_code == MTDEV_CODE_TRACKING_ID:
-                        if ev_value == -1:
-                            point['delete'] = True
-                            # force process of changes here, as the slot can be
-                            # reused.
-                            _changes.add(_slot)
-                            process([l_points[x] for x in _changes])
-                            _changes.clear()
-                            continue
-                        else:
-                            point['id'] = ev_value
+                    elif ev_code == MTDEV_TYPE_EV_SYN and changes:
+                        process([l_points[x] for x in changes])
+                        continue
                     else:
                         # unrecognized command, ignore.
                         continue
-                    _changes.add(_slot)
+                    changes.add(_slot)
 
                 # push all changes
-                if _changes:
-                    process([l_points[x] for x in _changes])
-                    _changes.clear()
+                if changes:
+                    process([l_points[x] for x in changes])
 
         def update(self, dispatch_fn):
             # dispatch all event from threads
