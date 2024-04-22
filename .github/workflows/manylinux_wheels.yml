@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Create wheel
@@ -54,7 +54,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - name: Set up QEMU
@@ -94,7 +94,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - uses: actions/download-artifact@v3
@@ -138,7 +138,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
     - uses: actions/download-artifact@v3
@@ -184,7 +184,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.x
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Generate sdist
