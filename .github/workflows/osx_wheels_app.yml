@@ -30,7 +30,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         create_kivy_examples_wheel
     - name: Upload kivy-examples wheel as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: osx_examples_wheel
         path: dist
@@ -78,7 +78,7 @@ jobs:
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks:$KIVY_DEPS_ROOT/dist/Frameworks/SDL2_mixer.framework/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: osx_wheels
         path: ./wheelhouse/*.whl
@@ -95,7 +95,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.x
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: osx_wheels
         path: dist
@@ -147,7 +147,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: osx_wheels
           path: dist
@@ -155,7 +155,7 @@ jobs:
         run: |
           source .ci/ubuntu_ci.sh
           install_kivy_wheel dev
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: osx_examples_wheel
           path: dist
@@ -205,7 +205,7 @@ jobs:
           source .ci/osx_ci.sh
           generate_osx_app_dmg_from_bundle
       - name: Upload dmg as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: osx_app
           path: app
@@ -221,7 +221,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: osx_app
           path: app
@@ -247,7 +247,7 @@ jobs:
         run: |
           source .ci/osx_ci.sh
           mount_osx_app
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: osx_examples_wheel
           path: dist
