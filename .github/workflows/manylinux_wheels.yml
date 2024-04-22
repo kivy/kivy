@@ -60,7 +60,7 @@ jobs:
     - name: Set up QEMU
       if: ${{ matrix.cibw_archs == 'aarch64' }}
       uses: docker/setup-qemu-action@v1
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       id: deps-cache
       with:
         path: kivy-dependencies
