@@ -1,4 +1,4 @@
-ARG image=balenalib/raspberrypi3-debian-python:3.9-bullseye
+ARG image=balenalib/raspberrypi3-debian-python:3.11-bullseye
 FROM $image
 
 ENV KIVY_CROSS_PLATFORM=rpi
