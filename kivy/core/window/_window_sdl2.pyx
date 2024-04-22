@@ -168,7 +168,7 @@ cdef class _WindowSDL2Storage:
 
     def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.gl_backend_name = gl_backend
-        self.sdl_manages_egl_context = gl_backend != "angle"
+        self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
         self.win_flags  = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
