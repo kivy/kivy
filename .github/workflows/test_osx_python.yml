@@ -19,7 +19,7 @@ jobs:
         runs_on: ['macos-latest', 'apple-silicon-m1']
         python: ['3.x']
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v4
       with:
