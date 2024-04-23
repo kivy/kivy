@@ -110,12 +110,12 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
             return
 
         view_opts = self.view_opts
-        n = len(view_opts)
+        n_data = len(view_opts)
         for i, x, y, w, h in self._iterate_layout(
                 [(opt['size'], opt['size_hint'], opt['pos_hint'],
                   opt['size_hint_min'], opt['size_hint_max']) for
                  opt in reversed(view_opts)]):
-            opt = view_opts[n - i - 1]
+            opt = view_opts[n_data - i - 1]
             shw, shh = opt['size_hint']
             opt['pos'] = x, y
             wo, ho = opt['size']
@@ -134,12 +134,10 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         self._rv_positions = tuple(islice(
             accumulate(chain(
                 (offset, ),
-                (opt['size'][dim] + spacing for opt in islice(
-                    view_opts if is_forward else reversed(view_opts),
-                    None, n - 1,
-                )),
+                (opt['size'][dim] + spacing for opt in (
+                    view_opts if is_forward else reversed(view_opts))),
             )),
-            1, None,
+            1, n_data,
         ))
 
     def get_view_index_at(self, pos):
