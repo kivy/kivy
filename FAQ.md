@@ -281,9 +281,7 @@ latest available version and retry.
 #### I get an "ImportError: No module named _event". How come?
 
   If you use Kivy from our development version, you must compile it before
-using it. In the kivy directory, run
-
-      python setup.py build_ext --inplace
+using it. Check :ref:`installation guide<installation-canonical>` for more information.
 
 ## Android Questions
 
