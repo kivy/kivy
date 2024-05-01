@@ -114,7 +114,11 @@ jobs:
           architecture: ${{ matrix.arch }}
       - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels-${{ matrix.python }}-${{ matrix.arch }}
+          # Only one windows_wheels-*-* artifact contains the kivy-examples
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Install Kivy Wheel
         run: |
