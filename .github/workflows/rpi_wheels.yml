@@ -40,7 +40,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "raspberrypi/kivy/"
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: github.event_name == 'pull_request'
       with:
         name: armv7l_wheels
