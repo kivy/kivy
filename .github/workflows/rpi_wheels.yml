@@ -16,17 +16,17 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
-        docker_images: ['balenalib/raspberrypi3-debian-python:3.9-bullseye', 'balenalib/raspberrypi3-debian-python:3.11-bookworm']
+        image_version: ['3.9-bullseye', '3.11-bookworm']
     steps:
     - uses: actions/checkout@v4
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
-    - name: Make ${{ matrix.docker_images }} wheel
+    - name: Make ${{ matrix.image_version }} wheel
       run: |
         source .ci/ubuntu_ci.sh
-        generate_rpi_wheels ${{ matrix.docker_images }}
+        generate_rpi_wheels balenalib/raspberrypi3-debian-python:${{ matrix.image_version }}
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
@@ -43,7 +43,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: github.event_name == 'pull_request'
       with:
-        name: armv7l_wheels-${{ matrix.docker_images }}
+        name: armv7l_wheels-${{ matrix.image_version }}
         path: dist
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2.0.4
