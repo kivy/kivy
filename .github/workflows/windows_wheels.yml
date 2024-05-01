@@ -114,8 +114,7 @@ jobs:
           architecture: ${{ matrix.arch }}
       - uses: actions/download-artifact@v4
         with:
-          pattern: windows_wheels-*-*
-          merge-multiple: true
+          name: windows_wheels-${{ matrix.python }}-${{ matrix.arch }}
           path: dist
       - name: Install Kivy Wheel
         run: |
@@ -147,6 +146,9 @@ jobs:
           python-version: 3.x
       - uses: actions/download-artifact@v4
         with:
+          # Only one windows_wheels-*-* artifact contains the sdist
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
           pattern: windows_wheels-*-*
           merge-multiple: true
           path: dist
