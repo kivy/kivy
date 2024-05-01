@@ -43,7 +43,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: github.event_name == 'pull_request'
       with:
-        name: armv7l_wheels
+        name: armv7l_wheels-${{ matrix.docker_images }}
         path: dist
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2.0.4
