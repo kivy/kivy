@@ -31,12 +31,11 @@ jobs:
         . .\.ci\windows_ci.ps1
         Test-kivy
     - name: Test Kivy benchmarks
-      if: matrix.python == '3.9' && matrix.arch == 'x64'
       run: |
         . .\.ci\windows_ci.ps1
         Test-kivy-benchmark
     - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: benchmarks-windows-unittests-python-${{ matrix.python }}
+        name: benchmarks-windows-unittests-python-${{ matrix.python }}-${{ matrix.arch }}
         path: .benchmarks-kivy

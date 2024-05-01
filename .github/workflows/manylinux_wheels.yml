@@ -168,7 +168,6 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_install
     - name: Test Kivy benchmarks
-      if: (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
