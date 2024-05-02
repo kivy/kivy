@@ -61,7 +61,7 @@ jobs:
     - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: benchmarks
+        name: benchmarks-ubuntu-unittests-python-3.x
         path: .benchmarks-kivy
 
   gen_docs:
