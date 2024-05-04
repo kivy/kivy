@@ -96,7 +96,9 @@
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
     <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
-    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    {%- for style in styles %} 
+      <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    {%- endfor %} 
 
     {%- if not embedded %}
     {%- block scripts %}
