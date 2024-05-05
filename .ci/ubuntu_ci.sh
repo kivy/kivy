@@ -17,11 +17,6 @@ update_version_metadata() {
   fi
 }
 
-generate_sdist() {
-  python3 -m pip install build~=1.2.1
-  python3 -m build --sdist .
-}
-
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
     --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
@@ -30,12 +25,6 @@ prepare_env_for_unittest() {
 install_kivy() {
   options=${1:-full,dev}
   python3 -m pip install -e "$(pwd)[$options]"
-}
-
-
-create_kivy_examples_wheel() {
-  python3 -m pip install build~=1.2.1
-  KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
 }
 
 install_kivy_examples_wheel() {
@@ -89,16 +78,6 @@ test_kivy_install() {
 
 EOF
   KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --maxfail=10 --timeout=300 .
-}
-
-upload_coveralls() {
-  python3 -m pip install -U coveralls
-  python3 -m coveralls
-}
-
-validate_pep8() {
-  python3 -m pip install flake8
-  make style
 }
 
 generate_docs() {
@@ -211,9 +190,4 @@ upload_file_to_server() {
 
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
-}
-
-upload_artifacts_to_pypi() {
-  python3 -m pip install twine
-  twine upload dist/*
 }
