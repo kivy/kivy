@@ -51,6 +51,6 @@ RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
     elif [ "$(lsb_release -cs)" = "bookworm" ]; then \
         MANYLINUX_PLATFORM=manylinux_2_35_armv7l; \
     fi; \
-    auditwheel repair /kivy-wheel/Kivy-*.whl -w /kivy-delocated-wheel --plat "$MANYLINUX_PLATFORM" --no-update-tags --exclude libbrcmGLESv2.so --exclude libbcm_host.so --exclude libbrcmEGL.so'
+    auditwheel repair /kivy-wheel/kivy-*.whl -w /kivy-delocated-wheel --plat "$MANYLINUX_PLATFORM" --no-update-tags --exclude libbrcmGLESv2.so --exclude libbcm_host.so --exclude libbrcmEGL.so'
 
 RUN [ "cross-build-end" ]
