@@ -36,7 +36,7 @@ If you're using `Macports <https://www.macports.org>`_, you can install Python w
 
     # Install and set pip as the default::
     port install py38-pip
-    port select --set pip py38-pip
+    port select --set pip pip38
 
 Frameworks
 ~~~~~~~~~~
