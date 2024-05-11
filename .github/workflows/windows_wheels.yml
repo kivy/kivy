@@ -63,6 +63,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - run: |
+          python -m pip install -r .ci/cicd-requirements.txt
       - uses: actions/download-artifact@v4
         with:
           pattern: windows_wheels-*-*
@@ -95,8 +97,7 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
-          . .\.ci\windows_ci.ps1
-          Upload-artifacts-to-pypi
+          twine upload dist/*
 
   windows_wheel_test:
     runs-on: windows-latest
