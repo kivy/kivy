@@ -210,7 +210,7 @@ kivy_options = {
     'text': ('pil', 'sdl2', 'sdlttf'),
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
-    'audio': (
+    'audio_output': (
         'gstplayer', 'ffpyplayer', 'sdl2',
         'avplayer'),
     'image': ('tex', 'imageio', 'dds', 'sdl2', 'pil', 'ffpy', 'gif'),

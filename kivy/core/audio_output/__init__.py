@@ -218,4 +218,4 @@ audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
     audio_libs += [('sdl2', 'audio_sdl2')]
 
-libs_loaded = core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs('audio_output', audio_libs)
