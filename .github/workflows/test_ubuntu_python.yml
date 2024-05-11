@@ -14,10 +14,12 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.x
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Validate PEP8
       run: |
-        source .ci/ubuntu_ci.sh
-        validate_pep8
+        make style
 
   unit_test:
     runs-on: ubuntu-latest
@@ -52,8 +54,7 @@ jobs:
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
-        source .ci/ubuntu_ci.sh
-        upload_coveralls
+        python -m coveralls
     - name: Test Kivy benchmarks
       run: |
         source .ci/ubuntu_ci.sh
