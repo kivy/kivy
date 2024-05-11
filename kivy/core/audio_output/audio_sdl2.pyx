@@ -44,7 +44,7 @@ __all__ = ('SoundSDL2', 'MusicSDL2')
 include "../../../kivy/lib/sdl2.pxi"
 include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
 
-from kivy.core.audio import Sound, SoundLoader
+from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 

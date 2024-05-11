@@ -135,10 +135,10 @@
         ],
         "name": "kivy.core.audio.audio_sdl2",
         "sources": [
-            "/Users/pedroarduini/kivy/kivy/core/audio/audio_sdl2.pyx"
+            "/Users/pedroarduini/kivy/kivy/core/audio_output/audio_sdl2.pyx"
         ]
     },
-    "module_name": "kivy.core.audio.audio_sdl2"
+    "module_name": "kivy.core.audio_output.audio_sdl2"
 }
 END: Cython Metadata */
 
@@ -1492,7 +1492,7 @@ static const char *__pyx_filename;
 /* #### Code section: filename_table ### */
 
 static const char *__pyx_f[] = {
-  "kivy/core/audio/audio_sdl2.pyx",
+  "kivy/core/audio_output/audio_sdl2.pyx",
   "<stringsource>",
 };
 /* #### Code section: utility_code_proto_before_types ### */
@@ -1506,7 +1506,7 @@ struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer;
 struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2___pyx_scope_struct___check_play;
 struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2___pyx_scope_struct_1__check_play;
 
-/* "kivy/core/audio/audio_sdl2.pyx":94
+/* "kivy/core/audio_output/audio_sdl2.pyx":94
  * 
  * # Container for samples (Mix_LoadWAV)
  * cdef class ChunkContainer:             # <<<<<<<<<<<<<<
@@ -1521,7 +1521,7 @@ struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer {
 };
 
 
-/* "kivy/core/audio/audio_sdl2.pyx":114
+/* "kivy/core/audio_output/audio_sdl2.pyx":114
  * 
  * # Container for music (Mix_LoadMUS), one channel only
  * cdef class MusicContainer:             # <<<<<<<<<<<<<<
@@ -1535,7 +1535,7 @@ struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer {
 };
 
 
-/* "kivy/core/audio/audio_sdl2.pyx":151
+/* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -1548,7 +1548,7 @@ struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2___pyx_scope_struct___check_play
 };
 
 
-/* "kivy/core/audio/audio_sdl2.pyx":291
+/* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -2389,7 +2389,7 @@ static const char __pyx_k_AudioSDL2_Unable_to_open_mixer[] = "AudioSDL2: Unable 
 static const char __pyx_k_AudioSDL2_Unable_to_play_music[] = "AudioSDL2: Unable to play music {}: {}";
 static const char __pyx_k_ChunkContainer___reduce_cython[] = "ChunkContainer.__reduce_cython__";
 static const char __pyx_k_MusicContainer___reduce_cython[] = "MusicContainer.__reduce_cython__";
-static const char __pyx_k_kivy_core_audio_audio_sdl2_pyx[] = "kivy/core/audio/audio_sdl2.pyx";
+static const char __pyx_k_kivy_core_audio_audio_sdl2_pyx[] = "kivy/core/audio_output/audio_sdl2.pyx";
 static const char __pyx_k_MusicSDL2__check_play_locals_do[] = "MusicSDL2._check_play.<locals>.do_loop";
 static const char __pyx_k_SDL2_audio_provider_This_core_a[] = "\nSDL2 audio provider\n===================\n\nThis core audio implementation require SDL_mixer library.\nIt might conflict with any other library that are using SDL_mixer, such as\nffmpeg-android.\n\nNative formats:\n\n* wav, since 1.9.0\n\nDepending the compilation of SDL2 mixer and/or installed libraries:\n\n* ogg since 1.9.1 (mixer needs libvorbis/libogg)\n* flac since 1.9.1 (mixer needs libflac)\n* mp3 since 1.9.1 (mixer needs libsmpeg/libmad; only use mad for GPL apps)\n  * Since 1.10.1 + mixer 2.0.2, mpg123 can also be used\n* sequenced formats since 1.9.1 (midi, mod, s3m, etc. Mixer needs\n  libmodplug or libmikmod)\n\n.. Note::\n\n    Sequenced format support changed with mixer v2.0.2. If mixer is\n    linked with one of libmodplug or libmikmod, format support for\n    both libraries is assumed. This will work perfectly with formats\n    supported by both libraries, but if you were to try to load an\n    obscure format (like `apun` file with mikmod only), it will fail.\n\n    * Kivy <= 1.10.0: will fail to build with mixer >= 2.0.2\n      will report correct format support with < 2.0.2\n    * Kivy >= 1.10.1: will build with old and new mixer, and\n      will \"guesstimate\" sequenced format support\n\n.. Warning::\n\n    Sequenced formats use the SDL2 Mixer music channel, you can only play\n    one at a time, and .length will be -1 if music fails to load, and 0\n    if loaded successfully (we can't get duration of these formats)\n";
 static const char __pyx_k_SoundSDL2__check_play_locals_do[] = "SoundSDL2._check_play.<locals>.do_loop";
@@ -3400,7 +3400,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_codeobj__42 __pyx_mstate_global->__pyx_codeobj__42
 /* #### Code section: module_code ### */
 
-/* "kivy/core/audio/audio_sdl2.pyx":55
+/* "kivy/core/audio_output/audio_sdl2.pyx":55
  * 
  * 
  * cdef mix_init():             # <<<<<<<<<<<<<<
@@ -3429,7 +3429,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("mix_init", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":56
+  /* "kivy/core/audio_output/audio_sdl2.pyx":56
  * 
  * cdef mix_init():
  *     cdef int audio_rate = 44100             # <<<<<<<<<<<<<<
@@ -3438,7 +3438,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_audio_rate = 0xAC44;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":57
+  /* "kivy/core/audio_output/audio_sdl2.pyx":57
  * cdef mix_init():
  *     cdef int audio_rate = 44100
  *     cdef unsigned short audio_format = AUDIO_S16SYS             # <<<<<<<<<<<<<<
@@ -3447,7 +3447,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_audio_format = AUDIO_S16SYS;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":58
+  /* "kivy/core/audio_output/audio_sdl2.pyx":58
  *     cdef int audio_rate = 44100
  *     cdef unsigned short audio_format = AUDIO_S16SYS
  *     cdef int audio_channels = 2             # <<<<<<<<<<<<<<
@@ -3456,7 +3456,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_audio_channels = 2;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":59
+  /* "kivy/core/audio_output/audio_sdl2.pyx":59
  *     cdef unsigned short audio_format = AUDIO_S16SYS
  *     cdef int audio_channels = 2
  *     cdef int audio_buffers = 4096             # <<<<<<<<<<<<<<
@@ -3465,7 +3465,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_audio_buffers = 0x1000;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":60
+  /* "kivy/core/audio_output/audio_sdl2.pyx":60
  *     cdef int audio_channels = 2
  *     cdef int audio_buffers = 4096
  *     cdef int want_flags = 0             # <<<<<<<<<<<<<<
@@ -3474,7 +3474,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_want_flags = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":65
+  /* "kivy/core/audio_output/audio_sdl2.pyx":65
  * 
  *     # avoid next call
  *     if mix_is_init != 0:             # <<<<<<<<<<<<<<
@@ -3484,7 +3484,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   __pyx_t_1 = (__pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_is_init != 0);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":66
+    /* "kivy/core/audio_output/audio_sdl2.pyx":66
  *     # avoid next call
  *     if mix_is_init != 0:
  *         return             # <<<<<<<<<<<<<<
@@ -3495,7 +3495,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":65
+    /* "kivy/core/audio_output/audio_sdl2.pyx":65
  * 
  *     # avoid next call
  *     if mix_is_init != 0:             # <<<<<<<<<<<<<<
@@ -3504,7 +3504,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":68
+  /* "kivy/core/audio_output/audio_sdl2.pyx":68
  *         return
  * 
  *     if SDL_Init(SDL_INIT_AUDIO) < 0:             # <<<<<<<<<<<<<<
@@ -3514,7 +3514,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   __pyx_t_1 = (SDL_Init(SDL_INIT_AUDIO) < 0);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":69
+    /* "kivy/core/audio_output/audio_sdl2.pyx":69
  * 
  *     if SDL_Init(SDL_INIT_AUDIO) < 0:
  *         Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(             # <<<<<<<<<<<<<<
@@ -3529,7 +3529,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_initialize_S, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":70
+    /* "kivy/core/audio_output/audio_sdl2.pyx":70
  *     if SDL_Init(SDL_INIT_AUDIO) < 0:
  *         Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(
  *                         SDL_GetError()))             # <<<<<<<<<<<<<<
@@ -3582,7 +3582,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":71
+    /* "kivy/core/audio_output/audio_sdl2.pyx":71
  *         Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(
  *                         SDL_GetError()))
  *         mix_is_init = -1             # <<<<<<<<<<<<<<
@@ -3591,7 +3591,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
     __pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_is_init = -1;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":72
+    /* "kivy/core/audio_output/audio_sdl2.pyx":72
  *                         SDL_GetError()))
  *         mix_is_init = -1
  *         return 0             # <<<<<<<<<<<<<<
@@ -3603,7 +3603,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     __pyx_r = __pyx_int_0;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":68
+    /* "kivy/core/audio_output/audio_sdl2.pyx":68
  *         return
  * 
  *     if SDL_Init(SDL_INIT_AUDIO) < 0:             # <<<<<<<<<<<<<<
@@ -3612,7 +3612,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":79
+  /* "kivy/core/audio_output/audio_sdl2.pyx":79
  *     # 0x20 used to be MIX_INIT_FLUIDSYNTH, now MIX_INIT_MID
  *     # 0x4  used to be MIX_INIT_MODPLUG before 2.0.2
  *     want_flags = MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3             # <<<<<<<<<<<<<<
@@ -3621,7 +3621,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_want_flags = ((MIX_INIT_FLAC | MIX_INIT_OGG) | MIX_INIT_MP3);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":80
+  /* "kivy/core/audio_output/audio_sdl2.pyx":80
  *     # 0x4  used to be MIX_INIT_MODPLUG before 2.0.2
  *     want_flags = MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3
  *     want_flags |= MIX_INIT_MOD | 0x20 | 0x4             # <<<<<<<<<<<<<<
@@ -3630,7 +3630,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_want_flags = (__pyx_v_want_flags | ((MIX_INIT_MOD | 0x20) | 0x4));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":82
+  /* "kivy/core/audio_output/audio_sdl2.pyx":82
  *     want_flags |= MIX_INIT_MOD | 0x20 | 0x4
  * 
  *     mix_flags = Mix_Init(want_flags)             # <<<<<<<<<<<<<<
@@ -3639,7 +3639,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_flags = Mix_Init(__pyx_v_want_flags);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":84
+  /* "kivy/core/audio_output/audio_sdl2.pyx":84
  *     mix_flags = Mix_Init(want_flags)
  * 
  *     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):             # <<<<<<<<<<<<<<
@@ -3649,7 +3649,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   __pyx_t_1 = (Mix_OpenAudio(__pyx_v_audio_rate, __pyx_v_audio_format, __pyx_v_audio_channels, __pyx_v_audio_buffers) != 0);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":85
+    /* "kivy/core/audio_output/audio_sdl2.pyx":85
  * 
  *     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
  *         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(             # <<<<<<<<<<<<<<
@@ -3664,7 +3664,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_open_mixer, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":86
+    /* "kivy/core/audio_output/audio_sdl2.pyx":86
  *     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
  *         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
  *                         Mix_GetError()))             # <<<<<<<<<<<<<<
@@ -3717,7 +3717,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":87
+    /* "kivy/core/audio_output/audio_sdl2.pyx":87
  *         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
  *                         Mix_GetError()))
  *         mix_is_init = -1             # <<<<<<<<<<<<<<
@@ -3726,7 +3726,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
     __pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_is_init = -1;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":88
+    /* "kivy/core/audio_output/audio_sdl2.pyx":88
  *                         Mix_GetError()))
  *         mix_is_init = -1
  *         return 0             # <<<<<<<<<<<<<<
@@ -3738,7 +3738,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
     __pyx_r = __pyx_int_0;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":84
+    /* "kivy/core/audio_output/audio_sdl2.pyx":84
  *     mix_flags = Mix_Init(want_flags)
  * 
  *     if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):             # <<<<<<<<<<<<<<
@@ -3747,7 +3747,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":90
+  /* "kivy/core/audio_output/audio_sdl2.pyx":90
  *         return 0
  * 
  *     mix_is_init = 1             # <<<<<<<<<<<<<<
@@ -3756,7 +3756,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
  */
   __pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_is_init = 1;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":91
+  /* "kivy/core/audio_output/audio_sdl2.pyx":91
  * 
  *     mix_is_init = 1
  *     return 1             # <<<<<<<<<<<<<<
@@ -3768,7 +3768,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   __pyx_r = __pyx_int_1;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":55
+  /* "kivy/core/audio_output/audio_sdl2.pyx":55
  * 
  * 
  * cdef mix_init():             # <<<<<<<<<<<<<<
@@ -3792,7 +3792,7 @@ static PyObject *__pyx_f_4kivy_4core_5audio_10audio_sdl2_mix_init(void) {
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":99
+/* "kivy/core/audio_output/audio_sdl2.pyx":99
  *     cdef int channel
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -3823,7 +3823,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer___init__(st
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":100
+  /* "kivy/core/audio_output/audio_sdl2.pyx":100
  * 
  *     def __init__(self):
  *         self.chunk = NULL             # <<<<<<<<<<<<<<
@@ -3832,7 +3832,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer___init__(st
  */
   __pyx_v_self->chunk = NULL;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":101
+  /* "kivy/core/audio_output/audio_sdl2.pyx":101
  *     def __init__(self):
  *         self.chunk = NULL
  *         self.channel = -1             # <<<<<<<<<<<<<<
@@ -3841,7 +3841,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer___init__(st
  */
   __pyx_v_self->channel = -1;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":99
+  /* "kivy/core/audio_output/audio_sdl2.pyx":99
  *     cdef int channel
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -3855,7 +3855,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer___init__(st
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":103
+/* "kivy/core/audio_output/audio_sdl2.pyx":103
  *         self.channel = -1
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -3880,7 +3880,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":104
+  /* "kivy/core/audio_output/audio_sdl2.pyx":104
  * 
  *     def __dealloc__(self):
  *         if self.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -3890,7 +3890,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
   __pyx_t_1 = (__pyx_v_self->chunk != NULL);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":105
+    /* "kivy/core/audio_output/audio_sdl2.pyx":105
  *     def __dealloc__(self):
  *         if self.chunk != NULL:
  *             if Mix_GetChunk(self.channel) == self.chunk:             # <<<<<<<<<<<<<<
@@ -3900,7 +3900,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
     __pyx_t_1 = (Mix_GetChunk(__pyx_v_self->channel) == __pyx_v_self->chunk);
     if (__pyx_t_1) {
 
-      /* "kivy/core/audio/audio_sdl2.pyx":106
+      /* "kivy/core/audio_output/audio_sdl2.pyx":106
  *         if self.chunk != NULL:
  *             if Mix_GetChunk(self.channel) == self.chunk:
  *                 Mix_HaltChannel(self.channel)             # <<<<<<<<<<<<<<
@@ -3909,7 +3909,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
       (void)(Mix_HaltChannel(__pyx_v_self->channel));
 
-      /* "kivy/core/audio/audio_sdl2.pyx":105
+      /* "kivy/core/audio_output/audio_sdl2.pyx":105
  *     def __dealloc__(self):
  *         if self.chunk != NULL:
  *             if Mix_GetChunk(self.channel) == self.chunk:             # <<<<<<<<<<<<<<
@@ -3918,7 +3918,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
     }
 
-    /* "kivy/core/audio/audio_sdl2.pyx":107
+    /* "kivy/core/audio_output/audio_sdl2.pyx":107
  *             if Mix_GetChunk(self.channel) == self.chunk:
  *                 Mix_HaltChannel(self.channel)
  *             Mix_FreeChunk(self.chunk)             # <<<<<<<<<<<<<<
@@ -3927,7 +3927,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
     Mix_FreeChunk(__pyx_v_self->chunk);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":108
+    /* "kivy/core/audio_output/audio_sdl2.pyx":108
  *                 Mix_HaltChannel(self.channel)
  *             Mix_FreeChunk(self.chunk)
  *             self.chunk = NULL             # <<<<<<<<<<<<<<
@@ -3936,7 +3936,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
     __pyx_v_self->chunk = NULL;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":104
+    /* "kivy/core/audio_output/audio_sdl2.pyx":104
  * 
  *     def __dealloc__(self):
  *         if self.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -3945,7 +3945,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":109
+  /* "kivy/core/audio_output/audio_sdl2.pyx":109
  *             Mix_FreeChunk(self.chunk)
  *             self.chunk = NULL
  *         if self.original_chunk != NULL:             # <<<<<<<<<<<<<<
@@ -3955,7 +3955,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
   __pyx_t_1 = (__pyx_v_self->original_chunk != NULL);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":110
+    /* "kivy/core/audio_output/audio_sdl2.pyx":110
  *             self.chunk = NULL
  *         if self.original_chunk != NULL:
  *             Mix_FreeChunk(self.original_chunk)             # <<<<<<<<<<<<<<
@@ -3964,7 +3964,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
     Mix_FreeChunk(__pyx_v_self->original_chunk);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":111
+    /* "kivy/core/audio_output/audio_sdl2.pyx":111
  *         if self.original_chunk != NULL:
  *             Mix_FreeChunk(self.original_chunk)
  *             self.original_chunk = NULL             # <<<<<<<<<<<<<<
@@ -3973,7 +3973,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
     __pyx_v_self->original_chunk = NULL;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":109
+    /* "kivy/core/audio_output/audio_sdl2.pyx":109
  *             Mix_FreeChunk(self.chunk)
  *             self.chunk = NULL
  *         if self.original_chunk != NULL:             # <<<<<<<<<<<<<<
@@ -3982,7 +3982,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_2__dealloc
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":103
+  /* "kivy/core/audio_output/audio_sdl2.pyx":103
  *         self.channel = -1
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4177,7 +4177,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_14ChunkContainer_6__se
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":118
+/* "kivy/core/audio_output/audio_sdl2.pyx":118
  *     cdef int playing
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -4208,7 +4208,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer___init__(st
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":119
+  /* "kivy/core/audio_output/audio_sdl2.pyx":119
  * 
  *     def __init__(self):
  *         self.music = NULL             # <<<<<<<<<<<<<<
@@ -4217,7 +4217,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer___init__(st
  */
   __pyx_v_self->music = NULL;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":120
+  /* "kivy/core/audio_output/audio_sdl2.pyx":120
  *     def __init__(self):
  *         self.music = NULL
  *         self.playing = 0             # <<<<<<<<<<<<<<
@@ -4226,7 +4226,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer___init__(st
  */
   __pyx_v_self->playing = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":118
+  /* "kivy/core/audio_output/audio_sdl2.pyx":118
  *     cdef int playing
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -4240,7 +4240,7 @@ static int __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer___init__(st
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":122
+/* "kivy/core/audio_output/audio_sdl2.pyx":122
  *         self.playing = 0
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4266,7 +4266,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":123
+  /* "kivy/core/audio_output/audio_sdl2.pyx":123
  * 
  *     def __dealloc__(self):
  *         if self.music != NULL:             # <<<<<<<<<<<<<<
@@ -4276,7 +4276,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
   __pyx_t_1 = (__pyx_v_self->music != NULL);
   if (__pyx_t_1) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":125
+    /* "kivy/core/audio_output/audio_sdl2.pyx":125
  *         if self.music != NULL:
  *             # I think FreeMusic halts automatically, probably not needed
  *             if Mix_PlayingMusic() and self.playing:             # <<<<<<<<<<<<<<
@@ -4294,7 +4294,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "kivy/core/audio/audio_sdl2.pyx":126
+      /* "kivy/core/audio_output/audio_sdl2.pyx":126
  *             # I think FreeMusic halts automatically, probably not needed
  *             if Mix_PlayingMusic() and self.playing:
  *                 Mix_HaltMusic()             # <<<<<<<<<<<<<<
@@ -4303,7 +4303,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
  */
       (void)(Mix_HaltMusic());
 
-      /* "kivy/core/audio/audio_sdl2.pyx":125
+      /* "kivy/core/audio_output/audio_sdl2.pyx":125
  *         if self.music != NULL:
  *             # I think FreeMusic halts automatically, probably not needed
  *             if Mix_PlayingMusic() and self.playing:             # <<<<<<<<<<<<<<
@@ -4312,7 +4312,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
  */
     }
 
-    /* "kivy/core/audio/audio_sdl2.pyx":127
+    /* "kivy/core/audio_output/audio_sdl2.pyx":127
  *             if Mix_PlayingMusic() and self.playing:
  *                 Mix_HaltMusic()
  *             Mix_FreeMusic(self.music)             # <<<<<<<<<<<<<<
@@ -4321,7 +4321,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
  */
     Mix_FreeMusic(__pyx_v_self->music);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":128
+    /* "kivy/core/audio_output/audio_sdl2.pyx":128
  *                 Mix_HaltMusic()
  *             Mix_FreeMusic(self.music)
  *             self.music = NULL             # <<<<<<<<<<<<<<
@@ -4330,7 +4330,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
  */
     __pyx_v_self->music = NULL;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":123
+    /* "kivy/core/audio_output/audio_sdl2.pyx":123
  * 
  *     def __dealloc__(self):
  *         if self.music != NULL:             # <<<<<<<<<<<<<<
@@ -4339,7 +4339,7 @@ static void __pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_2__dealloc
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":122
+  /* "kivy/core/audio_output/audio_sdl2.pyx":122
  *         self.playing = 0
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4534,7 +4534,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_14MusicContainer_6__se
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":133
+/* "kivy/core/audio_output/audio_sdl2.pyx":133
  * class SoundSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -4570,7 +4570,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extensions", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":135
+  /* "kivy/core/audio_output/audio_sdl2.pyx":135
  *     @staticmethod
  *     def extensions():
  *         mix_init()             # <<<<<<<<<<<<<<
@@ -4581,7 +4581,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":136
+  /* "kivy/core/audio_output/audio_sdl2.pyx":136
  *     def extensions():
  *         mix_init()
  *         extensions = ["wav"]             # <<<<<<<<<<<<<<
@@ -4596,7 +4596,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __pyx_v_extensions = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":137
+  /* "kivy/core/audio_output/audio_sdl2.pyx":137
  *         mix_init()
  *         extensions = ["wav"]
  *         if mix_flags & MIX_INIT_FLAC:             # <<<<<<<<<<<<<<
@@ -4606,7 +4606,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __pyx_t_2 = ((__pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_flags & MIX_INIT_FLAC) != 0);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":138
+    /* "kivy/core/audio_output/audio_sdl2.pyx":138
  *         extensions = ["wav"]
  *         if mix_flags & MIX_INIT_FLAC:
  *             extensions.append("flac")             # <<<<<<<<<<<<<<
@@ -4615,7 +4615,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
     __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_extensions, __pyx_n_u_flac); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 138, __pyx_L1_error)
 
-    /* "kivy/core/audio/audio_sdl2.pyx":137
+    /* "kivy/core/audio_output/audio_sdl2.pyx":137
  *         mix_init()
  *         extensions = ["wav"]
  *         if mix_flags & MIX_INIT_FLAC:             # <<<<<<<<<<<<<<
@@ -4624,7 +4624,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":139
+  /* "kivy/core/audio_output/audio_sdl2.pyx":139
  *         if mix_flags & MIX_INIT_FLAC:
  *             extensions.append("flac")
  *         if mix_flags & MIX_INIT_MP3:             # <<<<<<<<<<<<<<
@@ -4634,7 +4634,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __pyx_t_2 = ((__pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_flags & MIX_INIT_MP3) != 0);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":140
+    /* "kivy/core/audio_output/audio_sdl2.pyx":140
  *             extensions.append("flac")
  *         if mix_flags & MIX_INIT_MP3:
  *             extensions.append("mp3")             # <<<<<<<<<<<<<<
@@ -4643,7 +4643,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
     __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_extensions, __pyx_n_u_mp3); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 140, __pyx_L1_error)
 
-    /* "kivy/core/audio/audio_sdl2.pyx":139
+    /* "kivy/core/audio_output/audio_sdl2.pyx":139
  *         if mix_flags & MIX_INIT_FLAC:
  *             extensions.append("flac")
  *         if mix_flags & MIX_INIT_MP3:             # <<<<<<<<<<<<<<
@@ -4652,7 +4652,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":141
+  /* "kivy/core/audio_output/audio_sdl2.pyx":141
  *         if mix_flags & MIX_INIT_MP3:
  *             extensions.append("mp3")
  *         if mix_flags & MIX_INIT_OGG:             # <<<<<<<<<<<<<<
@@ -4662,7 +4662,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __pyx_t_2 = ((__pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_flags & MIX_INIT_OGG) != 0);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":142
+    /* "kivy/core/audio_output/audio_sdl2.pyx":142
  *             extensions.append("mp3")
  *         if mix_flags & MIX_INIT_OGG:
  *             extensions.append("ogg")             # <<<<<<<<<<<<<<
@@ -4671,7 +4671,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
     __pyx_t_3 = __Pyx_PyList_Append(__pyx_v_extensions, __pyx_n_u_ogg); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 142, __pyx_L1_error)
 
-    /* "kivy/core/audio/audio_sdl2.pyx":141
+    /* "kivy/core/audio_output/audio_sdl2.pyx":141
  *         if mix_flags & MIX_INIT_MP3:
  *             extensions.append("mp3")
  *         if mix_flags & MIX_INIT_OGG:             # <<<<<<<<<<<<<<
@@ -4680,7 +4680,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":143
+  /* "kivy/core/audio_output/audio_sdl2.pyx":143
  *         if mix_flags & MIX_INIT_OGG:
  *             extensions.append("ogg")
  *         return extensions             # <<<<<<<<<<<<<<
@@ -4692,7 +4692,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   __pyx_r = __pyx_v_extensions;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":133
+  /* "kivy/core/audio_output/audio_sdl2.pyx":133
  * class SoundSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -4712,7 +4712,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_extensions(
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":145
+/* "kivy/core/audio_output/audio_sdl2.pyx":145
  *         return extensions
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -4808,7 +4808,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":146
+  /* "kivy/core/audio_output/audio_sdl2.pyx":146
  * 
  *     def __init__(self, **kwargs):
  *         self._check_play_ev = None             # <<<<<<<<<<<<<<
@@ -4817,7 +4817,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, Py_None) < 0) __PYX_ERR(0, 146, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":147
+  /* "kivy/core/audio_output/audio_sdl2.pyx":147
  *     def __init__(self, **kwargs):
  *         self._check_play_ev = None
  *         self.cc = ChunkContainer()             # <<<<<<<<<<<<<<
@@ -4829,7 +4829,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_cc, __pyx_t_1) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":148
+  /* "kivy/core/audio_output/audio_sdl2.pyx":148
  *         self._check_play_ev = None
  *         self.cc = ChunkContainer()
  *         mix_init()             # <<<<<<<<<<<<<<
@@ -4840,7 +4840,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":149
+  /* "kivy/core/audio_output/audio_sdl2.pyx":149
  *         self.cc = ChunkContainer()
  *         mix_init()
  *         super(SoundSDL2, self).__init__(**kwargs)             # <<<<<<<<<<<<<<
@@ -4871,7 +4871,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":145
+  /* "kivy/core/audio_output/audio_sdl2.pyx":145
  *         return extensions
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -4894,7 +4894,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_2__init__(C
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":151
+/* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -4986,7 +4986,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":158
+/* "kivy/core/audio_output/audio_sdl2.pyx":158
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -5081,7 +5081,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_11_check_pl
   __pyx_outer_scope = (struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2___pyx_scope_struct___check_play *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":159
+  /* "kivy/core/audio_output/audio_sdl2.pyx":159
  *         if self.loop:
  *             def do_loop(dt):
  *                 self.play()             # <<<<<<<<<<<<<<
@@ -5113,7 +5113,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_11_check_pl
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":158
+  /* "kivy/core/audio_output/audio_sdl2.pyx":158
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -5136,7 +5136,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_11_check_pl
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":151
+/* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -5172,7 +5172,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_self);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_self);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":152
+  /* "kivy/core/audio_output/audio_sdl2.pyx":152
  * 
  *     def _check_play(self, dt):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -5185,7 +5185,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":153
+  /* "kivy/core/audio_output/audio_sdl2.pyx":153
  *     def _check_play(self, dt):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.channel == -1 or cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5203,7 +5203,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":154
+    /* "kivy/core/audio_output/audio_sdl2.pyx":154
  *         cdef ChunkContainer cc = self.cc
  *         if cc.channel == -1 or cc.chunk == NULL:
  *             return False             # <<<<<<<<<<<<<<
@@ -5215,7 +5215,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
     __pyx_r = Py_False;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":153
+    /* "kivy/core/audio_output/audio_sdl2.pyx":153
  *     def _check_play(self, dt):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.channel == -1 or cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5224,7 +5224,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":155
+  /* "kivy/core/audio_output/audio_sdl2.pyx":155
  *         if cc.channel == -1 or cc.chunk == NULL:
  *             return False
  *         if Mix_Playing(cc.channel):             # <<<<<<<<<<<<<<
@@ -5234,7 +5234,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __pyx_t_2 = (Mix_Playing(__pyx_v_cc->channel) != 0);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":156
+    /* "kivy/core/audio_output/audio_sdl2.pyx":156
  *             return False
  *         if Mix_Playing(cc.channel):
  *             return             # <<<<<<<<<<<<<<
@@ -5245,7 +5245,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":155
+    /* "kivy/core/audio_output/audio_sdl2.pyx":155
  *         if cc.channel == -1 or cc.chunk == NULL:
  *             return False
  *         if Mix_Playing(cc.channel):             # <<<<<<<<<<<<<<
@@ -5254,7 +5254,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":157
+  /* "kivy/core/audio_output/audio_sdl2.pyx":157
  *         if Mix_Playing(cc.channel):
  *             return
  *         if self.loop:             # <<<<<<<<<<<<<<
@@ -5267,7 +5267,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":158
+    /* "kivy/core/audio_output/audio_sdl2.pyx":158
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -5279,7 +5279,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
     __pyx_v_do_loop = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":160
+    /* "kivy/core/audio_output/audio_sdl2.pyx":160
  *             def do_loop(dt):
  *                 self.play()
  *             Clock.schedule_once(do_loop)             # <<<<<<<<<<<<<<
@@ -5313,7 +5313,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":157
+    /* "kivy/core/audio_output/audio_sdl2.pyx":157
  *         if Mix_Playing(cc.channel):
  *             return
  *         if self.loop:             # <<<<<<<<<<<<<<
@@ -5323,7 +5323,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
     goto __pyx_L7;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":162
+  /* "kivy/core/audio_output/audio_sdl2.pyx":162
  *             Clock.schedule_once(do_loop)
  *         else:
  *             self.stop()             # <<<<<<<<<<<<<<
@@ -5357,7 +5357,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   }
   __pyx_L7:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":163
+  /* "kivy/core/audio_output/audio_sdl2.pyx":163
  *         else:
  *             self.stop()
  *         return False             # <<<<<<<<<<<<<<
@@ -5369,7 +5369,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":151
+  /* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -5393,7 +5393,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_4_check_pla
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":165
+/* "kivy/core/audio_output/audio_sdl2.pyx":165
  *         return False
  * 
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -5490,7 +5490,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_get_length", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":166
+  /* "kivy/core/audio_output/audio_sdl2.pyx":166
  * 
  *     def _get_length(self):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -5503,7 +5503,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":170
+  /* "kivy/core/audio_output/audio_sdl2.pyx":170
  *         cdef unsigned int points, frames
  *         cdef unsigned short fmt
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5513,7 +5513,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   __pyx_t_2 = (__pyx_v_cc->chunk == NULL);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":171
+    /* "kivy/core/audio_output/audio_sdl2.pyx":171
  *         cdef unsigned short fmt
  *         if cc.chunk == NULL:
  *             return 0             # <<<<<<<<<<<<<<
@@ -5525,7 +5525,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
     __pyx_r = __pyx_int_0;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":170
+    /* "kivy/core/audio_output/audio_sdl2.pyx":170
  *         cdef unsigned int points, frames
  *         cdef unsigned short fmt
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5534,7 +5534,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":172
+  /* "kivy/core/audio_output/audio_sdl2.pyx":172
  *         if cc.chunk == NULL:
  *             return 0
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):             # <<<<<<<<<<<<<<
@@ -5544,7 +5544,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   __pyx_t_2 = (!(Mix_QuerySpec((&__pyx_v_freq), (&__pyx_v_fmt), (&__pyx_v_channels)) != 0));
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":173
+    /* "kivy/core/audio_output/audio_sdl2.pyx":173
  *             return 0
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):
  *             return 0             # <<<<<<<<<<<<<<
@@ -5556,7 +5556,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
     __pyx_r = __pyx_int_0;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":172
+    /* "kivy/core/audio_output/audio_sdl2.pyx":172
  *         if cc.chunk == NULL:
  *             return 0
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):             # <<<<<<<<<<<<<<
@@ -5565,7 +5565,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":174
+  /* "kivy/core/audio_output/audio_sdl2.pyx":174
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):
  *             return 0
  *         points = <unsigned int>int(cc.chunk.alen / ((fmt & 0xFF) / 8))             # <<<<<<<<<<<<<<
@@ -5579,7 +5579,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   }
   __pyx_v_points = ((unsigned int)((unsigned int)(((double)__pyx_v_cc->chunk->alen) / __pyx_t_3)));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":175
+  /* "kivy/core/audio_output/audio_sdl2.pyx":175
  *             return 0
  *         points = <unsigned int>int(cc.chunk.alen / ((fmt & 0xFF) / 8))
  *         frames = <unsigned int>int(points / channels)             # <<<<<<<<<<<<<<
@@ -5592,7 +5592,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   }
   __pyx_v_frames = ((unsigned int)((unsigned int)(((double)__pyx_v_points) / ((double)__pyx_v_channels))));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":176
+  /* "kivy/core/audio_output/audio_sdl2.pyx":176
  *         points = <unsigned int>int(cc.chunk.alen / ((fmt & 0xFF) / 8))
  *         frames = <unsigned int>int(points / channels)
  *         return <double>frames / <double>freq             # <<<<<<<<<<<<<<
@@ -5610,7 +5610,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":165
+  /* "kivy/core/audio_output/audio_sdl2.pyx":165
  *         return False
  * 
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -5630,7 +5630,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_6_get_lengt
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":178
+/* "kivy/core/audio_output/audio_sdl2.pyx":178
  *         return <double>frames / <double>freq
  * 
  *     def on_pitch(self, instance, value):             # <<<<<<<<<<<<<<
@@ -5753,7 +5753,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("on_pitch", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":179
+  /* "kivy/core/audio_output/audio_sdl2.pyx":179
  * 
  *     def on_pitch(self, instance, value):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -5766,7 +5766,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":183
+  /* "kivy/core/audio_output/audio_sdl2.pyx":183
  *         cdef unsigned short fmt
  *         cdef SDL_AudioCVT cvt
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5776,7 +5776,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   __pyx_t_2 = (__pyx_v_cc->chunk == NULL);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":184
+    /* "kivy/core/audio_output/audio_sdl2.pyx":184
  *         cdef SDL_AudioCVT cvt
  *         if cc.chunk == NULL:
  *             return             # <<<<<<<<<<<<<<
@@ -5787,7 +5787,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":183
+    /* "kivy/core/audio_output/audio_sdl2.pyx":183
  *         cdef unsigned short fmt
  *         cdef SDL_AudioCVT cvt
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -5796,7 +5796,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":185
+  /* "kivy/core/audio_output/audio_sdl2.pyx":185
  *         if cc.chunk == NULL:
  *             return
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):             # <<<<<<<<<<<<<<
@@ -5806,7 +5806,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   __pyx_t_2 = (!(Mix_QuerySpec((&__pyx_v_freq), (&__pyx_v_fmt), (&__pyx_v_channels)) != 0));
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":186
+    /* "kivy/core/audio_output/audio_sdl2.pyx":186
  *             return
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):
  *             return             # <<<<<<<<<<<<<<
@@ -5817,7 +5817,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":185
+    /* "kivy/core/audio_output/audio_sdl2.pyx":185
  *         if cc.chunk == NULL:
  *             return
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):             # <<<<<<<<<<<<<<
@@ -5826,7 +5826,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":189
+  /* "kivy/core/audio_output/audio_sdl2.pyx":189
  *         SDL_BuildAudioCVT(
  *             &cvt,
  *             fmt, channels, int(freq * self.pitch),             # <<<<<<<<<<<<<<
@@ -5847,7 +5847,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":187
+  /* "kivy/core/audio_output/audio_sdl2.pyx":187
  *         if not Mix_QuerySpec(&freq, &fmt, &channels):
  *             return
  *         SDL_BuildAudioCVT(             # <<<<<<<<<<<<<<
@@ -5856,7 +5856,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   (void)(SDL_BuildAudioCVT((&__pyx_v_cvt), __pyx_v_fmt, __pyx_v_channels, __pyx_t_5, __pyx_v_fmt, __pyx_v_channels, __pyx_v_freq));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":192
+  /* "kivy/core/audio_output/audio_sdl2.pyx":192
  *             fmt, channels, freq,
  *         )
  *         cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)             # <<<<<<<<<<<<<<
@@ -5865,7 +5865,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   __pyx_v_cvt.buf = ((Uint8 *)malloc((__pyx_v_cc->original_chunk->alen * __pyx_v_cvt.len_mult)));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":193
+  /* "kivy/core/audio_output/audio_sdl2.pyx":193
  *         )
  *         cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
  *         cvt.len = cc.original_chunk.alen             # <<<<<<<<<<<<<<
@@ -5875,7 +5875,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   __pyx_t_6 = __pyx_v_cc->original_chunk->alen;
   __pyx_v_cvt.len = __pyx_t_6;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":194
+  /* "kivy/core/audio_output/audio_sdl2.pyx":194
  *         cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
  *         cvt.len = cc.original_chunk.alen
  *         memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)             # <<<<<<<<<<<<<<
@@ -5884,7 +5884,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   (void)(memcpy(__pyx_v_cvt.buf, __pyx_v_cc->original_chunk->abuf, __pyx_v_cc->original_chunk->alen));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":195
+  /* "kivy/core/audio_output/audio_sdl2.pyx":195
  *         cvt.len = cc.original_chunk.alen
  *         memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
  *         SDL_ConvertAudio(&cvt)             # <<<<<<<<<<<<<<
@@ -5893,7 +5893,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   (void)(SDL_ConvertAudio((&__pyx_v_cvt)));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":196
+  /* "kivy/core/audio_output/audio_sdl2.pyx":196
  *         memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
  *         SDL_ConvertAudio(&cvt)
  *         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))             # <<<<<<<<<<<<<<
@@ -5902,7 +5902,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
  */
   __pyx_v_cc->chunk = Mix_QuickLoad_RAW(__pyx_v_cvt.buf, ((Uint32)(__pyx_v_cvt.len * __pyx_v_cvt.len_ratio)));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":178
+  /* "kivy/core/audio_output/audio_sdl2.pyx":178
  *         return <double>frames / <double>freq
  * 
  *     def on_pitch(self, instance, value):             # <<<<<<<<<<<<<<
@@ -5926,7 +5926,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_8on_pitch(C
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":198
+/* "kivy/core/audio_output/audio_sdl2.pyx":198
  *         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -6025,7 +6025,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("play", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":199
+  /* "kivy/core/audio_output/audio_sdl2.pyx":199
  * 
  *     def play(self):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -6038,7 +6038,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":200
+  /* "kivy/core/audio_output/audio_sdl2.pyx":200
  *     def play(self):
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()             # <<<<<<<<<<<<<<
@@ -6069,7 +6069,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":201
+  /* "kivy/core/audio_output/audio_sdl2.pyx":201
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -6079,7 +6079,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   __pyx_t_5 = (__pyx_v_cc->chunk == NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":202
+    /* "kivy/core/audio_output/audio_sdl2.pyx":202
  *         self.stop()
  *         if cc.chunk == NULL:
  *             return             # <<<<<<<<<<<<<<
@@ -6090,7 +6090,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":201
+    /* "kivy/core/audio_output/audio_sdl2.pyx":201
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -6099,7 +6099,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":203
+  /* "kivy/core/audio_output/audio_sdl2.pyx":203
  *         if cc.chunk == NULL:
  *             return
  *         cc.chunk.volume = int(self.volume * 128)             # <<<<<<<<<<<<<<
@@ -6118,7 +6118,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_cc->chunk->volume = __pyx_t_6;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":204
+  /* "kivy/core/audio_output/audio_sdl2.pyx":204
  *             return
  *         cc.chunk.volume = int(self.volume * 128)
  *         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)             # <<<<<<<<<<<<<<
@@ -6127,7 +6127,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
  */
   __pyx_v_cc->channel = Mix_PlayChannel(-1, __pyx_v_cc->chunk, 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":205
+  /* "kivy/core/audio_output/audio_sdl2.pyx":205
  *         cc.chunk.volume = int(self.volume * 128)
  *         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
  *         if cc.channel == -1:             # <<<<<<<<<<<<<<
@@ -6137,7 +6137,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   __pyx_t_5 = (__pyx_v_cc->channel == -1L);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":206
+    /* "kivy/core/audio_output/audio_sdl2.pyx":206
  *         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
  *         if cc.channel == -1:
  *             Logger.warning('AudioSDL2: Unable to play {}: {}'.format(             # <<<<<<<<<<<<<<
@@ -6152,7 +6152,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
     __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_play, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 206, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":207
+    /* "kivy/core/audio_output/audio_sdl2.pyx":207
  *         if cc.channel == -1:
  *             Logger.warning('AudioSDL2: Unable to play {}: {}'.format(
  *                            self.source, Mix_GetError()))             # <<<<<<<<<<<<<<
@@ -6208,7 +6208,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":208
+    /* "kivy/core/audio_output/audio_sdl2.pyx":208
  *             Logger.warning('AudioSDL2: Unable to play {}: {}'.format(
  *                            self.source, Mix_GetError()))
  *             return             # <<<<<<<<<<<<<<
@@ -6219,7 +6219,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":205
+    /* "kivy/core/audio_output/audio_sdl2.pyx":205
  *         cc.chunk.volume = int(self.volume * 128)
  *         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
  *         if cc.channel == -1:             # <<<<<<<<<<<<<<
@@ -6228,7 +6228,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":210
+  /* "kivy/core/audio_output/audio_sdl2.pyx":210
  *             return
  *         # schedule event to check if the sound is still playing or not
  *         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)             # <<<<<<<<<<<<<<
@@ -6266,7 +6266,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, __pyx_t_1) < 0) __PYX_ERR(0, 210, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":211
+  /* "kivy/core/audio_output/audio_sdl2.pyx":211
  *         # schedule event to check if the sound is still playing or not
  *         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
  *         super(SoundSDL2, self).play()             # <<<<<<<<<<<<<<
@@ -6311,7 +6311,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":198
+  /* "kivy/core/audio_output/audio_sdl2.pyx":198
  *         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -6339,7 +6339,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_10play(CYTH
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":213
+/* "kivy/core/audio_output/audio_sdl2.pyx":213
  *         super(SoundSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -6434,7 +6434,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("stop", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":214
+  /* "kivy/core/audio_output/audio_sdl2.pyx":214
  * 
  *     def stop(self):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -6447,7 +6447,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":215
+  /* "kivy/core/audio_output/audio_sdl2.pyx":215
  *     def stop(self):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk == NULL or cc.channel == -1:             # <<<<<<<<<<<<<<
@@ -6465,7 +6465,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":216
+    /* "kivy/core/audio_output/audio_sdl2.pyx":216
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk == NULL or cc.channel == -1:
  *             return             # <<<<<<<<<<<<<<
@@ -6476,7 +6476,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":215
+    /* "kivy/core/audio_output/audio_sdl2.pyx":215
  *     def stop(self):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk == NULL or cc.channel == -1:             # <<<<<<<<<<<<<<
@@ -6485,7 +6485,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":217
+  /* "kivy/core/audio_output/audio_sdl2.pyx":217
  *         if cc.chunk == NULL or cc.channel == -1:
  *             return
  *         if Mix_GetChunk(cc.channel) == cc.chunk:             # <<<<<<<<<<<<<<
@@ -6495,7 +6495,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   __pyx_t_2 = (Mix_GetChunk(__pyx_v_cc->channel) == __pyx_v_cc->chunk);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":218
+    /* "kivy/core/audio_output/audio_sdl2.pyx":218
  *             return
  *         if Mix_GetChunk(cc.channel) == cc.chunk:
  *             Mix_HaltChannel(cc.channel)             # <<<<<<<<<<<<<<
@@ -6504,7 +6504,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
     (void)(Mix_HaltChannel(__pyx_v_cc->channel));
 
-    /* "kivy/core/audio/audio_sdl2.pyx":217
+    /* "kivy/core/audio_output/audio_sdl2.pyx":217
  *         if cc.chunk == NULL or cc.channel == -1:
  *             return
  *         if Mix_GetChunk(cc.channel) == cc.chunk:             # <<<<<<<<<<<<<<
@@ -6513,7 +6513,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":219
+  /* "kivy/core/audio_output/audio_sdl2.pyx":219
  *         if Mix_GetChunk(cc.channel) == cc.chunk:
  *             Mix_HaltChannel(cc.channel)
  *         cc.channel = -1             # <<<<<<<<<<<<<<
@@ -6522,7 +6522,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
   __pyx_v_cc->channel = -1;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":220
+  /* "kivy/core/audio_output/audio_sdl2.pyx":220
  *             Mix_HaltChannel(cc.channel)
  *         cc.channel = -1
  *         if self._check_play_ev is not None:             # <<<<<<<<<<<<<<
@@ -6535,7 +6535,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":221
+    /* "kivy/core/audio_output/audio_sdl2.pyx":221
  *         cc.channel = -1
  *         if self._check_play_ev is not None:
  *             self._check_play_ev.cancel()             # <<<<<<<<<<<<<<
@@ -6569,7 +6569,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":222
+    /* "kivy/core/audio_output/audio_sdl2.pyx":222
  *         if self._check_play_ev is not None:
  *             self._check_play_ev.cancel()
  *             self._check_play_ev = None             # <<<<<<<<<<<<<<
@@ -6578,7 +6578,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
     if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, Py_None) < 0) __PYX_ERR(0, 222, __pyx_L1_error)
 
-    /* "kivy/core/audio/audio_sdl2.pyx":220
+    /* "kivy/core/audio_output/audio_sdl2.pyx":220
  *             Mix_HaltChannel(cc.channel)
  *         cc.channel = -1
  *         if self._check_play_ev is not None:             # <<<<<<<<<<<<<<
@@ -6587,7 +6587,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":223
+  /* "kivy/core/audio_output/audio_sdl2.pyx":223
  *             self._check_play_ev.cancel()
  *             self._check_play_ev = None
  *         super(SoundSDL2, self).stop()             # <<<<<<<<<<<<<<
@@ -6632,7 +6632,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":213
+  /* "kivy/core/audio_output/audio_sdl2.pyx":213
  *         super(SoundSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -6656,7 +6656,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_12stop(CYTH
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":225
+/* "kivy/core/audio_output/audio_sdl2.pyx":225
  *         super(SoundSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -6757,7 +6757,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("load", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":226
+  /* "kivy/core/audio_output/audio_sdl2.pyx":226
  * 
  *     def load(self):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -6770,7 +6770,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":227
+  /* "kivy/core/audio_output/audio_sdl2.pyx":227
  *     def load(self):
  *         cdef ChunkContainer cc = self.cc
  *         self.unload()             # <<<<<<<<<<<<<<
@@ -6801,7 +6801,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":228
+  /* "kivy/core/audio_output/audio_sdl2.pyx":228
  *         cdef ChunkContainer cc = self.cc
  *         self.unload()
  *         if self.source is None:             # <<<<<<<<<<<<<<
@@ -6814,7 +6814,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":229
+    /* "kivy/core/audio_output/audio_sdl2.pyx":229
  *         self.unload()
  *         if self.source is None:
  *             return             # <<<<<<<<<<<<<<
@@ -6825,7 +6825,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":228
+    /* "kivy/core/audio_output/audio_sdl2.pyx":228
  *         cdef ChunkContainer cc = self.cc
  *         self.unload()
  *         if self.source is None:             # <<<<<<<<<<<<<<
@@ -6834,7 +6834,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":231
+  /* "kivy/core/audio_output/audio_sdl2.pyx":231
  *             return
  * 
  *         if isinstance(self.source, bytes):             # <<<<<<<<<<<<<<
@@ -6847,7 +6847,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":232
+    /* "kivy/core/audio_output/audio_sdl2.pyx":232
  * 
  *         if isinstance(self.source, bytes):
  *             fn = self.source             # <<<<<<<<<<<<<<
@@ -6859,7 +6859,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     __pyx_v_fn = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":231
+    /* "kivy/core/audio_output/audio_sdl2.pyx":231
  *             return
  * 
  *         if isinstance(self.source, bytes):             # <<<<<<<<<<<<<<
@@ -6869,7 +6869,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     goto __pyx_L4;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":234
+  /* "kivy/core/audio_output/audio_sdl2.pyx":234
  *             fn = self.source
  *         else:
  *             fn = self.source.encode('UTF-8')             # <<<<<<<<<<<<<<
@@ -6907,7 +6907,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   }
   __pyx_L4:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":236
+  /* "kivy/core/audio_output/audio_sdl2.pyx":236
  *             fn = self.source.encode('UTF-8')
  * 
  *         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)             # <<<<<<<<<<<<<<
@@ -6921,7 +6921,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   __pyx_t_6 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 236, __pyx_L1_error)
   __pyx_v_cc->chunk = Mix_LoadWAV(((char *)__pyx_t_6));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":237
+  /* "kivy/core/audio_output/audio_sdl2.pyx":237
  * 
  *         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -6931,7 +6931,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   __pyx_t_5 = (__pyx_v_cc->chunk == NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":238
+    /* "kivy/core/audio_output/audio_sdl2.pyx":238
  *         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
  *         if cc.chunk == NULL:
  *             Logger.warning('AudioSDL2: Unable to load {}: {}'.format(             # <<<<<<<<<<<<<<
@@ -6946,7 +6946,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_load, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 238, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":239
+    /* "kivy/core/audio_output/audio_sdl2.pyx":239
  *         if cc.chunk == NULL:
  *             Logger.warning('AudioSDL2: Unable to load {}: {}'.format(
  *                            self.source, Mix_GetError()))             # <<<<<<<<<<<<<<
@@ -7002,7 +7002,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":237
+    /* "kivy/core/audio_output/audio_sdl2.pyx":237
  * 
  *         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
  *         if cc.chunk == NULL:             # <<<<<<<<<<<<<<
@@ -7012,7 +7012,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     goto __pyx_L5;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":241
+  /* "kivy/core/audio_output/audio_sdl2.pyx":241
  *                            self.source, Mix_GetError()))
  *         else:
  *             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)             # <<<<<<<<<<<<<<
@@ -7022,7 +7022,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   /*else*/ {
     __pyx_v_cc->original_chunk = Mix_QuickLoad_RAW(__pyx_v_cc->chunk->abuf, __pyx_v_cc->chunk->alen);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":242
+    /* "kivy/core/audio_output/audio_sdl2.pyx":242
  *         else:
  *             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
  *             cc.chunk.volume = int(self.volume * 128)             # <<<<<<<<<<<<<<
@@ -7041,7 +7041,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_cc->chunk->volume = __pyx_t_11;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":243
+    /* "kivy/core/audio_output/audio_sdl2.pyx":243
  *             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
  *             cc.chunk.volume = int(self.volume * 128)
  *             if self.pitch != 1.:             # <<<<<<<<<<<<<<
@@ -7054,7 +7054,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_5) {
 
-      /* "kivy/core/audio/audio_sdl2.pyx":244
+      /* "kivy/core/audio_output/audio_sdl2.pyx":244
  *             cc.chunk.volume = int(self.volume * 128)
  *             if self.pitch != 1.:
  *                 self.on_pitch(self, self.pitch)             # <<<<<<<<<<<<<<
@@ -7088,7 +7088,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
       }
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "kivy/core/audio/audio_sdl2.pyx":243
+      /* "kivy/core/audio_output/audio_sdl2.pyx":243
  *             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
  *             cc.chunk.volume = int(self.volume * 128)
  *             if self.pitch != 1.:             # <<<<<<<<<<<<<<
@@ -7099,7 +7099,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   }
   __pyx_L5:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":225
+  /* "kivy/core/audio_output/audio_sdl2.pyx":225
  *         super(SoundSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -7128,7 +7128,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_14load(CYTH
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":246
+/* "kivy/core/audio_output/audio_sdl2.pyx":246
  *                 self.on_pitch(self, self.pitch)
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -7222,7 +7222,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("unload", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":247
+  /* "kivy/core/audio_output/audio_sdl2.pyx":247
  * 
  *     def unload(self):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -7235,7 +7235,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":248
+  /* "kivy/core/audio_output/audio_sdl2.pyx":248
  *     def unload(self):
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()             # <<<<<<<<<<<<<<
@@ -7266,7 +7266,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":249
+  /* "kivy/core/audio_output/audio_sdl2.pyx":249
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()
  *         if cc.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -7276,7 +7276,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
   __pyx_t_5 = (__pyx_v_cc->chunk != NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":250
+    /* "kivy/core/audio_output/audio_sdl2.pyx":250
  *         self.stop()
  *         if cc.chunk != NULL:
  *             Mix_FreeChunk(cc.chunk)             # <<<<<<<<<<<<<<
@@ -7285,7 +7285,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
  */
     Mix_FreeChunk(__pyx_v_cc->chunk);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":251
+    /* "kivy/core/audio_output/audio_sdl2.pyx":251
  *         if cc.chunk != NULL:
  *             Mix_FreeChunk(cc.chunk)
  *             cc.chunk = NULL             # <<<<<<<<<<<<<<
@@ -7294,7 +7294,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
  */
     __pyx_v_cc->chunk = NULL;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":249
+    /* "kivy/core/audio_output/audio_sdl2.pyx":249
  *         cdef ChunkContainer cc = self.cc
  *         self.stop()
  *         if cc.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -7303,7 +7303,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":246
+  /* "kivy/core/audio_output/audio_sdl2.pyx":246
  *                 self.on_pitch(self, self.pitch)
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -7327,7 +7327,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_16unload(CY
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":253
+/* "kivy/core/audio_output/audio_sdl2.pyx":253
  *             cc.chunk = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -7444,7 +7444,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("on_volume", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":254
+  /* "kivy/core/audio_output/audio_sdl2.pyx":254
  * 
  *     def on_volume(self, instance, volume):
  *         cdef ChunkContainer cc = self.cc             # <<<<<<<<<<<<<<
@@ -7457,7 +7457,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
   __pyx_v_cc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_ChunkContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":255
+  /* "kivy/core/audio_output/audio_sdl2.pyx":255
  *     def on_volume(self, instance, volume):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -7467,7 +7467,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
   __pyx_t_2 = (__pyx_v_cc->chunk != NULL);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":256
+    /* "kivy/core/audio_output/audio_sdl2.pyx":256
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk != NULL:
  *             cc.chunk.volume = int(volume * 128)             # <<<<<<<<<<<<<<
@@ -7483,7 +7483,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_cc->chunk->volume = __pyx_t_4;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":255
+    /* "kivy/core/audio_output/audio_sdl2.pyx":255
  *     def on_volume(self, instance, volume):
  *         cdef ChunkContainer cc = self.cc
  *         if cc.chunk != NULL:             # <<<<<<<<<<<<<<
@@ -7492,7 +7492,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":253
+  /* "kivy/core/audio_output/audio_sdl2.pyx":253
  *             cc.chunk = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -7515,7 +7515,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9SoundSDL2_18on_volume
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":263
+/* "kivy/core/audio_output/audio_sdl2.pyx":263
  * class MusicSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -7551,7 +7551,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extensions", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":265
+  /* "kivy/core/audio_output/audio_sdl2.pyx":265
  *     @staticmethod
  *     def extensions():
  *         mix_init()             # <<<<<<<<<<<<<<
@@ -7562,7 +7562,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":272
+  /* "kivy/core/audio_output/audio_sdl2.pyx":272
  *         # modplug, fluidsynth or timidity in reality. It may also be
  *         # disabled completely, in which case loading it will fail
  *         extensions = set(['mid', 'midi'])             # <<<<<<<<<<<<<<
@@ -7576,7 +7576,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   __pyx_v_extensions = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":276
+  /* "kivy/core/audio_output/audio_sdl2.pyx":276
  *         # libmodplug and libmikmod, may be incomplete.
  *         # 0x4 is for mixer < 2.0.2, MIX_INIT_MODPLUG
  *         if mix_flags & (MIX_INIT_MOD | 0x4):             # <<<<<<<<<<<<<<
@@ -7586,7 +7586,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   __pyx_t_2 = ((__pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_flags & (MIX_INIT_MOD | 0x4)) != 0);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":277
+    /* "kivy/core/audio_output/audio_sdl2.pyx":277
  *         # 0x4 is for mixer < 2.0.2, MIX_INIT_MODPLUG
  *         if mix_flags & (MIX_INIT_MOD | 0x4):
  *             extensions.update(['669', 'abc', 'amf', 'ams', 'apun', 'dbm',             # <<<<<<<<<<<<<<
@@ -7684,7 +7684,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":276
+    /* "kivy/core/audio_output/audio_sdl2.pyx":276
  *         # libmodplug and libmikmod, may be incomplete.
  *         # 0x4 is for mixer < 2.0.2, MIX_INIT_MODPLUG
  *         if mix_flags & (MIX_INIT_MOD | 0x4):             # <<<<<<<<<<<<<<
@@ -7693,7 +7693,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":283
+  /* "kivy/core/audio_output/audio_sdl2.pyx":283
  *                                'ult', 'umx', 'uni', 'xm'])
  * 
  *         return list(extensions)             # <<<<<<<<<<<<<<
@@ -7707,7 +7707,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":263
+  /* "kivy/core/audio_output/audio_sdl2.pyx":263
  * class MusicSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -7728,7 +7728,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_extensions(
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":285
+/* "kivy/core/audio_output/audio_sdl2.pyx":285
  *         return list(extensions)
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -7824,7 +7824,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":286
+  /* "kivy/core/audio_output/audio_sdl2.pyx":286
  * 
  *     def __init__(self, **kwargs):
  *         self.mc = MusicContainer()             # <<<<<<<<<<<<<<
@@ -7836,7 +7836,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_mc, __pyx_t_1) < 0) __PYX_ERR(0, 286, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":287
+  /* "kivy/core/audio_output/audio_sdl2.pyx":287
  *     def __init__(self, **kwargs):
  *         self.mc = MusicContainer()
  *         self._check_play_ev = None             # <<<<<<<<<<<<<<
@@ -7845,7 +7845,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, Py_None) < 0) __PYX_ERR(0, 287, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":288
+  /* "kivy/core/audio_output/audio_sdl2.pyx":288
  *         self.mc = MusicContainer()
  *         self._check_play_ev = None
  *         mix_init()             # <<<<<<<<<<<<<<
@@ -7856,7 +7856,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":289
+  /* "kivy/core/audio_output/audio_sdl2.pyx":289
  *         self._check_play_ev = None
  *         mix_init()
  *         super(MusicSDL2, self).__init__(**kwargs)             # <<<<<<<<<<<<<<
@@ -7887,7 +7887,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":285
+  /* "kivy/core/audio_output/audio_sdl2.pyx":285
  *         return list(extensions)
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -7910,7 +7910,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_2__init__(C
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":291
+/* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -8002,7 +8002,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":298
+/* "kivy/core/audio_output/audio_sdl2.pyx":298
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -8097,7 +8097,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_11_check_pl
   __pyx_outer_scope = (struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2___pyx_scope_struct_1__check_play *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":299
+  /* "kivy/core/audio_output/audio_sdl2.pyx":299
  *         if self.loop:
  *             def do_loop(dt):
  *                 self.play()             # <<<<<<<<<<<<<<
@@ -8129,7 +8129,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_11_check_pl
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":298
+  /* "kivy/core/audio_output/audio_sdl2.pyx":298
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -8152,7 +8152,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_11_check_pl
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":291
+/* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -8188,7 +8188,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_self);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_self);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":292
+  /* "kivy/core/audio_output/audio_sdl2.pyx":292
  * 
  *     def _check_play(self, dt):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -8201,7 +8201,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":293
+  /* "kivy/core/audio_output/audio_sdl2.pyx":293
  *     def _check_play(self, dt):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8211,7 +8211,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __pyx_t_2 = (__pyx_v_mc->music == NULL);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":294
+    /* "kivy/core/audio_output/audio_sdl2.pyx":294
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:
  *             return False             # <<<<<<<<<<<<<<
@@ -8223,7 +8223,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
     __pyx_r = Py_False;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":293
+    /* "kivy/core/audio_output/audio_sdl2.pyx":293
  *     def _check_play(self, dt):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8232,7 +8232,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":295
+  /* "kivy/core/audio_output/audio_sdl2.pyx":295
  *         if mc.music == NULL:
  *             return False
  *         if mc.playing and Mix_PlayingMusic():             # <<<<<<<<<<<<<<
@@ -8250,7 +8250,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":296
+    /* "kivy/core/audio_output/audio_sdl2.pyx":296
  *             return False
  *         if mc.playing and Mix_PlayingMusic():
  *             return             # <<<<<<<<<<<<<<
@@ -8261,7 +8261,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":295
+    /* "kivy/core/audio_output/audio_sdl2.pyx":295
  *         if mc.music == NULL:
  *             return False
  *         if mc.playing and Mix_PlayingMusic():             # <<<<<<<<<<<<<<
@@ -8270,7 +8270,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":297
+  /* "kivy/core/audio_output/audio_sdl2.pyx":297
  *         if mc.playing and Mix_PlayingMusic():
  *             return
  *         if self.loop:             # <<<<<<<<<<<<<<
@@ -8283,7 +8283,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":298
+    /* "kivy/core/audio_output/audio_sdl2.pyx":298
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -8295,7 +8295,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
     __pyx_v_do_loop = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":300
+    /* "kivy/core/audio_output/audio_sdl2.pyx":300
  *             def do_loop(dt):
  *                 self.play()
  *             Clock.schedule_once(do_loop)             # <<<<<<<<<<<<<<
@@ -8329,7 +8329,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":297
+    /* "kivy/core/audio_output/audio_sdl2.pyx":297
  *         if mc.playing and Mix_PlayingMusic():
  *             return
  *         if self.loop:             # <<<<<<<<<<<<<<
@@ -8339,7 +8339,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
     goto __pyx_L7;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":302
+  /* "kivy/core/audio_output/audio_sdl2.pyx":302
  *             Clock.schedule_once(do_loop)
  *         else:
  *             self.stop()             # <<<<<<<<<<<<<<
@@ -8373,7 +8373,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   }
   __pyx_L7:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":303
+  /* "kivy/core/audio_output/audio_sdl2.pyx":303
  *         else:
  *             self.stop()
  *         return False             # <<<<<<<<<<<<<<
@@ -8385,7 +8385,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":291
+  /* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -8409,7 +8409,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_4_check_pla
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":306
+/* "kivy/core/audio_output/audio_sdl2.pyx":306
  * 
  *     # No way to check length; return -1 if music is loaded, 0 otherwise
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -8500,7 +8500,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_get_length", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":307
+  /* "kivy/core/audio_output/audio_sdl2.pyx":307
  *     # No way to check length; return -1 if music is loaded, 0 otherwise
  *     def _get_length(self):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -8513,7 +8513,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":308
+  /* "kivy/core/audio_output/audio_sdl2.pyx":308
  *     def _get_length(self):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8523,7 +8523,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
   __pyx_t_2 = (__pyx_v_mc->music == NULL);
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":309
+    /* "kivy/core/audio_output/audio_sdl2.pyx":309
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:
  *             return -1             # <<<<<<<<<<<<<<
@@ -8535,7 +8535,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
     __pyx_r = __pyx_int_neg_1;
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":308
+    /* "kivy/core/audio_output/audio_sdl2.pyx":308
  *     def _get_length(self):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8544,7 +8544,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":310
+  /* "kivy/core/audio_output/audio_sdl2.pyx":310
  *         if mc.music == NULL:
  *             return -1
  *         return 0             # <<<<<<<<<<<<<<
@@ -8556,7 +8556,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":306
+  /* "kivy/core/audio_output/audio_sdl2.pyx":306
  * 
  *     # No way to check length; return -1 if music is loaded, 0 otherwise
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -8576,7 +8576,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_6_get_lengt
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":312
+/* "kivy/core/audio_output/audio_sdl2.pyx":312
  *         return 0
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -8674,7 +8674,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("play", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":313
+  /* "kivy/core/audio_output/audio_sdl2.pyx":313
  * 
  *     def play(self):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -8687,7 +8687,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":314
+  /* "kivy/core/audio_output/audio_sdl2.pyx":314
  *     def play(self):
  *         cdef MusicContainer mc = self.mc
  *         self.stop()             # <<<<<<<<<<<<<<
@@ -8718,7 +8718,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":315
+  /* "kivy/core/audio_output/audio_sdl2.pyx":315
  *         cdef MusicContainer mc = self.mc
  *         self.stop()
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8728,7 +8728,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   __pyx_t_5 = (__pyx_v_mc->music == NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":316
+    /* "kivy/core/audio_output/audio_sdl2.pyx":316
  *         self.stop()
  *         if mc.music == NULL:
  *             return             # <<<<<<<<<<<<<<
@@ -8739,7 +8739,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":315
+    /* "kivy/core/audio_output/audio_sdl2.pyx":315
  *         cdef MusicContainer mc = self.mc
  *         self.stop()
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -8748,7 +8748,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":317
+  /* "kivy/core/audio_output/audio_sdl2.pyx":317
  *         if mc.music == NULL:
  *             return
  *         Mix_VolumeMusic(int(self.volume * 128))             # <<<<<<<<<<<<<<
@@ -8767,7 +8767,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (void)(Mix_VolumeMusic(__pyx_t_4));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":318
+  /* "kivy/core/audio_output/audio_sdl2.pyx":318
  *             return
  *         Mix_VolumeMusic(int(self.volume * 128))
  *         if Mix_PlayMusic(mc.music, 1) == -1:             # <<<<<<<<<<<<<<
@@ -8777,7 +8777,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   __pyx_t_5 = (Mix_PlayMusic(__pyx_v_mc->music, 1) == -1L);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":319
+    /* "kivy/core/audio_output/audio_sdl2.pyx":319
  *         Mix_VolumeMusic(int(self.volume * 128))
  *         if Mix_PlayMusic(mc.music, 1) == -1:
  *             Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(             # <<<<<<<<<<<<<<
@@ -8792,7 +8792,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
     __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_play_music, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 319, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":320
+    /* "kivy/core/audio_output/audio_sdl2.pyx":320
  *         if Mix_PlayMusic(mc.music, 1) == -1:
  *             Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(
  *                            self.source, Mix_GetError()))             # <<<<<<<<<<<<<<
@@ -8848,7 +8848,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":321
+    /* "kivy/core/audio_output/audio_sdl2.pyx":321
  *             Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(
  *                            self.source, Mix_GetError()))
  *             return             # <<<<<<<<<<<<<<
@@ -8859,7 +8859,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":318
+    /* "kivy/core/audio_output/audio_sdl2.pyx":318
  *             return
  *         Mix_VolumeMusic(int(self.volume * 128))
  *         if Mix_PlayMusic(mc.music, 1) == -1:             # <<<<<<<<<<<<<<
@@ -8868,7 +8868,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":322
+  /* "kivy/core/audio_output/audio_sdl2.pyx":322
  *                            self.source, Mix_GetError()))
  *             return
  *         mc.playing = 1             # <<<<<<<<<<<<<<
@@ -8877,7 +8877,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
  */
   __pyx_v_mc->playing = 1;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":324
+  /* "kivy/core/audio_output/audio_sdl2.pyx":324
  *         mc.playing = 1
  *         # schedule event to check if the sound is still playing or not
  *         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)             # <<<<<<<<<<<<<<
@@ -8915,7 +8915,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, __pyx_t_1) < 0) __PYX_ERR(0, 324, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":325
+  /* "kivy/core/audio_output/audio_sdl2.pyx":325
  *         # schedule event to check if the sound is still playing or not
  *         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
  *         super(MusicSDL2, self).play()             # <<<<<<<<<<<<<<
@@ -8960,7 +8960,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":312
+  /* "kivy/core/audio_output/audio_sdl2.pyx":312
  *         return 0
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -8988,7 +8988,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_8play(CYTHO
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":327
+/* "kivy/core/audio_output/audio_sdl2.pyx":327
  *         super(MusicSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -9083,7 +9083,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("stop", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":328
+  /* "kivy/core/audio_output/audio_sdl2.pyx":328
  * 
  *     def stop(self):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -9096,7 +9096,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":329
+  /* "kivy/core/audio_output/audio_sdl2.pyx":329
  *     def stop(self):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL or not mc.playing:             # <<<<<<<<<<<<<<
@@ -9114,7 +9114,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":330
+    /* "kivy/core/audio_output/audio_sdl2.pyx":330
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL or not mc.playing:
  *             return             # <<<<<<<<<<<<<<
@@ -9125,7 +9125,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":329
+    /* "kivy/core/audio_output/audio_sdl2.pyx":329
  *     def stop(self):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music == NULL or not mc.playing:             # <<<<<<<<<<<<<<
@@ -9134,7 +9134,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":331
+  /* "kivy/core/audio_output/audio_sdl2.pyx":331
  *         if mc.music == NULL or not mc.playing:
  *             return
  *         Mix_HaltMusic()             # <<<<<<<<<<<<<<
@@ -9143,7 +9143,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
  */
   (void)(Mix_HaltMusic());
 
-  /* "kivy/core/audio/audio_sdl2.pyx":332
+  /* "kivy/core/audio_output/audio_sdl2.pyx":332
  *             return
  *         Mix_HaltMusic()
  *         mc.playing = 0             # <<<<<<<<<<<<<<
@@ -9152,7 +9152,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
  */
   __pyx_v_mc->playing = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":333
+  /* "kivy/core/audio_output/audio_sdl2.pyx":333
  *         Mix_HaltMusic()
  *         mc.playing = 0
  *         if self._check_play_ev is not None:             # <<<<<<<<<<<<<<
@@ -9165,7 +9165,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":334
+    /* "kivy/core/audio_output/audio_sdl2.pyx":334
  *         mc.playing = 0
  *         if self._check_play_ev is not None:
  *             self._check_play_ev.cancel()             # <<<<<<<<<<<<<<
@@ -9199,7 +9199,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":335
+    /* "kivy/core/audio_output/audio_sdl2.pyx":335
  *         if self._check_play_ev is not None:
  *             self._check_play_ev.cancel()
  *             self._check_play_ev = None             # <<<<<<<<<<<<<<
@@ -9208,7 +9208,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
  */
     if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_check_play_ev, Py_None) < 0) __PYX_ERR(0, 335, __pyx_L1_error)
 
-    /* "kivy/core/audio/audio_sdl2.pyx":333
+    /* "kivy/core/audio_output/audio_sdl2.pyx":333
  *         Mix_HaltMusic()
  *         mc.playing = 0
  *         if self._check_play_ev is not None:             # <<<<<<<<<<<<<<
@@ -9217,7 +9217,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":336
+  /* "kivy/core/audio_output/audio_sdl2.pyx":336
  *             self._check_play_ev.cancel()
  *             self._check_play_ev = None
  *         super(MusicSDL2, self).stop()             # <<<<<<<<<<<<<<
@@ -9262,7 +9262,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":327
+  /* "kivy/core/audio_output/audio_sdl2.pyx":327
  *         super(MusicSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -9286,7 +9286,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_10stop(CYTH
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":338
+/* "kivy/core/audio_output/audio_sdl2.pyx":338
  *         super(MusicSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -9386,7 +9386,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("load", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":339
+  /* "kivy/core/audio_output/audio_sdl2.pyx":339
  * 
  *     def load(self):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -9399,7 +9399,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":340
+  /* "kivy/core/audio_output/audio_sdl2.pyx":340
  *     def load(self):
  *         cdef MusicContainer mc = self.mc
  *         self.unload()             # <<<<<<<<<<<<<<
@@ -9430,7 +9430,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":341
+  /* "kivy/core/audio_output/audio_sdl2.pyx":341
  *         cdef MusicContainer mc = self.mc
  *         self.unload()
  *         if self.source is None:             # <<<<<<<<<<<<<<
@@ -9443,7 +9443,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":342
+    /* "kivy/core/audio_output/audio_sdl2.pyx":342
  *         self.unload()
  *         if self.source is None:
  *             return             # <<<<<<<<<<<<<<
@@ -9454,7 +9454,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":341
+    /* "kivy/core/audio_output/audio_sdl2.pyx":341
  *         cdef MusicContainer mc = self.mc
  *         self.unload()
  *         if self.source is None:             # <<<<<<<<<<<<<<
@@ -9463,7 +9463,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":344
+  /* "kivy/core/audio_output/audio_sdl2.pyx":344
  *             return
  * 
  *         if isinstance(self.source, bytes):             # <<<<<<<<<<<<<<
@@ -9476,7 +9476,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":345
+    /* "kivy/core/audio_output/audio_sdl2.pyx":345
  * 
  *         if isinstance(self.source, bytes):
  *             fn = self.source             # <<<<<<<<<<<<<<
@@ -9488,7 +9488,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     __pyx_v_fn = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":344
+    /* "kivy/core/audio_output/audio_sdl2.pyx":344
  *             return
  * 
  *         if isinstance(self.source, bytes):             # <<<<<<<<<<<<<<
@@ -9498,7 +9498,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     goto __pyx_L4;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":347
+  /* "kivy/core/audio_output/audio_sdl2.pyx":347
  *             fn = self.source
  *         else:
  *             fn = self.source.encode('UTF-8')             # <<<<<<<<<<<<<<
@@ -9536,7 +9536,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   }
   __pyx_L4:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":349
+  /* "kivy/core/audio_output/audio_sdl2.pyx":349
  *             fn = self.source.encode('UTF-8')
  * 
  *         mc.music = Mix_LoadMUS(<char *><bytes>fn)             # <<<<<<<<<<<<<<
@@ -9550,7 +9550,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   __pyx_t_6 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 349, __pyx_L1_error)
   __pyx_v_mc->music = Mix_LoadMUS(((char *)__pyx_t_6));
 
-  /* "kivy/core/audio/audio_sdl2.pyx":350
+  /* "kivy/core/audio_output/audio_sdl2.pyx":350
  * 
  *         mc.music = Mix_LoadMUS(<char *><bytes>fn)
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -9560,7 +9560,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   __pyx_t_5 = (__pyx_v_mc->music == NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":351
+    /* "kivy/core/audio_output/audio_sdl2.pyx":351
  *         mc.music = Mix_LoadMUS(<char *><bytes>fn)
  *         if mc.music == NULL:
  *             Logger.warning('AudioSDL2: Unable to load music {}: {}'.format(             # <<<<<<<<<<<<<<
@@ -9575,7 +9575,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_u_AudioSDL2_Unable_to_load_music, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 351, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":352
+    /* "kivy/core/audio_output/audio_sdl2.pyx":352
  *         if mc.music == NULL:
  *             Logger.warning('AudioSDL2: Unable to load music {}: {}'.format(
  *                            self.source, Mix_GetError()))             # <<<<<<<<<<<<<<
@@ -9631,7 +9631,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":350
+    /* "kivy/core/audio_output/audio_sdl2.pyx":350
  * 
  *         mc.music = Mix_LoadMUS(<char *><bytes>fn)
  *         if mc.music == NULL:             # <<<<<<<<<<<<<<
@@ -9641,7 +9641,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
     goto __pyx_L5;
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":354
+  /* "kivy/core/audio_output/audio_sdl2.pyx":354
  *                            self.source, Mix_GetError()))
  *         else:
  *             Mix_VolumeMusic(int(self.volume * 128))             # <<<<<<<<<<<<<<
@@ -9663,7 +9663,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   }
   __pyx_L5:;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":338
+  /* "kivy/core/audio_output/audio_sdl2.pyx":338
  *         super(MusicSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -9692,7 +9692,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_12load(CYTH
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":356
+/* "kivy/core/audio_output/audio_sdl2.pyx":356
  *             Mix_VolumeMusic(int(self.volume * 128))
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -9786,7 +9786,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("unload", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":357
+  /* "kivy/core/audio_output/audio_sdl2.pyx":357
  * 
  *     def unload(self):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -9799,7 +9799,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":358
+  /* "kivy/core/audio_output/audio_sdl2.pyx":358
  *     def unload(self):
  *         cdef MusicContainer mc = self.mc
  *         self.stop()             # <<<<<<<<<<<<<<
@@ -9830,7 +9830,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":359
+  /* "kivy/core/audio_output/audio_sdl2.pyx":359
  *         cdef MusicContainer mc = self.mc
  *         self.stop()
  *         if mc.music != NULL:             # <<<<<<<<<<<<<<
@@ -9840,7 +9840,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
   __pyx_t_5 = (__pyx_v_mc->music != NULL);
   if (__pyx_t_5) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":360
+    /* "kivy/core/audio_output/audio_sdl2.pyx":360
  *         self.stop()
  *         if mc.music != NULL:
  *             Mix_FreeMusic(mc.music)             # <<<<<<<<<<<<<<
@@ -9849,7 +9849,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
  */
     Mix_FreeMusic(__pyx_v_mc->music);
 
-    /* "kivy/core/audio/audio_sdl2.pyx":361
+    /* "kivy/core/audio_output/audio_sdl2.pyx":361
  *         if mc.music != NULL:
  *             Mix_FreeMusic(mc.music)
  *             mc.music = NULL             # <<<<<<<<<<<<<<
@@ -9858,7 +9858,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
  */
     __pyx_v_mc->music = NULL;
 
-    /* "kivy/core/audio/audio_sdl2.pyx":359
+    /* "kivy/core/audio_output/audio_sdl2.pyx":359
  *         cdef MusicContainer mc = self.mc
  *         self.stop()
  *         if mc.music != NULL:             # <<<<<<<<<<<<<<
@@ -9867,7 +9867,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":356
+  /* "kivy/core/audio_output/audio_sdl2.pyx":356
  *             Mix_VolumeMusic(int(self.volume * 128))
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -9891,7 +9891,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_14unload(CY
   return __pyx_r;
 }
 
-/* "kivy/core/audio/audio_sdl2.pyx":363
+/* "kivy/core/audio_output/audio_sdl2.pyx":363
  *             mc.music = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -10009,7 +10009,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_16on_volume
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("on_volume", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":364
+  /* "kivy/core/audio_output/audio_sdl2.pyx":364
  * 
  *     def on_volume(self, instance, volume):
  *         cdef MusicContainer mc = self.mc             # <<<<<<<<<<<<<<
@@ -10022,7 +10022,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_16on_volume
   __pyx_v_mc = ((struct __pyx_obj_4kivy_4core_5audio_10audio_sdl2_MusicContainer *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":365
+  /* "kivy/core/audio_output/audio_sdl2.pyx":365
  *     def on_volume(self, instance, volume):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music != NULL and mc.playing:             # <<<<<<<<<<<<<<
@@ -10040,7 +10040,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_16on_volume
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "kivy/core/audio/audio_sdl2.pyx":366
+    /* "kivy/core/audio_output/audio_sdl2.pyx":366
  *         cdef MusicContainer mc = self.mc
  *         if mc.music != NULL and mc.playing:
  *             Mix_VolumeMusic(int(volume * 128))             # <<<<<<<<<<<<<<
@@ -10056,7 +10056,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_16on_volume
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     (void)(Mix_VolumeMusic(__pyx_t_5));
 
-    /* "kivy/core/audio/audio_sdl2.pyx":365
+    /* "kivy/core/audio_output/audio_sdl2.pyx":365
  *     def on_volume(self, instance, volume):
  *         cdef MusicContainer mc = self.mc
  *         if mc.music != NULL and mc.playing:             # <<<<<<<<<<<<<<
@@ -10065,7 +10065,7 @@ static PyObject *__pyx_pf_4kivy_4core_5audio_10audio_sdl2_9MusicSDL2_16on_volume
  */
   }
 
-  /* "kivy/core/audio/audio_sdl2.pyx":363
+  /* "kivy/core/audio_output/audio_sdl2.pyx":363
  *             mc.music = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -10871,7 +10871,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "kivy/core/audio/audio_sdl2.pyx":158
+  /* "kivy/core/audio_output/audio_sdl2.pyx":158
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -10883,7 +10883,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple_);
   __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple_, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_do_loop, 158, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 158, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":298
+  /* "kivy/core/audio_output/audio_sdl2.pyx":298
  *             return
  *         if self.loop:
  *             def do_loop(dt):             # <<<<<<<<<<<<<<
@@ -10892,7 +10892,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple_, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_do_loop, 298, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 298, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":42
+  /* "kivy/core/audio_output/audio_sdl2.pyx":42
  * '''
  * 
  * __all__ = ('SoundSDL2', 'MusicSDL2')             # <<<<<<<<<<<<<<
@@ -10939,7 +10939,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_setstate_cython, 3, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(1, 3, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":133
+  /* "kivy/core/audio_output/audio_sdl2.pyx":133
  * class SoundSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -10951,7 +10951,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__12);
   __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_extensions, 133, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 133, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":145
+  /* "kivy/core/audio_output/audio_sdl2.pyx":145
  *         return extensions
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -10963,7 +10963,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__14);
   __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_init, 145, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 145, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":151
+  /* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -10975,7 +10975,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
   __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_check_play, 151, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 151, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":165
+  /* "kivy/core/audio_output/audio_sdl2.pyx":165
  *         return False
  * 
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -10987,7 +10987,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__18);
   __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_get_length, 165, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 165, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":178
+  /* "kivy/core/audio_output/audio_sdl2.pyx":178
  *         return <double>frames / <double>freq
  * 
  *     def on_pitch(self, instance, value):             # <<<<<<<<<<<<<<
@@ -10999,7 +10999,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__20);
   __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_on_pitch, 178, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 178, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":198
+  /* "kivy/core/audio_output/audio_sdl2.pyx":198
  *         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -11011,7 +11011,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_play, 198, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 198, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":213
+  /* "kivy/core/audio_output/audio_sdl2.pyx":213
  *         super(SoundSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -11020,7 +11020,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_stop, 213, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 213, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":225
+  /* "kivy/core/audio_output/audio_sdl2.pyx":225
  *         super(SoundSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -11032,7 +11032,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__25);
   __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_load, 225, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 225, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":246
+  /* "kivy/core/audio_output/audio_sdl2.pyx":246
  *                 self.on_pitch(self, self.pitch)
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -11041,7 +11041,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_unload, 246, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 246, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":253
+  /* "kivy/core/audio_output/audio_sdl2.pyx":253
  *             cc.chunk = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -11053,7 +11053,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__28);
   __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_on_volume, 253, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 253, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":263
+  /* "kivy/core/audio_output/audio_sdl2.pyx":263
  * class MusicSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -11062,7 +11062,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_extensions, 263, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 263, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":285
+  /* "kivy/core/audio_output/audio_sdl2.pyx":285
  *         return list(extensions)
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -11071,7 +11071,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_init, 285, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 285, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":291
+  /* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -11083,7 +11083,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__32);
   __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_check_play, 291, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 291, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":306
+  /* "kivy/core/audio_output/audio_sdl2.pyx":306
  * 
  *     # No way to check length; return -1 if music is loaded, 0 otherwise
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -11095,7 +11095,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__34);
   __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_get_length, 306, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 306, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":312
+  /* "kivy/core/audio_output/audio_sdl2.pyx":312
  *         return 0
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -11104,7 +11104,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_play, 312, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 312, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":327
+  /* "kivy/core/audio_output/audio_sdl2.pyx":327
  *         super(MusicSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -11113,7 +11113,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_stop, 327, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 327, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":338
+  /* "kivy/core/audio_output/audio_sdl2.pyx":338
  *         super(MusicSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -11125,7 +11125,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__38);
   __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_load, 338, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 338, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":356
+  /* "kivy/core/audio_output/audio_sdl2.pyx":356
  *             Mix_VolumeMusic(int(self.volume * 128))
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -11134,7 +11134,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_kivy_core_audio_audio_sdl2_pyx, __pyx_n_s_unload, 356, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 356, __pyx_L1_error)
 
-  /* "kivy/core/audio/audio_sdl2.pyx":363
+  /* "kivy/core/audio_output/audio_sdl2.pyx":363
  *             mc.music = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -11612,7 +11612,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "kivy/core/audio/audio_sdl2.pyx":42
+  /* "kivy/core/audio_output/audio_sdl2.pyx":42
  * '''
  * 
  * __all__ = ('SoundSDL2', 'MusicSDL2')             # <<<<<<<<<<<<<<
@@ -11630,10 +11630,10 @@ if (!__Pyx_RefNanny) {
  */
   __pyx_v_4kivy_4core_5audio_10audio_sdl2_pi = 3.141592653589793;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":47
+  /* "kivy/core/audio_output/audio_sdl2.pyx":47
  * include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
  * 
- * from kivy.core.audio import Sound, SoundLoader             # <<<<<<<<<<<<<<
+ * from kivy.core.audio_output import Sound, SoundLoader             # <<<<<<<<<<<<<<
  * from kivy.logger import Logger
  * from kivy.clock import Clock
  */
@@ -11658,9 +11658,9 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":48
+  /* "kivy/core/audio_output/audio_sdl2.pyx":48
  * 
- * from kivy.core.audio import Sound, SoundLoader
+ * from kivy.core.audio_output import Sound, SoundLoader
  * from kivy.logger import Logger             # <<<<<<<<<<<<<<
  * from kivy.clock import Clock
  * 
@@ -11679,8 +11679,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":49
- * from kivy.core.audio import Sound, SoundLoader
+  /* "kivy/core/audio_output/audio_sdl2.pyx":49
+ * from kivy.core.audio_output import Sound, SoundLoader
  * from kivy.logger import Logger
  * from kivy.clock import Clock             # <<<<<<<<<<<<<<
  * 
@@ -11700,7 +11700,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":51
+  /* "kivy/core/audio_output/audio_sdl2.pyx":51
  * from kivy.clock import Clock
  * 
  * cdef int mix_is_init = 0             # <<<<<<<<<<<<<<
@@ -11709,7 +11709,7 @@ if (!__Pyx_RefNanny) {
  */
   __pyx_v_4kivy_4core_5audio_10audio_sdl2_mix_is_init = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":52
+  /* "kivy/core/audio_output/audio_sdl2.pyx":52
  * 
  * cdef int mix_is_init = 0
  * cdef int mix_flags = 0             # <<<<<<<<<<<<<<
@@ -11760,7 +11760,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_setstate_cython, __pyx_t_3) < 0) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":131
+  /* "kivy/core/audio_output/audio_sdl2.pyx":131
  * 
  * 
  * class SoundSDL2(Sound):             # <<<<<<<<<<<<<<
@@ -11785,7 +11785,7 @@ if (!__Pyx_RefNanny) {
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":133
+  /* "kivy/core/audio_output/audio_sdl2.pyx":133
  * class SoundSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -11800,7 +11800,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_extensions, __pyx_t_6) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":145
+  /* "kivy/core/audio_output/audio_sdl2.pyx":145
  *         return extensions
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -11812,7 +11812,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_init, __pyx_t_6) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":151
+  /* "kivy/core/audio_output/audio_sdl2.pyx":151
  *         super(SoundSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -11824,7 +11824,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_check_play, __pyx_t_6) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":165
+  /* "kivy/core/audio_output/audio_sdl2.pyx":165
  *         return False
  * 
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -11836,7 +11836,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_get_length, __pyx_t_6) < 0) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":178
+  /* "kivy/core/audio_output/audio_sdl2.pyx":178
  *         return <double>frames / <double>freq
  * 
  *     def on_pitch(self, instance, value):             # <<<<<<<<<<<<<<
@@ -11848,7 +11848,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_on_pitch, __pyx_t_6) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":198
+  /* "kivy/core/audio_output/audio_sdl2.pyx":198
  *         cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -11860,7 +11860,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_play, __pyx_t_6) < 0) __PYX_ERR(0, 198, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":213
+  /* "kivy/core/audio_output/audio_sdl2.pyx":213
  *         super(SoundSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -11872,7 +11872,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_stop, __pyx_t_6) < 0) __PYX_ERR(0, 213, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":225
+  /* "kivy/core/audio_output/audio_sdl2.pyx":225
  *         super(SoundSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -11884,7 +11884,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_load, __pyx_t_6) < 0) __PYX_ERR(0, 225, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":246
+  /* "kivy/core/audio_output/audio_sdl2.pyx":246
  *                 self.on_pitch(self, self.pitch)
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -11896,7 +11896,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_unload, __pyx_t_6) < 0) __PYX_ERR(0, 246, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":253
+  /* "kivy/core/audio_output/audio_sdl2.pyx":253
  *             cc.chunk = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -11908,7 +11908,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_on_volume, __pyx_t_6) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":131
+  /* "kivy/core/audio_output/audio_sdl2.pyx":131
  * 
  * 
  * class SoundSDL2(Sound):             # <<<<<<<<<<<<<<
@@ -11923,7 +11923,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":261
+  /* "kivy/core/audio_output/audio_sdl2.pyx":261
  * # LoadMUS supports OGG, MP3, WAV but we only use it for native midi,
  * # libmikmod, libmodplug and libfluidsynth to avoid confusion
  * class MusicSDL2(Sound):             # <<<<<<<<<<<<<<
@@ -11948,7 +11948,7 @@ if (!__Pyx_RefNanny) {
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":263
+  /* "kivy/core/audio_output/audio_sdl2.pyx":263
  * class MusicSDL2(Sound):
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -11963,7 +11963,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_extensions, __pyx_t_2) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":285
+  /* "kivy/core/audio_output/audio_sdl2.pyx":285
  *         return list(extensions)
  * 
  *     def __init__(self, **kwargs):             # <<<<<<<<<<<<<<
@@ -11975,7 +11975,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 285, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":291
+  /* "kivy/core/audio_output/audio_sdl2.pyx":291
  *         super(MusicSDL2, self).__init__(**kwargs)
  * 
  *     def _check_play(self, dt):             # <<<<<<<<<<<<<<
@@ -11987,7 +11987,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_check_play, __pyx_t_2) < 0) __PYX_ERR(0, 291, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":306
+  /* "kivy/core/audio_output/audio_sdl2.pyx":306
  * 
  *     # No way to check length; return -1 if music is loaded, 0 otherwise
  *     def _get_length(self):             # <<<<<<<<<<<<<<
@@ -11999,7 +11999,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_get_length, __pyx_t_2) < 0) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":312
+  /* "kivy/core/audio_output/audio_sdl2.pyx":312
  *         return 0
  * 
  *     def play(self):             # <<<<<<<<<<<<<<
@@ -12011,7 +12011,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_play, __pyx_t_2) < 0) __PYX_ERR(0, 312, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":327
+  /* "kivy/core/audio_output/audio_sdl2.pyx":327
  *         super(MusicSDL2, self).play()
  * 
  *     def stop(self):             # <<<<<<<<<<<<<<
@@ -12023,7 +12023,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_stop, __pyx_t_2) < 0) __PYX_ERR(0, 327, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":338
+  /* "kivy/core/audio_output/audio_sdl2.pyx":338
  *         super(MusicSDL2, self).stop()
  * 
  *     def load(self):             # <<<<<<<<<<<<<<
@@ -12035,7 +12035,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_load, __pyx_t_2) < 0) __PYX_ERR(0, 338, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":356
+  /* "kivy/core/audio_output/audio_sdl2.pyx":356
  *             Mix_VolumeMusic(int(self.volume * 128))
  * 
  *     def unload(self):             # <<<<<<<<<<<<<<
@@ -12047,7 +12047,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_unload, __pyx_t_2) < 0) __PYX_ERR(0, 356, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":363
+  /* "kivy/core/audio_output/audio_sdl2.pyx":363
  *             mc.music = NULL
  * 
  *     def on_volume(self, instance, volume):             # <<<<<<<<<<<<<<
@@ -12059,7 +12059,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_6, __pyx_n_s_on_volume, __pyx_t_2) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":261
+  /* "kivy/core/audio_output/audio_sdl2.pyx":261
  * # LoadMUS supports OGG, MP3, WAV but we only use it for native midi,
  * # libmikmod, libmodplug and libfluidsynth to avoid confusion
  * class MusicSDL2(Sound):             # <<<<<<<<<<<<<<
@@ -12074,7 +12074,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":369
+  /* "kivy/core/audio_output/audio_sdl2.pyx":369
  * 
  * 
  * SoundLoader.register(SoundSDL2)             # <<<<<<<<<<<<<<
@@ -12093,7 +12093,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":370
+  /* "kivy/core/audio_output/audio_sdl2.pyx":370
  * 
  * SoundLoader.register(SoundSDL2)
  * SoundLoader.register(MusicSDL2)             # <<<<<<<<<<<<<<
@@ -12111,7 +12111,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "kivy/core/audio/audio_sdl2.pyx":1
+  /* "kivy/core/audio_output/audio_sdl2.pyx":1
  * '''             # <<<<<<<<<<<<<<
  * SDL2 audio provider
  * ===================
