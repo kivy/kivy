@@ -1,10 +1,10 @@
 '''
-Audio
+Audio Output
 =====
 
 Load an audio sound and play it with::
 
-    from kivy.core.audio import SoundLoader
+    from kivy.core.audio_output import SoundLoader
 
     sound = SoundLoader.load('mytest.wav')
     if sound:
