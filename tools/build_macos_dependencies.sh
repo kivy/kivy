@@ -95,6 +95,7 @@ pushd $MACOS__LIBPNG__FOLDER
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
           -DPNG_TESTS=OFF \
           -DPNG_EXECUTABLES=OFF \
           -DPNG_SHARED=OFF \
@@ -113,10 +114,10 @@ popd
 echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
 if [ "$USE_LEGACY_OPENGL" = "1" ]; then
-        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
                 -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
 else
-        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
                 -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release \
                 GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
 fi
@@ -125,7 +126,7 @@ popd
 
 echo "-- Build SDL2_mixer (Universal)"
 pushd $MACOS__SDL2_MIXER__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
 cp -r Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
 popd
@@ -139,7 +140,7 @@ popd
 
 echo "-- Build SDL2_ttf (Universal)"
 pushd $MACOS__SDL2_TTF__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL_ttf.xcodeproj -target Framework -configuration Release \
         GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) FT_CONFIG_OPTION_USE_PNG=1' \
         FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
