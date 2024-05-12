@@ -520,12 +520,44 @@ cdef class _WindowSDL2Storage:
     def _get_window_info_wayland(self):
         cdef WindowInfoWayland window_info
         window_info = WindowInfoWayland()
+
+        window_info.set_display(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.wayland.display",
+                NULL,
+            )
+        )
+
+        window_info.set_surface(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.wayland.surface",
+                NULL,
+            )
+        )
         
         return window_info
 
     def _get_window_info_x11(self):
         cdef WindowInfoX11 window_info
         window_info = WindowInfoX11()
+
+        window_info.set_display(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.x11.display",
+                NULL,
+            )
+        )
+
+        window_info.set_window(
+            SDL_GetProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.x11.window",
+                NULL,
+            )
+        )
 
         return window_info
 
@@ -559,6 +591,7 @@ cdef class _WindowSDL2Storage:
             return self._get_window_info_windows()
         elif platform == "linux":
             _video_driver = self._get_current_video_driver()
+            print(_video_driver)
             if _video_driver == "wayland":
                 return self._get_window_info_wayland()
             elif _video_driver == "x11":

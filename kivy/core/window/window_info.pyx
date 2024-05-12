@@ -13,6 +13,15 @@ cdef class WindowInfoWayland:
     def shell_surface(self):
         return <uintptr_t>self.shell_surface
 
+    cdef void set_display(self, void* display):
+        self.display = <wl_display *>display
+
+    cdef void set_surface(self, void* surface):
+        self.surface = <wl_surface *>surface
+
+    cdef void set_shell_surface(self, void* shell_surface):
+        self.shell_surface = <wl_shell_surface *>shell_surface
+
 
 cdef class WindowInfoX11:
     @property
@@ -21,7 +30,13 @@ cdef class WindowInfoX11:
 
     @property
     def window(self):
-        return <uintptr_t>self.window
+        return self.window
+
+    cdef void set_display(self, void* display):
+        self.display = <Display *>display
+
+    cdef void set_window(self, void* window):
+        self.window = <Window>window
 
 
 cdef class WindowInfoWindows:

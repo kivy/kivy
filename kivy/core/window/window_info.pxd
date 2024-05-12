@@ -6,10 +6,15 @@ cdef class WindowInfoWayland:
     cdef wl_display *display
     cdef wl_surface *surface
     cdef wl_shell_surface *shell_surface
+    cdef void set_display(self, void* display)
+    cdef void set_surface(self, void* surface)
+    cdef void set_shell_surface(self, void* shell_surface)
 
 cdef class WindowInfoX11:
     cdef Display *display
     cdef Window window
+    cdef void set_display(self, void* display)
+    cdef void set_window(self, void* window)
 
 cdef class WindowInfoWindows:
     cdef HWND window

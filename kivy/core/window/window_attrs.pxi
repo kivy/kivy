@@ -49,22 +49,31 @@ cdef extern from *:
             typedef void *NSWindow;
         #endif
 
+        UIWindow *_BridgedUIWindow(void* window){
+            return (__bridge UIWindow *)window;
+        }
+
+        NSWindow *_BridgedNSWindow(void* window){
+            return (__bridge NSWindow *)window;
+        }
+
     #else
         typedef void *UIWindow;
         typedef void *NSWindow;
+
+        UIWindow *_BridgedUIWindow(void* window){
+            return (UIWindow *)window;
+        }
+
+        NSWindow *_BridgedNSWindow(void* window){
+            return (NSWindow *)window;
+        }
+
     #endif
 
     #if defined(__ANDROID__)
         // Android
     #endif
-
-    UIWindow *_BridgedUIWindow(void* window){
-        return (__bridge UIWindow *)window;
-    }
-
-    NSWindow *_BridgedNSWindow(void* window){
-        return (__bridge NSWindow *)window;
-    }
 
     """
 
