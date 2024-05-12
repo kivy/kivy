@@ -16,12 +16,8 @@ cdef extern from *:
     #if __USE_X11
         #include <X11/Xlib.h>
     #else
-        typedef struct {
-        } _XDisplay;
-    
-        typedef _XDisplay Display;
-        typedef int XID;
-        typedef XID Window;
+        typedef void* Display;
+        typedef void* Window;
     #endif
 
     #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -86,11 +82,8 @@ cdef extern from *:
         pass
 
     # X11
-    ctypedef struct _XDisplay:
-        pass
-    ctypedef _XDisplay Display
-    ctypedef int XID
-    ctypedef XID Window
+    ctypedef void* Display
+    ctypedef void* Window
 
     # Windows
     ctypedef void *HANDLE

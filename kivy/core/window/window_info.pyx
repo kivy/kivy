@@ -30,7 +30,7 @@ cdef class WindowInfoX11:
 
     @property
     def window(self):
-        return self.window
+        return <uintptr_t>self.window
 
     cdef void set_display(self, void* display):
         self.display = <Display *>display
