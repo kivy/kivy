@@ -254,8 +254,9 @@ class MetricsBase(EventDispatcher):
         value = 1.0
         if platform == 'android':
             import jnius
-            Hardware = jnius.autoclass('org.renpy.android.Hardware')
-            value = Hardware.metrics.scaledDensity
+            DisplayMetrics  = jnius.autoclass('android.util.DisplayMetrics')
+            metrics = DisplayMetrics()
+            value = metrics.scaledDensity
         elif platform == 'ios':
             import ios
             value = ios.get_scale()
