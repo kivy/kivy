@@ -24,7 +24,6 @@ jobs:
   unit_test:
     runs-on: ubuntu-latest
     env:
-
       DISPLAY: ':99.0'
     steps:
     - uses: actions/checkout@v4
@@ -56,7 +55,7 @@ jobs:
     - name: Coveralls upload
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         python -m coveralls
     - name: Test Kivy benchmarks
