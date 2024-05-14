@@ -192,8 +192,9 @@ class MetricsBase(EventDispatcher):
         if platform == 'android':
             if USE_SDL2:
                 import jnius
-                Hardware = jnius.autoclass('org.renpy.android.Hardware')
-                value = Hardware.getDPI()
+                DisplayMetrics = autoclass('android.util.DisplayMetrics')
+                metrics = DisplayMetrics()
+                value = metrics.densityDpi
             else:
                 import android
                 value = android.get_dpi()
