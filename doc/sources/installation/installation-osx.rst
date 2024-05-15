@@ -31,12 +31,32 @@ MacPorts
 If you're using `Macports <https://www.macports.org>`_, you can install Python with::
 
     # Install and set e.g. Python 3.8 as the default
-    port install python38
-    port select --set python python38
+    port install python312
+    port select --set python python312
 
     # Install and set pip as the default::
-    port install py38-pip
-    port select --set pip pip38
+    port install py312-pip
+    port select --set pip pip312
+
+    # Optionally set the python3 shortcuts (avoids confusion
+    # since it may be set to a lower version):
+    port select --set python3 python312
+    port select --set pip3 pip312
+
+At this point you may have to restart your terminal. Alternatively you may have to run the following command in each terminal until the next restart of the terminal:
+
+    exec $SHELL -l
+    # -l: starts a "login shell", to match the default from the macOS GUI.
+
+You can confirm that the correct Python version is shown in the output of each of the following commands:
+
+    python --version
+    pip --version
+
+    # and optionally:
+    python3 --version
+    pip3 --version
+
 
 Frameworks
 ~~~~~~~~~~
