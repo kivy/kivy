@@ -978,11 +978,10 @@ Context.html#getFilesDir()>`_ is returned.
             from android import mActivity
             mActivity.finishAndRemoveTask()
         else:
-            self._stop()
+            stopTouchApp()
 
     def _stop(self, *largs):
         self.dispatch('on_stop')
-        stopTouchApp()
 
         # Clear the window children
         if self._app_window:
