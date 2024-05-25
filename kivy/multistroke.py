@@ -1274,7 +1274,7 @@ class Candidate(object):
 
         # rotation bounded invariance
         if not self.skip_bounded:
-            bound_points = rotate_by(points, +radians)  # restore
+            bound_points = rotate_by(points, +radians)  # restore to original position
             bound_points = translate_to(bound_points, ORIGIN)
             cand['bound_startvector'] = start_unit_vector(bound_points, angidx)
             cand['bound_vector'] = vectorize(bound_points, True)
