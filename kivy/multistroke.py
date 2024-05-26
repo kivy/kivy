@@ -432,9 +432,9 @@ class Recognizer(EventDispatcher):
 
         new = self.filter(db=self.parse_gesture(data), **kwargs)
         if new:
-            for i in range(len(new)):
-                result = self.recognize(new[i].strokes)
-                result.bind(on_complete=self.handle_gesture_complete(result, new[i]))
+            for element in new:
+                result = self.recognize(element.strokes)
+                result.bind(on_complete=self.handle_gesture_complete(result,element))
 
     def handle_gesture_complete(self, result, new_element):
         best = result.best
