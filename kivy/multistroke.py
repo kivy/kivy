@@ -434,7 +434,7 @@ class Recognizer(EventDispatcher):
         if new:
          for i in range(len(new)):
             result = self.recognize(new[i].strokes)
-            result.bind(on_complete = self.handle_gesture_complete(self,result,new[i]))
+            result.bind(on_complete = self.handle_gesture_complete(result,new[i]))
 
     def handle_gesture_complete(self,result,new_element):
         best = result.best
