@@ -434,12 +434,12 @@ class Recognizer(EventDispatcher):
         while new:
             element=new.pop()
             result=self.recognize(element.strokes)
-            result.bind(on_complete=self.handle_recognize_complete(result, element))
+            result.bind(on_complete=self.handle_recognize_complete)
 
-    def handle_recognize_complete(self, result, new_element):
+    def handle_recognize_complete(self, result, element):
         best=result.best
         if best["name"] is None:
-            self.db.append(new_element)
+            self.db.append(element)
 
     def transfer_gesture(self, tgt, **kwargs):
         '''Transfers :class:`MultistrokeGesture` objects from
