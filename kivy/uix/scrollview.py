@@ -623,7 +623,6 @@ class ScrollView(StencilView):
         vp = self._viewport
         if not vp or not self.effect_x:
             return
-
         if self.effect_x.is_manual:
             sw = vp.width - self._effect_x_start_width
         else:
@@ -633,6 +632,8 @@ class ScrollView(StencilView):
         if sw != 0:
             sx = self.effect_x.scroll / sw
             self.scroll_x = -sx
+        else:
+            self.scroll_x = 1 - self.effect_x.scroll
         self._trigger_update_from_scroll()
 
     def _update_effect_y(self, *args):
