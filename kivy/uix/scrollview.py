@@ -644,12 +644,13 @@ class ScrollView(StencilView):
             sh = vp.height - self._effect_y_start_height
         else:
             sh = vp.height - self.height
-
         if sh < 1 and not (self.always_overscroll and self.do_scroll_y):
             return
         if sh != 0:
             sy = self.effect_y.scroll / sh
             self.scroll_y = -sy
+        else:
+            self.scroll_y = 1 - self.effect_y.scroll
         self._trigger_update_from_scroll()
 
     def to_local(self, x, y, **k):
