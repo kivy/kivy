@@ -436,6 +436,7 @@ class Recognizer(EventDispatcher):
             result = self.recognize(element.strokes, max_gpf=0)
             if result.best['name'] is None:
                 self.db.append(element)
+
     def transfer_gesture(self, tgt, **kwargs):
         '''Transfers :class:`MultistrokeGesture` objects from
         :attr:`Recognizer.db` to another :class:`Recognizer` instance `tgt`.
