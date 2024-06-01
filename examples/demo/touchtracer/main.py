@@ -65,7 +65,8 @@ class Touchtracer(FloatLayout):
 
     def on_touch_down(self, touch):
         win = self.get_parent_window()
-        print(win._win.get_window_info().window)
+        print(win._win.get_window_info().surface)
+        print(win._win.get_window_info().display)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
         pointsize = 5

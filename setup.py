@@ -212,7 +212,7 @@ c_options['use_ios'] = False
 c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
-c_options['use_wayland'] = False
+c_options['use_wayland'] = True
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'

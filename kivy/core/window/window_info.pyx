@@ -14,13 +14,13 @@ cdef class WindowInfoWayland:
         return <uintptr_t>self.shell_surface
 
     cdef void set_display(self, void* display):
-        self.display = <wl_display *>display
+        self.display = <struct_wl_display *>display
 
     cdef void set_surface(self, void* surface):
-        self.surface = <wl_surface *>surface
+        self.surface = <struct_wl_surface *>surface
 
     cdef void set_shell_surface(self, void* shell_surface):
-        self.shell_surface = <wl_shell_surface *>shell_surface
+        self.shell_surface = <struct_wl_shell_surface *>shell_surface
 
 
 cdef class WindowInfoX11:
