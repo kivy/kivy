@@ -1,5 +1,6 @@
 include "../../include/config.pxi"
 
+"""
 cdef class WindowInfoWayland:
     @property
     def display(self):
@@ -21,7 +22,7 @@ cdef class WindowInfoWayland:
 
     cdef void set_shell_surface(self, void* shell_surface):
         self.shell_surface = <struct_wl_shell_surface *>shell_surface
-
+"""
 
 cdef class WindowInfoX11:
     @property

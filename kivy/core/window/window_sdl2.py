@@ -17,7 +17,6 @@ __all__ = ('WindowSDL', )
 
 from os.path import join
 import sys
-from typing import Optional
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.base import EventLoop
@@ -34,7 +33,7 @@ except ImportError:
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform, deprecated
+from kivy.utils import platform
 from collections import deque
 
 
@@ -149,8 +148,6 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 
 class WindowSDL(WindowBase):
-
-    _win_dpi_watch: Optional['_WindowsSysDPIWatch'] = None
 
     _do_resize_ev = None
 
@@ -382,33 +379,17 @@ class WindowSDL(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
-        if platform == 'win' and self._win_dpi_watch is None:
-            self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
-            self._win_dpi_watch.start()
-
     def _update_density_and_dpi(self):
-        if platform == 'win':
-            from ctypes import windll
-            self._density = 1.
-            try:
-                hwnd = windll.user32.GetActiveWindow()
-                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                self._density = self.dpi / 96
-            except AttributeError:
-                pass
-        else:
-            self._density = (
-                self._win.window_pixel_size[0] / self._win.window_size[0]
-            )
-            if self._is_desktop:
-                self.dpi = self._density * 96.
+        self._density = (
+            self._win.window_pixel_size[0] / self._win.window_size[0]
+        )
+        if self._is_desktop:
+            self.dpi = (self._density * 96.)
+        print(self._density)
 
     def close(self):
         self._win.teardown_window()
         super(WindowSDL, self).close()
-        if self._win_dpi_watch is not None:
-            self._win_dpi_watch.stop()
-            self._win_dpi_watch = None
 
         self.initialized = False
 

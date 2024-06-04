@@ -95,11 +95,11 @@ def get_isolated_env_paths():
         # sdl2_dev is installed before setup.py is run, when installing from
         # source due to pyproject.toml. However, it is installed to a
         # pip isolated env, which we need to add to compiler
-        import kivy_deps.sdl2_dev as sdl2_dev
+        import kivy_deps.glew_dev as glew_dev
     except ImportError:
         return [], []
 
-    root = os.path.abspath(join(sdl2_dev.__path__[0], '../../../..'))
+    root = os.path.abspath(join(glew_dev.__path__[0], '../../../..'))
     includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
     libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
     return includes, libs
@@ -189,7 +189,7 @@ KIVY_DEPS_ROOT = os.environ.get('KIVY_DEPS_ROOT', None)
 # if KIVY_DEPS_ROOT is None and platform is linux or darwin show a warning
 # message, because using a system provided SDL2 is not recommended.
 # (will be shown only in verbose mode)
-if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
+if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin', 'win32'):
     print("###############################################")
     print("WARNING: KIVY_DEPS_ROOT is not set, using system provided SDL")
     print("which is not recommended as it may be incompatible with Kivy.")
@@ -212,7 +212,7 @@ c_options['use_ios'] = False
 c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
-c_options['use_wayland'] = True
+c_options['use_wayland'] = False
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
@@ -782,6 +782,7 @@ def determine_sdl2():
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
                 join(KIVY_DEPS_ROOT, "dist", "lib64"),
+                join(KIVY_DEPS_ROOT, "dist", "include"),
                 join(KIVY_DEPS_ROOT, "dist", "include", "SDL3"),
                 join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_image"),
                 join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_mixer"),

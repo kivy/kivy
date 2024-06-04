@@ -21,7 +21,7 @@ from .window_info cimport (
     WindowInfoiOS,
     WindowInfomacOS,
     WindowInfoX11,
-    WindowInfoWayland,
+    # WindowInfoWayland,
     WindowInfoWindows
 )
 
@@ -341,31 +341,31 @@ cdef class _WindowSDL2Storage:
         # prevent the compiler to not be happy because of
         # an uninitialized value (return False in Cython is not a direct
         # return 0 in C)
-        cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_ARROW
+        cdef SDL_SystemCursor num = SDL_SYSTEM_CURSOR_DEFAULT
         if name == 'arrow':
-            num = SDL_SYSTEM_CURSOR_ARROW
+            num = SDL_SYSTEM_CURSOR_DEFAULT
         elif name == 'ibeam':
-            num = SDL_SYSTEM_CURSOR_IBEAM
+            num = SDL_SYSTEM_CURSOR_TEXT
         elif name == 'wait':
             num = SDL_SYSTEM_CURSOR_WAIT
         elif name == 'crosshair':
             num = SDL_SYSTEM_CURSOR_CROSSHAIR
         elif name == 'wait_arrow':
-            num = SDL_SYSTEM_CURSOR_WAITARROW
+            num = SDL_SYSTEM_CURSOR_PROGRESS
         elif name == 'size_nwse':
-            num = SDL_SYSTEM_CURSOR_SIZENWSE
+            num = SDL_SYSTEM_CURSOR_NWSE_RESIZE
         elif name == 'size_nesw':
-            num = SDL_SYSTEM_CURSOR_SIZENESW
+            num = SDL_SYSTEM_CURSOR_NESW_RESIZE
         elif name == 'size_we':
-            num = SDL_SYSTEM_CURSOR_SIZEWE
+            num = SDL_SYSTEM_CURSOR_EW_RESIZE
         elif name == 'size_ns':
-            num = SDL_SYSTEM_CURSOR_SIZENS
+            num = SDL_SYSTEM_CURSOR_NS_RESIZE
         elif name == 'size_all':
-            num = SDL_SYSTEM_CURSOR_SIZEALL
+            num = SDL_SYSTEM_CURSOR_MOVE
         elif name == 'no':
-            num = SDL_SYSTEM_CURSOR_NO
+            num = SDL_SYSTEM_CURSOR_NOT_ALLOWED
         elif name == 'hand':
-            num = SDL_SYSTEM_CURSOR_HAND
+            num = SDL_SYSTEM_CURSOR_POINTER
         else:
             return False
         new_cursor = SDL_CreateSystemCursor(num)
@@ -518,6 +518,7 @@ cdef class _WindowSDL2Storage:
         return window_info
 
     def _get_window_info_wayland(self):
+        """
         cdef WindowInfoWayland window_info
         window_info = WindowInfoWayland()
 
@@ -536,8 +537,8 @@ cdef class _WindowSDL2Storage:
                 NULL,
             )
         )
-        
-        return window_info
+        """
+        return None
 
     def _get_window_info_x11(self):
         cdef WindowInfoX11 window_info

@@ -2,6 +2,7 @@ include "window_attrs.pxi"
 
 from libc.stdint cimport uintptr_t
 
+"""
 cdef class WindowInfoWayland:
     cdef struct_wl_display *display
     cdef struct_wl_surface *surface
@@ -9,6 +10,7 @@ cdef class WindowInfoWayland:
     cdef void set_display(self, void* display)
     cdef void set_surface(self, void* surface)
     cdef void set_shell_surface(self, void* shell_surface)
+"""
 
 cdef class WindowInfoX11:
     cdef Display *display
