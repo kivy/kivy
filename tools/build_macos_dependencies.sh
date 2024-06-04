@@ -4,9 +4,9 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.1.2"
-MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.xz"
-MACOS__SDL3__FOLDER="SDL3-${MACOS__SDL3__VERSION}"
+# MACOS__SDL3__VERSION="3.1.2"
+MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/archive/refs/heads/main.tar.gz"
+MACOS__SDL3__FOLDER="SDL-main"
 
 # macOS SDL2_image
 # MACOS__SDL2_IMAGE__VERSION="2.8.0"
@@ -48,7 +48,7 @@ mkdir kivy-dependencies
 echo "Downloading dependencies..."
 mkdir kivy-dependencies/download
 pushd kivy-dependencies/download
-curl -L $MACOS__SDL3__URL -o "${MACOS__SDL3__FOLDER}.tar.xz"
+curl -L $MACOS__SDL3__URL -o "${MACOS__SDL3__FOLDER}.tar.gz"
 curl -L $MACOS__SDL3_IMAGE__URL -o "${MACOS__SDL3_IMAGE__FOLDER}.tar.gz"
 curl -L $MACOS__SDL3_MIXER__URL -o "${MACOS__SDL3_MIXER__FOLDER}.tar.gz"
 curl -L $MACOS__SDL3_TTF__URL -o "${MACOS__SDL3_TTF__FOLDER}.tar.gz"
@@ -60,7 +60,7 @@ popd
 echo "Extracting dependencies..."
 mkdir kivy-dependencies/build
 pushd kivy-dependencies/build
-tar -xzf ../download/${MACOS__SDL3__FOLDER}.tar.xz
+tar -xzf ../download/${MACOS__SDL3__FOLDER}.tar.gz
 tar -xzf ../download/${MACOS__SDL3_IMAGE__FOLDER}.tar.gz
 tar -xzf ../download/${MACOS__SDL3_MIXER__FOLDER}.tar.gz
 tar -xzf ../download/${MACOS__SDL3_TTF__FOLDER}.tar.gz

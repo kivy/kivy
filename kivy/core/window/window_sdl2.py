@@ -385,7 +385,6 @@ class WindowSDL(WindowBase):
         )
         if self._is_desktop:
             self.dpi = (self._density * 96.)
-        print(self._density)
 
     def close(self):
         self._win.teardown_window()
@@ -660,6 +659,12 @@ class WindowSDL(WindowBase):
                 # The display has changed, so the density and dpi
                 # may have changed too.
                 self._update_density_and_dpi()
+
+            elif action == 'windowpixelsizechanged':
+                print("WindowSDL: Window pixel size changed")
+
+            elif action == 'windowdisplayscalechanged':
+                print("WindowSDL: Window display scale changed")
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')

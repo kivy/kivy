@@ -216,12 +216,6 @@ cdef class _WindowSDL2Storage:
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
 
-        # TODO: What happened to SDL_HINT_WINDOWS_DPI_SCALING ?
-        # makes dpi aware of scale changes
-        # if platform == "win":
-            # SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, b"1")
-        #     pass
-
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
@@ -866,8 +860,12 @@ cdef class _WindowSDL2Storage:
                     event.window.data1, event.window.data2
                 )
             elif event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+                action = ('windowdisplaychanged',)
+            elif event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                action = ('windowpixelsizechanged',)
+            elif event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
                 action = (
-                    'windowdisplaychanged',
+                    'windowdisplayscalechanged',
                     event.window.data1, event.window.data2
                 )
             else:
