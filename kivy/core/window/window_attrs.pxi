@@ -2,21 +2,20 @@ include "../../include/config.pxi"
 
 cdef extern from *:
     """
-    /*
     #if __USE_WAYLAND
         #include <wayland-client.h>
         typedef struct wl_display struct_wl_display;
         typedef struct wl_surface struct_wl_surface;
         typedef struct wl_shell_surface struct_wl_shell_surface;
     #else
-        typedef struct {
-        } wl_display;
-        typedef struct {
-        } wl_surface;
-        typedef struct {
-        } wl_shell_surface;
+        struct wl_display;
+        struct wl_surface;
+        struct wl_shell_surface;
+
+        typedef struct wl_display struct_wl_display;
+        typedef struct wl_surface struct_wl_surface;
+        typedef struct wl_shell_surface struct_wl_shell_surface;
     #endif
-    */
 
     #if __USE_X11
         #include <X11/Xlib.h>

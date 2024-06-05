@@ -21,7 +21,7 @@ from .window_info cimport (
     WindowInfoiOS,
     WindowInfomacOS,
     WindowInfoX11,
-    # WindowInfoWayland,
+    WindowInfoWayland,
     WindowInfoWindows
 )
 
@@ -453,7 +453,6 @@ cdef class _WindowSDL2Storage:
         pixel_density = SDL_GetWindowPixelDensity(self.win)
         if pixel_density == 0.0:
             pixel_density = 1.0
-        print(pixel_density)
         return pixel_density
 
     def get_window_display_scale(self):
@@ -461,7 +460,6 @@ cdef class _WindowSDL2Storage:
         scale = SDL_GetWindowDisplayScale(self.win)
         if scale == 0.0:
             scale = 1.0
-        print(scale)
         return scale
 
     def get_window_pos(self):
@@ -528,7 +526,6 @@ cdef class _WindowSDL2Storage:
         return window_info
 
     def _get_window_info_wayland(self):
-        """
         cdef WindowInfoWayland window_info
         window_info = WindowInfoWayland()
 
@@ -547,8 +544,8 @@ cdef class _WindowSDL2Storage:
                 NULL,
             )
         )
-        """
-        return None
+
+        return window_info
 
     def _get_window_info_x11(self):
         cdef WindowInfoX11 window_info
