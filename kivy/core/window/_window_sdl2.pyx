@@ -448,6 +448,22 @@ cdef class _WindowSDL2Storage:
     def set_window_title(self, title):
         SDL_SetWindowTitle(self.win, <bytes>title.encode('utf-8'))
 
+    def get_window_pixel_density(self):
+        cdef float pixel_density
+        pixel_density = SDL_GetWindowPixelDensity(self.win)
+        if pixel_density == 0.0:
+            pixel_density = 1.0
+        print(pixel_density)
+        return pixel_density
+
+    def get_window_display_scale(self):
+        cdef float scale
+        scale = SDL_GetWindowDisplayScale(self.win)
+        if scale == 0.0:
+            scale = 1.0
+        print(scale)
+        return scale
+
     def get_window_pos(self):
         cdef int x, y
         SDL_GetWindowPosition(self.win, &x, &y)

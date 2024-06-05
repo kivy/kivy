@@ -671,6 +671,8 @@ cdef extern from "SDL.h":
     cdef void* SDL_GetProperty(SDL_PropertiesID props, const char *name, void *default_value)
     cdef SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
     cdef void SDL_free(void *mem)
+    cdef float SDL_GetWindowPixelDensity(SDL_Window *window)
+    cdef float SDL_GetWindowDisplayScale(SDL_Window *window)
 
     # Sound audio formats
     Uint16 AUDIO_U8     #0x0008  /**< Unsigned 8-bit samples */

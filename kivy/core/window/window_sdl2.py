@@ -312,7 +312,8 @@ class WindowSDL(WindowBase):
                 self.get_gl_backend_name())
 
             # We don't have a density or dpi yet set, so let's ask for an update
-            self._update_density_and_dpi()
+            self._update_density()
+            self._update_dpi()
 
             # never stay with a None pos, application using w.center
             # will be fired.
@@ -379,12 +380,12 @@ class WindowSDL(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
-    def _update_density_and_dpi(self):
-        self._density = (
-            self._win.window_pixel_size[0] / self._win.window_size[0]
-        )
+    def _update_density(self):
+        self._density = self._win.get_window_pixel_density()
+
+    def _update_dpi(self):
         if self._is_desktop:
-            self.dpi = (self._density * 96.)
+            self.dpi = self._win.get_window_display_scale() * 96.0
 
     def close(self):
         self._win.teardown_window()
@@ -658,13 +659,17 @@ class WindowSDL(WindowBase):
 
                 # The display has changed, so the density and dpi
                 # may have changed too.
-                self._update_density_and_dpi()
+                # Maybe in SDL3 this is not needed anymore?
+                self._update_density()
+                self._update_dpi()
 
             elif action == 'windowpixelsizechanged':
                 print("WindowSDL: Window pixel size changed")
+                self._update_density()
 
             elif action == 'windowdisplayscalechanged':
                 print("WindowSDL: Window display scale changed")
+                self._update_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
