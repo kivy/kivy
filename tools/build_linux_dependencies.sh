@@ -3,8 +3,8 @@ set -e -x
 
 # manylinux SDL3
 MANYLINUX__SDL3__VERSION="3.1.2"
-MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MANYLINUX__SDL3__VERSION/SDL3-$MANYLINUX__SDL3__VERSION.tar.xz"
-MANYLINUX__SDL3__FOLDER="SDL3-$MANYLINUX__SDL3__VERSION"
+MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/archive/refs/heads/main.tar.gz"
+MANYLINUX__SDL3__FOLDER="SDL-main"
 
 # manylinux SDL3_image
 # MANYLINUX__SDL2_IMAGE__VERSION="2.8.0"
@@ -42,7 +42,7 @@ mkdir kivy-dependencies
 echo "Downloading dependencies..."
 mkdir kivy-dependencies/download
 pushd kivy-dependencies/download
-curl -L $MANYLINUX__SDL3__URL -o "${MANYLINUX__SDL3__FOLDER}.tar.xz"
+curl -L $MANYLINUX__SDL3__URL -o "${MANYLINUX__SDL3__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL3_IMAGE__URL -o "${MANYLINUX__SDL3_IMAGE__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL3_MIXER__URL -o "${MANYLINUX__SDL3_MIXER__FOLDER}.tar.gz"
 curl -L $MANYLINUX__SDL3_TTF__URL -o "${MANYLINUX__SDL3_TTF__FOLDER}.tar.gz"
@@ -53,7 +53,7 @@ popd
 echo "Extracting dependencies..."
 mkdir kivy-dependencies/build
 pushd kivy-dependencies/build
-tar -xJf ../download/${MANYLINUX__SDL3__FOLDER}.tar.xz
+tar -xzf ../download/${MANYLINUX__SDL3__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL3_IMAGE__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL3_MIXER__FOLDER}.tar.gz
 tar -xzf ../download/${MANYLINUX__SDL3_TTF__FOLDER}.tar.gz
