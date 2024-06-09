@@ -95,11 +95,11 @@ def get_isolated_env_paths():
         # sdl2_dev is installed before setup.py is run, when installing from
         # source due to pyproject.toml. However, it is installed to a
         # pip isolated env, which we need to add to compiler
-        import kivy_deps.glew_dev as glew_dev
+        import kivy_deps.sdl3_dev as sdl3_dev
     except ImportError:
         return [], []
 
-    root = os.path.abspath(join(glew_dev.__path__[0], '../../../..'))
+    root = os.path.abspath(join(sdl3_dev.__path__[0], '../../../..'))
     includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
     libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
     return includes, libs
@@ -189,7 +189,7 @@ KIVY_DEPS_ROOT = os.environ.get('KIVY_DEPS_ROOT', None)
 # if KIVY_DEPS_ROOT is None and platform is linux or darwin show a warning
 # message, because using a system provided SDL2 is not recommended.
 # (will be shown only in verbose mode)
-if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin', 'win32'):
+if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
     print("###############################################")
     print("WARNING: KIVY_DEPS_ROOT is not set, using system provided SDL")
     print("which is not recommended as it may be incompatible with Kivy.")
@@ -804,9 +804,11 @@ def determine_sdl2():
         # Try to find sdl2 in default locations if we don't have a custom path
         sdl2_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
-            sdl_inc = join(include, 'SDL3')
-            if isdir(sdl_inc):
-                sdl2_paths.append(sdl_inc)
+            for _sdl_sub in ['SDL3', 'SDL3_image', 'SDL3_mixer', 'SDL3_ttf']:
+                sdl_inc = join(include, _sdl_sub)
+                if isdir(sdl_inc):
+                    sdl2_paths.append(sdl_inc)
+
         sdl2_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
 
     flags['include_dirs'] = sdl2_paths

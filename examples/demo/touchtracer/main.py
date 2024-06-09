@@ -27,9 +27,6 @@ __version__ = '1.0'
 
 import os
 
-if hasattr(os, 'add_dll_directory'):
-    os.add_dll_directory(os.path.join(os.environ['KIVY_DEPS_ROOT'], 'dist', 'bin'))
-
 import kivy
 kivy.require('1.0.6')
 
