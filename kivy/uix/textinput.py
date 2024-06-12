@@ -561,6 +561,9 @@ class TextInput(FocusBehavior, Widget):
         # in TextInput's viewport
         self._visible_lines_range = 0, 0
 
+        # true means input method is working,need to ignore backspace
+        self._is_textedit = False
+
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -2846,7 +2849,8 @@ class TextInput(FocusBehavior, Widget):
                 self.do_backspace(mode='del')
 
         elif internal_action == 'backspace':
-            self.do_backspace()
+            if not self._is_textedit:  # check input method is working
+                self.do_backspace()
 
         # handle action keys and text insertion
         if internal_action is None:
@@ -3043,6 +3047,13 @@ class TextInput(FocusBehavior, Widget):
         if self._selection:
             self.delete_selection()
         self.insert_text(text, False)
+        self._is_textedit = False  # ready to insert ,finish text edit state.
+
+    def keyboard_on_textedit(self, window, text):
+        if len(text) > 0:
+            self._is_textedit = True
+        else:
+            self._is_textedit = False
 
     # current IME composition in progress by the IME system, or '' if nothing
     _ime_composition = StringProperty('')
