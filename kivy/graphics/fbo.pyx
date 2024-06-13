@@ -429,6 +429,11 @@ cdef class Fbo(RenderContext):
                 self.observers.remove(cb)
                 continue
 
+    @property
+    def gl_id(self):
+        '''OpenGL id of framebuffer
+        '''
+        return self.buffer_id
 
     @property
     def size(self):
