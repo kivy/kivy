@@ -1,4 +1,4 @@
-cibuildwheel~=2.18.0
+cibuildwheel~=2.19.1
 build~=1.2.1
 coveralls~=4.0.0
 twine~=5.1.0
