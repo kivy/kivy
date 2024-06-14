@@ -45,7 +45,7 @@ Builder.load_string('''
             ellipse: (self.x, self.y, self.width, self.height, 90, 720, 10)
     Label:
         center: root.center
-        text: 'Ellipse from 90 to 720\\n10 segments'
+        text: 'Ellipse from 90 to 720\\n5 segments'
         halign: 'center'
 
 <LineCircle1>:
