@@ -35,7 +35,8 @@ def _on_gstplayer_buffer(video, width, height, data):
     if not video:
         return
     with video._buffer_lock:
-        video._buffer = (width, height, data)
+        if len(video._buffers) < 2:
+            video._buffers.append((width, height, data))
 
 
 def _on_gstplayer_message(mtype, message):
@@ -51,7 +52,7 @@ class VideoGstplayer(VideoBase):
 
     def __init__(self, **kwargs):
         self.player = None
-        self._buffer = None
+        self._buffers = []
         self._buffer_lock = Lock()
         super(VideoGstplayer, self).__init__(**kwargs)
 
@@ -72,7 +73,7 @@ class VideoGstplayer(VideoBase):
             self.player.unload()
             self.player = None
         with self._buffer_lock:
-            self._buffer = None
+            self._buffers = []
         self._texture = None
 
     def stop(self):
@@ -105,8 +106,7 @@ class VideoGstplayer(VideoBase):
     def _update(self, dt):
         buf = None
         with self._buffer_lock:
-            buf = self._buffer
-            self._buffer = None
+            buf = self._buffers.pop(0) if self._buffers else None
         if buf is not None:
             self._update_texture(buf)
             self.dispatch('on_frame')
