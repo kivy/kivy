@@ -320,19 +320,15 @@ cdef extern from "SDL.h":
         float dy
         float pressure
 
-    cdef struct SDL_Keysym:
-        SDL_Scancode scancode       # SDL physical key code - see ::SDL_Scancode for details */
-        SDL_Keycode sym             # SDL virtual key code - see ::SDL_Keycode for details */
-        Uint16 mod                  # current key modifiers */
-        Uint32 unused
-
     cdef struct SDL_KeyboardEvent:
         Uint32 type         # ::SDL_EVENT_KEY_DOWN or ::SDL_EVENT_KEY_UP
         Uint32 timestamp
         Uint32 windowID     # The window with keyboard focus, if any
         Uint8 state         # ::SDL_PRESSED or ::SDL_RELEASED
         Uint8 repeat        # Non-zero if this is a key repeat
-        SDL_Keysym keysym   # The key that was pressed or released
+        SDL_Scancode scancode  # SDL physical key code
+        SDL_Keycode key        # SDL virtual key code
+        SDL_Keymod mod         # current key modifiers
 
     cdef struct SDL_TextEditingEvent:
         Uint32 type                                 # ::SDL_EVENT_TEXT_EDITING */
@@ -459,7 +455,7 @@ cdef extern from "SDL.h":
         SDL_IOStatus status;
         # SDL_PropertiesID props;
 
-    cdef enum SDL_Keymod:
+    ctypedef enum SDL_Keymod:
         KMOD_NONE
         KMOD_LSHIFT
         KMOD_RSHIFT
@@ -875,7 +871,7 @@ cdef extern from "SDL_ttf.h":
 
 cdef extern from "SDL_audio.h":
     cdef int SDL_AUDIO_S16
-    cdef int SDL_AUDIO_DEVICE_DEFAULT_OUTPUT
+    cdef int SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK
 
     ctypedef Uint32 SDL_AudioDeviceID
     ctypedef Uint16 SDL_AudioFormat

@@ -80,7 +80,7 @@ cdef mix_init():
     desired_spec.freq = 44100
     desired_spec.format = SDL_AUDIO_S16
     desired_spec.channels = 2    
-    if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &desired_spec):
+    if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
                         Mix_GetError()))
         mix_is_init = -1
