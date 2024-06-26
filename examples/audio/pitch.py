@@ -1,7 +1,7 @@
 # encoding: utf8
 
 from kivy.app import App
-from kivy.core.audio import SoundLoader
+from kivy.core.audio_output import SoundLoader
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 

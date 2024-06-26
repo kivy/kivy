@@ -30,7 +30,7 @@ import kivy.app
 import kivy.metrics
 import kivy.atlas
 import kivy.context
-import kivy.core.audio
+import kivy.core.audio_output
 import kivy.core.camera
 import kivy.core.clipboard
 import kivy.core.gl
