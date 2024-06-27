@@ -104,12 +104,18 @@ class BoxLayout(Layout):
     defaults to [0, 0, 0, 0].
     '''
 
-    orientation = OptionProperty('horizontal', options=(
+    orientation = OptionProperty('horizontal', options=('lr', 'rl', 'tb', 'bt',
         'horizontal', 'vertical'))
     '''Orientation of the layout.
 
     :attr:`orientation` is an :class:`~kivy.properties.OptionProperty` and
-    defaults to 'horizontal'. Can be 'vertical' or 'horizontal'.
+    defaults to 'horizontal'. Can be 'vertical', 'horizontal', 'lr', 'rl',
+    'tb' or 'bt'. 'lr' indicates left to right. 'tb' indicates top to bottom.
+    'lr' and 'horizontal' are synonymous, as are 'tb' and 'vertical'.
+
+    .. versionchanged:: 3.0.0
+
+        The options 'lr', 'rl', 'tb' and 'bt' were added.
     '''
 
     minimum_width = NumericProperty(0)
@@ -142,7 +148,7 @@ class BoxLayout(Layout):
     '''
 
     def __init__(self, **kwargs):
-        super(BoxLayout, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         update = self._trigger_layout
         fbind = self.fbind
         fbind('spacing', update)
@@ -153,12 +159,21 @@ class BoxLayout(Layout):
         fbind('size', update)
         fbind('pos', update)
 
+    @property
+    def _is_horizontal(self):
+        return self.orientation[0] in 'hlr'
+
+    @property
+    def _is_forward_direction(self):
+        '''positive direction of x/y-axis ?'''
+        return self.orientation[0] in 'hlb'
+
     def _iterate_layout(self, sizes):
         # optimize layout by preventing looking at the same attribute in a loop
         len_children = len(sizes)
         padding_left, padding_top, padding_right, padding_bottom = self.padding
         spacing = self.spacing
-        orientation = self.orientation
+        is_horizontal = self._is_horizontal
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
 
@@ -168,7 +183,7 @@ class BoxLayout(Layout):
         hint = [None] * len_children
         # min size from all the None hint, and from those with sh_min
         minimum_size_bounded = 0
-        if orientation == 'horizontal':
+        if is_horizontal:
             minimum_size_y = 0
             minimum_size_none = padding_x + spacing * (len_children - 1)
 
@@ -222,7 +237,7 @@ class BoxLayout(Layout):
         selfx = self.x
         selfy = self.y
 
-        if orientation == 'horizontal':
+        if is_horizontal:
             stretch_space = max(0.0, self.width - minimum_size_none)
             dim = 0
         else:
@@ -252,11 +267,15 @@ class BoxLayout(Layout):
                     (val[3][dim] for val in sizes),
                     (elem[4][dim] for elem in sizes), hint)
 
-        if orientation == 'horizontal':
+        if self._is_forward_direction:
+            zipped_iters = zip(range(len_children - 1, -1, -1), reversed(hint),
+                               reversed(sizes))
+        else:
+            zipped_iters = zip(range(len_children), hint, sizes)
+        if is_horizontal:
             x = padding_left + selfx
             size_y = self.height - padding_y
-            for i, (sh, ((w, h), (_, shh), pos_hint, _, _)) in enumerate(
-                    zip(reversed(hint), reversed(sizes))):
+            for i, sh, ((w, h), (_, shh), pos_hint, _, _) in zipped_iters:
                 cy = selfy + padding_bottom
 
                 if sh:
@@ -273,14 +292,13 @@ class BoxLayout(Layout):
                     elif key == 'center_y':
                         cy += posy - (h / 2.)
 
-                yield len_children - i - 1, x, cy, w, h
+                yield i, x, cy, w, h
                 x += w + spacing
 
         else:
             y = padding_bottom + selfy
             size_x = self.width - padding_x
-            for i, (sh, ((w, h), (shw, _), pos_hint, _, _)) in enumerate(
-                    zip(hint, sizes)):
+            for i, sh, ((w, h), (shw, _), pos_hint, _, _) in zipped_iters:
                 cx = selfx + padding_left
 
                 if sh:
@@ -324,8 +342,8 @@ class BoxLayout(Layout):
 
     def add_widget(self, widget, *args, **kwargs):
         widget.fbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).add_widget(widget, *args, **kwargs)
+        return super().add_widget(widget, *args, **kwargs)
 
     def remove_widget(self, widget, *args, **kwargs):
         widget.funbind('pos_hint', self._trigger_layout)
-        return super(BoxLayout, self).remove_widget(widget, *args, **kwargs)
+        return super().remove_widget(widget, *args, **kwargs)
