@@ -5,7 +5,7 @@ Works on iOS / OSX.
 
 __all__ = ('SoundAvplayer', )
 
-from kivy.core.audio import Sound, SoundLoader
+from kivy.core.audio_output import Sound, SoundLoader
 from pyobjus import autoclass, protocol
 from pyobjus.dylib_manager import load_framework, INCLUDE
 

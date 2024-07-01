@@ -116,7 +116,7 @@ report_dict['OpenGL'] = report
 report = []
 
 title('Core selection')
-from kivy.core.audio import SoundLoader
+from kivy.core.audio_output import SoundLoader
 report.append('Audio  = %s' % SoundLoader._classes)
 from kivy.core.camera import Camera
 report.append('Camera = %s' % Camera)
