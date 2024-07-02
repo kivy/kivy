@@ -157,7 +157,6 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.touches = {}
         self.counter = 0
         self.current_drag = None
-        self.alt_touch = None
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
@@ -274,7 +273,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         return self.device + str(self.counter)
 
-    def create_touch(self, win, nx, ny, is_double_tap, do_graphics, button):
+    def create_touch(self, win, nx, ny, do_graphics, button):
         event_id = self.create_event_id()
         args = [nx, ny, button]
         if do_graphics:
@@ -284,7 +283,6 @@ class MouseMotionEventProvider(MotionEventProvider):
             is_touch=True,
             type_id='touch'
         )
-        touch.is_double_tap = is_double_tap
         self.touches[event_id] = touch
         if do_graphics:
             # only draw red circle if multitouch is not disabled, and
@@ -335,10 +333,6 @@ class MouseMotionEventProvider(MotionEventProvider):
             touch.move([nx, ny])
             touch.update_graphics(win)
             self.waiting_event.append(('update', touch))
-        elif self.alt_touch is not None and 'alt' not in modifiers:
-            # alt just released ?
-            is_double_tap = 'shift' in modifiers
-            self.create_touch(win, nx, ny, is_double_tap, True, [])
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
@@ -349,17 +343,13 @@ class MouseMotionEventProvider(MotionEventProvider):
         if found_touch:
             self.current_drag = found_touch
         else:
-            is_double_tap = 'shift' in modifiers
             do_graphics = (
                 not self.disable_multitouch
                 and (button != 'left' or 'ctrl' in modifiers)
             )
             touch = self.create_touch(
-                win, nx, ny, is_double_tap, do_graphics, button
+                win, nx, ny, do_graphics, button
             )
-            if 'alt' in modifiers:
-                self.alt_touch = touch
-                self.current_drag = None
 
     def on_mouse_release(self, win, x, y, button, modifiers):
         if button == 'all':
@@ -386,9 +376,6 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.current_drag = None
             else:
                 touch.update_graphics(win, True)
-        if self.alt_touch:
-            self.remove_touch(win, self.alt_touch)
-            self.alt_touch = None
 
     def update_touch_graphics(self, win, *args):
         for touch in self.touches.values():
