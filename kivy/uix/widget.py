@@ -1627,3 +1627,20 @@ class Widget(WidgetBase):
         This is an experimental property and it remains so while this warning
         is present.
     '''
+    def hide(self):
+        """Reduces The Widget Opacity and size ot zero."""
+        self._original_size = self.size
+        self._original_size_hint = self.size_hint
+        self.opacity = 0
+        self.size_hint = (None, None)
+        self.size = (0, 0)
+        self.disabled = True
+
+    def show(self):
+        """Restores the Widgets original properties."""
+        if hasattr(self, '_original_size'):
+            self.size = self._original_size
+        if hasattr(self, '_original_size_hint'):
+            self.size_hint = self._original_size_hint
+        self.opacity = 1
+        self.disabled = False
