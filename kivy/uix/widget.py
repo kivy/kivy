@@ -1636,6 +1636,9 @@ class Widget(WidgetBase):
         self.size = (0, 0)
         self.disabled = True
 
+        for child in self.children:
+            child.hide()
+
     def show(self):
         """Restores the Widgets original properties."""
         if hasattr(self, '_original_size'):
@@ -1644,3 +1647,6 @@ class Widget(WidgetBase):
             self.size_hint = self._original_size_hint
         self.opacity = 1
         self.disabled = False
+
+        for child in self.children:
+            child.show()
