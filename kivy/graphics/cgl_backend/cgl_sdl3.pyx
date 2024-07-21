@@ -1,5 +1,5 @@
 """
-CGL/SDL: GL backend implementation using SDL2
+CGL/SDL: GL backend implementation using SDL3
 """
 
 include "../common.pxi"
@@ -7,20 +7,20 @@ include "../../include/config.pxi"
 
 from kivy.graphics.cgl cimport *
 
-IF USE_SDL2:
+IF USE_SDL3:
     cdef extern from "SDL.h":
         void *SDL_GL_GetProcAddress(const char*)
 
 
 cpdef is_backend_supported():
-    return USE_SDL2
+    return USE_SDL3
 
 
 def init_backend():
-    IF not USE_SDL2:
-        raise TypeError('SDL2 is not available. Recompile with USE_SDL2=1')
+    IF not USE_SDL3:
+        raise TypeError('SDL3 is not available. Recompile with USE_SDL3=1')
     ELSE:
-        # sdl2 window must have been created by now
+        # sdl3 window must have been created by now
         cgl.glActiveTexture = <GLACTIVETEXTUREPTR>SDL_GL_GetProcAddress("glActiveTexture")
         cgl.glAttachShader = <GLATTACHSHADERPTR>SDL_GL_GetProcAddress("glAttachShader")
         cgl.glBindAttribLocation = <GLBINDATTRIBLOCATIONPTR>SDL_GL_GetProcAddress("glBindAttribLocation")

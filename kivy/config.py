@@ -190,7 +190,7 @@ Available configuration tokens
                     or 'minimized'
 
         Sets the window state, defaults to 'visible'. This option is available
-        only for the SDL2 window provider and it should be used on desktop
+        only for the SDL3 window provider and it should be used on desktop
         OSes.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
@@ -239,9 +239,9 @@ Available configuration tokens
         Width of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
     `minimum_width`: int
-        Minimum width to restrict the window to. (sdl2 only)
+        Minimum width to restrict the window to. (sdl3 only)
     `minimum_height`: int
-        Minimum height to restrict the window to. (sdl2 only)
+        Minimum height to restrict the window to. (sdl3 only)
     `min_state_time`: float, defaults to .035
         Minimum time for widgets to display a given visual state.
         This attrib is currently used by widgets like
@@ -251,18 +251,18 @@ Available configuration tokens
         time.
     `always_on_top`: int, one of ``0`` or ``1``, defaults to ``0``
         When enabled, the window will be brought to the front and will keep
-        the window above the rest. Only works for the sdl2 window provider.
+        the window above the rest. Only works for the sdl3 window provider.
         ``0`` is disabled, ``1`` is enabled.
     `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``1``
         Determines whether the app's icon will be added to the taskbar. Only
-        applicable for the SDL2 window provider.
+        applicable for the SDL3 window provider.
         ``0`` means the icon will not be shown in the taskbar and ``1`` means
         it will.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
-        on mobile devices. Only works for the sdl2 window provider.
+        on mobile devices. Only works for the sdl3 window provider.
     `vsync`: `none`, empty value, or integers
-        Whether vsync is enabled, currently only used with sdl2 window.
+        Whether vsync is enabled, currently only used with sdl3 window.
         Possible values are `none` or empty value -- leaves it unchanged,
         ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
         ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
