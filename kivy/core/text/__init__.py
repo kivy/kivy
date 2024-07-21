@@ -1064,7 +1064,7 @@ if USE_PANGOFT2:
     label_libs += [('pango', 'text_pango', 'LabelPango')]
 
 if USE_SDL2:
-    label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
+    label_libs += [('sdl3', 'text_sdl3', 'LabelSDL3')]
 
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
