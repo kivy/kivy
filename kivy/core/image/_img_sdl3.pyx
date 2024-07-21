@@ -52,8 +52,8 @@ def init():
         if ret & flags != flags:
             # FIXME replace flags by a good string
             Logger.error(
-                'ImageSDL2: Failed to init required {} support'.format(flags))
-            Logger.error('ImageSDL2: {}'.format(IMG_GetError()))
+                'ImageSDL3: Failed to init required {} support'.format(flags))
+            Logger.error('ImageSDL3: {}'.format(IMG_GetError()))
 
     _is_init = 1
 
@@ -69,7 +69,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     elif pixelfmt == "rgba":
         pitch = w * 4
     else:
-        raise Exception("IMG SDL2 supports only pixelfmt rgb and rgba")
+        raise Exception("IMG SDL3 supports only pixelfmt rgb and rgba")
 
     cdef int lng, top, bot
     cdef list rng
@@ -146,7 +146,7 @@ cdef load_from_surface(SDL_Surface *image):
     cdef bytes pixels
 
     if image == NULL:
-        Logger.warn('ImageSDL2: load_from_surface() with NULL surface')
+        Logger.warn('ImageSDL3: load_from_surface() with NULL surface')
         return None
 
     # SDL 2.0.5 now has endian-agnostic 32-bit pixel formats like RGB24,
@@ -202,7 +202,7 @@ cdef load_from_surface(SDL_Surface *image):
             with nogil:
                 image2 = SDL_ConvertSurface(image, target_fmt)
             if image2 == NULL:
-                Logger.warn('ImageSDL2: error converting {} to {}: {}'.format(
+                Logger.warn('ImageSDL3: error converting {} to {}: {}'.format(
                         SDL_GetPixelFormatName(image.format),
                         SDL_GetPixelFormatName(target_fmt),
                         SDL_GetError()))

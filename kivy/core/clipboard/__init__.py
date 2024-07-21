@@ -130,7 +130,7 @@ elif platform == 'linux':
 
 if USE_SDL2:
     _clipboards.append(
-        ('sdl2', 'clipboard_sdl2', 'ClipboardSDL2'))
+        ('sdl3', 'clipboard_sdl3', 'ClipboardSDL3'))
 
 _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))

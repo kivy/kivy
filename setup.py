@@ -354,40 +354,6 @@ class KivyBuildExt(build_ext, object):
         return need_update
 
 
-def _check_and_fix_sdl2_mixer(f_path):
-    # Between SDL_mixer 2.0.1 and 2.0.4, the included frameworks changed
-    # smpeg2 have been replaced with mpg123, but there is no need to fix.
-    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
-                   "/Versions/A/smpeg2").format(f_path)
-    if not exists(smpeg2_path):
-        return
-
-    print("Check if SDL2_mixer smpeg2 have an @executable_path")
-    rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
-                  "/Versions/A/SDL2")
-    rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
-    output = getoutput(("otool -L '{}'").format(smpeg2_path)).decode('utf-8')
-    if "@executable_path" not in output:
-        return
-
-    print("WARNING: Your SDL2_mixer version is invalid")
-    print("WARNING: The smpeg2 framework embedded in SDL2_mixer contains a")
-    print("WARNING: reference to @executable_path that will fail the")
-    print("WARNING: execution of your application.")
-    print("WARNING: We are going to change:")
-    print("WARNING: from: {}".format(rpath_from))
-    print("WARNING: to: {}".format(rpath_to))
-    getoutput("install_name_tool -change {} {} {}".format(
-        rpath_from, rpath_to, smpeg2_path))
-
-    output = getoutput(("otool -L '{}'").format(smpeg2_path))
-    if b"@executable_path" not in output:
-        print("WARNING: Change successfully applied!")
-        print("WARNING: You'll never see this message again.")
-    else:
-        print("WARNING: Unable to apply the changes, sorry.")
-
-
 # -----------------------------------------------------------------------------
 print("Python path is:\n{}\n".format('\n'.join(sys.path)))
 # extract version (simulate doc generation, kivy will be not imported)
@@ -986,11 +952,11 @@ if c_options['use_sdl2'] and sdl2_flags:
         }
     else:
         _extra_args = {}
-    for source_file in ('core/window/_window_sdl2.pyx',
-                        'core/image/_img_sdl2.pyx',
-                        'core/text/_text_sdl2.pyx',
-                        'core/audio_output/audio_sdl2.pyx',
-                        'core/clipboard/_clipboard_sdl2.pyx'):
+    for source_file in ('core/window/_window_sdl3.pyx',
+                        'core/image/_img_sdl3.pyx',
+                        'core/text/_text_sdl3.pyx',
+                        'core/audio_output/audio_sdl3.pyx',
+                        'core/clipboard/_clipboard_sdl3.pyx'):
 
         sources[source_file] = merge(
             base_flags, sdl2_flags, sdl2_depends, _extra_args
