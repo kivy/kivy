@@ -27,7 +27,7 @@ from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
 from kivy.utils import platform, reify, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.cgl import cgl_get_backend_name
 
@@ -687,7 +687,7 @@ class WindowBase(EventDispatcher):
         return ios.get_kheight()
 
     def _get_android_kheight(self):
-        if USE_SDL2:  # Placeholder until the SDL3 bootstrap supports this
+        if USE_SDL3:  # Placeholder until the SDL3 bootstrap supports this
             return 0
         global android
         if not android:
@@ -2554,7 +2554,7 @@ class WindowBase(EventDispatcher):
 window_impl = []
 if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
-if USE_SDL2:
+if USE_SDL3:
     window_impl += [('sdl3', 'window_sdl3', 'WindowSDL')]
 
 if platform == 'linux':

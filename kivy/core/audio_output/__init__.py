@@ -54,7 +54,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
 from kivy.utils import platform
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 
 from sys import float_info
 
@@ -122,7 +122,7 @@ class Sound(EventDispatcher):
 
     pitch = BoundedNumericProperty(1., min=float_info.epsilon)
     '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
-    implemented for SDL2 audio provider yet.
+    implemented for SDL3 audio provider yet.
 
     .. versionadded:: 1.10.0
 
@@ -215,7 +215,7 @@ try:
 except ImportError:
     pass
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
-if USE_SDL2:
+if USE_SDL3:
     audio_libs += [('sdl3', 'audio_sdl3')]
 
 libs_loaded = core_register_libs('audio_output', audio_libs)
