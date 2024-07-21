@@ -1,6 +1,6 @@
 import ctypes
 
-include "../../../kivy/lib/sdl2.pxi"
+include "../../../kivy/lib/sdl3.pxi"
 include "../../include/config.pxi"
 
 from libc.string cimport memcpy
