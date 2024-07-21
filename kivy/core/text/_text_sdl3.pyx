@@ -10,8 +10,8 @@ include '../../lib/sdl2.pxi'
 
 from kivy.core.image import ImageData
 
-cdef dict sdl2_cache = {}
-cdef list sdl2_cache_order = []
+cdef dict sdl3_cache = {}
+cdef list sdl3_cache_order = []
 
 cdef class _TTFContainer:
     cdef TTF_Font* font
@@ -171,8 +171,8 @@ cdef TTF_Font *_get_font(self) except *:
 
     # fast path
     fontid = self._get_font_id()
-    if fontid in sdl2_cache:
-        ttfc = sdl2_cache[fontid]
+    if fontid in sdl3_cache:
+        ttfc = sdl3_cache[fontid]
         return ttfc.font
 
     # ensure ttf is init.
@@ -200,18 +200,18 @@ cdef TTF_Font *_get_font(self) except *:
         style = style | TTF_STYLE_STRIKETHROUGH
     TTF_SetFontStyle(fontobject, style)
 
-    sdl2_cache[fontid] = ttfc = _TTFContainer()
+    sdl3_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject
-    sdl2_cache_order.append(fontid)
+    sdl3_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
 
-    while len(sdl2_cache_order) > 64:
-        popid = sdl2_cache_order.pop(0)
-        ttfc = sdl2_cache[popid]
-        del sdl2_cache[popid]
+    while len(sdl3_cache_order) > 64:
+        popid = sdl3_cache_order.pop(0)
+        ttfc = sdl3_cache[popid]
+        del sdl3_cache[popid]
 
-    ttfc = sdl2_cache[fontid]
+    ttfc = sdl3_cache[fontid]
 
     return ttfc.font
 
