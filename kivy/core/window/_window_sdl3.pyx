@@ -26,10 +26,10 @@ from .window_info cimport (
 )
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
-    return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
+    return (<_WindowSDL3Storage>userdata).cb_event_filter(event)
 
 
-cdef class _WindowSDL2Storage:
+cdef class _WindowSDL3Storage:
     cdef SDL_Window *win
     cdef SDL_GLContext ctx
     cdef SDL_Surface *surface

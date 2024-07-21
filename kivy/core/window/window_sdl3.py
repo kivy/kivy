@@ -1,6 +1,6 @@
 # found a way to include it more easily.
 '''
-SDL2 Window
+SDL3 Window
 ===========
 
 Windowing provider directly based on our own wrapped version of SDL.
@@ -24,11 +24,11 @@ from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase
 try:
-    from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+    from kivy.core.window._window_sdl3 import _WindowSDL3Storage
 except ImportError:
     from kivy.core import handle_win_lib_import_error
     handle_win_lib_import_error(
-        'window', 'sdl2', 'kivy.core.window._window_sdl2')
+        'window', 'sdl3', 'kivy.core.window._window_sdl3')
     raise
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
@@ -102,7 +102,7 @@ SDLK_F14 = 1073741895
 SDLK_F15 = 1073741896
 
 
-class SDL2MotionEvent(MotionEvent):
+class SDL3MotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('is_touch', True)
@@ -115,7 +115,7 @@ class SDL2MotionEvent(MotionEvent):
         super().depack(args)
 
 
-class SDL2MotionEventProvider(MotionEventProvider):
+class SDL3MotionEventProvider(MotionEventProvider):
     win = None
     q = deque()
     touchmap = {}
@@ -131,7 +131,7 @@ class SDL2MotionEventProvider(MotionEventProvider):
             action, fid, x, y, pressure = value
             y = 1 - y
             if fid not in touchmap:
-                touchmap[fid] = me = SDL2MotionEvent(
+                touchmap[fid] = me = SDL3MotionEvent(
                     'sdl', fid, (x, y, pressure)
                 )
             else:
@@ -157,7 +157,7 @@ class WindowSDL(WindowBase):
         self._pause_loop = False
         self._cursor_entered = False
         self._drop_pos = None
-        self._win = _WindowSDL2Storage()
+        self._win = _WindowSDL3Storage()
         super(WindowSDL, self).__init__()
         self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
@@ -363,9 +363,9 @@ class WindowSDL(WindowBase):
             return
 
         # auto add input provider
-        Logger.info('Window: auto add sdl2 input provider')
-        SDL2MotionEventProvider.win = self
-        EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
+        Logger.info('Window: auto add sdl3 input provider')
+        SDL3MotionEventProvider.win = self
+        EventLoop.add_input_provider(SDL3MotionEventProvider('sdl', ''))
 
         # set window icon before calling set_mode
         try:
@@ -577,7 +577,7 @@ class WindowSDL(WindowBase):
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
                 if platform in ('ios', 'android'):
-                    SDL2MotionEventProvider.q.appendleft(event)
+                    SDL3MotionEventProvider.q.appendleft(event)
                 pass
 
             elif action == 'mousemotion':

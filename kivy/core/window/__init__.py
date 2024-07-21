@@ -218,16 +218,16 @@ class WindowBase(EventDispatcher):
         `height`: int
             Height of the window.
         `minimum_width`: int
-            Minimum width of the window (only works for sdl2 window provider).
+            Minimum width of the window (only works for sdl3 window provider).
         `minimum_height`: int
-            Minimum height of the window (only works for sdl2 window provider).
+            Minimum height of the window (only works for sdl3 window provider).
         `always_on_top`: bool
             When enabled, the window will be brought to the front and will keep
             the window above the rest. If disabled, it will restore the default
-            behavior. Only works for the sdl2 window provider.
+            behavior. Only works for the sdl3 window provider.
         `allow_screensaver`: bool
             Allow the device to show a screen saver, or to go to sleep
-            on mobile devices. Defaults to True. Only works for sdl2 window
+            on mobile devices. Defaults to True. Only works for sdl3 window
             provider.
 
     :Events:
@@ -442,7 +442,7 @@ class WindowBase(EventDispatcher):
 
     This option can be toggled freely during the window's lifecycle.
 
-    Only works for the sdl2 window provider. Check the :mod:`~kivy.config`
+    Only works for the sdl3 window provider. Check the :mod:`~kivy.config`
     documentation for a more detailed explanation on the values.
 
     .. versionadded:: 2.2.0
@@ -648,7 +648,7 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to ''.
 
-    .. note:: The `resize` option does not currently work with SDL2 on Android.
+    .. note:: The `resize` option does not currently work with SDL3 on Android.
 
     .. versionadded:: 1.9.0
 
@@ -687,7 +687,7 @@ class WindowBase(EventDispatcher):
         return ios.get_kheight()
 
     def _get_android_kheight(self):
-        if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
+        if USE_SDL2:  # Placeholder until the SDL3 bootstrap supports this
             return 0
         global android
         if not android:
@@ -723,7 +723,7 @@ class WindowBase(EventDispatcher):
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    .. note:: This property returns 0 with SDL2 on Android, but setting
+    .. note:: This property returns 0 with SDL3 on Android, but setting
               Window.softinput_mode does work.
 
     .. versionadded:: 1.9.0
@@ -906,7 +906,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         pass
@@ -938,7 +938,7 @@ class WindowBase(EventDispatcher):
     top = AliasProperty(_get_top, _set_top)
     '''Top position of the window.
 
-    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+    .. note:: It's an SDL3 property with `[0, 0]` in the top-left corner.
 
     .. versionchanged:: 1.10.0
         :attr:`top` is now an :class:`~kivy.properties.AliasProperty`
@@ -952,7 +952,7 @@ class WindowBase(EventDispatcher):
     left = AliasProperty(_get_left, _set_left)
     '''Left position of the window.
 
-    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+    .. note:: It's an SDL3 property with `[0, 0]` in the top-left corner.
 
     .. versionchanged:: 1.10.0
         :attr:`left` is now an :class:`~kivy.properties.AliasProperty`
@@ -982,7 +982,7 @@ class WindowBase(EventDispatcher):
     1.0 (opaque).
 
     .. note::
-        This feature requires the SDL2 window provider.
+        This feature requires the SDL3 window provider.
 
     .. versionadded:: 2.3.0
 
@@ -1264,7 +1264,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
@@ -1277,7 +1277,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
@@ -1290,7 +1290,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
@@ -1303,7 +1303,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
@@ -1316,7 +1316,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: show() is not implemented in the current '
@@ -1329,7 +1329,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: raise_window is not implemented in the current'
@@ -1353,7 +1353,7 @@ class WindowBase(EventDispatcher):
         get_context().flush()
 
     shape_image = StringProperty('')
-    '''An image for the window shape (only works for sdl2 window provider).
+    '''An image for the window shape (only works for sdl3 window provider).
 
     .. warning:: The image size has to be the same like the window's size!
 
@@ -1401,7 +1401,7 @@ class WindowBase(EventDispatcher):
             will not be checked
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
 
         .. warning::
@@ -1422,7 +1422,7 @@ class WindowBase(EventDispatcher):
             )
 
     shape_cutoff = BooleanProperty(True)
-    '''The window :attr:`shape_image` cutoff property (only works for sdl2
+    '''The window :attr:`shape_image` cutoff property (only works for sdl3
     window provider).
 
     .. versionadded:: 1.10.1
@@ -1442,7 +1442,7 @@ class WindowBase(EventDispatcher):
 
     shaped = AliasProperty(_get_shaped, None)
     '''Read only property to check if the window is shapable or not (only works
-    for sdl2 window provider).
+    for sdl3 window provider).
 
     .. versionadded:: 1.10.1
 
@@ -1461,7 +1461,7 @@ class WindowBase(EventDispatcher):
         self._set_shaped_mode(value)
 
     shape_mode = AliasProperty(_get_shape_mode, _set_shape_mode)
-    '''Window mode for shaping (only works for sdl2 window provider).
+    '''Window mode for shaping (only works for sdl3 window provider).
 
     - can be RGB only
        - `default` - does nothing special
@@ -1485,7 +1485,7 @@ class WindowBase(EventDispatcher):
 
     shape_color_key = ColorProperty([1, 1, 1, 1])
     '''Color key of the shaped window - sets which color will be hidden from
-    the window :attr:`shape_image` (only works for sdl2 window provider).
+    the window :attr:`shape_image` (only works for sdl3 window provider).
 
     .. versionadded:: 1.10.1
 
@@ -1950,7 +1950,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1960,7 +1960,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1970,7 +1970,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1980,7 +1980,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1990,7 +1990,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2013,7 +2013,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2023,7 +2023,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2158,7 +2158,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider.
+            This event works with sdl3 window provider.
 
         .. versionadded:: 2.1.0
         '''
@@ -2184,7 +2184,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. warning::
-            This event currently works with sdl2 window provider.
+            This event currently works with sdl3 window provider.
             This event is left in place for further evolution
             (ios, android etc.)
 
@@ -2232,7 +2232,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider on x11 window.
+            This event works with sdl3 window provider on x11 window.
 
         .. note::
             On Windows it is possible to drop a text on the window title bar
@@ -2262,7 +2262,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider.
+            This event works with sdl3 window provider.
 
         .. versionadded:: 2.1.0
         '''
@@ -2273,7 +2273,7 @@ class WindowBase(EventDispatcher):
         Your goal is to clear the cache in your app as much as you can,
         release unused widgets, do garbage collection etc.
 
-        Currently, this event is fired only from the SDL2 provider, for
+        Currently, this event is fired only from the SDL3 provider, for
         iOS and Android.
 
         .. versionadded:: 1.9.0
@@ -2535,7 +2535,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2545,7 +2545,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2555,7 +2555,7 @@ window_impl = []
 if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
 if USE_SDL2:
-    window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
+    window_impl += [('sdl3', 'window_sdl3', 'WindowSDL')]
 
 if platform == 'linux':
     window_impl += [('x11', 'window_x11', 'WindowX11')]
