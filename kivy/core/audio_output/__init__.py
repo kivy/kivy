@@ -216,6 +216,6 @@ except ImportError:
     pass
 audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
-    audio_libs += [('sdl2', 'audio_sdl2')]
+    audio_libs += [('sdl3', 'audio_sdl3')]
 
 libs_loaded = core_register_libs('audio_output', audio_libs)
