@@ -86,7 +86,7 @@ from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
-from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
+from kivy.setupconfig import USE_SDL3, USE_PANGOFT2
 from kivy.logger import Logger
 
 
@@ -1063,7 +1063,7 @@ label_libs = []
 if USE_PANGOFT2:
     label_libs += [('pango', 'text_pango', 'LabelPango')]
 
-if USE_SDL2:
+if USE_SDL3:
     label_libs += [('sdl3', 'text_sdl3', 'LabelSDL3')]
 
 label_libs += [

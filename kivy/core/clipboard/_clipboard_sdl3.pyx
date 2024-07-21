@@ -4,7 +4,7 @@ TODO:
     - everything
 '''
 
-include '../../lib/sdl2.pxi'
+include '../../lib/sdl3.pxi'
 
 
 def _has_text():

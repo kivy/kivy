@@ -1,4 +1,4 @@
-include '../../lib/sdl2.pxi'
+include '../../lib/sdl3.pxi'
 
 import io
 from kivy.logger import Logger

@@ -74,7 +74,7 @@ from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
 from kivy.utils import platform
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 import zipfile
 from io import BytesIO
 
@@ -973,7 +973,7 @@ if platform in ('macosx', 'ios'):
 image_libs += [
     ('tex', 'img_tex'),
     ('dds', 'img_dds')]
-if USE_SDL2:
+if USE_SDL3:
     image_libs += [('sdl3', 'img_sdl3')]
 
 image_libs += [

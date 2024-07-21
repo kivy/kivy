@@ -92,7 +92,7 @@ def pkgconfig(*packages, **kw):
 
 def get_isolated_env_paths():
     try:
-        # sdl2_dev is installed before setup.py is run, when installing from
+        # sdl3_dev is installed before setup.py is run, when installing from
         # source due to pyproject.toml. However, it is installed to a
         # pip isolated env, which we need to add to compiler
         import kivy_deps.sdl3_dev as sdl3_dev
@@ -187,7 +187,7 @@ if environ.get('KIVY_CROSS_PLATFORM'):
 KIVY_DEPS_ROOT = os.environ.get('KIVY_DEPS_ROOT', None)
 
 # if KIVY_DEPS_ROOT is None and platform is linux or darwin show a warning
-# message, because using a system provided SDL2 is not recommended.
+# message, because using a system provided SDL3 is not recommended.
 # (will be shown only in verbose mode)
 if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
     print("###############################################")
@@ -206,7 +206,7 @@ c_options['use_rpi_vidcore_lite'] = platform == 'rpi'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
-c_options['use_sdl2'] = None
+c_options['use_sdl3'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
 c_options['use_android'] = False
@@ -220,7 +220,7 @@ c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
 c_options['debug_gl'] = False
 
 # Set the alpha size, this will be 0 on the Raspberry Pi and 8 on all other
-# platforms, so SDL2 works without X11
+# platforms, so SDL3 works without X11
 c_options['kivy_sdl_gl_alpha_size'] = 8 if pi_version is None else 0
 
 # now check if environ is changing the default values
@@ -419,7 +419,7 @@ if platform == 'ios':
     print('Kivy-IOS project environment detect, use it.')
     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
-    c_options['use_sdl2'] = True
+    c_options['use_sdl3'] = True
 
 elif platform == 'android':
     c_options['use_android'] = True
@@ -476,69 +476,69 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             c_options['use_gstreamer'] = True
 
 
-# detect SDL2, only on desktop and iOS, or android if explicitly enabled
+# detect SDL3, only on desktop and iOS, or android if explicitly enabled
 # works if we forced the options or in autodetection
-sdl2_flags = {}
-sdl2_source = None
-if platform == 'win32' and c_options['use_sdl2'] is None:
-    c_options['use_sdl2'] = True
+sdl3_flags = {}
+sdl3_source = None
+if platform == 'win32' and c_options['use_sdl3'] is None:
+    c_options['use_sdl3'] = True
 
-can_autodetect_sdl2 = (
-    platform not in ("android",) and c_options["use_sdl2"] is None
+can_autodetect_sdl3 = (
+    platform not in ("android",) and c_options["use_sdl3"] is None
 )
-if c_options['use_sdl2'] or can_autodetect_sdl2:
+if c_options['use_sdl3'] or can_autodetect_sdl3:
 
-    sdl2_valid = False
+    sdl3_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
         if KIVY_DEPS_ROOT:
-            default_sdl2_frameworks_search_path = join(
+            default_sdl3_frameworks_search_path = join(
                 KIVY_DEPS_ROOT, "dist", "Frameworks"
             )
         else:
-            default_sdl2_frameworks_search_path = "/Library/Frameworks"
-        sdl2_frameworks_search_path = environ.get(
-            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH",
-            default_sdl2_frameworks_search_path
+            default_sdl3_frameworks_search_path = "/Library/Frameworks"
+        sdl3_frameworks_search_path = environ.get(
+            "KIVY_SDL3_FRAMEWORKS_SEARCH_PATH",
+            default_sdl3_frameworks_search_path
         )
-        sdl2_valid = True
+        sdl3_valid = True
 
-        sdl2_flags = {
+        sdl3_flags = {
             'extra_link_args': [
-                '-F{}'.format(sdl2_frameworks_search_path),
+                '-F{}'.format(sdl3_frameworks_search_path),
                 '-Xlinker', '-rpath',
-                '-Xlinker', sdl2_frameworks_search_path,
+                '-Xlinker', sdl3_frameworks_search_path,
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
             'include_dirs': [],
-            'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
+            'extra_compile_args': ['-F{}'.format(sdl3_frameworks_search_path)]
         }
 
         for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
-            f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
+            f_path = '{}/{}.framework'.format(sdl3_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
-                sdl2_valid = False
+                sdl3_valid = False
                 continue
-            sdl2_flags['extra_link_args'] += ['-framework', name]
-            sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
-            print('Found sdl2 frameworks: {}'.format(f_path))
+            sdl3_flags['extra_link_args'] += ['-framework', name]
+            sdl3_flags['include_dirs'] += [join(f_path, 'Headers')]
+            print('Found sdl3 frameworks: {}'.format(f_path))
 
-        if not sdl2_valid:
-            c_options['use_sdl2'] = False
-            print('SDL2 frameworks not found, fallback on pkg-config')
+        if not sdl3_valid:
+            c_options['use_sdl3'] = False
+            print('SDL3 frameworks not found, fallback on pkg-config')
         else:
-            c_options['use_sdl2'] = True
-            sdl2_source = 'macos-frameworks'
-            print('Activate SDL2 compilation')
+            c_options['use_sdl3'] = True
+            sdl3_source = 'macos-frameworks'
+            print('Activate SDL3 compilation')
 
-    if not sdl2_valid and platform != "ios":
+    if not sdl3_valid and platform != "ios":
         # use pkg-config approach instead
-        sdl2_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
-        if 'libraries' in sdl2_flags:
-            print('SDL2 found via pkg-config')
-            c_options['use_sdl2'] = True
-            sdl2_source = 'pkg-config'
+        sdl3_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
+        if 'libraries' in sdl3_flags:
+            print('SDL3 found via pkg-config')
+            c_options['use_sdl3'] = True
+            sdl3_source = 'pkg-config'
 
 
 # -----------------------------------------------------------------------------
@@ -729,22 +729,22 @@ def determine_gl_flags():
     return flags, base_flags
 
 
-def determine_sdl2():
+def determine_sdl3():
     flags = {}
-    if not c_options['use_sdl2']:
+    if not c_options['use_sdl3']:
         return flags
 
     # If darwin has already been configured with frameworks, don't
-    # configure sdl2 via libs.
+    # configure sdl3 via libs.
     # TODO: Move framework configuration here.
-    if sdl2_source == "macos-frameworks":
-        return sdl2_flags
+    if sdl3_source == "macos-frameworks":
+        return sdl3_flags
 
-    default_sdl2_path = None
+    default_sdl3_path = None
 
     if KIVY_DEPS_ROOT:
 
-        default_sdl2_path = os.pathsep.join(
+        default_sdl3_path = os.pathsep.join(
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
                 join(KIVY_DEPS_ROOT, "dist", "lib64"),
@@ -756,46 +756,46 @@ def determine_sdl2():
             ]
         )
 
-    kivy_sdl2_path = environ.get('KIVY_SDL2_PATH', default_sdl2_path)
+    kivy_sdl3_path = environ.get('KIVY_SDL3_PATH', default_sdl3_path)
 
     includes, _ = get_isolated_env_paths()
 
-    # no pkgconfig info, or we want to use a specific sdl2 path, so perform
+    # no pkgconfig info, or we want to use a specific sdl3 path, so perform
     # manual configuration
     flags['libraries'] = ['SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer']
 
-    sdl2_paths = kivy_sdl2_path.split(os.pathsep) if kivy_sdl2_path else []
+    sdl3_paths = kivy_sdl3_path.split(os.pathsep) if kivy_sdl3_path else []
 
-    if not sdl2_paths:
-        # Try to find sdl2 in default locations if we don't have a custom path
-        sdl2_paths = []
+    if not sdl3_paths:
+        # Try to find sdl3 in default locations if we don't have a custom path
+        sdl3_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
             for _sdl_sub in ['SDL3', 'SDL3_image', 'SDL3_mixer', 'SDL3_ttf']:
                 sdl_inc = join(include, _sdl_sub)
                 if isdir(sdl_inc):
-                    sdl2_paths.append(sdl_inc)
+                    sdl3_paths.append(sdl_inc)
 
-        sdl2_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
+        sdl3_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
 
-    flags['include_dirs'] = sdl2_paths
+    flags['include_dirs'] = sdl3_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
     flags['library_dirs'] = (
-        sdl2_paths if sdl2_paths else
+        sdl3_paths if sdl3_paths else
         ['/usr/local/lib/'])
 
-    if kivy_sdl2_path:
+    if kivy_sdl3_path:
         # If we have a custom path, we need to add the rpath to the linker
         # so that the libraries can be found and loaded without having to
         # set LD_LIBRARY_PATH every time.
         flags["extra_link_args"] = [
             f"-Wl,-rpath,{l_path}"
-            for l_path in sdl2_paths
+            for l_path in sdl3_paths
             if l_path.endswith("lib")
         ]
 
-    if sdl2_flags:
-        flags = merge(flags, sdl2_flags)
+    if sdl3_flags:
+        flags = merge(flags, sdl3_flags)
 
     # ensure headers for all the SDL3 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
@@ -806,15 +806,15 @@ def determine_sdl2():
             fn = join(d, '{}.h'.format(lib))
             if exists(fn):
                 found = True
-                print('SDL2: found {} header at {}'.format(lib, fn))
+                print('SDL3: found {} header at {}'.format(lib, fn))
                 break
 
         if not found:
-            print('SDL2: missing sub library {}'.format(lib))
+            print('SDL3: missing sub library {}'.format(lib))
             can_compile = False
 
     if not can_compile:
-        c_options['use_sdl2'] = False
+        c_options['use_sdl3'] = False
         return {}
 
     return flags
@@ -839,7 +839,7 @@ graphics_dependencies = {
     'compiler.pyx': ['context_instructions.pxd'],
     'cgl.pyx': ['cgl.pxd'],
     'cgl_mock.pyx': ['cgl.pxd'],
-    'cgl_sdl2.pyx': ['cgl.pxd'],
+    'cgl_sdl3.pyx': ['cgl.pxd'],
     'cgl_gl.pyx': ['cgl.pxd'],
     'cgl_glew.pyx': ['cgl.pxd'],
     'context_instructions.pxd': [
@@ -917,7 +917,7 @@ sources = {
     'graphics/cgl_backend/cgl_mock.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
-    'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_sdl3.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_angle.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
     'graphics/egl_backend/egl_angle.pyx': merge(base_flags, gl_flags),
@@ -939,13 +939,13 @@ sources = {
     'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options["use_sdl2"]:
-    sdl2_flags = determine_sdl2()
+if c_options["use_sdl3"]:
+    sdl3_flags = determine_sdl3()
 
-if c_options['use_sdl2'] and sdl2_flags:
-    sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
-        sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
-    sdl2_depends = {'depends': ['lib/sdl2.pxi']}
+if c_options['use_sdl3'] and sdl3_flags:
+    sources['graphics/cgl_backend/cgl_sdl3.pyx'] = merge(
+        sources['graphics/cgl_backend/cgl_sdl3.pyx'], sdl3_flags)
+    sdl3_depends = {'depends': ['lib/sdl3.pxi']}
     if platform in ('ios', 'darwin'):
         _extra_args = {
             'extra_compile_args': ['-ObjC'],
@@ -959,7 +959,7 @@ if c_options['use_sdl2'] and sdl2_flags:
                         'core/clipboard/_clipboard_sdl3.pyx'):
 
         sources[source_file] = merge(
-            base_flags, sdl2_flags, sdl2_depends, _extra_args
+            base_flags, sdl3_flags, sdl3_depends, _extra_args
         )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
