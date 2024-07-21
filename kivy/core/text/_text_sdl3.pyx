@@ -6,7 +6,7 @@ TODO:
       call, not 1.2)
 '''
 
-include '../../lib/sdl2.pxi'
+include '../../lib/sdl3.pxi'
 
 from kivy.core.image import ImageData
 

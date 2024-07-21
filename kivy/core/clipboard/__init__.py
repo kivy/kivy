@@ -22,7 +22,7 @@ __all__ = ('ClipboardBase', 'Clipboard')
 from kivy import Logger
 from kivy.core import core_select_lib
 from kivy.utils import platform
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 
 
 class ClipboardBase(object):
@@ -128,7 +128,7 @@ elif platform == 'linux':
     _clipboards.append(
         ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
 
-if USE_SDL2:
+if USE_SDL3:
     _clipboards.append(
         ('sdl3', 'clipboard_sdl3', 'ClipboardSDL3'))
 
