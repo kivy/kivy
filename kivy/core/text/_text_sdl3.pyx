@@ -6,12 +6,12 @@ TODO:
       call, not 1.2)
 '''
 
-include '../../lib/sdl2.pxi'
+include '../../lib/sdl3.pxi'
 
 from kivy.core.image import ImageData
 
-cdef dict sdl2_cache = {}
-cdef list sdl2_cache_order = []
+cdef dict sdl3_cache = {}
+cdef list sdl3_cache_order = []
 
 cdef class _TTFContainer:
     cdef TTF_Font* font
@@ -35,13 +35,17 @@ cdef class _SurfaceContainer:
     def __init__(self, w, h):
         # XXX check on OSX to see if little endian/big endian make a difference
         # here.
-        self.surface = SDL_CreateRGBSurface(0,
-            w, h, 32,
-            0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        self.surface = SDL_CreateSurface(
+            w,
+            h,
+            SDL_GetPixelFormatForMasks(
+                32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+            ),
+        )
 
     def __dealloc__(self):
         if self.surface != NULL:
-            SDL_FreeSurface(self.surface)
+            SDL_DestroySurface(self.surface)
             self.surface = NULL
 
     def render(self, container, text, x, y):
@@ -124,7 +128,7 @@ cdef class _SurfaceContainer:
                 else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
                 )
             if fgst == NULL:
-                SDL_FreeSurface(st)
+                SDL_DestroySurface(st)
                 return
             fgr.x = outline_width
             fgr.y = outline_width
@@ -132,7 +136,7 @@ cdef class _SurfaceContainer:
             fgr.h = fgst.h
             SDL_SetSurfaceBlendMode(fgst, SDL_BLENDMODE_BLEND)
             SDL_BlitSurface(fgst, NULL, st, &fgr)
-            SDL_FreeSurface(fgst)
+            SDL_DestroySurface(fgst)
 
         r.x = x
         r.y = y
@@ -149,7 +153,7 @@ cdef class _SurfaceContainer:
         else:
             SDL_SetSurfaceBlendMode(st, SDL_BLENDMODE_NONE)
         SDL_BlitSurface(st, NULL, self.surface, &r)
-        SDL_FreeSurface(st)
+        SDL_DestroySurface(st)
 
     def get_data(self):
         cdef int datalen = self.surface.w * self.surface.h * 4
@@ -167,8 +171,8 @@ cdef TTF_Font *_get_font(self) except *:
 
     # fast path
     fontid = self._get_font_id()
-    if fontid in sdl2_cache:
-        ttfc = sdl2_cache[fontid]
+    if fontid in sdl3_cache:
+        ttfc = sdl3_cache[fontid]
         return ttfc.font
 
     # ensure ttf is init.
@@ -196,18 +200,18 @@ cdef TTF_Font *_get_font(self) except *:
         style = style | TTF_STYLE_STRIKETHROUGH
     TTF_SetFontStyle(fontobject, style)
 
-    sdl2_cache[fontid] = ttfc = _TTFContainer()
+    sdl3_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject
-    sdl2_cache_order.append(fontid)
+    sdl3_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
 
-    while len(sdl2_cache_order) > 64:
-        popid = sdl2_cache_order.pop(0)
-        ttfc = sdl2_cache[popid]
-        del sdl2_cache[popid]
+    while len(sdl3_cache_order) > 64:
+        popid = sdl3_cache_order.pop(0)
+        ttfc = sdl3_cache[popid]
+        del sdl3_cache[popid]
 
-    ttfc = sdl2_cache[fontid]
+    ttfc = sdl3_cache[fontid]
 
     return ttfc.font
 

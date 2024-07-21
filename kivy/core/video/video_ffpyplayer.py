@@ -12,7 +12,7 @@ compile ffmpeg using the shared flags while disabling the static flags (you'll
 probably have to set the fPIC flag, e.g. CFLAGS=-fPIC). Here are some
 instructions: https://trac.ffmpeg.org/wiki/CompilationGuide. For Windows, you
 can download compiled GPL binaries from http://ffmpeg.zeranoe.com/builds/.
-Similarly, you should download SDL2.
+Similarly, you should download SDL3.
 
 Now, you should have ffmpeg and sdl directories. In each, you should have an
 'include', 'bin' and 'lib' directory, where e.g. for Windows, 'lib' contains
@@ -20,7 +20,7 @@ the .dll.a files, while 'bin' contains the actual dlls. The 'include' directory
 holds the headers. The 'bin' directory is only needed if the shared libraries
 are not already in the path. In the environment, define FFMPEG_ROOT and
 SDL_ROOT, each pointing to the ffmpeg and SDL directories respectively. (If
-you're using SDL2, the 'include' directory will contain an 'SDL2' directory,
+you're using SDL3, the 'include' directory will contain an 'SDL3' directory,
 which then holds the headers).
 
 Once defined, download the ffpyplayer git repo and run

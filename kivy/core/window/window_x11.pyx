@@ -17,7 +17,7 @@ from os import environ
 
 from .window_info cimport WindowInfoX11
 
-include "window_attrs.pxi"
+# include "window_attrs.pxi"
 
 # force include the file
 cdef extern from "window_x11_core.c":
@@ -149,7 +149,7 @@ x11_set_event_callback(event_callback)
 
 class WindowX11(WindowBase):
 
-    gl_backends_ignored = ['sdl2']
+    gl_backends_ignored = ['sdl3']
 
     def create_window(self, *args):
         global _window_object
