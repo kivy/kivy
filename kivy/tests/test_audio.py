@@ -103,7 +103,7 @@ class AudioGstplayerTestCase(AudioTestCase, OnEOSTest):
 
     def get_sound(self):
         assert os.path.exists(SAMPLE_FILE)
-        from kivy.core.audio import audio_gstplayer
+        from kivy.core.audio_output import audio_gstplayer
         return audio_gstplayer.SoundGstplayer(source=SAMPLE_FILE)
 
 
@@ -118,5 +118,5 @@ class AudioFFPyplayerTestCase(AudioTestCase, OnEOSTest):
 
     def get_sound(self):
         assert os.path.exists(SAMPLE_FILE)
-        from kivy.core.audio import audio_ffpyplayer
+        from kivy.core.audio_output import audio_ffpyplayer
         return audio_ffpyplayer.SoundFFPy(source=SAMPLE_FILE)
