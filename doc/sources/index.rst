@@ -17,7 +17,7 @@ a document outlining our :ref:`philosophy` that we encourage you to read, and a
 detailed :ref:`architecture`.
 
 If you want to contribute to Kivy, make sure to read `our latest Contribution
-Guide <https://github.com/kivy/kivy/blob/master/CONTIBUTING.md>`_. If
+Guide <https://github.com/kivy/kivy/blob/master/CONTRIBUTING.md>`_. If
 your concern isn't addressed in the documentation, feel free to
 `contact us <https://github.com/kivy/kivy/blob/master/CONTACT.md>`_.
 

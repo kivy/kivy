@@ -38,8 +38,8 @@ class AudioTestCase(unittest.TestCase):
     def get_sound(self):
         import os
         assert os.path.exists(SAMPLE_FILE)
-        from kivy.core import audio
-        return audio.SoundLoader.load(SAMPLE_FILE)
+        from kivy.core import audio_output
+        return audio_output.SoundLoader.load(SAMPLE_FILE)
 
     def test_length_simple(self):
         sound = self.get_sound()

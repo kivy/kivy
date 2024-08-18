@@ -379,6 +379,10 @@ class Label(Widget):
                 self._label.options['outline_color'] = (
                     self.disabled_outline_color if value else
                     self.outline_color)
+            elif self.disabled and name in ('color', 'outline_color'):
+                # When disabled, color or outline_color changes should not get
+                # assigned or trigger updates.
+                return
 
             # NOTE: Compatibility code due to deprecated properties
             # Must be removed along with padding_x and padding_y

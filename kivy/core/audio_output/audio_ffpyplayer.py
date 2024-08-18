@@ -55,7 +55,7 @@ except:
 
 from kivy.clock import Clock
 from kivy.logger import Logger
-from kivy.core.audio import Sound, SoundLoader
+from kivy.core.audio_output import Sound, SoundLoader
 from kivy.weakmethod import WeakMethod
 import time
 

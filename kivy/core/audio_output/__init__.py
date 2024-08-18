@@ -1,10 +1,10 @@
 '''
-Audio
+Audio Output
 =====
 
 Load an audio sound and play it with::
 
-    from kivy.core.audio import SoundLoader
+    from kivy.core.audio_output import SoundLoader
 
     sound = SoundLoader.load('mytest.wav')
     if sound:
@@ -226,4 +226,4 @@ audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
 if USE_SDL2:
     audio_libs += [('sdl2', 'audio_sdl2')]
 
-libs_loaded = core_register_libs('audio', audio_libs)
+libs_loaded = core_register_libs('audio_output', audio_libs)
