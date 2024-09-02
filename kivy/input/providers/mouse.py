@@ -1,3 +1,4 @@
+# TODO Update Docs in this file, ScrollView, ScrollBevahiour?, and Config?
 '''
 Mouse provider implementation
 =============================
@@ -78,7 +79,7 @@ multitouch_sim   Specifies whether multitouch is simulated or not. Accessed
 
 '''
 
-__all__ = ('MouseMotionEventProvider', )
+__all__ = ('MouseMotionEventProvider',)
 
 from kivy.base import EventLoop
 from collections import deque
@@ -164,6 +165,10 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.hover_event = None
         self._disable_hover = False
         self._running = False
+        # TODO Read From Config, how?
+        # TODO make the horizontal_scroll_modofier a property?
+        self._horizontal_scroll_modifier = 'shift'
+        # self.emulate_horizontal_scroll = False
         # split arguments
         args = args.split(',')
         for arg in args:
@@ -172,6 +177,8 @@ class MouseMotionEventProvider(MotionEventProvider):
                 continue
             elif arg == 'disable_on_activity':
                 self.disable_on_activity = True
+            # elif arg == 'emulate_horizontal_scroll':
+            #     self.emulate_horizontal_scroll = True
             elif arg == 'disable_multitouch':
                 self.disable_multitouch = True
             elif arg == 'disable_hover':
@@ -180,6 +187,33 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.multitouch_on_demand = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
+
+    # Why not use the @property decorator?
+    def _get_horizontal_scroll_modifier(self):
+        return self._horizontal_scroll_modifier
+
+    def _set_horizontal_scroll_modifier(self, value):
+        # TODO Maybe other modifyers depending on platform.
+        if value not in ('shift', 'alt', 'meta', 'ctrl', None):
+            Logger.error(f'Unknown Modifier for Mouse {value}')
+            return
+        self._horizontal_scroll_modifier = value
+
+    # Also, the behaviour is disabled by setting the _horizontal_scroll_modifier to None, assuming None is never part
+    # of the modifiers which are a list. This is less verbose and relies more on default behaviour. But is this
+    # desired with a project of this size or should it be more verbose and maybe less efficient?
+    horizontal_Scroll_modifier = property(_get_horizontal_scroll_modifier, _set_horizontal_scroll_modifier)
+    '''Select the modifier to be used when switching from scrolling vertically to horizontally.
+    
+    For this property to take effect, it needs to be set to a valid modifier, (and the emulate_horizontal_scroll needs 
+    to be True) Additionally, disable_multitouch needs to be True as well since it also relies on the shift modifier to
+    dispatch a multitouch event.
+    
+    default: 'shift'
+    allowed: 'shift', 'alt', 'meta', 'ctrl', None <- to disable the emulation if the emulate_horizontal_scroll variable
+    doesn't exist.
+    
+    '''
 
     def _get_disable_hover(self):
         return self._disable_hover
@@ -351,9 +385,17 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             is_double_tap = 'shift' in modifiers
             do_graphics = (
-                not self.disable_multitouch
-                and (button != 'left' or 'ctrl' in modifiers)
+                    not self.disable_multitouch
+                    and (button != 'left' or 'ctrl' in modifiers)
             )
+            horizontal_scroll = (
+                    # self.emulate_horizontal_scroll and
+                    self._horizontal_scroll_modifier in modifiers and
+                    self.disable_multitouch and
+                    button in ("scrollup", "scrolldown")
+            )
+            if horizontal_scroll:
+                button = "scrollleft" if button == "scrollup" else "scrollright"
             touch = self.create_touch(
                 win, nx, ny, is_double_tap, do_graphics, button
             )
@@ -377,9 +419,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             )
             not_ctrl = 'ctrl' not in modifiers
             not_multi = (
-                self.disable_multitouch
-                or 'multitouch_sim' not in touch.profile
-                or not touch.multitouch_sim
+                    self.disable_multitouch
+                    or 'multitouch_sim' not in touch.profile
+                    or not touch.multitouch_sim
             )
             if not_right and not_ctrl or not_multi:
                 self.remove_touch(win, touch)
