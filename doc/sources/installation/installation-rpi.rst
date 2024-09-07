@@ -95,9 +95,6 @@ To cross-compile the wheels, you need to run the following commands::
 
     source .ci/ubuntu_ci.sh
 
-    # Generate wheels for Raspberry Pi OS Buster (32 bit, Python 3.7)
-    generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.7-buster
-
     # Generate wheels for Raspberry Pi OS Bullseye (32 bit, Python 3.9)
     generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.9-bullseye
 
@@ -105,7 +102,7 @@ To cross-compile the wheels, you need to run the following commands::
     generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.11-bookworm
 
 
-Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that 
+Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that
 uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi with Raspberry Pi OS Buster (32 bit), as it is the only
 platform that still  supports it.
 
@@ -119,8 +116,8 @@ If you followed the previous steps, or you're using the pre-built wheels, the he
 On supported platforms (RPi 1-3 with Raspberry Pi OS Buster), the `egl_rpi` window provider is used by default. This window provider uses the
 (deprecated, will be removed in future) DISPMANX API to create a headless GL context.
 
-On other platforms (e.g RPi 4 or 64 bit OS), the `sdl2` window provider is used by default. If during the build process for the `sdl2` 
-dependencies the `kmsdrm` headers and libraries are found, the `kmsdrm` backend is enabled. This backend allows to create a headless 
+On other platforms (e.g RPi 4 or 64 bit OS), the `sdl2` window provider is used by default. If during the build process for the `sdl2`
+dependencies the `kmsdrm` headers and libraries are found, the `kmsdrm` backend is enabled. This backend allows to create a headless
 GL context using the KMS/DRM API.
 
 Hardware acceleration
