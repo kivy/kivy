@@ -26,11 +26,9 @@ GIT_COMMAND := $(shell which git)
 
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
-BUILD_OPTS       = build_ext --inplace
-BUILD_OPTS_FORCE = $(BUILD_OPTS) -f
-BUILD_OPTS_DEBUG = $(BUILD_OPTS_FORCE) -g --cython-gdb
+BUILD_OPTS       =
 
-INSTALL_OPTIONS  = install
+INSTALL_OPTIONS  =
 INSTALL_ROOT     =
 INSTALL_PREFIX   =
 INSTALL_LAYOUT   =
@@ -41,23 +39,14 @@ endif
 ifneq ($(INSTALL_PREFIX),)
 	INSTALL_OPTIONS += --prefix=$(INSTALL_PREFIX)
 endif
-ifneq ($(INSTALL_LAYOUT),)
-	INSTALL_OPTIONS += --install-layout=$(INSTALL_LAYOUT)
-endif
 
 .PHONY: build force mesabuild pdf style hook test batchtest cover clean distclean theming
 
 build:
-	$(PYTHON) setup.py $(BUILD_OPTS)
-
-force:
-	$(PYTHON) setup.py $(BUILD_OPTS_FORCE)
-
-debug:
-	env CFLAGS="-Og" $(PYTHON) setup.py $(BUILD_OPTS_DEBUG)
+	$(PYTHON) -m pip install -e . $(BUILD_OPTS)
 
 mesabuild:
-	env USE_MESAGL=1 $(PYTHON) setup.py $(BUILD_OPTS)
+	env USE_MESAGL=1 $(PYTHON) -m pip install -e . $(BUILD_OPTS)
 
 ios:
 	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
@@ -122,7 +111,7 @@ cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
 install:
-	$(PYTHON) setup.py $(INSTALL_OPTIONS)
+	$(PYTHON) -m pip install -e . $(INSTALL_OPTIONS)
 
 clean:
 	$(MAKE) -C doc clean
@@ -153,15 +142,13 @@ theming:
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  build          for a standard build"
+	@echo "  build          for a standard build (install) in editable mode"
 	@echo "  clean          remove generated and compiled files"
 	@echo "  cover          create an html coverage report of unittests"
-	@echo "  debug          for a debug build (with -g)"
 	@echo "  dist-clean     clean then use 'git clean'"
-	@echo "  force          for a forced build (with -f)"
 	@echo "  hook           add Pep-8 checking as a git precommit hook"
 	@echo "  html           to make standalone HTML files"
-	@echo "  install        run a setup.py install"
+	@echo "  install        install with extra options"
 	@echo "  mesabuild      for a build with MesaGL"
 	@echo "  style          to check Python code for style issues"
 	@echo "  test           run unittests (pytest)"
