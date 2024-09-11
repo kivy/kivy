@@ -334,45 +334,6 @@ for importer, modname, package in _packages:
             'deps: Error importing dependency "{}.{}": {}'.
             format(package, modname, str(e)))
 
-# if there are deps, import them so they can do their magic.
-import kivy.deps
-_packages = []
-for importer, modname, ispkg in pkgutil.iter_modules(kivy.deps.__path__):
-    if not ispkg:
-        continue
-    if modname.startswith('gst'):
-        _packages.insert(0, (importer, modname, 'kivy.deps'))
-    else:
-        _packages.append((importer, modname, 'kivy.deps'))
-
-try:
-    import kivy_deps
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
-        if not ispkg:
-            continue
-        if modname.startswith('gst'):
-            _packages.insert(0, (importer, modname, 'kivy_deps'))
-        else:
-            _packages.append((importer, modname, 'kivy_deps'))
-except ImportError:
-    pass
-
-_logging_msgs = []
-for importer, modname, package in _packages:
-    try:
-        mod = importer.find_module(modname).load_module(modname)
-
-        version = ''
-        if hasattr(mod, '__version__'):
-            version = ' {}'.format(mod.__version__)
-        _logging_msgs.append(
-            'deps: Successfully imported "{}.{}"{}'.
-            format(package, modname, version))
-    except ImportError as e:
-        Logger.warning(
-            'deps: Error importing dependency "{}.{}": {}'.
-            format(package, modname, str(e)))
-
 # Don't go further if we generate documentation
 if any(name in sys.argv[0] for name in (
         'sphinx-build', 'autobuild.py', 'sphinx'
