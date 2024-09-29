@@ -89,8 +89,8 @@ pushd $MANYLINUX__SDL2_MIXER__FOLDER
   ./external/download.sh;
   cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DSDL2MIXER_MOD_MODPLUG=ON \
-          -DSDL2MIXER_MOD_MODPLUG_SHARED=OFF \
+          -DSDL2MIXER_MOD_XMP=ON \
+          -DSDL2MIXER_MOD_XMP_SHARED=OFF \
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DSDL2MIXER_VENDORED=ON \
           -GNinja
