@@ -404,7 +404,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 27
+KIVY_CONFIG_VERSION = 28
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -936,6 +936,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
+
+        elif version == 27:
+            Config.setdefault("graphics", "lazy_window_initialization", "0")
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
