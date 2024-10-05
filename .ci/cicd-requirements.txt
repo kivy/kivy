@@ -1,5 +1,5 @@
 cibuildwheel~=2.21.1
 build~=1.2.1
-coveralls~=4.0.0
+# coveralls~=4.0.0 # Temporarily disabled due to incompatibility with Python 3.13
 twine~=5.1.0
 flake8~=7.1.0
