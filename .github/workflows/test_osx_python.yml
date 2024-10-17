@@ -19,7 +19,7 @@ jobs:
         # macos-latest (ATM macos-14) runs on Apple Silicon,
         # macos-13 runs on Intel
         runs_on: ['macos-latest', 'macos-13']
-        python: ['3.x']
+        python: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}

@@ -139,7 +139,7 @@ jobs:
         # macos-latest (ATM macos-14) runs on Apple Silicon,
         # macos-13 runs on Intel
         runs_on: ['macos-latest', 'macos-13']
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
