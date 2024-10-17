@@ -54,10 +54,7 @@ jobs:
         test_kivy
     - name: Coveralls upload
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-      run: |
-        python -m coveralls
+      uses: coverallsapp/github-action@v2
     - name: Test Kivy benchmarks
       run: |
         source .ci/ubuntu_ci.sh
