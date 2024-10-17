@@ -82,7 +82,7 @@ cdef class Instruction(ObjectWithUid):
             self.flags |= GI_NEEDS_UPDATE
     flag_update.__doc__ = """Indicate that the instruction needs to be redrawn on the next frame.
 
-    Normally, you should use :method:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
+    Normally, you should use :meth:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
     if this ``Instruction`` is in a :class:`kivy.graphics.fbo.Fbo`.
 
     """
