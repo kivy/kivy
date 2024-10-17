@@ -26,7 +26,7 @@ jobs:
           source .ci/ubuntu_ci.sh
           create_kivy_examples_wheel
       - name: Upload kivy-examples wheel as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux_examples_wheel
           path: dist
@@ -82,7 +82,7 @@ jobs:
       run: |
         python -m cibuildwheel --output-dir wheelhouse
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: manylinux_wheels
         path: ./wheelhouse/*.whl
@@ -97,7 +97,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.x
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: manylinux_wheels
         path: dist
@@ -141,7 +141,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: manylinux_wheels
         path: dist
@@ -153,7 +153,7 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         install_kivy_wheel dev
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: linux_examples_wheel
         path: dist
@@ -171,7 +171,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: benchmarks
         path: .benchmarks-kivy
