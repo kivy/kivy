@@ -85,6 +85,9 @@ cdef class Instruction(ObjectWithUid):
     Normally, you should use :meth:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
     if this ``Instruction`` is in a :class:`kivy.graphics.fbo.Fbo`.
 
+    :param do_parent: Whether to flag the parent instruction (such as a :class:`kivy.graphics.instructions.InstructionGroup`)
+               for update as well. True by default.
+
     """
 
     cpdef flag_data_update(self):
