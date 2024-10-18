@@ -57,10 +57,12 @@ If you want a synchronous request, you can call the wait() method.
 '''
 
 import os
+from abc import abstractmethod, ABC
 from base64 import b64encode
 from collections import deque
 from http.client import HTTPConnection
 from json import loads
+import ssl
 from threading import Event, Thread
 from time import sleep
 from urllib.parse import urlparse, urlunparse
@@ -73,21 +75,70 @@ from kivy.utils import platform
 from kivy.weakmethod import WeakMethod
 
 try:
-    import ssl
-
-    HTTPSConnection = None
     from http.client import HTTPSConnection
 except ImportError:
-    # depending the platform, if openssl support wasn't compiled before python,
-    # this class is not available.
-    pass
-
+    # depending on the platform, if openssl support wasn't compiled before
+    # python, this class is not available.
+    HTTPSConnection = None
 
 # list to save UrlRequest and prevent GC on un-referenced objects
 g_requests = []
 
 
-class UrlRequestBase(Thread):
+class UrlRequestABC:
+    """Grouping of abstract methods that must be defined by implementations.
+    Currently, urllib and requests are supported.
+    """
+
+    @abstractmethod
+    def get_chunks(self, resp, chunk_size, total_size, report_progress, q,
+                   trigger, fd):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_response(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_total_size(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_content_type(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_status_code(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_all_headers(self, resp):
+        raise NotImplementedError
+
+    @abstractmethod
+    def close_connection(self, req):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _parse_url(self, url):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_connection_for_scheme(self, scheme):
+        '''Return the Connection class for a particular scheme.
+        This is an internal function that can be expanded to support custom
+        schemes.
+
+        Actual supported schemes: http, https.
+        '''
+        raise NotImplementedError
+
+    @abstractmethod
+    def call_request(self, body, headers):
+        raise NotImplementedError
+
+
+class UrlRequestBase(Thread, UrlRequestABC, ABC):
     '''A UrlRequest. See module documentation for usage.
 
     .. versionchanged:: 1.5.1
@@ -155,7 +206,7 @@ class UrlRequestBase(Thread):
             want to have the maximum download speed, increase the chunk_size
             or don't use ``on_progress``.
         `timeout`: int, defaults to None
-            If set, blocking operations will timeout after this many seconds.
+            If set, blocking operations will time out after this many seconds.
         `method`: str, defaults to 'GET' (or 'POST' if ``body`` is specified)
             The HTTP method to use.
         `decode`: bool, defaults to True
@@ -167,7 +218,7 @@ class UrlRequestBase(Thread):
             If set, the result of the UrlRequest will be written to this path
             instead of in memory.
         `ca_file`: str, defaults to None
-            Indicates a SSL CA certificate file path to validate HTTPS
+            Indicates an SSL CA certificate file path to validate HTTPS
             certificates against
         `verify`: bool, defaults to True
             If False, disables SSL CA certificate verification
@@ -182,37 +233,54 @@ class UrlRequestBase(Thread):
         `auth`: HTTPBasicAuth, defaults to None
             If set, request will use basicauth to authenticate.
             Only used in "Requests" implementation
+        `start`: bool, defaults to True
+            If True, the request will be started automatically. Otherwise, the
+            user may work with the request object before starting the request.
+            This enables binding callbacks in a similar manner to kivy's
+            event-driven paradigm.
+        `on_start`: callback(request)
+            Callback function to call when the request is sent. Useful when
+            preparing requests in advance of execution.
     '''
 
     def __init__(
-        self, url, on_success=None, on_redirect=None,
-        on_failure=None, on_error=None, on_progress=None,
-        req_body=None, req_headers=None, chunk_size=8192,
-        timeout=None, method=None, decode=True, debug=False,
-        file_path=None, ca_file=None, verify=True, proxy_host=None,
-        proxy_port=None, proxy_headers=None, user_agent=None,
-        on_cancel=None, on_finish=None, cookies=None, auth=None
+            self, url, on_success=None, on_redirect=None,
+            on_failure=None, on_error=None, on_progress=None,
+            req_body=None, req_headers=None, chunk_size=8192,
+            timeout=None, method=None, decode=True, debug=False,
+            file_path=None, ca_file=None, verify=True, proxy_host=None,
+            proxy_port=None, proxy_headers=None, user_agent=None,
+            on_cancel=None, on_finish=None, cookies=None, auth=None,
+            start=True, on_start=None,
     ):
         super().__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
-        self.on_success = WeakMethod(on_success) if on_success else None
-        self.on_redirect = WeakMethod(on_redirect) if on_redirect else None
-        self.on_failure = WeakMethod(on_failure) if on_failure else None
-        self.on_error = WeakMethod(on_error) if on_error else None
-        self.on_progress = WeakMethod(on_progress) if on_progress else None
-        self.on_cancel = WeakMethod(on_cancel) if on_cancel else None
-        self.on_finish = WeakMethod(on_finish) if on_finish else None
-        self.decode = decode
-        self.file_path = file_path
-        self._debug = debug
+
+        # weak methods corresponding to callbacks
+        self.on_start = [WeakMethod(on_start)] if on_start else []
+        self.on_success = [WeakMethod(on_success)] if on_success else []
+        self.on_redirect = [WeakMethod(on_redirect)] if on_redirect else []
+        self.on_failure = [WeakMethod(on_failure)] if on_failure else []
+        self.on_error = [WeakMethod(on_error)] if on_error else []
+        self.on_progress = [WeakMethod(on_progress)] if on_progress else []
+        self.on_cancel = [WeakMethod(on_cancel)] if on_cancel else []
+        self.on_finish = [WeakMethod(on_finish)] if on_finish else []
+
+        # internal values not set via parameters
         self._result = None
         self._error = None
         self._is_finished = False
         self._resp_status = None
         self._resp_headers = None
         self._resp_length = -1
+        self._cancel_event = Event()
+
+        # internal values set via parameters
+        self.decode = decode
+        self.file_path = file_path
+        self._debug = debug
         self._chunk_size = chunk_size
         self._timeout = timeout
         self._method = method
@@ -220,7 +288,6 @@ class UrlRequestBase(Thread):
         self._proxy_host = proxy_host
         self._proxy_port = proxy_port
         self._proxy_headers = proxy_headers
-        self._cancel_event = Event()
         self._user_agent = user_agent
         self._cookies = cookies
         self._requested_url = url
@@ -244,29 +311,17 @@ class UrlRequestBase(Thread):
         # save our request to prevent GC
         g_requests.append(self)
 
-        self.start()
+        # allow manually starting the request
+        if start:
+            self.start()
+
+    def start(self) -> None:
+        self._dispatch_callbacks(self.on_start)
+        super().start()
 
     def run(self):
-        q = self._queue.appendleft
-        url = self.url
-        req_body = self.req_body
-        req_headers = self.req_headers or {}
 
-        user_agent = self._user_agent
-        cookies = self._cookies
-
-        if user_agent:
-            req_headers.setdefault('User-Agent', user_agent)
-
-        elif (
-            Config.has_section('network')
-            and 'useragent' in Config.items('network')
-        ):
-            useragent = Config.get('network', 'useragent')
-            req_headers.setdefault('User-Agent', useragent)
-
-        if cookies:
-            req_headers.setdefault("Cookie", cookies)
+        q, req_body, req_headers, url = self.prepare_request_()
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
@@ -281,16 +336,46 @@ class UrlRequestBase(Thread):
                 q(('killed', None, None))
 
         # using trigger can result in a missed on_success event
+        # noinspection PyArgumentList
         self._trigger_result()
 
-        # clean ourself when the queue is empty
+        # clean ourselves when the queue is empty
         while len(self._queue):
             sleep(.1)
+            # noinspection PyArgumentList
             self._trigger_result()
 
         # ok, authorize the GC to clean us.
         if self in g_requests:
             g_requests.remove(self)
+
+    def prepare_request_(self):
+        '''Prepare headers, cookie, auth, etc.'''
+
+        q = self._queue.appendleft
+        url = self.url
+        req_body = self.req_body
+
+        req_headers = self.req_headers or {}
+        user_agent = self._user_agent
+        cookies = self._cookies
+
+        # set user_agent from init value
+        if user_agent:
+            req_headers.setdefault('User-Agent', user_agent)
+
+        # set user_agent from kivy config value
+        elif (
+                Config.has_section('network')
+                and 'useragent' in Config.items('network')
+        ):
+            useragent = Config.get('network', 'useragent')
+            req_headers.setdefault('User-Agent', useragent)
+
+        if cookies:
+            req_headers.setdefault("Cookie", cookies)
+
+        return q, req_body, req_headers, url
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -349,8 +434,8 @@ class UrlRequestBase(Thread):
         return result, resp
 
     def decode_result(self, result, resp):
-        '''Decode the result fetched from url according to his Content-Type.
-        Currently supports only application/json.
+        '''Decode the result fetched from url according to Content-Type.
+        Currently, supports only application/json.
         '''
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
@@ -363,12 +448,61 @@ class UrlRequestBase(Thread):
                     result = result.decode('utf-8')
                 try:
                     return loads(result)
-                except Exception:
+                except Exception as e:
+                    if self._debug:
+                        Logger.debug(
+                            'UrlRequest: {0} failed to decode result'
+                            'with exception {1}.'.format(id(self), e)
+                        )
                     return result
 
         return result
 
+    def _on_status_code(self, data, resp, status_class):
+        '''When the http request was "successful" in the sense that the server
+         returned a response code--the code may indicate an error, but we did
+         successfully get a response.'''
+
+        if status_class in (1, 2):
+            if self._debug:
+                Logger.debug(
+                    'UrlRequest: {0} Download finished with '
+                    '{1} data len'.format(id(self), data)
+                )
+            self._dispatch_callbacks(self.on_success, data)
+
+        elif status_class == 3:
+            if self._debug:
+                Logger.debug('UrlRequest: {} Download '
+                             'redirected'.format(id(self)))
+            self._dispatch_callbacks(self.on_redirect, data)
+
+        elif status_class in (4, 5):
+            if self._debug:
+                Logger.debug(
+                    'UrlRequest: {} Download failed with '
+                    'http error {}'.format(
+                        id(self),
+                        self.get_status_code(resp)
+                    )
+                )
+            self._dispatch_callbacks(self.on_failure, data)
+
+    def _dispatch_callbacks(self, callbacks: list[WeakMethod], *largs, **kwargs):
+        '''Dispatch any callbacks associated with the http response or user
+        driven actions.
+        '''
+
+        if callbacks:
+            for callback in callbacks:
+                func = callback()
+                if func:
+                    func(self, *largs, **kwargs)
+
     def _dispatch_result(self, dt):
+        '''Method called by clock trigger. Checks request progress and
+        dispatches results'''
+
         while True:
             # Read the result pushed on the queue, and dispatch to the client
             try:
@@ -377,104 +511,71 @@ class UrlRequestBase(Thread):
                 return
 
             if resp:
-                # Small workaround in order to prevent the situation mentioned
-                # in the comment below
-                final_cookies = ""
-                parsed_headers = []
-                for key, value in self.get_all_headers(resp):
-                    if key == "Set-Cookie":
-                        final_cookies += "{};".format(value)
-                    else:
-                        parsed_headers.append((key, value))
-                parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+                self.modify_response_headers(resp)
 
-                # XXX usage of dict can be dangerous if multiple headers
-                # are set even if it's invalid. But it look like it's ok
-                # ?  http://stackoverflow.com/questions/2454494/..
-                # ..urllib2-multiple-set-cookie-headers-in-response
-                self._resp_headers = dict(parsed_headers)
-                self._resp_status = self.get_status_code(resp)
+            # When we reach python 3.11 as the minimum supported version, this
+            # hot mess should be replaced with match statement syntax.
 
+            # server returned a response
             if result == 'success':
+                self._is_finished = True
+                self._result = data
+
                 status_class = self.get_status_code(resp) // 100
 
-                if status_class in (1, 2):
-                    if self._debug:
-                        Logger.debug(
-                            'UrlRequest: {0} Download finished with '
-                            '{1} datalen'.format(id(self), data)
-                        )
-                    self._is_finished = True
-                    self._result = data
-                    if self.on_success:
-                        func = self.on_success()
-                        if func:
-                            func(self, data)
+                self._on_status_code(data, resp, status_class)
 
-                elif status_class == 3:
-                    if self._debug:
-                        Logger.debug('UrlRequest: {} Download '
-                                     'redirected'.format(id(self)))
-                    self._is_finished = True
-                    self._result = data
-                    if self.on_redirect:
-                        func = self.on_redirect()
-                        if func:
-                            func(self, data)
-
-                elif status_class in (4, 5):
-                    if self._debug:
-                        Logger.debug(
-                            'UrlRequest: {} Download failed with '
-                            'http error {}'.format(
-                                id(self),
-                                self.get_status_code(resp)
-                            )
-                        )
-                    self._is_finished = True
-                    self._result = data
-                    if self.on_failure:
-                        func = self.on_failure()
-                        if func:
-                            func(self, data)
-
-            elif result == 'error':
-                if self._debug:
-                    Logger.debug('UrlRequest: {0} Download error '
-                                 '<{1}>'.format(id(self), data))
-                self._is_finished = True
-                self._error = data
-                if self.on_error:
-                    func = self.on_error()
-                    if func:
-                        func(self, data)
-
+            # result is pending
             elif result == 'progress':
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download progress '
                                  '{1}'.format(id(self), data))
-                if self.on_progress:
-                    func = self.on_progress()
-                    if func:
-                        func(self, data[0], data[1])
+                self._dispatch_callbacks(self.on_progress, data[0], data[1])
 
+            # server did not return a response
+            elif result == 'error':
+                self._is_finished = True
+                self._error = data
+
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download error '
+                                 '<{1}>'.format(id(self), data))
+                self._dispatch_callbacks(self.on_error, data)
+
+            # user cancelled the request
             elif result == 'killed':
                 if self._debug:
                     Logger.debug('UrlRequest: Cancelled by user')
-                if self.on_cancel:
-                    func = self.on_cancel()
-                    if func:
-                        func(self)
+                self._dispatch_callbacks(self.on_cancel)
 
+            # this block should never be reached in normal use
             else:
-                assert 0
+                raise ValueError('UrlRequest: {} Unknown result value {}'
+                                 .format((id(self)), result))
 
-            if result != "progress" and self.on_finish:
+            # additional callback when result is finished
+            if result != "progress":
                 if self._debug:
                     Logger.debug('UrlRequest: Request is finished')
-                func = self.on_finish()
-                if func:
-                    func(self)
+                self._dispatch_callbacks(self.on_finish)
+
+    def modify_response_headers(self, resp):
+        ''' XXX usage of dict can be dangerous if multiple headers
+            are set even if it's invalid. But it look like it's ok
+            ?  http://stackoverflow.com/questions/2454494/..
+            ..urllib2-multiple-set-cookie-headers-in-response'''
+
+        final_cookies = ""
+        parsed_headers = []
+        for key, value in self.get_all_headers(resp):
+            if key == "Set-Cookie":
+                final_cookies += "{};".format(value)
+            else:
+                parsed_headers.append((key, value))
+        parsed_headers.append(("Set-Cookie", final_cookies[:-1]))
+
+        self._resp_headers = dict(parsed_headers)
+        self._resp_status = self.get_status_code(resp)
 
     @property
     def is_finished(self):
@@ -542,12 +643,76 @@ class UrlRequestBase(Thread):
         '''
         self._cancel_event.set()
 
+    def bind(self, **kwargs):
+        '''Mimics the standard event binding present throughout kivy, without
+        creating the overhead of actually binding and unbinding methods for a
+        request object that is typically short-lived.
+
+        To use this method, the UrlRequest object must be created with the
+        parameter start set to False. This allows assigning callbacks after
+        object creation, similar to the way that callbacks are bound to kivy
+        events. The UrlRequest must be manually started after the fact, usually
+        immediately after the binding is done.
+
+        The advantage of using bind is derived from code reuse; it is
+        possible to create multiple, similar requests that may handle their
+        responses differently given different app states. It is also possible
+        to easily bind multiple requests to similar sets of callbacks,
+        without defining a helper function for each request.
+
+        The following code snippets are equivalent:
+
+        > r = UrlRequest(url, on_success=callback)
+
+        > r = UrlRequest(url, start=False)
+        > r.bind(on_success=callback)
+        > r.start()
+
+        An advantage is demonstrated in the following equivalent snippets:
+
+        > def my_on_success_callback_helper(request, response):
+        >     update_app_display(request, response)
+        >     update_app_state(request, response)
+        >
+        > def my_on_cancel_callback_helper(request, response):
+        >     update_app_state(request)
+        >
+        > r = UrlRequest(
+        >     url,
+        >     on_success=my_on_success_callback_helper,
+        >     on_cancel=my_on_cancel_callback_helper,
+        > )
+
+        > r = UrlRequest(url, start=False)
+        > r.bind(on_success=[update_app_display, update_app_state])
+        > r.bind(on_cancel=update_app_state)
+        > r.start()
+
+        '''
+
+        # ensure thread has not been started as callbacks may otherwise be
+        # missed when they are assigned after states are reached
+        assert not self._started.is_set()
+
+        for callback_type, methods in kwargs.items():
+            # iterable
+            try:
+                for method in methods:
+                    callbacks_list = getattr(self, callback_type)
+                    callbacks_list.append(WeakMethod(method))
+
+            # not iterable
+            except TypeError:
+                method = methods
+                callbacks_list = getattr(self, callback_type)
+                callbacks_list.append(WeakMethod(method))
+
 
 class UrlRequestUrllib(UrlRequestBase):
 
     def get_chunks(
-        self, resp, chunk_size, total_size, report_progress, q,
-        trigger, fd=None
+            self, resp, chunk_size, total_size, report_progress, q,
+            trigger, fd=None
     ):
         bytes_so_far = 0
         result = b''
@@ -666,7 +831,7 @@ class UrlRequestUrllib(UrlRequestBase):
             args['context'] = ctx
 
         if not verify and parse.scheme == 'https' and (
-            hasattr(ssl, 'create_default_context')):
+                hasattr(ssl, 'create_default_context')):
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
@@ -698,8 +863,8 @@ class UrlRequestUrllib(UrlRequestBase):
 class UrlRequestRequests(UrlRequestBase):
 
     def get_chunks(
-        self, resp, chunk_size, total_size, report_progress, q,
-        trigger, fd=None
+            self, resp, chunk_size, total_size, report_progress, q,
+            trigger, fd=None
     ):
         bytes_so_far = 0
         result = b''
@@ -753,9 +918,11 @@ class UrlRequestRequests(UrlRequestBase):
         req = requests
         kwargs = {}
 
-        # get method
+        # determine default method if not set via __init__
         if self._method is None:
             method = 'get' if body is None else 'post'
+
+        # otherwise, use the user provided http method
         else:
             method = self._method.lower()
 
@@ -785,10 +952,10 @@ implementation_map = {
 }
 
 if not os.environ.get("KIVY_DOC_INCLUDE"):
-    prefered_implementation = Config.getdefault(
+    preferred_implementation = Config.getdefault(
         "network", "implementation", "default"
     )
 else:
-    prefered_implementation = "default"
+    preferred_implementation = "default"
 
-UrlRequest = implementation_map.get(prefered_implementation)
+UrlRequest = implementation_map.get(preferred_implementation)
