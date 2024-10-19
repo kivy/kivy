@@ -82,29 +82,6 @@ class Video(Image):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False, deprecated=True)
-    '''
-    .. deprecated:: 1.4.0
-        Use :attr:`state` instead.
-
-    Boolean, indicates whether the video is playing or not.
-    You can start/stop the video by setting this property::
-
-        # start playing the video at creation
-        video = Video(source='movie.mkv', play=True)
-
-        # create the video, and start later
-        video = Video(source='movie.mkv')
-        # and later
-        video.play = True
-
-    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults to
-    False.
-
-    .. deprecated:: 1.4.0
-        Use :attr:`state` instead.
-    '''
-
     eos = BooleanProperty(False)
     '''Boolean, indicates whether the video has finished playing or not
     (reached the end of the stream).
