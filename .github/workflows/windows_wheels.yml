@@ -50,7 +50,7 @@ jobs:
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows_wheels
+        name: windows_wheels-${{ matrix.python }}-${{ matrix.arch }}
         path: dist
 
   windows_wheel_upload:
@@ -65,7 +65,8 @@ jobs:
           python-version: 3.x
       - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
@@ -113,7 +114,11 @@ jobs:
           architecture: ${{ matrix.arch }}
       - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          # Only one windows_wheels-*-* artifact contains the kivy-examples
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Install Kivy Wheel
         run: |
@@ -145,7 +150,11 @@ jobs:
           python-version: 3.x
       - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          # Only one windows_wheels-*-* artifact contains the sdist
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Install Kivy sdist
         env:

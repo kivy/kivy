@@ -84,7 +84,7 @@ jobs:
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: manylinux_wheels
+        name: manylinux_wheels-${{ matrix.cibw_archs }}
         path: ./wheelhouse/*.whl
 
   manylinux_wheel_upload:
@@ -99,7 +99,8 @@ jobs:
         python-version: 3.x
     - uses: actions/download-artifact@v4
       with:
-        name: manylinux_wheels
+        pattern: manylinux_wheels-*
+        merge-multiple: true
         path: dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
@@ -143,7 +144,8 @@ jobs:
         python-version: ${{ matrix.python }}
     - uses: actions/download-artifact@v4
       with:
-        name: manylinux_wheels
+        pattern: manylinux_wheels-*
+        merge-multiple: true
         path: dist
     - name: Setup env
       run: |
