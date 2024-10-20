@@ -295,41 +295,11 @@ Available configuration tokens
         property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
 
-    `scroll_friction`: float
-        Default value of the
-        :attr:`~kivy.uix.scrollview.ScrollView.scroll_friction`
-        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
-        Check the widget documentation for more information.
-
-        .. deprecated:: 1.7.0
-            Please use
-            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
-
     `scroll_timeout`: int
         Default value of the
         :attr:`~kivy.uix.scrollview.ScrollView.scroll_timeout`
         property used by the  :class:`~kivy.uix.scrollview.ScrollView` widget.
         Check the widget documentation for more information.
-
-    `scroll_stoptime`: int
-        Default value of the
-        :attr:`~kivy.uix.scrollview.ScrollView.scroll_stoptime`
-        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
-        Check the widget documentation for more information.
-
-        .. deprecated:: 1.7.0
-            Please use
-            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
-
-    `scroll_moves`: int
-        Default value of the
-        :attr:`~kivy.uix.scrollview.ScrollView.scroll_moves`
-        property used by the :class:`~kivy.uix.scrollview.ScrollView` widget.
-        Check the widget documentation for more information.
-
-        .. deprecated:: 1.7.0
-            Please use
-            :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
 :modules:
 
@@ -837,7 +807,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # add token for scrollview
             Config.setdefault('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_distance', '20')
-            Config.setdefault('widgets', 'scroll_friction', '1.')
 
             # remove old list_* token
             Config.remove_option('widgets', 'list_friction')
@@ -854,11 +823,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 5:
             Config.setdefault('graphics', 'resizable', '1')
-
-        elif version == 6:
-            # if the timeout is still the default value, change it
-            Config.setdefault('widgets', 'scroll_stoptime', '300')
-            Config.setdefault('widgets', 'scroll_moves', '5')
 
         elif version == 7:
             # desktop bool indicating whether to use desktop specific features
