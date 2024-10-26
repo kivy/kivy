@@ -83,7 +83,7 @@ pushd $MACOS__LIBPNG__FOLDER
   cmake --install build/ --config Release
 
 # for some reason, the framework is installed in lib instead of Frameworks
-cp -r ../../dist/lib/png.framework ../../dist/Frameworks
+cp -a ../../dist/lib/png.framework ../../dist/Frameworks
 
 popd
 
@@ -91,21 +91,21 @@ echo "-- Build SDL2 (Universal)"
 pushd $MACOS__SDL2__FOLDER
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL/SDL.xcodeproj -target Framework -configuration Release
-cp -r Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
+cp -a Xcode/SDL/build/Release/SDL2.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_mixer (Universal)"
 pushd $MACOS__SDL2_MIXER__FOLDER
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL_mixer.xcodeproj -target Framework -configuration Release
-cp -r Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
+cp -a Xcode/build/Release/SDL2_mixer.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_image (Universal)"
 pushd $MACOS__SDL2_IMAGE__FOLDER
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.13 \
         -project Xcode/SDL_image.xcodeproj -target Framework -configuration Release
-cp -r Xcode/build/Release/SDL2_image.framework ../../dist/Frameworks
+cp -a Xcode/build/Release/SDL2_image.framework ../../dist/Frameworks
 popd
 
 echo "-- Build SDL2_ttf (Universal)"
@@ -117,7 +117,7 @@ xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         HEADER_SEARCH_PATHS='$(HEADER_SEARCH_PATHS) '"$LIBPNG_SEARCH_PATH" \
         OTHER_LDFLAGS='$(OTHER_LDFLAGS) -framework png'
 
-cp -r Xcode/build/Release/SDL2_ttf.framework ../../dist/Frameworks
+cp -a Xcode/build/Release/SDL2_ttf.framework ../../dist/Frameworks
 popd
 
 popd
