@@ -80,6 +80,15 @@ cdef class Instruction(ObjectWithUid):
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
+    flag_update.__doc__ = """Indicate that the instruction needs to be redrawn on the next frame.
+
+    Normally, you should use :meth:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
+    if this ``Instruction`` is in a :class:`kivy.graphics.fbo.Fbo`.
+
+    :param do_parent: Whether to flag the parent instruction (such as a :class:`kivy.graphics.instructions.InstructionGroup`)
+               for update as well. True by default.
+
+    """
 
     cpdef flag_data_update(self):
         if verify_gl_main_thread and initialized_tid \
