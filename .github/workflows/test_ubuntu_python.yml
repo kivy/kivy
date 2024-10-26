@@ -31,6 +31,9 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
