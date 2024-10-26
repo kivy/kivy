@@ -16,9 +16,9 @@ jobs:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Install CI/CD Python requirements
@@ -28,7 +28,7 @@ jobs:
         run: |
           KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
       - name: Upload kivy-examples wheel as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux_examples_wheel
           path: dist
@@ -54,9 +54,9 @@ jobs:
             cibw_build: 'cp37-manylinux_aarch64 cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64'
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - name: Install CI/CD Python requirements
@@ -64,8 +64,8 @@ jobs:
         python -m pip install -r .ci/cicd-requirements.txt
     - name: Set up QEMU
       if: ${{ matrix.cibw_archs == 'aarch64' }}
-      uses: docker/setup-qemu-action@v1
-    - uses: actions/cache@v3
+      uses: docker/setup-qemu-action@v3
+    - uses: actions/cache@v4
       id: deps-cache
       with:
         path: kivy-dependencies
@@ -87,9 +87,9 @@ jobs:
       run: |
         python -m cibuildwheel --output-dir wheelhouse
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: manylinux_wheels
+        name: manylinux_wheels-${{ matrix.cibw_archs }}
         path: ./wheelhouse/*.whl
 
   manylinux_wheel_upload:
@@ -97,9 +97,9 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     if: github.event_name != 'pull_request'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - name: Install CI/CD Python requirements
@@ -107,7 +107,8 @@ jobs:
         python -m pip install -r .ci/cicd-requirements.txt
     - uses: actions/download-artifact@v4
       with:
-        name: manylinux_wheels
+        pattern: manylinux_wheels-*
+        merge-multiple: true
         path: dist
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
@@ -121,7 +122,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "linux/kivy/"
     - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@v0.1.14
+      uses: softprops/action-gh-release@v2.0.5
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: dist/*
@@ -143,14 +144,15 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
-        name: manylinux_wheels
+        pattern: manylinux_wheels-*
+        merge-multiple: true
         path: dist
     - name: Setup env
       run: |
@@ -160,7 +162,7 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         install_kivy_wheel dev
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: linux_examples_wheel
         path: dist
@@ -173,14 +175,13 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_install
     - name: Test Kivy benchmarks
-      if: matrix.python == '3.x' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: benchmarks
+        name: benchmarks-manylinux-wheels-python-${{ matrix.python }}
         path: .benchmarks-kivy
 
   sdist_test:
@@ -189,9 +190,9 @@ jobs:
       DISPLAY: ':99.0'
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.x
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Install CI/CD Python requirements
