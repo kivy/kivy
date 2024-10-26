@@ -21,10 +21,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - name: Install CI/CD Python requirements
+        run: |
+          python -m pip install -r .ci/cicd-requirements.txt
       - name: Create wheel
         run: |
-          source .ci/ubuntu_ci.sh
-          create_kivy_examples_wheel
+          KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
       - name: Upload kivy-examples wheel as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -57,6 +59,9 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Set up QEMU
       if: ${{ matrix.cibw_archs == 'aarch64' }}
       uses: docker/setup-qemu-action@v3
@@ -75,9 +80,9 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         update_version_metadata
-    - name: Install cibuildwheel
+    - name: Install CI/CD Python requirements
       run: |
-        python -m pip install cibuildwheel==2.16.2
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Make wheels
       run: |
         python -m cibuildwheel --output-dir wheelhouse
@@ -97,6 +102,9 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - uses: actions/download-artifact@v4
       with:
         pattern: manylinux_wheels-*
@@ -125,8 +133,7 @@ jobs:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.pypi_password }}
       run: |
-        source .ci/ubuntu_ci.sh
-        upload_artifacts_to_pypi
+        twine upload dist/*
 
   manylinux_wheel_test:
     runs-on: ubuntu-latest
@@ -188,10 +195,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - name: Install CI/CD Python requirements
+        run: |
+          python -m pip install -r .ci/cicd-requirements.txt
       - name: Generate sdist
         run: |
-          source .ci/ubuntu_ci.sh
-          generate_sdist
+          python -m build --sdist .
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
