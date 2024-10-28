@@ -53,7 +53,11 @@
     #ifndef GL_EXT_texture_storage
     #define GL_EXT_texture_storage
     #endif
-
+#elif (__USE_EGL==1 && __USE_OPENGL_ES2==0)
+    // using EGL & X11 on platform linux
+    // requires glew to be installed (e.g. apt install libglew-dev)
+    #define GLEW_EGL
+    #include <GL/glew.h>
 #else
 
 #	if __USE_OPENGL_ES2
