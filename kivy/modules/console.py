@@ -128,8 +128,8 @@ same callback for deactivating the addon and the panel. Here is a simple
 __all__ = ("start", "stop", "create_console", "Console", "ConsoleAddon",
            "ConsoleButton", "ConsoleToggleButton", "ConsoleLabel")
 
-import kivy
-kivy.require('1.9.0')
+# import kivy
+# kivy.require('1.9.0')
 
 import weakref
 from functools import partial
@@ -139,7 +139,6 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
 from kivy.uix.treeview import TreeViewNode, TreeView
 from kivy.uix.gridlayout import GridLayout
@@ -504,6 +503,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
     def show_property(self, instance, value, key=None, index=-1, *l):
         # normal call: (tree node, focus, )
         # nested call: (widget, prop value, prop key, index in dict/list)
+        from kivy.uix.textinput import TextInput
         if value is False:
             return
 
@@ -986,7 +986,7 @@ class Console(RelativeLayout):
 
     def keyboard_shortcut(self, win, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 101 and 'ctrl' in modifiers:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
