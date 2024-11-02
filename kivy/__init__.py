@@ -480,8 +480,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:
-            with open(kivy_config_fn, 'w') as fd:
-                Config.write(fd)
+            Config.filename = kivy_config_fn
+            Config.write()
         except Exception as e:
             Logger.exception('Core: error while saving default'
                              'configuration file:', str(e))
