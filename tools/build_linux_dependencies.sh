@@ -61,6 +61,13 @@ mkdir kivy-dependencies/dist
 # Build the dependencies
 pushd kivy-dependencies/build
 
+IS_RPI=`python -c "import platform; print('1' if 'raspberrypi' in platform.uname() else '0')"`
+if [ "$(dpkg --print-architecture)" = "armhf" ]; then
+  IS_ARMHF=1
+else
+  IS_ARMHF=0
+fi
+
 echo "-- Build SDL2"
 pushd $MANYLINUX__SDL2__FOLDER
   cmake -S . -B build \
@@ -87,13 +94,23 @@ popd
 echo "-- Build SDL2_mixer"
 pushd $MANYLINUX__SDL2_MIXER__FOLDER
   ./external/download.sh;
-  cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DSDL2MIXER_MOD_XMP=ON \
-          -DSDL2MIXER_MOD_XMP_SHARED=OFF \
-          -DCMAKE_INSTALL_PREFIX=../../dist \
-          -DSDL2MIXER_VENDORED=ON \
-          -GNinja
+
+  sdl2_mixer_builds_args=(
+    -DCMAKE_POSITION_INDEPENDENT_CODE="ON"
+    -DCMAKE_BUILD_TYPE="Release"
+    -DSDL2MIXER_MOD_XMP="ON"
+    -DSDL2MIXER_MOD_XMP_SHARED="OFF"
+    -DCMAKE_INSTALL_PREFIX="../../dist"
+    -DSDL2MIXER_VENDORED="ON"
+    -GNinja
+  )
+
+  # if platform is rpi or cross-compiling for rpi, we need to set additional flags
+  if { [ "$IS_RPI" = "1" ] && [ "$IS_ARMHF" = "1" ]; } || [ "$KIVY_CROSS_PLATFORM" = "rpi" ]; then
+    sdl2_mixer_builds_args+=(-DCMAKE_C_FLAGS="-mfpu=neon-fp-armv8")
+  fi
+
+  cmake -B build "${sdl2_mixer_builds_args[@]}"
   cmake --build build/ --config Release --parallel --verbose
   cmake --install build/ --config Release
 popd
@@ -103,7 +120,7 @@ pushd $MANYLINUX__SDL2_IMAGE__FOLDER
   ./external/download.sh;
   # If KIVY_CROSS_PLATFORM is set to rpi, we need to build libwebp version 1.2.4,
   # as previous versions have issues with NEON and ARMv7.
-  if [ "$KIVY_CROSS_PLATFORM" = "rpi" ]; then
+  if [ "$IS_RPI" = "1" ] || [ "$KIVY_CROSS_PLATFORM" = "rpi" ]; then
     pushd external/libwebp
       git checkout 1.2.4
     popd
