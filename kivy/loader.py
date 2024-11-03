@@ -274,11 +274,12 @@ class LoaderBase(object):
         filename = kwargs['filename']
         load_callback = kwargs['load_callback']
         post_callback = kwargs['post_callback']
-        try:
-            proto = filename.split(':', 1)[0]
-        except:
-            # if blank filename then return
+        if not filename:
+    # try...except removed        
+    # if blank filename then return
             return
+
+        proto = filename.split(':', 1)[0]
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp', 'smb'):

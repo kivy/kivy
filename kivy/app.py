@@ -808,7 +808,7 @@ class App(EventDispatcher):
         if exists(filename):
             try:
                 config.read(filename)
-            except:
+            except(OSError, ConfigParser.Error):
                 Logger.error('App: Corrupted config file, ignored.')
                 config.name = ''
                 try:

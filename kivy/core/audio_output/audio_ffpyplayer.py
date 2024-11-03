@@ -45,12 +45,11 @@ Finally, before running you need to ensure that ffpyplayer is in python's path.
 
 __all__ = ('SoundFFPy', )
 
-try:
-    import ffpyplayer
-    from ffpyplayer.player import MediaPlayer
-    from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
-except:
-    raise
+# Removed redundant try-except block that was re-raising the exception without any additional handling.
+import ffpyplayer
+from ffpyplayer.player import MediaPlayer
+from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
+
 
 
 from kivy.clock import Clock

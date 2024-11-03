@@ -493,9 +493,10 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
                 widget.bind(**{
                     key: partial(self.update_node_content, weakref.ref(node))
                 })
-            except:
-                pass
+            except Exception as e:
+                logging.warning(f"Failed to bind widget: {e}")
             treeview.add_node(node)
+
 
         root.add_widget(sv)
         sv.add_widget(treeview)
