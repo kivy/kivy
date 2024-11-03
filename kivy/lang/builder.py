@@ -811,7 +811,7 @@ class BuilderBase(object):
         This effectively clears all the KV rules associated with this widget.
         For example:
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> w = Builder.load_string(\'''
             ... Widget:
@@ -859,7 +859,7 @@ class BuilderBase(object):
 
         For example:
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> w = Builder.load_string(\'''
             ... Widget:
