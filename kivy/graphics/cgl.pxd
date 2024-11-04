@@ -471,7 +471,7 @@ ctypedef void (__stdcall *GLRENDERBUFFERSTORAGEPTR)(GLenum target, GLenum intern
 ctypedef void (__stdcall *GLSAMPLECOVERAGEPTR)(GLclampf value, GLboolean invert) nogil
 ctypedef void (__stdcall *GLSCISSORPTR)(GLint, GLint, GLsizei, GLsizei) nogil
 ctypedef void (__stdcall *GLSHADERBINARYPTR)(GLsizei, const GLuint *, GLenum, const void *, GLsizei) nogil
-ctypedef void (__stdcall *GLSHADERSOURCEPTR)(GLuint, GLsizei, const GLchar**, const GLint *) nogil
+ctypedef void (__stdcall *GLSHADERSOURCEPTR)(GLuint, GLsizei, const GLchar* const *, const GLint *) nogil
 ctypedef void (__stdcall *GLSTENCILFUNCPTR)(GLenum func, GLint ref, GLuint mask) nogil
 ctypedef void (__stdcall *GLSTENCILFUNCSEPARATEPTR)(GLenum face, GLenum func, GLint ref, GLuint mask) nogil
 ctypedef void (__stdcall *GLSTENCILMASKPTR)(GLuint mask) nogil
@@ -602,7 +602,7 @@ ctypedef struct GLES2_Context:
     void (__stdcall *glSampleCoverage)(GLclampf value, GLboolean invert) nogil
     void (__stdcall *glScissor)(GLint, GLint, GLsizei, GLsizei) nogil
     void (__stdcall *glShaderBinary)(GLsizei, const GLuint *, GLenum, const void *, GLsizei) nogil
-    void (__stdcall *glShaderSource)(GLuint, GLsizei, const GLchar**, const GLint *) nogil
+    void (__stdcall *glShaderSource)(GLuint, GLsizei, const GLchar* const *, const GLint *) nogil
     void (__stdcall *glStencilFunc)(GLenum func, GLint ref, GLuint mask) nogil
     void (__stdcall *glStencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask) nogil
     void (__stdcall *glStencilMask)(GLuint mask) nogil
