@@ -1151,7 +1151,7 @@ def triggered(timeout=0, interval=False):
     return wrapper_triggered
 
 
-if "KIVY_DOC_INCLUDE" in environ:
+if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.
     Clock: ClockBase = None
 else:
