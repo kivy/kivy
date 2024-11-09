@@ -1,4 +1,4 @@
-'''
+"""
 Clock object
 ============
 
@@ -445,14 +445,25 @@ directly. The library can be one of `"asyncio"` when the standard library
 should be used. If not set it defaults to `"asyncio"`.
 
 See :mod:`~kivy.app` for example usage.
-'''
+"""
 
 __all__ = (
-    'Clock', 'ClockNotRunningError', 'ClockEvent', 'FreeClockEvent',
-    'CyClockBase', 'CyClockBaseFree', 'triggered',
-    'ClockBaseBehavior', 'ClockBaseInterruptBehavior',
-    'ClockBaseInterruptFreeBehavior', 'ClockBase', 'ClockBaseInterrupt',
-    'ClockBaseFreeInterruptAll', 'ClockBaseFreeInterruptOnly', 'mainthread')
+    "Clock",
+    "ClockNotRunningError",
+    "ClockEvent",
+    "FreeClockEvent",
+    "CyClockBase",
+    "CyClockBaseFree",
+    "triggered",
+    "ClockBaseBehavior",
+    "ClockBaseInterruptBehavior",
+    "ClockBaseInterruptFreeBehavior",
+    "ClockBase",
+    "ClockBaseInterrupt",
+    "ClockBaseFreeInterruptAll",
+    "ClockBaseFreeInterruptOnly",
+    "mainthread",
+)
 
 from sys import platform
 from os import environ
@@ -462,16 +473,23 @@ from kivy.config import Config
 from kivy.logger import Logger
 from time import perf_counter as _default_time
 import time
+
 try:
-    from kivy._clock import CyClockBase, ClockEvent, FreeClockEvent, \
-        CyClockBaseFree, ClockNotRunningError
+    from kivy._clock import (
+        CyClockBase,
+        ClockEvent,
+        FreeClockEvent,
+        CyClockBaseFree,
+        ClockNotRunningError,
+    )
 except ImportError:
     Logger.error(
-        'Clock: Unable to import kivy._clock. Have you perhaps forgotten to '
-        'compile kivy? Kivy contains Cython code which needs to be compiled. '
-        'A missing kivy._clock often indicates the Cython code has not been '
-        'compiled. Please follow the installation instructions and make sure '
-        'to compile Kivy')
+        "Clock: Unable to import kivy._clock. Have you perhaps forgotten to "
+        "compile kivy? Kivy contains Cython code which needs to be compiled. "
+        "A missing kivy._clock often indicates the Cython code has not been "
+        "compiled. Please follow the installation instructions and make sure "
+        "to compile Kivy"
+    )
     raise
 
 from threading import Event as ThreadingEvent
@@ -485,7 +503,8 @@ def _get_sleep_obj():
 
 try:
     import ctypes
-    if platform in ('win32', 'cygwin'):
+
+    if platform in ("win32", "cygwin"):
         # Win32 Sleep function is only 10-millisecond resolution, so
         # instead use a waitable timer object, which has up to
         # 100-nanosecond resolution (hardware and implementation
@@ -499,39 +518,39 @@ try:
         def _usleep(microseconds, obj=None):
             delay = ctypes.c_longlong(int(-microseconds * 10))
             _kernel32.SetWaitableTimer(
-                obj, ctypes.byref(delay), 0,
-                ctypes.c_void_p(), ctypes.c_void_p(), False)
-            _kernel32.WaitForSingleObject(obj, 0xffffffff)
+                obj, ctypes.byref(delay), 0, ctypes.c_void_p(), ctypes.c_void_p(), False
+            )
+            _kernel32.WaitForSingleObject(obj, 0xFFFFFFFF)
     else:
-        if platform == 'darwin':
-            _libc = ctypes.CDLL('libc.dylib')
+        if platform == "darwin":
+            _libc = ctypes.CDLL("libc.dylib")
         else:
             from ctypes.util import find_library
-            _libc = ctypes.CDLL(find_library('c'), use_errno=True)
+
+            _libc = ctypes.CDLL(find_library("c"), use_errno=True)
 
             def _libc_clock_gettime_wrapper():
                 from os import strerror
 
                 class struct_tv(ctypes.Structure):
-                    _fields_ = [('tv_sec', ctypes.c_long),
-                                ('tv_usec', ctypes.c_long)]
+                    _fields_ = [("tv_sec", ctypes.c_long), ("tv_usec", ctypes.c_long)]
 
                 _clock_gettime = _libc.clock_gettime
-                _clock_gettime.argtypes = [ctypes.c_long,
-                                           ctypes.POINTER(struct_tv)]
+                _clock_gettime.argtypes = [ctypes.c_long, ctypes.POINTER(struct_tv)]
 
-                if 'linux' in platform:
+                if "linux" in platform:
                     _clockid = 4  # CLOCK_MONOTONIC_RAW (Linux specific)
-                elif 'freebsd' in platform:
+                elif "freebsd" in platform:
                     # clockid constants from sys/time.h
                     # _clockid = 4 # CLOCK_MONOTONIC (FreeBSD specific)
                     # 11: CLOCK_MONOTONIC_PRECISE (FreeBSD known OK for 10.2)
                     _clockid = 11
                     # _clockid = 12
                     # 12: CLOCK_MONOTONIC_FAST (FreeBSD specific)
-                    Logger.debug('clock.py: {{{:s}}} clock ID {:d}'.format(
-                        platform, _clockid))
-                elif 'openbsd' in platform:
+                    Logger.debug(
+                        "clock.py: {{{:s}}} clock ID {:d}".format(platform, _clockid)
+                    )
+                elif "openbsd" in platform:
                     _clockid = 3  # CLOCK_MONOTONIC
                 else:
                     _clockid = 1  # CLOCK_MONOTONIC
@@ -539,8 +558,7 @@ try:
                 tv = struct_tv()
 
                 def _time():
-                    if _clock_gettime(ctypes.c_long(_clockid),
-                                      ctypes.pointer(tv)) != 0:
+                    if _clock_gettime(ctypes.c_long(_clockid), ctypes.pointer(tv)) != 0:
                         _ernno = ctypes.get_errno()
                         raise OSError(_ernno, strerror(_ernno))
                     return tv.tv_sec + (tv.tv_usec * 0.000000001)
@@ -563,11 +581,11 @@ except (OSError, ImportError, AttributeError):
     # header)
 
     def _usleep(microseconds, obj=None):
-        time.sleep(microseconds / 1000000.)
+        time.sleep(microseconds / 1000000.0)
 
 
 class ClockBaseBehavior(object):
-    '''The base of the kivy clock.
+    """The base of the kivy clock.
 
     :parameters:
 
@@ -579,7 +597,7 @@ class ClockBaseBehavior(object):
             It defaults to `'asyncio'` or the value in the environmental
             variable `KIVY_EVENTLOOP` if set. :meth:`init_async_lib` can also
             be called directly to set the library.
-    '''
+    """
 
     _dt = 0.0001
     _last_fps_tick = None
@@ -591,30 +609,30 @@ class ClockBaseBehavior(object):
     _frames = 0
     _frames_displayed = 0
     _events_duration = 0
-    '''The measured time that it takes to process all the events etc, excepting
+    """The measured time that it takes to process all the events etc, excepting
     any sleep or waiting time. It is the average and is updated every 5
     seconds.
-    '''
+    """
 
     _duration_count = 0
     _sleep_time = 0
     _duration_ts0 = 0
 
     MIN_SLEEP = 0.005
-    '''The minimum time to sleep. If the remaining time is less than this,
+    """The minimum time to sleep. If the remaining time is less than this,
     the event loop will continue.
-    '''
+    """
     SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
 
     _async_lib = None
 
     _async_wait_for = None
 
-    def __init__(self, async_lib='asyncio', **kwargs):
+    def __init__(self, async_lib="asyncio", **kwargs):
         self.init_async_lib(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
-        self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        self._max_fps = float(Config.getint("graphics", "maxfps"))
 
     def init_async_lib(self, lib):
         """Manually sets the async library to use internally, when running in
@@ -630,57 +648,57 @@ class ClockBaseBehavior(object):
                 Can be one of, `"asyncio"` when the standard library asyncio
                 should be used, or `"trio"` if the trio library should be used.
         """
-        if lib == 'trio':
+        if lib == "trio":
             import trio
+
             self._async_lib = trio
 
             async def wait_for(coro, t):
                 with trio.move_on_after(t):
                     await coro
+
             self._async_wait_for = wait_for
-        elif lib == 'asyncio':
+        elif lib == "asyncio":
             import asyncio
+
             self._async_lib = asyncio
             self._async_wait_for = asyncio.wait_for
         else:
-            raise ValueError('async library {} not recognized'.format(lib))
+            raise ValueError("async library {} not recognized".format(lib))
 
     @property
     def frametime(self):
-        '''Time spent between the last frame and the current frame
+        """Time spent between the last frame and the current frame
         (in seconds).
 
         .. versionadded:: 1.8.0
-        '''
+        """
         return self._dt
 
     @property
     def frames(self):
-        '''Number of internal frames (not necessarily drawn) from the start of
+        """Number of internal frames (not necessarily drawn) from the start of
         the clock.
 
         .. versionadded:: 1.8.0
-        '''
+        """
         return self._frames
 
     @property
     def frames_displayed(self):
-        '''Number of displayed frames from the start of the clock.
-        '''
+        """Number of displayed frames from the start of the clock."""
         return self._frames_displayed
 
     def usleep(self, microseconds):
-        '''Sleeps for the number of microseconds.
-        '''
+        """Sleeps for the number of microseconds."""
         pass
 
     def idle(self):
-        '''(internal) waits here until the next frame.
-        '''
+        """(internal) waits here until the next frame."""
         fps = self._max_fps
         if fps > 0:
             min_sleep = self.get_resolution()
-            undershoot = 4 / 5. * min_sleep
+            undershoot = 4 / 5.0 * min_sleep
             usleep = self.usleep
             ready = self._check_ready
 
@@ -695,12 +713,11 @@ class ClockBaseBehavior(object):
         return current
 
     async def async_idle(self):
-        '''(internal) async version of :meth:`idle`.
-        '''
+        """(internal) async version of :meth:`idle`."""
         fps = self._max_fps
         if fps > 0:
             min_sleep = self.get_resolution()
-            undershoot = 4 / 5. * min_sleep
+            undershoot = 4 / 5.0 * min_sleep
             ready = self._check_ready
 
             slept = False
@@ -725,28 +742,26 @@ class ClockBaseBehavior(object):
         return sleeptime - undershoot <= min_sleep, sleeptime - undershoot
 
     def tick(self):
-        '''Advance the clock to the next step. Must be called every frame.
+        """Advance the clock to the next step. Must be called every frame.
         The default clock has a tick() function called by the core Kivy
-        framework.'''
+        framework."""
         self.pre_idle()
         ts = self.time()
         self.post_idle(ts, self.idle())
 
     async def async_tick(self):
-        '''async version of :meth:`tick`. '''
+        """async version of :meth:`tick`."""
         self.pre_idle()
         ts = self.time()
         current = await self.async_idle()
         self.post_idle(ts, current)
 
     def pre_idle(self):
-        '''Called before :meth:`idle` by :meth:`tick`.
-        '''
+        """Called before :meth:`idle` by :meth:`tick`."""
         self._release_references()
 
     def post_idle(self, ts, current):
-        '''Called after :meth:`idle` by :meth:`tick`.
-        '''
+        """Called after :meth:`idle` by :meth:`tick`."""
         # tick the current time
         self._frames += 1
         self._fps_counter += 1
@@ -755,9 +770,10 @@ class ClockBaseBehavior(object):
         self._duration_count += 1
         self._sleep_time += current - ts
         t_tot = current - self._duration_ts0
-        if t_tot >= 1.:
-            self._events_duration = \
-                (t_tot - self._sleep_time) / float(self._duration_count)
+        if t_tot >= 1.0:
+            self._events_duration = (t_tot - self._sleep_time) / float(
+                self._duration_count
+            )
             self._duration_ts0 = current
             self._sleep_time = self._duration_count = 0
 
@@ -778,32 +794,30 @@ class ClockBaseBehavior(object):
         return self._dt
 
     def tick_draw(self):
-        '''Tick the drawing counter.
-        '''
+        """Tick the drawing counter."""
         self._process_events_before_frame()
         self._rfps_counter += 1
         self._frames_displayed += 1
 
     def get_fps(self):
-        '''Get the current average FPS calculated by the clock.
-        '''
+        """Get the current average FPS calculated by the clock."""
         return self._fps
 
     def get_rfps(self):
-        '''Get the current "real" FPS calculated by the clock.
+        """Get the current "real" FPS calculated by the clock.
         This counter reflects the real framerate displayed on the screen.
 
         In contrast to get_fps(), this function returns a counter of the
         number of frames, not the average of frames per second.
-        '''
+        """
         return self._rfps
 
     def get_time(self):
-        '''Get the last tick made by the clock.'''
+        """Get the last tick made by the clock."""
         return self._last_tick
 
     def get_boottime(self):
-        '''Get the time in seconds from the application start.'''
+        """Get the time in seconds from the application start."""
         return self._last_tick - self._start_tick
 
     time = staticmethod(partial(_default_time))
@@ -816,8 +830,7 @@ class ClockBaseBehavior(object):
 
 
 class ClockBaseInterruptBehavior(ClockBaseBehavior):
-    '''A kivy clock which can be interrupted during a frame to execute events.
-    '''
+    """A kivy clock which can be interrupted during a frame to execute events."""
 
     interupt_next_only = False
     _event = None
@@ -832,26 +845,27 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
     def init_async_lib(self, lib):
         super(ClockBaseInterruptBehavior, self).init_async_lib(lib)
-        if lib == 'trio':
+        if lib == "trio":
             import trio
+
             self._async_event = trio.Event()
             # we don't know if this is called after things have already been
             # scheduled, so don't delay for a full frame before processing
             # events
             self._async_event.set()
-        elif lib == 'asyncio':
+        elif lib == "asyncio":
             import asyncio
+
             self._async_event = asyncio.Event()
             self._async_event.set()
 
     def usleep(self, microseconds):
         self._event.clear()
-        self._event.wait(microseconds / 1000000.)
+        self._event.wait(microseconds / 1000000.0)
 
     async def async_usleep(self, microseconds):
         self._async_event.clear()
-        await self._async_wait_for(
-            self._async_event.wait(), microseconds / 1000000.)
+        await self._async_wait_for(self._async_event.wait(), microseconds / 1000000.0)
 
     def on_schedule(self, event):
         fps = self._max_fps
@@ -859,10 +873,12 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
             return
 
         if not event.timeout or (
-                not self.interupt_next_only and event.timeout <=
-                1 / fps -  # remaining time
-                (self.time() - self._last_tick) +  # elapsed time
-                4 / 5. * self.get_resolution()):  # resolution fudge factor
+            not self.interupt_next_only
+            and event.timeout
+            <= 1 / fps  # remaining time
+            - (self.time() - self._last_tick)  # elapsed time
+            + 4 / 5.0 * self.get_resolution()
+        ):  # resolution fudge factor
             self._event.set()
             if self._async_event:
                 self._async_event.set()
@@ -873,7 +889,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         resolution = self.get_resolution()
         if fps > 0:
             done, sleeptime = self._check_ready(
-                fps, resolution, 4 / 5. * resolution, event)
+                fps, resolution, 4 / 5.0 * resolution, event
+            )
             if not done:
                 event.wait(sleeptime)
 
@@ -894,7 +911,8 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
         resolution = self.get_resolution()
         if fps > 0:
             done, sleeptime = self._check_ready(
-                fps, resolution, 4 / 5. * resolution, event)
+                fps, resolution, 4 / 5.0 * resolution, event
+            )
             if not done:
                 await self._async_wait_for(event.wait(), sleeptime)
             else:
@@ -930,9 +948,9 @@ class ClockBaseInterruptBehavior(ClockBaseBehavior):
 
 
 class ClockBaseInterruptFreeBehavior(ClockBaseInterruptBehavior):
-    '''A base class for the clock that interrupts the sleep interval for
+    """A base class for the clock that interrupts the sleep interval for
     free events.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(ClockBaseInterruptFreeBehavior, self).__init__(**kwargs)
@@ -943,13 +961,11 @@ class ClockBaseInterruptFreeBehavior(ClockBaseInterruptBehavior):
             return
         # free events should use real time not frame time
         event._last_dt = self.time()
-        return super(ClockBaseInterruptFreeBehavior,
-                     self).on_schedule(event)
+        return super(ClockBaseInterruptFreeBehavior, self).on_schedule(event)
 
 
 class ClockBase(ClockBaseBehavior, CyClockBase):
-    '''The ``default`` kivy clock. See module for details.
-    '''
+    """The ``default`` kivy clock. See module for details."""
 
     _sleep_obj = None
 
@@ -962,24 +978,19 @@ class ClockBase(ClockBaseBehavior, CyClockBase):
 
 
 class ClockBaseInterrupt(ClockBaseInterruptBehavior, CyClockBase):
-    '''The ``interrupt`` kivy clock. See module for details.
-    '''
+    """The ``interrupt`` kivy clock. See module for details."""
 
     pass
 
 
-class ClockBaseFreeInterruptAll(
-        ClockBaseInterruptFreeBehavior, CyClockBaseFree):
-    '''The ``free_all`` kivy clock. See module for details.
-    '''
+class ClockBaseFreeInterruptAll(ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+    """The ``free_all`` kivy clock. See module for details."""
 
     pass
 
 
-class ClockBaseFreeInterruptOnly(
-        ClockBaseInterruptFreeBehavior, CyClockBaseFree):
-    '''The ``free_only`` kivy clock. See module for details.
-    '''
+class ClockBaseFreeInterruptOnly(ClockBaseInterruptFreeBehavior, CyClockBaseFree):
+    """The ``free_only`` kivy clock. See module for details."""
 
     def idle(self):
         fps = self._max_fps
@@ -988,7 +999,7 @@ class ClockBaseFreeInterruptOnly(
         if fps > 0:
             min_sleep = self.get_resolution()
             usleep = self.usleep
-            undershoot = 4 / 5. * min_sleep
+            undershoot = 4 / 5.0 * min_sleep
             min_t = self.get_min_free_timeout
             interupt_next_only = self.interupt_next_only
 
@@ -1026,7 +1037,7 @@ class ClockBaseFreeInterruptOnly(
         if fps > 0:
             min_sleep = self.get_resolution()
             usleep = self.usleep
-            undershoot = 4 / 5. * min_sleep
+            undershoot = 4 / 5.0 * min_sleep
             min_t = self.get_min_free_timeout
             interupt_next_only = self.interupt_next_only
 
@@ -1050,8 +1061,7 @@ class ClockBaseFreeInterruptOnly(
                     self._process_free_events(current)
                 else:
                     slept = True
-                    await self._async_wait_for(
-                        event.wait(), sleeptime - undershoot)
+                    await self._async_wait_for(event.wait(), sleeptime - undershoot)
                 current = self.time()
                 sleeptime = 1 / fps - (current - self._last_tick)
 
@@ -1067,7 +1077,7 @@ class ClockBaseFreeInterruptOnly(
 
 
 def mainthread(func):
-    '''Decorator that will schedule the call of the function for the next
+    """Decorator that will schedule the call of the function for the next
     available frame in the mainthread. It can be useful when you use
     :class:`~kivy.network.urlrequest.UrlRequest` or when you do Thread
     programming: you cannot do any OpenGL-related work in a thread.
@@ -1084,17 +1094,20 @@ def mainthread(func):
         self.req = UrlRequest(url='http://...', on_success=callback)
 
     .. versionadded:: 1.8.0
-    '''
+    """
+
     @wraps(func)
     def delayed_func(*args, **kwargs):
         def callback_func(dt):
             func(*args, **kwargs)
+
         Clock.schedule_once(callback_func, 0)
+
     return delayed_func
 
 
 def triggered(timeout=0, interval=False):
-    '''Decorator that will trigger the call of the function at the specified
+    """Decorator that will trigger the call of the function at the specified
     timeout, through the method :meth:`CyClockBase.create_trigger`. Subsequent
     calls to the decorated function (while the timeout is active) are ignored.
 
@@ -1115,10 +1128,9 @@ def triggered(timeout=0, interval=False):
         >> callback.cancel()
 
     .. versionadded:: 1.10.1
-    '''
+    """
 
     def wrapper_triggered(func):
-
         _args = []
         _kwargs = {}
 
@@ -1126,9 +1138,8 @@ def triggered(timeout=0, interval=False):
             func(*tuple(_args), **_kwargs)
 
         cb_trigger = Clock.create_trigger(
-            cb_function,
-            timeout=timeout,
-            interval=interval)
+            cb_function, timeout=timeout, interval=interval
+        )
 
         @wraps(func)
         def trigger_function(*args, **kwargs):
@@ -1141,28 +1152,72 @@ def triggered(timeout=0, interval=False):
         def trigger_cancel():
             cb_trigger.cancel()
 
-        setattr(trigger_function, 'cancel', trigger_cancel)
+        setattr(trigger_function, "cancel", trigger_cancel)
 
         return trigger_function
 
     return wrapper_triggered
 
 
-if 'KIVY_DOC_INCLUDE' in environ:
+class triggered_method:
+    """Make a trigger from a method.
+
+    Decorate a method with this and it will become a trigger. Supply a
+    numeric parameter to set a timeout.
+
+    Not suitable for methods that expect any arguments other than
+    ``dt``. However, you should make your method accept ``*args`` for
+    compatibility.
+
+    """
+
+    def __init__(self, func_or_timeout, interval=False):
+        if callable(func_or_timeout):
+            self.func = func_or_timeout
+            self.timeout = 0
+        else:
+            self.func = None
+            self.timeout = func_or_timeout
+        self.interval = interval
+
+    def __call__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+        return self
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            # EventDispatcher iterates over its attributes before it
+            # instantiates.  Don't try making any trigger in that
+            # case.
+            return
+        retval = Clock.create_trigger(
+            partial(self.func, instance), self.timeout, self.interval
+        )
+        setattr(instance, self.func.__name__, retval)
+        return retval
+
+
+if "KIVY_DOC_INCLUDE" in environ:
     #: Instance of :class:`ClockBaseBehavior`.
     Clock: ClockBase = None
 else:
-    _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
-                'free_all': ClockBaseFreeInterruptAll,
-                'free_only': ClockBaseFreeInterruptOnly}
-    _clk = environ.get('KIVY_CLOCK', Config.get('kivy', 'kivy_clock'))
+    _classes = {
+        "default": ClockBase,
+        "interrupt": ClockBaseInterrupt,
+        "free_all": ClockBaseFreeInterruptAll,
+        "free_only": ClockBaseFreeInterruptOnly,
+    }
+    _clk = environ.get("KIVY_CLOCK", Config.get("kivy", "kivy_clock"))
     if _clk not in _classes:
         raise Exception(
-            '{} is not a valid kivy clock. Valid clocks are {}'.format(
-                _clk, sorted(_classes.keys())))
+            "{} is not a valid kivy clock. Valid clocks are {}".format(
+                _clk, sorted(_classes.keys())
+            )
+        )
 
     Clock: ClockBase = register_context(
-        'Clock', _classes[_clk],
-        async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
-    '''The kivy Clock instance. See module documentation for details.
-    '''
+        "Clock", _classes[_clk], async_lib=environ.get("KIVY_EVENTLOOP", "asyncio")
+    )
+    """The kivy Clock instance. See module documentation for details.
+    """
