@@ -373,7 +373,7 @@ GL_APICALL void         GL_APIENTRY glPolygonOffset (GLfloat factor, GLfloat uni
 GL_APICALL void         GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
 GL_APICALL void         GL_APIENTRY glSampleCoverage (GLclampf value, GLboolean invert);
 GL_APICALL void         GL_APIENTRY glScissor (GLint x, GLint y, GLsizei width, GLsizei height);
-GL_APICALL void         GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
+GL_APICALL void         GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar* const * string, const GLint* length);
 GL_APICALL void         GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GLuint mask);
 GL_APICALL void         GL_APIENTRY glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask);
 GL_APICALL void         GL_APIENTRY glStencilMask (GLuint mask);
