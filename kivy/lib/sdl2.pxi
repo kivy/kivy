@@ -469,7 +469,7 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_Scancode:
         pass
 
-    ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
+    ctypedef int (*SDL_EventFilter)(void* userdata, SDL_Event* event)
     # for windows only see
     # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
     IF UNAME_SYSNAME == 'Windows':
@@ -535,7 +535,7 @@ cdef extern from "SDL.h":
     cdef void SDL_Delay(Uint32 ms) nogil
     cdef Uint8 SDL_EventState(Uint32 type, int state)
     cdef int SDL_PollEvent(SDL_Event * event) nogil
-    cdef void SDL_SetEventFilter(SDL_EventFilter *filter, void* userdata)
+    cdef void SDL_SetEventFilter(SDL_EventFilter filter, void* userdata)
     cdef SDL_RWops * SDL_RWFromFile(char *file, char *mode)
     cdef SDL_RWops * SDL_RWFromMem(void *mem, int size)
     cdef SDL_RWops * SDL_RWFromConstMem(void *mem, int size)
