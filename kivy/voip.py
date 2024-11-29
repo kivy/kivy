@@ -34,6 +34,7 @@ if platform == 'android':
     AudioTrack = autoclass("android.media.AudioTrack")
     AudioManager = autoclass("android.media.AudioManager")
     Socket = autoclass("java.net.Socket")
+    SSLSocket = autoclass("javax.net.ssl.SSLSocketFactory")
     SocketTimer = autoclass("java.net.InetSocketAddress")
     SSLContext = autoclass("javax.net.ssl.SSLContext")
     SecureRandom = autoclass("java.security.SecureRandom")
@@ -45,7 +46,7 @@ if platform == 'android':
         dst_port = 8080
         timeout = 5  # Sets WAN timeout. LAN connection max is 2 secs.
         ssl = False
-        tls_version = "TLSv1.3"  # Enforces TLSv1.3 by default if using SSL
+        tls_version = ""  # Defaults to auto selection. TLSv1.3 and TLSv1.2 are options
         debug = False
         # Variables to adjust sound quality. Default settings recommended
         SAMPLE_RATE = 16000
@@ -89,9 +90,12 @@ if platform == 'android':
                     print(f"{self.timeout} sec(s) wait for connection")
                 try:
                     if self.ssl:
-                        ssl_context = SSLContext.getInstance(self.tls_version)
-                        ssl_context.init(None, None, SecureRandom())
-                        ssl_socket_factory = ssl_context.getSocketFactory()
+                        if self.tls_version == "":  # Auto select protocol
+                            ssl_socket_factory = SSLSocket.getDefault()
+                        else:  # Otherwise, manually select protocol
+                            ssl_context = SSLContext.getInstance(self.tls_version)
+                            ssl_context.init(None, None, SecureRandom())
+                            ssl_socket_factory = ssl_context.getSocketFactory()
                         self.socket = ssl_socket_factory.createSocket()
                     else:
                         self.socket = Socket()
