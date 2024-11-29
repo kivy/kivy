@@ -97,16 +97,14 @@ if platform == 'android':
                             SocketTimer(self.dst_address, self.dst_port),
                             self.timeout * 1000
                         )
-                        self.data_input_stream = self.socket.getInputStream()
-                        self.data_output_stream = self.socket.getOutputStream()
                     else:
                         self.socket = Socket()
                         self.socket.connect(
                             SocketTimer(self.dst_address, self.dst_port),
                             self.timeout * 1000
                         )
-                        self.data_input_stream = self.socket.getInputStream()
-                        self.data_output_stream = self.socket.getOutputStream()
+                    self.data_input_stream = self.socket.getInputStream()
+                    self.data_output_stream = self.socket.getOutputStream()
                     self.connected = True
                     if self.debug:
                         print(f"Connected to {self.dst_address}:{self.dst_port}")
