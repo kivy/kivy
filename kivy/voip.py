@@ -93,16 +93,12 @@ if platform == 'android':
                         ssl_context.init(None, None, SecureRandom())
                         ssl_socket_factory = ssl_context.getSocketFactory()
                         self.socket = ssl_socket_factory.createSocket()
-                        self.socket.connect(
-                            SocketTimer(self.dst_address, self.dst_port),
-                            self.timeout * 1000
-                        )
                     else:
                         self.socket = Socket()
-                        self.socket.connect(
-                            SocketTimer(self.dst_address, self.dst_port),
-                            self.timeout * 1000
-                        )
+                    self.socket.connect(
+                        SocketTimer(self.dst_address, self.dst_port),
+                        self.timeout * 1000
+                    )
                     self.data_input_stream = self.socket.getInputStream()
                     self.data_output_stream = self.socket.getOutputStream()
                     self.connected = True
