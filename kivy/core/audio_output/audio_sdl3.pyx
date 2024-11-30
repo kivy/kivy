@@ -82,7 +82,7 @@ cdef mix_init():
     desired_spec.channels = 2    
     if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
-                        Mix_GetError()))
+                        SDL_GetError()))
         mix_is_init = -1
         return 0
 
@@ -209,7 +209,7 @@ class SoundSDL3(Sound):
         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
         if cc.channel == -1:
             Logger.warning('AudioSDL3: Unable to play {}: {}'.format(
-                           self.source, Mix_GetError()))
+                           self.source, SDL_GetError()))
             return
         # schedule event to check if the sound is still playing or not
         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
@@ -241,7 +241,7 @@ class SoundSDL3(Sound):
         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if cc.chunk == NULL:
             Logger.warning('AudioSDL3: Unable to load {}: {}'.format(
-                           self.source, Mix_GetError()))
+                           self.source, SDL_GetError()))
         else:
             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
             cc.chunk.volume = int(self.volume * 128)
@@ -322,7 +322,7 @@ class MusicSDL3(Sound):
         Mix_VolumeMusic(int(self.volume * 128))
         if Mix_PlayMusic(mc.music, 1) == -1:
             Logger.warning('AudioSDL3: Unable to play music {}: {}'.format(
-                           self.source, Mix_GetError()))
+                           self.source, SDL_GetError()))
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
@@ -354,7 +354,7 @@ class MusicSDL3(Sound):
         mc.music = Mix_LoadMUS(<char *><bytes>fn)
         if mc.music == NULL:
             Logger.warning('AudioSDL3: Unable to load music {}: {}'.format(
-                           self.source, Mix_GetError()))
+                           self.source, SDL_GetError()))
         else:
             Mix_VolumeMusic(int(self.volume * 128))
 
