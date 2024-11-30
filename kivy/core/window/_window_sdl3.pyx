@@ -313,10 +313,10 @@ cdef class _WindowSDL3Storage:
 
         SDL_SetEventFilter(<SDL_EventFilter>_event_filter, <void *>self)
 
-        SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, SDL_TRUE)
-        SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, SDL_TRUE)
-        SDL_SetEventEnabled(SDL_EVENT_DROP_BEGIN, SDL_TRUE)
-        SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, SDL_TRUE)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, True)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, True)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_BEGIN, True)
+        SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, True)
         cdef int w, h
         SDL_GetWindowSize(self.win, &w, &h)
 
@@ -411,7 +411,7 @@ cdef class _WindowSDL3Storage:
         SDL_SetWindowMinimumSize(self.win, w, h)
 
     def set_always_on_top(self, always_on_top):
-        SDL_SetWindowAlwaysOnTop(self.win, SDL_TRUE if always_on_top else SDL_FALSE)
+        SDL_SetWindowAlwaysOnTop(self.win, always_on_top)
 
     def set_allow_screensaver(self, allow_screensaver):
         if allow_screensaver:
@@ -435,7 +435,7 @@ cdef class _WindowSDL3Storage:
         SDL_ShowWindow(self.win)
 
     def set_border_state(self, state):
-        SDL_SetWindowBordered(self.win, SDL_FALSE if state else SDL_TRUE)
+        SDL_SetWindowBordered(self.win, state)
 
     def set_fullscreen_mode(self, mode):
         if mode is True:
@@ -934,7 +934,7 @@ cdef class _WindowSDL3Storage:
         SDL_DestroySurface(flipped_surface)
 
     def grab_mouse(self, grab):
-        SDL_SetWindowMouseGrab(self.win, SDL_TRUE if grab else SDL_FALSE)
+        SDL_SetWindowMouseGrab(self.win, grab)
 
     def get_relative_mouse_pos(self):
         cdef int x, y
@@ -943,7 +943,7 @@ cdef class _WindowSDL3Storage:
         return x - wx, y - wy
 
     def set_custom_titlebar(self, titlebar_widget):
-        SDL_SetWindowBordered(self.win, SDL_FALSE)
+        SDL_SetWindowBordered(self.win, False)
         return SDL_SetWindowHitTest(self.win, <SDL_HitTest>custom_titlebar_handler_callback,<void *>titlebar_widget)
 
     @property
