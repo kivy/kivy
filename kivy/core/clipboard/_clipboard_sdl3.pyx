@@ -8,7 +8,7 @@ include '../../lib/sdl3.pxi'
 
 
 def _has_text():
-    return True if SDL_HasClipboardText() == SDL_TRUE else False
+    return SDL_HasClipboardText()
 
 
 def _get_text():

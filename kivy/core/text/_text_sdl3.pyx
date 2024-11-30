@@ -100,7 +100,7 @@ cdef class _SurfaceContainer:
             TTF_SetFontDirection(font, TTF_DIRECTION_BTT)
 
         fontscript = container.options['font_script_name']
-        TTF_SetFontScriptName(font, fontscript)
+        TTF_SetFontScript(font, fontscript)
 
         if outline_width:
             TTF_SetFontOutline(font, outline_width)
@@ -108,24 +108,24 @@ cdef class _SurfaceContainer:
             oc.g = <int>(outline_color[1] * 255)
             oc.b = <int>(outline_color[2] * 255)
             st = (
-                TTF_RenderUTF8_Blended(font, <char *>bytes_text, oc)
+                TTF_RenderText_Blended(font, <char *>bytes_text, 0, oc)
                 if container.options['font_blended']
-                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, oc)
+                else TTF_RenderText_Blended(font, <char *>bytes_text, 0, oc)
                 )
             TTF_SetFontOutline(font, 0)
         else:
             st = (
-                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                TTF_RenderText_Blended(font, <char *>bytes_text, 0, c)
                 if container.options['font_blended']
-                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                else TTF_RenderText_Solid(font, <char *>bytes_text, 0, c)
                 )
         if st == NULL:
             return
         if outline_width:
             fgst = (
-                TTF_RenderUTF8_Blended(font, <char *>bytes_text, c)
+                TTF_RenderText_Blended(font, <char *>bytes_text, 0, c)
                 if container.options['font_blended']
-                else TTF_RenderUTF8_Solid(font, <char *>bytes_text, c)
+                else TTF_RenderText_Solid(font, <char *>bytes_text, 0, c)
                 )
             if fgst == NULL:
                 SDL_DestroySurface(st)
@@ -225,13 +225,13 @@ def _get_extents(container, text):
     bytes_text = <bytes>text
     if outline_width:
         TTF_SetFontOutline(font, outline_width)
-    TTF_SizeUTF8(font, <char *>bytes_text, &w, &h)
+    TTF_GetStringSize(font, <char *>bytes_text, 0, &w, &h)
     if outline_width:
         TTF_SetFontOutline(font, 0)
     return w, h
 
 def _get_fontdescent(container):
-    return TTF_FontDescent(_get_font(container))
+    return TTF_GetFontDescent(_get_font(container))
 
 def _get_fontascent(container):
-    return TTF_FontAscent(_get_font(container))
+    return TTF_GetFontAscent(_get_font(container))

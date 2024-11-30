@@ -90,10 +90,6 @@ cdef extern from "SDL.h":
         SDL_RENDERER_ACCELERATED = 0x00000002
         SDL_RENDERER_PRESENTVSYNC = 0x00000004
 
-    ctypedef enum SDL_bool:
-        SDL_FALSE = 0
-        SDL_TRUE = 1
-
     cdef struct SDL_version:
         Uint8 major
         Uint8 minor
@@ -434,12 +430,19 @@ cdef extern from "SDL.h":
         SDL_IO_STATUS_READONLY
         SDL_IO_STATUS_WRITEONLY
 
+    cdef enum SDL_IOWhence:
+        SDL_IO_SEEK_SET
+        SDL_IO_SEEK_CUR
+        SDL_IO_SEEK_END
+
     cdef struct SDL_IOStreamInterface:
+        Uint32 version
         Sint64 (*size)(void *userdata)
-        Sint64 (*seek)(void *userdata, Sint64 offset, int whence)
+        Sint64 (*seek)(void *userdata, Sint64 offset, SDL_IOWhence whence)
         size_t (*read)(void *userdata, void *ptr, size_t size, SDL_IOStatus *status)
         size_t (*write)(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status)
-        int (*close)(void *userdata)
+        bint (*flush)(void *userdata, SDL_IOStatus *status)
+        bint (*close)(void *userdata)
 
     cdef struct SDL_IOStream:
         SDL_IOStreamInterface iface;
@@ -469,7 +472,6 @@ cdef extern from "SDL.h":
     ctypedef enum SDL_PixelFormat:
         pass
 
-    ctypedef int SDL_EventFilter(void* userdata, SDL_Event* event)
     # for windows only see
     # https://github.com/LuaDist/sdl/blob/master/include/begin_code.h#L68
     IF UNAME_SYSNAME == 'Windows':
@@ -503,7 +505,7 @@ cdef extern from "SDL.h":
     cdef int SDL_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect)
     cdef int SDL_RenderCopyEx(SDL_Renderer * renderer, SDL_Texture * texture, SDL_Rect * srcrect, SDL_Rect * dstrect, double angle, SDL_Point *center, SDL_RendererFlip flip)
     cdef void SDL_RenderPresent(SDL_Renderer * renderer)
-    cdef SDL_bool SDL_RenderTargetSupported(SDL_Renderer *renderer)
+    cdef bint SDL_RenderTargetSupported(SDL_Renderer *renderer)
     cdef int SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
     cdef void SDL_DestroyTexture(SDL_Texture * texture)
     cdef void SDL_DestroySurface(SDL_Surface * surface) nogil
@@ -534,7 +536,7 @@ cdef extern from "SDL.h":
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
     cdef void SDL_Delay(Uint32 ms) nogil
-    cdef Uint8 SDL_SetEventEnabled(Uint32 type, SDL_bool enabled)
+    cdef Uint8 SDL_SetEventEnabled(Uint32 type, bint enabled)
     cdef int SDL_PollEvent(SDL_Event * event) nogil
     cdef void SDL_SetEventFilter(SDL_EventFilter filter, void* userdata)
     cdef SDL_IOStream * SDL_IOFromMem(void *mem, int size)
@@ -547,16 +549,16 @@ cdef extern from "SDL.h":
     cdef int SDL_SetTextureColorMod(SDL_Texture * texture, Uint8 r, Uint8 g, Uint8 b)
     cdef int SDL_SetTextureAlphaMod(SDL_Texture * texture, Uint8 alpha)
     cdef char * SDL_GetError()
-    cdef SDL_bool SDL_SetHint(char *name, char *value)
-    cdef SDL_bool SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
+    cdef bint SDL_SetHint(char *name, char *value)
+    cdef bint SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint32 SDL_GetMouseState(int* x,int* y)
     cdef Uint32 SDL_GetGlobalMouseState(int *x, int *y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
     cdef int SDL_GetNumDisplayModes(int displayIndex)
     cdef int SDL_GetDisplayMode(int displayIndex, int index, SDL_DisplayMode * mode)
-    cdef SDL_bool SDL_HasIntersection(SDL_Rect * A, SDL_Rect * B) nogil
-    cdef SDL_bool SDL_IntersectRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result) nogil
+    cdef bint SDL_HasIntersection(SDL_Rect * A, SDL_Rect * B) nogil
+    cdef bint SDL_IntersectRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result) nogil
     cdef void SDL_UnionRect(SDL_Rect * A, SDL_Rect * B, SDL_Rect * result) nogil
     cdef Uint64 SDL_GetPerformanceCounter() nogil
     cdef Uint64 SDL_GetPerformanceFrequency() nogil
@@ -571,7 +573,7 @@ cdef extern from "SDL.h":
 
     cdef void SDL_SetClipboardText(char * text)
     cdef const char * SDL_GetClipboardText()
-    cdef SDL_bool SDL_HasClipboardText()
+    cdef bint SDL_HasClipboardText()
     cdef int SDL_GetNumVideoDrivers()
     cdef const char *SDL_GetVideoDriver(int index)
     cdef int SDL_VideoInit(const char *driver_name)
@@ -602,8 +604,8 @@ cdef extern from "SDL.h":
     cdef void SDL_SetWindowSize(SDL_Window * window, int w, int h)
     cdef void SDL_GetWindowSize(SDL_Window * window, int *w, int *h)
     cdef void SDL_SetWindowMinimumSize(SDL_Window * window, int min_w, int min_h)
-    cdef void SDL_SetWindowBordered(SDL_Window * window, SDL_bool bordered)
-    cdef void SDL_SetWindowAlwaysOnTop(SDL_Window * window, SDL_bool on_top)
+    cdef void SDL_SetWindowBordered(SDL_Window * window, bint bordered)
+    cdef void SDL_SetWindowAlwaysOnTop(SDL_Window * window, bint on_top)
     cdef void SDL_ShowWindow(SDL_Window * window)
     cdef void SDL_ShowCursor()
     cdef void SDL_HideCursor()
@@ -614,14 +616,14 @@ cdef extern from "SDL.h":
     cdef void SDL_MaximizeWindow(SDL_Window * window)
     cdef void SDL_MinimizeWindow(SDL_Window * window)
     cdef void SDL_RestoreWindow(SDL_Window * window)
-    cdef int SDL_SetWindowFullscreen(SDL_Window * window, SDL_bool fullscreen)
+    cdef int SDL_SetWindowFullscreen(SDL_Window * window, bint fullscreen)
     cdef SDL_Surface * SDL_GetWindowSurface(SDL_Window * window)
     cdef int SDL_UpdateWindowSurface(SDL_Window * window)
-    cdef void SDL_SetWindowMouseGrab(SDL_Window * window, SDL_bool grabbed)
+    cdef void SDL_SetWindowMouseGrab(SDL_Window * window, bint grabbed)
     cdef int SDL_SetWindowBrightness(SDL_Window * window, float brightness)
     cdef float SDL_GetWindowBrightness(SDL_Window * window)
     cdef void SDL_DestroyWindow(SDL_Window * window)
-    cdef SDL_bool SDL_IsScreenSaverEnabled()
+    cdef bint SDL_IsScreenSaverEnabled()
     cdef void SDL_EnableScreenSaver()
     cdef void SDL_DisableScreenSaver()
     cdef int SDL_GL_LoadLibrary(const char *path)
@@ -650,11 +652,11 @@ cdef extern from "SDL.h":
     cdef char *SDL_GetKeyName(SDL_Keycode key)
     cdef SDL_Keycode SDL_GetKeyFromName(char *name)
     cdef void SDL_StartTextInput(SDL_Window *window)
-    cdef SDL_bool SDL_TextInputActive(SDL_Window *window)
+    cdef bint SDL_TextInputActive(SDL_Window *window)
     cdef void SDL_StopTextInput(SDL_Window *window)
     cdef int SDL_SetTextInputArea(SDL_Window *window, const SDL_Rect *rect, int cursor)
-    cdef SDL_bool SDL_HasScreenKeyboardSupport()
-    cdef SDL_bool SDL_IsScreenKeyboardShown(SDL_Window *window)
+    cdef bint SDL_HasScreenKeyboardSupport()
+    cdef bint SDL_IsScreenKeyboardShown(SDL_Window *window)
     cdef void SDL_GetWindowSizeInPixels(SDL_Window *window, int *w, int *h)
     cdef int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback, void *callback_data)
     cdef SDL_MetalView SDL_Metal_CreateView(SDL_Window * window)
@@ -693,7 +695,6 @@ cdef extern from "SDL_image.h":
         IMG_INIT_TIF
         IMG_INIT_WEBP
     cdef int IMG_Init(IMG_InitFlags flags)
-    cdef char *IMG_GetError()
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_IO(SDL_IOStream *src, int freesrc)
     cdef int IMG_SavePNG(SDL_Surface *src, char *file)
@@ -725,7 +726,7 @@ cdef extern from "SDL_ttf.h":
     cdef int  TTF_GetFontOutline( TTF_Font *font)
     cdef void  TTF_SetFontOutline(TTF_Font *font, int outline)
     cdef int TTF_SetFontDirection(TTF_Font *font, int direction)
-    cdef int TTF_SetFontScriptName(TTF_Font *font, const char *script)
+    cdef int TTF_SetFontScript(TTF_Font *font, const char *script)
 
     #Set and retrieve FreeType hinter settings */
     ##define TTF_HINTING_NORMAL    0
@@ -750,12 +751,12 @@ cdef extern from "SDL_ttf.h":
     ## Get the offset from the baseline to the top of the font
     #This is a positive value, relative to the baseline.
     #*/
-    cdef int  TTF_FontAscent( TTF_Font *font)
+    cdef int  TTF_GetFontAscent( TTF_Font *font)
 
     ## Get the offset from the baseline to the bottom of the font
     #   This is a negative value, relative to the baseline.
     # */
-    cdef int  TTF_FontDescent( TTF_Font *font)
+    cdef int  TTF_GetFontDescent( TTF_Font *font)
 
     ## Get the recommended spacing between lines of text for this font */
     cdef int  TTF_FontLineSkip( TTF_Font *font)
@@ -782,8 +783,7 @@ cdef extern from "SDL_ttf.h":
     cdef int  TTF_GlyphMetrics(TTF_Font *font, Uint16 ch,int *minx, int *maxx, int *miny, int *maxy, int *advance)
 
     ## Get the dimensions of a rendered string of text */
-    cdef int  TTF_SizeText(TTF_Font *font,  char *text, int *w, int *h)
-    cdef int  TTF_SizeUTF8(TTF_Font *font,  char *text, int *w, int *h)
+    cdef int  TTF_GetStringSize(TTF_Font *font, const char *text, size_t length, int *w, int *h)
     cdef int  TTF_SizeUNICODE(TTF_Font *font,  Uint16 *text, int *w, int *h)
 
     # Create an 8-bit palettized surface and render the given text at
@@ -792,8 +792,7 @@ cdef extern from "SDL_ttf.h":
     #   to the text color.
     #   This function returns the new surface, or NULL if there was an error.
     #*/
-    cdef SDL_Surface *  TTF_RenderText_Solid(TTF_Font *font, char *text, SDL_Color fg)
-    cdef SDL_Surface *  TTF_RenderUTF8_Solid(TTF_Font *font, char *text, SDL_Color fg)
+    cdef SDL_Surface *  TTF_RenderText_Solid(TTF_Font *font, const char *text, size_t length, SDL_Color fg)
     cdef SDL_Surface *  TTF_RenderUNICODE_Solid(TTF_Font *font, Uint16 *text, SDL_Color fg)
 
     # Create an 8-bit palettized surface and render the given glyph at
@@ -829,9 +828,7 @@ cdef extern from "SDL_ttf.h":
     #   This function returns the new surface, or NULL if there was an error.
     #*/
     cdef SDL_Surface *  TTF_RenderText_Blended(TTF_Font *font,
-                     char *text, SDL_Color fg)
-    cdef SDL_Surface *  TTF_RenderUTF8_Blended(TTF_Font *font,
-                     char *text, SDL_Color fg)
+                     const char *text, size_t length, SDL_Color fg)
     cdef SDL_Surface *  TTF_RenderUNICODE_Blended(TTF_Font *font,
                      Uint16 *text, SDL_Color fg)
 
@@ -978,4 +975,3 @@ cdef extern from "SDL_mixer.h":
     #cdef int  Mix_EachSoundFont(int (*function)( char*, void*), void *data)
     cdef Mix_Chunk *  Mix_GetChunk(int channel)
     cdef void  Mix_CloseAudio()
-    cdef char * Mix_GetError()

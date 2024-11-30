@@ -4,6 +4,7 @@ import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
+from cpython cimport bool
 
 cdef int _is_init = 0
 
@@ -19,9 +20,10 @@ cdef size_t rwops_bytesio_write(void *userdata, const void *ptr, size_t size, SD
     return size * 1
 
 
-cdef int rwops_bytesio_close(void *userdata) noexcept:
+cdef bint rwops_bytesio_close(void *userdata) noexcept:
     byteio = <object>(<BytesIODataContainer*>userdata).data
     byteio.seek(0)
+    return True
 
 
 cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
@@ -34,7 +36,9 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
     io_interface.seek = NULL
     io_interface.read = NULL
     io_interface.write = &rwops_bytesio_write
-    io_interface.close = &rwops_bytesio_close
+    # io_interface.close = <bint (*)(void *) noexcept>&rwops_bytesio_close
+    # FIXME:
+    io_interface.close = NULL
 
     rwops = SDL_OpenIO(&io_interface, bytesiocontainer)
 
@@ -53,7 +57,7 @@ def init():
             # FIXME replace flags by a good string
             Logger.error(
                 'ImageSDL3: Failed to init required {} support'.format(flags))
-            Logger.error('ImageSDL3: {}'.format(IMG_GetError()))
+            Logger.error('ImageSDL3: {}'.format(SDL_GetError()))
 
     _is_init = 1
 
