@@ -1145,6 +1145,9 @@ def triggered(timeout=0, interval=False):
 
         return trigger_function
 
+    if callable(timeout):
+        return wrapper_triggered(timeout)
+
     return wrapper_triggered
 
 
