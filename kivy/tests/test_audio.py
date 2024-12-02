@@ -20,8 +20,8 @@ class AudioTestCase(unittest.TestCase):
     def get_sound(self):
         import os
         assert os.path.exists(SAMPLE_FILE)
-        from kivy.core import audio
-        return audio.SoundLoader.load(SAMPLE_FILE)
+        from kivy.core import audio_output
+        return audio_output.SoundLoader.load(SAMPLE_FILE)
 
     def test_length_simple(self):
         sound = self.get_sound()
@@ -58,12 +58,5 @@ class AudioTestCase(unittest.TestCase):
 class AudioGstreamerTestCase(AudioTestCase):
 
     def make_sound(self, source):
-        from kivy.core.audio import audio_gstreamer
+        from kivy.core.audio_output import audio_gstreamer
         return audio_gstreamer.SoundGstreamer(source)
-
-
-class AudioPygameTestCase(AudioTestCase):
-
-    def make_sound(self, source):
-        from kivy.core.audio import audio_pygame
-        return audio_pygame.SoundPygame(source)

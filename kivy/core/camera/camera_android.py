@@ -188,7 +188,7 @@ class CameraAndroid(CameraBase):
         from cv2 import cvtColor
 
         w, h = self._resolution
-        arr = np.fromstring(buf, 'uint8').reshape((h + h / 2, w))
+        arr = np.fromstring(buf, 'uint8').reshape((h + h // 2, w))
         arr = cvtColor(arr, 93)  # NV21 -> BGR
         return arr
 

@@ -5,8 +5,8 @@ Works on iOS / OSX.
 
 __all__ = ('SoundAvplayer', )
 
-from kivy.core.audio import Sound, SoundLoader
-from pyobjus import autoclass
+from kivy.core.audio_output import Sound, SoundLoader
+from pyobjus import autoclass, protocol
 from pyobjus.dylib_manager import load_framework, INCLUDE
 
 load_framework(INCLUDE.AVFoundation)
@@ -40,19 +40,25 @@ class SoundAvplayer(Sound):
     def play(self):
         if not self._avplayer:
             return
+        self._avplayer.delegate = self
         self._avplayer.play()
         super(SoundAvplayer, self).play()
 
     def stop(self):
         if not self._avplayer:
             return
+        self._avplayer.delegate = None
         self._avplayer.stop()
         super(SoundAvplayer, self).stop()
 
     def seek(self, position):
         if not self._avplayer:
             return
-        self._avplayer.playAtTime_(float(position))
+        avplayer = self._avplayer
+        avplayer.stop()
+        avplayer.currentTime = float(position)
+        if self.state == 'play':
+            avplayer.play()
 
     def get_pos(self):
         if self._avplayer:
@@ -67,6 +73,10 @@ class SoundAvplayer(Sound):
         if self._avplayer:
             return self._avplayer.duration
         return super(SoundAvplayer, self)._get_length()
+
+    @protocol("AVAudioPlayerDelegate")
+    def audioPlayerDidFinishPlaying_successfully_(self, player, flag):
+        self.stop()
 
 
 SoundLoader.register(SoundAvplayer)

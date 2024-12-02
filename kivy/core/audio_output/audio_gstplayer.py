@@ -10,7 +10,7 @@ Python 2 and 3.
 '''
 
 from kivy.lib.gstplayer import GstPlayer, get_gst_version
-from kivy.core.audio import Sound, SoundLoader
+from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 from os.path import realpath

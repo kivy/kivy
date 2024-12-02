@@ -278,12 +278,10 @@ execution.
 latest available version and retry.
 
 
-#### I get an "ImportError: No module named event". How come?
+#### I get an "ImportError: No module named _event". How come?
 
   If you use Kivy from our development version, you must compile it before
-using it. In the kivy directory, run
-
-      make force
+using it. Check [installation guide](https://kivy.org/doc/stable/gettingstarted/installation.html) for more information.
 
 ## Android Questions
 

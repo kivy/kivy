@@ -9,32 +9,36 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python 3
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: 3.13
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Validate PEP8
       run: |
-        source .ci/ubuntu_ci.sh
-        validate_pep8
+        make style
 
   unit_test:
     runs-on: ubuntu-latest
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python 3
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: 3.13
+    - name: Install CI/CD Python requirements
+      run: |
+        python -m pip install -r .ci/cicd-requirements.txt
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
-        install_kivy_test_run_pip_deps
     - name: Setup env
       run: |
         source .ci/ubuntu_ci.sh
@@ -50,35 +54,30 @@ jobs:
         test_kivy
     - name: Coveralls upload
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-      run: |
-        source .ci/ubuntu_ci.sh
-        upload_coveralls
+      uses: coverallsapp/github-action@v2
     - name: Test Kivy benchmarks
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: benchmarks
+        name: benchmarks-ubuntu-unittests-python-3.x
         path: .benchmarks-kivy
 
   gen_docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python 3
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: 3.13
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
-        install_kivy_test_run_pip_deps
     - name: Setup env
       run: |
         source .ci/ubuntu_ci.sh
@@ -92,7 +91,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docs
         path: doc/build/html

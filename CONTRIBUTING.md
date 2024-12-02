@@ -1,24 +1,24 @@
 # Contribution Guidelines
 
-Kivy is a large product used by many thousands of developers for free, but it 
-is built entirely by the contributions of volunteers. We welcome (and rely on) 
+Kivy is a large product used by many thousands of developers for free, but it
+is built entirely by the contributions of volunteers. We welcome (and rely on)
 users who want to give back to the community by contributing to the project.
 
-Contributions can come in many forms. This 
+Contributions can come in many forms. This
 chapter discusses how you can help us.
 
 Except where specified, this chapter applies to the entire Kivy ecosystem: the
-Kivy framework and all the sibling projects. However, check the documentation 
+Kivy framework and all the sibling projects. However, check the documentation
 of individual projects - some have special instructions (including, for example,
 python-for-android).
 
 ## Ways you can help out
 
-* The most direct way is submitting source code changes: bug-fixes, new code 
-and documentation amendments to improve the products. See [Code 
-Contributions](#code-contributions) and [Documentation 
+* The most direct way is submitting source code changes: bug-fixes, new code
+and documentation amendments to improve the products. See [Code
+Contributions](#code-contributions) and [Documentation
 Contributions](#documentation-contributions) below for   detailed instructions.
-  
+
 * Submitting bug reports and new feature suggestions in our Issue trackers is
   also welcome.
 
@@ -33,16 +33,16 @@ Contributions](#documentation-contributions) below for   detailed instructions.
 * You could help out by looking at the issues that other people have raised.
 
   * Tell us whether you can reproduce the error (on similar and/or different
-    platforms). If the problem has already been fixed and no-one noticed, let 
+    platforms). If the problem has already been fixed and no-one noticed, let
     us know!
 
-  * If the submitter was unclear, shed whatever light you can. Submitting a 
+  * If the submitter was unclear, shed whatever light you can. Submitting a
     short piece of code that demonstrates the problem is incredibly helpful.
     Providing details logs can give others the clues that they need.
 
   * Got some coding skills?
 
-    * If you are new to Kivy, consider looking at the `Easy` or 
+    * If you are new to Kivy, consider looking at the `Easy` or
       `Good First Issue` tags on each project while you learn the process.
 
     * Try some debugging? Even if you can't propose a solution, pointing out
@@ -50,7 +50,7 @@ Contributions](#documentation-contributions) below for   detailed instructions.
       between an issue floundering and getting quickly solved.
 
     * If you are a little more experienced, then take a look for issues where
-      someone has proposed a detailed solution without submitting a PR. That's 
+      someone has proposed a detailed solution without submitting a PR. That's
       a great opportunity for a quick win.
 
     * Want to be a real hero? Become a foster parent for an old open PR, where
@@ -65,7 +65,7 @@ Contributions](#documentation-contributions) below for   detailed instructions.
     improvements that have been identified.
 
     * Can you identify a common question from support? Add the answer to the
-      appropriate project's FAQ (e.g. [the Kivy Framework FAQ](FAQ.md)) and 
+      appropriate project's FAQ (e.g. [the Kivy Framework FAQ](FAQ.md)) and
       save people time.
 
 * You don't need to find a bug or come up with a new idea to contribute to the
@@ -79,7 +79,7 @@ Contributions](#documentation-contributions) below for   detailed instructions.
   * Add some unit-tests. It can be difficult to persuade occasional
     contributors to include sufficient unit tests. A solid bank of unit-tests
     makes further development much faster - your small effort can have
-    long-term benefits. See 
+    long-term benefits. See
     [Kivy Framework Unit Tests](#kivy-framework-unit-tests) for
     more about how our unit-tests are structured. Don't be afraid to refactor if
     the original code is hard to test.
@@ -101,7 +101,7 @@ Contributions](#documentation-contributions) below for   detailed instructions.
     * Even if you don't want it showcased, tell us what you've done! It is very
       motivational to see others using your code successfully.
 
-  * Persuade your organization to become a 
+  * Persuade your organization to become a
     [sponsor](https://opencollective.com/kivy).
 
 There is no shortage of ways you can help The Open Source community is built on
@@ -127,20 +127,20 @@ details.
 
 ## Reporting an Issue
 
-If you found anything wrong - a bug in Kivy, missing documentation, incorrect 
-spelling or just unclear examples -  please take two minutes to report the 
-issue. If you are unsure, please try our support channels first; see 
+If you found anything wrong - a bug in Kivy, missing documentation, incorrect
+spelling or just unclear examples -  please take two minutes to report the
+issue. If you are unsure, please try our support channels first; see
 [Contact Us](CONTACT.md) for details.
 
 If you can produce a small example of a program that fails, it helps immensely:
 
-1. Move your logging level to debug by editing 
+1. Move your logging level to debug by editing
    `<user_directory>/.kivy/config.ini`:
 
        [kivy]
        log_level = debug
 
-2. Execute your code again, and copy/paste the complete output to 
+2. Execute your code again, and copy/paste the complete output to
    [GitHub's gist](http://gist.github.com/), including the log from Kivy and
    the Python backtrace.
 
@@ -156,7 +156,7 @@ etc.
 3. Explain exactly what to do to reproduce the issue and paste the link of the
    output posted on [GitHub's gist](http://gist.github.com/).
 4. Use the Preview tab to check how it looks - if you've pasted logs straight in
-at can cause formatting chaos. 
+at can cause formatting chaos.
 5. Submit it and you're done!
 
 ## Code Contributions
@@ -186,10 +186,10 @@ code history (you can opt out if you don't want that).
   introduce style errors. If you did, the commit will be rejected: please correct the
   errors and try again.
 
-  The checker used is [pre-commit](https://pre-commit.com/). If you need to 
-  skip a particular check see its 
+  The checker used is [pre-commit](https://pre-commit.com/). If you need to
+  skip a particular check see its
   [documentation](https://pre-commit.com/#temporarily-disabling-hooks),
-  but, in summmary, on Linux, putting `SKIP=hookname` in front of `git commit` 
+  but, in summmary, on Linux, putting `SKIP=hookname` in front of `git commit`
   will skip that hook. The name of the offending hook is shown when it fails.
 
 ### Performance
@@ -302,9 +302,9 @@ but are just a bit more lax.
    2. Clone your fork to your computer.
    3. Setup kivy repo as a remote source.
 
-2. Install python-sphinx. (See [doc/README](doc/README) for assistance.)
+2. Install python-sphinx. (See [doc/README.md](doc/README.md) for assistance.)
 
-3. Use [ReStructuredText Markup](http://docutils.sourceforge.net/rst.html) to 
+3. Use [ReStructuredText Markup](http://docutils.sourceforge.net/rst.html) to
    make changes to the HTML documentation in docs/sources.
 
 To submit a documentation update, use the following steps:
@@ -376,7 +376,7 @@ use '.' to separate submodule names, e.g::
     :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
     :doc:`/api-kivy.core.window`
 
-The markers `:doc:` and `:mod:` are essentially the same, except for an anchor 
+The markers `:doc:` and `:mod:` are essentially the same, except for an anchor
 in the url which makes `:doc:` preferred for the cleaner url.
 
 To build your documentation, run::
@@ -396,10 +396,10 @@ docstring formatting, please refer to the official
 These instructions are specific to the Kivy framework (i.e. kivy/kivy in GitHub).
 
 Tests are located in the `kivy/tests` folder. If you find a bug in Kivy, a good
-thing to do is to write a minimal case showing the issue and to ask on the 
-support chnnels if the behaviour shown is intended or a real bug. If you 
-contribute your code as a 
-[unittest](https://docs.python.org/3/library/unittest.html), it will prevent the 
+thing to do is to write a minimal case showing the issue and to ask on the
+support chnnels if the behaviour shown is intended or a real bug. If you
+contribute your code as a
+[unittest](https://docs.python.org/3/library/unittest.html), it will prevent the
 bug from coming back unnoticed in the future (a "regression"), and will
 make Kivy a better, stronger project. Writing a unittest is a great
 way to get familiar with Kivy's code while contributing something useful.

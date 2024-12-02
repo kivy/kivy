@@ -682,8 +682,7 @@ class CompoundSelectionBehavior(object):
             This method must be called by the derived widget using super if it
             is overwritten.
         '''
-        try:
+        if node in self.selected_nodes:
             self.selected_nodes.remove(node)
             return True
-        except ValueError:
-            return False
+        return False

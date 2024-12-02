@@ -16,12 +16,14 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        runs_on: ['macos-latest', 'apple-silicon-m1']
-        python: ['3.x']
+        # macos-latest (ATM macos-14) runs on Apple Silicon,
+        # macos-13 runs on Intel
+        runs_on: ['macos-latest', 'macos-13']
+        python: ['3.13']
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
     - name: Install build dependencies
@@ -31,7 +33,6 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         ./tools/build_macos_dependencies.sh
-        install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
