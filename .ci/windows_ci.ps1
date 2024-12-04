@@ -99,7 +99,7 @@ function Install-kivy-sdist {
     $root=(pwd).Path
     cd "$HOME"
 
-    $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
+    $kivy_fname=(ls $root/dist/kivy-*.tar.gz).name
     python -m pip install "$root/dist/$kivy_fname[full,dev]"
 }
 
