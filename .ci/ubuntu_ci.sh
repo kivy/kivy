@@ -49,7 +49,7 @@ install_kivy_sdist() {
   root="$(pwd)"
   cd ~
 
-  kivy_fname=$(ls $root/dist/Kivy-*.tar.gz)
+  kivy_fname=$(ls $root/dist/kivy-*.tar.gz)
   python3 -m pip install "$kivy_fname[$options]"
 }
 
