@@ -13,7 +13,7 @@ env:
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
-  USE_SDL2: 1
+  USE_SDL3: 1
 
 jobs:
   kivy_examples_create:

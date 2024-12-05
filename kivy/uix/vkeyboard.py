@@ -786,7 +786,7 @@ class VKeyboard(Scatter):
         b_keycode = special_char
         b_modifiers = self._get_modifiers()
         if self.get_parent_window().__class__.__module__ == \
-            'kivy.core.window.window_sdl2' and internal:
+            'kivy.core.window.window_sdl3' and internal:
             self.dispatch('on_textinput', internal)
         else:
             self.dispatch('on_key_down', b_keycode, internal, b_modifiers)
