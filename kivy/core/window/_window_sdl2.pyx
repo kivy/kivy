@@ -172,6 +172,11 @@ cdef class _WindowSDL2Storage:
 
         self.win_flags  = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
+        is_utility_window = Config.getboolean('graphics', 'is_utility_window')
+
+        if is_utility_window:
+            self.win_flags |= SDL_WINDOW_UTILITY
+
         if self.sdl_manages_egl_context:
             self.win_flags |= SDL_WINDOW_OPENGL
 
