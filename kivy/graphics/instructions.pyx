@@ -579,9 +579,18 @@ cdef class CanvasBase(InstructionGroup):
     :class:`Canvas`.'''
     def __enter__(self):
         pushActiveCanvas(self)
+        return self  # Retorna o canvas para uso no bloco 'with'
 
-    def __exit__(self, *largs):
-        popActiveCanvas()
+    def __exit__(self, exc_type, exc_value, traceback):
+        '''
+        make sure canvas will be restored even if an exception happen
+        '''
+        try:
+            if exc_type:
+                Logger.warning(f"CanvasBase: Exception {exc_type} occurred.")
+        finally:
+            popActiveCanvas()  # Sempre restaura o estado do canvas
+
 
 
 cdef class Canvas(CanvasBase):
@@ -1022,3 +1031,6 @@ cdef popActiveContext():
     ACTIVE_CONTEXT = CONTEXT_STACK.pop()
     if ACTIVE_CONTEXT:
         ACTIVE_CONTEXT.enter()
+
+
+
