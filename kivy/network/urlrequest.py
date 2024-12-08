@@ -75,7 +75,6 @@ from kivy.weakmethod import WeakMethod
 try:
     import ssl
 
-    HTTPSConnection = None
     from http.client import HTTPSConnection
 except ImportError:
     # depending the platform, if openssl support wasn't compiled before python,

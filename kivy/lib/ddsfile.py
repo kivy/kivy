@@ -53,7 +53,7 @@ DDS Format
     code.
 
 '''
-# flake8: noqa
+# ruff: noqa
 
 from struct import pack, unpack, calcsize
 
