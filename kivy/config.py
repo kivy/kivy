@@ -258,6 +258,10 @@ Available configuration tokens
         applicable for the SDL2 window provider.
         ``0`` means the icon will not be shown in the taskbar and ``1`` means
         it will.
+    `is_utility_window`: int, one of ``0`` or ``1``, defaults to ``0``
+        If set to ``1``, the window will be treated as a utility window.
+        If set to ``0``, the window will NOT be treated as a utility window.
+        Only works for the sdl2 window provider.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
         on mobile devices. Only works for the sdl2 window provider.
@@ -341,6 +345,9 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted
     arguments.
 
+.. versionchanged:: 2.3.0
+    `is_utility_window` has been added to the `graphics` section.
+    
 .. versionadded:: 2.2.0
     `always_on_top` have been added to the `graphics` section.
     `show_taskbar_icon` have been added to the `graphics` section.
@@ -404,7 +411,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 27
+KIVY_CONFIG_VERSION = 28
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -936,6 +943,9 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
+
+        elif version == 27:
+            Config.setdefault("graphics", "is_utility_window", "0")
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
