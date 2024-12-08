@@ -26,7 +26,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-dynamic = [ "description", "version" ]
+dynamic = [ "description", "license", "version" ]
 
 dependencies = [
   "docutils",
