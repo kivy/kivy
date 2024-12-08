@@ -1,17 +1,93 @@
 [build-system]
 requires = [
-    "setuptools~=69.2.0",
-    "wheel~=0.44.0",
-    "packaging~=24.0",
-    "cython>=0.29.1,<=3.0.11",
-    'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
-    'kivy_deps.sdl2_dev~=0.8.0; sys_platform == "win32"',
-    'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
-    'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
-    'kivy_deps.sdl2~=0.8.0; sys_platform == "win32"',
-    'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
+  "cython>=0.29.1,<=3.0.11",
+  "kivy-deps-glew~=0.3.1; sys_platform=='win32'",
+  "kivy-deps-glew-dev~=0.3.1; sys_platform=='win32'",
+  "kivy-deps-gstreamer~=0.3.3; sys_platform=='win32'",
+  "kivy-deps-gstreamer-dev~=0.3.3; sys_platform=='win32'",
+  "kivy-deps-sdl2~=0.8.0; sys_platform=='win32'",
+  "kivy-deps-sdl2-dev~=0.8.0; sys_platform=='win32'",
+  "packaging~=24.0",
+  "setuptools~=69.2.0",
+  "wheel~=0.44.0",
 ]
+
+[project]
+name = "kivy"
+requires-python = ">=3.9"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dynamic = [ "version" ]
+
+dependencies = [
+  "docutils",
+  "filetype",
+  "kivy-deps-angle~=0.4.0; sys_platform=='win32'",
+  "kivy-deps-glew~=0.3.1; sys_platform=='win32'",
+  "kivy-deps-sdl2~=0.8.0; sys_platform=='win32'",
+  "kivy-garden>=0.1.4",
+  "pygments",
+  "pypiwin32; sys_platform=='win32'",
+  "requests",
+]
+optional-dependencies.angle = [ "kivy-deps-angle~=0.4.0; sys_platform=='win32'" ]
+optional-dependencies.base = [ "pillow>=9.5,<11" ]
+optional-dependencies.dev = [
+  "flake8",
+  "kivy-deps-glew-dev~=0.3.1; sys_platform=='win32'",
+  "kivy-deps-gstreamer-dev~=0.3.3; sys_platform=='win32'",
+  "kivy-deps-sdl2-dev~=0.8.0; sys_platform=='win32'",
+  "pre-commit",
+  "pyinstaller",
+  "pytest>=3.6",
+  "pytest-asyncio!=0.11",
+  "pytest-benchmark",
+  "pytest-cov",
+  "pytest-timeout",
+  "responses",
+  "sphinx~=6.2.1",
+  "sphinxcontrib-jquery~=4.1",
+]
+optional-dependencies.full = [
+  "ffpyplayer; sys_platform=='linux' or sys_platform=='darwin'",
+  "kivy-deps-gstreamer~=0.3.3; sys_platform=='win32'",
+  "pillow>=9.5,<11",
+]
+optional-dependencies.glew = [ "kivy-deps-glew~=0.3.1; sys_platform=='win32'" ]
+optional-dependencies.gstreamer = [
+  "kivy-deps-gstreamer~=0.3.3; sys_platform=='win32'",
+  # don't use 0.4.0 because it was deleted
+]
+optional-dependencies.media = [
+  "ffpyplayer; sys_platform=='linux' or sys_platform=='darwin'",
+  "kivy-deps-gstreamer~=0.3.3; sys_platform=='win32'",
+]
+optional-dependencies.sdl2 = [ "kivy-deps-sdl2~=0.8.0; sys_platform=='win32'" ]
+optional-dependencies.tuio = [ "oscpy" ]
+
+[tool.setuptools]
+include-package-data = false
 
 [tool.pytest.ini_options]
 addopts = "--benchmark-skip --benchmark-warmup=on --benchmark-warmup-iterations=5 --benchmark-disable-gc --benchmark-name=short --benchmark-sort=mean --benchmark-group-by=fullfunc --benchmark-storage=.benchmarks-kivy --benchmark-save=kivy"
 markers = "incremental: mark a test as incremental."
+
+[tool.coverage.run]
+parallel = true
+branch = true
+omit = [ "*/pyinstaller/*_widget/*" ]
+plugins = [ "kivy.tools.coverage" ]
+concurrency = [ "thread", "multiprocessing" ]
+
+[tool.kivy]
+# Can the `[tool.kivy]` block be read from pyproject.toml or not yet?
+cython_min = "0.29.1"
+cython_max = "3.0.11"
+cython_exclude = ""
+python_versions = "3.9 - 3.13"
