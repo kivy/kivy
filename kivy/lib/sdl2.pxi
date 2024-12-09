@@ -258,6 +258,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_ALLOW_HIGHDPI
         SDL_WINDOW_SKIP_TASKBAR = 0x00010000    #,   /**< window should not be added to the taskbar */
         SDL_WINDOW_METAL = 0x20000000           #,          /**< window usable for Metal view */
+        SDL_WINDOW_UTILITY = 0x00020000         #,            /**< window should be treated as a utility window */
 
     ctypedef enum SDL_HitTestResult:
         SDL_HITTEST_NORMAL
