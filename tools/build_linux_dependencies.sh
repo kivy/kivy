@@ -61,7 +61,7 @@ mkdir kivy-dependencies/dist
 # Build the dependencies
 pushd kivy-dependencies/build
 
-IS_RPI=`python -c "import platform; print('1' if 'raspberrypi' in platform.uname() else '0')"`
+IS_RPI=`python3 -c "import platform; print('1' if 'raspberrypi' in platform.uname() else '0')"`
 if [ "$(dpkg --print-architecture)" = "armhf" ]; then
   IS_ARMHF=1
 else
