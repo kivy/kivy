@@ -18,7 +18,7 @@ documentation for further details.
     It might change in the future and we advise you don't rely on it in your
     code.
 '''
-# flake8: noqa
+# ruff: noqa
 
 import os
 import time

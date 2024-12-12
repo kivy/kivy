@@ -991,4 +991,4 @@ if 'KIVY_DOC' not in environ and not libs_loaded:
     sys.exit(1)
 
 # resolve binding.
-from kivy.graphics.texture import Texture, TextureRegion
+from kivy.graphics.texture import Texture, TextureRegion  # noqa: F811
