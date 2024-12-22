@@ -1156,12 +1156,47 @@ def triggered(timeout=0, interval=False):
 
         return trigger_function
 
-    if callable(timeout):
-        if interval:
-            raise ValueError("Interval triggers can only be made by calling triggered(interval=True), not with the bare decorator")
-        return wrapper_triggered(timeout)
-
     return wrapper_triggered
+
+
+class triggered_method:
+    """Make a trigger from a method.
+
+    Decorate a method with this and it will become a trigger. Supply a
+    numeric parameter to set a timeout.
+
+    Not suitable for methods that expect any arguments other than
+    ``dt``. However, you should make your method accept ``*args`` for
+    compatibility.
+
+    """
+
+    def __init__(self, func_or_timeout, interval=False):
+        if callable(func_or_timeout):
+            self.func = func_or_timeout
+            self.timeout = 0
+        else:
+            self.func = None
+            self.timeout = func_or_timeout
+        self.interval = interval
+
+    def __call__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+        return self
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            # EventDispatcher iterates over its attributes before it
+            # instantiates.  Don't try making any trigger in that
+            # case.
+            return
+        retval = Clock.create_trigger(
+            partial(self.func, instance), self.timeout, self.interval
+        )
+        setattr(instance, self.func.__name__, retval)
+        return retval
+
 
 if "KIVY_DOC_INCLUDE" in environ:
     #: Instance of :class:`ClockBaseBehavior`.
