@@ -39,7 +39,7 @@ cdef void reset_gl_context():
     cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
-_flag_update_doc = """Indicate that the instruction needs to be redrawn on the next frame.
+_FLAG_UPDATE_DOC = """Indicate that the instruction needs to be redrawn on the next frame.
 
 Normally, you should use :meth:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
 if this ``Instruction`` is in a :class:`kivy.graphics.fbo.Fbo`.
@@ -79,7 +79,7 @@ cdef class Instruction(ObjectWithUid):
 
     IF DEBUG:
         cpdef flag_update(self, int do_parent=1, list _instrs=None):
-            __doc__ = _flag_update_doc
+            __doc__ = _FLAG_UPDATE_DOC
             cdef list instrs = _instrs if _instrs else []
             if _instrs and self in _instrs:
                 raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
@@ -89,7 +89,7 @@ cdef class Instruction(ObjectWithUid):
             self.flags |= GI_NEEDS_UPDATE
     ELSE:
         cpdef flag_update(self, int do_parent=1):
-            __doc__ = _flag_update_doc
+            __doc__ = _FLAG_UPDATE_DOC
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
