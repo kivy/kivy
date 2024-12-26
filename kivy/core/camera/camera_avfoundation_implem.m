@@ -63,7 +63,7 @@ public:
 @end
 #endif
 
-@interface CaptureDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface KivyCaptureDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {
     int newFrame;
     CVImageBufferRef  mCurrentImageBuffer;
@@ -175,7 +175,7 @@ private:
     AVCaptureDeviceInput        *mCaptureDeviceInput;
     AVCaptureVideoDataOutput    *mCaptureDecompressedVideoOutput;
     AVCaptureDevice             *mCaptureDevice;
-    CaptureDelegate             *capture;
+    KivyCaptureDelegate             *capture;
     #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     /* AVCaptureMetadataOutput is not available on MacOS */
     AVCaptureMetadataOutput     *mMetadataOutput;
@@ -355,7 +355,7 @@ int Camera::startCaptureDevice() {
     if (started == 1)
         return 1;
 
-    capture = [[CaptureDelegate alloc] init];
+    capture = [[KivyCaptureDelegate alloc] init];
 
     devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
 
@@ -637,7 +637,7 @@ bool Camera::setProperty(int property_id, double value) {
 }
 #endif
 
-@implementation CaptureDelegate
+@implementation KivyCaptureDelegate
 
 - (id)init {
     [super init];

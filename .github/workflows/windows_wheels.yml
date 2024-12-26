@@ -19,13 +19,13 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [ '3.7', '3.8', '3.9', '3.10', '3.11', '3.12' ]
-        arch: ['x64', 'x86']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        arch: ['x64']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
@@ -33,11 +33,6 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Update-version-metadata
-    - name: Install dependencies
-      run: |
-        . .\.ci\windows_ci.ps1
-        Install-kivy-test-run-win-deps
-        Install-kivy-test-run-pip-deps
     - name: Generate sdist/kivy-examples
       if: matrix.arch == 'x64' && matrix.python == '3.8'
       # only windows kivy-examples is uploaded
@@ -53,9 +48,9 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: windows_wheels
+        name: windows_wheels-${{ matrix.python }}-${{ matrix.arch }}
         path: dist
 
   windows_wheel_upload:
@@ -63,14 +58,17 @@ jobs:
     needs: windows_wheels_create
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v3
+      - run: |
+          python -m pip install -r .ci/cicd-requirements.txt
+      - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
@@ -88,7 +86,7 @@ jobs:
           . .\.ci\windows_ci.ps1
           Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v0.1.14
+        uses: softprops/action-gh-release@v2.0.9
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/*
@@ -99,26 +97,29 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
-          . .\.ci\windows_ci.ps1
-          Upload-artifacts-to-pypi
+          twine upload dist/*
 
   windows_wheel_test:
     runs-on: windows-latest
     needs: windows_wheels_create
     strategy:
       matrix:
-        python: [ '3.7', '3.8', '3.9', '3.10', '3.11', '3.12' ]
-        arch: [ 'x64', 'x86' ]
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        arch: [ 'x64' ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          # Only one windows_wheels-*-* artifact contains the kivy-examples
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Install Kivy Wheel
         run: |
@@ -129,28 +130,31 @@ jobs:
           . .\.ci\windows_ci.ps1
           Test-kivy-installed
       - name: Test Kivy benchmarks
-        if: matrix.python == '3.x' && matrix.arch == 'x64' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag'))
         run: |
           . .\.ci\windows_ci.ps1
           Test-kivy-benchmark
       - name: Upload benchmarks as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: benchmarks
+          name: benchmarks-windows-wheels-python-${{ matrix.python }}-${{ matrix.arch }}
           path: .benchmarks-kivy
 
   windows_sdist_test:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: windows_wheels
+          # Only one windows_wheels-*-* artifact contains the sdist
+          # However, all artifacts are downloaded ATM, to avoid using
+          # a specific name.
+          pattern: windows_wheels-*-*
+          merge-multiple: true
           path: dist
       - name: Install Kivy sdist
         env:

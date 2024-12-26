@@ -1,4 +1,4 @@
-ARG image=balenalib/raspberrypi3-debian-python:3.7-buster
+ARG image=balenalib/raspberrypi3-debian-python:3.9-bullseye
 FROM $image
 
 ENV KIVY_CROSS_PLATFORM=rpi
@@ -12,8 +12,7 @@ RUN [ "cross-build-start" ]
 RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     export PIP_EXTRA_INDEX_URL="https://www.piwheels.org/simple" && \
     install_ubuntu_build_deps && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y install xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers && \
-    install_kivy_test_run_pip_deps'
+    DEBIAN_FRONTEND=noninteractive apt-get -y install xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers'
 
 # If we're on Debian buster, we need to install cmake from backports as the cmake version
 # in buster is too old to build sdl2

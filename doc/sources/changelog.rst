@@ -3,6 +3,108 @@
 Changelog
 =========
 
+
+2.3.1
+=====
+
+Packaging
+---------
+
+- [:repo:`8823`]: [Backport devel-2.3.x] Fix PyInstaller hooks to work with v6.x.x #8653
+- [:repo:`8826`]: Remove duplicated code block for dependency management (applies to `stable` branches only)
+- [:repo:`8838`]: [Backport devel-2.3.x] Bump `SDL2` deps versions to latest available releases (macOS, Linux, Windows)
+
+Widgets
+-------
+
+- [:repo:`8895`]: [Backport devel-2.3.x] Fix issue with `CompoundSelectionBehavior` silently ignoring `ValueError` in `on_selected_nodes` event
+- [:repo:`8896`]: [Backport devel-2.3.x] `Label`: Prevent overwriting `disabled_color` attribute when `color` is updated
+
+Core-app
+--------
+
+- [:repo:`8897`]: [Backport devel-2.3.x] Fix `ConfigParser.write` error with  when `--save` is supplied as an argument
+- [:repo:`8900`]: [Backport devel-2.3.x] Update `monitor` module to use `dp`
+
+Core-providers
+--------------
+
+- [:repo:`8818`]: [Backport devel-2.3.x] Rename `CaptureDelegate` to `KivyCaptureDelegate` in `AVFoundationCamera` to avoid duplicated symbols
+- [:repo:`8871`]: [Backport devel-2.3.x] `avplayer` audio provider: Fixes `seek` and `state` on iOS and macOS
+- [:repo:`8875`]: [Backport devel-2.3.x] Fix numpy float/int error when using `CameraAndroid.decode_frame`
+- [:repo:`8889`]: [Backport devel-2.3.x] Use `filetype` as `imghdr` built-in module is deprecated and slated for removal in Python 3.13
+- [:repo:`8891`]: [Backport devel-2.3.x] Updated ES vkeyboard layout to resemble a real ES keyboard layout
+- [:repo:`8898`]: [Backport devel-2.3.x] Fix `xsel` import when clipboard is empty, and add timeout failsafe
+- [:repo:`8918`]: [Backport devel-2.3.x] Fix `SDL_EventFilter` definitions to match SDL definitions (fixes build on GCC 14)
+
+Distribution
+------------
+
+- [:repo:`8817`]: [Backport devel-2.3.x] Remove Python `3.7` from supported matrix and set minimum supported version to `3.8`
+- [:repo:`8819`]: [Backport devel-2.3.x] Use PyPA `build` package to perform `bdist` and `kivy-examples`, to take advantage of build isolation
+- [:repo:`8822`]: [Backport devel-2.3.x] Pin build-time requirements versions, renovatebot will take care of the updates
+- [:repo:`8825`]: [Backport devel-2.3.x] Update dependency wheel to ~=0.44.0
+- [:repo:`8848`]: [Backport devel-2.3.x] Set `MACOSX_DEPLOYMENT_TARGET` in `CIBW_ENVIRONMENT` to correctly tag the produced wheel compatibility
+- [:repo:`8868`]: [Backport devel-2.3.x] Specify `MACOSX_DEPLOYMENT_TARGET=10.15` for all the self-built dependencies
+- [:repo:`8872`]: [Backport devel-2.3.x]  Copy macOS frameworks via `cp -a` instead of `cp -r` to not mess up symbolic links
+- [:repo:`8873`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v2.0.6
+- [:repo:`8874`]: [Backport devel-2.3.x] Update dependency flake8 to ~=7.1.0
+- [:repo:`8902`]: [Backport devel-2.3.x] Make sure to pin a specific (or compatible) version of `sphinx` and related dependencies
+- [:repo:`8904`]: [Backport devel-2.3.x] Keep (or move) mandatory dependencies only in `install_requires`
+- [:repo:`8916`]: [Backport devel-2.3.x] Fix dependencies build for Raspberry Pi 32-bit OSes
+- [:repo:`8927`]: Bump version to `2.3.1.dev0`
+- [:repo:`8961`]: Update version to 2.3.1rc1
+
+Documentation
+-------------
+
+- [:repo:`8857`]: [Backport devel-2.3.x] Remove unused `sphinxcontrib-*diag` dependencies (and `funcparserlib`)
+- [:repo:`8892`]: [Backport devel-2.3.x] Fix spelling on `unicode_textinput.py`
+- [:repo:`8893`]: [Backport devel-2.3.x] New <Getting started> link for Apple Developer in Docs
+- [:repo:`8894`]: [Backport devel-2.3.x] Updated broken links in documentation.
+- [:repo:`8901`]: [Backport devel-2.3.x] Fix typo and mistake at FAQ.md
+- [:repo:`8931`]: [Backport devel-2.3.x] Sphinx/docs: Avoid usage of deprecated `style` keyword
+
+Graphics
+--------
+
+- [:repo:`8917`]: [Backport devel-2.3.x] Revert #8415 and align `glShaderSource` `typedef` in `common_subset.h` with Khronos Headers
+
+Input
+-----
+
+- [:repo:`8899`]: [Backport devel-2.3.x] Fix dropped motion events in mtdev provider.
+
+Tests/ci
+--------
+
+- [:repo:`8820`]: [Backport devel-2.3.x] Sunset `apple-silicon-m1` self-hosted runner, as now is supported by Github Hosted runners via `macos-latest` tag. Use `macos-13` for runs on Intel macs
+- [:repo:`8824`]: [Backport devel-2.3.x] Remove Windows 32-bit support (tests, builds, docs)
+- [:repo:`8849`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v0.1.15
+- [:repo:`8850`]: [Backport devel-2.3.x] Update GitHub Artifact Actions to v4 (major)
+- [:repo:`8851`]: [Backport devel-2.3.x] Update actions/cache action to v4
+- [:repo:`8852`]: [Backport devel-2.3.x] Update docker/setup-qemu-action action to v3
+- [:repo:`8854`]: [Backport devel-2.3.x] Update actions/setup-python action to v5
+- [:repo:`8855`]: [Backport devel-2.3.x] Update actions/checkout action to v4
+- [:repo:`8856`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v2
+- [:repo:`8858`]: [Backport devel-2.3.x] Make proper changes for `action/upload-artifact@v4` (wheels)
+- [:repo:`8859`]: [Backport devel-2.3.x] Ensure `benchmarks` artifact names are unique, as required by `actions/upload-artifacts@v4` [build wheel]
+- [:repo:`8863`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v2.0.5
+- [:repo:`8866`]: [Backport devel-2.3.x] Use a `.ci/cicd-requirements.txt` file to handle CI/CD only dependencies
+- [:repo:`8867`]: [Backport devel-2.3.x] Install CI/CD deps also on `unit_test` job
+- [:repo:`8869`]: [Backport devel-2.3.x] Update dependency cibuildwheel to ~=2.18.0
+- [:repo:`8870`]: [Backport devel-2.3.x] Update dependency twine to ~=5.1.0
+- [:repo:`8876`]: [Backport devel-2.3.x] Update dependency cibuildwheel to ~=2.19.1
+- [:repo:`8877`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v2.0.8
+- [:repo:`8878`]: [Backport devel-2.3.x] Update dependency cibuildwheel to ~=2.20.0
+- [:repo:`8879`]: [Backport devel-2.3.x] Use coveralls Github Action instead of coveralls-python
+- [:repo:`8880`]: [Backport devel-2.3.x] Update dependency cibuildwheel to ~=2.21.1
+- [:repo:`8888`]: [Backport devel-2.3.x] Fix flaky pyinstaller video widget test
+- [:repo:`8890`]: [Backport devel-2.3.x] Add Python `3.13` to both test and support matrix
+- [:repo:`8903`]: [Backport devel-2.3.x] Update softprops/action-gh-release action to v2.0.9
+- [:repo:`8908`]: [Backport devel-2.3.x] Update `CIBW_BUILD` environment variable to reflect supported Python versions
+- [:repo:`8925`]: [Backport devel-2.3.x] Fixes "permission denied" error on `macos-14` runner during osx app build job
+
 2.3.0
 =====
 

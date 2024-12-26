@@ -1,0 +1,4 @@
+cibuildwheel~=2.21.1
+build~=1.2.1
+twine~=5.1.0
+flake8~=7.1.0
