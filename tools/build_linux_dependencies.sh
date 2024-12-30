@@ -61,7 +61,14 @@ mkdir kivy-dependencies/dist
 # Build the dependencies
 pushd kivy-dependencies/build
 
-IS_RPI=$(python3 -c "import platform; print('1' if 'raspberrypi' in platform.uname() else '0')")
+# Check if "python3" exists, otherwise use "python" as fallback (which is the case for manylinux)
+if command -v python3 &> /dev/null; then
+  PYTHON_EXECUTABLE=python3
+else
+  PYTHON_EXECUTABLE=python
+fi 
+
+IS_RPI=$($PYTHON_EXECUTABLE -c "import platform; print('1' if 'raspberrypi' in platform.uname() else '0')")
 if [ "$(dpkg --print-architecture)" = "armhf" ]; then
   IS_ARMHF=1
 else
