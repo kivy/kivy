@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2010-2024, Kivy Team and other contributors'
+copyright = '2010-2025, Kivy Team and other contributors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
