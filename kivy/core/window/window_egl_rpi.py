@@ -27,7 +27,7 @@ class WindowEglRpi(WindowBase):
     _rpi_dispmanx_id = int(environ.get("KIVY_BCM_DISPMANX_ID", "0"))
     _rpi_dispmanx_layer = int(environ.get("KIVY_BCM_DISPMANX_LAYER", "0"))
 
-    gl_backends_ignored = ['sdl2']
+    gl_backends_ignored = ['sdl3']
 
     def create_window(self):
         bcm.host_init()

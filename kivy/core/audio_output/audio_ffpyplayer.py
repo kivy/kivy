@@ -19,8 +19,8 @@ bin, and lib directory, where e.g. for Windows, lib contains the .dll.a files,
 while bin contains the actual dlls. The include directory holds the headers.
 The bin directory is only needed if the shared libraries are not already on
 the path. In the environment define FFMPEG_ROOT and SDL_ROOT, each pointing to
-the ffmpeg, and SDL directories, respectively. (If you're using SDL2,
-the include directory will contain a directory called SDL2, which then holds
+the ffmpeg, and SDL directories, respectively. (If you're using SDL3,
+the include directory will contain a directory called SDL3, which then holds
 the headers).
 
 Once defined, download the ffpyplayer git and run
