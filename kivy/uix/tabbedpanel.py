@@ -170,6 +170,12 @@ class TabbedPanelHeader(ToggleButton):
         else:
             super(TabbedPanelHeader, self).on_touch_down(touch)
 
+    def on_touch_up(self, touch):
+        if not self.collide_point(*touch.pos):
+            self.state = 'normal'
+            self.parent.tabbed_panel.current_tab.state = 'down'
+        super(TabbedPanelHeader, self).on_touch_up(touch)
+
     def on_release(self, *largs):
         # Tabbed panel header is a child of tab_strib which has a
         # `tabbed_panel` property
@@ -477,8 +483,8 @@ class TabbedPanel(GridLayout):
     def get_def_tab_content(self):
         return self.default_tab.content
 
-    def set_def_tab_content(self, *l):
-        self.default_tab.content = l[0]
+    def set_def_tab_content(self, *args):
+        self.default_tab.content = args[0]
 
     default_tab_content = AliasProperty(get_def_tab_content,
                                         set_def_tab_content)
@@ -545,7 +551,7 @@ class TabbedPanel(GridLayout):
             tabs = self._tab_strip
             tabs.parent.scroll_to(header)
 
-    def clear_tabs(self, *l):
+    def clear_tabs(self, *args):
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
         if self.do_default_tab:
@@ -625,18 +631,18 @@ class TabbedPanel(GridLayout):
     def on_default_tab_text(self, *args):
         self._default_tab.text = self.default_tab_text
 
-    def on_tab_width(self, *l):
+    def on_tab_width(self, *args):
         ev = self._update_tab_ev
         if ev is None:
             ev = self._update_tab_ev = Clock.create_trigger(
                 self._update_tab_width, 0)
         ev()
 
-    def on_tab_height(self, *l):
+    def on_tab_height(self, *args):
         self._tab_layout.height = self._tab_strip.height = self.tab_height
         self._reposition_tabs()
 
-    def on_tab_pos(self, *l):
+    def on_tab_pos(self, *args):
         # ensure canvas
         self._reposition_tabs()
 
@@ -679,7 +685,7 @@ class TabbedPanel(GridLayout):
             Clock.schedule_once(self._load_default_tab_content)
         self._current_tab = default_tab
 
-    def _switch_to_first_tab(self, *l):
+    def _switch_to_first_tab(self, *args):
         ltl = len(self.tab_list) - 1
         if ltl > -1:
             self._current_tab = dt = self._original_tab \
@@ -690,14 +696,14 @@ class TabbedPanel(GridLayout):
         if self.default_tab:
             self.switch_to(self.default_tab)
 
-    def _reposition_tabs(self, *l):
+    def _reposition_tabs(self, *args):
         ev = self._update_tabs_ev
         if ev is None:
             ev = self._update_tabs_ev = Clock.create_trigger(
                 self._update_tabs, 0)
         ev()
 
-    def _update_tabs(self, *l):
+    def _update_tabs(self, *args):
         self_content = self.content
         if not self_content:
             return
@@ -828,7 +834,7 @@ class TabbedPanel(GridLayout):
         for widg in widget_list:
             add(widg)
 
-    def _update_tab_width(self, *l):
+    def _update_tab_width(self, *args):
         if self.tab_width:
             for tab in self.tab_list:
                 tab.size_hint_x = 1
@@ -863,7 +869,7 @@ class TabbedPanel(GridLayout):
         else:
             sctr.top = self.top - (self.height - scrl_v_width) / 2
 
-    def _update_scrollview(self, scrl_v, *l):
+    def _update_scrollview(self, scrl_v, *args):
         self_tab_pos = self.tab_pos
         self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
