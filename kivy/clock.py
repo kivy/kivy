@@ -1116,6 +1116,11 @@ def triggered(timeout=0, interval=False):
 
     .. versionadded:: 1.10.1
     '''
+    fun = None
+
+    if callable(timeout):
+        fun = timeout
+        timeout = 0
 
     def wrapper_triggered(func):
 
@@ -1145,8 +1150,8 @@ def triggered(timeout=0, interval=False):
 
         return trigger_function
 
-    if callable(timeout):
-        return wrapper_triggered(timeout)
+    if fun is not None:
+        return wrapper_triggered(fun)
 
     return wrapper_triggered
 
