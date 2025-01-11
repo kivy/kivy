@@ -24,7 +24,7 @@ from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty, \
     ColorProperty
-from kivy.utils import platform, reify, deprecated, pi_version
+from kivy.utils import platform, deprecated, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL2
@@ -360,6 +360,7 @@ class WindowBase(EventDispatcher):
     _density = NumericProperty(1.)
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
+    _monitor = 0
     _rotation = NumericProperty(0)
     _focus = BooleanProperty(True)
 
@@ -1268,7 +1269,7 @@ class WindowBase(EventDispatcher):
             only supported on desktop platforms.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
-                        'window provider.')
+                       'window provider.')
 
     def minimize(self):
         '''Minimizes the window. This method should be used on desktop
@@ -1281,7 +1282,7 @@ class WindowBase(EventDispatcher):
             only supported on desktop platforms.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
-                        'window provider.')
+                       'window provider.')
 
     def restore(self):
         '''Restores the size and position of a maximized or minimized window.
@@ -1294,7 +1295,7 @@ class WindowBase(EventDispatcher):
             only supported on desktop platforms.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
-                        'window provider.')
+                       'window provider.')
 
     def hide(self):
         '''Hides the window. This method should be used on desktop
@@ -1307,7 +1308,7 @@ class WindowBase(EventDispatcher):
             only supported on desktop platforms.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
-                        'window provider.')
+                       'window provider.')
 
     def show(self):
         '''Shows the window. This method should be used on desktop
@@ -1320,7 +1321,7 @@ class WindowBase(EventDispatcher):
             only supported on desktop platforms.
         '''
         Logger.warning('Window: show() is not implemented in the current '
-                        'window provider.')
+                       'window provider.')
 
     def raise_window(self):
         '''Raise the window. This method should be used on desktop
@@ -2379,9 +2380,8 @@ class WindowBase(EventDispatcher):
             if keyboard:
                 keyboard.release()
 
-    def request_keyboard(
-            self, callback, target, input_type='text', keyboard_suggestions=True
-    ):
+    def request_keyboard(self, callback, target, input_type='text',
+                         keyboard_suggestions=True):
         '''.. versionadded:: 1.0.4
 
         Internal widget method to request the keyboard. This method is rarely
