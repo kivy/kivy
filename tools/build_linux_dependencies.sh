@@ -109,10 +109,10 @@ pushd $MANYLINUX__SDL3_MIXER__FOLDER
   sdl_mixer_builds_args=(
     -DCMAKE_POSITION_INDEPENDENT_CODE="ON"
     -DCMAKE_BUILD_TYPE="Release"
-    -DSDL3MIXER_MOD_MODPLUG="ON"
-    -DSDL3MIXER_MOD_MODPLUG_SHARED="OFF"
+    -DSDLMIXER_MOD_MODPLUG="ON"
+    -DSDLMIXER_MOD_MODPLUG_SHARED="OFF"
     -DCMAKE_INSTALL_PREFIX="../../dist"
-    -DSDL3MIXER_VENDORED="ON"
+    -DSDLMIXER_VENDORED="ON"
     -GNinja
   )
 
@@ -139,14 +139,14 @@ pushd $MANYLINUX__SDL3_IMAGE__FOLDER
   fi
   cmake -B build -DBUILD_SHARED_LIBS=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DSDL3IMAGE_TIF_VENDORED=ON \
-          -DSDL3IMAGE_WEBP_VENDORED=ON \
-          -DSDL3IMAGE_JPG_VENDORED=ON \
-          -DSDL3IMAGE_PNG_VENDORED=ON \
-          -DSDL3IMAGE_TIF_SHARED=OFF \
-          -DSDL3IMAGE_WEBP_SHARED=OFF \
+          -DSDLIMAGE_TIF_VENDORED=ON \
+          -DSDLIMAGE_WEBP_VENDORED=ON \
+          -DSDLIMAGE_JPG_VENDORED=ON \
+          -DSDLIMAGE_PNG_VENDORED=ON \
+          -DSDLIMAGE_TIF_SHARED=OFF \
+          -DSDLIMAGE_WEBP_SHARED=OFF \
           -DCMAKE_INSTALL_PREFIX=../../dist \
-          -DSDL3IMAGE_VENDORED=OFF -GNinja
+          -DSDLIMAGE_VENDORED=OFF -GNinja
   cmake --build build/ --config Release --parallel --verbose
   cmake --install build/ --config Release
 popd
@@ -156,12 +156,12 @@ pushd $MANYLINUX__SDL3_TTF__FOLDER
   ./external/download.sh;
   cmake -B build-cmake \
           -DBUILD_SHARED_LIBS=ON \
-          -DSDL3TTF_HARFBUZZ=ON \
+          -DSDLTTF_HARFBUZZ=ON \
           -DFT_DISABLE_PNG=OFF \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=../../dist \
-          -DSDL3TTF_VENDORED=ON -GNinja
+          -DSDLTTF_VENDORED=ON -GNinja
   cmake --build build-cmake --config Release --verbose
   cmake --install build-cmake/ --config Release --verbose
 popd
