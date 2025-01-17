@@ -4,7 +4,6 @@ import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
-from cpython cimport bool
 
 
 cdef struct BytesIODataContainer:
@@ -21,7 +20,11 @@ cdef size_t rwops_bytesio_write(void *userdata, const void *ptr, size_t size, SD
 cdef bint rwops_bytesio_close(void *userdata) noexcept:
     byteio = <object>(<BytesIODataContainer*>userdata).data
     byteio.seek(0)
-    return True
+    return 1
+
+
+cdef bint wrap_rwops_bytesio_close(void *userdata) noexcept:
+    return <bint>rwops_bytesio_close(userdata)
 
 
 cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
@@ -34,9 +37,7 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
     io_interface.seek = NULL
     io_interface.read = NULL
     io_interface.write = &rwops_bytesio_write
-    # io_interface.close = <bint (*)(void *) noexcept>&rwops_bytesio_close
-    # FIXME:
-    io_interface.close = NULL
+    io_interface.close = &rwops_bytesio_close
 
     rwops = SDL_OpenIO(&io_interface, bytesiocontainer)
 
