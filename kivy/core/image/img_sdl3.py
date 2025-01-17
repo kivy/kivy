@@ -19,9 +19,6 @@ except ImportError:
 class ImageLoaderSDL3(ImageLoaderBase):
     '''Image loader based on SDL3_image'''
 
-    def _ensure_ext(self):
-        _img_sdl3.init()
-
     @staticmethod
     def extensions():
         '''Return accepted extensions for this loader'''

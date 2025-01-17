@@ -6,8 +6,6 @@ from libc.string cimport memset
 from libc.stdlib cimport malloc
 from cpython cimport bool
 
-cdef int _is_init = 0
-
 
 cdef struct BytesIODataContainer:
     void* data
@@ -44,22 +42,6 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
 
     return rwops
 
-
-def init():
-    global _is_init
-    if _is_init:
-        return
-
-    cdef int ret
-    for flags in (IMG_INIT_JPG, IMG_INIT_PNG, IMG_INIT_TIF, IMG_INIT_WEBP):
-        ret = IMG_Init(flags)
-        if ret & flags != flags:
-            # FIXME replace flags by a good string
-            Logger.error(
-                'ImageSDL3: Failed to init required {} support'.format(flags))
-            Logger.error('ImageSDL3: {}'.format(SDL_GetError()))
-
-    _is_init = 1
 
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None

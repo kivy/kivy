@@ -689,12 +689,6 @@ cdef extern from "SDL.h":
     Uint16 SDL_BIG_ENDIAN
 
 cdef extern from "SDL_image.h":
-    ctypedef enum IMG_InitFlags:
-        IMG_INIT_JPG
-        IMG_INIT_PNG
-        IMG_INIT_TIF
-        IMG_INIT_WEBP
-    cdef int IMG_Init(IMG_InitFlags flags)
     cdef SDL_Surface *IMG_Load(char *file)
     cdef SDL_Surface *IMG_Load_IO(SDL_IOStream *src, int freesrc)
     cdef int IMG_SavePNG(SDL_Surface *src, char *file)

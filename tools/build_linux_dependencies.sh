@@ -2,16 +2,14 @@
 set -e -x
 
 # manylinux SDL3
-MANYLINUX__SDL3__VERSION="3.1.2"
-MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/archive/refs/heads/main.tar.gz"
-MANYLINUX__SDL3__FOLDER="SDL-main"
+MANYLINUX__SDL3__VERSION="3.1.10"
+MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MANYLINUX__SDL3__VERSION/SDL3-$MANYLINUX__SDL3__VERSION.tar.gz"
+MANYLINUX__SDL3__FOLDER="SDL3-$MANYLINUX__SDL3__VERSION"
 
 # manylinux SDL3_image
-# MANYLINUX__SDL2_IMAGE__VERSION="2.8.0"
-# MANYLINUX__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MANYLINUX__SDL2_IMAGE__VERSION/SDL2_image-$MANYLINUX__SDL2_IMAGE__VERSION.tar.gz"
-# MANYLINUX__SDL2_IMAGE__FOLDER="SDL2_image-$MANYLINUX__SDL2_IMAGE__VERSION"
-MANYLINUX__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/archive/refs/heads/main.tar.gz"
-MANYLINUX__SDL3_IMAGE__FOLDER="SDL_image-main"
+MANYLINUX__SDL3_IMAGE__VERSION="3.1.0"
+MANYLINUX__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/preview-$MANYLINUX__SDL3_IMAGE__VERSION/SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION.tar.gz"
+MANYLINUX__SDL3_IMAGE__FOLDER="SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION"
 
 # manylinux SDL3_mixer
 # MANYLINUX__SDL2_MIXER__VERSION="2.6.3"

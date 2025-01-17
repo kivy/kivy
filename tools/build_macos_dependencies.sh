@@ -4,16 +4,14 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-# MACOS__SDL3__VERSION="3.1.2"
-MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/archive/refs/heads/main.tar.gz"
-MACOS__SDL3__FOLDER="SDL-main"
+MACOS__SDL3__VERSION="3.1.10"
+MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
+MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
-# macOS SDL2_image
-# MACOS__SDL2_IMAGE__VERSION="2.8.0"
-# MACOS__SDL2_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL2_IMAGE__VERSION/SDL2_image-$MACOS__SDL2_IMAGE__VERSION.tar.gz"
-# MACOS__SDL2_IMAGE__FOLDER="SDL2_image-${MACOS__SDL2_IMAGE__VERSION}"
-MACOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/archive/refs/heads/main.tar.gz"
-MACOS__SDL3_IMAGE__FOLDER="SDL_image-main"
+# macOS SDL3_image
+MACOS__SDL3_IMAGE__VERSION="3.1.0"
+MACOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/preview-$MACOS__SDL3_IMAGE__VERSION/SDL3_image-$MACOS__SDL3_IMAGE__VERSION.tar.gz"
+MACOS__SDL3_IMAGE__FOLDER="SDL3_image-$MACOS__SDL3_IMAGE__VERSION"
 
 # macOS SDL3_mixer
 # MACOS__SDL2_MIXER__VERSION="2.6.3"
