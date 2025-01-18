@@ -136,7 +136,6 @@ class TouchRippleBehavior(object):
     def __init__(self, **kwargs):
         super(TouchRippleBehavior, self).__init__(**kwargs)
         self.ripple_pane = CanvasBase()
-        self.canvas.add(self.ripple_pane)
         self.bind(
             ripple_color=self._ripple_set_color,
             ripple_pos=self._ripple_set_ellipse,
@@ -152,6 +151,7 @@ class TouchRippleBehavior(object):
         '''
         Animation.cancel_all(self, 'ripple_rad', 'ripple_color')
         self._ripple_reset_pane()
+        self.canvas.add(self.ripple_pane)
         x, y = self.to_window(*self.pos)
         width, height = self.size
         if isinstance(self, RelativeLayout):
@@ -224,6 +224,7 @@ class TouchRippleBehavior(object):
     def _ripple_reset_pane(self):
         self.ripple_rad = self.ripple_rad_default
         self.ripple_pane.clear()
+        self.canvas.remove(self.ripple_pane)
 
 
 class TouchRippleButtonBehavior(TouchRippleBehavior):
