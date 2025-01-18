@@ -962,12 +962,13 @@ if c_options['use_sdl3'] and sdl3_flags:
             base_flags, sdl3_flags, sdl3_depends, _extra_args
         )
 
-    sources["core/image/_img_sdl3.pyx"] = merge(
-        sources["core/image/_img_sdl3.pyx"],
-        {
-            "extra_compile_args": ["-Wno-incompatible-function-pointer-types"],
-        },
-    )
+    if platform != 'win32':
+        sources["core/image/_img_sdl3.pyx"] = merge(
+            sources["core/image/_img_sdl3.pyx"],
+            {
+                "extra_compile_args": ["-Wno-incompatible-function-pointer-types"],
+            },
+        )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
                                       'android', 'ios', 'win32'):
