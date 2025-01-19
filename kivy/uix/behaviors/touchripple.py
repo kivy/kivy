@@ -137,6 +137,7 @@ class TouchRippleBehavior(object):
         super(TouchRippleBehavior, self).__init__(**kwargs)
         self.ripple_pane = CanvasBase()
         self.bind(
+            disabled=self._ripple_fade,
             ripple_color=self._ripple_set_color,
             ripple_pos=self._ripple_set_ellipse,
             ripple_rad=self._ripple_set_ellipse
@@ -200,6 +201,9 @@ class TouchRippleBehavior(object):
         )
         anim.bind(on_complete=self._ripple_anim_complete)
         anim.start(self)
+
+    def _ripple_fade(self, *args):
+        self.ripple_fade()
 
     def _ripple_set_ellipse(self, instance, value):
         ellipse = self.ripple_ellipse
@@ -304,13 +308,6 @@ class TouchRippleButtonBehavior(TouchRippleBehavior):
             self.dispatch('on_release')
         Clock.schedule_once(defer_release, self.ripple_duration_out)
         return True
-
-    def on_disabled(self, instance, value):
-        # ensure ripple animation completes if disabled gets set to True
-        if value:
-            self.ripple_fade()
-        return super(TouchRippleButtonBehavior, self).on_disabled(
-            instance, value)
 
     def on_press(self):
         pass
