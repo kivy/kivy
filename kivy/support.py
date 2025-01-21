@@ -227,7 +227,11 @@ def install_twisted_reactor(**kwargs):
             Logger.info("Support: Stopping twisted threads")
             reactor.threadpool.stop()
         Logger.info("Support: Shutting down twisted reactor")
-        reactor._mainLoopShutdown()
+        # twisted <= 24.3.0
+        if hasattr(reactor, '_mainLoopShutdown'):
+            reactor._mainLoopShutdown()
+        else:
+            reactor._uninstallHandler()
         try:
             reactor.stop()
         except ReactorNotRunning:
