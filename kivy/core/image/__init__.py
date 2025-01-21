@@ -359,7 +359,7 @@ class ImageLoader(object):
                     try:
                         im = loader(zfilename, ext=ext, rawdata=tmpfile,
                                     inline=True, **kwargs)
-                    except:
+                    except Exception:
                         # Loader failed, continue trying.
                         continue
                     break
@@ -369,7 +369,7 @@ class ImageLoader(object):
                     image_data.append(im._data[0])
                     image = im
                 # else: if not image file skip to next
-            except:
+            except Exception:
                 Logger.warning('Image: Unable to load image'
                                '<%s> in zip <%s> trying to continue...'
                                % (zfilename, filename))
@@ -530,7 +530,7 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif isinstance(arg, BytesIO):
+        elif hasattr(arg, 'read') and callable(arg.read):
             ext = kwargs.get('ext', None)
             if not ext:
                 raise Exception('Inline loading require "ext" parameter')
