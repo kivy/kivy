@@ -225,11 +225,11 @@ class ImageLoaderBase(object):
         return None
 
     @staticmethod
-    def can_save(fmt, is_bytesio=False):
+    def can_save(fmt, is_bytesio_like=False):
         '''Indicate if the loader can save the Image object
 
         .. versionchanged:: 1.11.0
-            Parameter `fmt` and `is_bytesio` added
+            Parameter `fmt` and `is_bytesio_like` added
         '''
         return False
 
@@ -847,12 +847,12 @@ class Image(EventDispatcher):
             Filename can now be a BytesIO object.
 
         '''
-        is_bytesio = False
-        if isinstance(filename, BytesIO):
-            is_bytesio = True
+        is_bytesio_like = False
+        if hasattr(filename, 'read') and callable(filename.read):
+            is_bytesio_like = True
             if not fmt:
                 raise Exception(
-                    "You must specify a format to save into a BytesIO object")
+                    "You must specify a format to save into a BytesIO like object")
         elif fmt is None:
             fmt = self._find_format_from_filename(filename)
 
@@ -860,7 +860,7 @@ class Image(EventDispatcher):
         size = None
         loaders = [
             x for x in ImageLoader.loaders
-            if x.can_save(fmt, is_bytesio=is_bytesio)
+            if x.can_save(fmt, is_bytesio_like=is_bytesio_like)
         ]
         if not loaders:
             return False

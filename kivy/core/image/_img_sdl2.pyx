@@ -1,6 +1,5 @@
 include '../../lib/sdl2.pxi'
 
-import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
@@ -14,26 +13,26 @@ cdef struct SDL_RWops:
     int (* close) (SDL_RWops * context)
 
 
-cdef size_t rwops_bytesio_write(SDL_RWops *context, const void *ptr, size_t size, size_t num) noexcept:
+cdef size_t rwops_bytesio_like_write(SDL_RWops *context, const void *ptr, size_t size, size_t num) noexcept:
     cdef char *c_string = <char *>ptr
     byteio = <object>context.hidden.unknown.data1
     byteio.write(c_string[:size * num])
     return size * num
 
 
-cdef int rwops_bytesio_close(SDL_RWops *context) noexcept:
+cdef int rwops_bytesio_like_close(SDL_RWops *context) noexcept:
     byteio = <object>context.hidden.unknown.data1
     byteio.seek(0)
 
 
-cdef SDL_RWops *rwops_bridge_to_bytesio(byteio):
+cdef SDL_RWops *rwops_bridge_to_bytesio_like(byteio):
     # works only for write.
     cdef SDL_RWops *rwops = SDL_AllocRW()
     rwops.hidden.unknown.data1 = <void *>byteio
     rwops.seek = NULL
     rwops.read = NULL
-    rwops.write = &rwops_bytesio_write
-    rwops.close =&rwops_bytesio_close
+    rwops.write = &rwops_bytesio_like_write
+    rwops.close = &rwops_bytesio_like_close
     return rwops
 
 
@@ -56,7 +55,7 @@ def init():
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
     cdef SDL_RWops *rwops
-    if not isinstance(filename, io.BytesIO):
+    if not hasattr(filename, 'read') and not callable(filename.read):
         c_filename = filename.encode('utf-8')
     cdef int pitch
 
@@ -108,7 +107,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         elif imagefmt == "jpg":
             IMG_SaveJPG(image, c_filename, quality)
     else:
-        rwops = rwops_bridge_to_bytesio(filename)
+        rwops = rwops_bridge_to_bytesio_like(filename)
         if imagefmt == "png":
             IMG_SavePNG_RW(image, rwops, 1)
         elif imagefmt == "jpg":
