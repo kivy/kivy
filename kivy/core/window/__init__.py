@@ -1416,26 +1416,7 @@ class WindowBase(EventDispatcher):
 
     def on_shape_image(self, instance, value):
         if self.initialized:
-            self._set_shape(
-                shape_image=value, mode=self.shape_mode,
-                cutoff=self.shape_cutoff, color_key=self.shape_color_key
-            )
-
-    shape_cutoff = BooleanProperty(True)
-    '''The window :attr:`shape_image` cutoff property (only works for sdl3
-    window provider).
-
-    .. versionadded:: 1.10.1
-
-    :attr:`shape_cutoff` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
-    '''
-
-    def on_shape_cutoff(self, instance, value):
-        self._set_shape(
-            shape_image=self.shape_image, mode=self.shape_mode,
-            cutoff=value, color_key=self.shape_color_key
-        )
+            self._set_shape(value)
 
     def _get_shaped(self):
         return self._is_shaped()
@@ -1448,59 +1429,6 @@ class WindowBase(EventDispatcher):
 
     :attr:`shaped` is an :class:`~kivy.properties.AliasProperty`.
     '''
-
-    def _get_shape_mode(self):
-        if not self.shaped:
-            return ''
-
-        i = self._get_shaped_mode()['mode']
-        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
-        return modes[i]
-
-    def _set_shape_mode(self, value):
-        self._set_shaped_mode(value)
-
-    shape_mode = AliasProperty(_get_shape_mode, _set_shape_mode)
-    '''Window mode for shaping (only works for sdl3 window provider).
-
-    - can be RGB only
-       - `default` - does nothing special
-       - `colorkey` - hides a color of the :attr:`shape_color_key`
-    - has to contain alpha channel
-       - `binalpha` - hides an alpha channel of the :attr:`shape_image`
-       - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
-
-    .. note::
-        Before actually setting the mode make sure the Window has the same
-        size like the :attr:`shape_image`, preferably via Config before
-        the Window is actually created.
-
-        If the :attr:`shape_image` isn't set, the default one will be used
-        and the mode might not take the desired visual effect.
-
-    .. versionadded:: 1.10.1
-
-    :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
-    '''
-
-    shape_color_key = ColorProperty([1, 1, 1, 1])
-    '''Color key of the shaped window - sets which color will be hidden from
-    the window :attr:`shape_image` (only works for sdl3 window provider).
-
-    .. versionadded:: 1.10.1
-
-    :attr:`shape_color_key` is a :class:`~kivy.properties.ColorProperty`
-    instance and defaults to [1, 1, 1, 1].
-
-    .. versionchanged:: 2.0.0
-        Changed from :class:`~kivy.properties.ListProperty` to
-        :class:`~kivy.properties.ColorProperty`.
-    '''
-    def on_shape_color_key(self, instance, value):
-        self._set_shape(
-            shape_image=self.shape_image, mode=self.shape_mode,
-            cutoff=self.shape_cutoff, color_key=value
-        )
 
     def get_gl_backend_name(self):
         """

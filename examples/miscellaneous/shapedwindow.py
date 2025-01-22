@@ -29,46 +29,6 @@ Builder.load_string('''
             text: 'alpha_shape'
             on_release: app.shape_image = app.alpha_shape
 
-    BoxLayout:
-        ToggleButton:
-            group: 'mode'
-            text: 'default'
-            state: 'down'
-            on_release: win.shape_mode = 'default'
-        ToggleButton:
-            group: 'mode'
-            text: 'binalpha'
-            on_release: win.shape_mode = 'binalpha'
-        ToggleButton:
-            group: 'mode'
-            text: 'reversebinalpha'
-            on_release: win.shape_mode = 'reversebinalpha'
-        ToggleButton:
-            group: 'mode'
-            text: 'colorkey'
-            on_release: win.shape_mode = 'colorkey'
-
-    BoxLayout:
-        ToggleButton:
-            group: 'cutoff'
-            text: 'cutoff True'
-            state: 'down'
-            on_release: win.shape_cutoff = True
-        ToggleButton:
-            group: 'cutoff'
-            text: 'cutoff False'
-            on_release: win.shape_cutoff = False
-
-    BoxLayout:
-        ToggleButton:
-            group: 'colorkey'
-            text: '1, 1, 1, 1'
-            state: 'down'
-            on_release: win.shape_color_key = [1, 1, 1, 1]
-        ToggleButton:
-            group: 'colorkey'
-            text: '0, 0, 0, 1'
-            on_release: win.shape_color_key = [0, 0, 0, 1]
 ''')
 
 
