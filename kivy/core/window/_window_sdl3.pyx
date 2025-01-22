@@ -593,7 +593,6 @@ cdef class _WindowSDL3Storage:
             return self._get_window_info_windows()
         elif platform == "linux":
             _video_driver = self._get_current_video_driver()
-            print(_video_driver)
             if _video_driver == "wayland":
                 return self._get_window_info_wayland()
             elif _video_driver == "x11":
