@@ -282,7 +282,7 @@ cdef class _WindowSDL3Storage:
         # Set shape in case the user requested a shaped window and the window
         # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
         if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
-            self.set_shape(Config.get('kivy', 'window_shape'), 'image', 0, None)
+            self.set_shape(Config.get('kivy', 'window_shape'))
 
         self.set_window_pos(x, y)
 
@@ -605,7 +605,7 @@ cdef class _WindowSDL3Storage:
     def is_window_shaped(self):
         return self._is_shaped
 
-    def set_shape(self, shape, mode, cutoff, color_key):
+    def set_shape(self, shape):
         cdef SDL_Surface * sdl_shape
         cdef char* error = NULL
 
@@ -624,8 +624,6 @@ cdef class _WindowSDL3Storage:
         
         self._is_shaped = True
 
-    def get_shaped_mode(self):
-        return None
     # twb end
 
     def set_window_icon(self, filename):
