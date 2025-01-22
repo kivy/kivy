@@ -25,8 +25,6 @@ copy/paste this directory into /sdcard/kivy/touchtracer on your Android device.
 '''
 __version__ = '1.0'
 
-import os
-
 import kivy
 kivy.require('1.0.6')
 
@@ -67,8 +65,6 @@ class Touchtracer(FloatLayout):
 
     def on_touch_down(self, touch):
         win = self.get_parent_window()
-        # print(win._win.get_window_info().surface)
-        # print(win._win.get_window_info().display)
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
         pointsize = 5
