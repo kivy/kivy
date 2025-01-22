@@ -667,11 +667,11 @@ class WindowSDL(WindowBase):
                 self._update_dpi()
 
             elif action == 'windowpixelsizechanged':
-                print("WindowSDL: Window pixel size changed")
+                Logger.info("WindowSDL: Window pixel size changed")
                 self._update_density()
 
             elif action == 'windowdisplayscalechanged':
-                print("WindowSDL: Window display scale changed")
+                Logger.info("WindowSDL: Window display scale changed")
                 self._update_dpi()
 
             elif action == 'windowmoved':
