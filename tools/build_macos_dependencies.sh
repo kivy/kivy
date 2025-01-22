@@ -4,8 +4,8 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.1.10"
-MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/prerelease-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
+MACOS__SDL3__VERSION="3.2.0"
+MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
 MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
 # macOS SDL3_image
@@ -148,12 +148,6 @@ popd
 echo "-- Build SDL2_ttf (Universal)"
 pushd $MACOS__SDL3_TTF__FOLDER
 sh ./external/download.sh
-
-# On CI this does not get automatically built. Why?
-# We're already building SDL3, is that really needed? Better to patch SDL3_ttf?
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
-        -project external/SDL/Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release \
-        GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
 
 xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
         -project Xcode/SDL_ttf.xcodeproj -target SDL3_ttf -configuration Release \
