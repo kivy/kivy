@@ -478,48 +478,11 @@ class WindowSDL(WindowBase):
     def _is_shaped(self):
         return self._win.is_window_shaped()
 
-    def _set_shape(self, shape_image, mode='default',
-                   cutoff=False, color_key=None):
-        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
-        color_key = color_key or (0, 0, 0, 1)
-        if mode not in modes:
-            Logger.warning(
-                'Window: shape mode can be only '
-                '{}'.format(', '.join(modes))
-            )
-            return
-        if not isinstance(color_key, (tuple, list)):
-            return
-        if len(color_key) not in (3, 4):
-            return
-        if len(color_key) == 3:
-            color_key = (color_key[0], color_key[1], color_key[2], 1)
-            Logger.warning(
-                'Window: Shape color_key must be only tuple or list'
-            )
-            return
-        color_key = (
-            color_key[0] * 255,
-            color_key[1] * 255,
-            color_key[2] * 255,
-            color_key[3] * 255
-        )
-
-        assert cutoff in (1, 0)
+    def _set_shape(self, shape_image):
         shape_image = shape_image or Config.get('kivy', 'window_shape')
         shape_image = resource_find(shape_image) or shape_image
-        self._win.set_shape(shape_image, mode, cutoff, color_key)
+        self._win.set_shape(shape_image)
 
-    def _get_shaped_mode(self):
-        return self._win.get_shaped_mode()
-
-    def _set_shaped_mode(self, value):
-        self._set_shape(
-            shape_image=self.shape_image,
-            mode=value, cutoff=self.shape_cutoff,
-            color_key=self.shape_color_key
-        )
-        return self._win.get_shaped_mode()
     # twb end
 
     def _set_cursor_state(self, value):
