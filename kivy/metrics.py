@@ -204,6 +204,12 @@ class MetricsBase(EventDispatcher):
             # for all other platforms..
             from kivy.base import EventLoop
             EventLoop.ensure_window()
+
+            if platform == 'linux':
+                from kivy.linux_metrics import get_desktop_scale_factor
+                monitor = EventLoop.window._monitor
+                EventLoop.window.dpi * get_desktop_scale_factor(monitor)
+
             value = EventLoop.window.dpi
 
         # because dp prop binds to dpi etc. its getter will be executed
@@ -261,6 +267,10 @@ class MetricsBase(EventDispatcher):
             value = ios.get_scale()
         elif platform in ('macosx', 'win'):
             value = self.dpi / 96.
+        elif platform == 'linux':
+            from kivy.linux_metrics import get_desktop_scale_factor
+            from kivy.base import EventLoop
+            value = get_desktop_scale_factor(monitor=EventLoop.window._monitor)
 
         sync_pixel_scale(density=value)
         return value
