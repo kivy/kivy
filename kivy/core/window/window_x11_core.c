@@ -3,12 +3,12 @@
 #include <string.h>
 #include <math.h>
 #include <X11/Xatom.h>
-#include <X11/extensions/Xrender.h>
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>
 #include "config.h"
 
 #if __USE_EGL == 0
+	#include <X11/extensions/Xrender.h>
 	#include <GL/gl.h>
 	#include <GL/glx.h>
 	#include <GL/glxext.h>
@@ -57,15 +57,27 @@ static int g_width, g_height;
 		EGL_DEPTH_SIZE,         EGL_DONT_CARE,
 		EGL_STENCIL_SIZE,       EGL_DONT_CARE,
 
+#if __USE_OPENGL_ES2 == 1
 		EGL_RENDERABLE_TYPE,    EGL_OPENGL_ES2_BIT,
+#else
+		EGL_RENDERABLE_TYPE,    EGL_OPENGL_BIT,
+#endif
 		EGL_SURFACE_TYPE,       EGL_WINDOW_BIT | EGL_PIXMAP_BIT,
 		EGL_NONE,
 	};
 
+#if __USE_OPENGL_ES2 == 1
 	static const EGLint ctx_attribs[] = {
 	EGL_CONTEXT_CLIENT_VERSION, 2,
 	EGL_NONE
 	};
+#else
+	static const EGLint ctx_attribs[] = {
+	EGL_CONTEXT_CLIENT_VERSION,  4,
+	EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
+	EGL_NONE
+	};
+#endif
 #endif
 
 typedef int (*event_cb_t)(XEvent *event);
@@ -335,8 +347,15 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 			fatalError("Can't initialize egl\n");
 		}
 
-		eglBindAPI(EGL_OPENGL_ES_API);
-
+#if __USE_OPENGL_ES2 == 1
+		if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+			fatalError("Can't bind EGL_OPENGL_ES_API\n");
+		}
+#else
+		if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE) {
+			fatalError("Can't bind EGL_OPENGL_API\n");
+		}
+#endif
 		EGLint num_configs;
 		eglChooseConfig(eglDisplay, egl_config_attribs, &eglconfig, 1, &num_configs);
 
@@ -348,9 +367,14 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 
 		// connect the context to the surface
 		eglcontext = eglCreateContext(eglDisplay, eglconfig, EGL_NO_CONTEXT, ctx_attribs);
+		if (eglcontext == EGL_NO_CONTEXT) {
+			fatalError("Couldn't create the context\n");
+		}
 
 		// associate the egl-context with the egl-surface
-		eglMakeCurrent(eglDisplay, eglsurface, eglsurface, eglcontext);
+		if (eglMakeCurrent(eglDisplay, eglsurface, eglsurface, eglcontext) == EGL_FALSE){
+			fatalError("Couldn't make the egl context current\n");
+		}
 
 		// print egl information
 		printf("WinX11 EGL vendor: %s\n", eglQueryString(eglDisplay, EGL_VENDOR));
