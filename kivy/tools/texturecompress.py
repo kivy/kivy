@@ -79,9 +79,9 @@ class Tool(object):
         header = json.dumps(infos, indent=0, separators=(',', ':'))
         header = header.replace('\n', '')
         with open(self.tex_fn, 'wb') as fd:
-            fd.write('KTEX')
+            fd.write(b'KTEX')
             fd.write(pack('I', len(header)))
-            fd.write(header)
+            fd.write(header.encode('utf-8'))
             fd.write(data)
 
         print('Done! Compressed texture written at {}'.format(self.tex_fn))
