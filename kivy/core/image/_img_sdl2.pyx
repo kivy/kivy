@@ -55,7 +55,7 @@ def init():
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
     cdef SDL_RWops *rwops
-    if not hasattr(filename, 'read') and not callable(filename.read):
+    if not hasattr(filename, 'read') and not callable(getattr(filename, 'read', None)):
         c_filename = filename.encode('utf-8')
     cdef int pitch
 

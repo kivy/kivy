@@ -530,7 +530,8 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif hasattr(arg, 'read') and callable(arg.read):
+        elif hasattr(arg, 'read') and callable(getattr(arg, 'read', None)):
+            # BytesIO like(RawIO, RawIOBase, BytesIO..)
             ext = kwargs.get('ext', None)
             if not ext:
                 raise Exception('Inline loading require "ext" parameter')
@@ -848,7 +849,7 @@ class Image(EventDispatcher):
 
         '''
         is_bytesio_like = False
-        if hasattr(filename, 'read') and callable(filename.read):
+        if hasattr(filename, 'read') and callable(getattr(filename, 'read', None)):
             is_bytesio_like = True
             if not fmt:
                 raise Exception(
