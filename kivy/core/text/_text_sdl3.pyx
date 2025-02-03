@@ -99,7 +99,10 @@ cdef class _SurfaceContainer:
         elif direction == 'btt':
             TTF_SetFontDirection(font, TTF_DIRECTION_BTT)
 
-        fontscript = container.options['font_script_name']
+        fontscript = int.from_bytes(
+            container.options["font_script_name"].encode("utf-8"), "big"
+        )
+
         TTF_SetFontScript(font, fontscript)
 
         if outline_width:
