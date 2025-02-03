@@ -479,8 +479,6 @@ class WindowSDL(WindowBase):
         return self._win.is_window_shaped()
 
     def _set_shape(self, shape_image):
-        shape_image = shape_image or Config.get('kivy', 'window_shape')
-        shape_image = resource_find(shape_image) or shape_image
         self._win.set_shape(shape_image)
 
     # twb end

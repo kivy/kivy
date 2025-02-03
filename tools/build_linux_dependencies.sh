@@ -7,8 +7,8 @@ MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/releas
 MANYLINUX__SDL3__FOLDER="SDL3-$MANYLINUX__SDL3__VERSION"
 
 # manylinux SDL3_image
-MANYLINUX__SDL3_IMAGE__VERSION="3.1.0"
-MANYLINUX__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/preview-$MANYLINUX__SDL3_IMAGE__VERSION/SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION.tar.gz"
+MANYLINUX__SDL3_IMAGE__VERSION="3.2.0"
+MANYLINUX__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MANYLINUX__SDL3_IMAGE__VERSION/SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION.tar.gz"
 MANYLINUX__SDL3_IMAGE__FOLDER="SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION"
 
 # manylinux SDL3_mixer
