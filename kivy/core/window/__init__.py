@@ -30,6 +30,8 @@ from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL3
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.cgl import cgl_get_backend_name
+from kivy.graphics.context_instructions import BindTexture
+from kivy.core.image import ImageLoader
 
 # late import
 VKeyboard = None
@@ -1168,6 +1170,7 @@ class WindowBase(EventDispatcher):
         self._system_keyboard = Keyboard(window=self)
         self._keyboards = {'system': self._system_keyboard}
         self._vkeyboard_cls = None
+        self._shape_image = None
 
         self.children = []
         self.parent = self
@@ -1193,6 +1196,9 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
+
+        if self.shaped:
+            self._load_shape_image()
 
     def _reset_metrics_dpi(self, *args):
         from kivy.metrics import Metrics
@@ -1416,7 +1422,7 @@ class WindowBase(EventDispatcher):
 
     def on_shape_image(self, instance, value):
         if self.initialized:
-            self._set_shape(value)
+            self._load_shape_image()
 
     def _get_shaped(self):
         return self._is_shaped()
@@ -1477,6 +1483,7 @@ class WindowBase(EventDispatcher):
             self.render_context = RenderContext()
             self.canvas = Canvas()
             self.render_context.add(self.canvas)
+            self._set_fsshader_for_shape()
 
         else:
             # if we get initialized more than once, then reload opengl state
@@ -1738,6 +1745,9 @@ class WindowBase(EventDispatcher):
     def on_resize(self, width, height):
         '''Event called when the window is resized.'''
         self.update_viewport()
+
+        if self.shaped:
+            self._set_fsshader_for_shape()
 
     def on_move(self):
         self.property('top').dispatch(self)
@@ -2476,6 +2486,32 @@ class WindowBase(EventDispatcher):
             This feature requires the SDL3 window provider.
         '''
         pass
+
+    def _load_shape_image(self):
+        self._shape_image = ImageLoader.load(self.shape_image)
+
+        with self.render_context:
+            BindTexture(texture=self._shape_image.texture, index=1)
+
+        self.render_context['texture1'] = 1
+        self.canvas.ask_update()
+
+        self._set_shape(self._shape_image)
+
+    def _set_fsshader_for_shape(self):
+        fs_shader = f"""
+            $HEADER$
+            uniform sampler2D texture1;
+            void main(void) {{
+                vec2 uv = gl_FragCoord.xy / vec2({self.size[0]}, {self.size[1]});
+                // Reverse the y coord
+                uv.y = 1.0 - uv.y;
+                vec4 texColor0 = texture2D(texture0, tex_coord0);
+                vec4 texColor1 = texture2D(texture1, uv);
+                gl_FragColor = vec4(frag_color.rgb, texColor1.a) * texColor0;
+            }}
+        """
+        self.render_context.shader.fs = fs_shader
 
 
 #: Instance of a :class:`WindowBase` implementation

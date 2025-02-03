@@ -882,7 +882,7 @@ cdef class RenderContext(Canvas):
         for name in names:
             self.pop_state(name)
 
-    cdef void set_texture(self, int index, Texture texture):
+    cpdef void set_texture(self, int index, Texture texture):
         # TODO this code is actually broken,
         # the binded texture can be already set, but we may changed if we came
         # from another render context.
