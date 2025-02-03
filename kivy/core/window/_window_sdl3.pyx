@@ -34,22 +34,26 @@ cdef class _WindowSDL3Storage:
     cdef SDL_GLContext ctx
     cdef SDL_Surface *surface
     cdef SDL_Surface *icon
+    cdef SDL_Surface *shape_surface
+    cdef char * _shape_image_pixels
     cdef int win_flags
     cdef object event_filter
     cdef str gl_backend_name
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
-    cdef bint _is_shaped
+    cdef bint _is_shapeable
 
     def __cinit__(self):
         self.win = NULL
         self.ctx = NULL
         self.surface = NULL
+        self.shape_surface = NULL
+        self._shape_image_pixels = NULL
         self.win_flags = 0
         self.event_filter = None
         self.gl_backend_name = None
         self.egl_angle_storage = None
-        self._is_shaped = False
+        self._is_shapeable = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -170,9 +174,9 @@ cdef class _WindowSDL3Storage:
         self.gl_backend_name = gl_backend
         self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
-        # Reset _is_shaped value, if the user requested a shaped window,
+        # Reset _is_shapeable value, if the user requested a shaped window,
         # and we have the capability to create one, we will set it later.
-        self._is_shaped = False
+        self._is_shapeable = False
 
         # Always create a hidden window first, then show it after the
         # window is fully initialized, so we can make changes to the
@@ -282,7 +286,7 @@ cdef class _WindowSDL3Storage:
         # Set shape in case the user requested a shaped window and the window
         # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
         if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
-            self.set_shape(Config.get('kivy', 'window_shape'))
+            self._is_shapeable = True
 
         self.set_window_pos(x, y)
 
@@ -603,26 +607,66 @@ cdef class _WindowSDL3Storage:
         pass
 
     def is_window_shaped(self):
-        return self._is_shaped
+        return self._is_shapeable
 
-    def set_shape(self, shape):
-        cdef SDL_Surface * sdl_shape
+    @staticmethod
+    cdef SDL_PixelFormat _get_pixel_format_from_image(image):
+        cdef SDL_PixelFormat _format
+
+        if image.texture.colorfmt == 'rgba':
+            _format = SDL_GetPixelFormatForMasks(32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff)
+        elif image.texture.colorfmt == 'rgb':
+            _format = SDL_GetPixelFormatForMasks(24, 0xff0000, 0x00ff00, 0x0000ff, 0)
+        else:
+            raise ValueError('Unsupported color format')
+
+        return _format
+
+    @staticmethod
+    cdef int _get_pitch_from_image(image):
+        cdef int _pitch
+
+        if image.texture.colorfmt == 'rgba':
+            _pitch = image.width * 4
+        elif image.texture.colorfmt == 'rgb':
+            _pitch = image.width * 3
+        else:
+            raise ValueError('Unsupported color format')
+
+        return _pitch
+
+    cpdef set_shape(self, shape_image):
         cdef char* error = NULL
+        cdef SDL_PixelFormat _format
+        cdef int _pitch
 
-        sdl_shape = IMG_Load(<bytes>shape.encode('utf-8'))
-        if not sdl_shape:
-            Logger.error(
-                'Window: Shape image "%s" could not be loaded!' % shape
-            )
+        if self.shape_surface != NULL:
+            SDL_DestroySurface(self.shape_surface)
+        
+        if self._shape_image_pixels != NULL:
+            free(self._shape_image_pixels)
+
+        _format = _WindowSDL3Storage._get_pixel_format_from_image(shape_image)
+        _pitch = _WindowSDL3Storage._get_pitch_from_image(shape_image)
+
+        self._shape_image_pixels = <char *> malloc(_pitch * shape_image.height)
+        memcpy(self._shape_image_pixels, <char *>shape_image.texture.pixels, _pitch * shape_image.height)
+        
+
+        self.shape_surface = SDL_CreateSurfaceFrom(
+            shape_image.width,
+            shape_image.height,
+            _format,
+            <char *>self._shape_image_pixels,
+            _pitch,
+        )
             
-        if SDL_SetWindowShape(self.win, sdl_shape) < 0:
+        if SDL_SetWindowShape(self.win, self.shape_surface) is False:
             error = SDL_GetError()
             Logger.error(
                 'Window: Setting shape failed: %s' % error
             )
             return
-        
-        self._is_shaped = True
 
     # twb end
 
