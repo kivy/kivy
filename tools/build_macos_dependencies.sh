@@ -4,7 +4,7 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.2.0"
+MACOS__SDL3__VERSION="3.2.2"
 MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
 MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
