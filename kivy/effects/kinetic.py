@@ -40,6 +40,7 @@ __all__ = ('KineticEffect', )
 
 
 from time import time
+from collections import deque
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, BooleanProperty
 from kivy.clock import Clock
@@ -115,10 +116,14 @@ class KineticEffect(EventDispatcher):
     '''
 
     def __init__(self, **kwargs):
-        self.history = []
+        self.history = deque(maxlen=kwargs.get("max_history", self.max_history))
         self.trigger_velocity_update = Clock.create_trigger(
             self.update_velocity, 0)
         super(KineticEffect, self).__init__(**kwargs)
+        self.bind(max_history=self._resize_history)
+
+    def _resize_history(self, *args):
+        self.history = deque(self.history, maxlen=self.max_history)
 
     def apply_distance(self, distance):
         if abs(distance) < self.min_distance:
@@ -138,7 +143,8 @@ class KineticEffect(EventDispatcher):
         self.is_manual = True
         t = t or time()
         self.velocity = 0
-        self.history = [(t, val)]
+        self.history.clear()
+        self.history.append((t, val))
 
     def update(self, val, t=None):
         '''Update the movement.
@@ -149,8 +155,6 @@ class KineticEffect(EventDispatcher):
         distance = val - self.history[-1][1]
         self.apply_distance(distance)
         self.history.append((t, val))
-        if len(self.history) > self.max_history:
-            self.history.pop(0)
 
     def stop(self, val, t=None):
         '''Stop the movement.
@@ -168,6 +172,7 @@ class KineticEffect(EventDispatcher):
                 break
             old_sample = sample
         distance = newest_sample[1] - old_sample[1]
+        # Why abs()? Needs a comment.
         duration = abs(newest_sample[0] - old_sample[0])
         self.velocity = (distance / max(duration, 0.0001))
         self.trigger_velocity_update()
