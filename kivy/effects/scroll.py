@@ -90,9 +90,10 @@ class ScrollEffect(KineticEffect):
         '''
         self.value = pos
         self.velocity = 0
-        if self.history:
-            val = self.history[-1][1]
-            self.history = [(time(), val)]
+        if (history := self.history):
+            val = history[-1][1]
+            history.clear()
+            history.append((time(), val))
 
     def on_value(self, *args):
         scroll_min = self.min
