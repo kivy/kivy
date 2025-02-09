@@ -721,6 +721,7 @@ cdef extern from "SDL_ttf.h":
     cdef void  TTF_SetFontOutline(TTF_Font *font, int outline)
     cdef int TTF_SetFontDirection(TTF_Font *font, int direction)
     cdef int TTF_SetFontScript(TTF_Font *font, Uint32 script)
+    cdef Uint32 TTF_StringToTag(const char *string)
 
     #Set and retrieve FreeType hinter settings */
     ##define TTF_HINTING_NORMAL    0
