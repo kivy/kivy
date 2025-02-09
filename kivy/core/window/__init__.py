@@ -1197,7 +1197,7 @@ class WindowBase(EventDispatcher):
         # mark as initialized
         self.initialized = True
 
-        if self.shaped:
+        if self.shapable:
             self._load_shape_image()
 
     def _reset_metrics_dpi(self, *args):
@@ -1424,16 +1424,16 @@ class WindowBase(EventDispatcher):
         if self.initialized:
             self._load_shape_image()
 
-    def _get_shaped(self):
-        return self._is_shaped()
+    def _get_shapable(self):
+        return self._is_shapable()
 
-    shaped = AliasProperty(_get_shaped, None)
+    shapable = AliasProperty(_get_shapable, None)
     '''Read only property to check if the window is shapable or not (only works
     for sdl3 window provider).
 
     .. versionadded:: 1.10.1
 
-    :attr:`shaped` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`shapable` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     def get_gl_backend_name(self):
@@ -1483,7 +1483,9 @@ class WindowBase(EventDispatcher):
             self.render_context = RenderContext()
             self.canvas = Canvas()
             self.render_context.add(self.canvas)
-            self._set_fsshader_for_shape()
+
+            if self.shapable:
+                self._set_fsshader_for_shape()
 
         else:
             # if we get initialized more than once, then reload opengl state
@@ -1746,7 +1748,7 @@ class WindowBase(EventDispatcher):
         '''Event called when the window is resized.'''
         self.update_viewport()
 
-        if self.shaped:
+        if self.shapable:
             self._set_fsshader_for_shape()
 
     def on_move(self):
