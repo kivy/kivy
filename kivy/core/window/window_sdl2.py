@@ -392,11 +392,14 @@ class WindowSDL(WindowBase):
     def _update_density_and_dpi(self):
         if platform == 'win':
             from ctypes import windll
+            self.dpi = 96.
             self._density = 1.
             try:
                 hwnd = windll.user32.GetActiveWindow()
-                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                self._density = self.dpi / 96
+                dpi = float(windll.user32.GetDpiForWindow(hwnd))
+                if dpi:
+                    self.dpi = dpi
+                    self._density = self.dpi / 96
             except AttributeError:
                 pass
         else:
