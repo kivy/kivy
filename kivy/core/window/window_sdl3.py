@@ -475,8 +475,8 @@ class WindowSDL(WindowBase):
         return self._win.get_native_handle()
 
     # Transparent Window background
-    def _is_shaped(self):
-        return self._win.is_window_shaped()
+    def _is_shapable(self):
+        return self._win.is_window_shapable()
 
     def _set_shape(self, shape_image):
         self._win.set_shape(shape_image)

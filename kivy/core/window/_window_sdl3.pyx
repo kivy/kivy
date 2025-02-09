@@ -41,7 +41,7 @@ cdef class _WindowSDL3Storage:
     cdef str gl_backend_name
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
-    cdef bint _is_shapeable
+    cdef bint _is_shapable
 
     def __cinit__(self):
         self.win = NULL
@@ -53,7 +53,7 @@ cdef class _WindowSDL3Storage:
         self.event_filter = None
         self.gl_backend_name = None
         self.egl_angle_storage = None
-        self._is_shapeable = False
+        self._is_shapable = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -174,9 +174,9 @@ cdef class _WindowSDL3Storage:
         self.gl_backend_name = gl_backend
         self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
-        # Reset _is_shapeable value, if the user requested a shaped window,
+        # Reset _is_shapable value, if the user requested a shaped window,
         # and we have the capability to create one, we will set it later.
-        self._is_shapeable = False
+        self._is_shapable = False
 
         # Always create a hidden window first, then show it after the
         # window is fully initialized, so we can make changes to the
@@ -286,7 +286,7 @@ cdef class _WindowSDL3Storage:
         # Set shape in case the user requested a shaped window and the window
         # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
         if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
-            self._is_shapeable = True
+            self._is_shapable = True
 
         self.set_window_pos(x, y)
 
@@ -439,7 +439,7 @@ cdef class _WindowSDL3Storage:
         SDL_ShowWindow(self.win)
 
     def set_border_state(self, state):
-        SDL_SetWindowBordered(self.win, state)
+        SDL_SetWindowBordered(self.win, not state)
 
     def set_fullscreen_mode(self, mode):
         if mode is True:
@@ -606,8 +606,8 @@ cdef class _WindowSDL3Storage:
         # TODO: When we have support on all platforms, or at least on Linux
         pass
 
-    def is_window_shaped(self):
-        return self._is_shapeable
+    def is_window_shapable(self):
+        return self._is_shapable
 
     @staticmethod
     cdef SDL_PixelFormat _get_pixel_format_from_image(image):
