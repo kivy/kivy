@@ -3,13 +3,13 @@ CGL: standard C interface for OpenGL
 ====================================
 
 Kivy uses OpenGL and therefore requires a backend that provides it.
-The backend used is controlled through the ``USE_OPENGL_MOCK`` and ``USE_SDL2``
+The backend used is controlled through the ``USE_OPENGL_MOCK`` and ``USE_SDL3``
 compile-time variables and through the ``KIVY_GL_BACKEND`` runtime
 environmental variable.
 
-Currently, OpenGL is used through direct linking (gl/glew), sdl2,
+Currently, OpenGL is used through direct linking (gl/glew), sdl3,
 or by mocking it. Setting ``USE_OPENGL_MOCK`` disables gl/glew.
-Similarly, setting ``USE_SDL2`` to ``0`` will disable sdl2. Mocking
+Similarly, setting ``USE_SDL3`` to ``0`` will disable sdl3. Mocking
 is always available.
 
 At runtime the following backends are available and can be set using
@@ -19,12 +19,12 @@ At runtime the following backends are available and can be set using
   ``USE_OPENGL_MOCK=0``. Requires gl be installed.
 * ``glew`` -- Available on Windows (the default backend). Unavailable when
   ``USE_OPENGL_MOCK=0``. Requires glew be installed.
-* ``sdl2`` -- Available on Windows/unix (the default when gl/glew is disabled).
-  Unavailable when ``USE_SDL2=0``. Requires ``kivy_deps.sdl2`` be installed.
+* ``sdl3`` -- Available on Windows/unix (the default when gl/glew is disabled).
+  Unavailable when ``USE_SDL3=0``. Requires ``kivy_deps.sdl3`` be installed.
 * ``angle_sdl2`` -- Available on Windows with Python 3.5+.
-  Unavailable when ``USE_SDL2=0``. Requires ``kivy_deps.sdl2`` and
+  Unavailable when ``USE_SDL3=0``. Requires ``kivy_deps.sdl3`` and
   ``kivy_deps.angle`` be installed.
-* ``angle`` -- Available on macOS and iOS. Unavailable when ``USE_SDL2=0``.
+* ``angle`` -- Available on macOS and iOS. Unavailable when ``USE_SDL3=0``.
     Requires ``angle`` libEGL and libGLESv2 libraries (and includes) during Kivy build.
 * ``mock`` -- Always available. Doesn't actually do anything.
 
@@ -77,7 +77,7 @@ cpdef cgl_get_backend_name(allowed=[], ignored=[]):
     if name:
         return name.lower()
 
-    for name in ('glew', 'angle', 'sdl2', 'gl', 'mock'):
+    for name in ('glew', 'angle', 'sdl3', 'gl', 'mock'):
         if allowed and name not in allowed:
             continue
         if name in ignored:
@@ -105,13 +105,13 @@ cpdef cgl_init(allowed=[], ignored=[]):
     cgl_name = backend = cgl_get_backend_name(allowed, ignored)
     initialized_tid = get_ident()
 
-    # for ANGLE, currently we use sdl2, and only on windows.
+    # for ANGLE, currently we use sdl3, and only on windows.
     if backend == "angle_sdl2":
         if platform != "win32":
             raise Exception("CGL: ANGLE backend can be used only on Windows")
-        backend = "sdl2"
+        backend = "sdl3"
 
-    if cgl_name not in {'glew', 'angle', 'sdl2', 'angle_sdl2', 'mock', 'gl'}:
+    if cgl_name not in {'glew', 'angle', 'sdl3', 'angle_sdl2', 'mock', 'gl'}:
         raise ValueError('{} is not a recognized GL backend'.format(backend))
 
     mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(backend))

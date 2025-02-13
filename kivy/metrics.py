@@ -101,7 +101,7 @@ from os import environ
 from kivy.utils import platform
 from kivy.properties import AliasProperty
 from kivy.event import EventDispatcher
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 from kivy.context import register_context
 from kivy._metrics import dpi2px, NUMERIC_FORMATS, dispatch_pixel_scale, \
     sync_pixel_scale
@@ -190,7 +190,7 @@ class MetricsBase(EventDispatcher):
             return self._dpi
 
         if platform == 'android':
-            if USE_SDL2:
+            if USE_SDL3:
                 import jnius
                 Hardware = jnius.autoclass('org.renpy.android.Hardware')
                 value = Hardware.getDPI()
@@ -289,7 +289,7 @@ class MetricsBase(EventDispatcher):
         value = 1.0
         if platform == 'android':
             from jnius import autoclass
-            if USE_SDL2:
+            if USE_SDL3:
                 PythonActivity = autoclass('org.kivy.android.PythonActivity')
             else:
                 PythonActivity = autoclass('org.renpy.android.PythonActivity')
