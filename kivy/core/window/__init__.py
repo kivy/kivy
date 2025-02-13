@@ -1359,14 +1359,29 @@ class WindowBase(EventDispatcher):
         get_context().flush()
 
     shape_image = StringProperty('')
-    '''An image for the window shape (only works for sdl3 window provider).
+    '''An image used to define the window shape (works only with the SDL3 window provider).
 
-    .. warning:: The image size has to be the same like the window's size!
+    .. warning::
+        This option only works if :attr:`Window.shapeable` is `True`.
+
+    .. warning::
+        The image size must match the window size.
+
+    .. warning::
+        The image must be a 32-bit RGBA PNG. The alpha channel determines
+        the transparency of window pixels.
+
+    .. warning::
+        To ensure shaping works consistently across platforms,
+        set :attr:`Window.clearcolor` to `(0, 0, 0, 0)`.
 
     .. versionadded:: 1.10.1
 
+    .. versionchanged:: 3.0.0
+        :attr:`shape_image` now defaults to an empty string (no shape image).
+
     :attr:`shape_image` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/images/defaultshape.png'. This value is taken from
+    defaults to an empty string (`''`). This value is retrieved from
     :class:`~kivy.config.Config`.
     '''
     def set_custom_titlebar(self, widget):
@@ -2510,7 +2525,7 @@ class WindowBase(EventDispatcher):
                 uv.y = 1.0 - uv.y;
                 vec4 texColor0 = texture2D(texture0, tex_coord0);
                 vec4 texColor1 = texture2D(texture1, uv);
-                gl_FragColor = vec4(frag_color.rgb, texColor1.a) * texColor0;
+                gl_FragColor = vec4(texColor0.rgb, texColor1.a * texColor0.a);
             }}
         """
         self.render_context.shader.fs = fs_shader
