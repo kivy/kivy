@@ -28,7 +28,7 @@ MACOS__LIBPNG__VERSION="1.6.40"
 MACOS__LIBPNG__URL="https://download.sourceforge.net/libpng/libpng16/${MACOS__LIBPNG__VERSION}/libpng-${MACOS__LIBPNG__VERSION}.tar.gz"
 MACOS__LIBPNG__FOLDER="libpng-${MACOS__LIBPNG__VERSION}"
 
-MACOS__ANGLE__VERSION="chromium-6778_rev2"
+MACOS__ANGLE__VERSION="chromium-6943_rev1"
 MACOS__ANGLE_URL="https://github.com/kivy/angle-builder/releases/download/${MACOS__ANGLE__VERSION}/angle-macos-universal.tar.gz"
 MACOS__ANGLE__FOLDER="angle-macos-universal"
 
