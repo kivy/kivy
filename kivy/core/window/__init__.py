@@ -1171,6 +1171,7 @@ class WindowBase(EventDispatcher):
         self._keyboards = {'system': self._system_keyboard}
         self._vkeyboard_cls = None
         self._shape_image = None
+        self.SHAPE_TEXTURE_INDEX = 1
 
         self.children = []
         self.parent = self
@@ -2505,17 +2506,23 @@ class WindowBase(EventDispatcher):
         pass
 
     def _load_shape_image(self):
+        if not self.shape_image:
+            return
+
         self._shape_image = ImageLoader.load(self.shape_image)
 
         with self.render_context:
-            BindTexture(texture=self._shape_image.texture, index=1)
+            BindTexture(
+                texture=self._shape_image.texture,
+                index=self.SHAPE_TEXTURE_INDEX,
+            )
 
-        self.render_context['texture1'] = 1
         self.canvas.ask_update()
 
         self._set_shape(self._shape_image)
 
     def _set_fsshader_for_shape(self):
+        self.render_context['texture1'] = self.SHAPE_TEXTURE_INDEX
         fs_shader = f"""
             $HEADER$
             uniform sampler2D texture1;
@@ -2525,7 +2532,7 @@ class WindowBase(EventDispatcher):
                 uv.y = 1.0 - uv.y;
                 vec4 texColor0 = texture2D(texture0, tex_coord0);
                 vec4 texColor1 = texture2D(texture1, uv);
-                gl_FragColor = vec4(texColor0.rgb, texColor1.a * texColor0.a);
+                gl_FragColor = frag_color * vec4(texColor0.rgb, texColor1.a * texColor0.a);
             }}
         """
         self.render_context.shader.fs = fs_shader

@@ -959,7 +959,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault("graphics", "show_taskbar_icon", "1")
 
         elif version == 27:
-            Config.setdefault('kivy', 'window_shape', '')
+            if Config.get("kivy", "window_shape") == "data/images/defaultshape.png":
+                Config.set("kivy", "window_shape", "")
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !

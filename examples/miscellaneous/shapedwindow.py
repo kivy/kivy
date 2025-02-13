@@ -1,58 +1,51 @@
 from kivy.config import Config
-Config.set('graphics', 'shaped', 1)
 
-from kivy.resources import resource_find
-default_shape = Config.get('kivy', 'window_shape')
-alpha_shape = resource_find('data/logo/kivy-icon-512.png')
+Config.set("graphics", "shaped", 1)
 
 from kivy.app import App
-from kivy.lang import Builder
 from kivy.core.window import Window
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (
-    BooleanProperty,
-    StringProperty,
-    ListProperty,
-)
+from kivy.lang import Builder
+from kivy.properties import StringProperty
 
+Window.clearcolor = (0, 0, 0, 0)
 
-Builder.load_string('''
-#:import win kivy.core.window.Window
+KV = '''
+FloatLayout:
+    size_hint: 1, 1
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Image:
+        source: app.shaped_image_src
+        size_hint: 0.5, 0.5
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    Button:
+        text: "Next Shape"
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        on_press: app.next_shape()
+'''
 
-<Root>:
-    orientation: 'vertical'
-    BoxLayout:
-        Button:
-            text: 'default_shape'
-            on_release: app.shape_image = app.default_shape
-        Button:
-            text: 'alpha_shape'
-            on_release: app.shape_image = app.alpha_shape
-
-''')
-
-
-class Root(BoxLayout):
-    pass
-
-
-class ShapedWindow(App):
-    shape_image = StringProperty('', force_dispatch=True)
-
-    def on_shape_image(self, instance, value):
-        if 'kivy-icon' in value:
-            Window.size = (512, 512)
-            Window.shape_image = self.alpha_shape
-        else:
-            Window.size = (800, 600)
-            Window.shape_image = self.default_shape
+class ShapedWindowApp(App):
+    shaped_image_src = StringProperty("")
 
     def build(self):
-        self.default_shape = default_shape
-        self.alpha_shape = alpha_shape
+        self.image_paths = [
+            "PNG_transparency_demonstration_1.png",
+            "data/logo/kivy-icon-512.png",
+        ]
+        self.current_index = 0
 
-        return Root()
+        return Builder.load_string(KV)
+
+    def next_shape(self):
+        self.current_index = (self.current_index + 1) % len(self.image_paths)
+        self.shaped_image_src = self.image_paths[self.current_index]
+        Window.shape_image = self.image_paths[self.current_index]
 
 
-if __name__ == '__main__':
-    ShapedWindow().run()
+if __name__ == "__main__":
+    ShapedWindowApp().run()
