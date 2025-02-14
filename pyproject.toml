@@ -1,9 +1,9 @@
 [build-system]
 requires = [
-    "setuptools~=69.2.0",
-    "wheel~=0.44.0",
+    "setuptools~=75.6.0",
+    "wheel~=0.45.1",
     "packaging~=24.0",
-    "cython>=0.29.1,<=3.0.0",
+    "cython>=0.29.1,<=3.0.11",
     'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
     'kivy_deps.sdl2_dev~=0.8.0; sys_platform == "win32"',
     'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
@@ -15,3 +15,27 @@ requires = [
 [tool.pytest.ini_options]
 addopts = "--benchmark-skip --benchmark-warmup=on --benchmark-warmup-iterations=5 --benchmark-disable-gc --benchmark-name=short --benchmark-sort=mean --benchmark-group-by=fullfunc --benchmark-storage=.benchmarks-kivy --benchmark-save=kivy"
 markers = "incremental: mark a test as incremental."
+
+[tool.ruff]
+exclude = [
+    "__pycache__",
+    ".tox",
+    ".git/",
+    "doc/",
+    "build/",
+    ".eggs/",
+    "venv/",
+]
+lint.extend-ignore = [
+    "E402",
+    "E722",
+    "E731",
+    "E741",
+    "F401",
+    "F841",
+]
+lint.select = [
+    "E",
+    "F",
+    "W",
+]

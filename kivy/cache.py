@@ -193,7 +193,7 @@ class Cache(object):
         import heapq
         time = Clock.get_time()
         heap_list = []
-        for key in Cache._objects[category]:
+        for key in list(Cache._objects[category]):
             obj = Cache._objects[category][key]
             if obj['lastaccess'] == obj['timestamp'] == time:
                 continue

@@ -1379,7 +1379,7 @@ class WindowBase(EventDispatcher):
         ::
 
             1. first set Window.custom_titlebar to True
-            2. then call Window.set_custom_titlebar with the widget/layout you want to set as titlebar as the argument # noqa: E501
+            2. then call Window.set_custom_titlebar with the widget/layout you want to set as titlebar as the argument
 
         If you want a child of the widget to receive touch events, in
         that child define a property `draggable` and set it to False
@@ -1408,7 +1408,7 @@ class WindowBase(EventDispatcher):
             :mod:`~kivy.core.window.WindowBase.custom_titlebar` must be set to True
             for the widget to be successfully set as a titlebar
 
-        """
+        """  # noqa: E501
 
         Logger.warning('Window: set_custom_titlebar '
                        'is not implemented in the current'

@@ -42,16 +42,16 @@ jobs:
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
         install_manylinux_build_deps
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             cibw_archs: x86_64
-            cibw_build: 'cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64'
-          - os: ubuntu-latest
+            cibw_build: 'cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64'
+          - os: ubuntu-22.04-arm
             cibw_archs: aarch64
-            cibw_build: 'cp37-manylinux_aarch64 cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64'
+            cibw_build: 'cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64 cp313-manylinux_aarch64'
+    runs-on: ${{ matrix.os }}
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v4
@@ -62,9 +62,6 @@ jobs:
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
-    - name: Set up QEMU
-      if: ${{ matrix.cibw_archs == 'aarch64' }}
-      uses: docker/setup-qemu-action@v3
     - uses: actions/cache@v4
       id: deps-cache
       with:
@@ -122,7 +119,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "linux/kivy/"
     - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@v2.0.8
+      uses: softprops/action-gh-release@v2.2.0
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: dist/*
@@ -140,7 +137,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12' ]
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
     env:
       DISPLAY: ':99.0'
     steps:

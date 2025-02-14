@@ -16,7 +16,7 @@ PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys;\
 ifeq ($(PYTHON_VERSION_OK),0)
   $(error "detected Python $(PYTHON_VERSION) need Python >= $(PYTHON_VERSION_MIN)")
 endif
-CHECKSCRIPT = -m flake8
+CHECKSCRIPT = -m ruff check
 KIVY_DIR = kivy/
 PYTEST = $(PYTHON) -m pytest
 KIVY_USE_DEFAULTCONFIG = 1

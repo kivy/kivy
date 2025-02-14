@@ -71,7 +71,7 @@ core developers and other enthusiasts.
 Sibling projects
 ----------------
 
-The Kivy team manager a number of additional projects that support the Kivy 
+The Kivy team manages a number of additional projects that support the Kivy 
 eco-system.
 
 - [Buildozer](https://github.com/kivy/buildozer):  a development tool for turning Python applications into binary packages ready for installation on

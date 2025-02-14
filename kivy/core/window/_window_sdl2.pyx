@@ -315,7 +315,7 @@ cdef class _WindowSDL2Storage:
         for joy_i in range(SDL_NumJoysticks()):
             SDL_JoystickOpen(joy_i)
 
-        SDL_SetEventFilter(<SDL_EventFilter *>_event_filter, <void *>self)
+        SDL_SetEventFilter(<SDL_EventFilter>_event_filter, <void *>self)
 
         SDL_EventState(SDL_DROPFILE, SDL_ENABLE)
         SDL_EventState(SDL_DROPTEXT, SDL_ENABLE)

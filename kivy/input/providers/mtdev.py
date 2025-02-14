@@ -324,7 +324,7 @@ else:
                         continue
 
                     # fill the slot
-                    if not (_slot in l_points):
+                    if _slot not in l_points:
                         l_points[_slot] = dict()
                     point = l_points[_slot]
                     ev_value = data.value
