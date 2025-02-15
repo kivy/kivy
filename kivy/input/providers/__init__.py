@@ -18,11 +18,17 @@ platform = core_platform
 
 if platform == 'win' or 'KIVY_DOC' in os.environ:
     try:
+        import kivy.input.providers.wm_pointer
+    except:
+        err = 'Input: WM_Pointer not supported by your version of Windows'
+        Logger.warning(err)
+    try:
         import kivy.input.providers.wm_touch
         import kivy.input.providers.wm_pen
     except:
         err = 'Input: WM_Touch/WM_Pen not supported by your version of Windows'
         Logger.warning(err)
+
 
 if platform == 'macosx' or 'KIVY_DOC' in os.environ:
     try:
