@@ -276,7 +276,7 @@ class ParserRuleProperty(object):
             yield from cls.get_names_from_expression(node.iter.value)
 
         if isinstance(node, ast.Attribute):
-            # Build the full dotted attribute path (e.g. "root.object.property")
+            # Build full dotted attribute path (e.g. "root.object.property")
             attribute_parts = []
             current_node = node
             while isinstance(current_node, ast.Attribute):
