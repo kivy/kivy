@@ -426,6 +426,29 @@ class LangTestCase(unittest.TestCase):
         assert root.ids.target2.text == ''
         assert root.ids.target3.text == '400'
 
+    def test_fstring_nested_property_binding(self):
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.event import EventDispatcher
+        from kivy.properties import NumericProperty, ObjectProperty
+        from kivy.lang import Builder
+
+        class Person(EventDispatcher):
+            age = NumericProperty()
+
+        class TestContainer(BoxLayout):
+            person = ObjectProperty(Person(age=25))
+
+        root = Builder.load_string(dedent('''
+        TestContainer:
+            Label:
+                id: person
+                text: f"Person age: {root.person.age}"
+        '''))
+
+        assert root.ids.person.text == 'Person age: 25'
+        root.person.age = 30
+        assert root.ids.person.text == 'Person age: 30'
+
 
 if __name__ == '__main__':
     unittest.main()
