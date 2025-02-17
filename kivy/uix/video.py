@@ -81,7 +81,7 @@ class Video(Image):
     :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
     to 'stop'.
     '''
-    
+
     eos = BooleanProperty(False)
     '''Boolean, indicates whether the video has finished playing or not
     (reached the end of the stream).
