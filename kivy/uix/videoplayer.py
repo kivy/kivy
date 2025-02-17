@@ -344,26 +344,6 @@ class VideoPlayer(GridLayout):
     to 'stop'.
     '''
 
-    play = BooleanProperty(False, deprecated=True)
-    '''
-    .. deprecated:: 1.4.0
-        Use :attr:`state` instead.
-
-    Boolean, indicates whether the video is playing or not. You can start/stop
-    the video by setting this property::
-
-        # start playing the video at creation
-        video = VideoPlayer(source='movie.mkv', play=True)
-
-        # create the video, and start later
-        video = VideoPlayer(source='movie.mkv')
-        # and later
-        video.play = True
-
-    :attr:`play` is a :class:`~kivy.properties.BooleanProperty` and defaults
-    to False.
-    '''
-
     image_overlay_play = StringProperty(
         'atlas://data/images/defaulttheme/player-play-overlay')
     '''Image filename used to show a "play" overlay when the video has not yet
@@ -577,10 +557,6 @@ class VideoPlayer(GridLayout):
                          position=self.setter('position'),
                          volume=self.setter('volume'),
                          state=self._set_state)
-
-    def on_play(self, instance, value):
-        value = 'play' if value else 'stop'
-        return self.on_state(instance, value)
 
     def on_volume(self, instance, value):
         if not self._video:

@@ -8,7 +8,7 @@ BoxLayout:
         id: myvideo
         source: '../widgets/cityCC0.mpg'
         fit_mode: "contain"
-        on_eos: self.play = True; print('woot we are looping!')
+        on_eos: self.state = 'play'; print('woot we are looping!')
 
     BoxLayout:
         size_hint_y: None
@@ -31,12 +31,12 @@ BoxLayout:
         ToggleButton:
             group: 'video'
             text: 'Play'
-            state: 'down' if myvideo.play else 'normal'
-            on_press: myvideo.play = True
+            state: 'down' if myvideo.state == 'play' else 'normal'
+            on_press: myvideo.state = 'play'
 
         ToggleButton:
             group: 'video'
             text: 'Stop'
-            state: 'down' if not myvideo.play else 'normal'
-            on_press: myvideo.play = False
+            state: 'down' if myvideo.state != 'play' else 'normal'
+            on_press: myvideo.state = 'stop'
 
