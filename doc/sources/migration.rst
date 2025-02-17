@@ -32,11 +32,11 @@ You need to update it to:
 Removals
 --------
 
-*Removal of `.play` attribute from `kivy.uix.video.Video` and `kivy.uix.videoplayer.VideoPlayer`*
+*Removal of `.play` property from `kivy.uix.video.Video` and `kivy.uix.videoplayer.VideoPlayer`*
 
-In Kivy 3.x.x, the `.play` attribute has been removed from the `kivy.uix.video.Video` and `kivy.uix.videoplayer.VideoPlayer` classes.
+In Kivy 3.x.x, the `.play` property has been removed from the `kivy.uix.video.Video` and `kivy.uix.videoplayer.VideoPlayer` classes.
 
-To migrate your code, you need to update the references to the `.play` attribute in your codebase. For example, if you have the following code in your Kivy 2.x.x codebase:
+To migrate your code, you need to update the references to the `.play` property in your codebase. For example, if you have the following code in your Kivy 2.x.x codebase:
 
 .. code-block:: python
 
