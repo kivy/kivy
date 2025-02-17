@@ -558,10 +558,6 @@ class VideoPlayer(GridLayout):
                          volume=self.setter('volume'),
                          state=self._set_state)
 
-    def on_play(self, instance, value):
-        value = 'play' if value else 'stop'
-        return self.on_state(instance, value)
-
     def on_volume(self, instance, value):
         if not self._video:
             return
