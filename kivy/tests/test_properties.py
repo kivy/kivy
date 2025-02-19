@@ -608,17 +608,16 @@ def test_color_property(self, set_name):
 
 @pytest.mark.parametrize('watch_before_use', [True, False])
 def test_alias_property_without_setter(self, watch_before_use):
-    from kivy.properties import AliasProperty
+    from kivy.properties import AliasProperty, alias_property
 
     expected_value = 5
 
     class CustomAlias(EventDispatcher):
 
-        def _get_prop(self):
+        @alias_property( None, watch_before_use=watch_before_use)
+        def prop(self):
             self.getter_called += 1
             return expected_value
-
-        prop = AliasProperty(_get_prop, None, watch_before_use=watch_before_use)
 
         def __init__(self, **kwargs):
             super(CustomAlias, self).__init__(**kwargs)
@@ -1172,7 +1171,7 @@ def test_property_rename_duplicate():
 
 def test_override_prop_inheritance():
     from kivy.event import EventDispatcher
-    from kivy.properties import ObjectProperty, AliasProperty
+    from kivy.properties import ObjectProperty, AliasProperty, alias_property
     counter = 0
 
     class Parent(EventDispatcher):
@@ -1181,12 +1180,11 @@ def test_override_prop_inheritance():
 
     class Child(Parent):
 
-        def inc(self, *args):
+        @alias_property()
+        def prop(self, *args):
             nonlocal counter
             counter += 1
             return counter
-
-        prop = AliasProperty(inc)
 
     parent = Parent()
     child = Child()
