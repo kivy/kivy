@@ -3359,14 +3359,6 @@ class TextInput(FocusBehavior, Widget):
     defaults to 4.
     '''
 
-    def on_padding_x(self, instance, value):
-        self.padding[0] = value[0]
-        self.padding[2] = value[1]
-
-    def on_padding_y(self, instance, value):
-        self.padding[1] = value[0]
-        self.padding[3] = value[1]
-
     padding = VariableListProperty([6, 6, 6, 6])
     '''Padding of the text: [padding_left, padding_top, padding_right,
     padding_bottom].
