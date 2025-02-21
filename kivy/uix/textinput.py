@@ -3359,38 +3359,6 @@ class TextInput(FocusBehavior, Widget):
     defaults to 4.
     '''
 
-    padding_x = VariableListProperty([0, 0], length=2, deprecated=True)
-    '''Horizontal padding of the text: [padding_left, padding_right].
-
-    padding_x also accepts a one argument form [padding_horizontal].
-
-    :attr:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
-    defaults to [0, 0]. This might be changed by the current theme.
-
-    .. deprecated:: 1.7.0
-        Use :attr:`padding` instead.
-    '''
-
-    def on_padding_x(self, instance, value):
-        self.padding[0] = value[0]
-        self.padding[2] = value[1]
-
-    padding_y = VariableListProperty([0, 0], length=2, deprecated=True)
-    '''Vertical padding of the text: [padding_top, padding_bottom].
-
-    padding_y also accepts a one argument form [padding_vertical].
-
-    :attr:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
-    defaults to [0, 0]. This might be changed by the current theme.
-
-    .. deprecated:: 1.7.0
-        Use :attr:`padding` instead.
-    '''
-
-    def on_padding_y(self, instance, value):
-        self.padding[1] = value[0]
-        self.padding[3] = value[1]
-
     padding = VariableListProperty([6, 6, 6, 6])
     '''Padding of the text: [padding_left, padding_top, padding_right,
     padding_bottom].

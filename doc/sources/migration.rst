@@ -62,3 +62,17 @@ You need to update it to:
 
     # Pause the video
     video.state = 'pause'
+
+
+*Removal of `padding_x` and `padding_y` Properties from `kivy.uix.textinput.TextInput`*
+
+In Kivy 3.x.x the `padding_x` and `padding_y` properties have been **removed** from the `kivy.uix.textinput.TextInput` class. Instead, padding is now managed through the unified `padding` property.
+
+To update your code, replace instances of `padding_x` and `padding_y` with the `padding` property.
+
+The `padding` property accepts a list of values, allowing for more flexible padding configurations:
+
+- `[horizontal, vertical]` — e.g., `[10, 10]`
+- `[padding_left, padding_top, padding_right, padding_bottom]` — e.g., `[10, 5, 10, 5]`
+
+For more details on how to use the `padding` property, please refer to the related documentation.
