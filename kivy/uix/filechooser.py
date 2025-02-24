@@ -482,26 +482,6 @@ class FileChooserController(RelativeLayout):
 
     '''
 
-    file_encodings = ListProperty(
-        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
-    '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a non-ascii filename, undecodable without knowing its
-    initial encoding, we have no other choice than to guess it.
-
-    Please note that if you encounter an issue because of a missing encoding
-    here, we'll be glad to add it to this list.
-
-    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
-    ['utf-8', 'latin1', 'cp1252'].
-
-    .. versionadded:: 1.3.0
-
-    .. deprecated:: 1.8.0
-       This property is no longer used as the filechooser no longer decodes
-       the file names.
-
-    '''
-
     file_system = ObjectProperty(FileSystemLocal(),
                                  baseclass=FileSystemAbstract)
     '''The file system object used to access the file system. This should be a
