@@ -76,3 +76,11 @@ The `padding` property accepts a list of values, allowing for more flexible padd
 - `[padding_left, padding_top, padding_right, padding_bottom]` — e.g., `[10, 5, 10, 5]`
 
 For more details on how to use the `padding` property, please refer to the related documentation.
+
+*Removal of `file_encodings` Property from `kivy.uix.filechooser.FileChooser`*
+
+In Kivy 3.x.x, the `file_encodings` property has been removed from the `kivy.uix.filechooser.FileChooser` class.
+
+The `file_encodings` property was deprecated and it was kept for backward compatibility, however it was just ignored and not used internally.
+
+To migrate your code, you just need to remove any references to the `file_encodings` property in your codebase.
