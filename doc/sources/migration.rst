@@ -77,9 +77,9 @@ The `padding` property accepts a list of values, allowing for more flexible padd
 
 For more details on how to use the `padding` property, please refer to the related documentation.
 
-*Removal of `file_encodings` Property from `kivy.uix.filechooser.FileChooser`*
+*Removal of `file_encodings` Property from `kivy.uix.filechooser.FileChooserController`*
 
-In Kivy 3.x.x, the `file_encodings` property has been removed from the `kivy.uix.filechooser.FileChooser` class.
+In Kivy 3.x.x, the `file_encodings` property has been removed from the `kivy.uix.filechooser.FileChooserController` class.
 
 The `file_encodings` property was deprecated and it was kept for backward compatibility, however it was just ignored and not used internally.
 
