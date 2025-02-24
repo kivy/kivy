@@ -136,7 +136,7 @@ Builder.load_string('''
                     allow_no_selection: False
                     size_hint_x: None
                     width: self.texture_size[0]
-                    padding_x: '5dp'
+                    padding: '5dp', 0, '5dp', 0
                     on_state:
                         if self.state == 'down': root.dashes = []
                         if self.state == 'down': root.dash_length = 1
@@ -148,7 +148,7 @@ Builder.load_string('''
                     allow_no_selection: False
                     size_hint_x: None
                     width: self.texture_size[0]
-                    padding_x: '5dp'
+                    padding: '5dp', 0, '5dp', 0
                     on_state:
                         if self.state == 'down': root.dashes = []
                         if self.state == 'down': root.dash_length = \
@@ -159,7 +159,7 @@ Builder.load_string('''
                     text: 'len'
                     size_hint_x: None
                     width: self.texture_size[0]
-                    padding_x: '5dp'
+                    padding: '5dp', 0, '5dp', 0
                 TextInput:
                     id: dash_len
                     size_hint_x: None
@@ -173,7 +173,7 @@ Builder.load_string('''
                     text: 'offset'
                     size_hint_x: None
                     width: self.texture_size[0]
-                    padding_x: '5dp'
+                    padding: '5dp', 0, '5dp', 0
                 TextInput:
                     id: dash_offset
                     size_hint_x: None
@@ -190,7 +190,7 @@ Builder.load_string('''
                     allow_no_selection: False
                     size_hint_x: None
                     width: self.texture_size[0]
-                    padding_x: '5dp'
+                    ppadding: '5dp', 0, '5dp', 0
                     on_state:
                         if self.state == 'down': root.dashes = list(map(lambda\
                             x: int(x or 0), dash_list_in.text.split(',')))

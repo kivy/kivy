@@ -2665,8 +2665,6 @@ class TextInput(FocusBehavior, Widget):
                 'base_direction': self.base_direction,
                 'anchor_x': 'left',
                 'anchor_y': 'top',
-                'padding_x': 0,
-                'padding_y': 0,
                 'padding': (0, 0)
             }
             self._label_cached = Label(**kw)

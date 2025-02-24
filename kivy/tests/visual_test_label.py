@@ -80,20 +80,20 @@ kv = '''
                                 rgba: 0, 1, 0, 0.5
                             Rectangle:
                                 pos: self.pos
-                                size: self.width, self.padding_y
+                                size: self.width, self.padding[1]
                             Rectangle:
                                 pos: self.x, self.y + self.height -\
-                                self.padding_y
-                                size: self.width, self.padding_y
+                                self.padding[3]
+                                size: self.width, self.padding[3]
                             Color:
                                 rgba: 0, 0, 1, 0.5
                             Rectangle:
                                 pos: self.pos
-                                size: self.padding_x, self.height
+                                size: self.padding[0], self.height
                             Rectangle:
-                                pos: self.x + self.width - self.padding_x,\
+                                pos: self.x + self.width - self.padding[2],\
                                 self.y
-                                size: self.padding_x, self.height
+                                size: self.padding[2], self.height
                 Splitter:
                     sizable_from: 'left'
                     TextInput:
@@ -177,9 +177,7 @@ kv = '''
         TSliderButton:
             text: 'max_lines'
         TSliderButton:
-            text: 'padding_x'
-        TSliderButton:
-            text: 'padding_y'
+            text: 'padding'
         TextInput:
             size_hint: None, None
             size: 100, 50
