@@ -225,11 +225,11 @@ class ImageLoaderBase(object):
         return None
 
     @staticmethod
-    def can_save(fmt, is_bytesio=False):
+    def can_save(fmt, is_bytesio_like=False):
         '''Indicate if the loader can save the Image object
 
         .. versionchanged:: 1.11.0
-            Parameter `fmt` and `is_bytesio` added
+            Parameter `fmt` and `is_bytesio_like` added
         '''
         return False
 
@@ -359,7 +359,7 @@ class ImageLoader(object):
                     try:
                         im = loader(zfilename, ext=ext, rawdata=tmpfile,
                                     inline=True, **kwargs)
-                    except:
+                    except Exception:
                         # Loader failed, continue trying.
                         continue
                     break
@@ -369,7 +369,7 @@ class ImageLoader(object):
                     image_data.append(im._data[0])
                     image = im
                 # else: if not image file skip to next
-            except:
+            except Exception:
                 Logger.warning('Image: Unable to load image'
                                '<%s> in zip <%s> trying to continue...'
                                % (zfilename, filename))
@@ -530,7 +530,8 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif isinstance(arg, BytesIO):
+        elif hasattr(arg, 'read') and callable(getattr(arg, 'read', None)):
+            # BytesIO like(RawIO, RawIOBase, BytesIO..)
             ext = kwargs.get('ext', None)
             if not ext:
                 raise Exception('Inline loading require "ext" parameter')
@@ -847,12 +848,12 @@ class Image(EventDispatcher):
             Filename can now be a BytesIO object.
 
         '''
-        is_bytesio = False
-        if isinstance(filename, BytesIO):
-            is_bytesio = True
+        is_bytesio_like = False
+        if hasattr(filename, 'read') and callable(getattr(filename, 'read', None)):
+            is_bytesio_like = True
             if not fmt:
                 raise Exception(
-                    "You must specify a format to save into a BytesIO object")
+                    "You must specify a format to save into a BytesIO like object")
         elif fmt is None:
             fmt = self._find_format_from_filename(filename)
 
@@ -860,7 +861,7 @@ class Image(EventDispatcher):
         size = None
         loaders = [
             x for x in ImageLoader.loaders
-            if x.can_save(fmt, is_bytesio=is_bytesio)
+            if x.can_save(fmt, is_bytesio_like=is_bytesio_like)
         ]
         if not loaders:
             return False
