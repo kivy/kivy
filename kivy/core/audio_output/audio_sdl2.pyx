@@ -43,6 +43,8 @@ __all__ = ('SoundSDL2', 'MusicSDL2')
 
 include "../../../kivy/lib/sdl2.pxi"
 include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
+from cpython cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from libc.stdint cimport uintptr_t
 
 from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
@@ -242,6 +244,24 @@ class SoundSDL2(Sound):
             cc.chunk.volume = int(self.volume * 128)
             if self.pitch != 1.:
                 self.on_pitch(self, self.pitch)
+
+    @staticmethod
+    def from_bytes(data):
+        instance = SoundSDL2()
+        cdef ChunkContainer cc = instance.cc
+
+        cdef char* c_data = PyBytes_AsString(data)
+
+        rw = SDL_RWFromMem(<void*>c_data, len(data))
+        cc.chunk = Mix_LoadWAV_RW(rw, 1)
+
+        if cc.chunk == NULL:
+            Logger.warning('AudioSDL2: Unable to load data: {}'.format(Mix_GetError()))
+        else:
+            cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
+            cc.chunk.volume = int(instance.volume * 128)
+
+        return instance
 
     def unload(self):
         cdef ChunkContainer cc = self.cc
