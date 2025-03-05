@@ -4,12 +4,12 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.2.4"
+MACOS__SDL3__VERSION="3.2.8"
 MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
 MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
 # macOS SDL3_image
-MACOS__SDL3_IMAGE__VERSION="3.2.0"
+MACOS__SDL3_IMAGE__VERSION="3.2.4"
 MACOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MACOS__SDL3_IMAGE__VERSION/SDL3_image-$MACOS__SDL3_IMAGE__VERSION.tar.gz"
 MACOS__SDL3_IMAGE__FOLDER="SDL3_image-$MACOS__SDL3_IMAGE__VERSION"
 
@@ -17,15 +17,14 @@ MACOS__SDL3_IMAGE__FOLDER="SDL3_image-$MACOS__SDL3_IMAGE__VERSION"
 # MACOS__SDL2_MIXER__VERSION="2.6.3"
 # MACOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL2_MIXER__VERSION/SDL2_mixer-$MACOS__SDL2_MIXER__VERSION.tar.gz"
 # MACOS__SDL2_MIXER__FOLDER="SDL2_mixer-${MACOS__SDL2_MIXER__VERSION}"
-MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/refs/heads/main.tar.gz"
-MACOS__SDL3_MIXER__FOLDER="SDL_mixer-main"
+MACOS__SDL3_MIXER__HASH="78a2035cf4cf95066d7d9e6208e99507376409a7"
+MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/$MACOS__SDL3_MIXER__HASH.tar.gz"
+MACOS__SDL3_MIXER__FOLDER="SDL_mixer-$MACOS__SDL3_MIXER__HASH"
 
 # macOS SDL2_ttf
-# MACOS__SDL2_TTF__VERSION="2.20.2"
-# MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL2_TTF__VERSION/SDL2_ttf-$MACOS__SDL2_TTF__VERSION.tar.gz"
-# MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
-MACOS__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/archive/refs/heads/main.tar.gz"
-MACOS__SDL3_TTF__FOLDER="SDL_ttf-main"
+MACOS__SDL3_TTF__VERSION="3.2.0"
+MACOS__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL3_TTF__VERSION/SDL3_ttf-$MACOS__SDL3_TTF__VERSION.tar.gz"
+MACOS__SDL3_TTF__FOLDER="SDL3_ttf-$MACOS__SDL3_TTF__VERSION"
 
 # macOS libpng
 MACOS__LIBPNG__VERSION="1.6.40"
