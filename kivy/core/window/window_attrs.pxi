@@ -43,7 +43,7 @@ cdef extern from *:
             typedef void *UIWindow;
         #endif
 
-        #if TARGET_OS_MAC
+        #if TARGET_OS_OSX
             #include <AppKit/NSWindow.h>
         #else
             typedef void *NSWindow;
