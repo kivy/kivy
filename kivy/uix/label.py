@@ -652,7 +652,7 @@ class Label(Widget):
 
     .. warning::
 
-        font_script_name is only currently supported in SDL2 ttf providers.
+        font_script_name is only currently supported in SDL3 ttf providers.
 
 
     :attr:`font_script_name` is a :class:`~kivy.properties.OptionProperty` and
@@ -662,7 +662,7 @@ class Label(Widget):
     font_direction = OptionProperty('ltr', options=['rtl', 'ltr', 'ttb', 'btt'])
     '''Direction for the specific font, can be one of `ltr`, `rtl`, `ttb`,`btt`.
 
-    font_direction currently only works with SDL2 ttf providers.
+    font_direction currently only works with SDL3 ttf providers.
 
     .. versionadded:: 2.2.0
 
@@ -731,7 +731,7 @@ class Label(Widget):
     '''Adds an underline to the text.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -743,7 +743,7 @@ class Label(Widget):
     '''Adds a strikethrough line to the text.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -851,7 +851,7 @@ class Label(Widget):
     rendered if the value is None.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -863,7 +863,7 @@ class Label(Widget):
     '''The color of the text outline, in the (r, g, b) format.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -881,7 +881,7 @@ class Label(Widget):
     (r, g, b) format.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -1150,7 +1150,7 @@ class Label(Widget):
     Can be one of `'normal'`, `'light'`, `'mono'` or None.
 
     .. note::
-        This feature requires SDL2 or Pango text provider.
+        This feature requires SDL3 or Pango text provider.
 
     .. versionadded:: 1.10.0
 
@@ -1163,7 +1163,7 @@ class Label(Widget):
     only disable this if rendering is broken with a particular font file.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 
@@ -1175,7 +1175,7 @@ class Label(Widget):
     '''Whether blended or solid font rendering should be used.
 
     .. note::
-        This feature requires the SDL2 text provider.
+        This feature requires the SDL3 text provider.
 
     .. versionadded:: 1.10.0
 

@@ -40,7 +40,7 @@ RUN /bin/bash -c 'pip install auditwheel'
 RUN ./tools/build_linux_dependencies.sh
 
 # Build the wheel.
-RUN KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL2=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_SDL_GL_ALPHA_SIZE=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
+RUN KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL3=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_SDL_GL_ALPHA_SIZE=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
 
 # Delocate the wheel.
 # buster: manylinux_2_28_armv7l, bullseye: manylinux_2_31_armv7l, bookworm: manylinux_2_35_armv7l

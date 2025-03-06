@@ -142,6 +142,18 @@ Available configuration tokens
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
         icon.
+    `window_shape`: str (default: '')
+        Specifies the default path to an image file that defines the window shape.
+        To change the window shape after initialization, use the
+        :attr:`~kivy.core.window.WindowBase.shape_image` attribute.
+
+        .. warning::
+            This option takes effect only if the `shaped` setting in the `[graphics]`
+            configuration section is set to `1`.
+
+        .. warning::
+            The image file must meet the requirements outlined in
+            :attr:`~kivy.core.window.WindowBase.shape_image`.
 
 :postproc:
 
@@ -190,7 +202,7 @@ Available configuration tokens
                     or 'minimized'
 
         Sets the window state, defaults to 'visible'. This option is available
-        only for the SDL2 window provider and it should be used on desktop
+        only for the SDL3 window provider and it should be used on desktop
         OSes.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
@@ -239,9 +251,9 @@ Available configuration tokens
         Width of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
     `minimum_width`: int
-        Minimum width to restrict the window to. (sdl2 only)
+        Minimum width to restrict the window to. (sdl3 only)
     `minimum_height`: int
-        Minimum height to restrict the window to. (sdl2 only)
+        Minimum height to restrict the window to. (sdl3 only)
     `min_state_time`: float, defaults to .035
         Minimum time for widgets to display a given visual state.
         This attrib is currently used by widgets like
@@ -251,18 +263,18 @@ Available configuration tokens
         time.
     `always_on_top`: int, one of ``0`` or ``1``, defaults to ``0``
         When enabled, the window will be brought to the front and will keep
-        the window above the rest. Only works for the sdl2 window provider.
+        the window above the rest. Only works for the sdl3 window provider.
         ``0`` is disabled, ``1`` is enabled.
     `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``1``
         Determines whether the app's icon will be added to the taskbar. Only
-        applicable for the SDL2 window provider.
+        applicable for the SDL3 window provider.
         ``0`` means the icon will not be shown in the taskbar and ``1`` means
         it will.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
-        on mobile devices. Only works for the sdl2 window provider.
+        on mobile devices. Only works for the sdl3 window provider.
     `vsync`: `none`, empty value, or integers
-        Whether vsync is enabled, currently only used with sdl2 window.
+        Whether vsync is enabled, currently only used with sdl3 window.
         Possible values are `none` or empty value -- leaves it unchanged,
         ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
         ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
@@ -270,6 +282,15 @@ Available configuration tokens
     `verify_gl_main_thread`: int, 1 or 0, defaults to 1
         Whether to check if code that changes any gl instructions is
         running outside the main thread and then raise an error.
+    `shaped`: int, 0 or 1 (default: 0)
+        If set to `1`, the system will attempt to initialize the window as shapable.
+        However, whether the window is actually shapable depends on the
+        platform and implementation. To check if shaping is supported, inspect
+        the window object's `shapable` property.
+
+        .. warning::
+            For shaping to work reliably across platforms, set
+            `Window.clearcolor` to `(0, 0, 0, 0)`.
 
 :input:
 
@@ -404,7 +425,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 27
+KIVY_CONFIG_VERSION = 28
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -936,6 +957,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
+
+        elif version == 27:
+            if Config.get("kivy", "window_shape") == "data/images/defaultshape.png":
+                Config.set("kivy", "window_shape", "")
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
