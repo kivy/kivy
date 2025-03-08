@@ -789,62 +789,69 @@ cdef class Quad(VertexInstruction):
 
 
 cdef class Rectangle(VertexInstruction):
-    '''A 2d rectangle.
+    '''A 2d rectangle optimized for faster point handling with direct memory access.
 
     :Parameters:
-        `pos`: list
+        `pos`: tuple
             Position of the rectangle, in the format (x, y).
-        `size`: list
+        `size`: tuple
             Size of the rectangle, in the format (width, height).
     '''
-    cdef float x,y,w,h
-    cdef list _points
+    cdef float x, y, w, h
+    cdef vertex_t* vertices
+    cdef unsigned short* indices
+    cdef float* _points
 
-    def __init__(self, **kwargs):
+    def __cinit__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('pos')
         self.pos = v if v is not None else (0, 0)
         v = kwargs.get('size')
         self.size = v if v is not None else (100, 100)
+        # Allocate memory for 4 vertices and 6 indices
+        self.vertices = <vertex_t*>malloc(4 * sizeof(vertex_t))
+        self.indices = <unsigned short*>malloc(6 * sizeof(unsigned short))
+        self._points = <float*>malloc(8 * sizeof(float))
+        if not self.vertices or not self.indices or not self._points:
+            raise MemoryError("Failed to allocate memory for rectangle data.")
+        self.indices[0] = 0
+        self.indices[1] = 1
+        self.indices[2] = 2
+        self.indices[3] = 2
+        self.indices[4] = 3
+        self.indices[5] = 0
+        self.update_vertices()
 
-    cdef void build(self):
-        cdef float x, y, w, h
-        cdef float *tc = self._tex_coords
-        cdef vertex_t vertices[4]
-        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
+    cdef void update_vertices(self):
+        # Set the vertex positions directly using pointer arithmetic
+        self.vertices[0].x = self.x
+        self.vertices[0].y = self.y
+        self.vertices[1].x = self.x + self.w
+        self.vertices[1].y = self.y
+        self.vertices[2].x = self.x + self.w
+        self.vertices[2].y = self.y + self.h
+        self.vertices[3].x = self.x
+        self.vertices[3].y = self.y + self.h
 
-        # reset points
-        self._points = []
+        self._points[0] = self.x
+        self._points[1] = self.y
+        self._points[2] = self.x + self.w
+        self._points[3] = self.y
+        self._points[4] = self.x + self.w
+        self._points[5] = self.y + self.h
+        self._points[6] = self.x
+        self._points[7] = self.y + self.h
 
-        x, y = self.x, self.y
-        w, h = self.w, self.h
-
-
-        vertices[0].x = x
-        vertices[0].y = y
-        vertices[0].s0 = tc[0]
-        vertices[0].t0 = tc[1]
-        vertices[1].x = x + w
-        vertices[1].y = y
-        vertices[1].s0 = tc[2]
-        vertices[1].t0 = tc[3]
-        vertices[2].x = x + w
-        vertices[2].y = y + h
-        vertices[2].s0 = tc[4]
-        vertices[2].t0 = tc[5]
-        vertices[3].x = x
-        vertices[3].y = y + h
-        vertices[3].s0 = tc[6]
-        vertices[3].t0 = tc[7]
-
-        self._points = [x, y, x + w, y, x + w, y + h, x, y + h]
-
-        self.batch.set_data(vertices, 4, indices, 6)
+    def __dealloc__(self):
+        if self.vertices:
+            free(self.vertices)
+        if self.indices:
+            free(self.indices)
+        if self._points:
+            free(self._points)
 
     @property
     def pos(self):
-        '''Property for getting/settings the position of the rectangle.
-        '''
         return (self.x, self.y)
 
     @pos.setter
@@ -855,12 +862,11 @@ cdef class Rectangle(VertexInstruction):
             return
         self.x = x
         self.y = y
+        self.update_vertices()
         self.flag_data_update()
 
     @property
     def size(self):
-        '''Property for getting/settings the size of the rectangle.
-        '''
         return (self.w, self.h)
 
     @size.setter
@@ -871,22 +877,24 @@ cdef class Rectangle(VertexInstruction):
             return
         self.w = w
         self.h = h
+        self.update_vertices()
         self.flag_data_update()
 
     @property
     def points(self):
-        '''Property for getting the points used to draw the vertices.
+        return [self._points[i] for i in range(8)]
 
-        .. versionadded:: 2.3.0
+    cdef void build(self):
+        self.batch.set_data(self.vertices, 4, self.indices, 6)
 
-        '''
-        return self._points
+    def draw(self):
+        # Implement drawing logic here, using self.vertices directly
+        pass
 
 
 
 cdef class BorderImage(Rectangle):
-    '''A 2d border image. The behavior of the border image is similar to the
-    concept of a CSS3 border-image.
+    '''A 2d border image optimized for faster point handling with direct memory access.
 
     :Parameters:
         `border`: list
@@ -894,67 +902,25 @@ cdef class BorderImage(Rectangle):
             Each value is in pixels.
 
         `auto_scale`: string
-            .. versionadded:: 1.9.1
-
-            .. versionchanged:: 1.9.2
-
-                This used to be a bool and has been changed to be a string
-                state.
-
             Can be one of 'off', 'both', 'x_only', 'y_only', 'y_full_x_lower',
             'x_full_y_lower', 'both_lower'.
 
             Autoscale controls the behavior of the 9-slice.
-
-            By default the border values are preserved exactly, meaning that
-            if the total size of the object is smaller than the border values
-            you will have some 'rendering errors' where your texture appears
-            inside out. This also makes it impossible to achieve a rounded
-            button that scales larger than the size of its source texture. The
-            various options for auto_scale will let you achieve some mixes of
-            the 2 types of rendering.
-
-            'off': is the default and behaves as BorderImage did when auto_scale
-            was False before.
-
-            'both': Scales both x and y dimension borders according to the size
-            of the BorderImage, this disables the BorderImage making it render
-            the same as a regular Image.
-
-            'x_only': The Y dimension functions as the default, and the X
-            scales to the size of the BorderImage's width.
-
-            'y_only': The X dimension functions as the default, and the Y
-            scales to the size of the BorderImage's height.
-
-            'y_full_x_lower': Y scales as in 'y_only', Y scales if the
-            size of the scaled version would be smaller than the provided
-            border only.
-
-            'x_full_y_lower': X scales as in 'x_only', Y scales if the
-            size of the scaled version would be smaller than the provided
-            border only.
-
-            'both_lower': This is what auto_scale did when it was True in 1.9.1
-            Both X and Y dimensions will be scaled if the BorderImage is
-            smaller than the source.
-
-            If the BorderImage's size is less than the sum of its
-            borders, horizontally or vertically, and this property is
-            set to True, the borders will be rescaled to accommodate for
-            the smaller size.
-
     '''
-    cdef list _border
-    cdef list _display_border
+    cdef float* _border
+    cdef float* _display_border
     cdef str _auto_scale
 
-    def __init__(self, **kwargs):
-        Rectangle.__init__(self, **kwargs)
+    def __cinit__(self, **kwargs):
+        Rectangle.__cinit__(self, **kwargs)
         v = kwargs.get('border')
         self.border = v if v is not None else (10, 10, 10, 10)
         self.auto_scale = kwargs.get('auto_scale', 'off')
         self.display_border = kwargs.get('display_border', [])
+
+    cdef void update_vertices(self):
+        # Custom update_vertices logic for BorderImage if needed
+        Rectangle.update_vertices(self)
 
     cdef void build(self):
         if not self.texture:
@@ -981,59 +947,54 @@ cdef class BorderImage(Rectangle):
         tch = tc7 - tc1  #top - bottom
 
         # calculate border offset in texture coord space
-        # border width(px)/texture width(px) *  tcoord width
-        cdef list b = self._border
-        cdef float b0, b1, b2, b3
         cdef float tb[4] # border offset in texture coordinate space
-        b0, b1, b2, b3 = b
-        tb[0] = b0 / th * tch
-        tb[1] = b1 / tw * tcw
-        tb[2] = b2 / th * tch
-        tb[3] = b3 / tw * tcw
+        tb[0] = self._border[0] / th * tch
+        tb[1] = self._border[1] / tw * tcw
+        tb[2] = self._border[2] / th * tch
+        tb[3] = self._border[3] / tw * tcw
 
         cdef float sb0, sb1, sb2, sb3
 
         if self._auto_scale == 'off':
-            sb0, sb1, sb2, sb3 = b0, b1, b2, b3
+            sb0, sb1, sb2, sb3 = self._border[0], self._border[1], self._border[2], self._border[3]
         elif self._auto_scale == 'both':
-            sb0 = (b0/th) * h
-            sb1 = (b1/tw) * w
-            sb2 = (b2/th) * h
-            sb3 = (b3/tw) * w
+            sb0 = (self._border[0]/th) * h
+            sb1 = (self._border[1]/tw) * w
+            sb2 = (self._border[2]/th) * h
+            sb3 = (self._border[3]/tw) * w
         elif self._auto_scale == 'x_only':
-            sb0 = b0
-            sb1 = (b1/tw) * w
-            sb2 = b2
-            sb3 = (b3/tw) * w
+            sb0 = self._border[0]
+            sb1 = (self._border[1]/tw) * w
+            sb2 = self._border[2]
+            sb3 = (self._border[3]/tw) * w
         elif self._auto_scale == 'y_only':
-            sb0 = (b0/th) * h
-            sb1 = b1
-            sb2 = (b2/th) * h
-            sb3 = b3
+            sb0 = (self._border[0]/th) * h
+            sb1 = self._border[1]
+            sb2 = (self._border[2]/th) * h
+            sb3 = self._border[3]
         elif self._auto_scale == 'y_full_x_lower':
-            sb0 = (b0/th) * h
-            sb1 = min((b1/tw) * w, b1)
-            sb2 = (b2/th) * h
-            sb3 = min((b3/tw) * w, b3)
+            sb0 = (self._border[0]/th) * h
+            sb1 = min((self._border[1]/tw) * w, self._border[1])
+            sb2 = (self._border[2]/th) * h
+            sb3 = min((self._border[3]/tw) * w, self._border[3])
         elif self._auto_scale == 'x_full_y_lower':
-            sb0 = min((b0/th) * h, b0)
-            sb1 = (b1/tw) * w
-            sb2 = min((b2/th) * h, b2)
-            sb3 = (b3/tw) * w
+            sb0 = min((self._border[0]/th) * h, self._border[0])
+            sb1 = (self._border[1]/tw) * w
+            sb2 = min((self._border[2]/th) * h, self._border[2])
+            sb3 = (self._border[3]/tw) * w
         elif self._auto_scale == 'both_lower':
-            sb0 = min((b0/th) * h, b0)
-            sb1 = min((b1/tw) * w, b1)
-            sb2 = min((b2/th) * h, b2)
-            sb3 = min((b3/tw) * w, b3)
+            sb0 = min((self._border[0]/th) * h, self._border[0])
+            sb1 = min((self._border[1]/tw) * w, self._border[1])
+            sb2 = min((self._border[2]/th) * h, self._border[2])
+            sb3 = min((self._border[3]/tw) * w, self._border[3])
         else:
-            sb0, sb1, sb2, sb3 = b0, b1, b2, b3
+            sb0, sb1, sb2, sb3 = self._border[0], self._border[1], self._border[2], self._border[3]
 
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
-        cdef list db = self._display_border
-        if db:
-            sb0, sb1, sb2, sb3 = db
+        if self._display_border:
+            sb0, sb1, sb2, sb3 = self._display_border[0], self._display_border[1], self._display_border[2], self._display_border[3]
         hs[0] = x;            vs[0] = y
         hs[1] = x + sb3;       vs[1] = y + sb0
         hs[2] = x + w - sb1;   vs[2] = y + h - sb2
@@ -1046,21 +1007,7 @@ cdef class BorderImage(Rectangle):
         ths[2] = tc0 + tcw-tb[1];  tvs[2] = tc1 + tch - tb[2]
         ths[3] = tc0 + tcw;        tvs[3] = tc1 + tch
 
-        '''
-            v9---v8------v7----v6
-            |        b2        |
-           v10  v15------v14   v5
-            |    |        |    |
-            |-b4-|        |-b1-|
-            |    |        |    |
-           v11  v12------v13   v4
-            |        b0        |
-            v0---v1------v2----v3
-        '''
-
         # set the vertex data
-        # WARNING we are allocating the vertices as a float
-        # because we know exactly the format.
         assert sizeof(vertex_t) == 4 * sizeof(float)
         cdef float *vertices = [
             hs[0], vs[0], ths[0], tvs[0], #v0
@@ -1093,16 +1040,17 @@ cdef class BorderImage(Rectangle):
 
         self.batch.set_data(<vertex_t *>vertices, 16, indices, 54)
 
-
     @property
     def border(self):
         '''Property for getting/setting the border of the class.
         '''
-        return self._border
+        return [self._border[i] for i in range(4)]
 
     @border.setter
     def border(self, b):
-        self._border = list(b)
+        self._border = <float*>malloc(4 * sizeof(float))
+        for i in range(4):
+            self._border[i] = b[i]
         self.flag_data_update()
 
     @property
@@ -1112,9 +1060,8 @@ cdef class BorderImage(Rectangle):
         '''
         return self._auto_scale
 
-
     @auto_scale.setter
-    def auto_scale(self, str value):
+    def auto_scale(self, value):
         self._auto_scale = value
         self.flag_data_update()
 
@@ -1122,211 +1069,113 @@ cdef class BorderImage(Rectangle):
     def display_border(self):
         '''Property for getting/setting the border display size.
         '''
-        return self._display_border
+        return [self._display_border[i] for i in range(4)]
 
     @display_border.setter
     def display_border(self, b):
-        self._display_border = list(b)
+        self._display_border = <float*>malloc(4 * sizeof(float))
+        for i in range(4):
+            self._display_border[i] = b[i]
         self.flag_data_update()
+
 
 cdef class Ellipse(Rectangle):
-    '''A 2D ellipse.
+    '''A 2d ellipse optimized for faster point handling with direct memory access.
 
     :Parameters:
-        `segments`: int, the default value is calculated from the range between angle.
-            Define how many segments are needed for drawing the ellipse.
-            The ellipse drawing will be smoother if you have many segments,
-            however you can also use this property to create polygons with 3 or more sides.
-        `angle_start`: float, defaults to 0.0
-            Specifies the starting angle, in degrees, of the disk portion.
-        `angle_end`: float, defaults to 360.0
-            Specifies the ending angle, in degrees, of the disk portion.
-
-    .. versionchanged:: 1.0.7
-        Added angle_start and angle_end.
-    
-    .. versionchanged:: 2.2.0
-        The default number of segments is no longer 180, it is now calculated
-        according to the angle range, as this is a more efficient approach.
-
+        `pos`: tuple
+            Position of the ellipse center, in the format (x, y).
+        `size`: tuple
+            Size of the ellipse, in the format (width, height).
     '''
-    cdef int _segments
-    cdef float _angle_start
-    cdef float _angle_end
+    cdef int segments
+    cdef vertex_t* vertices
+    cdef unsigned short* indices
+    cdef float* _points
 
-    def __init__(self, *args, **kwargs):
-        Rectangle.__init__(self, **kwargs)
-        self._segments = kwargs.get('segments') or 0
-        self._angle_start = kwargs.get('angle_start') or 0.0
-        self._angle_end = kwargs.get('angle_end') or 360.0
+    def __cinit__(self, **kwargs):
+        Rectangle.__cinit__(self, **kwargs)
+        v = kwargs.get('segments')
+        self.segments = v if v is not None else 32
+        # Allocate memory for vertices and indices
+        self.vertices = <vertex_t*>malloc(self.segments * sizeof(vertex_t))
+        self.indices = <unsigned short*>malloc(self.segments * 3 * sizeof(unsigned short))
+        self._points = <float*>malloc(2 * self.segments * sizeof(float))
+        if not self.vertices or not self.indices or not self._points:
+            raise MemoryError("Failed to allocate memory for ellipse data.")
+        self.update_vertices()
+
+    cdef void update_vertices(self):
+        cdef int i
+        cdef float theta, x, y, cx, cy, w, h
+        cx, cy = self.x, self.y
+        w, h = self.w / 2.0, self.h / 2.0
+        for i in range(self.segments):
+            theta = 2.0 * 3.1415926 * float(i) / float(self.segments)
+            x = w * cos(theta)
+            y = h * sin(theta)
+            self.vertices[i].x = cx + x
+            self.vertices[i].y = cy + y
+            self._points[2 * i] = cx + x
+            self._points[2 * i + 1] = cy + y
+        for i in range(self.segments):
+            self.indices[3 * i] = 0
+            self.indices[3 * i + 1] = i
+            self.indices[3 * i + 2] = (i + 1) % self.segments
+
+    def __dealloc__(self):
+        if self.vertices:
+            free(self.vertices)
+        if self.indices:
+            free(self.indices)
+        if self._points:
+            free(self._points)
+
+    @property
+    def pos(self):
+        return (self.x, self.y)
+
+    @pos.setter
+    def pos(self, pos):
+        cdef float x, y
+        x, y = pos
+        if self.x == x and self.y == y:
+            return
+        self.x = x
+        self.y = y
+        self.update_vertices()
+        self.flag_data_update()
+
+    @property
+    def size(self):
+        return (self.w, self.h)
+
+    @size.setter
+    def size(self, size):
+        cdef float w, h
+        w, h = size
+        if self.w == w and self.h == h:
+            return
+        self.w = w
+        self.h = h
+        self.update_vertices()
+        self.flag_data_update()
+
+    @property
+    def points(self):
+        return [self._points[i] for i in range(2 * self.segments)]
 
     cdef void build(self):
-        cdef float *tc = self._tex_coords
-        cdef int i, angle_dir
-        cdef double angle_start, angle_end, angle_range
-        cdef double x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
-        cdef double cx, cy, tangential_factor, radial_factor, fx, fy
-        cdef vertex_t *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef int segments = self._segments
-        cdef int vertices_count
-        cdef bint use_first_vertex_as_last = False
+        self.batch.set_data(self.vertices, self.segments, self.indices, self.segments * 3)
 
-        # reset points
-        self._points = []
+    def draw(self):
+        # Implement drawing logic here, using self.vertices directly
+        pass
 
-        if self.w == 0 or self.h == 0:
-            return
-
-
-        if segments == 0 or segments < 3:
-            if segments != 0:
-                Logger.warning('Ellipse: A minimum of 3 segments is required. The default value will be used instead.')
-            segments = max(1, int(abs(self._angle_end - self._angle_start) / 2))
-
-        tx = tc[0]
-        ty = tc[1]
-        tw = tc[4] - tx
-        th = tc[5] - ty
-        angle = 0.0
-        rx = 0.5 * self.w
-        ry = 0.5 * self.h
-
-        if (
-            abs(self._angle_start - self._angle_end) == 360
-            or self._angle_start == self._angle_end
-        ):
-            use_first_vertex_as_last = True
-
-        if use_first_vertex_as_last:
-            vertices_count = segments + 1
-        else:
-            vertices_count = segments + 2
-
-        vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc((segments * 3) * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        # calculate the start/end angle in radians, and adapt the range
-        if self._angle_end > self._angle_start:
-            angle_dir = 1
-        else:
-            angle_dir = -1
-
-        # rad = deg * (pi / 180), where pi / 180 = 0.0174...
-        angle_start = self._angle_start * 0.017453292519943295
-        angle_end = self._angle_end * 0.017453292519943295
-        angle_range = -1 * (angle_end - angle_start) / segments
-
-        # add start vertex in the middle
-        x = self.x + rx
-        y = self.y + ry
-        ttx = ((x - self.x) / self.w) * tw + tx
-        tty = ((y - self.y) / self.h) * th + ty
-
-        vertices[vertices_count - 1].x = <float>x
-        vertices[vertices_count - 1].y = <float>y
-        vertices[vertices_count - 1].s0 = <float>ttx
-        vertices[vertices_count - 1].t0 = <float>tty
-
-        # super fast ellipse drawing
-        # credit goes to: http://slabode.exofire.net/circle_draw.shtml
-        tangential_factor = tan(angle_range)
-        radial_factor = cos(angle_range)
-
-        # Calculate the coordinates for a circle with radius 0.5 about
-        # the point (0.5, 0.5). Only stretch to an ellipse later.
-        cx = 0.5
-        cy = 0.5
-        r = 0.5
-        x = r * sin(angle_start)
-        y = r * cos(angle_start)
-
-        for i in range(0, vertices_count - 1):
-            ttx = (cx + x) * tw + tx
-            tty = (cy + y) * th + ty
-            real_x = self.x + (cx + x) * self.w
-            real_y = self.y + (cy + y) * self.h
-            vertices[i].x = <float>real_x
-            vertices[i].y = <float>real_y
-            vertices[i].s0 = <float>ttx
-            vertices[i].t0 = <float>tty
-
-            fx = -y
-            fy = x
-            x += fx * tangential_factor
-            y += fy * tangential_factor
-            x *= radial_factor
-            y *= radial_factor
-
-            self._points.extend([real_x, real_y])
-
-        for i in range(0, segments * 3, 3):
-            indices[i] = vertices_count - 1
-            indices[i + 1] = i // 3
-            indices[i + 2] = i // 3 + 1
-
-        if use_first_vertex_as_last:
-            indices[(segments * 3) - 1] = 0
-            self._points.extend([vertices[0].x, vertices[0].y])
-
-        self.batch.set_data(vertices, vertices_count, indices, segments * 3)
-
-        free(vertices)
-        free(indices)
-
-    @property
-    def segments(self):
-        '''Property for getting/setting the number of segments of the ellipse.
-        The ellipse drawing will be smoother if you have many segments, however
-        you can also use this property to create polygons with 3 or more sides.
-        Values smaller than 3 will not be represented and the number of
-        segments will be automatically calculated.
-        
-        .. versionchanged:: 2.2.0
-            The minimum number of segments allowed is 3. Smaller values will be
-            ignored and the number of segments will be automatically calculated.
-        '''
-        
-        return self._segments
-
-    @segments.setter
-    def segments(self, value):
-        self._segments = value
-        self.flag_data_update()
-
-    @property
-    def angle_start(self):
-        '''Start angle of the ellipse in degrees, defaults to 0.
-        '''
-        return self._angle_start
-
-    @angle_start.setter
-    def angle_start(self, value):
-        self._angle_start = value
-        self.flag_data_update()
-
-    @property
-    def angle_end(self):
-        '''End angle of the ellipse in degrees, defaults to 360.
-        '''
-        return self._angle_end
-
-    @angle_end.setter
-    def angle_end(self, value):
-        self._angle_end = value
-        self.flag_data_update()
 
 
 cdef class RoundedRectangle(Rectangle):
-    '''A 2D rounded rectangle.
-
-    .. versionadded:: 1.9.1
+    '''A 2D rounded rectangle optimized for faster point handling with direct memory access.
 
     :Parameters:
         `segments`: int, defaults to 10
@@ -1341,273 +1190,181 @@ cdef class RoundedRectangle(Rectangle):
             Higher numbers of values will be truncated to four.
             The first value will be used for all corners if there are fewer than four values.
     '''
+    cdef int* _segments
+    cdef float* _radius
 
-    cdef object _segments  # number of segments for each corner
-    cdef list _radius
-
-    def __init__(self, **kwargs):
-        Rectangle.__init__(self, **kwargs)
+    def __cinit__(self, **kwargs):
+        Rectangle.__cinit__(self, **kwargs)
         self.batch.set_mode('triangle_fan')
 
         # number of segments for each corner
-        segments = kwargs.get('segments', 10)  # allow 0 segments
+        segments = kwargs.get('segments', 10)
         self._segments = self._check_segments(segments)
 
         radius = kwargs.get('radius') or [10.0]
         self._radius = self._check_radius(radius)
         self._points = []
 
-    cdef object _check_segments(self, object segments):
+    cdef int* _check_segments(self, object segments):
         """
         Check segments argument, return list of four numeric values
         for each corner.
         """
-        cdef list result = []
+        cdef int* result = <int*>malloc(4 * sizeof(int))
 
-        # can be single numeric value
-        if isinstance(segments, int):  # can't be float number
-            return [segments] * 4
+        if isinstance(segments, int):
+            for i in range(4):
+                result[i] = segments
+            return result
 
-        # can be list of four values for each corner
         if isinstance(segments, list):
-            result = [value for value in segments if isinstance(value, int)]
-
-            if not result:
-                raise GraphicException("Invalid segments value, must be list of integers")
-
-            # set all values to first if less than four values
-            if len(result) < 4:
-                return result[:1] * 4
+            if len(segments) < 4:
+                value = segments[0]
+                for i in range(4):
+                    result[i] = value
             else:
-                return result[:4]
+                for i in range(4):
+                    result[i] = segments[i]
+            return result
 
-        else:
-            raise GraphicException("Invalid segments value, must be integer or list of integers")
+        raise GraphicException("Invalid segments value, must be integer or list of integers")
 
-    cdef object _check_radius(self, object radius):
+    cdef float* _check_radius(self, object radius):
         """
         Check radius argument, return list of four tuples
         (xradius, yradius) for each corner.
         """
-        cdef:
-            list result = []
-            object value
+        cdef float* result = <float*>malloc(8 * sizeof(float))
 
-        for value in radius:
-            if isinstance(value, tuple):
-                # tuple: (a,) -> (a,a); (a,b)
-                # extend/trim to exactly two coordinates
-                if len(value) < 2:
-                    value = value[:1] * 2
-                result.append(value[:2])
+        if isinstance(radius, (int, float)):
+            for i in range(4):
+                result[2*i] = radius
+                result[2*i+1] = radius
+            return result
 
-            elif isinstance(value, (int, float)):
-                # int/float: a -> (a,a)
-                result.append((value, value))
+        if isinstance(radius, list):
+            for i in range(4):
+                if isinstance(radius[i], tuple):
+                    result[2*i] = radius[i][0]
+                    result[2*i+1] = radius[i][1]
+                else:
+                    result[2*i] = radius[i]
+                    result[2*i+1] = radius[i]
+            return result
 
-            # some strange type came - skip it. next value will be used or radii will be set to first
-            else:
-                Logger.trace("GRoundedRectangle: '{}' object can\'t be used to specify radius. "
-                             "Skipping...".format(radius.__class__.__name__))
-
-        if not result:
-            raise GraphicException("Invalid radius value, must be list of tuples/numerics")
-
-        # set all radii to first if there aren't four of them
-        if len(result) < 4:
-            return result[:1] * 4
-        else:
-            return result[:4]
+        raise GraphicException("Invalid radius value, must be list of tuples/numerics")
 
     cdef void build(self):
-        cdef:
-            float *tc = self._tex_coords
-            vertex_t *vertices = NULL
-            unsigned short *indices = NULL
+        cdef float *tc = self._tex_coords
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
 
-            int count, corner, segments, dw, dh, index
-            list xradius, yradius
-            double rx, ry, half_w, half_h, angle
-            double tx, ty, tw, th, px, py, x, y
+        cdef int count, corner, segments, dw, dh, index
+        cdef float rx, ry, half_w, half_h, angle
+        cdef float tx, ty, tw, th, px, py, x, y
 
-        # reset points
         self._points = []
 
-        # zero size of the figure
         if self.w == 0 or self.h == 0:
             return
 
+        count = sum([1 + segments * bool(self._radius[2*i] * self._radius[2*i+1])
+                     for i, segments in enumerate(self._segments)]) + 1
 
-        # 1 vertex for sharp corner (if segments or radius is zero)
-        # `segments+1` vertices for round corner
-        # plus 1 vertex for middle point
-        count = sum([1 + segments * bool(rx * ry)
-                     for (rx, ry), segments
-                     in zip(self._radius, self._segments)]) + 1
-
-        vertices = <vertex_t *>malloc((count) * sizeof(vertex_t))
+        vertices = <vertex_t*>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        # +1 because the last index must be the index of the first corner to close the fan
-        indices = <unsigned short *>malloc((count + 1) * sizeof(unsigned short))
+        indices = <unsigned short*>malloc((count + 1) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        # half sizes
         half_w = self.w / 2
         half_h = self.h / 2
 
-        # split radii by coordinate and make them <= half_size
-        xradius = [min(r[0], half_w) for r in self._radius]
-        yradius = [min(r[1], half_h) for r in self._radius]
+        xradius = [min(self._radius[2*i], half_w) for i in range(4)]
+        yradius = [min(self._radius[2*i+1], half_h) for i in range(4)]
 
-        # texture coordinates
         tx = tc[0]
         ty = tc[1]
         tw = tc[4] - tx
         th = tc[5] - ty
 
-        # add start vertex in the middle of the figure
-        vertices[0].x = <float>(self.x + half_w)
-        vertices[0].y = <float>(self.y + half_h)
-        vertices[0].s0 = <float>(tx + tw / 2)
-        vertices[0].t0 = <float>(ty + th / 2)
+        vertices[0].x = self.x + half_w
+        vertices[0].y = self.y + half_h
+        vertices[0].s0 = tx + tw / 2
+        vertices[0].t0 = ty + th / 2
         indices[0] = 0
 
-        index = 1  # vertex index from 1 to count
+        index = 1
         for corner in range(4):
-            # start angle for the corner. end is 90 degrees lesser (clockwise)
             angle = 180 - 90 * corner
 
-            # coefficients to enable/disable multiplication by width/height
             dw, dh = [(0,1), (1,1), (1,0), (0,0)][corner]
 
-            # ellipse dimensions
             rx, ry = xradius[corner], yradius[corner]
 
-            # ellipse center coordinates
             px, py = [
-                # top left
-                (self.x + rx,
-                 self.y + self.h - ry),
-
-                # top right
-                (self.x + self.w - rx,
-                 self.y + self.h - ry),
-
-                # bottom right
-                (self.x + self.w - rx,
-                 self.y + ry),
-
-                # bottom left
-                (self.x + rx,
-                 self.y + ry)
+                (self.x + rx, self.y + self.h - ry),
+                (self.x + self.w - rx, self.y + self.h - ry),
+                (self.x + self.w - rx, self.y + ry),
+                (self.x + rx, self.y + ry)
             ][corner]
 
-            # number of segments for this corner
             segments = self._segments[corner]
 
-            # if at least one radius is zero or no segments
             if not(rx and ry and segments):
-                # sharp corner
                 vertices[index].x = self.x + self.w * dw
                 vertices[index].y = self.y + self.h * dh
-                vertices[index].s0 = <float>(tx + tw * dw)
-                vertices[index].t0 = <float>(ty + th * dh)
+                vertices[index].s0 = tx + tw * dw
+                vertices[index].t0 = ty + th * dh
 
                 self._points.append((self.x + self.w * dw, self.y + self.h * dh))
-
             else:
-                # round corner
                 points = self.draw_arc(px, py, rx, ry, angle, angle - 90, segments)
                 for i, point in enumerate(points, index):
                     x, y = point
-                    vertices[i].x = <float>x
-                    vertices[i].y = <float>y
-                    vertices[i].s0 = <float>((x - self.x) / self.w)
-                    vertices[i].t0 = <float>(1 - (y - self.y) / self.h)  # flip vertically
+                    vertices[i].x = x
+                    vertices[i].y = y
+                    vertices[i].s0 = (x - self.x) / self.w
+                    vertices[i].t0 = 1 - (y - self.y) / self.h
                     indices[i] = i
                 index += segments
 
-                # Add final vertex that closes the arc, explained below
                 x = px * (dw != dh) + self.x * (dw == dh) + self.w * (dw * dh)
                 y = py * (dw == dh) + self.y * (dw != dh) + self.h * (dh > dw)
-                vertices[index].x = <float>x
-                vertices[index].y = <float>y
-                vertices[index].s0 = <float>((x - self.x) / self.w)
-                vertices[index].t0 = <float>(1 - (y - self.y) / self.h)  # flip vertically
+                vertices[index].x = x
+                vertices[index].y = y
+                vertices[index].s0 = (x - self.x) / self.w
+                vertices[index].t0 = 1 - (y - self.y) / self.h
 
                 self._points.extend(points)
                 self._points.append((x, y))
 
-                '''
-                We have defined these coefficients for arcs:
-                   tl tr br bl
-                dw: 0  1  1  0;
-                dh: 1  1  0  0;
-
-                Let's not define multiple arrays of coefficients, but
-                use `dw` and `dh` to calculate coordinates for closing vertices
-
-                Formula looks like this:
-
-                x = px * A + self.x * B + self.w * C
-                y = py * D + self.y * E + self.h * F
-
-                , where A - F are boolean values.
-
-                For correct coordinates, coefficients should have these values:
-
-                  tl tr br bl
-                A: 1  0  1  0; when `dw` != `dh`
-                B: 0  1  0  1; when `dw` == `dh`
-                C: 0  1  0  0; when `dw` and `dh` are both `1`
-
-                  tl tr br bl
-                D: 0  1  0  1; same as B
-                E: 1  0  1  0; same as A
-                F: 1  0  0  0; when `dh` > `dw`
-
-                NOTE: Closing vertex will duplicate next opening vertex,
-                      when corner radius is equal to half_size.
-                      (e.g: a circle will have 4 duplicates)
-                      Without it, however, figure looks ugly with small
-                      segment count.
-                '''
-
             indices[index] = index
             index += 1
 
-        # duplicate first corner vertex to close the fan
         indices[count] = indices[1]
-        # count+1 used to specify how many indices are used
         self.batch.set_data(vertices, count, indices, count + 1)
         free(vertices)
         free(indices)
 
-    cdef object draw_arc(self, double cx, double cy, double rx, double ry,
-                         double angle_start, double angle_end, int segments):
-        cdef:
-            double fx, fy, x, y
-            double tangential_factor, radial_factor, theta
-            list points
+    cdef list draw_arc(self, float cx, float cy, float rx, float ry, float angle_start, float angle_end, int segments):
+        cdef float fx, fy, x, y
+        cdef float tangential_factor, radial_factor, theta
+        cdef list points
 
-        # convert to radians
         angle_start *= 0.017453292519943295
         angle_end *= 0.017453292519943295
 
-        # number of vertices for arc, including start & end
         theta = (angle_end - angle_start) / segments
         tangential_factor = tan(theta)
         radial_factor = cos(theta)
 
-        # unit circle, scale later
         x = cos(angle_start)
         y = sin(angle_start)
 
-        # array of length `segments`
         points = []
 
         for i in range(segments):
@@ -1626,9 +1383,7 @@ cdef class RoundedRectangle(Rectangle):
 
     @property
     def segments(self):
-        '''Property for getting/setting the number of segments for each corner.
-        '''
-        return self._segments
+        return [self._segments[i] for i in range(4)]
 
     @segments.setter
     def segments(self, value):
@@ -1637,15 +1392,12 @@ cdef class RoundedRectangle(Rectangle):
 
     @property
     def radius(self):
-        '''Corner radii of the rounded rectangle, defaults to [10,].
-        '''
-        return self._radius
+        return [(self._radius[2*i], self._radius[2*i+1]) for i in range(4)]
 
     @radius.setter
     def radius(self, value):
         self._radius = self._check_radius(value)
         self.flag_data_update()
-
 
 
 
@@ -2068,25 +1820,17 @@ cdef void adjust_params(VertexInstruction instruction, int delta):
 
 
 cdef class SmoothRoundedRectangle(RoundedRectangle):
-    """RoundedRectangle with antialiasing.
+    '''RoundedRectangle with antialiasing.
 
-    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.RoundedRectangle`
-
-    .. note::
-        There is still no support for texture antialiasing. Therefore, if a
-        texture is defined using either ``texture`` or ``source``,
-        antialiasing will be disabled.
-
-    .. versionadded:: 2.3.0
-
-    """
-
+    :Parameters:
+        Same as :class:`~kivy.graphics.vertex_instructions.RoundedRectangle`.
+    '''
     cdef AntiAliasingLine _antialiasing_line
     cdef public Texture default_texture
 
-    def __init__(self, **kwargs):
+    def __cinit__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
-        RoundedRectangle.__init__(self, **kwargs)
+        RoundedRectangle.__cinit__(self, **kwargs)
         self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
@@ -2094,7 +1838,7 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
 
     cdef void rinsert(self, InstructionGroup ig, int index):
         rinsert_instructions(ig, index, self, self._antialiasing_line)
-    
+
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
@@ -2107,32 +1851,25 @@ cdef class SmoothRoundedRectangle(RoundedRectangle):
             RoundedRectangle.build(self)
             self._antialiasing_line.points = self._points
             adjust_params(self, 1)
-    
+
     @property
     def antialiasing_line_points(self):
         return self._antialiasing_line.points
+
 
 
 cdef class SmoothRectangle(Rectangle):
-    """Rectangle with antialiasing.
+    '''Rectangle with antialiasing.
 
-    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Rectangle`
-
-    .. note::
-        There is still no support for texture antialiasing. Therefore, if a
-        texture is defined using either ``texture`` or ``source``,
-        antialiasing will be disabled.
-
-    .. versionadded:: 2.3.0
-
-    """
-
+    :Parameters:
+        Same as :class:`~kivy.graphics.vertex_instructions.Rectangle`.
+    '''
     cdef AntiAliasingLine _antialiasing_line
     cdef public Texture default_texture
 
-    def __init__(self, **kwargs):
+    def __cinit__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
-        Rectangle.__init__(self, **kwargs)
+        Rectangle.__cinit__(self, **kwargs)
         self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
@@ -2140,7 +1877,7 @@ cdef class SmoothRectangle(Rectangle):
 
     cdef void rinsert(self, InstructionGroup ig, int index):
         rinsert_instructions(ig, index, self, self._antialiasing_line)
-    
+
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
@@ -2153,32 +1890,25 @@ cdef class SmoothRectangle(Rectangle):
             Rectangle.build(self)
             self._antialiasing_line.points = self._points
             adjust_params(self, 1)
-    
+
     @property
     def antialiasing_line_points(self):
         return self._antialiasing_line.points
 
 
+
 cdef class SmoothEllipse(Ellipse):
-    """Ellipse with antialiasing.
+    '''Ellipse with antialiasing.
 
-    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Ellipse`
-
-    .. note::
-        There is still no support for texture antialiasing. Therefore, if a
-        texture is defined using either ``texture`` or ``source``,
-        antialiasing will be disabled.
-
-    .. versionadded:: 2.3.0
-
-    """
-
+    :Parameters:
+        Same as :class:`~kivy.graphics.vertex_instructions.Ellipse`.
+    '''
     cdef AntiAliasingLine _antialiasing_line
     cdef public Texture default_texture
 
-    def __init__(self, **kwargs):
+    def __cinit__(self, **kwargs):
         self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
-        Ellipse.__init__(self, **kwargs)
+        Ellipse.__cinit__(self, **kwargs)
         self.default_texture = self.texture
 
     cdef void radd(self, InstructionGroup ig):
@@ -2186,13 +1916,11 @@ cdef class SmoothEllipse(Ellipse):
 
     cdef void rinsert(self, InstructionGroup ig, int index):
         rinsert_instructions(ig, index, self, self._antialiasing_line)
-    
+
     cdef void rremove(self, InstructionGroup ig):
         rremove_instructions(ig, self, self._antialiasing_line)
 
     cdef void build(self):
-        cdef list ellipse_center = []
-
         if has_texture_set(self) or too_small_for_antialiasing(self):
             self._antialiasing_line.points = []
             Ellipse.build(self)
@@ -2206,6 +1934,7 @@ cdef class SmoothEllipse(Ellipse):
     @property
     def antialiasing_line_points(self):
         return self._antialiasing_line.points
+
 
 
 cdef class SmoothQuad(Quad):
