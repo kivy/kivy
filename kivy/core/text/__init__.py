@@ -135,10 +135,6 @@ class LabelBase(object):
             padding_right, padding_bottom].
             ``padding`` should be int|float or a list|tuple with 1, 2 or 4
             elements.
-        `padding_x`: float, defaults to 0.0
-            Left/right padding
-        `padding_y`: float, defaults to 0.0
-            Top/bottom padding
         `halign`: str, defaults to "left"
             Horizontal text alignment inside the bounding box
         `valign`: str, defaults to "bottom"
@@ -196,10 +192,6 @@ class LabelBase(object):
         `limit_render_to_text_bbox` was added to allow to limit text rendering
         to the text bounding box (PIL only).
 
-    .. deprecated:: 2.2.0
-        `padding_x` and `padding_y` have been deprecated. Please use `padding`
-        instead.
-
     .. versionchanged:: 2.2.0
         `padding` is now a list and defaults to [0, 0, 0, 0]. `padding` accepts
         int|float or a list|tuple with 1, 2 or 4 elements.
@@ -214,10 +206,6 @@ class LabelBase(object):
     .. versionchanged:: 1.9.0
         `strip`, `strip_reflow`, `shorten_from`, `split_str`, and
         `unicode_errors` were added.
-
-    .. versionchanged:: 1.9.0
-        `padding_x` and `padding_y` has been fixed to work as expected.
-        In the past, the text was padded by the negative of their values.
 
     .. versionchanged:: 1.8.0
         `max_lines` parameters has been added.
@@ -309,16 +297,6 @@ class LabelBase(object):
                     f"{len(options['padding'])} elements."
                 )
 
-        options['padding_x'] = kwargs_get('padding_x')
-        options['padding_y'] = kwargs_get('padding_y')
-        for padding_option in ('padding_x', 'padding_y'):
-            if kwargs_get(padding_option):
-                Logger.warning(
-                    f"LabelBase: The use of the {padding_option} parameter is "
-                    "deprecated, and will be removed in future versions. Use "
-                    "padding instead."
-                )
-
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
         else:
@@ -336,15 +314,6 @@ class LabelBase(object):
         self.texture = None
         self.is_shortened = False
         self.resolve_font_name()
-        self._migrate_deprecated_padding_xy()
-
-    def _migrate_deprecated_padding_xy(self):
-        options = self.options
-        self.options['padding'] = list(self.options['padding'])
-        if options['padding_x']:
-            self.options['padding'][::2] = [options['padding_x']] * 2
-        if options['padding_y']:
-            self.options['padding'][1::2] = [options['padding_y']] * 2
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
@@ -507,7 +476,7 @@ class LabelBase(object):
 
             `text` str, the text to be shortened.
             `margin` int, the amount of space to leave between the margins
-            and the text. This is in addition to :attr:`padding_x`.
+            and the text. This is in addition to :attr:`padding`.
 
         :returns:
             the text shortened to fit into a single line.
