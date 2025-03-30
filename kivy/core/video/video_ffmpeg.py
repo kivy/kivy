@@ -17,8 +17,9 @@ about the requirements.
 
 try:
     import ffmpeg
-except:
+except ImportError:
     raise
+
 
 from kivy.core.video import VideoBase
 from kivy.graphics.texture import Texture

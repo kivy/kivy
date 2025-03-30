@@ -2707,7 +2707,7 @@ class TextInput(FocusBehavior, Widget):
                     else:
                         break
 
-                except:
+                except(TypeError, AttributeError):
                     # exception happen when we tried to render the text
                     # reduce it...
                     if ld is None:

@@ -304,7 +304,7 @@ class GraphicUnitTest(_base):
             try:
                 if reffn != tmpfn:
                     unlink(tmpfn)
-            except:
+            except(FileNotFoundError, PermissionError):
                 pass
             EventLoop.stop()
 
