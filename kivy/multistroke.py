@@ -431,8 +431,11 @@ class Recognizer(EventDispatcher):
             raise MultistrokeError('import_gesture needs data= or filename=')
 
         new = self.filter(db=self.parse_gesture(data), **kwargs)
-        if new:
-            self.db.extend(new)
+        while new:
+            element = new.pop()
+            result = self.recognize(element.strokes, max_gpf=0)
+            if result.best['name'] is None:
+                self.db.append(element)
 
     def transfer_gesture(self, tgt, **kwargs):
         '''Transfers :class:`MultistrokeGesture` objects from
