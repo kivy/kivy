@@ -493,7 +493,9 @@ cdef class _WindowSDL3Storage:
 
     def _get_current_video_driver(self):
         cdef char *driver = SDL_GetCurrentVideoDriver()
-        return <str>driver
+        if driver is NULL:
+            return None
+        return driver.decode('utf-8')
 
     def _get_window_info_macos(self):
         cdef WindowInfomacOS window_info
