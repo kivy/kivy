@@ -236,7 +236,7 @@ class EventLoopBase(EventDispatcher):
             self.postproc_modules.remove(mod)
 
     def remove_android_splash(self, *args):
-        '''Remove android presplash in SDL2 bootstrap.'''
+        '''Remove android presplash in SDL3 bootstrap.'''
         try:
             from android import remove_presplash
             remove_presplash()
