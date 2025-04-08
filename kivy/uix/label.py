@@ -459,6 +459,14 @@ class Label(Widget):
 
     def on_ref_press(self, ref):
         pass
+    @property
+    def content(self):
+        return self.text
+
+    @content.setter
+    def content(self, value):
+        self.text = value
+
 
     #
     # Properties
