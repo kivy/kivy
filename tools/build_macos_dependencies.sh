@@ -4,7 +4,7 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.2.8"
+MACOS__SDL3__VERSION="3.2.10"
 MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
 MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
@@ -21,13 +21,13 @@ MACOS__SDL3_MIXER__HASH="78a2035cf4cf95066d7d9e6208e99507376409a7"
 MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/$MACOS__SDL3_MIXER__HASH.tar.gz"
 MACOS__SDL3_MIXER__FOLDER="SDL_mixer-$MACOS__SDL3_MIXER__HASH"
 
-# macOS SDL2_ttf
-MACOS__SDL3_TTF__VERSION="3.2.0"
+# macOS SDL3_ttf
+MACOS__SDL3_TTF__VERSION="3.2.2"
 MACOS__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$MACOS__SDL3_TTF__VERSION/SDL3_ttf-$MACOS__SDL3_TTF__VERSION.tar.gz"
 MACOS__SDL3_TTF__FOLDER="SDL3_ttf-$MACOS__SDL3_TTF__VERSION"
 
 # macOS libpng
-MACOS__LIBPNG__VERSION="1.6.40"
+MACOS__LIBPNG__VERSION="1.6.47"
 MACOS__LIBPNG__URL="https://download.sourceforge.net/libpng/libpng16/${MACOS__LIBPNG__VERSION}/libpng-${MACOS__LIBPNG__VERSION}.tar.gz"
 MACOS__LIBPNG__FOLDER="libpng-${MACOS__LIBPNG__VERSION}"
 
@@ -92,7 +92,7 @@ FRAMEWORK_SEARCH_PATHS="$(pwd)/kivy-dependencies/dist/Frameworks"
 # Build the dependencies
 pushd kivy-dependencies/build
 
-# libpng is neeeded by SDL2_ttf to render emojis
+# libpng is neeeded by SDL3_ttf to render emojis
 echo "-- Build libpng (Universal)"
 pushd $MACOS__LIBPNG__FOLDER
   cmake -S . -B build \
@@ -144,7 +144,7 @@ xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
 cp -a Xcode/build/Release/SDL3_image.framework ../../dist/Frameworks
 popd
 
-echo "-- Build SDL2_ttf (Universal)"
+echo "-- Build SDL3_ttf (Universal)"
 pushd $MACOS__SDL3_TTF__FOLDER
 sh ./external/download.sh
 
