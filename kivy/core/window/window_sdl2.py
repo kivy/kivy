@@ -404,9 +404,7 @@ class WindowSDL(WindowBase):
             except AttributeError:
                 pass
         else:
-            self._density = (
-                self._win.window_pixel_size[0] / self._win.window_size[0]
-            )
+            self._density = self._win._get_gl_size()[0] / self._size[0]
             if self._is_desktop:
                 self.dpi = self._density * 96.
 
