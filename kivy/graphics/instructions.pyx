@@ -26,7 +26,7 @@ cdef int _need_reset_gl = 1
 cdef int _active_texture = -1
 cdef list canvas_list = []
 
-cdef void reset_gl_context():
+cpdef void reset_gl_context():
     global _need_reset_gl, _active_texture
     _need_reset_gl = 0
     _active_texture = 0
