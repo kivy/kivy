@@ -122,9 +122,7 @@ async def kivy_app(request, nursery):
     context['Builder'] = BuilderBase.create_from(Builder)
     context.push()
 
-    Window.create_window()
-    Window.register()
-    Window.initialized = True
+    Window.initialize_window_setup()
     Window.canvas.clear()
 
     app = request.param[0]()

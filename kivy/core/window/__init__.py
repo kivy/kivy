@@ -353,7 +353,23 @@ class WindowBase(EventDispatcher):
     '''
 
     __instance = None
-    __initialized = False
+
+    _initialized = BooleanProperty(False)
+
+    # make some property read-only
+    def _get_initialized(self):
+        return self._initialized
+
+    initialized = AliasProperty(_get_initialized, bind=('_initialized',))
+    '''Read only property to check if the window is initialized and the
+    associated setup like registering the window to eventloop, modules,
+    keyboard and metrics are completed or not.
+
+    .. versionadded:: 2.3.0
+
+    :attr:`initialized` is an :class:`~kivy.properties.AliasProperty`.
+    '''
+
     _fake_fullscreen = False
 
     # private properties
@@ -1082,7 +1098,6 @@ class WindowBase(EventDispatcher):
         if WindowBase.__instance is not None and not force:
             return
 
-        self.initialized = False
         self.event_managers = []
         self.event_managers_dict = defaultdict(list)
         self._is_desktop = Config.getboolean('kivy', 'desktop')
@@ -1172,6 +1187,14 @@ class WindowBase(EventDispatcher):
         self.children = []
         self.parent = self
 
+        lazy = Config.getboolean('graphics', 'lazy_window_initialization')
+
+        if not lazy:
+            self.initialize_window_setup()
+
+    def initialize_window_setup(self):
+        if self.initialized:
+            return
         # before creating the window
         import kivy.core.gl  # NOQA
 
@@ -1186,13 +1209,13 @@ class WindowBase(EventDispatcher):
         if not hasattr(self, '_context'):
             self._context = get_current_context()
 
-        # because Window is created as soon as imported, if we bound earlier,
-        # metrics would be imported when dp is set during window creation.
-        # Instead, don't process dpi changes until everything is set
+        # because Window might be created as soon as imported, if we bound
+        # earlier, metrics would be imported when dp is set during window
+        # creation. Instead, don't process dpi changes until everything is set.
         self.fbind('dpi', self._reset_metrics_dpi)
 
         # mark as initialized
-        self.initialized = True
+        self._initialized = True
 
     def _reset_metrics_dpi(self, *args):
         from kivy.metrics import Metrics
