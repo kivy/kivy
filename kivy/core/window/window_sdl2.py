@@ -34,7 +34,7 @@ except ImportError:
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform, deprecated
+from kivy.utils import platform
 from collections import deque
 
 
@@ -317,7 +317,7 @@ class WindowSDL(WindowBase):
                 self.fullscreen, resizable, state,
                 self.get_gl_backend_name())
 
-            # We don't have a density or dpi yet set, so let's ask for an update
+            # We don't have density or dpi yet set, so let's ask for an update.
             self._update_density_and_dpi()
 
             # never stay with a None pos, application using w.center
@@ -382,8 +382,8 @@ class WindowSDL(WindowBase):
                 filename_icon = resource_find(
                         join(kivy_data_dir, 'logo', filename_icon))
             self.set_icon(filename_icon)
-        except:
-            Logger.exception('Window: cannot set icon')
+        except Exception as err:
+            Logger.exception(f'Window: cannot set icon {err}')
 
         if platform == 'win' and self._win_dpi_watch is None:
             self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
@@ -658,10 +658,12 @@ class WindowSDL(WindowBase):
                 # times = min(abs(times), 100)
                 # for k in range(times):
                 self._mouse_down = True
-                self.dispatch('on_mouse_down',
+                self.dispatch(
+                    'on_mouse_down',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
                 self._mouse_down = False
-                self.dispatch('on_mouse_up',
+                self.dispatch(
+                    'on_mouse_up',
                     self._mouse_x, self._mouse_y, btn, self.modifiers)
 
             elif action.startswith('drop'):
@@ -681,7 +683,15 @@ class WindowSDL(WindowBase):
 
                 # The display has changed, so the density and dpi
                 # may have changed too.
-                self._update_density_and_dpi()
+                self._monitor = args[0]
+                if platform == 'linux':
+                    self._monitor = monitor = args[0]
+                    from kivy.linux_metrics import get_desktop_scale_factor
+                    self._density = get_desktop_scale_factor(
+                            monitor=monitor)
+                    self.dpi = self._density * 96
+                else:
+                    self._update_density_and_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
@@ -846,7 +856,7 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
-            action, args = event[0], event[1:]
+            action = event[0]
             if action == 'quit':
                 EventLoop.quit = True
                 break
@@ -894,9 +904,8 @@ class WindowSDL(WindowBase):
         self._modifiers = list(modifiers)
         return
 
-    def request_keyboard(
-            self, callback, target, input_type='text', keyboard_suggestions=True
-    ):
+    def request_keyboard(self, callback, target, input_type='text',
+                         keyboard_suggestions=True):
         self._sdl_keyboard = super(WindowSDL, self).\
             request_keyboard(
             callback, target, input_type, keyboard_suggestions
