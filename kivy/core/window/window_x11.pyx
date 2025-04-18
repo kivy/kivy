@@ -22,8 +22,7 @@ cdef extern from "window_x11_core.c":
     pass
 
 cdef extern from "X11/Xlib.h":
-    ctypedef void* Display
-    ctypedef void* Window
+    pass
 
 cdef extern from "X11/Xutil.h":
     int KeyPress
