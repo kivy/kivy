@@ -1360,7 +1360,8 @@ class WindowBase(EventDispatcher):
         get_context().flush()
 
     shape_image = StringProperty('')
-    '''An image used to define the window shape (works only with the SDL3 window provider).
+    '''An image used to define the window shape
+    (works only with the SDL3 window provider).
 
     .. warning::
         This option only works if :attr:`Window.shapeable` is `True`.
@@ -2534,7 +2535,7 @@ class WindowBase(EventDispatcher):
                 vec4 texColor1 = texture2D(texture1, uv);
                 gl_FragColor = frag_color * vec4(texColor0.rgb, texColor1.a * texColor0.a);
             }}
-        """
+        """  # noqa
         self.render_context.shader.fs = fs_shader
 
 
