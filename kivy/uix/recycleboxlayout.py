@@ -181,3 +181,105 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
         else:
             a, b = at_idx((x, y + h)), at_idx((x, y))
         return list(range(a, b + 1))
+
+    def goto_view(self, index):
+        """Scroll the view to make the specified index visible.
+
+        Args:
+            index (int): The index in the data list to scroll to.
+        """
+        if not self.view_opts or not self.parent:
+            return
+
+        # Get the total number of items
+        num_items = len(self.view_opts)
+
+        # Limit index to valid range and handle negative indices
+        index = max(-num_items, min(index, num_items - 1))
+        if index < 0:
+            index = num_items + index
+
+        # Get padding and spacing
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
+        spacing = self.spacing
+
+        # Calculate total dimensions
+        if self.orientation == "horizontal":
+            # Calculate total width including spacing and padding
+            total_width = (
+                    sum(w["size"][0] for w in self.view_opts)
+                    + (num_items - 1) * spacing
+                    + padding_left
+                    + padding_right
+            )
+
+            # Calculate position of target item
+            target_pos = padding_left + sum(
+                self.view_opts[i]["size"][0] + spacing for i in range(index)
+            )
+
+            # Calculate viewport width
+            viewport_width = self.parent.width
+
+            # Calculate scroll position (0 to 1)
+            # We want the target item to be visible in the viewport
+            # If the item is wider than the viewport, center it
+            item_width = self.view_opts[index]["size"][0]
+            if item_width > viewport_width:
+                # Center the item
+                target_scroll = max(
+                    0,
+                    min(
+                        1,
+                        (target_pos - (viewport_width - item_width) / 2)
+                        / (total_width - viewport_width),
+                    ),
+                )
+            else:
+                # Make sure the item is visible
+                target_scroll = max(
+                    0, min(1, target_pos / (total_width - viewport_width))
+                )
+
+            # Apply scroll position
+            self.parent.scroll_x = target_scroll
+        else:  # vertical orientation
+            # Calculate total height including spacing and padding
+            total_height = (
+                    sum(w["size"][1] for w in self.view_opts)
+                    + (num_items - 1) * spacing
+                    + padding_top
+                    + padding_bottom
+            )
+
+            # Calculate position of target item
+            target_pos = padding_top
+            for i in range(index):
+                target_pos += self.view_opts[i]["size"][1] + spacing
+
+            # Calculate viewport height
+            viewport_height = self.parent.height
+
+            # Calculate scroll position (0 to 1)
+            # We want the target item to be visible in the viewport
+            # If the item is taller than the viewport, center it
+            item_height = self.view_opts[index]["size"][1]
+            if item_height > viewport_height:
+                # Center the item
+                target_scroll = max(
+                    0,
+                    min(
+                        1,
+                        1
+                        - (target_pos - (viewport_height - item_height) / 2)
+                        / (total_height - viewport_height),
+                    ),
+                )
+            else:
+                # Make sure the item is visible
+                target_scroll = max(
+                    0, min(1, 1 - target_pos / (total_height - viewport_height))
+                )
+
+            # Apply scroll position
+            self.parent.scroll_y = target_scroll

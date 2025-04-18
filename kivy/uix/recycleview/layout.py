@@ -241,9 +241,11 @@ refresh_view_layout`.
                 adapter.invalidate()
 
     def goto_view(self, index):
-        '''Moves the views so that the view corresponding to `index` is
-        visible.
-        '''
+        """Moves the views so that the view corresponding to `index` is
+        visible.  A negative index is allowed.
+        """
+        # implement this method in the subclass, RecycleBoxLayout
+        # or RecycleGridLayout
         pass
 
     def on_viewclass(self, instance, value):
