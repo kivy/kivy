@@ -52,7 +52,7 @@ class ShapedWindowApp(App):
         # Move to the next image in the list
         self.current_index = (self.current_index + 1) % len(self.image_paths)
         Window.shape_image = self.image_paths[self.current_index]
-        
+
 
 if __name__ == "__main__":
     ShapedWindowApp().run()
