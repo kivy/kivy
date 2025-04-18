@@ -249,7 +249,7 @@ use_embed_signature = use_embed_signature or bool(
 # This determines whether Cython specific functionality may be used.
 can_use_cython = True
 
-if platform in ('ios', 'android'):
+if platform in ('ios'):
     # NEVER use or declare cython on these platforms
     print('Not using cython on %s' % platform)
     can_use_cython = False
