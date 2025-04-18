@@ -87,18 +87,22 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef int depth
 
     if pixelfmt == "rgba":
-        fmt = SDL_GetPixelFormatForMasks(
-            pitch, 0x00000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
-        )
         depth = 32
-
-    elif pixelfmt == "rgb":
         fmt = SDL_GetPixelFormatForMasks(
-            pitch, 0x0000FF, 0x00FF00, 0xFF0000, 0
+            depth, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
         )
+    elif pixelfmt == "rgb":
         depth = 24
+        fmt = SDL_GetPixelFormatForMasks(
+            depth, 0x0000FF, 0x00FF00, 0xFF0000, 0
+        )
 
-    image = SDL_CreateSurfaceFrom(w, h, fmt, c_pixels, depth)
+    image = SDL_CreateSurfaceFrom(w, h, fmt, c_pixels, pitch)
+
+    if image == NULL:
+        Logger.warn('ImageSDL3: error creating surface from pixel data: {}'.format(
+            SDL_GetError()))
+        return
 
     if c_filename is not None:
         if imagefmt == "png":
