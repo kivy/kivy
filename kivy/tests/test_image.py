@@ -29,7 +29,7 @@ class ImageTestCase(unittest.TestCase):
         Image = self.cls
 
         if setupconfig.PLATFORM == "darwin":
-            # XXX on OSX CI Builder, img_sdl2 is not used
+            # XXX on OSX CI Builder, img_sdl3 is not used
             # therefore the test below wont work yet with imageio only.
             return
 
