@@ -662,6 +662,7 @@ cdef extern from "SDL.h":
     cdef SDL_MetalView SDL_Metal_CreateView(SDL_Window * window)
     cdef void* SDL_Metal_GetLayer(SDL_MetalView view)
     cdef void* SDL_GetPointerProperty(SDL_PropertiesID props, const char *name, void *default_value)
+    cdef Sint64 SDL_GetNumberProperty(SDL_PropertiesID props, const char *name, Sint64 default_value)
     cdef SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
     cdef void SDL_free(void *mem)
     cdef float SDL_GetWindowPixelDensity(SDL_Window *window)

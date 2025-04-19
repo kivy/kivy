@@ -560,10 +560,10 @@ cdef class _WindowSDL3Storage:
         )
 
         window_info.set_window(
-            SDL_GetPointerProperty(
+            SDL_GetNumberProperty(
                 SDL_GetWindowProperties(self.win),
                 "SDL.window.x11.window",
-                NULL,
+                0,
             )
         )
 
