@@ -51,6 +51,9 @@ cdef extern from *:
             typedef void *NSWindow;
         #endif
 
+        #ifndef _BRIDGEDUIWINDOW_DEFINED
+        #define _BRIDGEDUIWINDOW_DEFINED
+
         UIWindow *_BridgedUIWindow(void* window){
             return (__bridge UIWindow *)window;
         }
@@ -59,9 +62,14 @@ cdef extern from *:
             return (__bridge NSWindow *)window;
         }
 
+        #endif
+
     #else
         typedef void *UIWindow;
         typedef void *NSWindow;
+
+        #ifndef _BRIDGEDUIWINDOW_DEFINED
+        #define _BRIDGEDUIWINDOW_DEFINED
 
         UIWindow *_BridgedUIWindow(void* window){
             return (UIWindow *)window;
@@ -70,6 +78,8 @@ cdef extern from *:
         NSWindow *_BridgedNSWindow(void* window){
             return (NSWindow *)window;
         }
+
+        #endif
 
     #endif
 
