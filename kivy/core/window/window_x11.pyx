@@ -21,13 +21,6 @@ from .window_info cimport WindowInfoX11
 cdef extern from "window_x11_core.c":
     pass
 
-cdef extern from "X11/Xlib.h":
-    cdef struct _XDisplay:
-        pass
-    ctypedef _XDisplay Display
-    ctypedef int XID
-    ctypedef XID Window
-
 cdef extern from "X11/Xutil.h":
     int KeyPress
     int KeyRelease
