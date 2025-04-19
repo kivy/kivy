@@ -3,7 +3,7 @@ set -e -x
 
 update_version_metadata() {
   current_time=$(python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))")
-  date=$(python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))")
+  date=$(python -c "from datetime import datetime, timezone; print(datetime.fromtimestamp($current_time, timezone.utc).strftime('%Y%m%d'))")
   echo "Version date is: $date"
   git_tag=$(git rev-parse HEAD)
   echo "Git tag is: $git_tag"
