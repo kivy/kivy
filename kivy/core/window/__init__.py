@@ -1441,6 +1441,9 @@ class WindowBase(EventDispatcher):
         if self.initialized:
             self._load_shape_image()
 
+    def _is_shapable(self):
+        return False
+
     def _get_shapable(self):
         return self._is_shapable()
 

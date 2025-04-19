@@ -15,7 +15,7 @@ cdef class WindowInfoX11:
     cdef Display *display
     cdef Window window
     cdef void set_display(self, void* display)
-    cdef void set_window(self, void* window)
+    cdef void set_window(self, int window)
 
 cdef class WindowInfoWindows:
     cdef HWND window

@@ -34,7 +34,7 @@ cdef class WindowInfoX11:
     cdef void set_display(self, void* display):
         self.display = <Display *>display
 
-    cdef void set_window(self, void* window):
+    cdef void set_window(self, int window):
         self.window = <Window>window
 
 
