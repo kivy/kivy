@@ -14,15 +14,6 @@ RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     install_ubuntu_build_deps && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers'
 
-# If we're on Debian buster, we need to install cmake from backports as the cmake version
-# in buster is too old to build sdl2
-RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
-        echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list; \
-        apt-get update; \
-        apt-get -y install -t buster-backports cmake; \
-    fi'
-
-
 # Install patchelf (needed during delocation)
 RUN /bin/bash -c 'wget https://github.com/NixOS/patchelf/releases/download/0.17.2/patchelf-0.17.2-armv7l.tar.gz'
 RUN /bin/bash -c 'mkdir patchelf-0.17.2-armv7l'
@@ -43,10 +34,8 @@ RUN ./tools/build_linux_dependencies.sh
 RUN KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL3=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_SDL_GL_ALPHA_SIZE=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
 
 # Delocate the wheel.
-# buster: manylinux_2_28_armv7l, bullseye: manylinux_2_31_armv7l, bookworm: manylinux_2_35_armv7l
-RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "buster" ]; then \
-        MANYLINUX_PLATFORM=manylinux_2_28_armv7l; \
-    elif [ "$(lsb_release -cs)" = "bullseye" ]; then \
+# bullseye: manylinux_2_31_armv7l, bookworm: manylinux_2_35_armv7l
+RUN /bin/bash -c 'if [ "$(lsb_release -cs)" = "bullseye" ]; then \
         MANYLINUX_PLATFORM=manylinux_2_31_armv7l; \
     elif [ "$(lsb_release -cs)" = "bookworm" ]; then \
         MANYLINUX_PLATFORM=manylinux_2_35_armv7l; \
