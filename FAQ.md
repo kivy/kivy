@@ -237,7 +237,7 @@ this. The underlying issue depends on many things:
 
   - Check your installation. Twice.
   - Check that your graphics driver support OpenGL 2.1 at the minimum. Otherwise, Kivy can't run.
-  - If you use windows and ANGLE (`KIVY_GL_BACKEND=angle_sdl2`), check that you have DirectX 9 support.
+  - If you use windows and ANGLE (`KIVY_GL_BACKEND=angle_sdl3`), check that you have DirectX 9 support.
   - If your platform doesn't support OpenGL, SDL2 cannot initialize OpenGL.
   - Don't mix the architecture of the dependencies (e.g. Python 64-bit and 32-bit extensions/SDL2)
   - Don't mix python installation: e.g. if you have Python and Anaconda installed, the Python actually run may be different than you think. Similarly, if you have multiple Python versions available on the ``PATH``, they may clash.
