@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   GST_REGISTRY: '~/registry.bin'
-  KIVY_GL_BACKEND: 'angle_sdl2'
+  KIVY_GL_BACKEND: 'angle_sdl3'
   KIVY_SPLIT_EXAMPLES: 1
   SETUPTOOLS_USE_DISTUTILS: local
 

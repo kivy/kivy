@@ -21,7 +21,7 @@ At runtime the following backends are available and can be set using
   ``USE_OPENGL_MOCK=0``. Requires glew be installed.
 * ``sdl3`` -- Available on Windows/unix (the default when gl/glew is disabled).
   Unavailable when ``USE_SDL3=0``. Requires ``kivy_deps.sdl3`` be installed.
-* ``angle_sdl2`` -- Available on Windows with Python 3.5+.
+* ``angle_sdl3`` -- Available on Windows with Python 3.5+.
   Unavailable when ``USE_SDL3=0``. Requires ``kivy_deps.sdl3`` and
   ``kivy_deps.angle`` be installed.
 * ``angle`` -- Available on macOS and iOS. Unavailable when ``USE_SDL3=0``.
@@ -106,12 +106,12 @@ cpdef cgl_init(allowed=[], ignored=[]):
     initialized_tid = get_ident()
 
     # for ANGLE, currently we use sdl3, and only on windows.
-    if backend == "angle_sdl2":
+    if backend == "angle_sdl3":
         if platform != "win32":
             raise Exception("CGL: ANGLE backend can be used only on Windows")
         backend = "sdl3"
 
-    if cgl_name not in {'glew', 'angle', 'sdl3', 'angle_sdl2', 'mock', 'gl'}:
+    if cgl_name not in {'glew', 'angle', 'sdl3', 'angle_sdl3', 'mock', 'gl'}:
         raise ValueError('{} is not a recognized GL backend'.format(backend))
 
     mod = importlib.import_module("kivy.graphics.cgl_backend.cgl_{}".format(backend))

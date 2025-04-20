@@ -165,7 +165,7 @@ cdef class _WindowSDL3Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        if self.gl_backend_name == "angle_sdl2":
+        if self.gl_backend_name == "angle_sdl3":
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
