@@ -1,6 +1,6 @@
 # found a way to include it more easily.
 '''
-SDL2 Window
+SDL3 Window
 ===========
 
 Windowing provider directly based on our own wrapped version of SDL.
@@ -17,7 +17,6 @@ __all__ = ('WindowSDL', )
 
 from os.path import join
 import sys
-from typing import Optional
 from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.base import EventLoop
@@ -25,16 +24,16 @@ from kivy.clock import Clock
 from kivy.config import Config
 from kivy.core.window import WindowBase
 try:
-    from kivy.core.window._window_sdl2 import _WindowSDL2Storage
+    from kivy.core.window._window_sdl3 import _WindowSDL3Storage
 except ImportError:
     from kivy.core import handle_win_lib_import_error
     handle_win_lib_import_error(
-        'window', 'sdl2', 'kivy.core.window._window_sdl2')
+        'window', 'sdl3', 'kivy.core.window._window_sdl3')
     raise
 from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from kivy.resources import resource_find
-from kivy.utils import platform, deprecated
+from kivy.utils import platform
 from collections import deque
 
 
@@ -103,7 +102,7 @@ SDLK_F14 = 1073741895
 SDLK_F15 = 1073741896
 
 
-class SDL2MotionEvent(MotionEvent):
+class SDL3MotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('is_touch', True)
@@ -116,7 +115,7 @@ class SDL2MotionEvent(MotionEvent):
         super().depack(args)
 
 
-class SDL2MotionEventProvider(MotionEventProvider):
+class SDL3MotionEventProvider(MotionEventProvider):
     win = None
     q = deque()
     touchmap = {}
@@ -132,7 +131,7 @@ class SDL2MotionEventProvider(MotionEventProvider):
             action, fid, x, y, pressure = value
             y = 1 - y
             if fid not in touchmap:
-                touchmap[fid] = me = SDL2MotionEvent(
+                touchmap[fid] = me = SDL3MotionEvent(
                     'sdl', fid, (x, y, pressure)
                 )
             else:
@@ -150,8 +149,6 @@ class SDL2MotionEventProvider(MotionEventProvider):
 
 class WindowSDL(WindowBase):
 
-    _win_dpi_watch: Optional['_WindowsSysDPIWatch'] = None
-
     _do_resize_ev = None
 
     managed_textinput = True
@@ -160,7 +157,7 @@ class WindowSDL(WindowBase):
         self._pause_loop = False
         self._cursor_entered = False
         self._drop_pos = None
-        self._win = _WindowSDL2Storage()
+        self._win = _WindowSDL3Storage()
         super(WindowSDL, self).__init__()
         self.titlebar_widget = None
         self._mouse_x = self._mouse_y = -1
@@ -318,7 +315,8 @@ class WindowSDL(WindowBase):
                 self.get_gl_backend_name())
 
             # We don't have a density or dpi yet set, so let's ask for an update
-            self._update_density_and_dpi()
+            self._update_density()
+            self._update_dpi()
 
             # never stay with a None pos, application using w.center
             # will be fired.
@@ -365,9 +363,9 @@ class WindowSDL(WindowBase):
             return
 
         # auto add input provider
-        Logger.info('Window: auto add sdl2 input provider')
-        SDL2MotionEventProvider.win = self
-        EventLoop.add_input_provider(SDL2MotionEventProvider('sdl', ''))
+        Logger.info('Window: auto add sdl3 input provider')
+        SDL3MotionEventProvider.win = self
+        EventLoop.add_input_provider(SDL3MotionEventProvider('sdl', ''))
 
         # set window icon before calling set_mode
         try:
@@ -385,33 +383,16 @@ class WindowSDL(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
-        if platform == 'win' and self._win_dpi_watch is None:
-            self._win_dpi_watch = _WindowsSysDPIWatch(window=self)
-            self._win_dpi_watch.start()
+    def _update_density(self):
+        self._density = self._win.get_window_pixel_density()
 
-    def _update_density_and_dpi(self):
-        if platform == 'win':
-            from ctypes import windll
-            self._density = 1.
-            try:
-                hwnd = windll.user32.GetActiveWindow()
-                self.dpi = float(windll.user32.GetDpiForWindow(hwnd))
-                self._density = self.dpi / 96
-            except AttributeError:
-                pass
-        else:
-            self._density = (
-                self._win.window_pixel_size[0] / self._win.window_size[0]
-            )
-            if self._is_desktop:
-                self.dpi = self._density * 96.
+    def _update_dpi(self):
+        if self._is_desktop:
+            self.dpi = self._win.get_window_display_scale() * 96.0
 
     def close(self):
         self._win.teardown_window()
         super(WindowSDL, self).close()
-        if self._win_dpi_watch is not None:
-            self._win_dpi_watch.stop()
-            self._win_dpi_watch = None
 
         self.initialized = False
 
@@ -494,51 +475,12 @@ class WindowSDL(WindowBase):
         return self._win.get_native_handle()
 
     # Transparent Window background
-    def _is_shaped(self):
-        return self._win.is_window_shaped()
+    def _is_shapable(self):
+        return self._win.is_window_shapable()
 
-    def _set_shape(self, shape_image, mode='default',
-                   cutoff=False, color_key=None):
-        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
-        color_key = color_key or (0, 0, 0, 1)
-        if mode not in modes:
-            Logger.warning(
-                'Window: shape mode can be only '
-                '{}'.format(', '.join(modes))
-            )
-            return
-        if not isinstance(color_key, (tuple, list)):
-            return
-        if len(color_key) not in (3, 4):
-            return
-        if len(color_key) == 3:
-            color_key = (color_key[0], color_key[1], color_key[2], 1)
-            Logger.warning(
-                'Window: Shape color_key must be only tuple or list'
-            )
-            return
-        color_key = (
-            color_key[0] * 255,
-            color_key[1] * 255,
-            color_key[2] * 255,
-            color_key[3] * 255
-        )
+    def _set_shape(self, shape_image):
+        self._win.set_shape(shape_image)
 
-        assert cutoff in (1, 0)
-        shape_image = shape_image or Config.get('kivy', 'window_shape')
-        shape_image = resource_find(shape_image) or shape_image
-        self._win.set_shape(shape_image, mode, cutoff, color_key)
-
-    def _get_shaped_mode(self):
-        return self._win.get_shaped_mode()
-
-    def _set_shaped_mode(self, value):
-        self._set_shape(
-            shape_image=self.shape_image,
-            mode=value, cutoff=self.shape_cutoff,
-            color_key=self.shape_color_key
-        )
-        return self._win.get_shaped_mode()
     # twb end
 
     def _set_cursor_state(self, value):
@@ -596,7 +538,7 @@ class WindowSDL(WindowBase):
                 # Right now, we have no mechanism that we could use to know
                 # which is the preferred one for the application.
                 if platform in ('ios', 'android'):
-                    SDL2MotionEventProvider.q.appendleft(event)
+                    SDL3MotionEventProvider.q.appendleft(event)
                 pass
 
             elif action == 'mousemotion':
@@ -681,7 +623,17 @@ class WindowSDL(WindowBase):
 
                 # The display has changed, so the density and dpi
                 # may have changed too.
-                self._update_density_and_dpi()
+                # Maybe in SDL3 this is not needed anymore?
+                self._update_density()
+                self._update_dpi()
+
+            elif action == 'windowpixelsizechanged':
+                Logger.info("WindowSDL: Window pixel size changed")
+                self._update_density()
+
+            elif action == 'windowdisplayscalechanged':
+                Logger.info("WindowSDL: Window display scale changed")
+                self._update_dpi()
 
             elif action == 'windowmoved':
                 self.dispatch('on_move')
@@ -942,62 +894,3 @@ class WindowSDL(WindowBase):
             return
         self.titlebar_widget = titlebar_widget
         return self._win.set_custom_titlebar(self.titlebar_widget) == 0
-
-
-class _WindowsSysDPIWatch:
-
-    hwnd = None
-
-    new_windProc = None
-
-    old_windProc = None
-
-    window: WindowBase = None
-
-    def __init__(self, window: WindowBase):
-        self.window = window
-
-    def start(self):
-        from kivy.input.providers.wm_common import WNDPROC, \
-            SetWindowLong_WndProc_wrapper
-        from ctypes import windll
-
-        self.hwnd = windll.user32.GetActiveWindow()
-
-        # inject our own handler to handle messages before window manager
-        self.new_windProc = WNDPROC(self._wnd_proc)
-        self.old_windProc = SetWindowLong_WndProc_wrapper(
-            self.hwnd, self.new_windProc)
-
-    def stop(self):
-        from kivy.input.providers.wm_common import \
-            SetWindowLong_WndProc_wrapper
-
-        if self.hwnd is None:
-            return
-
-        self.new_windProc = SetWindowLong_WndProc_wrapper(
-            self.hwnd, self.old_windProc)
-        self.hwnd = self.new_windProc = self.old_windProc = None
-
-    def _wnd_proc(self, hwnd, msg, wParam, lParam):
-        from kivy.input.providers.wm_common import WM_DPICHANGED, WM_NCCALCSIZE
-        from ctypes import windll
-
-        if msg == WM_DPICHANGED:
-
-            def clock_callback(*args):
-                if x_dpi != y_dpi:
-                    raise ValueError(
-                        'Can only handle DPI that are same for x and y')
-
-                self.window.dpi = x_dpi
-
-            x_dpi = wParam & 0xFFFF
-            y_dpi = wParam >> 16
-            Clock.schedule_once(clock_callback, -1)
-        elif Config.getboolean('graphics', 'resizable') \
-                and msg == WM_NCCALCSIZE and self.window.custom_titlebar:
-            return 0
-        return windll.user32.CallWindowProcW(
-            self.old_windProc, hwnd, msg, wParam, lParam)

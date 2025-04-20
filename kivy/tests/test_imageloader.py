@@ -354,9 +354,9 @@ class ImageLoaderTestCase(unittest.TestCase):
             ctx.ok("Passed test as {}x{} {}".format(w, h, fmt))
         sys.stdout.flush()
 
-    def test_ImageLoaderSDL2(self):
-        loadercls = LOADERS.get('ImageLoaderSDL2')
-        # GIF format not listed as supported in sdl2 loader
+    def test_ImageLoaderSDL3(self):
+        loadercls = LOADERS.get('ImageLoaderSDL3')
+        # GIF format not listed as supported in sdl3 loader
         if loadercls:
             exts = list(loadercls.extensions()) + ['gif']
             ctx = self._test_imageloader(loadercls, exts)

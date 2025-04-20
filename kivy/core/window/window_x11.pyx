@@ -149,7 +149,7 @@ x11_set_event_callback(event_callback)
 
 class WindowX11(WindowBase):
 
-    gl_backends_ignored = ['sdl2']
+    gl_backends_ignored = ['sdl3']
 
     def create_window(self, *args):
         global _window_object
@@ -221,8 +221,8 @@ class WindowX11(WindowBase):
 
     def get_window_info(self):
         cdef WindowInfoX11 window_info = WindowInfoX11()
-        window_info.display = x11_get_display()
-        window_info.window = x11_get_window()
+        window_info.set_display(x11_get_display())
+        window_info.set_window(x11_get_window())
         return window_info
 
     def _get_window_native_handle(self):

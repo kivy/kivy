@@ -206,20 +206,20 @@ def kivy_usage():
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('egl_rpi', 'sdl2', 'sdl', 'x11'),
-    'text': ('pil', 'sdl2', 'sdlttf'),
+    'window': ('egl_rpi', 'sdl3', 'sdl', 'x11'),
+    'text': ('pil', 'sdl3', 'sdlttf'),
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio_output': (
-        'gstplayer', 'ffpyplayer', 'sdl2',
+        'gstplayer', 'ffpyplayer', 'sdl3',
         'avplayer'),
-    'image': ('tex', 'imageio', 'dds', 'sdl2', 'pil', 'ffpy', 'gif'),
+    'image': ('tex', 'imageio', 'dds', 'sdl3', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'avfoundation',
                'android', 'picamera'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': (
         'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
-        'sdl2', 'dummy', 'gtk3', )}
+        'sdl3', 'dummy', 'gtk3', )}
 
 # Read environment
 for option, value in kivy_options.items():

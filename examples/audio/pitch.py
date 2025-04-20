@@ -22,7 +22,7 @@ NOTES = (
 class Test(App):
     def build(self):
         self.sound = SoundLoader.load(
-            '/usr/lib64/python{}.{}/test/audiodata/pluck-pcm32.wav'
+            'examples/audio/12908_sweet_trip_mm_clap_hi.wav'
             .format(*version_info[0:2])
         )
         root = BoxLayout()

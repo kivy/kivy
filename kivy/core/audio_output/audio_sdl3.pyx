@@ -1,5 +1,5 @@
 '''
-SDL2 audio provider
+SDL3 audio provider
 ===================
 
 This core audio implementation require SDL_mixer library.
@@ -10,7 +10,7 @@ Native formats:
 
 * wav, since 1.9.0
 
-Depending the compilation of SDL2 mixer and/or installed libraries:
+Depending the compilation of SDL3 mixer and/or installed libraries:
 
 * ogg since 1.9.1 (mixer needs libvorbis/libogg)
 * flac since 1.9.1 (mixer needs libflac)
@@ -34,15 +34,14 @@ Depending the compilation of SDL2 mixer and/or installed libraries:
 
 .. Warning::
 
-    Sequenced formats use the SDL2 Mixer music channel, you can only play
+    Sequenced formats use the SDL3 Mixer music channel, you can only play
     one at a time, and .length will be -1 if music fails to load, and 0
     if loaded successfully (we can't get duration of these formats)
 '''
 
-__all__ = ('SoundSDL2', 'MusicSDL2')
+__all__ = ('SoundSDL3', 'MusicSDL3')
 
-include "../../../kivy/lib/sdl2.pxi"
-include "../../../kivy/graphics/common.pxi"  # For malloc and memcpy (on_pitch)
+include "../../../kivy/lib/sdl3.pxi"
 
 from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
@@ -53,10 +52,7 @@ cdef int mix_flags = 0
 
 
 cdef mix_init():
-    cdef int audio_rate = 44100
-    cdef unsigned short audio_format = AUDIO_S16SYS
-    cdef int audio_channels = 2
-    cdef int audio_buffers = 4096
+    cdef SDL_AudioSpec desired_spec
     cdef int want_flags = 0
     global mix_is_init
     global mix_flags
@@ -66,7 +62,7 @@ cdef mix_init():
         return
 
     if SDL_Init(SDL_INIT_AUDIO) < 0:
-        Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(
+        Logger.critical('AudioSDL3: Unable to initialize SDL: {}'.format(
                         SDL_GetError()))
         mix_is_init = -1
         return 0
@@ -81,9 +77,12 @@ cdef mix_init():
 
     mix_flags = Mix_Init(want_flags)
 
-    if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
-        Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
-                        Mix_GetError()))
+    desired_spec.freq = 44100
+    desired_spec.format = SDL_AUDIO_S16
+    desired_spec.channels = 2    
+    if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
+        Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
+                        SDL_GetError()))
         mix_is_init = -1
         return 0
 
@@ -128,7 +127,7 @@ cdef class MusicContainer:
             self.music = NULL
 
 
-class SoundSDL2(Sound):
+class SoundSDL3(Sound):
 
     @staticmethod
     def extensions():
@@ -146,7 +145,7 @@ class SoundSDL2(Sound):
         self._check_play_ev = None
         self.cc = ChunkContainer()
         mix_init()
-        super(SoundSDL2, self).__init__(**kwargs)
+        super(SoundSDL3, self).__init__(**kwargs)
 
     def _check_play(self, dt):
         cdef ChunkContainer cc = self.cc
@@ -177,23 +176,29 @@ class SoundSDL2(Sound):
 
     def on_pitch(self, instance, value):
         cdef ChunkContainer cc = self.cc
-        cdef int freq, channels
-        cdef unsigned short fmt
-        cdef SDL_AudioCVT cvt
+
+        cdef Uint8 *dst_data = NULL;
+        cdef int dst_len = 0;
+
+        cdef SDL_AudioSpec src_spec
+        cdef SDL_AudioSpec dst_spec
+
         if cc.chunk == NULL:
             return
-        if not Mix_QuerySpec(&freq, &fmt, &channels):
+
+        if not Mix_QuerySpec(&src_spec.freq, &src_spec.format, &src_spec.channels):
             return
-        SDL_BuildAudioCVT(
-            &cvt,
-            fmt, channels, int(freq * self.pitch),
-            fmt, channels, freq,
-        )
-        cvt.buf = <Uint8 *>malloc(cc.original_chunk.alen * cvt.len_mult)
-        cvt.len = cc.original_chunk.alen
-        memcpy(cvt.buf, cc.original_chunk.abuf, cc.original_chunk.alen)
-        SDL_ConvertAudio(&cvt)
-        cc.chunk = Mix_QuickLoad_RAW(cvt.buf, <Uint32>(cvt.len * cvt.len_ratio))
+
+        dst_spec.freq = int(src_spec.freq * value)
+        dst_spec.format = src_spec.format
+        dst_spec.channels = src_spec.channels
+
+        if SDL_ConvertAudioSamples(&src_spec, cc.original_chunk.abuf, cc.original_chunk.alen, &dst_spec, &dst_data, &dst_len) < 0:
+            Logger.warning("SoundSDL3: Error converting audio samples: %s" % SDL_GetError())
+            return
+
+        cc.chunk = Mix_QuickLoad_RAW(dst_data, dst_len)
+        SDL_free(dst_data)
 
     def play(self):
         cdef ChunkContainer cc = self.cc
@@ -203,12 +208,12 @@ class SoundSDL2(Sound):
         cc.chunk.volume = int(self.volume * 128)
         cc.channel = Mix_PlayChannel(-1, cc.chunk, 0)
         if cc.channel == -1:
-            Logger.warning('AudioSDL2: Unable to play {}: {}'.format(
-                           self.source, Mix_GetError()))
+            Logger.warning('AudioSDL3: Unable to play {}: {}'.format(
+                           self.source, SDL_GetError()))
             return
         # schedule event to check if the sound is still playing or not
         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
-        super(SoundSDL2, self).play()
+        super(SoundSDL3, self).play()
 
     def stop(self):
         cdef ChunkContainer cc = self.cc
@@ -220,7 +225,7 @@ class SoundSDL2(Sound):
         if self._check_play_ev is not None:
             self._check_play_ev.cancel()
             self._check_play_ev = None
-        super(SoundSDL2, self).stop()
+        super(SoundSDL3, self).stop()
 
     def load(self):
         cdef ChunkContainer cc = self.cc
@@ -235,8 +240,8 @@ class SoundSDL2(Sound):
 
         cc.chunk = Mix_LoadWAV(<char *><bytes>fn)
         if cc.chunk == NULL:
-            Logger.warning('AudioSDL2: Unable to load {}: {}'.format(
-                           self.source, Mix_GetError()))
+            Logger.warning('AudioSDL3: Unable to load {}: {}'.format(
+                           self.source, SDL_GetError()))
         else:
             cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
             cc.chunk.volume = int(self.volume * 128)
@@ -258,7 +263,7 @@ class SoundSDL2(Sound):
 
 # LoadMUS supports OGG, MP3, WAV but we only use it for native midi,
 # libmikmod, libmodplug and libfluidsynth to avoid confusion
-class MusicSDL2(Sound):
+class MusicSDL3(Sound):
 
     @staticmethod
     def extensions():
@@ -286,7 +291,7 @@ class MusicSDL2(Sound):
         self.mc = MusicContainer()
         self._check_play_ev = None
         mix_init()
-        super(MusicSDL2, self).__init__(**kwargs)
+        super(MusicSDL3, self).__init__(**kwargs)
 
     def _check_play(self, dt):
         cdef MusicContainer mc = self.mc
@@ -316,13 +321,13 @@ class MusicSDL2(Sound):
             return
         Mix_VolumeMusic(int(self.volume * 128))
         if Mix_PlayMusic(mc.music, 1) == -1:
-            Logger.warning('AudioSDL2: Unable to play music {}: {}'.format(
-                           self.source, Mix_GetError()))
+            Logger.warning('AudioSDL3: Unable to play music {}: {}'.format(
+                           self.source, SDL_GetError()))
             return
         mc.playing = 1
         # schedule event to check if the sound is still playing or not
         self._check_play_ev = Clock.schedule_interval(self._check_play, 0.1)
-        super(MusicSDL2, self).play()
+        super(MusicSDL3, self).play()
 
     def stop(self):
         cdef MusicContainer mc = self.mc
@@ -333,7 +338,7 @@ class MusicSDL2(Sound):
         if self._check_play_ev is not None:
             self._check_play_ev.cancel()
             self._check_play_ev = None
-        super(MusicSDL2, self).stop()
+        super(MusicSDL3, self).stop()
 
     def load(self):
         cdef MusicContainer mc = self.mc
@@ -348,8 +353,8 @@ class MusicSDL2(Sound):
 
         mc.music = Mix_LoadMUS(<char *><bytes>fn)
         if mc.music == NULL:
-            Logger.warning('AudioSDL2: Unable to load music {}: {}'.format(
-                           self.source, Mix_GetError()))
+            Logger.warning('AudioSDL3: Unable to load music {}: {}'.format(
+                           self.source, SDL_GetError()))
         else:
             Mix_VolumeMusic(int(self.volume * 128))
 
@@ -366,5 +371,5 @@ class MusicSDL2(Sound):
             Mix_VolumeMusic(int(volume * 128))
 
 
-SoundLoader.register(SoundSDL2)
-SoundLoader.register(MusicSDL2)
+SoundLoader.register(SoundSDL3)
+SoundLoader.register(MusicSDL3)
