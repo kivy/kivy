@@ -144,7 +144,7 @@ generate_rpi_wheels() {
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
-  cp kivy-delocated-wheel/Kivy-* dist/
+  cp kivy-delocated-wheel/*ivy-* dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
