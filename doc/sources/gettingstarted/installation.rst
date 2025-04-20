@@ -192,10 +192,10 @@ The script will download and build the SDL dependencies from source. It will als
 the dependencies into a directory named `kivy-dependencies`. This directory will be used
 by Kivy to build and install Kivy from source with SDL support.
 
-On macOS it is still possible to build SDL2 with the Apple-provided OpenGL framework, but it is
+On macOS it is still possible to build SDL3 with the Apple-provided OpenGL framework, but it is
 deprecated by Apple and we recommend using (default) ANGLE via Metal backend for OpenGL support.
 
-To build SDL2 with Apple-provided OpenGL framework, you can run the script with the 
+To build SDL3 with Apple-provided OpenGL framework, you can run the script with the 
 ``USE_LEGACY_OPENGL`` environment variable set to ``1``::
 
     USE_LEGACY_OPENGL=1 ./build_kivy_deps.sh
@@ -217,7 +217,7 @@ To install the latest cutting-edge Kivy from **master**, instead do::
 
     python -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
 
-If ``USE_LEGACY_OPENGL=1`` has been used to build SDL2 with Apple-provided OpenGL framework, you will need to
+If ``USE_LEGACY_OPENGL=1`` has been used to build SDL3 with Apple-provided OpenGL framework, you will need to
 build Kivy without ANGLE support. To do so, you can set the ``USE_ANGLE_GL_BACKEND`` environment variable to
 ``0`` before while installing Kivy. For example::
 
@@ -338,7 +338,7 @@ Installing Kivy's dependencies
 ------------------------------
 
 Kivy supports one or more backends for its core providers. E.g. it supports glew, angle,
-and sdl2 for the graphics backend on Windows. For each category (window, graphics, video,
+and sdl3 for the graphics backend on Windows. For each category (window, graphics, video,
 audio, etc.), at least one backend must be installed to be able to use the category.
 
 To facilitate easy installation, we provide ``extras_require``
@@ -364,15 +364,15 @@ We offer the following selectors:
 
 The following selectors install backends packaged as wheels by kivy under the ``Kivy_deps`` namespace.
 They are typically released and versioned to match specific Kivy versions, so we provide selectors
-to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl2==x.y.z``,
-you can now do ``pip install "kivy[sdl2]"`` to automatically install the correct sdl2 for the Kivy
+to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl3==x.y.z``,
+you can now do ``pip install "kivy[sdl3]"`` to automatically install the correct sdl3 for the Kivy
 version).
 
     `gstreamer`: The gstreamer video/audio backend, if it's available
         (currently only on Windows)
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
-    `sdl2`: The window/image/audio backend, if it's available (currently only on Windows,
+    `sdl3`: The window/image/audio backend, if it's available (currently only on Windows,
         on macOS, Linux and *BSD Unix is already included in the main Kivy wheel).
     `glew`: A alternate OpenGL backend, if it's available (currently only on Windows)
 
@@ -393,12 +393,12 @@ Following are the ``kivy_deps`` dependency wheels:
 
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
-  (the default), ``angle_sdl3``, or ``sdl2``. Here, ``angle_sdl3`` is a substitute for
-  ``glew`` but requires ``kivy_deps.sdl2`` to be installed as well.
+  (the default), ``angle_sdl3``, or ``sdl3``. Here, ``angle_sdl3`` is a substitute for
+  ``glew`` but requires ``kivy_deps.sdl3`` to be installed as well.
 
-* `sdl2 <https://libsdl.org>`_
+* `sdl3 <https://libsdl.org>`_
 
-  ``kivy_deps.sdl2`` is for window/images/audio and optionally OpenGL. It is only available on Windows
+  ``kivy_deps.sdl3`` is for window/images/audio and optionally OpenGL. It is only available on Windows
   and is included in the main Kivy wheel for other platforms.
 
 Python glossary

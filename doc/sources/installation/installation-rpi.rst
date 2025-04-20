@@ -108,7 +108,7 @@ If you followed the previous steps, or you're using the pre-built wheels, the he
 On supported platforms (RPi 1-3 with Raspberry Pi OS Buster), the `egl_rpi` window provider is used by default. This window provider uses the
 (deprecated, will be removed in future) DISPMANX API to create a headless GL context.
 
-On other platforms (e.g RPi 4 or 64 bit OS), the `sdl2` window provider is used by default. If during the build process for the `sdl2`
+On other platforms (e.g RPi 4 or 64 bit OS), the `sdl3` window provider is used by default. If during the build process for the `sdl3`
 dependencies the `kmsdrm` headers and libraries are found, the `kmsdrm` backend is enabled. This backend allows to create a headless
 GL context using the KMS/DRM API.
 
@@ -142,7 +142,7 @@ The table below shows the supported combinations of window provider and GL backe
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
 | Window provider (`KIVY_WINDOW`_\=) | GL backend (`KIVY_GL_BACKEND`_\=) | RPi 1 | RPi 2 | RPi 3 | RPi 4 |
 +====================================+===================================+=======+=======+=======+=======+
-| sdl2                               | sdl2/gl                           | y     | y     | y     | y     |
+| sdl3                               | sdl3/gl                           | y     | y     | y     | y     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
 | x11                                | gl                                | y     | y     | y     | y     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+

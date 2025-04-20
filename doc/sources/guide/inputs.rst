@@ -279,7 +279,7 @@ Joystick events
 ---------------
 
 A joystick input represents raw values received directly from physical
-or virtual controllers through the SDL2 provider via these events:
+or virtual controllers through the SDL3 provider via these events:
 
 * SDL_JOYAXISMOTION
 * SDL_JOYHATMOTION
@@ -337,7 +337,7 @@ Joystick input
 ~~~~~~~~~~~~~~
 
 Kivy should be able to fetch input from any device specified as `gamepad`,
-`joystick` or basically any other type of game controller recognized by the SDL2
+`joystick` or basically any other type of game controller recognized by the SDL3
 provider. To make things easier, here are layouts of some common controllers
 together with ids for each part.
 

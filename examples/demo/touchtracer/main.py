@@ -58,7 +58,7 @@ class Touchtracer(FloatLayout):
     def normalize_pressure(self, pressure):
         print(pressure)
         # this might mean we are on a device whose pressure value is
-        # incorrectly reported by SDL2, like recent iOS devices.
+        # incorrectly reported by SDL3, like recent iOS devices.
         if pressure == 0.0:
             return 1
         return dp(pressure * 10)

@@ -33,7 +33,7 @@ code.
 
 * |dcutil|_
 * `pygments https://github.com/pygments/pygments/blob/master/LICENSE`_
-* `sdl2 <https://www.libsdl.org/license.php>`_
+* `sdl3 <https://www.libsdl.org/license.php>`_
 * `glew <https://glew.sourceforge.net/glew.txt>`_
 * `gstreamer <https://github.com/GStreamer/gstreamer/blob/master/COPYING>`_
   (if used)
@@ -118,7 +118,7 @@ checking.
 **aab:** ``AAB/base/assets/private.tar``
 
 There are other included libraries, included either by Kivy directly or through
-SDL2, that are located in ``APK/lib/*`` or ``AAB/base/lib/*``. Most of them are related
+SDL3, that are located in ``APK/lib/*`` or ``AAB/base/lib/*``. Most of them are related
 to dependencies or are produced by python-for-android and are part of its source
 (and licensing).
 
