@@ -383,6 +383,16 @@ class WindowSDL(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
+    def configure_keyboards(self) -> None:
+        """
+        Since this is SDL textinput specific, we only want to
+        configure these settings for SDL-based windows.
+        :return: None
+        """
+        super().configure_keyboards()
+        if Config.getboolean("kivy", "keep_textinput_active", fallback=False):
+            self._win.start_sdl_textinput()
+
     def _update_density(self):
         self._density = self._win.get_window_pixel_density()
 

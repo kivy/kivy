@@ -254,8 +254,8 @@ cdef class _WindowSDL3Storage:
         # it's a config property like e.g. fullscreen
         config_shaped = Config.getint('graphics', 'shaped')
 
-        # Due to the uncertainty regarding the window's capability for shaping 
-        # and multisampling, we iterate through all possible combinations in 
+        # Due to the uncertainty regarding the window's capability for shaping
+        # and multisampling, we iterate through all possible combinations in
         # the most correct order:
         # 1. Shaped window with multisampling
         # 2. Shaped window without multisampling
@@ -644,7 +644,7 @@ cdef class _WindowSDL3Storage:
 
         if self.shape_surface != NULL:
             SDL_DestroySurface(self.shape_surface)
-        
+
         if self._shape_image_pixels != NULL:
             free(self._shape_image_pixels)
 
@@ -653,7 +653,7 @@ cdef class _WindowSDL3Storage:
 
         self._shape_image_pixels = <char *> malloc(_pitch * shape_image.height)
         memcpy(self._shape_image_pixels, <char *>shape_image.texture.pixels, _pitch * shape_image.height)
-        
+
 
         self.shape_surface = SDL_CreateSurfaceFrom(
             shape_image.width,
@@ -662,7 +662,7 @@ cdef class _WindowSDL3Storage:
             <char *>self._shape_image_pixels,
             _pitch,
         )
-            
+
         if SDL_SetWindowShape(self.win, self.shape_surface) is False:
             error = SDL_GetError()
             Logger.error(
@@ -790,6 +790,18 @@ cdef class _WindowSDL3Storage:
             PyMem_Free(<void *>rect)
 
     def hide_keyboard(self):
+        if platform != "android" and platform != "ios":
+            if Config.getboolean("kivy", "keep_textinput_active"):
+                return
+
+        if SDL_TextInputActive(self.win):
+            SDL_StopTextInput(self.win)
+
+    def start_sdl_textinput(self) -> None:
+        if not SDL_TextInputActive(self.win):
+            SDL_StartTextInput(self.win)
+
+    def stop_sdl_textinput(self) -> None:
         if SDL_TextInputActive(self.win):
             SDL_StopTextInput(self.win)
 

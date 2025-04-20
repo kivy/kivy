@@ -114,6 +114,10 @@ Available configuration tokens
         * 'systemanddock' - virtual docked keyboard plus input from real
           keyboard.
         * 'systemandmulti' - analogous.
+    `keep_textinput_active`: boolean True or False
+        If set to True, SDL will not stop dispatching SDL_TEXTINPUT events
+        when a TextInput is focussed or unfoccused. Desktop only as it opens
+        the on-screen-keyboard on mobile. Defaults to False.
     `kivy_clock`: one of `default`, `interrupt`, `free_all`, `free_only`
         The clock type to use with kivy. See :mod:`kivy.clock`.
     `log_dir`: string
@@ -425,7 +429,7 @@ from kivy.utils import platform
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 28
+KIVY_CONFIG_VERSION = 29
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -961,6 +965,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif version == 27:
             if Config.get("kivy", "window_shape") == "data/images/defaultshape.png":
                 Config.set("kivy", "window_shape", "")
+        elif version == 28:
+            Config.setdefault("kivy", "keep_textinput_active", False)
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
