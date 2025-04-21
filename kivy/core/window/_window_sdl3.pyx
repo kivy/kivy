@@ -910,7 +910,7 @@ cdef class _WindowSDL3Storage:
                     event.window.data1, event.window.data2
                 )
             elif event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED:
-                action = ('windowdisplaychanged',)
+                action = ('windowdisplaychanged', event.window.data1)
             elif event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                 action = ('windowpixelsizechanged',)
             elif event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
