@@ -84,7 +84,7 @@ cdef extern from *:
     #endif
 
     #if defined(__ANDROID__)
-        #include <system/window.h>
+        #include <android/native_window.h>
         #include <EGL/egl.h>
     #else
         struct ANativeWindow;
