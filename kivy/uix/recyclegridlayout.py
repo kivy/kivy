@@ -19,6 +19,7 @@ chain_from_iterable = itertools.chain.from_iterable
 from kivy.uix.recyclelayout import RecycleLayout
 from kivy.uix.gridlayout import GridLayout, GridLayoutException, nmax, nmin
 from collections import defaultdict
+from math import ceil
 
 __all__ = ('RecycleGridLayout', )
 
@@ -253,3 +254,120 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
         if not self._fills_from_top_to_bottom:
             row_idx = n_rows - row_idx - 1
         return (col_idx, row_idx, )
+
+    def goto_view(self, index):
+        """Scroll the view to make the specified index visible.
+
+        Args:
+            index (int): The index in the data list to scroll to.
+        """
+        if not self.view_opts or not self.parent:
+            return
+
+        # Calculate grid dimensions
+        num_items = len(self.parent.data)
+        cols = self.cols
+        rows = self.rows
+
+        # Limit index to valid range and handle negative indices
+        index = max(-num_items, min(index, num_items - 1))
+        if index < 0:
+            index = num_items + index
+
+        # If cols/rows not set, calculate them
+        if cols is None:
+            cols = ceil(num_items / rows)
+        if rows is None:
+            rows = ceil(num_items / cols)
+
+        # Calculate row and column of target index
+        if self._fills_row_first:
+            row_idx = index // cols
+            col_idx = index % cols
+        else:
+            col_idx = index // rows
+            row_idx = index % rows
+
+        # Calculate total dimensions
+        spacing_x, spacing_y = self.spacing
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
+        x_padding = padding_left + padding_right
+        y_padding = padding_top + padding_bottom
+        viewport_width = self.parent.width
+        viewport_height = self.parent.height
+
+        # Calculate total width and height of the grid
+        total_width = sum(self._cols) + (cols - 1) * spacing_x + x_padding
+        total_height = sum(self._rows) + (rows - 1) * spacing_y + y_padding
+
+        if self._fills_from_left_to_right:
+            x_pos = (
+                padding_left + sum(self._cols[:col_idx]) + col_idx * spacing_x
+            )
+            target_scroll_x = max(
+                0, min(1, x_pos / (total_width - viewport_width))
+            )
+        else:
+            # right to left
+            col_idx = cols - col_idx - 1
+            x_pos = (
+                padding_left
+                + sum(self._cols[col_idx + 1 :])
+                + (cols - col_idx - 1) * spacing_x
+            )
+            # position at left of viewport
+            x_pos = x_pos - viewport_width + self._cols[col_idx]
+            target_scroll_x = max(
+                0, min(1, 1 - (x_pos / (total_width - viewport_width)))
+            )
+
+        if self._fills_from_top_to_bottom:
+            y_pos = (
+                padding_top + sum(self._rows[:row_idx]) + row_idx * spacing_y
+            )
+            target_scroll_y = max(
+                0, min(1, 1 - (y_pos / (total_height - viewport_height)))
+            )
+        else:
+            # Calculate base position from bottom
+            row_idx = rows - row_idx - 1
+            y_pos = (
+                padding_top
+                + sum(self._rows[row_idx + 1 :])
+                + (rows - row_idx - 1) * spacing_y
+            )
+            # position at top of viewport
+            y_pos = y_pos - viewport_height + self._rows[row_idx]
+            target_scroll_y = max(
+                0, min(1, y_pos / (total_height - viewport_height))
+            )
+
+        # Adjust scroll position to center big widgets
+        widget_width = self._cols[col_idx]
+        widget_height = self._rows[row_idx]
+        if widget_width > viewport_width:
+            # center wide widgets
+            target_scroll_x = max(
+                0,
+                min(
+                    1,
+                    target_scroll_x
+                    + (widget_width - viewport_width)
+                    / (2 * (total_width - viewport_width)),
+                ),
+            )
+        if widget_height > viewport_height:
+            # center tall widgets
+            target_scroll_y = max(
+                0,
+                min(
+                    1,
+                    target_scroll_y
+                    - (widget_height - viewport_height)
+                    / (2 * (total_height - viewport_height)),
+                ),
+            )
+
+        # Apply scroll positions
+        self.parent.scroll_x = target_scroll_x
+        self.parent.scroll_y = target_scroll_y
