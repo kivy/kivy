@@ -89,7 +89,7 @@ Complete guide
 #. (Re)install your dependencies with ``--build-from-source`` to make sure they can
    be used on other machines::
 
-    $ brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
+    $ brew reinstall --build-from-source sdl3 sdl3_image sdl3_ttf sdl3_mixer
 
    .. note::
        If your project depends on GStreamer or other additional libraries
@@ -220,7 +220,7 @@ code to it::
               upx=True,
               console=False )
     coll = COLLECT(exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   Tree('/Library/Frameworks/SDL2_ttf.framework/Versions/A/Frameworks/FreeType.framework'),
+                   Tree('/Library/Frameworks/SDL3_ttf.framework/Versions/A/Frameworks/FreeType.framework'),
                    a.binaries,
                    a.zipfiles,
                    a.datas,

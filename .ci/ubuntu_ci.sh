@@ -114,7 +114,7 @@ upload_docs_to_server() {
 install_manylinux_build_deps() {
   # These are basically copy-pasted from the SDL dependencies
   # (it contains both build tools and libraries development packages)
-  # See: https://wiki.libsdl.org/SDL2/README/linux
+  # See: https://wiki.libsdl.org/SDL3/README/linux
   yum install -y epel-release;
   yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig \
             ninja-build alsa-lib-devel pulseaudio-libs-devel \
@@ -128,7 +128,7 @@ install_manylinux_build_deps() {
 install_ubuntu_build_deps() {
   # These are basically copy-pasted from the SDL dependencies
   # (it contains both build tools and libraries development packages)
-  # See: https://wiki.libsdl.org/SDL2/README/linux
+  # See: https://wiki.libsdl.org/SDL3/README/linux
   sudo apt-get update
   sudo apt-get -y install build-essential git make autoconf automake libtool \
           pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \

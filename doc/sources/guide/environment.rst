@@ -41,27 +41,27 @@ KIVY_HOME
 
     .. versionadded:: 1.9.0
 
-KIVY_SDL2_PATH
-    If set, the SDL2 libraries and headers from this path are used when
+KIVY_SDL3_PATH
+    If set, the SDL3 libraries and headers from this path are used when
     compiling kivy instead of the ones installed system-wide.
     To use the same libraries while running a kivy app, this path must be
     added at the start of the PATH environment variable.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 3.0.0
 
     .. warning::
 
         This path is required for the compilation of Kivy. It is not
         required for program execution.
 
-KIVY_SDL2_FRAMEWORKS_SEARCH_PATH
-    If set, the SDL2 frameworks from this path are used when compiling kivy
+KIVY_SDL3_FRAMEWORKS_SEARCH_PATH
+    If set, the SDL3 frameworks from this path are used when compiling kivy
     instead of the ones installed system-wide.
 
-    That path is used only on macOS, and must contain the SDL2.framework,
+    That path is used only on macOS, and must contain the SDL3.framework,
     SDL_image.framework, SDL_mixer.framework and SDL_ttf.framework.
 
-    .. versionadded:: 2.1.0
+    .. versionadded:: 3.0.0
 
     .. warning::
 
@@ -70,8 +70,8 @@ KIVY_SDL2_FRAMEWORKS_SEARCH_PATH
 
 KIVY_DEPS_ROOT
     If set, during build, Kivy will use this directory as the root one to
-    search for (only SDL ATM) dependencies. Please note that if `KIVY_SDL2_PATH` or
-    `KIVY_SDL2_FRAMEWORKS_SEARCH_PATH` are set, they will be used instead.
+    search for (only SDL ATM) dependencies. Please note that if `KIVY_SDL3_PATH` or
+    `KIVY_SDL3_FRAMEWORKS_SEARCH_PATH` are set, they will be used instead.
 
     .. versionadded:: 2.2.0
 
@@ -139,12 +139,12 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: sdl2, x11, egl_rpi
+    Values: sdl3, x11, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: sdl2, pil, sdlttf
+    Values: sdl3, pil, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
@@ -154,12 +154,12 @@ KIVY_VIDEO
 KIVY_AUDIO
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, ffpyplayer, avplayer
+    Values: sdl3, gstplayer, ffpyplayer, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: sdl2, pil, imageio, tex, dds
+    Values: sdl3, pil, imageio, tex, dds
 
     .. versionchanged:: 2.0.0
     Removed GPL `gif` implementation
@@ -177,7 +177,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: sdl2, dummy, android
+    Values: sdl3, dummy, android
 
 Metrics
 -------

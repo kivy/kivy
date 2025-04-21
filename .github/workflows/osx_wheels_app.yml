@@ -79,7 +79,7 @@ jobs:
     - name: Build wheels
       run: |
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
-        export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks:$KIVY_DEPS_ROOT/dist/Frameworks/SDL2_mixer.framework/Frameworks
+        export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
     - uses: actions/upload-artifact@v4
       with:

@@ -193,7 +193,7 @@ class UtilsTest(unittest.TestCase):
         self.assertNotIn('KIVY_BUILD', os.environ)
 
     def test_Platform_android_with_p4a(self):
-        with patch.dict('os.environ', {'P4A_BOOTSTRAP': 'sdl2'}):
+        with patch.dict('os.environ', {'P4A_BOOTSTRAP': 'sdl3'}):
             self.assertEqual(_get_platform(), 'android')
         self.assertNotIn('P4A_BOOTSTRAP', os.environ)
 
