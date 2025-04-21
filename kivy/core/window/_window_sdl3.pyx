@@ -22,7 +22,8 @@ from .window_info cimport (
     WindowInfomacOS,
     WindowInfoX11,
     WindowInfoWayland,
-    WindowInfoWindows
+    WindowInfoWindows,
+    WindowInfoAndroid
 )
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
@@ -590,6 +591,27 @@ cdef class _WindowSDL3Storage:
 
         return window_info
 
+    def _get_window_info_android(self):
+        cdef WindowInfoAndroid window_info
+        window_info = WindowInfoAndroid()
+
+        window_info.set_window(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.android.window",
+                NULL,
+            )
+        )
+        window_info.set_surface(
+            SDL_GetPointerProperty(
+                SDL_GetWindowProperties(self.win),
+                "SDL.window.android.surface",
+                NULL,
+            )
+        )
+
+        return window_info
+
     def get_window_info(self):
         if platform == "macosx":
             return self._get_window_info_macos()
@@ -603,6 +625,9 @@ cdef class _WindowSDL3Storage:
                 return self._get_window_info_wayland()
             elif _video_driver == "x11":
                 return self._get_window_info_x11()
+        elif platform == "android":
+            return self._get_window_info_android()
+        return None
 
     def get_native_handle(self):
         # TODO: When we have support on all platforms, or at least on Linux

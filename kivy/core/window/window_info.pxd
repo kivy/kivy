@@ -30,3 +30,9 @@ cdef class WindowInfomacOS:
 cdef class WindowInfoiOS:
     cdef UIWindow *window
     cdef void set_window(self, void* window)
+
+cdef class WindowInfoAndroid:
+    cdef ANativeWindow *window
+    cdef EGLSurface surface
+    cdef void set_window(self, void* window)
+    cdef void set_surface(self, void* surface)

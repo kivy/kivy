@@ -84,7 +84,11 @@ cdef extern from *:
     #endif
 
     #if defined(__ANDROID__)
-        // Android
+        #include <system/window.h>
+        #include <EGL/egl.h>
+    #else
+        struct ANativeWindow;
+        typedef void *EGLSurface;
     #endif
 
     """
@@ -114,3 +118,8 @@ cdef extern from *:
     ctypedef void *NSWindow
     cdef NSWindow* _BridgedNSWindow(void* window)
     cdef UIWindow* _BridgedUIWindow(void* window)
+
+    # Android
+    cdef struct ANativeWindow:
+        pass
+    ctypedef void *EGLSurface

@@ -69,3 +69,19 @@ cdef class WindowInfoiOS:
 
     cdef void set_window(self, void* window):
         self.window = _BridgedUIWindow(window)
+
+
+cdef class WindowInfoAndroid:
+    @property
+    def window(self):
+        return <uintptr_t>self.window
+
+    @property
+    def surface(self):
+        return <uintptr_t>self.surface
+
+    cdef void set_window(self, void* window):
+        self.window = <ANativeWindow *>window
+
+    cdef void set_surface(self, void* surface):
+        self.surface = <EGLSurface>surface
