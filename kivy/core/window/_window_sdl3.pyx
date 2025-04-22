@@ -630,8 +630,11 @@ cdef class _WindowSDL3Storage:
         return None
 
     def get_native_handle(self):
-        # TODO: When we have support on all platforms, or at least on Linux
-        pass
+        window_info = self.get_window_info()
+        if window_info is None:
+            return None
+        
+        return window_info.native_handle
 
     def is_window_shapable(self):
         return self._is_shapable

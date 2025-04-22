@@ -135,11 +135,11 @@ class WindowNativeHandleTest(GraphicUnitTest):
         win = self.Window
         native_handle = win.native_handle
 
-        if setupconfig.USE_X11:
-            self.assertNotEqual(native_handle, 0)
+        # The native handle is implemented on all the (known)
+        # supported platforms, if it is not implemented we likely do
+        # not have a WindowInfo implementation, and returns None
+        self.assertNotEqual(native_handle, None)
 
-        if setupconfig.USE_WAYLAND:
-            self.assertNotEqual(native_handle, 0)
-
-        if setupconfig.PLATFORM == 'win32':
-            self.assertNotEqual(native_handle, 0)
+        # Even if we have a WindowInfo implementation, and therefore
+        # is not None, if returns 0, it means something is wrong.
+        self.assertNotEqual(native_handle, 0)

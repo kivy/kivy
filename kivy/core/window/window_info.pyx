@@ -13,6 +13,10 @@ cdef class WindowInfoWayland:
     def shell_surface(self):
         return <uintptr_t>self.shell_surface
 
+    @property
+    def native_handle(self):
+        return <uintptr_t>self.surface
+
     cdef void set_display(self, void* display):
         self.display = <struct_wl_display *>display
 
@@ -31,6 +35,10 @@ cdef class WindowInfoX11:
     def window(self):
         return <uintptr_t>self.window
 
+    @property
+    def native_handle(self):
+        return <uintptr_t>self.window
+
     cdef void set_display(self, void* display):
         self.display = <Display *>display
 
@@ -47,6 +55,10 @@ cdef class WindowInfoWindows:
     def hdc(self):
         return <uintptr_t>self.hdc
 
+    @property
+    def native_handle(self):
+        return <uintptr_t>self.window
+
     cdef void set_hwnd(self, void* hwnd):
         self.window = hwnd
 
@@ -59,12 +71,20 @@ cdef class WindowInfomacOS:
     def window(self):
         return <uintptr_t>self.window
 
+    @property
+    def native_handle(self):
+        return <uintptr_t>self.window
+
     cdef void set_window(self, void* window):
         self.window = _BridgedNSWindow(window)
 
 cdef class WindowInfoiOS:
     @property
     def window(self):
+        return <uintptr_t>self.window
+
+    @property
+    def native_handle(self):
         return <uintptr_t>self.window
 
     cdef void set_window(self, void* window):
@@ -79,6 +99,10 @@ cdef class WindowInfoAndroid:
     @property
     def surface(self):
         return <uintptr_t>self.surface
+
+    @property
+    def native_handle(self):
+        return <uintptr_t>self.window
 
     cdef void set_window(self, void* window):
         self.window = <ANativeWindow *>window
