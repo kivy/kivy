@@ -202,7 +202,6 @@ if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
 # Detect options
 #
 c_options = OrderedDict()
-c_options['use_rpi_vidcore_lite'] = platform == 'rpi'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
@@ -1039,30 +1038,6 @@ if c_options["use_angle_gl_backend"]:
                 "extra_compile_args": ["-ObjC++"],
             }
         )
-
-if c_options['use_rpi_vidcore_lite']:
-
-    # DISPMANX is only available on old versions of Raspbian (Buster).
-    # For this reason, we need to be sure that EGL_DISPMANX_* is available
-    # before compiling the vidcore_lite module, even if we're on a RPi.
-    HAVE_DISPMANX = check_c_source_compiles(
-        textwrap.dedent(
-            """
-        #include <bcm_host.h>
-        #include <EGL/eglplatform.h>
-        int main(int argc, char **argv) {
-            EGL_DISPMANX_WINDOW_T window;
-            bcm_host_init();
-        }
-        """
-        ),
-        include_dirs=gl_flags["include_dirs"],
-    )
-    if HAVE_DISPMANX:
-        sources['lib/vidcore_lite/egl.pyx'] = merge(
-            base_flags, gl_flags)
-        sources['lib/vidcore_lite/bcm.pyx'] = merge(
-            base_flags, gl_flags)
 
 if c_options['use_x11']:
     libs = ['Xrender', 'X11']
