@@ -84,3 +84,4 @@ venv
 kivy/setupconfig.py
 
 kivy/core/clipboard/_clipboard_sdl3.c
+kivy/graphics/egl_backend/egl_angle.c

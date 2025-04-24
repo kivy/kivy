@@ -330,29 +330,7 @@ class WindowSDL(WindowBase):
         else:
             w, h = self.system_size
             self._win.resize_window(w, h)
-            if platform == 'win':
-                if self.custom_titlebar:
-                    # check dragging+resize or just dragging
-                    if Config.getboolean('graphics', 'resizable'):
-                        import win32con
-                        import ctypes
-                        self._win.set_border_state(False)
-                        # make windows dispatch,
-                        # WM_NCCALCSIZE explicitly
-                        ctypes.windll.user32.SetWindowPos(
-                            self.native_handle,
-                            win32con.HWND_TOP,
-                            *self._win.get_window_pos(),
-                            *self.system_size,
-                            win32con.SWP_FRAMECHANGED
-                        )
-                    else:
-                        self._win.set_border_state(True)
-                else:
-                    self._win.set_border_state(self.borderless)
-            else:
-                self._win.set_border_state(self.borderless
-                                           or self.custom_titlebar)
+            self._win.set_border_state(self.borderless or self.custom_titlebar)
             self._win.set_fullscreen_mode(self.fullscreen)
 
         super(WindowSDL, self).create_window()
