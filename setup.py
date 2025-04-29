@@ -130,11 +130,15 @@ def check_c_source_compiles(code, include_dirs=None):
     # Create a temporary file which contains the code
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_file = os.path.join(tmpdir, "test.c")
+        build_dir = os.path.join(tmpdir, "build")
         with open(temp_file, "w", encoding="utf-8") as tf:
             tf.write(code)
         try:
             get_compiler().compile(
-                [temp_file], extra_postargs=[], include_dirs=include_dirs
+                [temp_file],
+                extra_postargs=[],
+                include_dirs=include_dirs,
+                output_dir=build_dir,
             )
         except Exception as ex:
             print(ex)
