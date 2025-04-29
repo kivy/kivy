@@ -212,7 +212,7 @@ c_options['use_ios'] = False
 c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
-c_options['use_wayland'] = False
+c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
@@ -540,6 +540,28 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             c_options['use_sdl3'] = True
             sdl3_source = 'pkg-config'
 
+
+can_autodetect_wayland = (
+    platform == "linux" and c_options["use_wayland"] is None
+)
+
+if c_options["use_wayland"] or can_autodetect_wayland:
+    c_options["use_wayland"] = check_c_source_compiles(
+        textwrap.dedent(
+            """
+        #include <wayland-client.h>
+        int main() {
+            struct wl_display *display = wl_display_connect(NULL);
+            if (display == NULL) {
+                return 1;
+            }
+            wl_display_disconnect(display);
+            return 0;
+        }
+        """
+        ),
+        include_dirs=[],
+    )
 
 # -----------------------------------------------------------------------------
 # declare flags
