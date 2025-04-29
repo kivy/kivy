@@ -904,6 +904,7 @@ cdef extern from "SDL_mixer.h":
     cdef  int  Mix_AllocateChannels(int numchans)
     cdef  int  Mix_QuerySpec(int *frequency,Uint16 *format,int *channels)
     cdef  Mix_Chunk *  Mix_LoadWAV(char *file)
+    cdef  Mix_Chunk *  Mix_LoadWAV_IO(SDL_IOStream *src, bint closeio)
     cdef  Mix_Music *  Mix_LoadMUS(char *file)
     cdef  Mix_Chunk *  Mix_QuickLoad_WAV(Uint8 *mem)
     cdef  Mix_Chunk *  Mix_QuickLoad_RAW(Uint8 *mem, Uint32 len)
