@@ -569,7 +569,11 @@ class WindowBase(EventDispatcher):
     def _get_width(self):
         return self._get_size()[0]
 
-    width = AliasProperty(_get_width, bind=('_rotation', '_size', '_density'))
+    def _set_width(self, width):
+        size = self._get_size()
+        self._set_size((width, size[1]))
+
+    width = AliasProperty(_get_width, _set_width, bind=('_rotation', '_size', '_density'))
     '''Rotated window width.
 
     :attr:`width` is a read-only :class:`~kivy.properties.AliasProperty`.
@@ -578,8 +582,12 @@ class WindowBase(EventDispatcher):
     def _get_height(self):
         '''Rotated window height'''
         return self._get_size()[1]
+    
+    def _set_height(self, height):
+        size = self._get_size()
+        self._set_size((size[0], height))
 
-    height = AliasProperty(_get_height,
+    height = AliasProperty(_get_height, _set_height,
                            bind=('_rotation', '_size', '_density'))
     '''Rotated window height.
 
