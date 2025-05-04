@@ -876,6 +876,13 @@ cdef extern from "SDL_video.h":
     cdef float SDL_GetWindowOpacity(SDL_Window *window)
     cdef int SDL_SetWindowShape(SDL_Window *window, SDL_Surface *shape)
 
+    # System theme
+    ctypedef enum SDL_SystemTheme:
+        SDL_SYSTEM_THEME_UNKNOWN  #  /**< Unknown system theme */
+        SDL_SYSTEM_THEME_LIGHT  #    /**< Light colored system theme */
+        SDL_SYSTEM_THEME_DARK  #     /**< Dark colored system theme */
+    SDL_SystemTheme SDL_GetSystemTheme()
+
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
         int allocated

@@ -2541,6 +2541,16 @@ class WindowBase(EventDispatcher):
         """  # noqa
         self.render_context.shader.fs = fs_shader
 
+    def get_system_theme(self):
+        """
+        Returns the current system theme as a string (``"light"``, ``"dark"``, or ``"unknown"``)."
+
+        .. note::
+            This feature requires the SDL3 window provider.
+
+        .. versionadded:: 3.0.0
+        """
+
 
 #: Instance of a :class:`WindowBase` implementation
 window_impl = []

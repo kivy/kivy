@@ -872,3 +872,6 @@ class WindowSDL(WindowBase):
             return
         self.titlebar_widget = titlebar_widget
         return self._win.set_custom_titlebar(self.titlebar_widget) == 0
+
+    def get_system_theme(self):
+        return self._win.get_system_theme()

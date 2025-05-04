@@ -1023,6 +1023,15 @@ cdef class _WindowSDL3Storage:
         SDL_GetWindowSize(self.win, &w, &h)
         return [w, h]
 
+    cpdef get_system_theme(self):
+        cdef SDL_SystemTheme current_theme = SDL_GetSystemTheme()
+        if current_theme == SDL_SYSTEM_THEME_LIGHT:
+            return "light"
+        elif current_theme == SDL_SYSTEM_THEME_DARK:
+            return "dark"
+        elif current_theme == SDL_SYSTEM_THEME_UNKNOWN:
+            return "unknown"
+
     @property
     def window_pixel_size(self):
         """
