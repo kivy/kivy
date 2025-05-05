@@ -881,7 +881,7 @@ cdef extern from "SDL_video.h":
         SDL_SYSTEM_THEME_UNKNOWN  #  /**< Unknown system theme */
         SDL_SYSTEM_THEME_LIGHT  #    /**< Light colored system theme */
         SDL_SYSTEM_THEME_DARK  #     /**< Dark colored system theme */
-    SDL_SystemTheme SDL_GetSystemTheme()
+    SDL_SystemTheme SDL_GetSystemTheme() nogil
 
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:

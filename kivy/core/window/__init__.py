@@ -2543,7 +2543,8 @@ class WindowBase(EventDispatcher):
 
     def get_system_theme(self):
         """
-        Returns the current system theme as a string (``"light"``, ``"dark"``, or ``"unknown"``)."
+        Returns the current system theme as a string (``"light"``, ``"dark"`` or
+        ``"unknown"``)."
 
         .. note::
             This feature requires the SDL3 window provider.
