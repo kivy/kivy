@@ -153,7 +153,7 @@
 
 
 ;;;###autoload
-(define-derived-mode kivy-mode fundamental-mode "kivy"
+(define-derived-mode kivy-mode prog-mode "kivy"
   "Simple mode to edit kivy.
 
 \\{kivy-mode-map}"
