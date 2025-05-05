@@ -2543,14 +2543,51 @@ class WindowBase(EventDispatcher):
 
     def get_system_theme(self):
         """
-        Returns the current system theme as a string (``"light"``, ``"dark"`` or
-        ``"unknown"``)."
+        Returns the current system theme as a string.
+
+        Returns:
+            str: The current system theme, which can be ``"light"``, ``"dark"`` or ``"unknown"``.
+
+        The example below demonstrates how to create a Python thread-based theme
+        monitor that detects system theme changes and updates the interface in a
+        thread-safe manner. It uses `Clock.schedule_once` to ensure that UI
+        updates occur on the main application thread:
+
+        .. code-block:: python
+            def start_system_theme_monitor(self, interval=1.0):
+                '''
+                Starts a background monitor that checks for system theme changes.
+
+                Args:
+                    interval (float): Time interval in seconds between theme checks.
+                '''
+                def monitor():
+                    last_theme = Window.get_system_theme()
+                    while True:
+                        time.sleep(interval)
+                        current_theme = Window.get_system_theme()
+                        if current_theme != last_theme:
+                            last_theme = current_theme
+                            Clock.schedule_once(lambda dt: self.on_system_theme_change(current_theme))
+
+                threading.Thread(target=monitor, daemon=True).start()
+
+            def on_system_theme_change(self, new_theme):
+                '''
+                Callback executed when the system theme changes.
+
+                Args:
+                    new_theme (str): The new system theme.
+                '''
+                print(f"Current system theme is: {new_theme}")
+
 
         .. note::
             This feature requires the SDL3 window provider.
 
         .. versionadded:: 3.0.0
-        """
+        """  # noqa: E501
+        pass
 
 
 #: Instance of a :class:`WindowBase` implementation
