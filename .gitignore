@@ -85,3 +85,4 @@ kivy/setupconfig.py
 
 kivy/core/clipboard/_clipboard_sdl3.c
 kivy/graphics/egl_backend/egl_angle.c
+kivy/core/tray/_tray_sdl3.c
