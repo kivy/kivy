@@ -3,7 +3,7 @@ Widget animation
 ================
 
 This example demonstrates creating and applying a multi-part animation to
-a button widget. You should see a button labelled 'plop' that will move with
+a button widget. You should see a button labeled 'plop' that will move with
 an animation when clicked.
 '''
 
@@ -19,10 +19,10 @@ class TestApp(App):
     
     def __init__(self, **kwargs):
         super(TestApp, self).__init__(**kwargs)
-        self.animation_duration = 1  # Nilai default
+        self.animation_duration = 1  # Default value
         
     def animate(self, instance):
-        # create an animation object. This object could be stored
+        # Create an animation object. This object could be stored
         # and reused each call or reused across different widgets.
         # += is a sequential step, while &= is in parallel
         animation = Animation(pos=(100, 100), t='out_bounce', duration=self.animation_duration)
@@ -30,7 +30,7 @@ class TestApp(App):
         animation &= Animation(size=(500, 500), duration=self.animation_duration)
         animation += Animation(size=(100, 50), duration=self.animation_duration)
 
-        # apply the animation on the button, passed in the "instance" argument
+        # Apply the animation on the button, passed in the "instance" argument
         # Notice that default 'click' animation (changing the button
         # color while the mouse is down) is unchanged.
         animation.start(instance)
@@ -41,12 +41,12 @@ class TestApp(App):
         
         root = FloatLayout()
         
-        # Tombol utama
+        # Main button
         main_button = Button(size_hint=(None, None), text='plop',
                          pos=(50, 50), size=(100, 50),
                          on_press=self.animate)
         
-        # Tombol kontrol
+        # Control buttons
         controls = BoxLayout(size_hint=(None, None), size=(300, 50),
                             pos=(100, 10), orientation='horizontal')
         
@@ -59,16 +59,16 @@ class TestApp(App):
         root.add_widget(main_button)
         root.add_widget(controls)
         
-        self.main_button = main_button  # Simpan referensi untuk reset
+        self.main_button = main_button  # Save reference for reset
         return root
 
     def reset_position(self, instance):
-        # Reset posisi tombol utama
+        # Reset the position of the main button
         anim = Animation(pos=(50, 50), size=(100, 50), duration=0.3)
         anim.start(self.main_button)
 
     def change_speed(self, instance):
-        # Ubah kecepatan animasi
+        # Change animation speed
         self.animation_duration = 0.2 if self.animation_duration == 1 else 1
         instance.text = 'Slow' if self.animation_duration == 1 else 'Fast'
 
