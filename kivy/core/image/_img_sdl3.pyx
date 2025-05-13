@@ -1,9 +1,11 @@
+# distutils: language = c++
 include '../../lib/sdl3.pxi'
 
 import io
 from kivy.logger import Logger
 from libc.string cimport memset
 from libc.stdlib cimport malloc
+from libcpp cimport bool
 
 
 cdef struct BytesIODataContainer:
@@ -17,14 +19,10 @@ cdef size_t rwops_bytesio_write(void *userdata, const void *ptr, size_t size, SD
     return size * 1
 
 
-cdef bint rwops_bytesio_close(void *userdata) noexcept:
+cdef bool rwops_bytesio_close(void *userdata) noexcept:
     byteio = <object>(<BytesIODataContainer*>userdata).data
     byteio.seek(0)
     return 1
-
-
-cdef bint wrap_rwops_bytesio_close(void *userdata) noexcept:
-    return <bint>rwops_bytesio_close(userdata)
 
 
 cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
@@ -131,7 +129,7 @@ cdef load_from_surface(SDL_Surface *image):
     cdef SDL_Surface *image2 = NULL
     cdef SDL_Surface *fimage = NULL
     cdef SDL_Palette *sfc_palette = NULL
-    cdef SDL_PixelFormatDetails *sfc_fmt_details = NULL
+    cdef const SDL_PixelFormatDetails *sfc_fmt_details = NULL
     cdef Uint32 want_rgba = 0, want_bgra = 0, target_fmt = 0
     cdef int n = 0
     cdef bytes pixels
@@ -191,11 +189,11 @@ cdef load_from_surface(SDL_Surface *image):
         fimage = image
         if target_fmt != 0:
             with nogil:
-                image2 = SDL_ConvertSurface(image, target_fmt)
+                image2 = SDL_ConvertSurface(image, <SDL_PixelFormat>target_fmt)
             if image2 == NULL:
                 Logger.warn('ImageSDL3: error converting {} to {}: {}'.format(
                         SDL_GetPixelFormatName(image.format),
-                        SDL_GetPixelFormatName(target_fmt),
+                        SDL_GetPixelFormatName(<SDL_PixelFormat>target_fmt),
                         SDL_GetError()))
                 return None
             else:

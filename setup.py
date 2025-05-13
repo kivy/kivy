@@ -973,28 +973,27 @@ if c_options['use_sdl3'] and sdl3_flags:
         sources['graphics/cgl_backend/cgl_sdl3.pyx'], sdl3_flags)
     sdl3_depends = {'depends': ['lib/sdl3.pxi']}
     if platform in ('ios', 'darwin'):
-        _extra_args = {
+        _extra_args_c = {
             'extra_compile_args': ['-ObjC'],
         }
+        _extra_args_cpp = {
+            'extra_compile_args': ['-ObjC++'],
+        }
     else:
-        _extra_args = {}
+        _extra_args_c = {}
+        _extra_args_cpp = {}
     for source_file in ('core/window/_window_sdl3.pyx',
-                        'core/image/_img_sdl3.pyx',
                         'core/text/_text_sdl3.pyx',
                         'core/audio_output/audio_sdl3.pyx',
                         'core/clipboard/_clipboard_sdl3.pyx'):
 
         sources[source_file] = merge(
-            base_flags, sdl3_flags, sdl3_depends, _extra_args
+            base_flags, sdl3_flags, sdl3_depends, _extra_args_c
         )
 
-    if platform != 'win32':
-        sources["core/image/_img_sdl3.pyx"] = merge(
-            sources["core/image/_img_sdl3.pyx"],
-            {
-                "extra_compile_args": ["-Wno-incompatible-function-pointer-types"],
-            },
-        )
+    sources["core/image/_img_sdl3.pyx"] = merge(
+        base_flags, sdl3_flags, sdl3_depends, _extra_args_cpp
+    )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
                                       'android', 'ios', 'win32'):
