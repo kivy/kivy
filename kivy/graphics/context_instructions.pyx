@@ -85,7 +85,7 @@ cdef tuple rgb_to_hsv(float r, float g, float b):
 
 cdef tuple hsv_to_rgb(float h, float s, float v):
     if s == 0.0: return v, v, v
-    cdef long i = long(h * 6.0)
+    cdef long i = <long>(h * 6.0)
     cdef float f = (h * <float>6.0) - i
     cdef float p = v * (<float>1.0 - s)
     cdef float q = v * (<float>1.0 - s * f)
