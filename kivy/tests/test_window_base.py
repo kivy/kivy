@@ -143,3 +143,28 @@ class WindowNativeHandleTest(GraphicUnitTest):
         # Even if we have a WindowInfo implementation, and therefore
         # is not None, if returns 0, it means something is wrong.
         self.assertNotEqual(native_handle, 0)
+
+
+class WindowSystemThemeTest(GraphicUnitTest):
+    def test_get_system_theme_exists(self):
+        """Test that the get_system_theme method exists and returns a string."""
+        win = self.Window
+        theme = win.get_system_theme()
+        self.assertIsInstance(theme, str)
+        self.assertIn(theme, ["light", "dark", "unknown"])
+
+        print(f"Detected system theme: {theme}")
+
+    def test_get_system_theme_valid_value(self):
+        """Test that get_system_theme returns a valid theme when available."""
+        win = self.Window
+        theme = win.get_system_theme()
+
+        # Skip the test if the system returns "unknown"
+        if theme == "unknown":
+            self.skipTest(
+                "System theme detection is not available on this platform"
+            )
+
+        # We expect a valid theme: either 'light' or 'dark'
+        self.assertIn(theme, ["light", "dark"])
