@@ -1008,7 +1008,7 @@ cdef class _WindowSDL3Storage:
         SDL_SetWindowMouseGrab(self.win, grab)
 
     def get_relative_mouse_pos(self):
-        cdef int x, y
+        cdef float x, y
         SDL_GetGlobalMouseState(&x, &y)
         wx, wy = self.get_window_pos()
         return x - wx, y - wy

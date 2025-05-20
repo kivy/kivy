@@ -165,7 +165,7 @@ class SoundSDL3(Sound):
         cdef ChunkContainer cc = self.cc
         cdef int freq, channels
         cdef unsigned int points, frames
-        cdef unsigned short fmt
+        cdef SDL_AudioFormat fmt
         if cc.chunk == NULL:
             return 0
         if not Mix_QuerySpec(&freq, &fmt, &channels):
