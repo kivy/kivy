@@ -25,6 +25,7 @@ cdef extern from "SDL.h":
     ctypedef Uint32 SDL_Keycode
     ctypedef Sint32 SDL_JoystickID
     ctypedef Uint32 SDL_PropertiesID
+    ctypedef Uint32 SDL_MouseButtonFlags
 
     int SDL_WINDOWPOS_UNDEFINED
 
@@ -552,7 +553,7 @@ cdef extern from "SDL.h":
     cdef bint SDL_SetHint(char *name, char *value)
     cdef bint SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
     cdef Uint32 SDL_GetMouseState(int* x,int* y)
-    cdef Uint32 SDL_GetGlobalMouseState(int *x, int *y)
+    cdef SDL_MouseButtonFlags SDL_GetGlobalMouseState(float *x, float *y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
     cdef int SDL_GetNumVideoDisplays()
     cdef int SDL_GetNumDisplayModes(int displayIndex)
