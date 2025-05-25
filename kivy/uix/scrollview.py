@@ -849,7 +849,7 @@ class ScrollView(StencilView):
         if not in_bar:
             Clock.schedule_once(self._change_touch_mode,
                                 self.scroll_timeout / 1000.)
-        return True
+            return True
 
         in_bar = ud['in_bar_x'] or ud['in_bar_y']
         if scroll_type == ['bars'] and not in_bar:
