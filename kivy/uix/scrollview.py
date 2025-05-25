@@ -718,6 +718,7 @@ class ScrollView(StencilView):
         ud = touch.ud
         scroll_bar = 'bars' in scroll_type
 
+
         width_scrollable = (
             (self.always_overscroll and self.do_scroll_x)
             or vp.width > self.width
@@ -731,6 +732,7 @@ class ScrollView(StencilView):
              'top': self.top - touch.y - self.bar_margin,
              'left': touch.x - self.x - self.bar_margin,
              'right': self.right - touch.x - self.bar_margin}
+
 
         # check if touch is in bar_x(horizontal) or bar_y(vertical)
         # width_enable_overscroll or vp.width > self.width
@@ -792,112 +794,6 @@ class ScrollView(StencilView):
                 touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
             return True
-
-        in_bar = ud['in_bar_x'] or ud['in_bar_y']
-        if scroll_type == ['bars'] and not in_bar:
-            return self.simulate_touch_down(touch)
-
-        if in_bar:
-            e = None
-            if (ud['in_bar_y'] and not self._touch_in_handle(
-                    self._handle_y_pos, self._handle_y_size, touch)):
-                self.scroll_y = (touch.y - self.y) / self.height
-            elif (ud['in_bar_x'] and not
-                    self._touch_in_handle(
-                        self._handle_x_pos, self._handle_x_size, touch)):
-                self.scroll_x = (touch.x - self.x) / self.width
-
-            e = self.effect_y if ud['in_bar_y'] else self.effect_x
-            if e:
-                self._update_effect_bounds()
-                e.velocity = 0
-                e.overscroll = 0
-                e.trigger_velocity_update()
-
-        # no mouse scrolling, so the user is going to drag the scrollview with
-        # this touch.
-        self._touch = touch
-        uid = self._get_uid()
-
-        ud[uid] = {
-            'mode': 'unknown',
-            'dx': 0,
-            'dy': 0,
-            'user_stopped': in_bar,
-            'frames': Clock.frames,
-            'time': touch.time_start,
-        }
-
-        if (self.do_scroll_x and self.effect_x and not ud['in_bar_x']
-                and not ud['in_bar_y']):
-            # make sure the effect's value is synced to scroll value
-            self._update_effect_bounds()
-
-            self._effect_x_start_width = self.width
-            self.effect_x.start(touch.x)
-            self._scroll_x_mouse = self.scroll_x
-
-        if (self.do_scroll_y and self.effect_y and not ud['in_bar_x']
-                and not ud['in_bar_y']):
-            # make sure the effect's value is synced to scroll value
-            self._update_effect_bounds()
-
-            self._effect_y_start_height = self.height
-            self.effect_y.start(touch.y)
-            self._scroll_y_mouse = self.scroll_y
-
-        if not in_bar:
-            Clock.schedule_once(self._change_touch_mode,
-                                self.scroll_timeout / 1000.)
-            return True
-
-        in_bar = ud['in_bar_x'] or ud['in_bar_y']
-        if scroll_type == ['bars'] and not in_bar:
-            return self.simulate_touch_down(touch)
-
-        if in_bar:
-            if (ud['in_bar_y'] and not
-                    self._touch_in_handle(
-                        self._handle_y_pos, self._handle_y_size, touch)):
-                self.scroll_y = (touch.y - self.y) / self.height
-            elif (ud['in_bar_x'] and not
-                    self._touch_in_handle(
-                        self._handle_x_pos, self._handle_x_size, touch)):
-                self.scroll_x = (touch.x - self.x) / self.width
-
-        # no mouse scrolling, so the user is going to drag the scrollview with
-        # this touch.
-        self._touch = touch
-        uid = self._get_uid()
-
-        ud[uid] = {
-            'mode': 'unknown',
-            'dx': 0,
-            'dy': 0,
-            'user_stopped': in_bar,
-            'frames': Clock.frames,
-        }
-
-        if self.do_scroll_x and self.effect_x and not in_bar:
-            # make sure the effect's value is synced to scroll value
-            self._update_effect_bounds()
-
-            self._effect_x_start_width = self.width
-            self.effect_x.start(touch.x)
-            self._scroll_x_mouse = self.scroll_x
-
-        if self.do_scroll_y and self.effect_y and not in_bar:
-            # make sure the effect's value is synced to scroll value
-            self._update_effect_bounds()
-
-            self._effect_y_start_height = self.height
-            self.effect_y.start(touch.y)
-            self._scroll_y_mouse = self.scroll_y
-
-        if not in_bar:
-            Clock.schedule_once(self._change_touch_mode,
-                                self.scroll_timeout / 1000.)
-        return True
 
     def on_touch_move(self, touch):
         if self._touch is not touch:
