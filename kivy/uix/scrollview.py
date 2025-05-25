@@ -798,14 +798,24 @@ class ScrollView(StencilView):
             return self.simulate_touch_down(touch)
 
         if in_bar:
+            e = None
             if (ud['in_bar_y'] and not
                     self._touch_in_handle(
                         self._handle_y_pos, self._handle_y_size, touch)):
                 self.scroll_y = (touch.y - self.y) / self.height
+                e = self.effect_y
             elif (ud['in_bar_x'] and not
                     self._touch_in_handle(
                         self._handle_x_pos, self._handle_x_size, touch)):
                 self.scroll_x = (touch.x - self.x) / self.width
+                e = self.effect_x
+
+            if e:
+                velocity = e.velocity
+                e.velocity = 0
+                self._update_effect_bounds()
+                if velocity > 0:
+                    e.trigger_velocity_update()
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
@@ -1148,7 +1158,7 @@ class ScrollView(StencilView):
         self._bar_color = self.bar_color
         ev()
 
-    def _bind_inactive_bar_color(self, *l):
+    def _bind_inactive_bar_color(self, *args):
         self.funbind('bar_color', self._change_bar_color)
         self.fbind('bar_inactive_color', self._change_bar_color)
         Animation(
