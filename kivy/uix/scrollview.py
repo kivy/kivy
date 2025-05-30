@@ -810,12 +810,12 @@ class ScrollView(StencilView):
                 self.scroll_x = (touch.x - self.x) / self.width
                 e = self.effect_x
 
+            e = self.effect_y if ud['in_bar_y'] else self.effect_x
             if e:
-                velocity = e.velocity
-                e.velocity = 0
                 self._update_effect_bounds()
-                if velocity > 0:
-                    e.trigger_velocity_update()
+                e.velocity = 0
+                e.overscroll = 0
+                e.trigger_velocity_update()
 
         # no mouse scrolling, so the user is going to drag the scrollview with
         # this touch.
