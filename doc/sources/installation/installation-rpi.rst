@@ -80,7 +80,7 @@ The base images used for cross-compilation are the `balenalib`_ images for raspb
 The docker images are built using the `Dockerfile.armv7l` file in the `.ci` directory.
 
 The raspberrypi3 balenalib images have almost the same environment as the real Raspberry Pi OS Bullseye/Bookworm (32 bit) system,
-which makes it possible to include/exclude RPi specific features (like the `egl_rpi` window provider) during the build process.
+which makes it possible to include/exclude RPi specific features during the build process.
 
 We have an helper, named `generate_rpi_wheels`, that can be used to easily generate the wheels and copy the artifacts for Raspberry Pi OS Bullseye/Bookworm (32 bit).
 To cross-compile the wheels, you need to run the following commands::
@@ -94,21 +94,14 @@ To cross-compile the wheels, you need to run the following commands::
     generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.11-bookworm
 
 
-Kivy determines automatically the sub-packages to build based on the environment it is compiled within. By default, the `egl_rpi` renderer that
-uses the (now deprecated but still useful) DISPMANX API is only compiled when running on a Raspberry Pi with Raspberry Pi OS Buster (32 bit), as it is the only
-platform that still  supports it.
-
-Please note that the `egl_rpi` window handler is not supported on Raspberry Pi 4 and higher.
+Kivy determines automatically the sub-packages to build based on the environment it is compiled within.
 
 Headless support on Raspberry Pi
 --------------------------------
 
 If you followed the previous steps, or you're using the pre-built wheels, the headless support is enabled by default.
 
-On supported platforms (RPi 1-3 with Raspberry Pi OS Buster), the `egl_rpi` window provider is used by default. This window provider uses the
-(deprecated, will be removed in future) DISPMANX API to create a headless GL context.
-
-On other platforms (e.g RPi 4 or 64 bit OS), the `sdl3` window provider is used by default. If during the build process for the `sdl3`
+The `sdl3` window provider is used by default. If during the build process for the `sdl3`
 dependencies the `kmsdrm` headers and libraries are found, the `kmsdrm` backend is enabled. This backend allows to create a headless
 GL context using the KMS/DRM API.
 
@@ -133,8 +126,6 @@ You will then see an output similar to this::
 Raspberry Pi window provider and GL backend
 -------------------------------------------
 
-Where applicable, Kivy will use the `egl_rpi` window provider by default.
-
 The window provider and GL backend can be changed at runtime by setting the `KIVY_WINDOW`_ and `KIVY_GL_BACKEND`_ environmental variables.
 
 The table below shows the supported combinations of window provider and GL backend on the 4 platforms:
@@ -146,26 +137,9 @@ The table below shows the supported combinations of window provider and GL backe
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
 | x11                                | gl                                | y     | y     | y     | y     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
-| egl_rpi                            | gl                                | y*    | y*    | y*    | n     |
-+------------------------------------+-----------------------------------+-------+-------+-------+-------+
-
-*The ``egl_rpi`` (deprecated) window provider is only available on Raspberry Pi OS Buster (32 bit).
 
 .. _KIVY_WINDOW: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
 .. _KIVY_GL_BACKEND: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
-
-Change the default screen to use
---------------------------------
-
-You can set an environment variable named `KIVY_BCM_DISPMANX_ID` in order to
-change the display used to run Kivy. For example, to force the display to be
-HDMI, use::
-
-    KIVY_BCM_DISPMANX_ID=2 python3 main.py
-
-Check :ref:`environment` to see all the possible values.
-
-Note that this is only available on Raspberry Pi OS Buster (32 bit) and only when using the `egl_rpi` window provider.
 
 Using Official RPi touch display
 --------------------------------
