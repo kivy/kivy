@@ -1068,7 +1068,7 @@ if USE_SDL3:
 
 label_libs += [
     ('pil', 'text_pil', 'LabelPIL')]
-Text = Label = core_select_lib('text', label_libs)
+Label: LabelBase = core_select_lib('text', label_libs)
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:

@@ -135,7 +135,7 @@ if USE_SDL3:
 _clipboards.append(
     ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
 
-Clipboard = core_select_lib('clipboard', _clipboards, True)
+Clipboard: ClipboardBase = core_select_lib('clipboard', _clipboards, True)
 CutBuffer = None
 
 if platform == 'linux':
