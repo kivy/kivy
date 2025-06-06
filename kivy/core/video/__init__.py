@@ -215,4 +215,4 @@ video_providers += [
     ('null', 'video_null', 'VideoNull')]
 
 
-Video = core_select_lib('video', video_providers)
+Video: VideoBase = core_select_lib('video', video_providers)
