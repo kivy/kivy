@@ -12,30 +12,30 @@ cdef struct BytesIODataContainer:
     void* data
 
 
-cdef size_t rwops_bytesio_write(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status) noexcept:
+cdef size_t rwops_bytesio_like_write(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status) noexcept:
     cdef char *c_string = <char *>ptr
-    byteio = <object>(<BytesIODataContainer*>userdata).data
-    byteio.write(c_string[:size * 1])
+    bytesio = <object>(<BytesIODataContainer*>userdata).data
+    bytesio.write(c_string[:size * 1])
     return size * 1
 
 
-cdef bool rwops_bytesio_close(void *userdata) noexcept:
-    byteio = <object>(<BytesIODataContainer*>userdata).data
-    byteio.seek(0)
+cdef bool rwops_bytesio_like_close(void *userdata) noexcept:
+    bytesio = <object>(<BytesIODataContainer*>userdata).data
+    bytesio.seek(0)
     return 1
 
 
-cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
+cdef SDL_IOStream *rwops_bridge_to_bytesio_like(bytesio):
     cdef SDL_IOStreamInterface io_interface
     cdef SDL_IOStream *rwops
     cdef BytesIODataContainer *bytesiocontainer
 
     # works only for write.    
-    bytesiocontainer.data = <void *>byteio
+    bytesiocontainer.data = <void *>bytesio
     io_interface.seek = NULL
     io_interface.read = NULL
-    io_interface.write = &rwops_bytesio_write
-    io_interface.close = &rwops_bytesio_close
+    io_interface.write = &rwops_bytesio_like_write
+    io_interface.close = &rwops_bytesio_like_close
 
     rwops = SDL_OpenIO(&io_interface, bytesiocontainer)
 
@@ -45,7 +45,7 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio(byteio):
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
     cdef SDL_IOStream *rwops
-    if not isinstance(filename, io.BytesIO):
+    if not hasattr(filename, 'read') and not callable(getattr(filename, 'read', None)):
         c_filename = filename.encode('utf-8')
     cdef int pitch
 
@@ -108,7 +108,7 @@ def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
         elif imagefmt == "jpg":
             IMG_SaveJPG(image, c_filename, quality)
     else:
-        rwops = rwops_bridge_to_bytesio(filename)
+        rwops = rwops_bridge_to_bytesio_like(filename)
         if imagefmt == "png":
             IMG_SavePNG_IO(image, rwops, 1)
         elif imagefmt == "jpg":

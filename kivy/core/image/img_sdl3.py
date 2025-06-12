@@ -26,7 +26,7 @@ class ImageLoaderSDL3(ImageLoaderBase):
                 'tga', 'tiff', 'webp', 'xcf', 'xpm', 'xv')
 
     @staticmethod
-    def can_save(fmt, is_bytesio):
+    def can_save(fmt, is_bytesio_like):
         return fmt in ('jpg', 'png')
 
     @staticmethod

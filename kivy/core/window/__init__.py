@@ -1492,7 +1492,7 @@ class WindowBase(EventDispatcher):
         self.trigger_create_window.cancel()
 
         # ensure the window creation will not be called twice
-        if platform in ('android'):
+        if platform in {'android'}:
             self._unbind_create_window()
 
         if not self.initialized:

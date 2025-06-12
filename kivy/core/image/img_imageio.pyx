@@ -367,8 +367,8 @@ class ImageLoaderImageIO(ImageLoaderBase):
         return [ImageData(w, h, imgtype, data, source=filename)]
 
     @staticmethod
-    def can_save(fmt, is_bytesio):
-        if is_bytesio:
+    def can_save(fmt, is_bytesio_like):
+        if is_bytesio_like:
             return False
         return fmt in ImageLoaderImageIO.extensions()
 
