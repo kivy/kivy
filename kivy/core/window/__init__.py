@@ -2599,4 +2599,4 @@ if USE_SDL3:
 
 if platform == 'linux':
     window_impl += [('x11', 'window_x11', 'WindowX11')]
-Window = core_select_lib('window', window_impl, True)
+Window: WindowBase = core_select_lib('window', window_impl, True)
