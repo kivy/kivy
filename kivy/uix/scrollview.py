@@ -803,13 +803,11 @@ class ScrollView(StencilView):
                     self._touch_in_handle(
                         self._handle_y_pos, self._handle_y_size, touch)):
                 self.scroll_y = (touch.y - self.y) / self.height
-                e = self.effect_y
             elif (ud['in_bar_x'] and not
                     self._touch_in_handle(
                         self._handle_x_pos, self._handle_x_size, touch)):
                 self.scroll_x = (touch.x - self.x) / self.width
-                e = self.effect_x
-
+            
             e = self.effect_y if ud['in_bar_y'] else self.effect_x
             if e:
                 self._update_effect_bounds()
