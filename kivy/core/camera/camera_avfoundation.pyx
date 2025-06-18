@@ -90,7 +90,7 @@ class CameraAVFoundation(CameraBase):
 
     def _update(self, dt):
         cdef _AVStorage storage = <_AVStorage>self._storage
-        cdef int width, height, rowsize
+        cdef int width, height, rowsize, datasize
         cdef char *data
         cdef CameraFrame* _current_frame
         cdef CameraMetadata* _current_metadata
@@ -110,13 +110,14 @@ class CameraAVFoundation(CameraBase):
         width = _current_frame.width
         height = _current_frame.height
         rowsize = _current_frame.rowsize
+        datasize = _current_frame.datasize
         data = _current_frame.data
 
         if data == NULL:
             return
 
         cyarr = cyview.array(
-            shape=(rowsize * height,),
+            shape=(datasize,),
             itemsize=sizeof(char),
             format="B",
             mode="c",
