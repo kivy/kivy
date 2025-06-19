@@ -132,4 +132,4 @@ _libs = (('enchant', 'spelling_enchant', 'SpellingEnchant'), )
 if sys.platform == 'darwin':
     _libs += (('osxappkit', 'spelling_osxappkit', 'SpellingOSXAppKit'), )
 
-Spelling = core_select_lib('spelling', _libs)
+Spelling: SpellingBase = core_select_lib('spelling', _libs)

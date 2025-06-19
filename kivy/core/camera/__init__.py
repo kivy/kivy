@@ -148,4 +148,4 @@ else:
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 
 
-Camera = core_select_lib('camera', (providers))
+Camera: CameraBase = core_select_lib('camera', (providers))

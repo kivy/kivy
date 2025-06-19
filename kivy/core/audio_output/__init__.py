@@ -72,7 +72,7 @@ class SoundLoader:
         SoundLoader._classes.append(classobj)
 
     @staticmethod
-    def load(filename):
+    def load(filename) -> "Sound":
         '''Load a sound, and return a Sound() instance.'''
         rfn = resource_find(filename)
         if rfn is not None:
