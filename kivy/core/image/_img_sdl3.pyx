@@ -30,7 +30,7 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio_like(bytesio):
     cdef SDL_IOStream *rwops
     cdef BytesIODataContainer *bytesiocontainer
 
-    # works only for write.    
+    # works only for write.
     bytesiocontainer.data = <void *>bytesio
     io_interface.seek = NULL
     io_interface.read = NULL
@@ -45,7 +45,7 @@ cdef SDL_IOStream *rwops_bridge_to_bytesio_like(bytesio):
 def save(filename, w, h, pixelfmt, pixels, flipped, imagefmt, quality=90):
     cdef bytes c_filename = None
     cdef SDL_IOStream *rwops
-    if not hasattr(filename, 'read') and not callable(getattr(filename, 'read', None)):
+    if not hasattr(filename, 'read'):
         c_filename = filename.encode('utf-8')
     cdef int pitch
 

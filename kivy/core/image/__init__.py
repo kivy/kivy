@@ -848,7 +848,7 @@ class Image(EventDispatcher):
 
         '''
         is_bytesio_like = False
-        if hasattr(filename, 'read') and callable(getattr(filename, 'read', None)):
+        if callable(getattr(filename, 'read', None)):
             # BytesIO like(RawIO, RawIOBase, BytesIO..)
             is_bytesio_like = True
             if not fmt:
