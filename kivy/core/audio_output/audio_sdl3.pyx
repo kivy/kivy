@@ -42,6 +42,8 @@ Depending the compilation of SDL3 mixer and/or installed libraries:
 __all__ = ('SoundSDL3', 'MusicSDL3')
 
 include "../../../kivy/lib/sdl3.pxi"
+from cpython cimport PyBytes_AsString
+from libc.stdint cimport uintptr_t
 
 from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
@@ -79,7 +81,7 @@ cdef mix_init():
 
     desired_spec.freq = 44100
     desired_spec.format = SDL_AUDIO_S16
-    desired_spec.channels = 2    
+    desired_spec.channels = 2
     if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
                         SDL_GetError()))
@@ -247,6 +249,24 @@ class SoundSDL3(Sound):
             cc.chunk.volume = int(self.volume * 128)
             if self.pitch != 1.:
                 self.on_pitch(self, self.pitch)
+
+    @staticmethod
+    def from_bytes(data):
+        instance = SoundSDL3()
+        cdef ChunkContainer cc = instance.cc
+
+        cdef char* c_data = PyBytes_AsString(data)
+
+        rw = SDL_IOFromMem(<void*>c_data, len(data))
+        cc.chunk = Mix_LoadWAV_IO(rw, 1)
+
+        if cc.chunk == NULL:
+            Logger.warning('AudioSDL3: Unable to load data: {}'.format(SDL_GetError()))
+        else:
+            cc.original_chunk = Mix_QuickLoad_RAW(cc.chunk.abuf, cc.chunk.alen)
+            cc.chunk.volume = int(instance.volume * 128)
+
+        return instance
 
     def unload(self):
         cdef ChunkContainer cc = self.cc
