@@ -128,7 +128,7 @@ class CameraAVFoundation(CameraBase):
         self._resolution = (width, height)
         
         if self._texture is None or self._texture.size != self._resolution:
-            if platform == 'ios':
+            if platform == 'ios' and Texture.have_gles_limits():
                 self._texture = Texture.create(self._resolution, colorfmt='bgra')
             else:
                 self._texture = Texture.create(self._resolution)
