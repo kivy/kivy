@@ -239,8 +239,6 @@ cimport kivy.graphics.cgl as cgldef
 from kivy.graphics.cgl cimport *
 from kivy.graphics.opengl_utils cimport gl_has_capability, gl_get_version_major
 
-cdef int gles_limts = int(environ.get(
-    'KIVY_GLES_LIMITS', int(platform not in ('win', 'macosx', 'linux'))))
 
 # update flags
 cdef int TI_MIN_FILTER      = 1 << 0
@@ -279,6 +277,8 @@ DEF GL_RGBA8 =  0x8058
 DEF GL_UNPACK_ROW_LENGTH = 0x0CF2
 DEF GL_UNPACK_SKIP_ROWS = 0x0CF3
 DEF GL_UNPACK_SKIP_PIXELS = 0x0CF4
+
+cdef int _have_gles_limits_defaults = -1
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -607,6 +607,21 @@ def texture_create_from_data(im, mipmap=False):
 
     return texture
 
+def texture_have_gles_limits():
+    '''Return True if the current OpenGL context has GLES limits.
+    '''
+    global _have_gles_limits_defaults
+    def _get_gles_limits_default():
+        if platform == 'android':
+            return 1
+        if platform == 'ios':
+            return int(cgl_get_initialized_backend_name() != 'angle')
+        return 0
+
+    if _have_gles_limits_defaults == -1:
+        _have_gles_limits_defaults = int(environ.get('KIVY_GLES_LIMITS', _get_gles_limits_default()))
+
+    return _have_gles_limits_defaults == 1
 
 cdef class Texture:
     '''Handle an OpenGL texture. This class can be used to create simple
@@ -617,6 +632,8 @@ cdef class Texture:
     '''
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
+    have_gles_limits = staticmethod(texture_have_gles_limits)
+
 
     def __init__(self, width, height, target, texid=0, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None, callback=None,
@@ -903,7 +920,7 @@ cdef class Texture:
         # gles limitation/issue: cannot blit buffer on a different
         # buffer/colorfmt
         # Reference: https://github.com/kivy/kivy/issues/1600
-        if gles_limts:
+        if Texture.have_gles_limits():
             if colorfmt.lower() != self.colorfmt.lower():
                 raise Exception((
                     "GLES LIMIT: Cannot blit with a different colorfmt than "
