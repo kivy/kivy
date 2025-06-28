@@ -18,6 +18,9 @@ On desktop, this defaults to::
 
     <HOME_DIRECTORY>/.kivy/config.ini
 
+if your setup is set through Virtual environment it will default to::
+    <PROJECT_FOLDER>/.kivy.config.ini
+
 Therefore, if your user is named "tito", the file will be here:
 
 - Windows: ``C:\Users\tito\.kivy\config.ini``
