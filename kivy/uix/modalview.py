@@ -204,7 +204,7 @@ class ModalView(AnchorLayout):
 
         """
         from kivy.core.window import Window
-        if self._is_open:
+        if self._is_open or self._anim_alpha > 0:
             return
         self._window = Window
         self._is_open = True
@@ -239,7 +239,7 @@ class ModalView(AnchorLayout):
             view.dismiss(animation=False)
 
         """
-        if not self._is_open:
+        if not self._is_open or self._anim_alpha < 1:
             return
         self.dispatch('on_pre_dismiss')
         if self.dispatch('on_dismiss') is True:
