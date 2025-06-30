@@ -21,13 +21,86 @@ gestures and compare them::
     # ...
     gdb.find(g2)
 
-.. warning::
+And now a more elaborate example that captures gestures from touch events
+and emits events when the gesture is recognized::
 
-   You don't really want to do this: it's more of an example of how
-   to construct gestures dynamically. Typically, you would
-   need a lot more points, so it's better to record gestures in a file and
-   reload them to compare later. Look in the examples/gestures directory for
-   an example of how to do that.
+    from kivy.gesture import Gesture, GestureDatabase
+    from kivy.event import EventDispatcher
+
+    class MyScreenManager(ScreenManager, EventDispatcher):
+        _strokes = {
+            # straight lines
+            'right': 13,
+            'left': 31,
+            'down': 14,
+            'up': 41,
+            # triangles
+            '3down': 7297,
+            '3up': 1381,
+            '3left': 1671,
+            '3right': 3943,
+            # squares
+            'box-1': 13971,
+            'box-3': 39713,
+            'box-9': 97139,
+            'box-7': 71397,
+            'box-1-ccw': 17931,
+            'box-3-ccw': 31793,
+            'box-9-ccw': 93179,
+            'box-7-ccw': 79317,
+            # characters
+            'V': 183,
+            'V-inv': 729,
+            'W': 17593,
+            'M': 71539,
+            'N': 7193,
+            'Sigma': 31579
+        }
+
+        def __init__(self, **kwargs):
+            self._gestureDb = GestureDatabase()
+            for name, points in self._strokes.items():
+                self._gestureDb.add_gesture(Gesture(name=name, \
+point_list=points))
+            self.register_event_type('on_gesture')
+            super(MyScreenManager, self).__init__(**kwargs)
+
+        def on_touch_down(self, touch):
+            touch.ud['line'] = list()
+            touch.ud['line'].append(touch.pos)
+            return ScreenManager.on_touch_down(self, touch)
+
+        def on_touch_move(self, touch):
+            touch.ud['line'].append(touch.pos)
+            return ScreenManager.on_touch_move(self, touch)
+
+        def on_touch_up(self, touch):
+            touch.ud['line'].append(touch.pos)
+            stroke = self._gestureDb.find(Gesture(point_list = \
+touch.ud['line']), 0.5, False)
+            if stroke is not None:
+                self.dispatch('on_gesture', stroke[1].name)
+            ScreenManager.on_touch_up(self, touch)
+
+        def on_gesture(self, *args):
+            print('Gesture dispatched: {}'.format(args[0]))
+
+    class MyApp(App):
+        # ...
+        # ...
+
+.. note:: :meth:`~kivy.gesture.Gesture.normalize()` resizes and moves a stroke \
+so that all points always fit in a box limited by (1, 1) and (-1, -1). \
+As a consequence, after normalization ((1, 1), (-1, -1)) and \
+((100, 100), (-100, -100)) represent the same strokes. \
+Similarly ((1, 1), (1, 0)) and ((0, 1), (0, 0)) represent the same.
+
+.. versionadded:: 2.3.0
+:meth:`~kivy.gesture.Gesture.add_stroke` implements a shorthand to encode
+strokes. This shorthand mimics a keypad from a phone: top-left is called '1',
+top-center is '2', top-right is '3', ... bottom-right is '9'.
+When encoding strokes, you can specify '123' or 123 for a three-point horizontal
+stroke. '147' specifies a vertical stroke, '159' specifies a diagonal stroke.
 
 '''
 
@@ -55,7 +128,7 @@ class GestureDatabase(object):
 
     def find(self, gesture, minscore=0.9, rotation_invariant=True):
         '''Find a matching gesture in the database.'''
-        if not gesture:
+        if not gesture.gesture_product:
             return
 
         best = None
@@ -184,38 +257,41 @@ class GestureStroke:
             return False
 
         # Calculate how long each point should be in the stroke
-        target_stroke_size = \
-            self.stroke_length(self.points) / float(sample_points)
+        stepsize = \
+            self.stroke_length(self.points) / float(sample_points - 1)
+
         new_points = list()
-        new_points.append(self.points[0])
 
-        # We loop on the points
-        prev = self.points[0]
-        src_distance = 0.0
-        dst_distance = target_stroke_size
-        for curr in self.points[1:]:
-            d = self.points_distance(prev, curr)
-            if d > 0:
-                prev = curr
-                src_distance = src_distance + d
+        # Copy the starting point as the first new point
+        here = self.points[0]
+        new_points.append(here)
+        leg_index = 1
+        next = self.points[leg_index]
+        leg_size = self.points_distance(here, next)
+        step = stepsize
 
-                # The new point need to be inserted into the
-                # segment [prev, curr]
-                while dst_distance < src_distance:
-                    x_dir = curr.x - prev.x
-                    y_dir = curr.y - prev.y
-                    ratio = (src_distance - dst_distance) / d
-                    to_x = x_dir * ratio + prev.x
-                    to_y = y_dir * ratio + prev.y
-                    new_points.append(GesturePoint(to_x, to_y))
-                    dst_distance = self.stroke_length(self.points) / \
-                        float(sample_points) * len(new_points)
+        while True:
+            if step < leg_size:
+                x_dir = next.x - here.x
+                y_dir = next.y - here.y
+                ratio = step / self.points_distance(here, next)
+                to_x = x_dir * ratio + here.x
+                to_y = y_dir * ratio + here.y
+                here = GesturePoint(to_x, to_y)
+                new_points.append(here)
+                leg_size -= step
+                step = stepsize
+            else:
+                step -= leg_size
+                leg_index += 1
+                if leg_index == len(self.points):
+                    break
+                here = next
+                next = self.points[leg_index]
+                leg_size = self.points_distance(here, next)
 
-        # If this happens, we are into troubles...
-        if not len(new_points) == sample_points:
-            raise ValueError('Invalid number of strokes points; got '
-                             '%d while it should be %d' %
-                             (len(new_points), sample_points))
+        if len(new_points) < sample_points:
+            new_points.append(next)
 
         self.points = new_points
         return True
@@ -228,20 +304,30 @@ class GestureStroke:
 
 
 class Gesture:
-    '''A python implementation of a gesture recognition algorithm by
+    '''Creates a new gesture with an optional matching `tolerance` value.
+    In case `name` is specified, the Gesture will create an atttribute with
+    that name. In case `point_list` is specified, a stroke will be created
+    from this point list and will be added to the Gesture. This stroke will
+    be normalized.
+
+    A python implementation of a gesture recognition algorithm by
     Oleg Dopertchouk: http://www.gamedev.net/reference/articles/article2039.asp
 
     Implemented by Jeiel Aranal (chemikhazi@gmail.com),
     released into the public domain.
+
+    .. versionadded:: 2.3.0
+    The :meth:`~kivy.gesture.Gesture.__init__()` method was extended with the
+    `name` and the `point_list` parameters. When supplied, the stroke in
+    `point_list` will be normalized.
     '''
 
     # Tolerance for evaluation using the '==' operator
     DEFAULT_TOLERANCE = 0.1
 
-    def __init__(self, tolerance=None):
+    def __init__(self, tolerance=None, name=None, point_list=None):
         '''
-        Gesture([tolerance=float])
-        Creates a new gesture with an optional matching tolerance value.
+        Gesture([tolerance=float], name=None, point_list=None)
         '''
         self.width = 0.
         self.height = 0.
@@ -251,6 +337,12 @@ class Gesture:
             self.tolerance = Gesture.DEFAULT_TOLERANCE
         else:
             self.tolerance = tolerance
+
+        self.name = name
+
+        if point_list is not None:
+            self.add_stroke(point_list=point_list)
+            self.normalize()
 
     def _scale_gesture(self):
         ''' Scales down the gesture to a unit of 1.'''
@@ -295,11 +387,25 @@ class Gesture:
             stroke.center_stroke(total_x, total_y)
         return True
 
+    ''' Define shorthand for gesture reference points as if it were a keypad
+        of a phone. Assume a 3 x 3 grid, labeled '1', '2', '3' etc
+    '''
+    _keypad = {'1': (-1, 1), '2': (0, 1), '3': (1, 1),
+       '4': (-1, 0), '5': (0, 0), '6': (1, 0),
+       '7': (-1, -1), '8': (0, -1), '9': (1, -1)
+    }
+
     def add_stroke(self, point_list=None):
         '''Adds a stroke to the gesture and returns the Stroke instance.
-           Optional point_list argument is a list of the mouse points for
-           the stroke.
+           Optional `point_list` argument is a list of the mouse points for
+           the stroke. `point_list` can be a list of points, a string with
+           characters 1...9 or an integer.
         '''
+        if isinstance(point_list, int):
+            point_list = str(point_list)
+        if isinstance(point_list, str):
+            point_list = list(map(lambda x: self._keypad[x], str(point_list)))
+
         self.strokes.append(GestureStroke())
         if isinstance(point_list, list) or isinstance(point_list, tuple):
             for point in point_list:
@@ -321,11 +427,12 @@ class Gesture:
         '''Runs the gesture normalization algorithm and calculates the dot
         product with self.
         '''
-        if not self._scale_gesture() or not self._center_gesture():
+        if not self._scale_gesture():
             self.gesture_product = False
             return False
         for stroke in self.strokes:
             stroke.normalize_stroke(stroke_samples)
+        self._center_gesture()
         self.gesture_product = self.dot_product(self)
 
     def get_rigid_rotation(self, dstpts):
@@ -374,6 +481,12 @@ class Gesture:
     def get_score(self, comparison_gesture, rotation_invariant=True):
         ''' Returns the matching score of the gesture against another gesture.
         '''
+        def sqr(x):
+            return x * x
+
+        if len(comparison_gesture.strokes) != len(self.strokes):
+            raise Exception('Gestures not the same size. Try normalization.')
+
         if isinstance(comparison_gesture, Gesture):
             if rotation_invariant:
                 # get orientation
@@ -383,12 +496,17 @@ class Gesture:
                 comparison_gesture = comparison_gesture.rotate(angle)
 
             # this is the normal "orientation" code.
-            score = self.dot_product(comparison_gesture)
-            if score <= 0:
-                return score
-            score /= math.sqrt(
-                self.gesture_product * comparison_gesture.gesture_product)
-            return score
+            score = 0.0
+            for i in range(len(comparison_gesture.strokes)):
+                if len(comparison_gesture.strokes[i].points) != \
+                    len(self.strokes[i].points):
+                    raise Exception('Strokes not the same size')
+                for j in range(len(comparison_gesture.strokes[i].points)):
+                    score += sqr(comparison_gesture.strokes[i].points[j].x -
+                                  self.strokes[i].points[j].x)
+                    score += sqr(comparison_gesture.strokes[i].points[j].y -
+                                  self.strokes[i].points[j].y)
+            return 1.0 - score
 
     def __eq__(self, comparison_gesture):
         ''' Allows easy comparisons between gesture instances.'''
