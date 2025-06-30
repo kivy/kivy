@@ -352,11 +352,23 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         kivy_home_dir = expanduser(environ['KIVY_HOME'])
     else:
         user_home_dir = expanduser('~')
-        if platform == 'android':
+        if platform == 'win':
+            kivy_home_dir = join(environ['APPDATA'], 'kivy')
+        elif platform == 'macosx':
+            kivy_home_dir = join(user_home_dir, 'Library', 'Application Support', 'kivy')
+        elif platform == 'linux':
+            if 'XDG_DATA_HOME' in environ:
+                kivy_home_dir = join(environ['XDG_DATA_HOME'], 'kivy')
+            else:
+                kivy_home_dir = join(user_home_dir, '.local', 'share', 'kivy')
+        elif platform == 'android':
             user_home_dir = environ['ANDROID_APP_PATH']
+            kivy_home_dir = join(user_home_dir, '.kivy')
         elif platform == 'ios':
             user_home_dir = join(expanduser('~'), 'Documents')
-        kivy_home_dir = join(user_home_dir, '.kivy')
+            kivy_home_dir = join(user_home_dir, '.kivy')
+        else:
+            kivy_home_dir = join(user_home_dir, '.kivy')
 
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
