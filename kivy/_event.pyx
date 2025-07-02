@@ -853,7 +853,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 more appropriate property types. Defaults to None.
             `default_value`: bool, True by default
                 If True, `value` will be the default for the property. Otherwise,
-                the property will be initialized with the the property type's
+                the property will be initialized with the property type's
                 normal default value, and subsequently set to ``value``.
 
         ::
@@ -1155,7 +1155,7 @@ cdef class EventObservers:
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value,
         tuple largs, dict kwargs):
-        '''Dispatches the the callback with the args. f is the (derefed)
+        '''Dispatches the callback with the args. f is the (derefed)
         callback. slargs, skwargs are the bound-time provided args. largs, kwargs
         are the dispatched args. The order of args is slargs, obj, value,
         skwargs updated with kwargs. If dispatch_value is False, value is skipped.

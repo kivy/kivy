@@ -214,7 +214,7 @@ One can also generate a alternate hook which literally lists every kivy
 provider module and those not required can be commented out. See
 :mod:`~kivy.tools.packaging.pyinstaller_hooks`.
 
-To use the the alternate hooks with the examples above modify as following to
+To use the alternate hooks with the examples above modify as following to
 add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
 and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
 

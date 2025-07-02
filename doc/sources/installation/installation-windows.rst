@@ -62,7 +62,7 @@ Alternatively, if they are not assigned, you can do it the following way:
 #. Right click on the Python file (.py file extension) in the file manager.
 #. From the context menu that appears, select *Open With*
 #. Browse your hard disk drive and find the ``python.exe`` file that you want
-   to use (e.g. in the the virtual environment). Select it.
+   to use (e.g. in the virtual environment). Select it.
 #. Select "Always open the file with..." if you don't want to repeat this
    procedure every time you double click a .py file.
 #. You are done. Open the file.
