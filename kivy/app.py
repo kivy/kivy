@@ -433,6 +433,10 @@ class App(EventDispatcher):
         `on_start`:
             Fired when the application is being started (before the
             :func:`~kivy.base.runTouchApp` call.
+        `on_ready`:
+            Fired once when the application UI becomes visible after the
+            first frame has been rendered. This occurs after `on_start`
+            and indicates the UI is ready for user interaction.
         `on_stop`:
             Fired when the application stops.
         `on_pause`:
@@ -557,7 +561,7 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
-    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
+    __events__ = ('on_start', 'on_ready', 'on_stop', 'on_pause', 'on_resume',
                   'on_config_change', )
 
     # Stored so that we only need to determine this once
@@ -583,6 +587,9 @@ class App(EventDispatcher):
         #: The *root* widget returned by the :meth:`build` method or by the
         #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
+
+        # Flag to indicate if the app is ready, i.e., the UI is visible
+        self._ready_fired = False
 
     def build(self):
         '''Initializes the application; it will be called only once.
@@ -1010,6 +1017,21 @@ Context.html#getFilesDir()>`_ is returned.
         '''
         pass
 
+    def on_ready(self):
+        '''Event handler for the `on_ready` event which is fired once
+        when the application UI becomes visible after the first frame
+        has been rendered.
+
+        This is the ideal place for:
+        - UI measurements that require rendered content
+        - Screenshots of the initial UI state
+        - Performance benchmarks
+        - Analytics or logging of app readiness
+
+        This event will not fire again during the application's lifetime.
+        '''
+        pass
+
     def on_stop(self):
         '''Event handler for the `on_stop` event which is fired when the
         application has finished running (i.e. the window is about to be
@@ -1197,6 +1219,12 @@ Context.html#getFilesDir()>`_ is returned.
             return True
         if key == 27:
             return self.close_settings()
+
+    def _trigger_ready_once(self):
+        '''Internal method called by the window backend after first swap.'''
+        if not self._ready_fired:
+            self._ready_fired = True
+            self.dispatch('on_ready')
 
     def on_title(self, instance, title):
         if self._app_window:
