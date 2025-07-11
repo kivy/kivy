@@ -43,6 +43,7 @@ cdef class _WindowSDL3Storage:
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
     cdef bint _is_shapable
+    cdef bint _first_swap_done
 
     def __cinit__(self):
         self.win = NULL
@@ -55,6 +56,7 @@ cdef class _WindowSDL3Storage:
         self.gl_backend_name = None
         self.egl_angle_storage = None
         self._is_shapable = False
+        self._first_swap_done = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -987,6 +989,14 @@ cdef class _WindowSDL3Storage:
                 SDL_GL_SwapWindow(self.win)
         else:
             self.egl_angle_storage.swap_buffers()
+
+        # Trigger ready event after first successful swap
+        if not self._first_swap_done:
+            self._first_swap_done = True
+            # Get the running app instance and trigger ready
+            from kivy.app import App
+            if App.get_running_app() is not None:
+                App.get_running_app()._trigger_ready_once()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
         cdef SDL_Surface *surface = SDL_CreateSurfaceFrom(
