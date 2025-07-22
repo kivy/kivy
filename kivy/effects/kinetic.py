@@ -196,3 +196,22 @@ class KineticEffect(EventDispatcher):
         self.velocity -= self.velocity * self.friction * dt / self.std_dt
         self.apply_distance(self.velocity * dt)
         self.trigger_velocity_update()
+
+    def halt(self):
+        '''Stop the movement immediately without momentum.
+        This method immediately stops any ongoing kinetic scrolling effect by:
+        - Cancelling any scheduled velocity updates to prevent further movement
+        - Setting is_manual to False to indicate no manual interaction is in progress
+
+        Unlike the stop() method which calculates final velocity for momentum
+        scrolling, this method provides instant cessation of movement without
+        any residual animation.
+
+        This is useful when you need to programmatically stop scrolling in
+        response to user actions or when the scroll position needs to be fixed
+        immediately.  The halt() method is called by ScrollView.scroll_to to
+        stop scrolling animation prior to moving to the target widget.
+        '''
+        self.is_manual = False
+        self.velocity = 0
+        self.trigger_velocity_update.cancel()
