@@ -348,7 +348,7 @@ if any('pyinstaller' in arg.lower() for arg in sys.argv):
 
 if not environ.get('KIVY_DOC_INCLUDE'):
     user_home_dir = expanduser('~')
-    kivy_home_dir = None
+    kivy_home_dir = ''
 
     # Configuration management
     if 'KIVY_HOME' in environ:
