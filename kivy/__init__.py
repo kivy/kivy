@@ -347,17 +347,21 @@ if any('pyinstaller' in arg.lower() for arg in sys.argv):
     environ['KIVY_PACKAGING'] = '1'
 
 if not environ.get('KIVY_DOC_INCLUDE'):
+    user_home_dir = expanduser('~')
+    kivy_home_dir = None
+
     # Configuration management
     if 'KIVY_HOME' in environ:
         kivy_home_dir = expanduser(environ['KIVY_HOME'])
-    else:
-        user_home_dir = expanduser('~')
-        if platform == 'android':
-            user_home_dir = environ['ANDROID_APP_PATH']
-        elif platform == 'ios':
-            user_home_dir = join(expanduser('~'), 'Documents')
-        kivy_home_dir = join(user_home_dir, '.kivy')
+    elif platform == 'android':
+        user_home_dir = environ['ANDROID_APP_PATH']
+    elif platform == 'ios':
+        user_home_dir = join(user_home_dir, 'Documents')
+    elif sys.prefix != sys.base_prefix:
+        # Detection if venv being used with the framework
+        user_home_dir = sys.path[0]
 
+    kivy_home_dir = kivy_home_dir or user_home_dir
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     icon_dir = join(kivy_home_dir, 'icon')
