@@ -474,7 +474,10 @@ class MarkupLabel(MarkupLabelBase):
                     )
                 )
             elif halign == 'right' or auto_halign_r:
-                x = max(0, int(w - lw - padding_right))
+                x = max(
+                    0, 
+                    int(w - lw - padding_right)
+                )
             layout_line.x = x
             layout_line.y = y
             psp = pph = 0
@@ -484,13 +487,15 @@ class MarkupLabel(MarkupLabelBase):
                 wh = options['line_height'] * word.lh
                 # calculate sub/super script pos
                 if options['script'] == 'superscript':
-                    script_pos = max(0, psp if psp and (wh < pph)
-                                     else self.get_descent())
+                    script_pos = max(0,
+                                    psp if psp and wh < pph else self.get_descent()
+                    )
                     psp = script_pos
                     pph = wh
                 elif options['script'] == 'subscript':
-                    script_pos = min(lh - wh, ((psp + pph) - wh)
-                                     if pph and (wh < pph) else (lh - wh))
+                    script_pos = min(lh - wh, 
+                                     ((psp + pph) - wh) if pph and wh < pph else lh - wh
+                    )
                     pph = wh
                     psp = script_pos
                 else:
