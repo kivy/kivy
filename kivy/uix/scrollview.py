@@ -1065,6 +1065,12 @@ class ScrollView(StencilView):
         sxp = min(1, max(0, self.scroll_x - dsx))
         syp = min(1, max(0, self.scroll_y - dsy))
 
+        # Stop any existing motion before starting new animation
+        if self.effect_x:
+            self.effect_x.halt()
+        if self.effect_y:
+            self.effect_y.halt()
+
         if animate:
             if animate is True:
                 animate = {'d': 0.2, 't': 'out_quad'}
