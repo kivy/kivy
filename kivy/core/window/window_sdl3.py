@@ -502,7 +502,7 @@ class WindowSDL(WindowBase):
                 continue
 
             action, args = event[0], event[1:]
-            if action == 'quit':
+            if action in ('windowclose', 'quit'):
                 if self.dispatch('on_request_close'):
                     continue
                 EventLoop.quit = True
@@ -777,7 +777,7 @@ class WindowSDL(WindowBase):
                 continue
 
             action, args = event[0], event[1:]
-            if action == 'quit':
+            if action in ('windowclose', 'quit'):
                 EventLoop.quit = True
                 break
             elif action == 'app_willenterforeground':

@@ -1,6 +1,6 @@
 import os
 from kivy.app import App
-from kivy.core.tray import TrayIcon, TrayMenu, TrayMenuItem
+from kivy.core.system_tray import TrayIcon, TrayMenu, TrayMenuItem
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty

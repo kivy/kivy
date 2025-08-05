@@ -984,7 +984,7 @@ if c_options['use_sdl3'] and sdl3_flags:
         _extra_args_cpp = {}
     for source_file in ('core/window/_window_sdl3.pyx',
                         'core/text/_text_sdl3.pyx',
-                        'core/tray/_tray_sdl3.pyx',
+                        'core/system_tray/_system_tray_sdl3.pyx',
                         'core/audio_output/audio_sdl3.pyx',
                         'core/clipboard/_clipboard_sdl3.pyx'):
 
