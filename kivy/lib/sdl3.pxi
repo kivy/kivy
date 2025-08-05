@@ -13,6 +13,8 @@ cdef extern from "SDL_joystick.h":
     cdef int SDL_HAT_DOWN = 0x04
     cdef int SDL_HAT_LEFT = 0x08
 
+
+
 cdef extern from "SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
@@ -246,6 +248,7 @@ cdef extern from "SDL.h":
         SDL_WINDOW_UTILITY
         SDL_WINDOW_TRANSPARENT
         SDL_WINDOW_METAL = 0x20000000           #,          /**< window usable for Metal view */
+        SDL_WINDOW_MODAL = 0x0000000000001000
 
     ctypedef enum SDL_HitTestResult:
         SDL_HITTEST_NORMAL
@@ -592,6 +595,7 @@ cdef extern from "SDL.h":
     cdef int SDL_GetWindowDisplayIndex(SDL_Window * window)
     cdef Uint32 SDL_GetWindowPixelFormat(SDL_Window * window)
     cdef SDL_Window * SDL_CreateWindowFrom(const void *data)
+    cdef int SDL_SetWindowParent(SDL_Window *window, SDL_Window *parent)
     cdef Uint32 SDL_GetWindowID(SDL_Window * window)
     cdef SDL_Window * SDL_GetWindowFromID(Uint32 id)
     cdef Uint32 SDL_GetWindowFlags(SDL_Window * window)
@@ -639,6 +643,8 @@ cdef extern from "SDL.h":
     cdef int SDL_GL_GetSwapInterval()
     cdef void SDL_GL_SwapWindow(SDL_Window * window) nogil
     cdef int SDL_GL_DestroyContext(SDL_GLContext context)
+
+    
 
     cdef void SDL_GetJoysticks(int *numjoysticks)
     cdef SDL_Joystick * SDL_OpenJoystick(int index)
@@ -689,6 +695,55 @@ cdef extern from "SDL.h":
     Uint16 SDL_BYTEORDER
     Uint16 SDL_LIL_ENDIAN
     Uint16 SDL_BIG_ENDIAN
+
+
+# cdef extern from "SDL_begin_code.h":
+
+#     cdef SDLCALL __cdecl
+
+
+cdef extern from "SDL_tray.h":
+    ctypedef struct SDL_Tray
+    ctypedef struct SDL_TrayMenu
+    ctypedef struct SDL_TrayEntry
+    
+    ctypedef Uint32 SDL_TrayEntryFlags
+    
+    # Constants
+    cdef Uint32 SDL_TRAYENTRY_BUTTON      # Make the entry a simple button. Required.
+    cdef Uint32 SDL_TRAYENTRY_CHECKBOX    # Make the entry a checkbox. Required.
+    cdef Uint32 SDL_TRAYENTRY_SUBMENU     # Prepare the entry to have a submenu. Required
+    cdef Uint32 SDL_TRAYENTRY_DISABLED    # Make the entry disabled. Optional.
+    cdef Uint32 SDL_TRAYENTRY_CHECKED     # Make the entry checked. This is valid only for checkboxes. Optional.
+    
+    ctypedef void (*SDL_TrayCallback)(void *userdata, SDL_TrayEntry *entry)
+    
+    # Functions
+    cdef void SDL_ClickTrayEntry(SDL_TrayEntry *entry) nogil
+    cdef SDL_Tray* SDL_CreateTray(SDL_Surface *icon, const char *tooltip) nogil
+    cdef SDL_TrayMenu* SDL_CreateTrayMenu(SDL_Tray *tray) nogil
+    cdef SDL_TrayMenu* SDL_CreateTraySubmenu(SDL_TrayEntry *entry) nogil
+    cdef void SDL_DestroyTray(SDL_Tray *tray) nogil
+    cdef const SDL_TrayEntry** SDL_GetTrayEntries(SDL_TrayMenu *menu, int *count) nogil
+    cdef bint SDL_GetTrayEntryChecked(SDL_TrayEntry *entry) nogil
+    cdef bint SDL_GetTrayEntryEnabled(SDL_TrayEntry *entry) nogil
+    cdef const char* SDL_GetTrayEntryLabel(SDL_TrayEntry *entry) nogil
+    cdef SDL_TrayMenu* SDL_GetTrayEntryParent(SDL_TrayEntry *entry) nogil
+    cdef SDL_TrayMenu* SDL_GetTrayMenu(SDL_Tray *tray) nogil
+    cdef SDL_TrayEntry* SDL_GetTrayMenuParentEntry(SDL_TrayMenu *menu) nogil
+    cdef SDL_Tray* SDL_GetTrayMenuParentTray(SDL_TrayMenu *menu) nogil
+    cdef SDL_TrayMenu* SDL_GetTraySubmenu(SDL_TrayEntry *entry) nogil
+    cdef SDL_TrayEntry* SDL_InsertTrayEntryAt(SDL_TrayMenu *menu, int pos, const char *label, SDL_TrayEntryFlags flags) nogil
+    cdef void SDL_RemoveTrayEntry(SDL_TrayEntry *entry) nogil
+    cdef void SDL_SetTrayEntryCallback(SDL_TrayEntry *entry, SDL_TrayCallback callback, void *userdata) nogil
+    cdef void SDL_SetTrayEntryChecked(SDL_TrayEntry *entry, bint checked) nogil
+    cdef void SDL_SetTrayEntryEnabled(SDL_TrayEntry *entry, bint enabled) nogil
+    cdef void SDL_SetTrayEntryLabel(SDL_TrayEntry *entry, const char *label) nogil
+    cdef void SDL_SetTrayIcon(SDL_Tray *tray, SDL_Surface *icon) nogil
+    cdef void SDL_SetTrayTooltip(SDL_Tray *tray, const char *tooltip) nogil
+    cdef void SDL_UpdateTrays() nogil
+
+
 
 cdef extern from "SDL_image.h":
     cdef SDL_Surface *IMG_Load(char *file)
@@ -872,6 +927,7 @@ cdef extern from "SDL_audio.h":
 
     cdef int SDL_ConvertAudioSamples(const SDL_AudioSpec *src_spec, const Uint8 *src_data, int src_len, const SDL_AudioSpec *dst_spec, Uint8 **dst_data, int *dst_len)
 
+
 cdef extern from "SDL_video.h":
     cdef int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
     cdef float SDL_GetWindowOpacity(SDL_Window *window)
@@ -883,6 +939,7 @@ cdef extern from "SDL_video.h":
         SDL_SYSTEM_THEME_LIGHT  #    /**< Light colored system theme */
         SDL_SYSTEM_THEME_DARK  #     /**< Dark colored system theme */
     SDL_SystemTheme SDL_GetSystemTheme() nogil
+
 
 cdef extern from "SDL_mixer.h":
     cdef struct Mix_Chunk:
