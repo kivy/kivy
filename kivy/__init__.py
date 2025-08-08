@@ -361,7 +361,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         # Detection if venv being used with the framework
         user_home_dir = sys.path[0]
 
-    kivy_home_dir = kivy_home_dir or user_home_dir
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     icon_dir = join(kivy_home_dir, 'icon')
