@@ -16,7 +16,7 @@ jobs:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -54,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.x
       uses: actions/setup-python@v5
       with:
@@ -94,7 +94,7 @@ jobs:
     needs: [manylinux_wheel_create, kivy_examples_create]
     if: github.event_name != 'pull_request'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.x
       uses: actions/setup-python@v5
       with:
@@ -141,7 +141,7 @@ jobs:
     env:
       DISPLAY: ':99.0'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -187,7 +187,7 @@ jobs:
       DISPLAY: ':99.0'
       KIVY_SPLIT_EXAMPLES: 0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python 3.x
         uses: actions/setup-python@v5
         with:

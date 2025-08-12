@@ -23,7 +23,7 @@ jobs:
         arch: ['x64']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -58,7 +58,7 @@ jobs:
     needs: windows_wheels_create
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -107,7 +107,7 @@ jobs:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
         arch: [ 'x64' ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
         uses: actions/setup-python@v5
         with:
@@ -143,7 +143,7 @@ jobs:
     runs-on: windows-latest
     needs: windows_wheels_create
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

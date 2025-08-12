@@ -16,7 +16,7 @@ jobs:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
         arch: ['x64']
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python }} on ${{ matrix.arch }}
       uses: actions/setup-python@v5
       with:
