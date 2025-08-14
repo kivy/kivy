@@ -218,7 +218,10 @@ class FileHandler(logging.Handler):
         """
 
         if not self.log_dir:
-            return
+            # Try configuring our file handler if none is configured
+            self._configure()
+            if not self.log_dir:
+                return
 
         from kivy.config import Config
         maxfiles = Config.getint("kivy", "log_maxfiles")
