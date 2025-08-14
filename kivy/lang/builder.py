@@ -660,7 +660,13 @@ class BuilderBase(object):
                 # we can't construct it without __no_builder=True, because the
                 # previous implementation was doing the add_widget() before
                 # apply(), and so, we could use "self.parent".
-                child = cls(__no_builder=True)
+                try:
+                    child = cls(__no_builder=True)
+                except TypeError as ex:
+                    # raise TypeError("In {}: {}".format(type(cls).__name__, ex)) from ex
+                    # avoid double-length traceback as well:
+                    raise TypeError("In {}: {}"
+                        .format(cname, ex)).with_traceback(ex.__traceback__)
                 widget.add_widget(child)
                 child.apply_class_lang_rules(
                     root=rctx['ids']['root'], rule_children=rule_children)
