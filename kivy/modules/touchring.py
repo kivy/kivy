@@ -31,8 +31,6 @@ __all__ = ('start', 'stop')
 
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
-from kivy import kivy_data_dir
-from os.path import join
 
 pointer_image = None
 pointer_scale = 1.0
@@ -51,14 +49,10 @@ def _touch_down(win, touch):
             size=(iw * pointer_scale, ih * pointer_scale),
             texture=pointer_image.texture)
 
-    if not ud.get('tr.grab', False):
-        ud['tr.grab'] = True
-        touch.grab(win)
-
 
 def _touch_move(win, touch):
     ud = touch.ud
-    if not ud.get('tr.rect', False):
+    if 'tr.rect' not in ud:
         _touch_down(win, touch)
     ud['tr.rect'].pos = (
         touch.x - (pointer_image.width / 2. * pointer_scale),
@@ -66,14 +60,11 @@ def _touch_move(win, touch):
 
 
 def _touch_up(win, touch):
-    if touch.grab_current is win:
-        ud = touch.ud
-        win.canvas.after.remove(ud['tr.color'])
-        win.canvas.after.remove(ud['tr.rect'])
-
-        if ud.get('tr.grab') is True:
-            touch.ungrab(win)
-            ud['tr.grab'] = False
+    ud = touch.ud
+    if 'tr.rect' in ud:
+        remove = win.canvas.after.remove
+        remove(ud['tr.color'])
+        remove(ud['tr.rect'])
 
 
 def start(win, ctx):
