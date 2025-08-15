@@ -913,6 +913,27 @@ class ScrollView(StencilView):
                 return
             ud['dx'] += abs(touch.dx)
             ud['dy'] += abs(touch.dy)
+
+            # In the case of nested scroll views, we are in the inner SV.
+            # if user intent is orthogonal to this SV's allowed axis,
+            # yield to parent immediately by returning False, then the parent
+            # will handle the scroll.
+
+            if ud['dx'] > self.scroll_distance and not self.do_scroll_x:
+                if self.do_scroll_y and self.effect_y:
+                    self.effect_y.cancel()
+                if self.do_scroll_x and self.effect_x:
+                    self.effect_x.cancel()
+                touch.ud[self._get_uid('svavoid')] = True
+                return False
+            if ud['dy'] > self.scroll_distance and not self.do_scroll_y:
+                if self.do_scroll_x and self.effect_x:
+                    self.effect_x.cancel()
+                if self.do_scroll_y and self.effect_y:
+                    self.effect_y.cancel()
+                touch.ud[self._get_uid('svavoid')] = True
+                return False
+
             if ((ud['dx'] > self.scroll_distance and self.do_scroll_x) or
                     (ud['dy'] > self.scroll_distance and self.do_scroll_y)):
                 ud['mode'] = 'scroll'
