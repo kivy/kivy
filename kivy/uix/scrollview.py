@@ -744,6 +744,13 @@ class ScrollView(StencilView):
             m = self.scroll_wheel_distance
             e = None
 
+            # If shift is pressed, convert vertical scroll to horizontal
+            if 'shift' in touch.modifiers:
+                if btn == 'scrolldown':
+                    btn = 'scrollright'
+                elif btn == 'scrollup':
+                    btn = 'scrollleft'
+
             if (
                 (btn == 'scrolldown' and self.scroll_y >= 1)
                 or (btn == 'scrollup' and self.scroll_y <= 0)
