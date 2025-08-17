@@ -743,7 +743,6 @@ class ScrollView(StencilView):
             btn = touch.button
             m = self.scroll_wheel_distance
             e = None
-
             # nested routing for wheel based on button/orientation ---
             # If this ScrollView can't scroll in the incoming wheel direction
             # (or there's nothing to scroll on that axis), don't consume it;
@@ -761,9 +760,6 @@ class ScrollView(StencilView):
                 )):
                     return False
             # --- END of mouse wheel routing ---
-
-
-
             if (
                 (btn == 'scrolldown' and self.scroll_y >= 1)
                 or (btn == 'scrollup' and self.scroll_y <= 0)
