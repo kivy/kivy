@@ -744,6 +744,26 @@ class ScrollView(StencilView):
             m = self.scroll_wheel_distance
             e = None
 
+            # nested routing for wheel based on button/orientation ---
+            # If this ScrollView can't scroll in the incoming wheel direction
+            # (or there's nothing to scroll on that axis), don't consume it;
+            # return False so the outer ScrollView can handle the scroll.
+            if btn in ('scrollleft', 'scrollright'):
+                if not (self.do_scroll_x and (
+                        (self.always_overscroll and self.do_scroll_x) or
+                        (self._viewport and self._viewport.width > self.width)
+                )):
+                    return False
+            elif btn in ('scrolldown', 'scrollup'):
+                if not (self.do_scroll_y and (
+                        (self.always_overscroll and self.do_scroll_y) or
+                        (self._viewport and self._viewport.height > self.height)
+                )):
+                    return False
+            # --- END of mouse wheel routing ---
+
+
+
             if (
                 (btn == 'scrolldown' and self.scroll_y >= 1)
                 or (btn == 'scrollup' and self.scroll_y <= 0)
