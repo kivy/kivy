@@ -281,7 +281,9 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         return self.device + str(self.counter)
 
-    def create_touch(self, win, nx, ny, is_double_tap, do_graphics, button, modifiers=[]):
+    def create_touch(
+        self, win, nx, ny, is_double_tap, do_graphics, button, modifiers=[]
+    ):
         event_id = self.create_event_id()
         args = [nx, ny, button]
         if do_graphics:
