@@ -1,0 +1,30 @@
+<CalculatorLayout>:
+    orientation: "vertical"
+    padding: 20
+    spacing: 10
+
+    TextInput:
+        id: input1
+        hint_text: "أدخل الرقم الأول"
+        input_filter: "float"
+        multiline: False
+
+    TextInput:
+        id: input2
+        hint_text: "أدخل الرقم الثاني"
+        input_filter: "float"
+        multiline: False
+
+    TextInput:
+        id: operation
+        hint_text: "أدخل العملية (+, -, *, /)"
+        multiline: False
+
+    Button:
+        text: "احسب"
+        on_press: root.calculate()
+
+    Label:
+        id: result
+        text: ""
+        font_size: 20
