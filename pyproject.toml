@@ -1,9 +1,9 @@
 [build-system]
 requires = [
-    "setuptools>=75.1.0",   # latest setuptools
-    "wheel>=0.45.1",        # latest wheel
-    "packaging>=24.2",      # latest packaging
-    "cython>=3.2.0",        # সর্বশেষ stable Cython
+    "setuptools>=75.1.0",
+    "wheel>=0.45.1",
+    "packaging>=24.2",
+    "cython<3.2.0",
     'kivy_deps.gstreamer_dev>=0.3.3; sys_platform == "win32"',
     'kivy_deps.sdl3_dev>=0.0.7; sys_platform == "win32"',
     'kivy_deps.glew_dev>=0.3.1; sys_platform == "win32"',
@@ -39,12 +39,12 @@ exclude = [
     "venv/",
 ]
 lint.extend-ignore = [
-    "E402",  # module level import not at top
-    "E722",  # bare except
-    "E731",  # lambda assignment
-    "E741",  # ambiguous variable name
-    "F401",  # unused import
-    "F841",  # unused variable
+    "E402",
+    "E722",
+    "E731",
+    "E741",
+    "F401",
+    "F841",
 ]
 lint.select = [
     "E",
