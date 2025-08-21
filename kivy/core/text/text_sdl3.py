@@ -52,6 +52,7 @@ class LabelSDL3(LabelBase):
     def _render_text(self, text, x, y):
         if self.options['limit_render_to_text_bbox']:
             y-= self._baseline_offset
+
         self._surface.render(self, text, x, y)
 
     def _render_end(self):
