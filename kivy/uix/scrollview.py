@@ -714,6 +714,36 @@ class ScrollView(StencilView):
         width, height = size
         return x <= touch.x <= x + width and y <= touch.y <= y + height
 
+    #
+    # touch.ud keys used by this ScrollView (per-touch metadata)
+    # ----------------------------------------------------------
+    # - sv.<uid> (per-SV state): key returned by _get_uid(), e.g. 'sv.123'.
+    #   Stores this SV's per-touch session data:
+    #     * mode: 'unknown' until intent detected; then 'scroll'
+    #     * dx, dy: accumulated absolute movement to detect intent
+    #     * user_stopped: True if bars were used or user stopped scroll
+    #     * frames: Clock frame count at start (for slow-device timing)
+    #
+    # - svavoid.<uid>: guard flag to tell this ScrollView to skip handling
+    #   this touch (e.g., outside bounds, orthogonal intent, certain wheel
+    #   routes). Typically persists for the remainder of the touch for this SV.
+    #
+    # - svforce.<uid>: temporary override allowing intentional re-dispatch via
+    #   simulate_touch_down during controlled handoffs (timeout via
+    #   _change_touch_mode) or click passthrough (on_scroll_stop with mode
+    #   'unknown'). Set just around the call; always cleared immediately.
+    #
+    # - sv.handled: dict set during move: {'x': bool, 'y': bool} tracking which
+    #   axes this SV handled for the current move.
+    #
+    # - sv.can_defocus: bool (default True). Set to False when a touch caused
+    #   scrolling so focused widgets aren’t defocused by that touch.
+    #
+    # - in_bar_x, in_bar_y: booleans indicating the touch began on the
+    #   horizontal/vertical scroll bar area; used to route bar dragging vs
+    #   content scrolling.
+    #
+
     def on_scroll_start(self, touch, check_children=True):
         if check_children:
             touch.push()
