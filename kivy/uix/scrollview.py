@@ -666,6 +666,21 @@ class ScrollView(StencilView):
 
     def simulate_touch_down(self, touch):
         # at this point the touch is in parent coords
+        #
+        # Before re-dispatching this touch to child widgets, check if another
+        # widget already owns it. This prevents conflicts in nested scrollviews
+        # where multiple widgets might try to handle the same touch.
+        #
+        # We allow forced re-dispatch in special cases (marked with 'svforce' flag)
+        # such as when a scroll timeout expires and we need to pass the touch
+        # to child widgets for normal interaction (like button clicks).
+        force_key = self._get_uid('svforce')
+        if not touch.ud.get(force_key, False):
+            if touch.grab_current not in (None, self):
+                return False
+            gl = touch.grab_list or []
+            if gl and not any(w() is self for w in gl):
+                return False
         touch.push()
         touch.apply_transform_2d(self.to_local)
         ret = super(ScrollView, self).on_touch_down(touch)
@@ -682,7 +697,14 @@ class ScrollView(StencilView):
         return super().on_motion(etype, me)
 
     def on_touch_down(self, touch):
+        # Do not start scroll handling if the touch is outside this ScrollView.
+        # Returning False ensures that sibling widgets or the parent layout
+        # can handle the touch instead of this ScrollView preempting it.
+        if not self.collide_point(*touch.pos):
+            return False
         if self.dispatch('on_scroll_start', touch):
+            # We start handling the touch and take the grab so subsequent
+            # move/up events are delivered to us until we release it.
             self._touch = touch
             touch.grab(self)
             return True
@@ -698,6 +720,9 @@ class ScrollView(StencilView):
             touch.apply_transform_2d(self.to_local)
             if self.dispatch_children('on_scroll_start', touch):
                 touch.pop()
+                # A child accepted the touch; this ScrollView must not set
+                # self._touch or grab the touch. We just report handled=True
+                # so on_touch_down won't re-grab at this level.
                 return True
             touch.pop()
 
@@ -707,6 +732,9 @@ class ScrollView(StencilView):
         if self.disabled:
             return True
         if self._touch or (not (self.do_scroll_x or self.do_scroll_y)):
+            # When already handling a touch or scrolling is disabled for both
+            # axes, re-dispatch the event to our child content so non-scroll
+            # interactions (e.g., buttons) still work.
             return self.simulate_touch_down(touch)
 
         # handle mouse scrolling, only if the viewport size is bigger than the
@@ -995,6 +1023,21 @@ class ScrollView(StencilView):
         return rv
 
     def on_touch_up(self, touch):
+        # If this ScrollView previously handled this touch (uid in ud), ensure
+        # we stop and ungrab promptly, even if self._touch is None now.
+        uid_key = self._get_uid()
+        if uid_key in touch.ud:
+            # Deliver scroll stop and ungrab to avoid lingering ownership.
+            # Handlers for on_scroll_stop run synchronously.
+            self.dispatch('on_scroll_stop', touch)
+            # If we still own the grab after on_scroll_stop, release it now.
+            gl = touch.grab_list or []
+            if any(w() is self for w in gl):
+                touch.ungrab(self)
+            if not touch.ud.get('sv.can_defocus', True):
+                FocusBehavior.ignored_touch.append(touch)
+            return True
+
         uid = self._get_uid('svavoid')
         if self._touch is not touch and uid not in touch.ud:
             # don't pass on touch to children if outside the sv
@@ -1045,7 +1088,10 @@ class ScrollView(StencilView):
             # only send the click if it was not a click to stop
             # autoscrolling
             if not ud['user_stopped']:
+                force_key = self._get_uid('svforce')
+                touch.ud[force_key] = True
                 self.simulate_touch_down(touch)
+                touch.ud.pop(force_key, None)
             Clock.schedule_once(partial(self._do_touch_up, touch), .2)
 
         ev = self._update_effect_bounds_ev
@@ -1269,7 +1315,12 @@ class ScrollView(StencilView):
         touch.push()
         touch.apply_transform_2d(self.to_widget)
         touch.apply_transform_2d(self.to_parent)
+        # Flag this simulate call as intentional re-dispatch so that the
+        # simulate_touch_down guard doesn't block it if other holders exist.
+        force_key = self._get_uid('svforce')
+        touch.ud[force_key] = True
         self.simulate_touch_down(touch)
+        touch.ud.pop(force_key, None)
         touch.pop()
         return
 
