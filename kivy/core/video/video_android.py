@@ -16,7 +16,7 @@ MediaPlayer = autoclass("android.media.MediaPlayer")
 Surface = autoclass("android.view.Surface")
 SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
 GLES11Ext = autoclass("android.opengl.GLES11Ext")
-GL_TEXTURE_EXTERNAL_OES = GLES11Ext.GL_TEXTURE_EXTERNAL_OES
+
 
 
 Logger.info('VideoAndroid: Using Android MediaPlayer')
@@ -49,6 +49,7 @@ class VideoAndroid(VideoBase):
         self._resolution = (w, h)
 
         # Create OES texture
+        GL_TEXTURE_EXTERNAL_OES = GLES11Ext.GL_TEXTURE_EXTERNAL_OES
         self._video_texture = Texture(
             width=w, height=h, target=GL_TEXTURE_EXTERNAL_OES, colorfmt="rgba")
         self._video_texture.wrap = "clamp_to_edge"
