@@ -64,6 +64,7 @@ class VideoBase(EventDispatcher):
         kwargs.setdefault('eos', 'stop')
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
+        kwargs.setdefault('fps', 30)
 
         super(VideoBase, self).__init__()
 
@@ -77,12 +78,13 @@ class VideoBase(EventDispatcher):
         self._autoplay = kwargs.get('autoplay')
         self._async = kwargs.get('async')
         self.eos = kwargs.get('eos')
+        self._fps = kwargs.get('fps')
         if self.eos == 'pause':
             Logger.warning("'pause' is deprecated. Use 'stop' instead.")
             self.eos = 'stop'
         self.filename = kwargs.get('filename')
 
-        Clock.schedule_interval(self._update, 1 / 30.)
+        Clock.schedule_interval(self._update, 1 / self._fps)
 
         if self._autoplay:
             self.play()
@@ -212,6 +214,7 @@ except ImportError:
 video_providers += [
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
+    ('android', 'video_android', 'VideoAndroid'),
     ('null', 'video_null', 'VideoNull')]
 
 
