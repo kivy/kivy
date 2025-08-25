@@ -23,6 +23,7 @@ Logger.info('VideoAndroid: Using Android MediaPlayer')
 
 
 class VideoAndroid(VideoBase):
+    _mediaplayer=None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -155,3 +156,4 @@ class VideoAndroid(VideoBase):
             self.position = 0
             self.play()
         self.dispatch("on_eos")
+
