@@ -701,7 +701,7 @@ def determine_gl_flags():
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
-        flags['libraries'] = ['GLESv2']
+        flags['libraries'] = ['GLESv2', 'EGL']
     elif platform == 'rpi':
 
         if not cross_sysroot:
@@ -742,7 +742,7 @@ def determine_gl_flags():
         c_options['use_x11'] = True
         c_options['use_egl'] = True
     else:
-        flags['libraries'] = ['GL']
+        flags['libraries'] = ['GL', 'EGL']
     return flags, base_flags
 
 
@@ -906,6 +906,71 @@ graphics_dependencies = {
         'cgl.pxd', 'texture.pxd', 'vertex_instructions_line.pxi'],
     'vertex_instructions_line.pxi': ['stencil_instructions.pxd']}
 
+SKIA_LIBRARIES = [
+    "skresources",
+    "svg",
+    "skottie",
+    "jsonreader",
+    "sksg",
+    "skshaper",
+    "skunicode_icu",
+    "skunicode_core",
+    "skia",
+]
+
+
+if sys.platform == "win32":
+    SKIA_LIBRARIES.extend(
+        [
+            "FontSub",
+            "Advapi32",
+            "OpenGL32",
+        ]
+    )
+    EXTRA_COMPILE_ARGS = [
+        "/std:c++17",
+        "/MT",
+
+        # Disable a bunch of warnings.
+        "/wd5030",  # Warnings about unknown attributes.
+        "/wd4244",  # Conversion from 'float' to 'int', possible loss of data.
+        "/wd4267",  # Conversion from 'size_t' to 'int', possible loss of data.
+        "/wd4800",  # Forcing value to bool 'true' or 'false'.
+        "/wd4180",  # Qualifier applied to function type has no meaning.
+    ]
+else:
+    EXTRA_COMPILE_ARGS = ['-std=c++17']
+
+
+SKIA_ROOT = os.environ.get("SKIA_ROOT", None)
+
+if os.environ.get("SKIA_LIB_DIR", None):
+    SKIA_LIBRARIES_DIRS = [os.environ["SKIA_LIB_DIR"]]
+else:
+    SKIA_LIBRARIES_DIRS = [os.path.join(SKIA_ROOT, "bin")]
+
+if os.environ.get("SKIA_INCLUDE_DIR", None):
+    SKIA_INCLUDE_DIRS = [os.environ["SKIA_INCLUDE_DIR"]]
+else:
+    SKIA_INCLUDE_DIRS = [SKIA_ROOT]
+
+
+skia_flags = {
+    "include_dirs": SKIA_INCLUDE_DIRS,
+    "libraries": SKIA_LIBRARIES,
+    "library_dirs": SKIA_LIBRARIES_DIRS,
+    "extra_link_args": [],
+    "language": "c++",
+    "extra_compile_args": EXTRA_COMPILE_ARGS,
+}
+
+if c_options["use_sdl3"]:
+    sdl3_flags = determine_sdl3()
+
+skia_flags = merge(
+    merge(merge(skia_flags, gl_flags_base), gl_flags), sdl3_flags
+)
+
 sources = {
     '_event.pyx': merge(base_flags, {'depends': ['properties.pxd']}),
     '_clock.pyx': {},
@@ -953,11 +1018,9 @@ sources = {
         ]
     }),
     'graphics/svg.pyx': merge(base_flags, gl_flags_base),
-    'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base)
+    'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base),
+    'core/skia/skia_graphics.pyx': merge(base_flags, skia_flags),
 }
-
-if c_options["use_sdl3"]:
-    sdl3_flags = determine_sdl3()
 
 if c_options['use_sdl3'] and sdl3_flags:
     sources['graphics/cgl_backend/cgl_sdl3.pyx'] = merge(
