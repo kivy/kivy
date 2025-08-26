@@ -4,36 +4,53 @@
 
 
 __all__ = ('VideoAndroid', )
-from jnius import autoclass
+from jnius import autoclass,java_method, PythonJavaClass
 from kivy.clock import mainthread
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
 from kivy.graphics import Rectangle, Callback
 from kivy.graphics.texture import Texture
 from kivy.graphics.fbo import Fbo
-
+import math
 MediaPlayer = autoclass("android.media.MediaPlayer")
+MediaMetadataRetriever = autoclass("android.media.MediaMetadataRetriever")
 Surface = autoclass("android.view.Surface")
 SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
 GLES11Ext = autoclass("android.opengl.GLES11Ext")
 
 
-
 Logger.info('VideoAndroid: Using Android MediaPlayer')
 
 
+class OnCompletionListener(PythonJavaClass):
+    __javainterfaces__ = ["android/media/MediaPlayer$OnCompletionListener"]
+    __javacontext__ = "app"
+
+    def __init__(self, callback, **kwargs):
+        super(OnCompletionListener, self).__init__(**kwargs)
+        self.callback = callback
+
+    @java_method("(Landroid/media/MediaPlayer;)V")
+    def onCompletion(self, mp):
+        if self.callback:
+            self.callback()
+
+
 class VideoAndroid(VideoBase):
-    _mediaplayer=None
+    _mediaplayer = None
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(VideoAndroid,self).__init__(**kwargs)
         self._mediaplayer = None
         self._surface_texture = None
         self._surface = None
         self._video_texture = None
         self._fbo = None
         self._texture_cb = None
+        self._completion_listener = None
+        self._retriever = None
         self._resolution = (0, 0)
+        self._rotation = 0
 
     def load(self):
         self.unload()
@@ -41,8 +58,22 @@ class VideoAndroid(VideoBase):
             Logger.error("VideoAndroid: No filename set")
             return
 
+        try:
+            self._retriever = MediaMetadataRetriever()
+            self._retriever.setDataSource(self._filename)
+            self._rotation = int(self._retriever.extractMetadata(
+                MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION))
+            Logger.info(f"VideoAndroid: Rotation: {self._rotation}")
+        except Exception as e:
+            Logger.warning(f"VideoAndroid: Failed to get rotation: {e}")
+            self._rotation = 0
+
         self._mediaplayer = MediaPlayer()
         self._mediaplayer.setDataSource(self._filename)
+        self._completion_listener = OnCompletionListener(
+            self._completion_callback
+        )
+        self._mediaplayer.setOnCompletionListener(self._completion_listener)
         self._mediaplayer.prepare()
 
         w = self._mediaplayer.getVideoWidth()
@@ -63,18 +94,44 @@ class VideoAndroid(VideoBase):
 
         # FBO for Kivy texture
         self._fbo = Fbo(size=(w, h))
-        self._fbo.shader.fs = """
+        self._fbo['resolution'] = (float(w), float(h))
+        self._fbo['angle'] =  float(math.radians(self._rotation))
+        self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
                 precision highp float;
             #endif
+
+            /* Outputs from the vertex shader */
             varying vec4 frag_color;
             varying vec2 tex_coord0;
+
+            /* uniform texture samplers */
+            uniform sampler2D texture0;
             uniform samplerExternalOES texture1;
-            void main() {
-                gl_FragColor = texture2D(texture1, tex_coord0);
+            uniform vec2 resolution;
+            uniform float angle;  // rotation angle in radians
+
+            // General rotation function
+            vec2 rotate(vec2 uv, float angle) {
+                float s = sin(angle);
+                float c = cos(angle);
+                mat2 m = mat2(c, -s, s, c);
+                return m * (uv - 0.5) + 0.5;  // rotate around center (0.5, 0.5)
             }
-        """
+
+            void main()
+            {
+                vec2 uv = tex_coord0;
+
+                // Apply rotation
+                uv =  clamp(rotate(uv, angle), 0.0, 1.0);
+
+                // Sample from external camera texture
+                gl_FragColor = texture2D(texture1, uv);
+            }
+
+        '''
         with self._fbo:
             self._texture_cb = Callback(
                 lambda instr: self._video_texture.bind)
@@ -84,18 +141,21 @@ class VideoAndroid(VideoBase):
         self.dispatch("on_load")
 
     def unload(self):
-        if self._mediaplayer:
+        Logger.info(f"VideoAndroid: Unload")
+    # Safely release MediaPlayer
+        if hasattr(self, "_mediaplayer"):
             try:
                 self._mediaplayer.release()
             except Exception:
                 pass
-        del self._mediaplayer
-        del self._video_texture
-        del self._fbo
-        del self._texture_cb
-        del self._surface_texture
-        del self._surface
-        self._texture = None
+
+        self._mediaplayer = None
+        self._video_texture = None
+        self._fbo = None
+        self._texture_cb = None
+        self._surface_texture = None
+        self._surface = None
+        self._retriever = None
         self._state = ""
         self._resolution = (0, 0)
 
@@ -105,14 +165,27 @@ class VideoAndroid(VideoBase):
 
     def _set_position(self, pos):
         if self._mediaplayer:
-            self._mediaplayer.seekTo(int(pos * 1000))
+            dur = self._mediaplayer.getDuration()
+            ms = int(max(0.0, min(1.0, pos)) * dur)
+            was_playing = self._mediaplayer.isPlaying()
+            self._mediaplayer.seekTo(ms)
+            if was_playing:
+                self._mediaplayer.start()
 
     def _get_duration(self):
         return self._mediaplayer.getDuration() / 1000.0 if self._mediaplayer else 0
 
+    
+    def _get_state(self):
+        return self._state
+    
     def _set_volume(self, volume):
         if self._mediaplayer:
             self._mediaplayer.setVolume(volume, volume)
+
+    def _set_loop(self, loop):
+        if self._mediaplayer:
+            self._mediaplayer.setLooping(bool(loop))
 
     # Controls
     def play(self):
@@ -129,11 +202,17 @@ class VideoAndroid(VideoBase):
 
     def stop(self):
         if self._mediaplayer:
-            self._mediaplayer.stop()
-        self._state = "stopped"
+            self._mediaplayer.pause()
+            self._set_position(0)
+            self._state = ""
+            #self.unload()
+
+    def seek(self, percent, precise=True):
+        self._set_position(percent)
 
     # Called automatically by VideoBase
     def _update(self, dt):
+        
         if not self._surface_texture:
             return
         self._surface_texture.updateTexImage()
@@ -143,8 +222,11 @@ class VideoAndroid(VideoBase):
         if self._texture:
             self.dispatch("on_frame")
 
-        if self._mediaplayer and not self._mediaplayer.isPlaying():
-            self._do_eos()
+        #if self._mediaplayer: # and not self._mediaplayer.isPlaying():
+            
+    def _completion_callback(self,):
+        self._do_eos()
+
 
     @mainthread
     def _do_eos(self):
@@ -153,7 +235,6 @@ class VideoAndroid(VideoBase):
         elif self.eos == "stop":
             self.stop()
         elif self.eos == "loop":
-            self.position = 0
+            self.stop()
             self.play()
         self.dispatch("on_eos")
-
