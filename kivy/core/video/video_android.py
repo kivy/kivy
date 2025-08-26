@@ -4,7 +4,7 @@
 
 
 __all__ = ('VideoAndroid', )
-from jnius import autoclass,java_method, PythonJavaClass
+from jnius import autoclass, java_method, PythonJavaClass
 from kivy.clock import mainthread
 from kivy.logger import Logger
 from kivy.core.video import VideoBase
@@ -40,7 +40,7 @@ class VideoAndroid(VideoBase):
     _mediaplayer = None
 
     def __init__(self, **kwargs):
-        super(VideoAndroid,self).__init__(**kwargs)
+        super(VideoAndroid, self).__init__(**kwargs)
         self._mediaplayer = None
         self._surface_texture = None
         self._surface = None
@@ -95,7 +95,7 @@ class VideoAndroid(VideoBase):
         # FBO for Kivy texture
         self._fbo = Fbo(size=(w, h))
         self._fbo['resolution'] = (float(w), float(h))
-        self._fbo['angle'] =  float(math.radians(self._rotation))
+        self._fbo['angle'] = float(math.radians(self._rotation))
         self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
             #ifdef GL_ES
@@ -142,7 +142,7 @@ class VideoAndroid(VideoBase):
 
     def unload(self):
         Logger.info(f"VideoAndroid: Unload")
-    # Safely release MediaPlayer
+        # Safely release MediaPlayer
         if hasattr(self, "_mediaplayer"):
             try:
                 self._mediaplayer.release()
@@ -175,10 +175,9 @@ class VideoAndroid(VideoBase):
     def _get_duration(self):
         return self._mediaplayer.getDuration() / 1000.0 if self._mediaplayer else 0
 
-    
     def _get_state(self):
         return self._state
-    
+
     def _set_volume(self, volume):
         if self._mediaplayer:
             self._mediaplayer.setVolume(volume, volume)
@@ -205,14 +204,14 @@ class VideoAndroid(VideoBase):
             self._mediaplayer.pause()
             self._set_position(0)
             self._state = ""
-            #self.unload()
+            # self.unload()
 
     def seek(self, percent, precise=True):
         self._set_position(percent)
 
     # Called automatically by VideoBase
     def _update(self, dt):
-        
+
         if not self._surface_texture:
             return
         self._surface_texture.updateTexImage()
@@ -222,11 +221,8 @@ class VideoAndroid(VideoBase):
         if self._texture:
             self.dispatch("on_frame")
 
-        #if self._mediaplayer: # and not self._mediaplayer.isPlaying():
-            
     def _completion_callback(self,):
         self._do_eos()
-
 
     @mainthread
     def _do_eos(self):
