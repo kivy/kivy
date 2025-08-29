@@ -4,7 +4,57 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app')
+__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app', 'kivy_init')
+
+@pytest.fixture()
+def kivy_init():
+    """A fixture to make sure that Kivy has all the global state it needs for testing
+
+    Ensures that tests using this fixture will not receive real mouse, keyboard, or
+    touchpad input. To mimic input, use :class:`kivy.tests.UnitTestTouch`.
+
+    Suitable only for tests that use Kivy's internal event loop. `asyncio` and
+    `trio` based apps need the `kivy_app` fixture.
+
+    """
+    from kivy.core.window import EventLoop, Window, stopTouchApp
+
+    def clear_window_and_event_loop():
+        for child in Window.children[:]:
+            Window.remove_widget(child)
+        Window.canvas.before.clear()
+        Window.canvas.clear()
+        Window.canvas.after.clear()
+        EventLoop.touches.clear()
+        for post_proc in EventLoop.postproc_modules:
+            if hasattr(post_proc, "touches"):
+                post_proc.touches.clear()
+            elif hasattr(post_proc, "last_touches"):
+                post_proc.last_touches.clear()
+
+    from os import environ
+
+    environ["KIVY_USE_DEFAULTCONFIG"] = "1"
+
+    # force window size + remove all inputs
+    from kivy.config import Config
+
+    Config.set("graphics", "width", "320")
+    Config.set("graphics", "height", "240")
+    for items in Config.items("input"):
+        Config.remove_option("input", items[0])
+
+    # ensure our window is correctly created
+    Window.create_window()
+    Window.register()
+    Window.initialized = True
+    Window.close = lambda *s: None
+    clear_window_and_event_loop()
+
+    yield
+    if EventLoop.status == "started":
+        clear_window_and_event_loop()
+        stopTouchApp()
 
 
 @pytest.fixture()
