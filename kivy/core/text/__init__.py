@@ -85,6 +85,7 @@ from kivy.utils import platform
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.core.text.text_layout import layout_text, LayoutWord
+from kivy.core.text.system_emoji_fonts import SystemEmojiFontsFinder
 from kivy.resources import resource_find, resource_add_path
 from kivy.setupconfig import USE_SDL3, USE_PANGOFT2
 from kivy.logger import Logger
@@ -348,7 +349,7 @@ class LabelBase(object):
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
-                 fn_bolditalic=None):
+                fn_bolditalic=None, fallback_fonts=None):
         '''Register an alias for a Font.
 
         .. versionadded:: 1.1.0
@@ -362,6 +363,20 @@ class LabelBase(object):
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
+
+        :Parameters:
+            `name`: str
+                Alias name for the font
+            `fn_regular`: str
+                Path to regular font file
+            `fn_italic`: str, optional
+                Path to italic font file
+            `fn_bold`: str, optional
+                Path to bold font file
+            `fn_bolditalic`: str, optional
+                Path to bold+italic font file
+            `fallback_fonts`: list, optional
+                List of fallback font file paths
         '''
 
         if fn_regular is None:
@@ -380,7 +395,26 @@ class LabelBase(object):
             else:
                 fonts.append(fonts[0])  # add regular font to list again
 
-        LabelBase._fonts[name] = tuple(fonts)
+        # Store fallback fonts if provided
+        font_tuple = tuple(fonts)
+        if fallback_fonts:
+            # Validate fallback fonts
+            validated_fallbacks = []
+            for fallback in fallback_fonts:
+                fallback_path = resource_find(fallback)
+                if fallback_path is None:
+                    # Try direct path if resource_find fails
+                    if os.path.exists(fallback):
+                        fallback_path = fallback
+                    else:
+                        Logger.warning(f'LabelBase: Fallback font {fallback} not found, skipping')
+                        continue
+                validated_fallbacks.append(fallback_path)
+
+            # Store as tuple: (main_fonts, fallback_fonts)
+            LabelBase._fonts[name] = (font_tuple, validated_fallbacks)
+        else:
+            LabelBase._fonts[name] = (font_tuple, [])
 
     def resolve_font_name(self):
         options = self.options
@@ -394,6 +428,14 @@ class LabelBase(object):
 
         # is the font registered?
         if fontname in fonts:
+            font_data = fonts[fontname]
+
+            # Handle format with fallback fonts
+            font_files, fallback_files = font_data
+            # Store fallback fonts in options
+            if fallback_files:
+                options['fallback_fonts'] = fallback_files
+
             # return the preferred font for the current bold/italic combination
             italic = int(options['italic'])
             if options['bold']:
@@ -401,7 +443,10 @@ class LabelBase(object):
             else:
                 bold = FONT_REGULAR
 
-            options['font_name_r'] = fonts[fontname][italic | bold]
+            if isinstance(font_files, tuple):
+                options['font_name_r'] = font_files[italic | bold]
+            else:
+                options['font_name_r'] = font_files
 
         elif fontname in fontscache:
             options['font_name_r'] = fontscache[fontname]
@@ -1083,6 +1128,9 @@ if 'KIVY_DOC' not in os.environ:
     else:
         FontContextManager = FontContextManagerBase()
 
+    available_emoji_fonts = SystemEmojiFontsFinder.get_available_fonts()
 
-# For the first initialization, register the default font
-    Label.register(DEFAULT_FONT, *_default_font_paths)
+    # For the first initialization, register the default font
+    Label.register(
+        DEFAULT_FONT, *_default_font_paths, fallback_fonts=available_emoji_fonts
+    )

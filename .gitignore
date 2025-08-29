@@ -85,3 +85,6 @@ kivy/setupconfig.py
 
 kivy/core/clipboard/_clipboard_sdl3.c
 kivy/graphics/egl_backend/egl_angle.c
+/.kivy
+/.vscode
+kivy/core/image/_img_sdl3.cpp

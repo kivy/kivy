@@ -9,18 +9,69 @@ TODO:
 include '../../lib/sdl3.pxi'
 
 from kivy.core.image import ImageData
+from kivy.logger import Logger
 
 cdef dict sdl3_cache = {}
 cdef list sdl3_cache_order = []
 
 cdef class _TTFContainer:
     cdef TTF_Font* font
+    cdef list fallback_fonts
+    
     def __cinit__(self):
         self.font = NULL
+        self.fallback_fonts = []
+    
     def __dealloc__(self):
+        # Clean up fallback fonts first
+        cdef _TTFContainer fallback_container
+        for fallback_container in self.fallback_fonts:
+            if fallback_container.font != NULL:
+                TTF_CloseFont(fallback_container.font)
+                fallback_container.font = NULL
+        self.fallback_fonts.clear()
+        
         if self.font != NULL:
             TTF_CloseFont(self.font)
             self.font = NULL
+
+    cpdef add_fallback_font(self, fallback_fontname, fallback_size=None):
+        """Add a fallback font to this font container"""
+        cdef TTF_Font *fallback_fontobject = NULL
+        cdef _TTFContainer fallback_ttfc
+        cdef bytes bytes_fallback_fontname
+        
+        if not TTF_WasInit():
+            TTF_Init()
+            
+        # Use same size as main font if not specified
+        font_size = fallback_size if fallback_size is not None else self.get_font_size()
+        
+        bytes_fallback_fontname = <bytes>fallback_fontname.encode('utf-8')
+        fallback_fontobject = TTF_OpenFont(bytes_fallback_fontname, font_size)
+        
+        if fallback_fontobject == NULL:
+            s_error = SDL_GetError()
+            raise ValueError('Failed to load fallback font {}: {}'.format(fallback_fontname, s_error))
+        
+        # Add fallback to main font
+        if not TTF_AddFallbackFont(self.font, fallback_fontobject):
+            TTF_CloseFont(fallback_fontobject)
+            s_error = SDL_GetError()
+            raise ValueError('Failed to add fallback font: {}'.format(s_error))
+        
+        # Store in container for cleanup
+        fallback_ttfc = _TTFContainer()
+        fallback_ttfc.font = fallback_fontobject
+        self.fallback_fonts.append(fallback_ttfc)
+        
+        return True
+    
+    cpdef get_font_size(self):
+        """Get the font size from the main font"""
+        if self.font != NULL:
+            return TTF_GetFontSize(self.font)
+        return 0
 
 
 cdef class _SurfaceContainer:
@@ -201,18 +252,28 @@ cdef TTF_Font *_get_font(self) except *:
 
     sdl3_cache[fontid] = ttfc = _TTFContainer()
     ttfc.font = fontobject
+    
+    # Add fallback fonts if specified in options
+    if 'fallback_fonts' in self.options and self.options['fallback_fonts']:
+        for fallback_font in self.options['fallback_fonts']:
+            try:
+                ttfc.add_fallback_font(fallback_font)
+                Logger.debug(f"Text: Fallback font '{fallback_font}' added to base font '{fontname}'")
+            except ValueError as e:
+                # Log warning but continue - fallback fonts are optional
+                Logger.error(f"Text: Could not load fallback font {fallback_font}: {e}")
+    
     sdl3_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
-
     while len(sdl3_cache_order) > 64:
         popid = sdl3_cache_order.pop(0)
         ttfc = sdl3_cache[popid]
         del sdl3_cache[popid]
 
     ttfc = sdl3_cache[fontid]
-
     return ttfc.font
+
 
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
@@ -229,8 +290,10 @@ def _get_extents(container, text):
         TTF_SetFontOutline(font, 0)
     return w, h
 
+
 def _get_fontdescent(container):
     return TTF_GetFontDescent(_get_font(container))
+
 
 def _get_fontascent(container):
     return TTF_GetFontAscent(_get_font(container))
