@@ -40,7 +40,7 @@ kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
 
 
 def advance_frames(frames: int) -> None:
-    """Draw a few frames.
+    """Let Kivy draw a specific number of frames.
 
     Generally more useful than ``time.sleep``, since the duration of a frame
     can vary widely based on things not in your app's control.
