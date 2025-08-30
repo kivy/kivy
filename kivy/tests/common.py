@@ -55,7 +55,7 @@ def advance_frames(frames: int) -> None:
 def idle_until(
         condition: Optional[Callable[[], bool]] = None,
         timeout: Optional[int] = None,
-        message: str = "Timed out"
+        message: Optional[str] = None
 ):
     """Advance frames until ``condition()`` is ``True``
 
@@ -79,6 +79,11 @@ def idle_until(
         if condition():
             return
         EventLoop.idle()
+    if message is None:
+        if hasattr(condition, "__name__"):
+            message = f"{condition.__name__} timed out"
+        else:
+            message = "Timed out"
     raise TimeoutError(message)
 
 
