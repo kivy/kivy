@@ -4,7 +4,8 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app', 'kivy_init')
+__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app',
+           'kivy_init')
 
 @pytest.fixture()
 def kivy_init():
