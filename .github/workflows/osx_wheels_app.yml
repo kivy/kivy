@@ -18,7 +18,7 @@ env:
 jobs:
   kivy_examples_create:
     # we need examples wheel for tests, but only windows actually uploads kivy-examples to pypi/server
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runs_on: macos-latest
+          - runs_on: macos-14
             python: '3.x'
     steps:
     - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
         path: ./wheelhouse/*.whl
 
   osx_wheel_upload:
-    runs-on: macos-latest
+    runs-on: macos-14
     needs: osx_wheels_create
     if: github.event_name != 'pull_request'
     env:
@@ -136,9 +136,9 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
         # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-14 runs on Apple Silicon
+        runs_on: ['macos-13', 'macos-14']
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
     env:
       KIVY_GL_BACKEND: 'mock'
@@ -170,7 +170,7 @@ jobs:
           test_kivy_install
 
   osx_app_create:
-    runs-on: macos-latest
+    runs-on: macos-14
     if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
@@ -212,7 +212,7 @@ jobs:
           path: app
 
   osx_app_upload_test:
-    runs-on: macos-latest
+    runs-on: macos-14
     needs: [osx_app_create, kivy_examples_create]
     env:
       KIVY_GL_BACKEND: 'mock'
