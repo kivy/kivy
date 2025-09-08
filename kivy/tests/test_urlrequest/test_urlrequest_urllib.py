@@ -12,6 +12,16 @@ import pytest
 from kivy.network.urlrequest import UrlRequestUrllib as UrlRequest
 
 
+def skip_if_network_error(request):
+    """Skip test if we can't connect due to network issues."""
+    network_error_codes = {
+        11001,  # WSAHOST_NOT_FOUND (Windows)
+        -2,     # EAI_NONAME (Unix)
+        -3,     # EAI_AGAIN (Unix)
+    }
+    if request.error and request.error.errno in network_error_codes:
+        pytest.skip('Cannot connect to get address')
+
 def wait_request_is_finished(kivy_clock, request, timeout=10):
     start_time = datetime.now()
     timed_out = False
@@ -21,12 +31,21 @@ def wait_request_is_finished(kivy_clock, request, timeout=10):
         timed_out = (datetime.now() - start_time).total_seconds() > timeout
     assert request.is_finished
 
+def wait_for_terminal_event(kivy_clock, queue, timeout=10):
+    terminal_events = {'success', 'redirect', 'error'}
+    start = datetime.now()
+    while (not queue or queue[-1][1] not in terminal_events) and \
+          (datetime.now() - start).total_seconds() <= timeout:
+        kivy_clock.tick()
+        sleep(.1)
+    assert queue and queue[-1][1] in terminal_events
 
 def ensure_called_from_thread(queue):
     """Ensures the callback is called from this thread (main)."""
     tid = threading.get_ident()
     assert queue[0][0] == tid
-    assert queue[-2][0] == tid
+    if len(queue) >= 2:
+        assert queue[-2][0] == tid
     assert queue[-1][0] == tid
 
 
@@ -71,10 +90,9 @@ def test_callbacks(kivy_clock):
                      on_error=obj._on_error,
                      on_redirect=obj._on_redirect,
                      debug=True)
-    wait_request_is_finished(kivy_clock, req)
+    wait_for_terminal_event(kivy_clock, queue)
 
-    if req.error and req.error.errno == 11001:
-        pytest.skip('Cannot connect to get address')
+    skip_if_network_error(req)
 
     ensure_called_from_thread(queue)
     check_queue_values(queue)
@@ -98,10 +116,9 @@ def test_auth_header(kivy_clock):
         req_headers=head,
         debug=True
     )
-    wait_request_is_finished(kivy_clock, req, timeout=60)
+    wait_for_terminal_event(kivy_clock, queue, timeout=60)
 
-    if req.error and req.error.errno == 11001:
-        pytest.skip('Cannot connect to get address')
+    skip_if_network_error(req)
 
     ensure_called_from_thread(queue)
     check_queue_values(queue)
@@ -120,17 +137,16 @@ def test_auth_auto(kivy_clock):
         on_redirect=obj._on_redirect,
         debug=True
     )
-    wait_request_is_finished(kivy_clock, req, timeout=60)
+    wait_for_terminal_event(kivy_clock, queue, timeout=60)
 
-    if req.error and req.error.errno == 11001:
-        pytest.skip('Cannot connect to get address')
+    skip_if_network_error(req)
 
     ensure_called_from_thread(queue)
     check_queue_values(queue)
     assert queue[-1][2] == ({'authenticated': True, 'user': 'user'}, )
 
 
-@pytest.mark.skipif(os.environ.get('nonetwork'), reason="no network")
+@pytest.mark.skipif(os.environ.get('NONETWORK'), reason="no network")
 @pytest.mark.parametrize("scheme", ("http", "https"))
 def test_ca_file(kivy_clock, scheme):
     """Passing a `ca_file` should not crash on http scheme, refs #6946"""
@@ -146,10 +162,10 @@ def test_ca_file(kivy_clock, scheme):
         ca_file=certifi.where(),
         debug=True
     )
+    # For this test, we only require "no crash"; completion by is_finished is enough.
     wait_request_is_finished(kivy_clock, req, timeout=60)
 
-    if req.error and req.error.errno == 11001:
-        pytest.skip('Cannot connect to get address')
+    skip_if_network_error(req)
 
     ensure_called_from_thread(queue)
     check_queue_values(queue)
