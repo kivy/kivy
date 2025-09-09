@@ -750,6 +750,9 @@ cdef extern from "SDL_ttf.h":
     #*/
     cdef int  TTF_GetFontAscent( TTF_Font *font)
 
+    # Query the metrics (dimensions) of a font's glyph for a UNICODE codepoint.
+    cdef int TTF_GetGlyphMetrics(TTF_Font *font, Uint32 ch, int *minx, int *maxx, int *miny, int *maxy, int *advance);
+
     ## Get the offset from the baseline to the bottom of the font
     #   This is a negative value, relative to the baseline.
     # */

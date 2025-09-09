@@ -184,13 +184,17 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
-        `limit_render_to_text_bbox`: bool, defaults to False. PIL only.
+        `limit_render_to_text_bbox`: bool, defaults to False. Available for SDL3
+            and PIL text providers.
             If set to ``True``, this parameter indicates that rendering should
             be limited to the bounding box of the text, excluding any
             additional white spaces designated for ascent and descent.
             By limiting the rendering to the bounding box of the text, it
             ensures a more precise alignment with surrounding elements when
             utilizing properties such as `valign`, `y`, `pos`, `pos_hint`, etc.
+
+    .. versionadded:: 3.0.0
+        `limit_render_to_text_bbox` was implemented for SDL3 text provider.
 
     .. versionadded:: 2.3.0
         `limit_render_to_text_bbox` was added to allow to limit text rendering

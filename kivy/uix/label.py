@@ -1193,7 +1193,7 @@ class Label(Widget):
     such as `valign`, `y`, `pos`, `pos_hint`, etc.
 
     .. note::
-        This feature requires the PIL text provider.
+        This feature is available for SDL3 and PIL providers.
 
     :attr:`limit_render_to_text_bbox` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to False.

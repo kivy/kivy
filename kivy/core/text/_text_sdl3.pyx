@@ -214,6 +214,52 @@ cdef TTF_Font *_get_font(self) except *:
 
     return ttfc.font
 
+cpdef _get_tight_extents(container, text):
+    cdef TTF_Font *font = _get_font(container)
+    outline_width = container.options['outline_width']
+    if font == NULL:
+        return 0, 0
+
+    if outline_width:
+        TTF_SetFontOutline(font, outline_width)
+
+    cdef int min_y = 0, max_y = 0, total_width = 0
+    cdef int minx, maxx, miny, maxy, advance
+    cdef bint first_char = True
+    cdef int ascent = TTF_GetFontAscent(font)  # Get baseline reference
+
+    text = text.encode('utf-8')
+
+    # Iterate through each character
+    for char in text.decode('utf-8'):
+        char_code = ord(char)
+
+        if TTF_GetGlyphMetrics(font, char_code, &minx, &maxx, &miny, &maxy, &advance):
+            total_width += advance
+
+            # Convert glyph coordinates to absolute coordinates from baseline
+            abs_miny = ascent - maxy
+            abs_maxy = ascent - miny
+
+            if first_char:
+                min_y = abs_miny
+                max_y = abs_maxy
+                first_char = False
+            else:
+                min_y = min(min_y, abs_miny)
+                max_y = max(max_y, abs_maxy)
+
+    tight_height = max_y - min_y
+
+    # Store the baseline offset for positioning
+    container._baseline_offset = min_y
+
+    if outline_width:
+        TTF_SetFontOutline(font, 0)
+
+    return total_width, tight_height
+
+
 def _get_extents(container, text):
     cdef TTF_Font *font = _get_font(container)
     cdef int w, h
