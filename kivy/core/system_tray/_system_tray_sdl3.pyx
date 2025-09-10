@@ -2,6 +2,12 @@
 Kivy System Tray Documentation
 ==============================
 
+
+.. image:: images/system_tray.png
+    :align: center
+    :scale: 80%
+
+
 This module provides system tray functionality for Kivy applications using
 the core.system_tray components.
 
