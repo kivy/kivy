@@ -371,7 +371,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             mkdir(kivy_home_dir)
         if not exists(kivy_usermodules_dir):
             mkdir(kivy_usermodules_dir)
-        if not exists(icon_dir):
+        if platform not in {'android', 'ios'} and not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
             except:
