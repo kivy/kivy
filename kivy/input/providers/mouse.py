@@ -74,6 +74,9 @@ pos              2D position. Also reflected in the
                  properties.
 multitouch_sim   Specifies whether multitouch is simulated or not. Accessed
                  via the 'multitouch_sim' property.
+
+modifiers        Active keyboard modifiers (list of strings: 'ctrl', 'alt',
+                 'shift', etc.). Accessed via the 'modifiers' property.
 ================ ==========================================================
 
 '''
@@ -95,6 +98,7 @@ class MouseMotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
         self.multitouch_sim = False
+        self.modifiers = []
         super().__init__(*args, **kwargs)
 
     def depack(self, args):
@@ -106,9 +110,12 @@ class MouseMotionEvent(MotionEvent):
                 profile.extend(('pos', 'button'))
             if len(args) >= 3:
                 self.button = args[2]
-            if len(args) == 4:
+            if len(args) >= 4:
                 self.multitouch_sim = args[3]
                 profile.append('multitouch_sim')
+            if len(args) == 5:
+                self.modifiers = args[4]
+                profile.append('modifiers')
         else:
             if not profile:
                 profile.append('pos')
@@ -274,11 +281,14 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         return self.device + str(self.counter)
 
-    def create_touch(self, win, nx, ny, is_double_tap, do_graphics, button):
+    def create_touch(
+        self, win, nx, ny, is_double_tap, do_graphics, button, modifiers=[]
+    ):
         event_id = self.create_event_id()
         args = [nx, ny, button]
         if do_graphics:
             args += [not self.multitouch_on_demand]
+        args.append(modifiers)  # always adds modifiers
         self.current_drag = touch = MouseMotionEvent(
             self.device, event_id, args,
             is_touch=True,
@@ -334,11 +344,12 @@ class MouseMotionEventProvider(MotionEventProvider):
             touch = self.current_drag
             touch.move([nx, ny])
             touch.update_graphics(win)
+            touch.modifiers = modifiers
             self.waiting_event.append(('update', touch))
         elif self.alt_touch is not None and 'alt' not in modifiers:
             # alt just released ?
             is_double_tap = 'shift' in modifiers
-            self.create_touch(win, nx, ny, is_double_tap, True, [])
+            self.create_touch(win, nx, ny, is_double_tap, True, [], modifiers)
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
@@ -355,7 +366,7 @@ class MouseMotionEventProvider(MotionEventProvider):
                 and (button != 'left' or 'ctrl' in modifiers)
             )
             touch = self.create_touch(
-                win, nx, ny, is_double_tap, do_graphics, button
+                win, nx, ny, is_double_tap, do_graphics, button, modifiers
             )
             if 'alt' in modifiers:
                 self.alt_touch = touch
@@ -370,6 +381,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = None
         touch = self.current_drag
         if touch:
+            touch.modifiers = modifiers
             not_right = button in (
                 'left',
                 'scrollup', 'scrolldown',
