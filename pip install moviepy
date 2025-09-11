@@ -1,0 +1,9 @@
+sudo apt update
+sudo apt install -y python3-pip build-essential git zip unzip
+pip install buildozer
+sudo apt install -y openjdk-17-jdk
+sudo apt install -y libffi-dev libssl-dev
+sudo apt install -y python3-dev
+sudo apt install -y autoconf automake libtool
+sudo apt install -y zlib1g-dev
+sudo apt install -y libltdl-dev
