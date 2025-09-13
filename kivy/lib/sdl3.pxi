@@ -13,6 +13,9 @@ cdef extern from "SDL_joystick.h":
     cdef int SDL_HAT_DOWN = 0x04
     cdef int SDL_HAT_LEFT = 0x08
 
+cdef extern from "SDL_gamepad.h":
+    cdef struct SDL_Gamepad
+
 cdef extern from "SDL.h":
     ctypedef unsigned char Uint8
     ctypedef unsigned long Uint32
@@ -199,6 +202,8 @@ cdef extern from "SDL.h":
         SDL_EVENT_JOYSTICK_HAT_MOTION
         SDL_EVENT_JOYSTICK_BUTTON_DOWN
         SDL_EVENT_JOYSTICK_BUTTON_UP
+        SDL_EVENT_GAMEPAD_ADDED
+        SDL_EVENT_GAMEPAD_REMOVED
         SDL_EVENT_FINGER_DOWN
         SDL_EVENT_FINGER_UP
         SDL_EVENT_FINGER_MOTION
@@ -363,6 +368,11 @@ cdef extern from "SDL.h":
         SDL_JoystickID which
         Uint8 button
         Uint8 state
+    cdef struct SDL_GamepadDeviceEvent:
+        SDL_EventType type
+        Uint32 reserved
+        Uint64 timestamp
+        SDL_JoystickID which
     cdef struct SDL_QuitEvent:
         pass
     cdef struct SDL_UserEvent:
@@ -403,6 +413,7 @@ cdef extern from "SDL.h":
         SDL_TouchButtonEvent tbutton
         SDL_MultiGestureEvent mgesture
         SDL_DollarGestureEvent dgesture
+        SDL_GamepadDeviceEvent gdevice
 
     cdef struct SDL_RendererInfo:
         char *name
@@ -494,7 +505,7 @@ cdef extern from "SDL.h":
     cdef int SDL_INIT_VIDEO          = 0x00000020  # SDL_INIT_VIDEO implies SDL_INIT_EVENTS */
     cdef int SDL_INIT_JOYSTICK       = 0x00000200  # SDL_INIT_JOYSTICK implies SDL_INIT_EVENTS */
     cdef int SDL_INIT_HAPTIC         = 0x00001000
-    cdef int SDL_INIT_GAMECONTROLLER = 0x00002000  # SDL_INIT_GAMECONTROLLER implies SDL_INIT_JOYSTICK */
+    cdef int SDL_INIT_GAMEPAD        = 0x00002000  # SDL_INIT_GAMEPAD implies SDL_INIT_JOYSTICK */
     cdef int SDL_INIT_EVENTS         = 0x00004000
     cdef int SDL_INIT_NOPARACHUTE    = 0x00100000  # Don't catch fatal signals */
 
@@ -639,9 +650,13 @@ cdef extern from "SDL.h":
     cdef int SDL_GL_GetSwapInterval()
     cdef void SDL_GL_SwapWindow(SDL_Window * window) nogil
     cdef int SDL_GL_DestroyContext(SDL_GLContext context)
-
-    cdef void SDL_GetJoysticks(int *numjoysticks)
+    cdef SDL_JoystickID * SDL_GetJoysticks(int *count);
     cdef SDL_Joystick * SDL_OpenJoystick(int index)
+    cdef void SDL_CloseJoystick(SDL_Joystick * index)
+    cdef SDL_JoystickID * SDL_GetGamepads(int *count)
+    cdef SDL_Gamepad * SDL_OpenGamepad(SDL_JoystickID instance_id)
+    cdef SDL_Gamepad * SDL_GetGamepadFromID(SDL_JoystickID instance_id)
+    cdef void SDL_CloseGamepad(SDL_Gamepad *gamepad)
     cdef SDL_Window * SDL_GetKeyboardFocus()
     cdef Uint8 *SDL_GetKeyboardState(int *numkeys)
     cdef SDL_Keymod SDL_GetModState()

@@ -223,7 +223,7 @@ cdef class _WindowSDL3Storage:
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
 
-        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
+        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) < 0:
             self.die()
 
         # Set default orientation (force landscape for now)
@@ -311,12 +311,7 @@ cdef class _WindowSDL3Storage:
 
                 Logger.debug('WindowSDL: requested vsync failed' + status)
 
-        # Open all available joysticks
-        cdef int joy_i
-        cdef int numjoysticks
-        SDL_GetJoysticks(&numjoysticks)
-        for joy_i in range(numjoysticks):
-            SDL_OpenJoystick(joy_i)
+        self._open_gamepad(-1)
 
         SDL_SetEventFilter(<SDL_EventFilter>_event_filter, <void *>self)
 
@@ -706,6 +701,30 @@ cdef class _WindowSDL3Storage:
         icon = IMG_Load(<bytes>filename.encode('utf-8'))
         SDL_SetWindowIcon(self.win, icon)
 
+    def _open_gamepad(self, int device_id):
+        cdef int joy_i
+        cdef int numjoysticks
+        cdef SDL_Gamepad* gamepad_ptr
+        if device_id < 0:
+            gamepads_ids = SDL_GetGamepads(&numjoysticks)
+            for joy_i in range(numjoysticks):
+                gamepad_ptr = SDL_OpenGamepad(joy_i)
+                if gamepad_ptr == NULL:
+                    Logger.error(f'Cannot open gamepad {joy_i}')
+            return True
+
+        gamepad_ptr = SDL_OpenGamepad(device_id)
+        if gamepad_ptr != NULL:
+            return True
+        else:
+            return False
+
+    def _close_gamepad(self, int device_id):
+        cdef SDL_Gamepad* gamepad_ptr
+        gamepad_ptr = SDL_GetGamepadFromID(device_id)
+        if gamepad_ptr != NULL:
+            SDL_CloseGamepad(gamepad_ptr)
+
     def teardown_window(self):
         self._destroy_egl_context()
 
@@ -909,6 +928,10 @@ cdef class _WindowSDL3Storage:
             return ('joybuttondown', event.jbutton.which, event.jbutton.button)
         elif event.type == SDL_EVENT_JOYSTICK_BUTTON_UP:
             return ('joybuttonup', event.jbutton.which, event.jbutton.button)
+        elif event.type == SDL_EVENT_GAMEPAD_ADDED:
+            return ('joyadded', event.gdevice.which)
+        elif event.type == SDL_EVENT_GAMEPAD_REMOVED:
+            return ('joyremoved', event.gdevice.which)
         elif event.type >= SDL_EVENT_WINDOW_FIRST and event.type <= SDL_EVENT_WINDOW_LAST:
             if event.type == SDL_EVENT_WINDOW_EXPOSED:
                 action = ('windowexposed', )
