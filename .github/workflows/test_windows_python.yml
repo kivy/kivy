@@ -7,7 +7,6 @@ env:
   KIVY_GL_BACKEND: 'angle_sdl3'
   KIVY_SPLIT_EXAMPLES: 1
   SETUPTOOLS_USE_DISTUTILS: local
-  KIVY_TEST_AUDIO: '0'
 
 jobs:
   unit_test:
