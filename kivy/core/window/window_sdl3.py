@@ -324,6 +324,7 @@ class WindowSDL(WindowBase):
             self._set_minimum_size()
             self._set_allow_screensaver()
             self._set_always_on_top()
+            self._update_modifiers_state()
 
             if state == 'hidden':
                 self._focus = False
@@ -639,6 +640,7 @@ class WindowSDL(WindowBase):
 
             elif action == 'windowfocusgained':
                 self._focus = True
+                self._update_modifiers_state()
 
             elif action == 'windowfocuslost':
                 self._focus = False
@@ -787,6 +789,10 @@ class WindowSDL(WindowBase):
 
         if app:
             app.dispatch('on_resume')
+
+    def _update_modifiers_state(self):
+        """Update modifiers state from current SDL state"""
+        self._update_modifiers(self._win.get_current_key_modifiers())
 
     def _update_modifiers(self, mods=None, key=None):
         if mods is None and key is None:

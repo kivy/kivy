@@ -826,6 +826,9 @@ cdef class _WindowSDL3Storage:
     def is_keyboard_shown(self):
         return SDL_TextInputActive(self.win)
 
+    def get_current_key_modifiers(self):
+        return SDL_GetModState()
+
     def wait_event(self):
         with nogil:
             SDL_WaitEvent(NULL)
