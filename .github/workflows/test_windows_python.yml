@@ -4,13 +4,13 @@ on: [push, pull_request]
 
 env:
   GST_REGISTRY: '~/registry.bin'
-  # KIVY_GL_BACKEND: 'angle_sdl3'
+  KIVY_GL_BACKEND: 'angle_sdl3'
   KIVY_SPLIT_EXAMPLES: 1
   SETUPTOOLS_USE_DISTUTILS: local
 
 jobs:
   unit_test:
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
