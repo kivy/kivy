@@ -10,6 +10,8 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
+from __future__ import annotations
+
 __all__ = (
     'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
     'requires_graphics', 'ensure_web_server')
