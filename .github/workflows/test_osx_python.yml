@@ -21,7 +21,7 @@ jobs:
         runs_on: ['macos-13', 'macos-14']
         python: ['3.13']
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v6
       with:
