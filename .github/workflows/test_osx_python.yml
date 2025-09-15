@@ -16,18 +16,20 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
         # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-14 runs on Apple Silicon
+        runs_on: ['macos-13', 'macos-14']
         python: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
     - name: Install build dependencies
       run: |
+        # we had cmake installed from installed a different Homebrew tap (local/pinned) in the past
+        brew uninstall cmake || true
         brew install pkg-config cmake ninja
     - name: Install dependencies
       run: |

@@ -359,7 +359,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         user_home_dir = join(user_home_dir, 'Documents')
     elif sys.prefix != sys.base_prefix:
         # Detection if venv being used with the framework
-        user_home_dir = sys.path[0]
+        user_home_dir = dirname(sys.prefix)
 
     kivy_home_dir = kivy_home_dir or join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
@@ -371,7 +371,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             mkdir(kivy_home_dir)
         if not exists(kivy_usermodules_dir):
             mkdir(kivy_usermodules_dir)
-        if not exists(icon_dir):
+        if platform not in {'android', 'ios'} and not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
             except:
