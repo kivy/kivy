@@ -1151,6 +1151,21 @@ def glPolygonOffset(GLfloat factor, GLfloat units):
     '''
     cgl.glPolygonOffset(factor, units)
 
+def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
+                         GLenum format, GLenum type, unsigned char[::1] out_buf):
+    '''Read pixels from the active framebuffer into a preallocated buffer.
+
+    :param out_buf: A writable buffer object that supports the buffer protocol — such
+                    as a :any:`bytearray` or a ``numpy`` array. Its size must be
+                    at least ``width * height * bytes_per_pixel``. If the buffer is
+                    too small, no data will be written.
+
+    For details on the other parameters, see: `glReadnPixels() on Khronos website
+    <https://registry.khronos.org/OpenGL-Refpages/gl4/html/glReadPixels.xhtml>`_
+    '''
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
+
 def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                  GLenum type): #, GLvoid* pixels):
     '''See: `glReadPixels() on Khronos website
