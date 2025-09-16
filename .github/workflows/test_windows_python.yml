@@ -28,6 +28,7 @@ jobs:
         Install-kivy
     - name: Run example
       run: |
+          pip install ffpyplayer
           python .\examples\demo\touchtracer\main.py --config "kivy:log_level:trace"
     - name: Test Kivy
       run: |
