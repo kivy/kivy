@@ -28,7 +28,7 @@ jobs:
         Install-kivy
     - name: Run example
       run: |
-          python .\examples\demo\touchtracer\main.py
+          python .\examples\demo\touchtracer\main.py --config "kivy:log_level:trace"
     - name: Test Kivy
       run: |
         . .\.ci\windows_ci.ps1
