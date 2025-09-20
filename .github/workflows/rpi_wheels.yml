@@ -18,7 +18,7 @@ jobs:
       matrix:
         image_version: ['3.9-bullseye', '3.11-bookworm']
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
