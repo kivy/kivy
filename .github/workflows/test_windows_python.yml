@@ -10,7 +10,7 @@ env:
 
 jobs:
   unit_test:
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
