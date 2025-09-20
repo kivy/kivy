@@ -15,17 +15,21 @@ jobs:
     name: "unit_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
     runs-on: ${{ matrix.runs_on }}
     strategy:
+      fail-fast: false
       matrix:
         # macos-13 runs on Intel
-        # macos-14 runs on Apple Silicon
-        runs_on: ['macos-13', 'macos-14']
-        python: ['3.13']
+        # macos-latest and macos-26 run on Apple Silicon
+        runs_on: ['macos-13', 'macos-26', 'macos-latest']
+        python: ['3.x']
     steps:
-    - uses: actions/checkout@v4
+    - if: matrix.runs_on == 'macos-26'
+      run: xcodebuild -downloadComponent MetalToolchain
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
+        allow-prereleases: true
     - name: Install build dependencies
       run: |
         # we had cmake installed from installed a different Homebrew tap (local/pinned) in the past
