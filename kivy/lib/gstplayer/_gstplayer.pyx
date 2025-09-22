@@ -30,8 +30,8 @@ cdef extern from 'gst/gst.h':
         GST_FORMAT_TIME
 
     ctypedef enum GstSeekFlags:
-        GST_SEEK_FLAG_KEY_UNIT
         GST_SEEK_FLAG_FLUSH
+        GST_SEEK_FLAG_ACCURATE
 
     ctypedef enum GstStateChangeReturn:
         pass
@@ -399,7 +399,7 @@ cdef class GstPlayer:
             seek_t = 0
         else:
             seek_t = <gint64>(percent * duration)
-        seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
+        seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE
         gst_element_get_state(self.pipeline, &current_state,
                 &pending_state, <GstClockTime>GST_SECOND)
         if current_state == GST_STATE_READY:
