@@ -46,19 +46,25 @@ def no_animations_being_played():
     return len(Animation._instances) == 0
 
 
-def sleep(t):
-    from time import time, sleep
-    from kivy.clock import Clock
-    tick = Clock.tick
-    deadline = time() + t
-    while time() < deadline:
-        sleep(.01)
-        tick()
+@pytest.fixture()
+def sleep(kivy_clock):
+    current_time = kivy_clock.time()
+    kivy_clock.time = lambda: current_time
+
+    def sleep(duration, *, tick_interval=0.01):
+        nonlocal current_time
+        tick = kivy_clock.tick
+        min_ = min
+        deadline = current_time + duration
+        while current_time < deadline:
+            current_time = min_(current_time + tick_interval, deadline)
+            tick()
+    return sleep
 
 
 class TestAnimation:
 
-    def test_start_animation(self):
+    def test_start_animation(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
@@ -68,7 +74,7 @@ class TestAnimation:
         assert w.x == pytest.approx(100)
         assert no_animations_being_played()
 
-    def test_animation_duration_0(self):
+    def test_animation_duration_0(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=0)
@@ -109,7 +115,7 @@ class TestAnimation:
         Animation.cancel_all(None, 'y')
         assert no_animations_being_played()
 
-    def test_stop_animation(self):
+    def test_stop_animation(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
@@ -121,7 +127,7 @@ class TestAnimation:
         assert w.x != pytest.approx(0)
         assert no_animations_being_played()
 
-    def test_stop_all(self):
+    def test_stop_all(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
@@ -131,7 +137,7 @@ class TestAnimation:
         Animation.stop_all(w)
         assert no_animations_being_played()
 
-    def test_stop_all_2(self):
+    def test_stop_all_2(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=1)
@@ -156,7 +162,7 @@ class TestAnimation:
         a = Animation(x=100)
         assert a.animated_properties == {'x': 100, }
 
-    def test_animated_instruction(self):
+    def test_animated_instruction(self, sleep):
         from kivy.graphics import Scale
         from kivy.animation import Animation
         a = Animation(x=100, d=1)
@@ -168,7 +174,7 @@ class TestAnimation:
         assert instruction.x == pytest.approx(100)
         assert no_animations_being_played()
 
-    def test_weakref(self):
+    def test_weakref(self, sleep):
         import gc
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
@@ -186,7 +192,7 @@ class TestAnimation:
 
 class TestSequence:
 
-    def test_cancel_all(self):
+    def test_cancel_all(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100) + Animation(x=0)
@@ -196,7 +202,7 @@ class TestSequence:
         Animation.cancel_all(w)
         assert no_animations_being_played()
 
-    def test_cancel_all_2(self):
+    def test_cancel_all_2(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100) + Animation(x=0)
@@ -206,7 +212,7 @@ class TestSequence:
         Animation.cancel_all(w, 'x')
         assert no_animations_being_played()
 
-    def test_stop_all(self):
+    def test_stop_all(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100) + Animation(x=0)
@@ -216,7 +222,7 @@ class TestSequence:
         Animation.stop_all(w)
         assert no_animations_being_played()
 
-    def test_stop_all_2(self):
+    def test_stop_all_2(self, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100) + Animation(x=0)
@@ -226,7 +232,7 @@ class TestSequence:
         Animation.stop_all(w, 'x')
         assert no_animations_being_played()
 
-    def test_count_events(self, ec_cls):
+    def test_count_events(self, ec_cls, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=.5) + Animation(x=0, d=.5)
@@ -296,7 +302,7 @@ class TestRepetitiveSequence:
         a.stop(w)
         assert no_animations_being_played()
 
-    def test_count_events(self, ec_cls):
+    def test_count_events(self, ec_cls, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100, d=.5) + Animation(x=0, d=.5)
@@ -380,7 +386,7 @@ class TestParallel:
         with pytest.raises(AttributeError):
             a.transition
 
-    def test_count_events(self, ec_cls):
+    def test_count_events(self, ec_cls, sleep):
         from kivy.animation import Animation
         from kivy.uix.widget import Widget
         a = Animation(x=100) & Animation(y=100, d=.5)
