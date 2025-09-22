@@ -401,7 +401,7 @@ cdef class GstPlayer:
         else:
             seek_t = <gint64>(percent * duration)
         if precise:
-            seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_ACCURATE
+            seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE
         else:
             seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
         gst_element_get_state(self.pipeline, &current_state,
