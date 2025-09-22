@@ -348,7 +348,7 @@ cdef class GstPlayer:
             return -1
         return position / float(GST_SECOND)
 
-    def seek(self, float percent, bool precise):
+    def seek(self, float percent, precise):
         with nogil:
             self._seek(percent,precise)
 
@@ -388,7 +388,7 @@ cdef class GstPlayer:
             return 0
         return position
 
-    cdef void _seek(self, float percent, bool precise) nogil:
+    cdef void _seek(self, float percent, precise) nogil:
         cdef GstState current_state, pending_state
         cdef gboolean ret
         cdef gint64 seek_t, duration
