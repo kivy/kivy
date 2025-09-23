@@ -1,0 +1,27 @@
+
+"input" "random"
+
+    
+input_text = "Shayad cheetah psi 475 health low speed 120 stimna 20 size large"
+print(input_text)
+print("Shayad leapred psi 310 health high speed 60 stimna Shayad 1minates")
+print("Shayad kangal psi 743 health high speed 40 stimna 140 secnods")
+print("Shayad African wild dogs health mudiam psi 150to200 stimna Shayad 2mintes speed 25km")
+print("Shayad spotted hyena psi 1150 health high speed 23km stimna 1minates Shayad size low shayad")
+print("Shayad snow leapred psi 150to200 health high size high weight low speed average stimna 60sconds Shayad Shayad Shayad")
+print("Shayad hippo psi 2200 health high speed km34 weiet 2500 ")
+print("Shayad rhino size large weiet 2200 speed 40km size large")
+print("Shayad cat psi 150to200 health average speed high size low weight 20to40 stimna high")
+print("Shayad bear psi 220 health high speed 40 stimna average")
+print("Shayad deer speed 90 km weight 20to60 hight average")
+print("Shayad lion psi 642 health high speed 80 weight 225")
+print("Shayad tiger psi 1050 health high speed 50 weight 300 height large Shayad")
+print("Shayad horse speed 100to80 hight large")
+print("Shayad doberman weight 25to60 hight large health high")
+print("Shayad komodo heaith mediam hieght mudiamtolarge danger bite")
+print("Shayad golden psi 225 speed average hight low")
+print("Shayad jagur pai 1500 health hight hieght large weight Moto Moto")
+print("Shayad gorrila size large psi 2400 health mudiam stimna slow height large")
+"elif"
+print("App owner hamza pro")
+print("App owner hamza pro")
