@@ -59,6 +59,9 @@ class AccessKit(AccessibilityBase):
             # If we are properly initialized, forward the action to the accessibility manager.
             self.action_request_callback(request.target, action)
 
+    @staticmethod
+    def _handle_deactivation(*args, **kwargs): ...
+
     def install(self, window_info, width, height):
         self.root_window_size = (width, height)
         if platform == 'darwin':
@@ -66,7 +69,7 @@ class AccessKit(AccessibilityBase):
             # macos.add_focus_forwarder_to_window_class("SDLWindow")
             self.adapter = macos.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
         elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
-            self.adapter = unix.Adapter(self._build_dummy_tree, self._on_action_request)
+            self.adapter = unix.Adapter(self._build_dummy_tree, self._on_action_request, self._handle_deactivation)
         elif platform in ('win32', 'cygwin'):
             self.adapter = windows.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
         # Assume the window has the focus at this time, even though it's probably not true.
