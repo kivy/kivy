@@ -14,6 +14,7 @@ Introduction
     Welcome to the Pong tutorial
 
 This tutorial will teach you how to write pong using Kivy. We'll start with
+👉 This example is perfect for beginners to get familiar with Kivy’s event-driven structure.
 a basic application like the one described in the :ref:`quickstart` and turn
 it into a playable pong game, describing each step along the way.
 
