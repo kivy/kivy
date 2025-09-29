@@ -15,6 +15,7 @@ from os import getcwd
 from collections import defaultdict
 
 from kivy.core import core_select_lib
+from kivy.core.accessibility.accessibility_accesskit import AccessKit
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
@@ -1175,6 +1176,8 @@ class WindowBase(EventDispatcher):
 
         self.children = []
         self.parent = self
+
+        self.accessibility = AccessKit(self)
 
         # before creating the window
         import kivy.core.gl  # NOQA
