@@ -21,6 +21,9 @@ jobs:
         # macos-latest and macos-26 run on Apple Silicon ARM
         runs_on: ['macos-15-intel', 'macos-26', 'macos-latest']
         python: ['3.x']
+        include:
+          - runs_on: 'macos-latest'
+            python: '3.14'
     steps:
     - if: matrix.runs_on == 'macos-26'
       run: xcodebuild -downloadComponent MetalToolchain

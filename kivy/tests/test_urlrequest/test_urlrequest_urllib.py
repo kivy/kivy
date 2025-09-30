@@ -6,6 +6,7 @@ import os
 import threading
 from base64 import b64encode
 from datetime import datetime
+from sys import version_info
 from time import sleep
 
 import pytest
@@ -17,7 +18,7 @@ def wait_request_is_finished(kivy_clock, request, timeout=10):
     timed_out = False
     while not request.is_finished and not timed_out:
         kivy_clock.tick()
-        sleep(.1)
+        sleep(.2)
         timed_out = (datetime.now() - start_time).total_seconds() > timeout
     assert request.is_finished
 
