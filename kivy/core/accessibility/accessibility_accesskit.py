@@ -133,16 +133,18 @@ class AccessKit(AccessibilityBase):
                         prev_node = self._build_node(prev)
                         nodes[prev.uid] = prev_node
                     childs[self.root_window.uid].add(prev.uid)
-                    update.nodes.append((prev.uid, prev_node))
+                    if prev.uid not in childs[self.root_window.uid]:
+                        update.nodes.append((prev.uid, prev_node))
                     while ancestry:
                         accessible = ancestry.pop()
-                        childs[prev.uid].add(accessible.uid)
                         if accessible.uid in nodes:
                             accessible_node = nodes[accessible.uid]
                         else:
                             accessible_node = self._build_node(accessible)
                             nodes[accessible.uid] = accessible_node
-                        update.nodes.append((accessible.uid, accessible_node))
+                        if accessible.uid not in childs[prev.uid]:
+                            update.nodes.append((accessible.uid, accessible_node))
+                            childs[prev.uid].add(accessible.uid)
                         (prev, prev_node) = (accessible, accessible_node)
             if self.node_classes:
                 node.class_name = self.node_classes[0]
