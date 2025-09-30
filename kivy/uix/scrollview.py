@@ -38,6 +38,20 @@ The default value for those settings can be changed in the configuration file::
     scroll_timeout = 250
     scroll_distance = 20
 
+**Using "Shift" keyboard modifier:**
+
+When the "Shift" key is pressed during mouse wheel scrolling, vertical scrolling
+(scrollup/scrolldown) is converted to horizontal scrolling
+(scrollleft/scrollright). This allows the user to change the scrolling direction
+in a ScrollView that supports both directions.
+
+.. versionadded:: 3.0.0
+
+    ScrollView now allows the "Shift" key modifier to convert vertical mouse
+    wheel scrolling into horizontal scrolling, enhancing navigation flexibility
+    in applications where both X and Y axis scrolling are enabled.
+
+
 .. versionadded:: 1.1.1
 
     ScrollView now animates scrolling in Y when a mousewheel is used.
@@ -743,6 +757,13 @@ class ScrollView(StencilView):
             btn = touch.button
             m = self.scroll_wheel_distance
             e = None
+
+            # If shift is pressed, convert vertical scroll to horizontal
+            if 'shift' in touch.modifiers:
+                if btn == 'scrolldown':
+                    btn = 'scrollright'
+                elif btn == 'scrollup':
+                    btn = 'scrollleft'
 
             if (
                 (btn == 'scrolldown' and self.scroll_y >= 1)
