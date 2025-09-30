@@ -17,9 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macos-13 runs on Intel
-        # macos-latest and macos-26 run on Apple Silicon
-        runs_on: ['macos-13', 'macos-26', 'macos-latest']
+        # macos-15-intel runs on Intel x64
+        # macos-latest and macos-26 run on Apple Silicon ARM
+        runs_on: ['macos-15-intel', 'macos-26', 'macos-latest']
         python: ['3.x']
     steps:
     - if: matrix.runs_on == 'macos-26'
