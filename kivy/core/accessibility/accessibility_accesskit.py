@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import kivy
 from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
@@ -102,15 +104,54 @@ class AccessKit(AccessibilityBase):
         # If no widget has the focus, then we must put it on the root window.
         focus = AccessibleBehavior.focused_widget.accessible_uid if AccessibleBehavior.focused_widget else self.root_window_uid
         update = TreeUpdate(focus)
+        update.tree = self._build_tree_info()
         if root_window_changed:
             node = Node(Role.WINDOW)
             node.set_label(self.root_window.title)
-            node.set_children(self.root_window.children)
+            update.tree.root = self.root_window.uid
+            update.nodes = [(self.root_window.uid, node)]
+            childs = defaultdict(set)
+            nodes = {self.root_window.uid: node}
+            for (id_, accessible) in AccessibleBehavior.updated_widgets.items():
+                if accessible.parent == self.root_window:
+                    childs[self.root_window.uid].add(id_)
+                    node = self._build_node(accessible)
+                    update.nodes.append((id_, node))
+                    nodes[id_] = node
+                else:
+                    ancestry = [accessible]
+                    here = accessible
+                    while here.parent is not here:
+                        here = here.parent
+                        ancestry.append(here)
+                    if self.root_window != ancestry.pop():
+                        raise RuntimeError("Not in the right window")
+                    prev = ancestry.pop()
+                    if prev.uid in nodes:
+                        prev_node = nodes[prev.uid]
+                    else:
+                        prev_node = self._build_node(prev)
+                        nodes[prev.uid] = prev_node
+                    childs[self.root_window.uid].add(prev.uid)
+                    update.nodes.append((prev.uid, prev_node))
+                    while ancestry:
+                        accessible = ancestry.pop()
+                        childs[prev.uid].add(accessible.uid)
+                        if accessible.uid in nodes:
+                            accessible_node = nodes[accessible.uid]
+                        else:
+                            accessible_node = self._build_node(accessible)
+                            nodes[accessible.uid] = accessible_node
+                        update.nodes.append((accessible.uid, accessible_node))
+                        (prev, prev_node) = (accessible, accessible_node)
             if self.node_classes:
                 node.class_name = self.node_classes[0]
-            update.nodes.append((self.root_window.uid, node))
-        for (id, accessible) in AccessibleBehavior.updated_widgets.items():
-            update.nodes.append((id, self._build_node(accessible)))
+            for id_, node in nodes.items():
+                if id_ in childs:
+                    node.set_children(list(childs[id_]))
+        else:
+            for (id, accessible) in AccessibleBehavior.updated_widgets.items():
+                update.nodes.append((id, self._build_node(accessible)))
         return update
 
     def update(self, root_window_changed=False):
@@ -125,7 +166,7 @@ class AccessKit(AccessibilityBase):
 
 def to_accesskit_role(role):
     if role == KivyRole.STATIC_TEXT:
-        return Role.STATIC_TEXT
+        return Role.PARAGRAPH
     elif role == KivyRole.GENERIC_CONTAINER:
         return Role.GENERIC_CONTAINER
     elif role == KivyRole.CHECK_BOX:
