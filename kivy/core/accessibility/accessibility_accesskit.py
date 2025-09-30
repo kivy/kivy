@@ -1,5 +1,5 @@
 import kivy
-from accesskit import *
+from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
@@ -25,6 +25,7 @@ class AccessKit(AccessibilityBase):
             if events is not None:
                 events.raise_events()
         elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
+            return
             self.adapter.update_window_focus_state(is_focused)
 
     def _update_root_window_size(self, size):
@@ -40,7 +41,7 @@ class AccessKit(AccessibilityBase):
         # If there is no assistive technology running, then this might never be called.
         # We don't really know when the first accessibility tree will be requested: if it's early in the app initialization then we might not have everything ready.
         # It's OK to first push an empty tree update and replace it later.
-        root = NodeBuilder(Role.WINDOW).build(self.node_classes)
+        root = Node(Role.WINDOW)
         update = TreeUpdate(self.root_window.uid)
         update.nodes.append((self.root_window.uid, root))
         update.tree = self._build_tree_info()
@@ -76,53 +77,48 @@ class AccessKit(AccessibilityBase):
         self._update_root_window_focus(True)
 
     def _build_node(self, accessible):
-        builder = NodeBuilder(to_accesskit_role(accessible.accessible_role))
+        node = Node(to_accesskit_role(accessible.accessible_role))
         (x, y) = accessible.accessible_pos
         # On Windows, Y coordinates seem to be reversed, this will be annoying once the window is resized as we'll need to recompute every widget's bounds.
         # Is there a more direct way?
         y = self.root_window_size[1] - y
         (width, height) = accessible.accessible_size
         bounds = Rect(x, y - height, x + width, y)
-        builder.set_bounds(bounds)
+        node.bounds = bounds
         
         if accessible.accessible_checked_state is not None:
-            builder.set_checked(Checked.TRUE if accessible.accessible_checked_state else Checked.FALSE)
+            node.toggled = bool(accessible.accessible_checked_state)
         if accessible.accessible_children:
-            for child in accessible.accessible_children[:]:
-                builder.push_child(child.accessible_uid)
+            node.children.clear()
+            node.children.extend(accessible.accessible_children)
         if accessible.accessible_name:
-            builder.set_name(accessible.accessible_name)
+            node.name = accessible.accessible_name
         if accessible.is_focusable:
-            builder.add_action(Action.FOCUS)
-        if accessible.accessible_checked_state == True:
-            builder.add_action(Action.DEFAULT)
-            builder.set_default_action_verb(DefaultActionVerb.UNCHECK)
-        elif accessible.accessible_checked_state == False:
-            builder.add_action(Action.DEFAULT)
-            builder.set_default_action_verb(DefaultActionVerb.CHECK)
+            node.custom_actions.append(Action.FOCUS)
         elif accessible.is_clickable:
-            builder.add_action(Action.DEFAULT)
-            builder.set_default_action_verb(DefaultActionVerb.CLICK)
-        return builder.build(self.node_classes)
+            node.default_action_verb = Action.CLICK
+        return node
 
     def _build_tree_update(self, root_window_changed=True):
         # If no widget has the focus, then we must put it on the root window.
         focus = AccessibleBehavior.focused_widget.accessible_uid if AccessibleBehavior.focused_widget else self.root_window_uid
         update = TreeUpdate(focus)
         if root_window_changed:
-            builder = NodeBuilder(Role.WINDOW)
-            for child in self.root_window.children[:]:
-                builder.push_child(child.accessible_uid)
-            builder.set_name(self.root_window.title)
-            node = builder.build(self.node_classes)
+            node = Node(Role.WINDOW)
+            node.label = self.root_window.title
+            node.children.extend(self.root_window.children)
+            if self.node_classes:
+                node.class_name = self.node_classes[0]
             update.nodes.append((self.root_window.uid, node))
         for (id, accessible) in AccessibleBehavior.updated_widgets.items():
             update.nodes.append((id, self._build_node(accessible)))
         return update
 
     def update(self, root_window_changed=False):
-        if not self.adapter or not self.initialized:
+        if not self.adapter:
             return False
+        if not self.initialized:
+            self._build_dummy_tree()
         events = self.adapter.update_if_active(lambda: self._build_tree_update(root_window_changed))
         if events:
             events.raise_events()
