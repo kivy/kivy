@@ -1,5 +1,5 @@
 import kivy
-from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect
+from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
@@ -84,19 +84,18 @@ class AccessKit(AccessibilityBase):
         y = self.root_window_size[1] - y
         (width, height) = accessible.accessible_size
         bounds = Rect(x, y - height, x + width, y)
-        node.bounds = bounds
+        node.set_bounds(bounds)
         
         if accessible.accessible_checked_state is not None:
-            node.toggled = bool(accessible.accessible_checked_state)
+            node.set_toggled(Toggled.TRUE if accessible.accessible_checked_state else Toggled.FALSE)
         if accessible.accessible_children:
-            node.children.clear()
-            node.children.extend(accessible.accessible_children)
+            node.set_children(accessible.accessible_children)
         if accessible.accessible_name:
-            node.name = accessible.accessible_name
+            node.set_label(accessible.accessible_name)
         if accessible.is_focusable:
-            node.custom_actions.append(Action.FOCUS)
+            node.set_custom_actions([Action.FOCUS])
         elif accessible.is_clickable:
-            node.default_action_verb = Action.CLICK
+            node.set_default_action_verb(Action.CLICK)
         return node
 
     def _build_tree_update(self, root_window_changed=True):
@@ -105,8 +104,8 @@ class AccessKit(AccessibilityBase):
         update = TreeUpdate(focus)
         if root_window_changed:
             node = Node(Role.WINDOW)
-            node.label = self.root_window.title
-            node.children.extend(self.root_window.children)
+            node.set_label(self.root_window.title)
+            node.set_children(self.root_window.children)
             if self.node_classes:
                 node.class_name = self.node_classes[0]
             update.nodes.append((self.root_window.uid, node))
