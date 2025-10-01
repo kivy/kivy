@@ -14,7 +14,6 @@ class AccessKit(AccessibilityBase):
         self.adapter = None
         self.root_window = root_window
         self.root_window_size = None
-        root_window.bind(focus=lambda w, v: self._update_root_window_focus(v))
         root_window.bind(size=lambda w, v: self._update_root_window_size(v))
         self.action_request_callback = None
         self.initialized = False
@@ -92,7 +91,7 @@ class AccessKit(AccessibilityBase):
             node.set_children(accessible.accessible_children)
         if accessible.accessible_name:
             node.set_label(accessible.accessible_name)
-        if accessible.is_focusable:
+        if 'focus' in accessible.properties():
             node.set_custom_actions([Action.FOCUS])
         elif accessible.is_clickable:
             node.set_default_action_verb(Action.CLICK)
