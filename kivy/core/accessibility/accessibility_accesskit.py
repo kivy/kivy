@@ -19,7 +19,6 @@ class AccessKit(AccessibilityBase):
         self.initialized = False
 
     def _update_root_window_focus(self, is_focused):
-        # This is not called the first time the window gets focused, but it really should be.
         if self.adapter is None:
             return
         if platform == 'darwin':
