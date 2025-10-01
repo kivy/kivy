@@ -88,8 +88,8 @@ class AccessKit(AccessibilityBase):
         bounds = Rect(x, y, x + width, y + height)
         node.set_bounds(bounds)
         
-        if accessible.accessible_checked_state is not None:
-            node.set_toggled(Toggled.TRUE if accessible.accessible_checked_state else Toggled.FALSE)
+        if hasattr(accessible, 'active'):
+            node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
         if accessible.accessible_children:
             node.set_children(accessible.accessible_children)
         if accessible.accessible_name:
