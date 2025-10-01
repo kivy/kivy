@@ -11,9 +11,6 @@ class AccessibleBehavior(object):
         
         from kivy.core.accessibility import Role
 
-        # Is it reliable to use the uid property of widgets? It must be unique and stable.
-        # In the case of AccessKit it must also convert to a 64bit unsigned integer.
-        self.accessible_uid = None
         self.accessible_checked_state = None
         self.accessible_children = None
         self.accessible_name = None
@@ -29,7 +26,7 @@ class AccessibleBehavior(object):
 
     def update(self):
         # This must be called whenever some of the widget's properties have changed.
-        AccessibleBehavior.updated_widgets[self.accessible_uid] = self
+        AccessibleBehavior.updated_widgets[self.uid] = self
 
     def on_accessibility_action(self, action):
         pass
