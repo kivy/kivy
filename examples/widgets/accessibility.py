@@ -14,9 +14,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.label import Label
 
-def update_pos(widget, pos):
-    widget.accessible_pos = pos
-
 def update_size(widget, size):
     widget.accessible_size = size
 
@@ -30,10 +27,8 @@ class AccessibleLabel(AccessibleBehavior, Label):
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
         self.accessible_role = Role.STATIC_TEXT
-        self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.accessible_name = self.text
-        self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(text=update_text)
 
@@ -42,12 +37,10 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
     def __init__(self, **kwargs):
         super(AccessibleButton, self).__init__(**kwargs)
         self.accessible_role = Role.BUTTON
-        self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.accessible_name = self.text
         self.is_clickable = True
         self.is_focusable = isinstance(self, FocusBehavior)
-        self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(text=update_text)
 
@@ -67,10 +60,8 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         super(AccessibleCheckBox, self).__init__(**kwargs)
         self.accessible_role = Role.CHECK_BOX
         self.accessible_checked_state = False
-        self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.is_clickable = True
-        self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(active=update_active)
 
@@ -90,10 +81,8 @@ class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
     def __init__(self, **kwargs):
         super(AccessibleBoxLayout, self).__init__(**kwargs)
         self.accessible_role = Role.GENERIC_CONTAINER
-        self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.bind(children=update_children)
-        self.bind(pos=update_pos)
         self.bind(size=update_size)
 
 
