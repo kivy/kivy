@@ -236,6 +236,8 @@ at the parent's right at each layout update.
 
 __all__ = ('Widget', 'WidgetException')
 
+from typing import Optional
+
 from kivy.event import EventDispatcher
 from kivy.eventmanager import (
     MODE_DONT_DISPATCH,
@@ -1627,3 +1629,15 @@ class Widget(WidgetBase):
         This is an experimental property and it remains so while this warning
         is present.
     '''
+
+
+focused_widget: Optional[Widget] = None
+"""The widget to be considered 'focused' for the purposes of UI automation
+
+For instance, screen readers will read the name of the focused widget on command.
+
+"""
+
+
+updated_widgets: dict[int, Widget] = {}
+"""Widgets that have been changed since the last update of the accessible UI tree"""
