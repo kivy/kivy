@@ -1671,5 +1671,5 @@ def mark_widget_updated(widget: Widget, *_):
     updated_widgets[widget.uid] = widget
 
 
-updated_widgets_binds: dict[int, set] = {}
+updated_widgets_binds: dict[int, set[int]] = {}
 """UIDs of fbinds that bind widgets' properties to `updated_widgets`"""
