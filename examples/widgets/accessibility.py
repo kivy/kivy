@@ -53,7 +53,6 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
 
 def update_active(widget, is_active):
     widget.accessible_checked_state = is_active
-    widget.update()
 
 class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
     def __init__(self, **kwargs):
