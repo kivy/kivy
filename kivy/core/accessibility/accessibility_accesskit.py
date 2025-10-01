@@ -27,7 +27,6 @@ class AccessKit(AccessibilityBase):
             if events is not None:
                 events.raise_events()
         elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
-            return
             self.adapter.update_window_focus_state(is_focused)
 
     def _update_root_window_size(self, size):
