@@ -89,10 +89,18 @@ class AccessKit(AccessibilityBase):
         
         if hasattr(accessible, 'active'):
             node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
-        if accessible.accessible_children:
-            node.set_children(accessible.accessible_children)
-        if accessible.accessible_name:
-            node.set_label(accessible.accessible_name)
+        elif hasattr(accessible, 'state'):
+            node.set_toggled(Toggled.TRUE if accessible.state == 'down' else Toggled.FALSE)
+        if (acc_childs := getattr(accessible, "accessible_children", None)):
+            node.set_children(acc_childs)
+        elif node.children:
+            node.set_children([child.uid for child in node.children])
+        if (acc_name := getattr(accessible, "accessible_name", None)):
+            node.set_label(acc_name)
+        elif (acc_txt := getattr(accessible, "text", None)):
+            node.set_label(acc_txt)
+        elif (hint_txt := getattr(accessible, "hint_text", None)):
+            node.set_label(hint_txt)
         if 'focus' in accessible.properties():
             node.set_custom_actions([Action.FOCUS])
         elif accessible.is_clickable:
@@ -170,11 +178,11 @@ class AccessKit(AccessibilityBase):
         return True
 
 def to_accesskit_role(role):
-    if role == KivyRole.STATIC_TEXT:
-        return Role.PARAGRAPH
+    if role == KivyRole.CAPTION:
+        return Role.CAPTION
     elif role == KivyRole.GENERIC_CONTAINER:
         return Role.GENERIC_CONTAINER
-    elif role == KivyRole.CHECK_BOX:
+    elif role == KivyRole.TOGGLE:
         return Role.CHECK_BOX
     elif role == KivyRole.BUTTON:
         return Role.BUTTON
