@@ -36,7 +36,6 @@ class AccessibleLabel(AccessibleBehavior, Label):
     # This is why labels aren't focusable.
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
-        self.accessible_uid = self.uid
         self.accessible_role = Role.STATIC_TEXT
         self.accessible_pos = self.pos
         self.accessible_size = self.size
@@ -50,7 +49,6 @@ class AccessibleLabel(AccessibleBehavior, Label):
 class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
     def __init__(self, **kwargs):
         super(AccessibleButton, self).__init__(**kwargs)
-        self.accessible_uid = self.uid
         self.accessible_role = Role.BUTTON
         self.accessible_pos = self.pos
         self.accessible_size = self.size
@@ -77,7 +75,6 @@ def update_active(widget, is_active):
 class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
     def __init__(self, **kwargs):
         super(AccessibleCheckBox, self).__init__(**kwargs)
-        self.accessible_uid = self.uid
         self.accessible_role = Role.CHECK_BOX
         self.accessible_checked_state = False
         self.accessible_pos = self.pos
@@ -106,7 +103,6 @@ class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
     # We keep this kind of widget in the UI tree mostly for convenience, but AccessKit will filter them out.
     def __init__(self, **kwargs):
         super(AccessibleBoxLayout, self).__init__(**kwargs)
-        self.accessible_uid = self.uid
         self.accessible_role = Role.GENERIC_CONTAINER
         self.accessible_pos = self.pos
         self.accessible_size = self.size

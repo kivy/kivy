@@ -38,11 +38,11 @@ class AccessibilityManager(EventManagerBase):
 
     def _on_accessibility_action(self, target, action):
         for child in self.window.children[:]:
-            if isinstance(child, AccessibleBehavior) and child.accessible_uid == target:
+            if isinstance(child, AccessibleBehavior) and child.uid == target:
                 child.on_accessibility_action(action)
             else:
                 for descendant in child.walk():
-                    if isinstance(descendant, AccessibleBehavior) and descendant.accessible_uid == target:
+                    if isinstance(descendant, AccessibleBehavior) and descendant.uid == target:
                         descendant.on_accessibility_action(action)
                         return
 
