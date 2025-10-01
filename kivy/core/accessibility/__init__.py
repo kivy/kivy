@@ -2,13 +2,11 @@ from enum import Enum
 from kivy.clock import Clock
 from kivy.eventmanager import EventManagerBase
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
+from kivy.uix import widget
 
 class AccessibilityBase(object):
     def install(self, window_info):
         pass
-
-    def update(self, root_window_changed=False):
-        return False
 
 class Role(Enum):
     # Role is the most important property of an accessible widget.
@@ -52,9 +50,9 @@ class AccessibilityManager(EventManagerBase):
         self.clock = Clock.schedule_interval(self.check_for_updates, 0)
 
     def check_for_updates(self, dt):
-        if self.root_window_changed or AccessibleBehavior.updated_widgets != {} or AccessibleBehavior.focused_widget != self.previous_focus:
+        if self.root_window_changed or widget.updated_widgets != {} or AccessibleBehavior.focused_widget != self.previous_focus:
             if not self.window.accessibility.update(self.root_window_changed):
                 return
             self.root_window_changed = False
-            AccessibleBehavior.updated_widgets = {}
-            self.previous_focus = AccessibleBehavior.focused_widget
+            widget.updated_widgets = {}
+            widget.previous_focus = widget.focused_widget

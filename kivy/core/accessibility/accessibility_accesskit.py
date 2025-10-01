@@ -3,6 +3,7 @@ from collections import defaultdict
 import kivy
 from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
+from kivy.uix import widget
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
 
@@ -78,7 +79,7 @@ class AccessKit(AccessibilityBase):
 
     def _build_node(self, accessible):
         node = Node(to_accesskit_role(accessible.accessible_role))
-        (x, y) = accessible.accessible_pos
+        (x, y) = accessible.to_window(*accessible.pos)
         # On Windows, Y coordinates seem to be reversed, this will be annoying once the window is resized as we'll need to recompute every widget's bounds.
         # Is there a more direct way?
         (width, height) = accessible.accessible_size
