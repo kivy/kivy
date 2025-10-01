@@ -1,3 +1,6 @@
+from kivy.uix import widget
+
+
 class AccessibleBehavior(object):
     # Which widget currently has the focus?
     focused_widget = None
@@ -22,11 +25,11 @@ class AccessibleBehavior(object):
 
     def grab_focus(self):
         # When a widget gets focused, no need to update its accessible representation, unless gaining or losing the focus updates some of its properties.
-        AccessibleBehavior.focused_widget = self
+        widget.focused_widget = self
 
     def update(self):
         # This must be called whenever some of the widget's properties have changed.
-        AccessibleBehavior.updated_widgets[self.uid] = self
+        widget.updated_widgets[self.uid] = self
 
     def on_accessibility_action(self, action):
         pass
