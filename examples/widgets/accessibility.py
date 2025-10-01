@@ -40,7 +40,7 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
         self.accessible_size = self.size
         self.accessible_name = self.text
         self.is_clickable = True
-        self.is_focusable = isinstance(self, FocusBehavior)
+        self.is_focusable = True
         self.bind(size=update_size)
         self.bind(text=update_text)
 
@@ -60,6 +60,7 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         self.accessible_role = Role.CHECK_BOX
         self.accessible_checked_state = False
         self.accessible_size = self.size
+        self.is_focusable = True
         self.is_clickable = True
         self.bind(size=update_size)
         self.bind(active=update_active)
@@ -98,9 +99,12 @@ class AccessibleApp(App):
         button_1.bind(on_press=lambda j: print("Button 1 was pressed."))
 
         button_2 = AccessibleButton(text='Button 2')
+        button_1.focus_next = button_2
         button_2.bind(on_press=lambda j: print("Button 2 was pressed."))
 
         checkbox = AccessibleCheckBox()
+        button_2.focus_next = checkbox
+        checkbox.focus_next = button_1
 
         buttons = AccessibleBoxLayout(orientation='horizontal')
         buttons.add_widget(button_1)
