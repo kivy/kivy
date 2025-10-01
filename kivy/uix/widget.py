@@ -291,7 +291,19 @@ class WidgetMetaclass(type):
 
 
 #: Base class used for Widget, that inherits from :class:`EventDispatcher`
-WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+class WidgetBase(EventDispatcher, metaclass=WidgetMetaclass):
+    def __init__(self, **kwargs):
+        global updated_widgets_binds
+        super().__init__(**kwargs)
+        for name in self.properties():
+            if self.uid in updated_widgets_binds:
+                binds = updated_widgets_binds[self.uid]
+            else:
+                binds = updated_widgets_binds[self.uid] = set()
+            binds.add(self.fbind(
+                name, partial(mark_widget_updated, self)
+                )
+            )
 
 
 class Widget(WidgetBase):
@@ -1639,5 +1651,25 @@ For instance, screen readers will read the name of the focused widget on command
 """
 
 
+previous_focus: Optional[Widget] = None
+"""The previous focused widget, for UI automation purposes"""
+
+
 updated_widgets: dict[int, Widget] = {}
 """Widgets that have been changed since the last update of the accessible UI tree"""
+
+
+def mark_widget_updated(widget: Widget, *_):
+    """Mark a widget as changed since the last update of the accessible UI tree
+
+    You could also set `kivy.uix.widget.updated_widgets` directly, but this function
+    can be bound to `kivy.property`s.
+
+    """
+    global updated_widgets
+
+    updated_widgets[widget.uid] = widget
+
+
+updated_widgets_binds: dict[int, set] = {}
+"""UIDs of fbinds that bind widgets' properties to `updated_widgets`"""
