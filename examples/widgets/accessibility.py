@@ -23,10 +23,6 @@ def update_size(widget, size):
 def update_text(widget, text):
     widget.accessible_name = text
 
-def grab_focus(widget, is_focused):
-    # This is obviously incompatible with multi-keyboard setup, but assistive technologies only allow one element to be focused at a time.
-    if is_focused:
-        widget.grab_focus()
 
 class AccessibleLabel(AccessibleBehavior, Label):
     # Usually a label should be linked to another widget for which it can provide the name or description.
@@ -50,11 +46,10 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
         self.accessible_size = self.size
         self.accessible_name = self.text
         self.is_clickable = True
-        self.is_focusable = True
+        self.is_focusable = isinstance(self, FocusBehavior)
         self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(text=update_text)
-        self.bind(focus=grab_focus)
 
     def on_accessibility_action(self, action):
         if action == Action.FOCUS:
@@ -75,10 +70,8 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.is_clickable = True
-        self.is_focusable = True
         self.bind(pos=update_pos)
         self.bind(size=update_size)
-        self.bind(focus=grab_focus)
         self.bind(active=update_active)
 
     def on_accessibility_action(self, action):
