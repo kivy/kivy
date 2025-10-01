@@ -16,15 +16,12 @@ from kivy.uix.label import Label
 
 def update_pos(widget, pos):
     widget.accessible_pos = pos
-    widget.update()
 
 def update_size(widget, size):
     widget.accessible_size = size
-    widget.update()
 
 def update_text(widget, text):
     widget.accessible_name = text
-    widget.update()
 
 def grab_focus(widget, is_focused):
     # This is obviously incompatible with multi-keyboard setup, but assistive technologies only allow one element to be focused at a time.
@@ -40,7 +37,6 @@ class AccessibleLabel(AccessibleBehavior, Label):
         self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.accessible_name = self.text
-        self.bind(parent=lambda w, v: self.update())
         self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(text=update_text)
@@ -55,7 +51,6 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
         self.accessible_name = self.text
         self.is_clickable = True
         self.is_focusable = True
-        self.bind(parent=lambda w, v: self.update())
         self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(text=update_text)
@@ -81,7 +76,6 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         self.accessible_size = self.size
         self.is_clickable = True
         self.is_focusable = True
-        self.bind(parent=lambda w, v: self.update())
         self.bind(pos=update_pos)
         self.bind(size=update_size)
         self.bind(focus=grab_focus)
@@ -96,7 +90,6 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
 
 def update_children(widget, children):
     widget.accessible_children = children
-    widget.update()
 
 
 class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
@@ -107,7 +100,6 @@ class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
         self.accessible_pos = self.pos
         self.accessible_size = self.size
         self.bind(children=update_children)
-        self.bind(parent=lambda w, v: self.update())
         self.bind(pos=update_pos)
         self.bind(size=update_size)
 
