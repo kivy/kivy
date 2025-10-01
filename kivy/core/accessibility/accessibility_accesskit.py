@@ -99,7 +99,11 @@ class AccessKit(AccessibilityBase):
 
     def _build_tree_update(self, root_window_changed=True):
         # If no widget has the focus, then we must put it on the root window.
-        focus = AccessibleBehavior.focused_widget.accessible_uid if AccessibleBehavior.focused_widget else self.root_window_uid
+        focus = (
+            AccessibleBehavior.focused_widget.uid
+            if AccessibleBehavior.focused_widget
+            else self.root_window.uid
+        )
         update = TreeUpdate(focus)
         update.tree = self._build_tree_info()
         if root_window_changed:
