@@ -76,8 +76,11 @@ class AccessKit(AccessibilityBase):
         # Assume the window has the focus at this time, even though it's probably not true.
         self._update_root_window_focus(True)
 
-    def _build_node(self, accessible):
-        node = Node(to_accesskit_role(accessible.accessible_role))
+    def _build_node(self, accessible: widget.Widget):
+        if hasattr(accessible, "accessible_role"):
+            node = Node(to_accesskit_role(accessible.accessible_role))
+        else:
+            node = Node(Role.UNKNOWN)
         (x, y) = accessible.to_window(*accessible.pos)
         # On Windows, Y coordinates seem to be reversed, this will be annoying once the window is resized as we'll need to recompute every widget's bounds.
         # Is there a more direct way?
