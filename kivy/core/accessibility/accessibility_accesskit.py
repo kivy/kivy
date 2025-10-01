@@ -2,7 +2,6 @@ from collections import defaultdict
 
 import kivy
 from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
-from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from kivy.uix import widget
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
