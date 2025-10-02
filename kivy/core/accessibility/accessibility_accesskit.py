@@ -85,7 +85,7 @@ class AccessKit(AccessibilityBase):
         # y from the top of the window
         y = self.root_window.height - y
         (width, height) = accessible.accessible_size
-        bounds = Rect(x, y, x + width, y + height)
+        bounds = Rect(x, y, x + width, y - height)
         node.set_bounds(bounds)
 
         if role == Role.GENERIC_CONTAINER:
