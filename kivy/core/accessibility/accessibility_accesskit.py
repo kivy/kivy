@@ -4,7 +4,9 @@ import kivy
 from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
 from kivy.uix import widget
 from sys import platform
-from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
+from . import AccessibilityBase, Action as KivyAction
+from ...uix.widget import Role as KivyRole
+
 
 class AccessKit(AccessibilityBase):
     def __init__(self, root_window):
