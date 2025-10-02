@@ -42,7 +42,7 @@ class AccessibilityManager(EventManagerBase):
         self.clock = Clock.schedule_interval(self.check_for_updates, 0)
 
     def check_for_updates(self, dt):
-        if self.root_window_changed or widget.updated_widgets != {} or AccessibleBehavior.focused_widget != self.previous_focus:
+        if self.root_window_changed or widget.updated_widgets != {} or widget.focused_widget != self.previous_focus:
             if not self.window.accessibility.update(self.root_window_changed):
                 return
             self.root_window_changed = False
