@@ -86,11 +86,12 @@ class AccessKit(AccessibilityBase):
         (width, height) = accessible.accessible_size
         bounds = Rect(x, y, x + width, y + height)
         node.set_bounds(bounds)
-        
-        if hasattr(accessible, 'active'):
-            node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
-        elif hasattr(accessible, 'state'):
-            node.set_toggled(Toggled.TRUE if accessible.state == 'down' else Toggled.FALSE)
+
+        if role == Role.CHECK_BOX:
+            if hasattr(accessible, 'active'):
+                node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
+            elif hasattr(accessible, 'state'):
+                node.set_toggled(Toggled.TRUE if accessible.state == 'down' else Toggled.FALSE)
         if (acc_childs := getattr(accessible, "accessible_children", None)):
             node.set_children(acc_childs)
         elif node.children:
