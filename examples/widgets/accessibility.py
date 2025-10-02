@@ -15,9 +15,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.label import Label
 
-def update_size(widget, size):
-    widget.accessible_size = size
-
 def update_text(widget, text):
     widget.accessible_name = text
 
@@ -28,9 +25,6 @@ class AccessibleLabel(AccessibleBehavior, Label):
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
         self.accessible_role = Role.CAPTION
-        self.accessible_size = self.size
-        self.accessible_name = self.text
-        self.bind(size=update_size)
         self.bind(text=update_text)
 
 
@@ -38,11 +32,8 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
     def __init__(self, **kwargs):
         super(AccessibleButton, self).__init__(**kwargs)
         self.accessible_role = Role.BUTTON
-        self.accessible_size = self.size
-        self.accessible_name = self.text
         self.is_clickable = True
         self.is_focusable = True
-        self.bind(size=update_size)
         self.bind(text=update_text)
 
     def on_accessibility_action(self, action):
@@ -50,10 +41,6 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
             self.focus = True
         elif action == Action.DEFAULT:
             self.trigger_action(0)
-
-
-def update_active(widget, is_active):
-    widget.accessible_checked_state = is_active
 
 class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
     def __init__(self, **kwargs):
@@ -63,8 +50,6 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         self.accessible_size = self.size
         self.is_focusable = True
         self.is_clickable = True
-        self.bind(size=update_size)
-        self.bind(active=update_active)
 
     def on_accessibility_action(self, action):
         if action == Action.FOCUS:
@@ -73,18 +58,12 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
             self.trigger_action(0)
 
 
-def update_children(widget, children):
-    widget.accessible_children = children
-
-
 class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
     # We keep this kind of widget in the UI tree mostly for convenience, but AccessKit will filter them out.
     def __init__(self, **kwargs):
         super(AccessibleBoxLayout, self).__init__(**kwargs)
         self.accessible_role = Role.GENERIC_CONTAINER
         self.accessible_size = self.size
-        self.bind(children=update_children)
-        self.bind(size=update_size)
 
 
 class AccessibleApp(App):
