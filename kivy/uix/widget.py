@@ -378,11 +378,11 @@ class Widget(WidgetBase):
         # Bind all the events.
         if on_args:
             self.bind(**on_args)
+        if self.uid in updated_widgets_binds:
+            binds = updated_widgets_binds[self.uid]
+        else:
+            binds = updated_widgets_binds[self.uid] = set()
         for name in self.properties():
-            if self.uid in updated_widgets_binds:
-                binds = updated_widgets_binds[self.uid]
-            else:
-                binds = updated_widgets_binds[self.uid] = set()
             binds.add(self.fbind(
                 name, partial(mark_widget_updated, self)
                 )
