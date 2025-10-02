@@ -82,7 +82,7 @@ class AccessKit(AccessibilityBase):
             node = Node(to_accesskit_role(accessible.accessible_role))
         else:
             node = Node(Role.UNKNOWN)
-        (x, y) = accessible.to_window(*accessible.pos)
+        (x, y) = accessible.to_window(*accessible.accessible_pos)
         # On Windows, Y coordinates seem to be reversed, this will be annoying once the window is resized as we'll need to recompute every widget's bounds.
         # Is there a more direct way?
         (width, height) = accessible.accessible_size
