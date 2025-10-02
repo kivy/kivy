@@ -100,10 +100,10 @@ class AccessKit(AccessibilityBase):
             node.set_children([child.uid for child in node.children])
         if (acc_name := getattr(accessible, "accessible_name", None)):
             node.set_label(acc_name)
-        elif (acc_txt := getattr(accessible, "text", None)):
-            node.set_label(acc_txt)
+        if (acc_txt := getattr(accessible, "text", None)):
+            node.set_value(acc_txt)
         elif (hint_txt := getattr(accessible, "hint_text", None)):
-            node.set_label(hint_txt)
+            node.set_value(hint_txt)
         if 'focus' in accessible.properties():
             node.set_custom_actions([Action.FOCUS])
         elif accessible.is_clickable:
