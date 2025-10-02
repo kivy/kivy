@@ -47,7 +47,6 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
         super(AccessibleCheckBox, self).__init__(**kwargs)
         self.accessible_role = Role.TOGGLE
         self.accessible_checked_state = False
-        self.accessible_size = self.size
         self.is_focusable = True
         self.is_clickable = True
 
@@ -63,7 +62,6 @@ class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
     def __init__(self, **kwargs):
         super(AccessibleBoxLayout, self).__init__(**kwargs)
         self.accessible_role = Role.GENERIC_CONTAINER
-        self.accessible_size = self.size
 
 
 class AccessibleApp(App):
