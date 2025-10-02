@@ -75,6 +75,8 @@ __all__ = ("ButtonBehavior",)
 
 from kivy.properties import BooleanProperty, AliasProperty, ObjectProperty
 
+from kivy.uix.widget import Role
+
 
 class ButtonBehavior:
     """Mixin to add button behavior to any Kivy widget.
@@ -193,8 +195,6 @@ class ButtonBehavior:
         self._active_touches = set()
         self._cancelled_touches = set()
 
-        super().__init__(**kwargs)
-
     # NOTE: Internal hooks for subclassing
     # ====================================
     # These methods are called internally before dispatching the corresponding
@@ -204,6 +204,15 @@ class ButtonBehavior:
     # internal logic and external event dispatch.
     # Do NOT call these directly or bind to them - use
     # on_press/on_release/on_cancel events instead.
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(Config.get('graphics',
+                                                   'min_state_time'))
+        if 'accessible_role' not in kwargs:
+            kwargs['accessible_role'] = Role.BUTTON
+        super(ButtonBehavior, self).__init__(**kwargs)
+        self.__state_event = None
+        self.__touch_time = None
+        self.fbind('state', self.cancel_event)
 
     def _do_press(self):
         """Internal hook for subclasses. Called before on_press event dispatch.

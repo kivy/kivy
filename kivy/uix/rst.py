@@ -68,7 +68,7 @@ from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, OptionProperty, AliasProperty
 from kivy.lang import Builder
 from kivy.utils import get_hex_from_color, get_color_from_hex
-from kivy.uix.widget import Widget
+from kivy.uix.widget import Widget, Role
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -543,6 +543,7 @@ class RstDocument(ScrollView):
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
             components=(rst.Parser, )).get_default_values()
+        kwargs.setdefault('accessible_role', Role.DOCUMENT)
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
