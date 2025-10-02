@@ -101,6 +101,9 @@ class AccessKit(AccessibilityBase):
             node.set_label(acc_name)
         if (acc_txt := getattr(accessible, "text", None)):
             node.set_value(acc_txt)
+            node.set_description(acc_txt)
+            if not node.label:
+                node.set_label(acc_txt)
         if (hint_txt := getattr(accessible, "hint_text", None)):
             node.set_placeholder(hint_txt)
         if 'focus' in accessible.properties():
