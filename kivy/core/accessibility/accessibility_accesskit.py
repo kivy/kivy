@@ -181,8 +181,8 @@ class AccessKit(AccessibilityBase):
         return True
 
 def to_accesskit_role(role):
-    if role == KivyRole.CAPTION:
-        return Role.CAPTION
+    if role == KivyRole.LABEL:
+        return Role.LABEL
     elif role == KivyRole.GENERIC_CONTAINER:
         return Role.GENERIC_CONTAINER
     elif role == KivyRole.TOGGLE:
