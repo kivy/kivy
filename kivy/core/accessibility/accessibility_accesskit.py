@@ -81,6 +81,8 @@ class AccessKit(AccessibilityBase):
         role = to_accesskit_role(accessible.accessible_role)
         node = Node(role)
         (x, y) = accessible.to_window(*accessible.accessible_pos)
+        # Kivy figures y from the bottom of the window, but AccessKit figures
+        # y from the top of the window
         y = self.root_window.height - y
         (width, height) = accessible.accessible_size
         bounds = Rect(x, y, x + width, y + height)
