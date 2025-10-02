@@ -1349,7 +1349,11 @@ class Widget(WidgetBase):
     '''
 
     def _get_accessible_size(self):
-        return self.accessible_width or self.width, self.accessible_height or self.height
+        width = self.width
+        height = self.height
+        accessible_width = self.accessible_width
+        accessible_height = self.accessible_height
+        return accessible_width or width, accessible_height or height
 
     def _set_accessible_size(self, size):
         self.accessible_width, self.accessible_height = size
