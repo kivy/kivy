@@ -292,18 +292,7 @@ class WidgetMetaclass(type):
 
 #: Base class used for Widget, that inherits from :class:`EventDispatcher`
 class WidgetBase(EventDispatcher, metaclass=WidgetMetaclass):
-    def __init__(self, **kwargs):
-        global updated_widgets_binds
-        super().__init__(**kwargs)
-        for name in self.properties():
-            if self.uid in updated_widgets_binds:
-                binds = updated_widgets_binds[self.uid]
-            else:
-                binds = updated_widgets_binds[self.uid] = set()
-            binds.add(self.fbind(
-                name, partial(mark_widget_updated, self)
-                )
-            )
+    pass
 
 
 class Widget(WidgetBase):
@@ -351,6 +340,7 @@ class Widget(WidgetBase):
     _proxy_ref = None
 
     def __init__(self, **kwargs):
+        global updated_widgets_binds
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
 
@@ -388,6 +378,15 @@ class Widget(WidgetBase):
         # Bind all the events.
         if on_args:
             self.bind(**on_args)
+        for name in self.properties():
+            if self.uid in updated_widgets_binds:
+                binds = updated_widgets_binds[self.uid]
+            else:
+                binds = updated_widgets_binds[self.uid] = set()
+            binds.add(self.fbind(
+                name, partial(mark_widget_updated, self)
+                )
+            )
 
     @property
     def proxy_ref(self):
