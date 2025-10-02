@@ -48,6 +48,8 @@ from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.uix.behaviors.button import ButtonBehavior
 from weakref import ref
 
+from kivy.uix.widget import Role
+
 
 class ToggleButtonBehavior(ButtonBehavior):
     '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
@@ -81,6 +83,8 @@ class ToggleButtonBehavior(ButtonBehavior):
 
     def __init__(self, **kwargs):
         self._previous_group = None
+        if 'accessible_role' not in kwargs:
+            kwargs['accessible_role'] = Role.TOGGLE
         super(ToggleButtonBehavior, self).__init__(**kwargs)
 
     def on_group(self, *largs):
