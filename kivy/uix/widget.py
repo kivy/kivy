@@ -340,7 +340,6 @@ class Widget(WidgetBase):
     _proxy_ref = None
 
     def __init__(self, **kwargs):
-        global updated_widgets_binds
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
 
@@ -378,10 +377,7 @@ class Widget(WidgetBase):
         # Bind all the events.
         if on_args:
             self.bind(**on_args)
-        if self.uid in updated_widgets_binds:
-            binds = updated_widgets_binds[self.uid]
-        else:
-            binds = updated_widgets_binds[self.uid] = set()
+        binds = self._mark_widget_updated_binds = set()
         for name in self.properties():
             binds.add(self.fbind(
                 name, partial(mark_widget_updated, self)
@@ -1668,7 +1664,3 @@ def mark_widget_updated(widget: Widget, *_):
     global updated_widgets
 
     updated_widgets[widget.uid] = widget
-
-
-updated_widgets_binds: dict[int, set[int]] = {}
-"""UIDs of fbinds that bind widgets' properties to `updated_widgets`"""
