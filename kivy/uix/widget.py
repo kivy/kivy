@@ -236,8 +236,9 @@ at the parent's right at each layout update.
 
 __all__ = ('Widget', 'WidgetException')
 
-from typing import Optional
+from enum import Enum
 
+from typing import Optional
 from kivy.event import EventDispatcher
 from kivy.eventmanager import (
     MODE_DONT_DISPATCH,
@@ -247,7 +248,8 @@ from kivy.eventmanager import (
 from kivy.factory import Factory
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
-    ObjectProperty, ListProperty, DictProperty, BooleanProperty)
+    ObjectProperty, ListProperty, DictProperty, BooleanProperty,
+    OptionProperty)
 from kivy.graphics import (
     Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale)
 from kivy.graphics.transformation import Matrix
@@ -295,6 +297,44 @@ class WidgetBase(EventDispatcher, metaclass=WidgetMetaclass):
     pass
 
 
+class Role(Enum):
+    # Role is the most important property of an accessible widget.
+    # It will tell assistive technologies how to present it to the user, which other properties to expect, and what kind of actions can be performed on it.
+    UNKNOWN = 0
+    """No information about how to present this widget"""
+    CAPTION = 1
+    """This widget's text explains another widget"""
+    GENERIC_CONTAINER = 2
+    """The widget is for containing other widgets
+
+    In Kivy, generic containers are usually :class:`~kivy.uix.layout.Layout`s.
+
+
+
+    """
+    TOGGLE = 3
+    """The widget is in one of two possible Boolean states
+
+    Likely either :class:`~kivy.uix.togglebutton.ToggleButton` or
+    :class:`kivy.uix.checkbox.CheckBox`.
+
+    """
+    BUTTON = 4
+    """A button that does one thing when pressed"""
+    DOCUMENT = 5
+    """A large amount of text the user may want to read
+
+    DOCUMENT may be a container for many LABEL widgets or similar.
+
+    """
+    PARAGRAPH = 6
+    """A piece of text within a document"""
+    HEADING = 7
+    """Text starting a section of a document or a menu"""
+    MENU = 8
+    """Modal/drop/accordion/etc. menu with many related widgets inside"""
+
+
 class Widget(WidgetBase):
     '''Widget class. See module documentation for more information.
 
@@ -338,6 +378,7 @@ class Widget(WidgetBase):
         'on_kv_post'
     )
     _proxy_ref = None
+    accessible_role = OptionProperty(Role.UNKNOWN, options=list(Role))
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.

@@ -6,7 +6,8 @@
 # Use CapsLock+Enter to activate the buttons or toggle the checkbox
 
 from kivy.app import App
-from kivy.core.accessibility import AccessibilityManager, Action, Role
+from kivy.core.accessibility import AccessibilityManager, Action
+from kivy.uix.widget import Role
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.button import Button
@@ -26,7 +27,7 @@ class AccessibleLabel(AccessibleBehavior, Label):
     # This is why labels aren't focusable.
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
-        self.accessible_role = Role.STATIC_TEXT
+        self.accessible_role = Role.CAPTION
         self.accessible_size = self.size
         self.accessible_name = self.text
         self.bind(size=update_size)
@@ -57,7 +58,7 @@ def update_active(widget, is_active):
 class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
     def __init__(self, **kwargs):
         super(AccessibleCheckBox, self).__init__(**kwargs)
-        self.accessible_role = Role.CHECK_BOX
+        self.accessible_role = Role.TOGGLE
         self.accessible_checked_state = False
         self.accessible_size = self.size
         self.is_focusable = True

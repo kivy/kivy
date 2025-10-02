@@ -11,8 +11,8 @@ class AccessibleBehavior(object):
 
     def __init__(self, **kwargs):
         super(AccessibleBehavior, self).__init__(**kwargs)
-        
-        from kivy.core.accessibility import Role
+
+        from kivy.uix.widget import Role
 
         self.accessible_checked_state = None
         self.accessible_children = None
