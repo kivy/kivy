@@ -302,7 +302,7 @@ class Role(Enum):
     # It will tell assistive technologies how to present it to the user, which other properties to expect, and what kind of actions can be performed on it.
     UNKNOWN = 0
     """No information about how to present this widget"""
-    CAPTION = 1
+    LABEL = 1
     """This widget's text explains another widget"""
     GENERIC_CONTAINER = 2
     """The widget is for containing other widgets

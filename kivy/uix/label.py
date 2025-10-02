@@ -316,7 +316,7 @@ class Label(Widget):
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
-        kwargs.setdefault('accessible_role', Role.CAPTION)
+        kwargs.setdefault('accessible_role', Role.LABEL)
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
