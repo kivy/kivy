@@ -379,6 +379,15 @@ class Widget(WidgetBase):
     )
     _proxy_ref = None
     accessible_role = OptionProperty(Role.UNKNOWN, options=list(Role))
+    """The role the widget fills in a UI automation context
+    
+    Screen readers, for instance, use this to decide what widgets they should
+    read, and when.
+    
+    :attr:`accessible_role` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to ``Role.UNKNOWN``. Its options are in :class:`~kivy.uix.widget.Role`.
+    
+    """
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
