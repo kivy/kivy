@@ -388,6 +388,15 @@ class Widget(WidgetBase):
     defaults to ``Role.UNKNOWN``. Its options are in :class:`~kivy.uix.widget.Role`.
     
     """
+    accessible_name = StringProperty()
+    """The name to use for the widget in UI automation
+    
+    Read by screen readers, for instance.
+    
+    :attr:`accessible_name` is a :class:`~kivy.properties.StringProperty`
+    and defaults to the empty string.
+    
+    """
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -1231,11 +1240,31 @@ class Widget(WidgetBase):
 
     :attr:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
+    
+    accessible_x = NumericProperty(None, allownone=True)
+    '''X position of the widget for UI automation purposes, if this differs
+    
+    Otherwise, and by default, this is ``None``.
+    
+    :attr:`accessible_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+    
+    '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
     :attr:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    '''
+
+    accessible_y = NumericProperty(None, allownone=True)
+    '''Y position of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
     '''
 
     width = NumericProperty(100)
@@ -1251,6 +1280,16 @@ class Widget(WidgetBase):
 
     .. warning::
         A negative width is not supported.
+    '''
+    
+    accessible_width = NumericProperty(None, allownone=True)
+    '''Width of the widget for UI automation purposes, if this differs
+    
+    Otherwise, and by default, this is ``None``.
+    
+    :attr:`accessible_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+    
     '''
 
     height = NumericProperty(100)
@@ -1268,6 +1307,16 @@ class Widget(WidgetBase):
         A negative height is not supported.
     '''
 
+    accessible_height = NumericProperty(None, allownone=True)
+    '''Height of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
+    '''
+
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
@@ -1275,11 +1324,49 @@ class Widget(WidgetBase):
     (:attr:`x`, :attr:`y`) properties.
     '''
 
+    def _get_accessible_pos(self):
+        return self.accessible_x or self.x, self.accessible_y or self.y
+
+    def _set_accessible_pos(self, pos):
+        self.accessible_x, self.accessible_y = pos
+
+    accessible_pos = AliasProperty(_get_accessible_pos, _set_accessible_pos,
+        bind=('x', 'y', 'accessible_x', 'accessible_y'))
+    '''Position of the widget for UI automation purposes.
+    
+    Defaults to the position of the widget for every other purpose, :attr:`pos`.
+    
+    :attr:`accessible_pos` is a :class:`~kivy.properties.AliasProperty` of
+    (:attr:`accessible_x`, :attr:`accessible_y`) properties, defaulting to
+    :attr:`x` and :attr:`y`, respectively, when the accessible properties are
+    ``None``.
+    
+    '''
+
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
     :attr:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`width`, :attr:`height`) properties.
+    '''
+
+    def _get_accessible_size(self):
+        return self.accessible_width or self.width, self.accessible_height or self.height
+
+    def _set_accessible_size(self, size):
+        self.accessible_width, self.accessible_height = size
+
+    accessible_size = AliasProperty(_get_accessible_size, _set_accessible_size,
+        bind=('width', 'height', 'accessible_width', 'accessible_height'))
+    '''Size of the widget for UI automation purposes.
+    
+    Defaults to the size of the widget for every other purpose, :attr:`size`.
+    
+    :attr:`accessible_size` is a :class:`~kivy.properties.AliasProperty` of
+    (:attr:`accessible_width`, :attr:`accessible_height`) properties, defaulting
+    to :attr:`width` and :attr:`height`, respectively, when the accessible
+    properties are ``None``.
+    
     '''
 
     def get_right(self):
