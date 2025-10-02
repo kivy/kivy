@@ -24,7 +24,7 @@ class AccessibleLabel(AccessibleBehavior, Label):
     # This is why labels aren't focusable.
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
-        self.accessible_role = Role.CAPTION
+        self.accessible_role = Role.LABEL
         self.bind(text=update_text)
 
 
