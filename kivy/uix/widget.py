@@ -309,13 +309,11 @@ class Role(Enum):
 
     In Kivy, generic containers are usually :class:`~kivy.uix.layout.Layout`s.
 
-
-
     """
     TOGGLE = 3
-    """The widget is in one of two possible Boolean states
+    """The widget is in one of two possible Boolean states, which the user may switch
 
-    Likely either :class:`~kivy.uix.togglebutton.ToggleButton` or
+    The widget is most likely either :class:`~kivy.uix.togglebutton.ToggleButton` or
     :class:`kivy.uix.checkbox.CheckBox`.
 
     """
