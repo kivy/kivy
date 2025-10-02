@@ -87,6 +87,8 @@ class AccessKit(AccessibilityBase):
         bounds = Rect(x, y, x + width, y + height)
         node.set_bounds(bounds)
 
+        if role == Role.GENERIC_CONTAINER:
+            node.set_touch_transparent()
         if role == Role.CHECK_BOX:
             if hasattr(accessible, 'active'):
                 node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
