@@ -301,6 +301,8 @@ cdef void log_cgl_funcs() except *:
         Logger.debug('GL: glPixelStorei is not available')
     if cgl.glPolygonOffset == NULL:
         Logger.debug('GL: glPolygonOffset is not available')
+    if cgl.glReadnPixels == NULL:
+        Logger.debug('GL: glReadnPixels is not available')
     if cgl.glReadPixels == NULL:
         Logger.debug('GL: glReadPixels is not available')
     if cgl.glRenderbufferStorage == NULL:
