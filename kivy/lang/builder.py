@@ -256,6 +256,25 @@ class BuilderBase(object):
 
     By default, :class:`Builder` is a global Kivy instance used in widgets
     that you can use to load other kv files in addition to the default ones.
+
+    See :mod:`kivy.lang` for details about the rules built here.
+
+    :attributes:
+        `files`: list
+            Filenames of Kivy-language code that have already been loaded.
+            Not necessarily real files on disk; see :meth:`load_string`.
+        `dynamic_classes`:  dict
+            Classes crated in Kivy-language code.
+            They were created with the ``<Class@Superclass>:`` syntax,
+            rather than in Python.
+        `templates`: dict
+            Superseded by :attr:`dynamic_classes` in version 1.0.5.
+            Modern Kivy apps should not use templates.
+        `rules`: list
+            Rules loaded from Kivy-language code.
+        `rulectx`: dict
+            Context used by each rule.
+            Mostly, the IDs of widgets.
     '''
 
     def __init__(self):
