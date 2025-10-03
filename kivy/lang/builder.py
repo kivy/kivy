@@ -265,7 +265,8 @@ class BuilderBase(object):
             Not necessarily real files on disk; see :meth:`load_string`.
         `dynamic_classes`:  dict
             Classes crated in Kivy-language code.
-            They were created with the ``<Class@Superclass>:`` syntax, rather than in Python.
+            They were created with the ``<Class@Superclass>:`` syntax,
+            rather than in Python.
         `templates`: dict
             Superseded by :attr:`dynamic_classes` in version 1.0.5.
             Modern Kivy apps should not use templates.
