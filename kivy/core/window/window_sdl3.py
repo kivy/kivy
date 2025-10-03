@@ -642,9 +642,11 @@ class WindowSDL(WindowBase):
 
             elif action == 'windowfocusgained':
                 self._focus = True
+                self.accessibility._update_root_window_focus(True)
                 self._update_modifiers_state()
 
             elif action == 'windowfocuslost':
+                self.accessibility._update_root_window_focus(False)
                 self._focus = False
 
             elif action == 'windowenter':
