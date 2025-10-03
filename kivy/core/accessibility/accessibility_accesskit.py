@@ -74,8 +74,6 @@ class AccessKit(AccessibilityBase):
             self.adapter = unix.Adapter(self._build_dummy_tree, self._on_action_request, self._handle_deactivation)
         elif platform in ('win32', 'cygwin'):
             self.adapter = windows.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
-        # Assume the window has the focus at this time, even though it's probably not true.
-        self._update_root_window_focus(True)
 
     def _build_node(self, accessible: widget.Widget):
         role = to_accesskit_role(accessible.accessible_role)
