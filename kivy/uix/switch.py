@@ -47,7 +47,7 @@ Kv Example::
 '''
 
 
-from kivy.uix.widget import Widget
+from kivy.uix.widget import Widget, Role
 from kivy.animation import Animation
 from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
 
@@ -85,6 +85,10 @@ class Switch(Widget):
     :attr:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`
     and defaults to 0.
     '''
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault('accessible_role', Role.TOGGLE)
+        super().__init__(**kwargs)
 
     def on_touch_down(self, touch):
         if self.disabled or self.touch_control is not None:
