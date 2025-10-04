@@ -92,13 +92,11 @@ class AccessKit(AccessibilityBase):
         if role == Role.BUTTON:
             node.add_action(Action.CLICK)
             node.add_action(Action.FOCUS)
-            node.add_action(Action.SELECT)
         elif role == Role.GENERIC_CONTAINER:
             node.set_touch_transparent()
         elif role == Role.CHECK_BOX:
             node.add_action(Action.CLICK)
             node.add_action(Action.FOCUS)
-            node.add_action(Action.SELECT)
             if hasattr(accessible, 'active'):
                 node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
             elif hasattr(accessible, 'state'):
