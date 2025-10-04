@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import kivy
-from accesskit import Node, Tree, Role, TreeUpdate, Action, unix, Rect, Toggled
+from accesskit import Node, Tree, Role, TreeUpdate, Action, Rect, Toggled
 from kivy.uix import widget
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction
@@ -69,10 +69,13 @@ class AccessKit(AccessibilityBase):
         if platform == 'darwin':
             # The following function will need to be called. Since it's SDL2 specific, should it really belong here?
             # macos.add_focus_forwarder_to_window_class("SDLWindow")
+            from accesskit import macos
             self.adapter = macos.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
         elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
+            from accesskit import unix
             self.adapter = unix.Adapter(self._build_dummy_tree, self._on_action_request, self._handle_deactivation)
         elif platform in ('win32', 'cygwin'):
+            from accesskit import windows
             self.adapter = windows.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
 
     def _build_node(self, accessible: widget.Widget):
