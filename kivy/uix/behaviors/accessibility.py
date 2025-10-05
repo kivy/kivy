@@ -9,7 +9,9 @@ class AccessibleBehavior(object):
         self.is_focusable = False
 
     def grab_focus(self):
-        # When a widget gets focused, no need to update its accessible representation, unless gaining or losing the focus updates some of its properties.
+        # When a widget gets focused, no need to update its accessible
+        # representation, unless gaining or losing the focus updates some of
+        # its properties.
         widget.focused_widget = self
 
     def on_accessibility_action(self, action):

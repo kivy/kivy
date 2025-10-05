@@ -22,11 +22,11 @@ class AccessKit(AccessibilityBase):
     def _update_root_window_focus(self, is_focused):
         if self.adapter is None:
             return
-        if platform == 'darwin':
+        if platform == "darwin":
             events = self.adapter.update_view_focus_state(is_focused)
             if events is not None:
                 events.raise_events()
-        elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
+        elif "linux" in platform or "freebsd" in platform or "openbsd" in platform:
             self.adapter.update_window_focus_state(is_focused)
 
     def _update_root_window_size(self, size):
@@ -39,9 +39,11 @@ class AccessKit(AccessibilityBase):
         return tree
 
     def _build_dummy_tree(self):
-        # If there is no assistive technology running, then this might never be called.
-        # We don't really know when the first accessibility tree will be requested: if it's early in the app initialization then we might not have everything ready.
-        # It's OK to first push an empty tree update and replace it later.
+        # If there is no assistive technology running, then this might never
+        # be called. We don't really know when the first accessibility tree
+        # will be requested: if it's early in the app initialization then we
+        # might not have everything ready. It's OK to first push an empty
+        # tree update and replace it later.
         root = Node(Role.WINDOW)
         update = TreeUpdate(self.root_window.uid)
         update.nodes.append((self.root_window.uid, root))
@@ -50,7 +52,8 @@ class AccessKit(AccessibilityBase):
         return update
 
     def _on_action_request(self, request):
-        # An assistive technology wants to perform an action on behalf of the user.
+        # An assistive technology wants to perform an action on behalf of
+        # the user.
         if request.action == Action.FOCUS:
             action = KivyAction.FOCUS
         elif request.action == Action.DEFAULT:
@@ -58,7 +61,8 @@ class AccessKit(AccessibilityBase):
         else:
             return
         if self.action_request_callback:
-            # If we are properly initialized, forward the action to the accessibility manager.
+            # If we are properly initialized, forward the action to
+            # the accessibility manager.
             self.action_request_callback(request.target, action)
 
     @staticmethod
@@ -66,17 +70,29 @@ class AccessKit(AccessibilityBase):
 
     def install(self, window_info, width, height):
         self.root_window_size = (width, height)
-        if platform == 'darwin':
-            # The following function will need to be called. Since it's SDL2 specific, should it really belong here?
+        if platform == "darwin":
+            # The following function will need to be called.
+            # Since it's SDL2 specific, should it really belong here?
             # macos.add_focus_forwarder_to_window_class("SDLWindow")
             from accesskit import macos
-            self.adapter = macos.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
-        elif 'linux' in platform or 'freebsd' in platform or 'openbsd' in platform:
+
+            self.adapter = macos.SubclassingAdapter(
+                window_info.window, self._build_dummy_tree, self._on_action_request
+            )
+        elif "linux" in platform or "freebsd" in platform or "openbsd" in platform:
             from accesskit import unix
-            self.adapter = unix.Adapter(self._build_dummy_tree, self._on_action_request, self._handle_deactivation)
-        elif platform in ('win32', 'cygwin'):
+
+            self.adapter = unix.Adapter(
+                self._build_dummy_tree,
+                self._on_action_request,
+                self._handle_deactivation,
+            )
+        elif platform in ("win32", "cygwin"):
             from accesskit import windows
-            self.adapter = windows.SubclassingAdapter(window_info.window, self._build_dummy_tree, self._on_action_request)
+
+            self.adapter = windows.SubclassingAdapter(
+                window_info.window, self._build_dummy_tree, self._on_action_request
+            )
 
     def _build_node(self, accessible: widget.Widget):
         role = to_accesskit_role(accessible.accessible_role)
@@ -97,24 +113,26 @@ class AccessKit(AccessibilityBase):
         elif role == Role.CHECK_BOX:
             node.add_action(Action.CLICK)
             node.add_action(Action.FOCUS)
-            if hasattr(accessible, 'active'):
+            if hasattr(accessible, "active"):
                 node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
-            elif hasattr(accessible, 'state'):
-                node.set_toggled(Toggled.TRUE if accessible.state == 'down' else Toggled.FALSE)
-        if (acc_childs := getattr(accessible, "accessible_children", None)):
+            elif hasattr(accessible, "state"):
+                node.set_toggled(
+                    Toggled.TRUE if accessible.state == "down" else Toggled.FALSE
+                )
+        if acc_childs := getattr(accessible, "accessible_children", None):
             node.set_children(acc_childs)
         elif node.children:
             node.set_children([child.uid for child in node.children])
-        if (acc_name := getattr(accessible, "accessible_name", None)):
+        if acc_name := getattr(accessible, "accessible_name", None):
             node.set_label(acc_name)
-        if (acc_txt := getattr(accessible, "text", None)):
+        if acc_txt := getattr(accessible, "text", None):
             node.set_value(acc_txt)
             node.set_description(acc_txt)
             if not node.label:
                 node.set_label(acc_txt)
-        if (hint_txt := getattr(accessible, "hint_text", None)):
+        if hint_txt := getattr(accessible, "hint_text", None):
             node.set_placeholder(hint_txt)
-        if 'focus' in accessible.properties():
+        if "focus" in accessible.properties():
             node.set_custom_actions([Action.FOCUS])
         elif accessible.is_clickable:
             node.set_default_action_verb(Action.CLICK)
@@ -123,9 +141,7 @@ class AccessKit(AccessibilityBase):
     def _build_tree_update(self, root_window_changed=True):
         # If no widget has the focus, then we must put it on the root window.
         focus = (
-            widget.focused_widget.uid
-            if widget.focused_widget
-            else self.root_window.uid
+            widget.focused_widget.uid if widget.focused_widget else self.root_window.uid
         )
         update = TreeUpdate(focus)
         update.tree = self._build_tree_info()
@@ -136,7 +152,7 @@ class AccessKit(AccessibilityBase):
             update.nodes = [(self.root_window.uid, node)]
             childs = defaultdict(set)
             nodes = {self.root_window.uid: node}
-            for (id_, accessible) in widget.updated_widgets.items():
+            for id_, accessible in widget.updated_widgets.items():
                 if accessible.parent == self.root_window:
                     childs[self.root_window.uid].add(id_)
                     node = self._build_node(accessible)
@@ -176,7 +192,7 @@ class AccessKit(AccessibilityBase):
                 if id_ in childs:
                     node.set_children(list(childs[id_]))
         else:
-            for (id, accessible) in widget.updated_widgets.items():
+            for id, accessible in widget.updated_widgets.items():
                 update.nodes.append((id, self._build_node(accessible)))
         return update
 
@@ -185,10 +201,13 @@ class AccessKit(AccessibilityBase):
             return False
         if not self.initialized:
             self._build_dummy_tree()
-        events = self.adapter.update_if_active(lambda: self._build_tree_update(root_window_changed))
+        events = self.adapter.update_if_active(
+            lambda: self._build_tree_update(root_window_changed)
+        )
         if events:
             events.raise_events()
         return True
+
 
 def to_accesskit_role(role):
     if role == KivyRole.LABEL:
