@@ -15,12 +15,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.label import Label
 
+
 def update_text(widget, text):
     widget.accessible_name = text
 
 
 class AccessibleLabel(AccessibleBehavior, Label):
-    # Usually a label should be linked to another widget for which it can provide the name or description.
+    # Usually a label should be linked to another widget for which it
+    # can provide the name or description.
     # This is why labels aren't focusable.
     def __init__(self, **kwargs):
         super(AccessibleLabel, self).__init__(**kwargs)
@@ -42,6 +44,7 @@ class AccessibleButton(AccessibleBehavior, FocusBehavior, Button):
         elif action == Action.DEFAULT:
             self.trigger_action(0)
 
+
 class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
     def __init__(self, **kwargs):
         super(AccessibleCheckBox, self).__init__(**kwargs)
@@ -58,7 +61,8 @@ class AccessibleCheckBox(AccessibleBehavior, FocusBehavior, CheckBox):
 
 
 class AccessibleBoxLayout(AccessibleBehavior, BoxLayout):
-    # We keep this kind of widget in the UI tree mostly for convenience, but AccessKit will filter them out.
+    # We keep this kind of widget in the UI tree mostly for convenience,
+    # but AccessKit will filter them out.
     def __init__(self, **kwargs):
         super(AccessibleBoxLayout, self).__init__(**kwargs)
         self.accessible_role = Role.GENERIC_CONTAINER
@@ -68,15 +72,14 @@ class AccessibleApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.accessibility_manager = AccessibilityManager()
-    
+
     def build(self):
+        title = AccessibleLabel(text="Accessible app with Kivy")
 
-        title = AccessibleLabel(text='Accessible app with Kivy')
-
-        button_1 = AccessibleButton(text='Button 1')
+        button_1 = AccessibleButton(text="Button 1")
         button_1.bind(on_press=lambda j: print("Button 1 was pressed."))
 
-        button_2 = AccessibleButton(text='Button 2')
+        button_2 = AccessibleButton(text="Button 2")
         button_1.focus_next = button_2
         button_2.bind(on_press=lambda j: print("Button 2 was pressed."))
 
@@ -84,13 +87,13 @@ class AccessibleApp(App):
         button_2.focus_next = checkbox
         checkbox.focus_next = button_1
 
-        buttons = AccessibleBoxLayout(orientation='horizontal')
+        buttons = AccessibleBoxLayout(orientation="horizontal")
         buttons.add_widget(button_1)
         button_1.focus = True
         buttons.add_widget(button_2)
         buttons.add_widget(checkbox)
 
-        layout = AccessibleBoxLayout(orientation='vertical')
+        layout = AccessibleBoxLayout(orientation="vertical")
         layout.add_widget(title)
         layout.add_widget(buttons)
 
@@ -104,5 +107,5 @@ class AccessibleApp(App):
         super().on_stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AccessibleApp().run()

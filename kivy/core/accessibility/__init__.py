@@ -4,6 +4,7 @@ from kivy.eventmanager import EventManagerBase
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from kivy.uix import widget
 
+
 class AccessibilityBase(object):
     def install(self, window_info):
         pass
@@ -13,6 +14,7 @@ class Action(Enum):
     # Assistive technologies can request to manipulate widgets on behalf of the user.
     FOCUS = 0
     DEFAULT = 1
+
 
 class AccessibilityManager(EventManagerBase):
     type_ids = ()
@@ -32,17 +34,26 @@ class AccessibilityManager(EventManagerBase):
                 child.on_accessibility_action(action)
             else:
                 for descendant in child.walk():
-                    if isinstance(descendant, AccessibleBehavior) and descendant.uid == target:
+                    if (
+                        isinstance(descendant, AccessibleBehavior)
+                        and descendant.uid == target
+                    ):
                         descendant.on_accessibility_action(action)
                         return
 
     def start(self):
         self.window.bind(children=lambda w, v: self._notify_root_window_changed())
-        self.window.accessibility.action_request_callback = self._on_accessibility_action
+        self.window.accessibility.action_request_callback = (
+            self._on_accessibility_action
+        )
         self.clock = Clock.schedule_interval(self.check_for_updates, 0)
 
     def check_for_updates(self, dt):
-        if self.root_window_changed or widget.updated_widgets != {} or widget.focused_widget != self.previous_focus:
+        if (
+            self.root_window_changed
+            or widget.updated_widgets != {}
+            or widget.focused_widget != self.previous_focus
+        ):
             if not self.window.accessibility.update(self.root_window_changed):
                 return
             self.root_window_changed = False
