@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from enum import Enum
 from kivy.clock import Clock
 from kivy.eventmanager import EventManagerBase
@@ -5,7 +6,8 @@ from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from kivy.uix import widget
 
 
-class AccessibilityBase(object):
+class AccessibilityBase(ABC):
+    @abstractmethod
     def install(self, window_info):
         pass
 
