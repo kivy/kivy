@@ -436,12 +436,15 @@ class Widget(WidgetBase):
         # Bind all the events.
         if on_args:
             self.bind(**on_args)
-        binds = self._mark_widget_updated_binds = set()
-        for name in self.properties():
-            binds.add(self.fbind(
-                name, partial(mark_widget_updated, self)
+
+        from kivy.core import accessibility
+        if accessibility.provider:
+            binds = self._mark_widget_updated_binds = set()
+            for name in self.properties():
+                binds.add(self.fbind(
+                    name, partial(mark_widget_updated, self)
+                    )
                 )
-            )
 
     @property
     def proxy_ref(self):

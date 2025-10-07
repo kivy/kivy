@@ -15,7 +15,7 @@ from os import getcwd
 from collections import defaultdict
 
 from kivy.core import core_select_lib
-from kivy.core.accessibility.accessibility_accesskit import AccessKit
+from kivy.core import accessibility
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
@@ -1177,7 +1177,15 @@ class WindowBase(EventDispatcher):
         self.children = []
         self.parent = self
 
-        self.accessibility = AccessKit(self)
+        for provider in accessibility.providers:
+            try:
+                self.accessibility = accessibility.provider = provider(self)
+                break
+            except Exception as ex:
+                Logger.error(f"{provider.__name__}: {ex}")
+        else:
+            Logger.error("WindowBase: No usable accessibility provider")
+            self.accessibility = None
 
         # before creating the window
         import kivy.core.gl  # NOQA

@@ -8,7 +8,6 @@ include "../../include/config.pxi"
 from libc.string cimport memcpy
 from os import environ
 from kivy.config import Config
-from kivy.core.accessibility.accessibility_accesskit import AccessKit
 from kivy.logger import Logger
 from kivy import platform
 from kivy import setupconfig
@@ -299,7 +298,8 @@ cdef class _WindowSDL3Storage:
         # Install the accessibility provider and show the window if necessary
         # TODO: There is currently no way to retrieve the handle of an NSWindow.
         window_info = self.get_window_info()
-        accessibility.install(window_info, w, h)
+        if accessibility is not None:
+            accessibility.install(window_info, w, h)
         IF UNAME_SYSNAME == 'Windows':
             self.show_window()
 
