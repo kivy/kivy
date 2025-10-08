@@ -1,15 +1,26 @@
 from collections import defaultdict
 
 import kivy
-from accesskit import Node, Tree, Role, TreeUpdate, Action, Rect, Toggled
 from kivy.uix import widget
 from sys import platform
 from . import AccessibilityBase, Action as KivyAction
 from ...uix.widget import Role as KivyRole
 
 
+Node = Tree = Role = TreeUpdate = Action = Rect = Toggled = None
+
+
 class AccessKit(AccessibilityBase):
     def __init__(self, root_window):
+        global Node, Tree, Role, TreeUpdate, Action, Rect, Toggled
+        import accesskit
+        Node = accesskit.Node
+        Tree = accesskit.Tree
+        Role = accesskit.Role
+        TreeUpdate = accesskit.TreeUpdate
+        Action = accesskit.Action
+        Rect = accesskit.Rect
+        Toggled = accesskit.Toggled
         super().__init__()
         self.node_classes = []
         self.adapter = None
