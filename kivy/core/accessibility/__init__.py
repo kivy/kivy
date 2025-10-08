@@ -28,6 +28,8 @@ class AccessibilityManager(EventManagerBase):
     type_ids = ()
 
     def __init__(self, **kwargs):
+        from . import accessibility_accesskit
+
         super().__init__(**kwargs)
         self.clock = None
         self.previous_focus = None
