@@ -47,7 +47,8 @@ Kv Example::
 '''
 
 
-from kivy.uix.widget import Widget, Role
+from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from kivy.animation import Animation
 from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
 

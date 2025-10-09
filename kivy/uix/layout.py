@@ -56,7 +56,8 @@ constructor arguments::
 __all__ = ('Layout', )
 
 from kivy.clock import Clock
-from kivy.uix.widget import Widget, Role
+from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from math import isclose
 
 

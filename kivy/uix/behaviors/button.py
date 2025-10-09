@@ -75,7 +75,7 @@ __all__ = ("ButtonBehavior",)
 
 from kivy.properties import BooleanProperty, AliasProperty, ObjectProperty
 
-from kivy.uix.widget import Role
+from kivy.core.accessibility import Role
 
 
 class ButtonBehavior:

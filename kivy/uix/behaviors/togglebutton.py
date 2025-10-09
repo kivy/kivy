@@ -191,7 +191,7 @@ class _GroupAccessor:
             return []
         return list(cls._toggle_groups.get(owner, {}).get(name, []))
 
-from kivy.uix.widget import Role
+from kivy.core.accessibility import Role
 
 
 class ToggleButtonBehavior(ButtonBehavior):

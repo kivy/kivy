@@ -6,8 +6,7 @@
 # Use CapsLock+Enter to activate the buttons or toggle the checkbox
 
 from kivy.app import App
-from kivy.core.accessibility import AccessibilityManager, Action
-from kivy.uix.widget import Role
+from kivy.core.accessibility import AccessibilityManager, Action, Role
 from kivy.uix.behaviors.accessibility import AccessibleBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.button import Button
