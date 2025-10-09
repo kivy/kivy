@@ -52,7 +52,7 @@ from kivy.properties import OptionProperty, ObjectProperty, \
     BooleanProperty, NumericProperty
 from time import time
 
-from kivy.uix.widget import Role
+from kivy.core.accessibility import Role
 
 
 class ButtonBehavior(object):

@@ -73,3 +73,41 @@ class AccessibilityManager(EventManagerBase):
             self.root_window_changed = False
             widget.updated_widgets = {}
             widget.previous_focus = widget.focused_widget
+
+
+class Role(Enum):
+    # Role is the most important property of an accessible widget.
+    # It will tell assistive technologies how to present it to the user,
+    # which other properties to expect, and what kind of actions can be
+    # performed on it.
+    UNKNOWN = 0
+    """No information about how to present this widget"""
+    LABEL = 1
+    """This widget's text explains another widget"""
+    GENERIC_CONTAINER = 2
+    """The widget is for containing other widgets
+
+    In Kivy, generic containers are usually :class:`~kivy.uix.layout.Layout`s.
+
+    """
+    TOGGLE = 3
+    """The widget is in one of two possible Boolean states, which the user may switch
+
+    The widget is most likely either :class:`~kivy.uix.togglebutton.ToggleButton` or
+    :class:`kivy.uix.checkbox.CheckBox`.
+
+    """
+    BUTTON = 4
+    """A button that does one thing when pressed"""
+    DOCUMENT = 5
+    """A large amount of text the user may want to read
+
+    DOCUMENT may be a container for many LABEL widgets or similar.
+
+    """
+    PARAGRAPH = 6
+    """A piece of text within a document"""
+    HEADING = 7
+    """Text starting a section of a document or a menu"""
+    MENU = 8
+    """Modal/drop/accordion/etc. menu with many related widgets inside"""

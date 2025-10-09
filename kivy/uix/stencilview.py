@@ -31,6 +31,7 @@ provides an efficient way to clip the drawing area of children.
 
 __all__ = ('StencilView', )
 
+from kivy.core.accessibility import Role
 from kivy.uix.widget import Widget
 
 

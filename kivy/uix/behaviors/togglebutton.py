@@ -48,7 +48,7 @@ from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.uix.behaviors.button import ButtonBehavior
 from weakref import ref
 
-from kivy.uix.widget import Role
+from kivy.core.accessibility import Role
 
 
 class ToggleButtonBehavior(ButtonBehavior):

@@ -68,7 +68,8 @@ from kivy.properties import ObjectProperty, NumericProperty, \
     BooleanProperty, OptionProperty, AliasProperty
 from kivy.lang import Builder
 from kivy.utils import get_hex_from_color, get_color_from_hex
-from kivy.uix.widget import Widget, Role
+from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label

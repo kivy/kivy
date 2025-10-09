@@ -1,10 +1,10 @@
 from collections import defaultdict
 
 import kivy
+import kivy.core.accessibility
 from kivy.uix import widget
 from sys import platform
-from . import AccessibilityBase, Action as KivyAction
-from ...uix.widget import Role as KivyRole
+from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
 
 
 Node = Tree = Role = TreeUpdate = Action = Rect = Toggled = None
@@ -16,7 +16,7 @@ class AccessKit(AccessibilityBase):
         import accesskit
         Node = accesskit.Node
         Tree = accesskit.Tree
-        Role = accesskit.Role
+        Role = kivy.core.accessibility.Role
         TreeUpdate = accesskit.TreeUpdate
         Action = accesskit.Action
         Rect = accesskit.Rect

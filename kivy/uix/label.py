@@ -281,7 +281,8 @@ The following example marks the anchors and references contained in a label::
 __all__ = ('Label', )
 
 from kivy.clock import Clock
-from kivy.uix.widget import Widget, Role
+from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
