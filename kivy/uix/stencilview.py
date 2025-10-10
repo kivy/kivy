@@ -38,4 +38,6 @@ from kivy.uix.widget import Widget
 class StencilView(Widget):
     '''StencilView class. See module documentation for more information.
     '''
-    pass
+    def __init__(self, **kwargs):
+        kwargs.setdefault('accessible_role', Role.GENERIC_CONTAINER)
+        super().__init__(**kwargs)
