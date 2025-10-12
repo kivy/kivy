@@ -95,7 +95,7 @@ class VideoGstplayer(VideoBase):
         self.player.play()
 
     def seek(self, percent, precise=True):
-        self.player.seek(percent,precise)
+        self.player.seek(percent, precise)
 
     def _get_position(self):
         return self.player.get_position()

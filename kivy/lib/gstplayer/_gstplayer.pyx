@@ -350,7 +350,7 @@ cdef class GstPlayer:
 
     def seek(self, float percent, bint precise):
         with nogil:
-            self._seek(percent,precise)
+            self._seek(percent, precise)
 
     #
     # C-like API, that doesn't require the GIL
