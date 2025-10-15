@@ -401,7 +401,10 @@ class WindowSDL(WindowBase):
 
     def show(self):
         if self._is_desktop:
-            self._win.show_window()
+            self._win.show()
+            # Update density and DPI now that window is visible
+            # This fixes ZeroDivisionError when window starts hidden
+            self._update_density_and_dpi()
         else:
             Logger.warning('Window: show() is used only on desktop OSes.')
 
