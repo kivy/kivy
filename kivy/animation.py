@@ -81,7 +81,7 @@ For flow control of animations such as stopping and cancelling, use the methods
 already in place in the animation module.
 '''
 
-__all__ = ('Animation', 'AnimationTransition')
+__all__ = ('Animation', 'AnimationTransition', 'chain_interpolators', 'get_chain_value', 'validate_chain')
 
 from math import sqrt, cos, sin, pi
 from collections import ChainMap
@@ -406,7 +406,177 @@ class Animation(EventDispatcher):
 
     def __and__(self, animation):
         return Parallel(self, animation)
+#new chain interpolation function
+def chain_interpolators(interpolators, weights=None, blend_mode='linear'):
+    """
+    Create a chained interpolation function from multiple transitions.
+    
+    Args:
+        interpolators: list of (transition_name, start_progress, end_progress) tuples
+        weights: list of weights for weighted blend mode (must sum to 1.0)
+        blend_mode: 'linear'|'weighted'|'multiplicative'|'overlay'|'screen'
+    
+    Returns:
+        callable function(progress) -> float
+    """
+    if not interpolators:
+        return lambda p: p
+    
+    # Validate the chain
+    is_valid, error_msg = validate_chain(interpolators)
+    if not is_valid:
+        raise ValueError(f"Invalid interpolator chain: {error_msg}")
+    
+    # Get transition functions
+    transition_functions = []
+    for trans_name, start, end in interpolators:
+        if hasattr(AnimationTransition, trans_name):
+            trans_func = getattr(AnimationTransition, trans_name)
+            transition_functions.append((trans_func, start, end))
+        else:
+            raise ValueError(f"Unknown transition: {trans_name}")
+    
+    # Validate weights if provided
+    if weights and blend_mode == 'weighted':
+        if len(weights) != len(interpolators):
+            raise ValueError("Weights list must match interpolators length")
+        if abs(sum(weights) - 1.0) > 1e-10:
+            raise ValueError("Weights must sum to 1.0")
+    
+    # Create the blended interpolation function
+    def blended_interpolation(progress):
+        progress = max(0.0, min(1.0, progress))
+        return get_chain_value(progress, transition_functions, weights, blend_mode)
+    
+    return blended_interpolation
 
+
+def get_chain_value(progress, interpolators, weights=None, blend_mode='linear'):
+    """
+    Evaluate chained interpolation at given progress.
+    
+    Args:
+        progress: current animation progress [0.0, 1.0]
+        interpolators: list of (transition_func, start_progress, end_progress)
+        weights: optional weights for weighted blending
+        blend_mode: blending strategy
+    
+    Returns:
+        interpolated value [0.0, 1.0]
+    """
+    if not interpolators:
+        return progress
+    
+    active_values = []
+    active_weights = []
+    
+    # Calculate each interpolator's value at this progress
+    for i, (trans_func, start, end) in enumerate(interpolators):
+        if start <= progress <= end:
+            # Normalize progress to this segment's range
+            if end == start:
+                segment_progress = 0.0
+            else:
+                segment_progress = (progress - start) / (end - start)
+            
+            # Get interpolated value for this segment
+            value = trans_func(segment_progress)
+            active_values.append(value)
+            
+            # Store weight if provided
+            if weights and blend_mode == 'weighted':
+                active_weights.append(weights[i])
+            else:
+                active_weights.append(1.0)
+    
+    # If no active interpolators, find nearest
+    if not active_values:
+        # Find interpolator that would be active if progress extended
+        if progress < interpolators[0][1]:
+            return interpolators[0][0](0.0)  # Start of first
+        else:
+            return interpolators[-1][0](1.0)  # End of last
+    
+    # Apply blend mode
+    if blend_mode == 'linear':
+        return sum(active_values) / len(active_values)
+    
+    elif blend_mode == 'weighted':
+        return sum(v * w for v, w in zip(active_values, active_weights))
+    
+    elif blend_mode == 'multiplicative':
+        result = 1.0
+        for value in active_values:
+            result *= value
+        return result
+    
+    elif blend_mode == 'overlay':
+        base = active_values[0]
+        for blend_value in active_values[1:]:
+            if base < 0.5:
+                base = 2 * base * blend_value
+            else:
+                base = 1 - 2 * (1 - base) * (1 - blend_value)
+        return base
+    
+    elif blend_mode == 'screen':
+        result = active_values[0]
+        for value in active_values[1:]:
+            result = 1 - (1 - result) * (1 - value)
+        return result
+    
+    else:
+        raise ValueError(f"Unknown blend mode: {blend_mode}")
+
+
+def validate_chain(interpolators):
+    """
+    Validate interpolator chain structure.
+    
+    Args:
+        interpolators: list of (transition_name, start, end) tuples
+    
+    Returns:
+        (bool, error_message)
+    """
+    if not interpolators:
+        return True, "Empty chain is valid"
+    
+    # Check for valid transition names
+    valid_transitions = [name for name in dir(AnimationTransition) 
+                        if not name.startswith('_') and callable(getattr(AnimationTransition, name))]
+    
+    last_end = 0.0
+    for i, (trans_name, start, end) in enumerate(interpolators):
+        # Check transition name
+        if trans_name not in valid_transitions:
+            return False, f"Invalid transition name: {trans_name}"
+        
+        # Check progress ranges
+        if not (0.0 <= start <= 1.0):
+            return False, f"Start progress {start} out of range [0,1]"
+        if not (0.0 <= end <= 1.0):
+            return False, f"End progress {end} out of range [0,1]"
+        if start >= end:
+            return False, f"Start {start} >= end {end}"
+        
+        # Check for gaps (allow small floating point errors)
+        if i > 0 and abs(start - last_end) > 1e-10:
+            if start < last_end:
+                return False, f"Overlap detected between segments {i-1} and {i}"
+            elif start > last_end:
+                return False, f"Gap detected between segments {i-1} and {i}"
+        
+        last_end = end
+    
+    # Check coverage
+    if abs(last_end - 1.0) > 1e-10:
+        return False, f"Chain doesn't cover full range [0,1]. Ends at {last_end}"
+    
+    return True, "Chain is valid"
+
+
+        
 
 class CompoundAnimation(Animation):
 
