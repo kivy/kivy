@@ -1184,6 +1184,54 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
 
     return py_pixels
 
+def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
+                         GLenum format, GLenum type, unsigned char[::1] out_buf):
+    '''Read pixels from the framebuffer into a preallocated buffer.
+
+    :param format: Must be either ``GL_RGB`` or ``GL_RGBA`` if `glReadnPixels()` is not
+                   available.
+    :param type: Must be ``GL_UNSIGNED_BYTE`` if `glReadnPixels()` is not available.
+    :param out_buf: A writable object that supports the buffer protocol — for example,
+                    a :any:`bytearray` or a ``numpy`` array. Its size must be at least
+                    ``width * height * bytes_per_pixel``. If the buffer is too small,
+                    no data will be read.
+
+    See: `glReadPixels() on Khronos website
+    <https://registry.khronos.org/OpenGL-Refpages/gl4/html/glReadPixels.xhtml>`_
+    '''
+
+def _glReadPixels_inplace_es20(GLint x, GLint y, GLsizei width, GLsizei height,
+                               GLenum format, GLenum type, unsigned char[::1] out_buf):
+    '''An implementation of glReadPixels_inplace that complies with OpenGL ES 2.0.
+    '''
+    cdef long size
+    if type != GL_UNSIGNED_BYTE:
+        raise ValueError("glReadnPixels() not available; only GL_UNSIGNED_BYTE is supported.")
+    size = width * height * sizeof(GLubyte)
+    if format == GL_RGB:
+        size *= 3
+    elif format == GL_RGBA:
+        size *= 4
+    else:
+        raise ValueError("glReadnPixels() not available; only GL_RGB and GL_RGBA are supported.")
+    if out_buf.nbytes < size:
+        return
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glReadPixels(x, y, width, height, format, type, &out_buf[0])
+
+def _glReadPixels_inplace_es32(GLint x, GLint y, GLsizei width, GLsizei height,
+                               GLenum format, GLenum type, unsigned char[::1] out_buf):
+    '''An implementation of glReadPixels_inplace that relies on glReadnPixels, an API
+    introduced in OpenGL ES 3.2.
+    '''
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
+
+_glReadPixels_inplace_es20.__doc__ = _glReadPixels_inplace_es32.__doc__ = \
+    glReadPixels_inplace.__doc__
+glReadPixels_inplace = _glReadPixels_inplace_es20 if cgl.glReadnPixels == NULL \
+    else _glReadPixels_inplace_es32
+
 # XXX This one is commented out because a) it's not necessary and
 #                       b) it's breaking on OSX for some reason
 def glReleaseShaderCompiler():
