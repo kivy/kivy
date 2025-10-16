@@ -110,6 +110,7 @@ def init_backend():
     cgl.glLinkProgram = <GLLINKPROGRAMPTR>eglGetProcAddress("glLinkProgram")
     cgl.glPixelStorei = <GLPIXELSTOREIPTR>eglGetProcAddress("glPixelStorei")
     cgl.glPolygonOffset = <GLPOLYGONOFFSETPTR>eglGetProcAddress("glPolygonOffset")
+    cgl.glReadnPixels = <GLREADNPIXELSPTR>eglGetProcAddress("glReadnPixels")
     cgl.glReadPixels = <GLREADPIXELSPTR>eglGetProcAddress("glReadPixels")
     cgl.glRenderbufferStorage = <GLRENDERBUFFERSTORAGEPTR>eglGetProcAddress("glRenderbufferStorage")
     cgl.glSampleCoverage = <GLSAMPLECOVERAGEPTR>eglGetProcAddress("glSampleCoverage")
