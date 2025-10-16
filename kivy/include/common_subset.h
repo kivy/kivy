@@ -370,6 +370,7 @@ GL_APICALL void         GL_APIENTRY glLineWidth (GLfloat width);
 GL_APICALL void         GL_APIENTRY glLinkProgram (GLuint program);
 GL_APICALL void         GL_APIENTRY glPixelStorei (GLenum pname, GLint param);
 GL_APICALL void         GL_APIENTRY glPolygonOffset (GLfloat factor, GLfloat units);
+GL_APICALL void         GL_APIENTRY glReadnPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei buffer_size, GLvoid* buffer);
 GL_APICALL void         GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
 GL_APICALL void         GL_APIENTRY glSampleCoverage (GLclampf value, GLboolean invert);
 GL_APICALL void         GL_APIENTRY glScissor (GLint x, GLint y, GLsizei width, GLsizei height);

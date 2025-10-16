@@ -97,6 +97,7 @@ cdef extern from "gl_redirect.h":
     void (__stdcall *glLinkProgram)(GLuint) nogil
     void (__stdcall *glPixelStorei)(GLenum, GLint) nogil
     void (__stdcall *glPolygonOffset)(GLfloat factor, GLfloat units) nogil
+    void (__stdcall *glReadnPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei, GLvoid*) nogil
     void (__stdcall *glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid*) nogil
     void (__stdcall *glRenderbufferStorage)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
     void (__stdcall *glSampleCoverage)(GLclampf value, GLboolean invert) nogil
@@ -243,6 +244,7 @@ cpdef link_static():
         cgl.glLinkProgram = glLinkProgram
         cgl.glPixelStorei = glPixelStorei
         cgl.glPolygonOffset = glPolygonOffset
+        cgl.glReadnPixels = glReadnPixels
         cgl.glReadPixels = glReadPixels
         cgl.glRenderbufferStorage = glRenderbufferStorage
         cgl.glSampleCoverage = glSampleCoverage

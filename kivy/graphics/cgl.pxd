@@ -466,6 +466,7 @@ ctypedef void (__stdcall *GLLINEWIDTHPTR)(GLfloat width) nogil
 ctypedef void (__stdcall *GLLINKPROGRAMPTR)(GLuint) nogil
 ctypedef void (__stdcall *GLPIXELSTOREIPTR)(GLenum, GLint) nogil
 ctypedef void (__stdcall *GLPOLYGONOFFSETPTR)(GLfloat factor, GLfloat units) nogil
+ctypedef void (__stdcall *GLREADNPIXELSPTR)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei, GLvoid*) nogil
 ctypedef void (__stdcall *GLREADPIXELSPTR)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid*) nogil
 ctypedef void (__stdcall *GLRENDERBUFFERSTORAGEPTR)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
 ctypedef void (__stdcall *GLSAMPLECOVERAGEPTR)(GLclampf value, GLboolean invert) nogil
@@ -597,6 +598,7 @@ ctypedef struct GLES2_Context:
     void (__stdcall *glLinkProgram)(GLuint) nogil
     void (__stdcall *glPixelStorei)(GLenum, GLint) nogil
     void (__stdcall *glPolygonOffset)(GLfloat factor, GLfloat units) nogil
+    void (__stdcall *glReadnPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei, GLvoid*) nogil
     void (__stdcall *glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid*) nogil
     void (__stdcall *glRenderbufferStorage)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
     void (__stdcall *glSampleCoverage)(GLclampf value, GLboolean invert) nogil
