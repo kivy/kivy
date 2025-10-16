@@ -1147,3 +1147,43 @@ def test_change_graphics_second_thread(widget_verify_thread):
     thread.join()
     if exception is not None:
         raise exception[0].with_traceback(exception[1])
+
+
+class Test_glReadPixels_inplace(GraphicUnitTest):
+    from kivy.graphics.opengl import (
+        _glReadPixels_inplace_es20 as es20,
+        _glReadPixels_inplace_es32 as es32,
+        glReadPixels_inplace,
+    )
+    es32_available = glReadPixels_inplace is es32
+    available_impls = (es20, es32) if es32_available else (es20, )
+
+    @requires_graphics
+    def test_a_buffer_too_small(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        for impl in self.available_impls:
+            buf = bytearray(b'ABC')
+            impl(0, 0, 16, 16, GL_RGB, GL_UNSIGNED_BYTE, buf)
+            assert buf == b'ABC'
+
+    @requires_graphics
+    def test_a_buffer_of_exact_size(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        for impl in self.available_impls:
+            buf = bytearray(b'ABC')
+            impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
+            assert buf == b'\xff\x00\x00'
+
+    @requires_graphics
+    def test_a_buffer_too_large(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        for impl in self.available_impls:
+            buf = bytearray(b'ABCDEF')
+            impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
+            assert buf == b'\xff\x00\x00DEF'
