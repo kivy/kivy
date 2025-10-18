@@ -1188,9 +1188,9 @@ def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
                          GLenum format, GLenum type, unsigned char[::1] out_buf):
     '''Read pixels from the framebuffer into a preallocated buffer.
 
-    :param format: Must be either ``GL_RGB`` or ``GL_RGBA`` if `glReadnPixels()` is not
-                   available.
-    :param type: Must be ``GL_UNSIGNED_BYTE`` if `glReadnPixels()` is not available.
+    :param format: Must be either ``GL_RGB`` or ``GL_RGBA`` if ``glReadnPixels()`` is
+                   not available.
+    :param type: Must be ``GL_UNSIGNED_BYTE`` if ``glReadnPixels()`` is not available.
     :param out_buf: A writable object that supports the buffer protocol — for example,
                     a :any:`bytearray` or a ``numpy`` array. Its size must be at least
                     ``width * height * bytes_per_pixel``. If the buffer is too small,
