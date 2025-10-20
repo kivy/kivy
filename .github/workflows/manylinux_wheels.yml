@@ -71,7 +71,7 @@ jobs:
       if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
       run: |
         docker run --rm -v `pwd`:/root:rw --workdir=/root \
-           quay.io/pypa/manylinux2014_${{ matrix.cibw_archs }} \
+           quay.io/pypa/manylinux_2_28_${{ matrix.cibw_archs }} \
            bash -ec 'source .ci/ubuntu_ci.sh && install_manylinux_build_deps && ./tools/build_linux_dependencies.sh'
     - name: Generate version metadata
       run: |
