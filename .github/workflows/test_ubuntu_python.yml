@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   KIVY_SPLIT_EXAMPLES: 1
+  # Needed for Python 3.14, as ffpyplayer is not available
+  USE_SDL3: 1
 
 jobs:
   PEP8_test:
@@ -13,7 +15,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -30,7 +32,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -72,7 +74,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh

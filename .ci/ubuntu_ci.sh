@@ -24,7 +24,7 @@ prepare_env_for_unittest() {
 
 install_kivy() {
   options=${1:-full,dev}
-  python3 -m pip install -e "$(pwd)[$options]"
+  python3 -m pip -v install -e "$(pwd)[$options]"
 }
 
 install_kivy_examples_wheel() {
