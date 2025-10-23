@@ -1,4 +1,4 @@
-'''
+"""
 Button Behavior
 ===============
 
@@ -24,7 +24,7 @@ behaves like a button::
 
     class MyButton(ButtonBehavior, Image):
         def __init__(self, **kwargs):
-            super(MyButton, self).__init__(**kwargs)
+            super().__init__(**kwargs)
             self.source = 'atlas://data/images/defaulttheme/checkbox_off'
 
         def on_press(self):
@@ -42,66 +42,98 @@ behaves like a button::
     SampleApp().run()
 
 See :class:`~kivy.uix.behaviors.ButtonBehavior` for details.
-'''
+"""
 
-__all__ = ('ButtonBehavior', )
+__all__ = ("ButtonBehavior",)
 
-from kivy.clock import Clock
-from kivy.config import Config
-from kivy.properties import OptionProperty, ObjectProperty, \
-    BooleanProperty, NumericProperty
-from time import time
+from kivy.properties import BooleanProperty
 
 
-class ButtonBehavior(object):
-    '''
+class ButtonBehavior:
+    """
     This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     :class:`~kivy.uix.button.Button` behavior. Please see the
     :mod:`button behaviors module <kivy.uix.behaviors.button>` documentation
     for more information.
 
+    The ButtonBehavior mixin handles multi-touch support automatically,
+    managing multiple simultaneous touches and their lifecycle. The button
+    state transitions based on active touches and user interaction.
+
     :Events:
         `on_press`
-            Fired when the button is pressed.
+            Fired when the button is pressed (first touch down).
+
         `on_release`
-            Fired when the button is released (i.e. the touch/click that
-            pressed the button goes away).
+            Fired when the button is released (i.e., the touch or click that
+            pressed the button is released).
+            This event is dispatched **only after all active touches**
+            registered on the button are released. For example, if the user
+            presses the button and then touches it again with another finger,
+            the event will wait until **all touches** are released before
+            dispatching `on_release`.
 
-    '''
+            - If `always_release = False`, this event is fired **only** if the
+            touch is released within the button bounds.
+            - If `always_release = True`, the event is fired **whenever** the
+            touch is released, regardless of position.
 
-    state = OptionProperty('normal', options=('normal', 'down'))
-    '''The state of the button, must be one of 'normal' or 'down'.
-    The state is 'down' only when the button is currently touched/clicked,
-    otherwise its 'normal'.
+            .. note::
+                This event is not fired after `on_cancel` has been dispatched.
 
-    :attr:`state` is an :class:`~kivy.properties.OptionProperty` and defaults
-    to 'normal'.
-    '''
+        `on_cancel`
+            Fired when a touch moves outside the button bounds during a drag
+            (on touch move), but only if `always_release` is False.
+            For example, it can be used to provide visual feedback when a button
+            action is canceled.
 
-    last_touch = ObjectProperty(None)
-    '''Contains the last relevant touch received by the Button. This can
-    be used in `on_press` or `on_release` in order to know which touch
-    dispatched the event.
+            .. versionadded:: 3.0.0
 
-    .. versionadded:: 1.8.0
+    Example Usage::
 
-    :attr:`last_touch` is a :class:`~kivy.properties.ObjectProperty` and
-    defaults to `None`.
-    '''
+        # Basic press/release handling
+        class MyButton(ButtonBehavior, Label):
+            def on_press(self):
+                print("Button pressed")
 
-    min_state_time = NumericProperty(0)
-    '''The minimum period of time which the widget must remain in the
-    `'down'` state.
+            def on_release(self):
+                print("Button released")
 
-    .. versionadded:: 1.9.1
+            def on_cancel(self):
+                print("Button action cancelled")
 
-    :attr:`min_state_time` is a float and defaults to 0.035. This value is
-    taken from :class:`~kivy.config.Config`.
-    '''
+    .. versionchanged:: 3.0.0
+        - Replaced `state` OptionProperty with `pressed` BooleanProperty
+        - Added `on_cancel` event
+        - Improved multi-touch handling
+    """
+
+    pressed = BooleanProperty(False)
+    """Indicates whether the button is currently pressed.
+
+    The button is pressed only when currently touched/clicked,
+    otherwise it is not pressed. This property automatically handles
+    multi-touch scenarios, remaining True as long as at least one
+    active touch is on the button.
+
+    :attr:`pressed` is a :class:`~kivy.properties.BooleanProperty` and 
+    defaults to False.
+    """
 
     always_release = BooleanProperty(False)
-    '''This determines whether or not the widget fires an `on_release` event if
-    the touch_up is outside the widget.
+    """Determines whether the widget fires an `on_release` event
+    if the touch_up occurs outside the widget bounds.
+
+    When False (default):
+        - `on_release` only fires if touch ends within button bounds
+        - `on_cancel` fires when touch moves outside bounds during drag (touch
+            move)
+        - Provides standard button behavior with cancellation
+
+    When True:
+        - `on_release` always fires regardless of touch position
+        - `on_cancel` never fires
+        - Useful for drag-and-drop or gesture-based interfaces
 
     .. versionadded:: 1.9.0
 
@@ -110,32 +142,27 @@ class ButtonBehavior(object):
 
     :attr:`always_release` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to `False`.
-    '''
+    """
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
-        if 'min_state_time' not in kwargs:
-            self.min_state_time = float(Config.get('graphics',
-                                                   'min_state_time'))
-        super(ButtonBehavior, self).__init__(**kwargs)
-        self.__state_event = None
-        self.__touch_time = None
-        self.fbind('state', self.cancel_event)
+        self.register_event_type("on_press")
+        self.register_event_type("on_release")
+        self.register_event_type("on_cancel")
+        self._active_touches = set()
+        self._cancelled_touches = set()
+        super().__init__(**kwargs)
 
     def _do_press(self):
-        self.state = 'down'
+        """Internal method to set pressed state to True"""
+        self.pressed = True
 
     def _do_release(self, *args):
-        self.state = 'normal'
-
-    def cancel_event(self, *args):
-        if self.__state_event:
-            self.__state_event.cancel()
-            self.__state_event = None
+        """Internal method to set pressed state to False"""
+        if not self._active_touches:
+            self.pressed = False
 
     def on_touch_down(self, touch):
-        if super(ButtonBehavior, self).on_touch_down(touch):
+        if super().on_touch_down(touch):
             return True
         if touch.is_mouse_scrolling:
             return False
@@ -143,70 +170,92 @@ class ButtonBehavior(object):
             return False
         if self in touch.ud:
             return False
+
         touch.grab(self)
         touch.ud[self] = True
-        self.last_touch = touch
-        self.__touch_time = time()
-        self._do_press()
-        self.dispatch('on_press')
+
+        # Check if this is the first touch before adding
+        is_first = len(self._active_touches) == 0
+        self._active_touches.add(touch)
+
+        if is_first:
+            self._do_press()
+            self.dispatch("on_press")
+
         return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
+            if (
+                not self.always_release  # Only cancel if always_release is False
+                and not self.collide_point(touch.x, touch.y)
+                and touch not in self._cancelled_touches
+            ):
+                if touch in self._active_touches:
+                    self._active_touches.discard(touch)
+                    self._cancelled_touches.add(touch)
+
+                    if not self._active_touches:
+                        self.dispatch("on_cancel")
+                        self._do_release()
             return True
-        if super(ButtonBehavior, self).on_touch_move(touch):
+
+        if super().on_touch_move(touch):
             return True
         return self in touch.ud
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
-            return super(ButtonBehavior, self).on_touch_up(touch)
+            return super().on_touch_up(touch)
+
         assert self in touch.ud
         touch.ungrab(self)
-        self.last_touch = touch
 
-        if (not self.always_release and
-                not self.collide_point(*touch.pos)):
-            self._do_release()
-            return
+        self._active_touches.discard(touch)
 
-        touchtime = time() - self.__touch_time
-        if touchtime < self.min_state_time:
-            self.__state_event = Clock.schedule_once(
-                self._do_release, self.min_state_time - touchtime)
+        is_cancelled = touch in self._cancelled_touches
+
+        if not is_cancelled and (
+            self.always_release or self.collide_point(*touch.pos)
+        ):
+            if not self._active_touches:
+                self.dispatch("on_release")
+                self._do_release()
         else:
             self._do_release()
-        self.dispatch('on_release')
+
+        self._cancelled_touches.discard(touch)
+
         return True
 
     def on_press(self):
+        """Event handler called when the button is pressed.
+
+        This event is fired when the first touch down occurs on the button.
+        In multi-touch scenarios, only the first touch triggers this event.
+        """
         pass
 
     def on_release(self):
+        """Event handler called when the button is released.
+
+        This event is fired when the last active touch is released, and only if:
+        - The touch is released within button bounds, OR
+        - The `always_release` property is True
+        """
         pass
 
-    def trigger_action(self, duration=0.1):
-        '''Trigger whatever action(s) have been bound to the button by calling
-        both the on_press and on_release callbacks.
+    def on_cancel(self):
+        """Event handler called when touch leaves button bounds during drag.
 
-        This is similar to a quick button press without using any touch events,
-        but note that like most kivy code, this is not guaranteed to be safe to
-        call from external threads. If needed use
-        :class:`Clock <kivy.clock.Clock>` to safely schedule this function and
-        the resulting callbacks to be called from the main thread.
+        This event is only fired when `always_release` is False and a touch
+        moves outside the button's bounds during a drag operation. It provides
+        an opportunity to give visual feedback that the button action has been
+        cancelled.
 
-        Duration is the length of the press in seconds. Pass 0 if you want
-        the action to happen instantly.
+        Use this to restore the button's original appearance or cancel any
+        pending actions that would have occurred on release.
 
-        .. versionadded:: 1.8.0
-        '''
-        self._do_press()
-        self.dispatch('on_press')
-
-        def trigger_release(dt):
-            self._do_release()
-            self.dispatch('on_release')
-        if not duration:
-            trigger_release(0)
-        else:
-            Clock.schedule_once(trigger_release, duration)
+        .. versionadded:: 3.0.0
+        """
+        pass
