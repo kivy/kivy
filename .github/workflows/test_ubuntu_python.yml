@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   KIVY_SPLIT_EXAMPLES: 1
+  # Needed for Python 3.14, as ffpyplayer is not available
+  USE_SDL3: 1
 
 jobs:
   PEP8_test:
