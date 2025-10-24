@@ -223,18 +223,11 @@ c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
 c_options['debug_gl'] = False
 
-# Set the alpha size, this will be 0 on the Raspberry Pi and 8 on all other
-# platforms, so SDL3 works without X11
-c_options['kivy_sdl_gl_alpha_size'] = 8 if pi_version is None else 0
-
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
     ukey = key.upper()
     if ukey in environ:
-        # kivy_sdl_gl_alpha_size should be an integer, the rest are booleans
-        value = int(environ[ukey])
-        if key != 'kivy_sdl_gl_alpha_size':
-            value = bool(value)
+        value = bool(int(environ[ukey]))
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
@@ -311,9 +304,7 @@ class KivyBuildExt(build_ext, object):
         # generate content
         print('Build configuration is:')
         for opt, value in c_options.items():
-            # kivy_sdl_gl_alpha_size is already an integer
-            if opt != 'kivy_sdl_gl_alpha_size':
-                value = int(bool(value))
+            value = int(bool(value))
             print(' * {0} = {1}'.format(opt, value))
             opt = opt.upper()
             config_h += '#define __{0} {1}\n'.format(opt, value)

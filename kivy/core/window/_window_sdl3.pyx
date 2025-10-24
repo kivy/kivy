@@ -161,7 +161,10 @@ cdef class _WindowSDL3Storage:
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, KIVY_SDL_GL_ALPHA_SIZE)
+
+        config_alpha_size = Config.getint('graphics', 'alpha_size')
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config_alpha_size)
+
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
