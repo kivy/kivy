@@ -2,36 +2,47 @@
 Hover Behavior
 ==============
 
-This module provides a hover event handling system for Kivy widgets.
+The :class:`~kivy.uix.behaviors.hover.HoverBehavior`
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides hover detection
+and event handling for Kivy widgets. You can combine this class with other
+widgets to add specialized hover events (on_hover_enter, on_hover_update,
+on_hover_leave) and reactive hover state tracking.
 
-Public Component:
+For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
+documentation.
 
-HoverBehavior (Mixin):
-   Detects when mouse hovers over a widget and dispatches specialized hover
-   events (on_hover_enter, on_hover_update, on_hover_leave).
-   Automatically handles all setup and registration on first use.
+Related Behaviors
+-----------------
 
-Related Behaviors (from motion_behaviors.py):
+For most hover use cases, you'll want to combine
+:class:`~kivy.uix.behaviors.hover.HoverBehavior` with generic motion event
+filters from :mod:`~kivy.uix.behaviors.motion`:
 
-   For most hover use cases, you'll want to combine HoverBehavior with these
-   generic motion event filters:
+- :class:`~kivy.uix.behaviors.motion.MotionCollideBehavior`: Filters motion
+  events to only process those within widget bounds. Essential for
+  :class:`~kivy.uix.recycleview.RecycleView` and
+  :class:`~kivy.uix.scrollview.ScrollView` to prevent hover conflicts outside
+  visible area.
 
-   - MotionCollideBehavior: Filters motion events to only process those within
-     widget bounds. Essential for RecycleView/ScrollView to prevent hover
-     conflicts outside visible area.
+- :class:`~kivy.uix.behaviors.motion.MotionBlockBehavior`: Blocks unregistered
+  motion events from passing through. Makes widgets "opaque" to motion events,
+  preventing leak-through.
 
-   - MotionBlockBehavior: Blocks unregistered motion events from passing through.
-     Makes widgets "opaque" to motion events, preventing leak-through.
+Examples
+--------
 
-Architecture:
-    The system uses an internal event manager that coordinates hover events
-    between the Window and widget tree. This is handled automatically - no
-    manual setup required.
+Basic hover with visual feedback::
 
-Example Usage:
-    from motion_behaviors import MotionCollideBehavior
+    from kivy.app import App
+    from kivy.uix.label import Label
+    from kivy.uix.behaviors import ButtonBehavior
+    from kivy.uix.behaviors.hover import HoverBehavior
 
     class HoverButton(HoverBehavior, ButtonBehavior, Label):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.text = 'Hover me!'
+
         def on_hovered(self, instance, is_hovered):
             # Visual feedback: red when hovered, white otherwise
             self.color = [1, 0, 0, 1] if is_hovered else [1, 1, 1, 1]
@@ -42,16 +53,59 @@ Example Usage:
         def on_hover_leave(self, motion_event):
             print(f"Mouse left at {motion_event.pos}")
 
-        def on_hover_update(self, motion_event):
-            print(f"Mouse at {motion_event.pos}")
+    class SampleApp(App):
+        def build(self):
+            return HoverButton()
+
+    SampleApp().run()
+
+Using with ScrollView and collision filtering::
+
+    from kivy.uix.scrollview import ScrollView
+    from kivy.uix.label import Label
+    from kivy.uix.behaviors.hover import HoverBehavior
+    from kivy.uix.behaviors.motion import MotionCollideBehavior
 
     class HoverScrollView(MotionCollideBehavior, ScrollView):
-        # Automatically filters hover events outside stencil bounds
+        # Filters hover events outside stencil bounds
         pass
 
     class HoverItem(HoverBehavior, MotionCollideBehavior, Label):
-        # Receives hover only when visible and colliding
+        def on_hovered(self, instance, is_hovered):
+            self.color = [1, 0, 0, 1] if is_hovered else [1, 1, 1, 1]
+
+    # Now only visible items receive hover events
+    # Items scrolled out of view are automatically ignored
+
+Blocking hover leak-through to background widgets::
+
+    from kivy.uix.button import Button
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.behaviors.motion import MotionBlockBehavior
+
+    class OpaqueButton(MotionBlockBehavior, Button):
+        # Blocks all unregistered motion events from passing through
         pass
+
+    layout = FloatLayout()
+    layout.add_widget(HoverScrollView())  # Background
+    layout.add_widget(OpaqueButton())     # Foreground
+    # Hovering over button won't trigger ScrollView hover
+
+Configuring hover update behavior::
+
+    from kivy.uix.behaviors.hover import HoverBehavior
+
+    # Disable hover re-dispatching for stationary mouse
+    HoverBehavior.configure_hover_updates(-1)
+
+    # Re-dispatch once after 0.1s (max 10 updates per second)
+    HoverBehavior.configure_hover_updates(0.1)
+
+    # Default: re-dispatch once after 1/30s (max 30 updates per second)
+    HoverBehavior.configure_hover_updates(1/30)
+
+See :class:`~kivy.uix.behaviors.hover.HoverBehavior` for details.
 """
 
 __all__ = ("HoverBehavior",)
@@ -98,11 +152,11 @@ class _HoverManager(EventManagerBase):
     tree.
 
     This is an internal implementation. Users should not interact with
-    this class directly. It is automatically registered by HoverBehavior on
-    first use.
+    this class directly. It is automatically registered by
+    :class:`~kivy.uix.behaviors.hover.HoverBehavior` on first use.
 
     Responsibilities:
-        - Receives hover events from Window
+        - Receives hover events from :class:`~kivy.core.window.Window`
         - Transforms coordinates to window space
         - Dispatches through widget tree via on_motion protocol
         - Tracks grabbed widgets between frames
@@ -110,14 +164,15 @@ class _HoverManager(EventManagerBase):
 
     Static Hover Re-dispatching:
         Re-dispatches hover events once when the mouse position hasn't changed
-        AND the time since last dispatch exceeds `hover_update_interval`. This
+        AND the time since last dispatch exceeds ``hover_update_interval``. This
         ensures widgets receive proper hover events (enter/update/leave) when:
 
         - Mouse is stationary but content scrolls (RecycleView/ScrollView)
         - Widget moves/resizes under cursor
         - Disabled widgets become enabled under cursor
 
-        The interval is controlled via HoverBehavior.configure_hover_updates().
+        The interval is controlled via
+        :meth:`HoverBehavior.configure_hover_updates`.
         Set interval to negative value to disable this feature entirely.
 
     Event Flow:
@@ -166,8 +221,7 @@ class _HoverManager(EventManagerBase):
     def update_hover_interval(self, interval):
         """Update the hover update interval.
 
-        Args:
-            interval: Seconds between updates, or negative to disable.
+        :param interval: Seconds between updates, or negative to disable
         """
         self.hover_update_interval = interval
 
@@ -182,18 +236,16 @@ class _HoverManager(EventManagerBase):
         """Main entry point for hover event dispatch.
 
         Orchestrates the hover event lifecycle:
+
         1. Saves current grab list
         2. Dispatches to widget tree
         3. Stores event history
         4. Sends leave events to ungrabbed widgets
         5. Cleans up completed events
 
-        Args:
-            event_type: Type of event ("begin", "update", "end")
-            motion_event: MotionEvent instance
-
-        Returns:
-            bool: True if any widget accepted the event
+        :param event_type: Type of event ("begin", "update", "end")
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent` instance
+        :return: True if any widget accepted the event
         """
         # Save original grab list for other event managers
         original_grab_list = motion_event.grab_list[:]
@@ -256,9 +308,8 @@ class _HoverManager(EventManagerBase):
         Compares previous and current grab lists to find widgets that
         lost hover, then dispatches end events to trigger on_hover_leave.
 
-        Args:
-            motion_event: Current motion event
-            previous_grab_list: Grabbed widgets from previous frame
+        :param motion_event: Current motion event
+        :param previous_grab_list: Grabbed widgets from previous frame
         """
         # Save current state
         current_grab_state = motion_event.grab_state
@@ -287,10 +338,9 @@ class _HoverManager(EventManagerBase):
     def _dispatch_to_single_widget(self, event_type: str, motion_event, widget):
         """Dispatch event to specific widget with coordinate transformation.
 
-        Args:
-            event_type: Type of event ("begin", "update", "end")
-            motion_event: MotionEvent to dispatch
-            widget: Target widget
+        :param event_type: Type of event ("begin", "update", "end")
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent` to dispatch
+        :param widget: Target widget
         """
         root_window = widget.get_root_window()
 
@@ -329,7 +379,6 @@ class _HoverManager(EventManagerBase):
         Re-dispatches existing hover events once when the time since the last
         event exceeds hover_update_interval. This enables hover events
         (enter/update/leave) to fire when content changes under a static cursor.
-
         """
         times = self._event_times
         time_now = Clock.get_time()
@@ -353,109 +402,96 @@ class HoverBehavior:
     """Mixin to add hover detection and event handling to any Kivy widget.
 
     This mixin enables widgets to respond to mouse hover events with three
-    specialized events: on_hover_enter, on_hover_update, and on_hover_leave.
-    It also provides a reactive `hovered` property.
+    specialized events: :meth:`on_hover_enter`, :meth:`on_hover_update`, and
+    :meth:`on_hover_leave`. It also provides a reactive :attr:`hovered` property.
 
-    Hover State Management:
-        Tracks active hover events internally. Each hover event gets a unique
-        ID (supports multi-touch hover). When a hover enters widget bounds,
-        it's tracked. When it leaves, it's removed. The `hovered` property
-        is True when any hover events are active.
+    Hover State Management
+    ----------------------
+    Tracks active hover events internally. Each hover event gets a unique
+    ID (supports multi-touch hover). When a hover enters widget bounds,
+    it's tracked. When it leaves, it's removed. The :attr:`hovered` property
+    is True when any hover events are active.
 
-    Event Propagation Modes:
-        - "default": Standard behavior. Events go to children first. If no child
-                    accepts, the event is offered to this widget.
+    Event Propagation Modes
+    ------------------------
+    - **"default"**: Standard behavior. Events go to children first. If no child
+      accepts, the event is offered to this widget.
 
-        - "all": Forces dispatch to both children AND this widget, regardless
-                of whether children accept. Use when parent needs to track
-                hovers even while children handle them (e.g., container with
-                hover effects).
+    - **"all"**: Forces dispatch to both children AND this widget, regardless
+      of whether children accept. Use when parent needs to track hovers even
+      while children handle them (e.g., container with hover effects).
 
-        - "self": Skips children entirely. This widget captures all hover events
-                 within its bounds. Use for widgets that should be "opaque" to
-                 hover (e.g., popup overlays).
+    - **"self"**: Skips children entirely. This widget captures all hover events
+      within its bounds. Use for widgets that should be "opaque" to hover
+      (e.g., popup overlays).
 
-    Static Hover Re-dispatching:
-        By default, hover events are re-dispatched once when the mouse is
-        stationary AND the time since the last dispatch exceeds 1/30s. This
-        enables proper hover state tracking when content moves under a
-        stationary cursor (e.g., scrolling with mousewheel).
+    Static Hover Re-dispatching
+    ----------------------------
+    By default, hover events are re-dispatched once when the mouse is
+    stationary AND the time since the last dispatch exceeds 1/30s. This
+    enables proper hover state tracking when content moves under a
+    stationary cursor (e.g., scrolling with mousewheel).
 
-        All three hover events (enter/update/leave) are affected:
-        - **on_hover_enter**: Fires when widget scrolls under static cursor
-        - **on_hover_update**: Fires once after interval
-        - **on_hover_leave**: Fires when widget scrolls away from cursor
+    All three hover events (enter/update/leave) are affected:
 
-        Configure globally before creating widgets::
+    - :meth:`on_hover_enter`: Fires when widget scrolls under static cursor
+    - :meth:`on_hover_update`: Fires once after interval
+    - :meth:`on_hover_leave`: Fires when widget scrolls away from cursor
 
-            # Disable re-dispatching entirely
-            HoverBehavior.configure_hover_updates(-1)
+    Configure globally before creating widgets::
 
-            # Re-dispatch once after 0.1s (max 10 updates per second)
-            HoverBehavior.configure_hover_updates(0.1)
+        # Disable re-dispatching entirely
+        HoverBehavior.configure_hover_updates(-1)
 
-            # Default: re-dispatch once after 1/30s (max 30 updates per second)
-            HoverBehavior.configure_hover_updates(1/30)
+        # Re-dispatch once after 0.1s (max 10 updates per second)
+        HoverBehavior.configure_hover_updates(0.1)
 
-    Combining with Motion Filters:
-        For most use cases, combine HoverBehavior with motion event filters
-        from motion_behaviors.py:
+        # Default: re-dispatch once after 1/30s (max 30 updates per second)
+        HoverBehavior.configure_hover_updates(1/30)
 
-        Example - ScrollView with Collision Filter::
+    Combining with Motion Filters
+    ------------------------------
+    For most use cases, combine :class:`~kivy.uix.behaviors.hover.HoverBehavior`
+    with motion event filters from :mod:`~kivy.uix.behaviors.motion`:
 
-            from motion_behaviors import MotionCollideBehavior
+    Example - ScrollView with Collision Filter::
 
-            class HoverScrollView(MotionCollideBehavior, ScrollView):
-                # Filters hover outside stencil bounds
-                pass
+        from kivy.uix.behaviors.motion import MotionCollideBehavior
 
-            class HoverItem(HoverBehavior, MotionCollideBehavior, Label):
-                # Only receives hover when visible
-                pass
+        class HoverScrollView(MotionCollideBehavior, ScrollView):
+            # Filters hover outside stencil bounds
+            pass
 
-        Example - Blocking Hover Leak-Through::
+        class HoverItem(HoverBehavior, MotionCollideBehavior, Label):
+            # Only receives hover when visible
+            pass
 
-            from motion_behaviors import MotionBlockBehavior
+    Example - Blocking Hover Leak-Through::
 
-            class OpaqueButton(MotionBlockBehavior, Button):
-                # Blocks all unregistered motion events
-                pass
+        from kivy.uix.behaviors.motion import MotionBlockBehavior
 
-            layout = FloatLayout()
-            layout.add_widget(HoverScrollView())  # Background
-            layout.add_widget(OpaqueButton())     # Foreground
-            # Hovering button won't trigger ScrollView hover ✓
+        class OpaqueButton(MotionBlockBehavior, Button):
+            # Blocks all unregistered motion events
+            pass
 
-    Properties:
-        hovered (bool, read-only): True if any hover events are active on widget
-        hover_mode (str): Controls event propagation ("default", "all", "self")
+        layout = FloatLayout()
+        layout.add_widget(HoverScrollView())  # Background
+        layout.add_widget(OpaqueButton())     # Foreground
+        # Hovering button won't trigger ScrollView hover
 
-    Events:
-        on_hover_enter(motion_event): First collision with widget bounds
-        on_hover_update(motion_event): Hover moved within bounds
-        on_hover_leave(motion_event): Hover left widget bounds
+    Events
+    ------
+    :meth:`on_hover_enter`
+        First collision with widget bounds
+    :meth:`on_hover_update`
+        Hover moved within bounds
+    :meth:`on_hover_leave`
+        Hover left widget bounds
 
-    Example - Visual Feedback:
-        class HoverButton(HoverBehavior, ButtonBehavior, Label):
-            def on_hovered(self, instance, is_hovered):
-                self.color = [1, 0, 0, 1] if is_hovered else [1, 1, 1, 1]
-
-    Example - Event Handlers:
-        class HoverWidget(HoverBehavior, Widget):
-            def on_hover_enter(self, me):
-                print(f"Hover entered at {me.pos}")
-
-            def on_hover_leave(self, me):
-                print(f"Hover left at {me.pos}")
-
-    Example - Handling Scroll Updates:
-        class HoverableItem(HoverBehavior, Label):
-            def on_hover_update(self, me):
-                self.update_hover_highlight()
-
-    Internal State (for subclassing):
-        _hover_ids (dict): Maps active hover UIDs to positions {uid: (x, y)}.
-                          Updated by hover events. Empty when not hovered.
+    Internal State
+    --------------
+    For subclassing: ``_hover_ids`` (dict) maps active hover UIDs to positions
+    {uid: (x, y)}. Updated by hover events. Empty when not hovered.
     """
 
     _hover_manager = None
@@ -463,8 +499,7 @@ class HoverBehavior:
     def _get_hovered(self) -> bool:
         """Compute hovered state based on active hover events.
 
-        Returns:
-            bool: True if any hover events are currently active
+        :return: True if any hover events are currently active
         """
         return bool(self._hover_ids)
 
@@ -481,16 +516,17 @@ class HoverBehavior:
     """Controls how hover events propagate through the widget tree.
 
     Modes:
-        - "default": Standard propagation. Children first, then self if not
-                    accepted. Use this for most widgets.
+    
+    - **"default"**: Standard propagation. Children first, then self if not
+      accepted. Use this for most widgets.
 
-        - "all": Force dispatch to both children AND self. Use when parent needs
-                to track hovers even when children handle them (e.g., container
-                with background hover effects).
+    - **"all"**: Force dispatch to both children AND self. Use when parent needs
+      to track hovers even when children handle them (e.g., container
+      with background hover effects).
 
-        - "self": Skip children entirely. Capture all hovers within bounds.
-                 Use for modal overlays or widgets that should be "opaque" to
-                 hover events.
+    - **"self"**: Skip children entirely. Capture all hovers within bounds.
+      Use for modal overlays or widgets that should be "opaque" to
+      hover events.
 
     :attr:`hover_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to "default".
@@ -537,14 +573,12 @@ class HoverBehavior:
         """Handle incoming motion events, filtering for hover events.
 
         Main entry point for motion events. Filters for hover events and
-        handles them according to hover_mode. Non-hover events pass to parent.
+        handles them according to :attr:`hover_mode`. Non-hover events pass to
+        parent.
 
-        Args:
-            event_type: Type of motion event ("begin", "update", "end")
-            motion_event: MotionEvent instance
-
-        Returns:
-            bool: True if event was handled
+        :param event_type: Type of motion event ("begin", "update", "end")
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent` instance
+        :return: True if event was handled
         """
         # Filter: only process hover events with position
         is_hover_event = (
@@ -583,6 +617,7 @@ class HoverBehavior:
         """Process hover event and dispatch appropriate hover sub-events.
 
         Implements core hover detection:
+
         1. Test collision with widget bounds
         2. Grab event if colliding (marks widget as hover owner)
         3. Dispatch enter/update/leave based on state changes
@@ -593,12 +628,9 @@ class HoverBehavior:
             This marks the widget as owner. Grab persists across frames until
             explicit ungrab, maintaining hover state as mouse moves.
 
-        Args:
-            event_type: Motion event type ("begin", "update", "end")
-            motion_event: MotionEvent instance
-
-        Returns:
-            bool: True if event was handled (collided with widget)
+        :param event_type: Motion event type ("begin", "update", "end")
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent` instance
+        :return: True if event was handled (collided with widget)
         """
         is_colliding = self.collide_point(*motion_event.pos)
         hover_uid = motion_event.uid
@@ -650,6 +682,7 @@ class HoverBehavior:
 
         Controls the minimum time between hover re-dispatches when the mouse
         is stationary. Re-dispatches once when:
+
         1. Mouse hasn't moved, AND
         2. Time since last dispatch exceeds interval
 
@@ -661,12 +694,12 @@ class HoverBehavior:
         events, allowing proper enter/leave events as widgets scroll in/out
         of view.
 
-        This configuration applies to all HoverBehavior widgets and can be
+        This configuration applies to all
+        :class:`~kivy.uix.behaviors.hover.HoverBehavior` widgets and can be
         called before any widgets are instantiated.
 
-        Args:
-            interval (float): Seconds between re-dispatches. Use negative
-                             value to disable re-dispatching entirely.
+        :param interval: Seconds between re-dispatches. Use negative value to
+                        disable re-dispatching entirely
 
         Example::
 
@@ -679,7 +712,7 @@ class HoverBehavior:
             # Default: re-dispatch once after 1/30s (max 30 updates per second)
             HoverBehavior.configure_hover_updates(1/30)
 
-        Note:
+        .. note::
             When disabled (negative interval), hover events only fire when the
             mouse actually moves. Content scrolling under a static cursor will
             not trigger enter/update/leave events.
@@ -696,8 +729,7 @@ class HoverBehavior:
     def get_hover_update_interval(cls):
         """Get the current hover re-dispatch interval.
 
-        Returns:
-            float: Current interval in seconds, or negative if disabled.
+        :return: Current interval in seconds, or negative if disabled
 
         Example::
 
@@ -714,8 +746,7 @@ class HoverBehavior:
 
         Override this method to respond to hover enter events.
 
-        Args:
-            motion_event: :class:`~kivy.input.motionevent.MotionEvent`
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent`
         """
         pass
 
@@ -725,11 +756,11 @@ class HoverBehavior:
         If the mouse doesn't move AND enough time has passed since the last
         dispatch, this is called once.
 
-        Disable re-dispatching via configure_hover_updates(-1) if this
+        Disable re-dispatching via
+        :meth:`configure_hover_updates(-1) <configure_hover_updates>` if this
         behavior is not needed.
 
-        Args:
-            motion_event: :class:`~kivy.input.motionevent.MotionEvent`
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent`
         """
         pass
 
@@ -738,7 +769,6 @@ class HoverBehavior:
 
         Override this method to respond to hover leave events.
 
-        Args:
-            motion_event: :class:`~kivy.input.motionevent.MotionEvent`
+        :param motion_event: :class:`~kivy.input.motionevent.MotionEvent`
         """
         pass
