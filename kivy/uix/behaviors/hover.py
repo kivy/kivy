@@ -516,7 +516,7 @@ class HoverBehavior:
     """Controls how hover events propagate through the widget tree.
 
     Modes:
-    
+
     - **"default"**: Standard propagation. Children first, then self if not
       accepted. Use this for most widgets.
 
