@@ -64,11 +64,11 @@ Builder.load_string("""
             text: 'Simple Hover Test'
             size_hint_y: 0.1
             font_size: '20sp'
-        
+
         SimpleHoverWidget:
             size_hint: 0.5, 0.8
             pos_hint: {'center_x': 0.5}
-        
+
         Button:
             text: 'Switch to Complex Demo'
             size_hint_y: 0.1
@@ -79,27 +79,27 @@ Builder.load_string("""
         orientation: 'vertical'
         padding: 10
         spacing: 15
-        
+
         Label:
             text: 'Complex Hover Demo (RecycleView)'
             size_hint_y: 0.1
             font_size: '20sp'
-        
+
         BoxLayout:
             spacing: 25
             size_hint_y: 0.2
-            
+
             HoverButton:
                 text: 'Button 1'
             HoverButton:
                 text: 'Button 2'
             HoverButton:
                 text: 'Button 3'
-        
+
         HoverRecycleView:
             id: rv
             size_hint_y: 0.6
-        
+
     HoverOpaqueButton:
         text: 'Switch to Simple Demo'
         size_hint_y: 0.2
