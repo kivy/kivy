@@ -120,14 +120,24 @@ from kivy.loader import Logger
 from kivy.properties import AliasProperty, DictProperty, OptionProperty
 
 
-class EventType(str, Enum):
-    """Event type identifiers for the hover system."""
+class HoverEventType(str, Enum):
+    """Event type identifiers for hover-related events.
+
+    Used to distinguish between different categories of hover events
+    in the event system.
+    """
 
     HOVER = "hover"
 
 
-class MotionType(str, Enum):
-    """Motion event type identifiers."""
+class HoverMotionType(str, Enum):
+    """Motion phase identifiers for hover interactions.
+
+    Tracks the lifecycle of a hover event from start to finish:
+    - BEGIN: Initial hover detection
+    - UPDATE: Continuous hover movement
+    - END: Hover termination
+    """
 
     BEGIN = "begin"
     UPDATE = "update"
@@ -137,9 +147,10 @@ class MotionType(str, Enum):
 class HoverMode(str, Enum):
     """Hover event propagation modes.
 
-    DEFAULT: Dispatch to children first, then self if not accepted
-    ALL: Dispatch to both children AND self
-    SELF: Skip children, dispatch only to self
+    Controls how hover events are distributed through the widget hierarchy:
+    - DEFAULT: Dispatch to children first, then self if not accepted
+    - ALL: Dispatch to both children AND self
+    - SELF: Skip children, dispatch only to self
     """
 
     DEFAULT = "default"
@@ -190,7 +201,7 @@ class _HoverManager(EventManagerBase):
         comparing grab lists.
     """
 
-    type_ids = (EventType.HOVER.value,)
+    type_ids = (HoverEventType.HOVER.value,)
     hover_update_interval = 1 / 30.0
 
     def __init__(self, **kwargs):
@@ -269,7 +280,7 @@ class _HoverManager(EventManagerBase):
             )
 
         # Clean up completed events
-        if event_type == MotionType.END:
+        if event_type == HoverMotionType.END:
             del self._events[motion_event.uid]
             del self._event_times[motion_event.uid]
 
@@ -327,7 +338,7 @@ class _HoverManager(EventManagerBase):
                 widget = weak_widget_ref()
                 if widget:
                     self._dispatch_to_single_widget(
-                        MotionType.END, motion_event, widget
+                        HoverMotionType.END, motion_event, widget
                     )
 
         # Restore current state
@@ -565,7 +576,7 @@ class HoverBehavior:
         self.register_event_type("on_hover_leave")
 
         # Subscribe to hover motion events
-        self.register_for_motion_event(EventType.HOVER.value)
+        self.register_for_motion_event(HoverEventType.HOVER.value)
 
         super().__init__(**kwargs)
 
@@ -582,7 +593,7 @@ class HoverBehavior:
         """
         # Filter: only process hover events with position
         is_hover_event = (
-            motion_event.type_id == EventType.HOVER
+            motion_event.type_id == HoverEventType.HOVER
             and "pos" in motion_event.profile
         )
 
@@ -636,7 +647,7 @@ class HoverBehavior:
         hover_uid = motion_event.uid
 
         # Handle begin/update (hover active)
-        if event_type in (MotionType.UPDATE, MotionType.BEGIN):
+        if event_type in (HoverMotionType.UPDATE, HoverMotionType.BEGIN):
             # Already grabbed by us
             if motion_event.grab_current is self:
                 return True
@@ -662,7 +673,7 @@ class HoverBehavior:
                 return True
 
         # Handle end (hover stopped or left)
-        elif event_type == MotionType.END:
+        elif event_type == HoverMotionType.END:
             # We own this hover - clean up and dispatch leave
             if motion_event.grab_current is self:
                 self._hover_ids.pop(hover_uid, None)
