@@ -97,13 +97,13 @@ Configuring hover update behavior::
     from kivy.uix.behaviors.hover import HoverBehavior
 
     # Disable hover re-dispatching for stationary mouse
-    HoverBehavior.configure_hover_updates(-1)
+    HoverBehavior.set_hover_update_interval(-1)
 
     # Re-dispatch once after 0.1s (max 10 updates per second)
-    HoverBehavior.configure_hover_updates(0.1)
+    HoverBehavior.set_hover_update_interval(0.1)
 
     # Default: re-dispatch once after 1/30s (max 30 updates per second)
-    HoverBehavior.configure_hover_updates(1/30)
+    HoverBehavior.set_hover_update_interval(1/30)
 
 See :class:`~kivy.uix.behaviors.hover.HoverBehavior` for details.
 """
@@ -183,7 +183,7 @@ class _HoverManager(EventManagerBase):
         - Disabled widgets become enabled under cursor
 
         The interval is controlled via
-        :meth:`HoverBehavior.configure_hover_updates`.
+        :meth:`HoverBehavior.set_hover_update_interval`.
         Set interval to negative value to disable this feature entirely.
 
     Event Flow:
@@ -452,13 +452,13 @@ class HoverBehavior:
     Configure globally before creating widgets::
 
         # Disable re-dispatching entirely
-        HoverBehavior.configure_hover_updates(-1)
+        HoverBehavior.set_hover_update_interval(-1)
 
         # Re-dispatch once after 0.1s (max 10 updates per second)
-        HoverBehavior.configure_hover_updates(0.1)
+        HoverBehavior.set_hover_update_interval(0.1)
 
         # Default: re-dispatch once after 1/30s (max 30 updates per second)
-        HoverBehavior.configure_hover_updates(1/30)
+        HoverBehavior.set_hover_update_interval(1/30)
 
     Combining with Motion Filters
     ------------------------------
@@ -688,7 +688,7 @@ class HoverBehavior:
         return False
 
     @classmethod
-    def configure_hover_updates(cls, interval):
+    def set_hover_update_interval(cls, interval):
         """Configure hover re-dispatching interval globally.
 
         Controls the minimum time between hover re-dispatches when the mouse
@@ -715,13 +715,13 @@ class HoverBehavior:
         Example::
 
             # Disable re-dispatching (no scroll hover updates)
-            HoverBehavior.configure_hover_updates(-1)
+            HoverBehavior.set_hover_update_interval(-1)
 
             # Re-dispatch once after 0.1s (max 10 updates per second)
-            HoverBehavior.configure_hover_updates(0.1)
+            HoverBehavior.set_hover_update_interval(0.1)
 
             # Default: re-dispatch once after 1/30s (max 30 updates per second)
-            HoverBehavior.configure_hover_updates(1/30)
+            HoverBehavior.set_hover_update_interval(1/30)
 
         .. note::
             When disabled (negative interval), hover events only fire when the
@@ -768,7 +768,7 @@ class HoverBehavior:
         dispatch, this is called once.
 
         Disable re-dispatching via
-        :meth:`configure_hover_updates(-1) <configure_hover_updates>` if this
+        :meth:`set_hover_update_interval(-1) <set_hover_update_interval>` if this
         behavior is not needed.
 
         :param motion_event: :class:`~kivy.input.motionevent.MotionEvent`
