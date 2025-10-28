@@ -289,24 +289,31 @@ class _HoverManager(EventManagerBase):
         return was_accepted
 
     def _dispatch_to_widgets(self, event_type: str, motion_event) -> bool:
-        """Dispatch event through the window's widget tree."""
+        """Dispatch motion event through the window's widget tree.
+
+        Widgets are transparent by default - events pass through widgets that
+        haven't registered to handle them. This matches Kivy's touch event
+        behavior where unhandled events propagate to widgets behind.
+
+        :param event_type: Motion event type ("begin", "update", "end")
+        :param motion_event: MotionEvent to dispatch
+        :return: True if any widget accepted the event, False otherwise
+        """
         was_accepted = False
 
         motion_event.push()
         self.window.transform_motion_event_2d(motion_event)
 
         for widget in self.window.children[:]:
-            # Check collision first - widgets are opaque to hover by default
-            if widget.collide_point(*motion_event.pos):
-                # Only dispatch if widget registered for hover
-                if "hover" in widget.motion_filter:
-                    if widget.dispatch("on_motion", event_type, motion_event):
-                        was_accepted = True
-                        break
-                else:
-                    # Widget blocks hover without handling it
-                    was_accepted = True
-                    break
+            # Check: registered + collides + handled
+            if (
+                HoverEventType.HOVER.value in widget.motion_filter
+                and widget.collide_point(*motion_event.pos)
+                and widget.dispatch("on_motion", event_type, motion_event)
+            ):
+                was_accepted = True
+                break
+            # Not registered or didn't handle - continue (transparent for hover)
 
         motion_event.pop()
         return was_accepted
