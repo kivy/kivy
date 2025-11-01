@@ -841,13 +841,13 @@ class ScrollView(StencilView):
 
     slow_device_support = BooleanProperty(False)
     """Enable slow device support for scroll gesture detection.
-    
+
     On very slow devices, at least 3 frames are needed to accumulate
     velocity data for scroll effects to work properly. When enabled,
     after the scroll timeout expires, the gesture handoff will be delayed
     until at least 3 frames have rendered, ensuring sufficient velocity
     data accumulation.
-    
+
     This addresses issues #1464 and #1499 for low-performance devices.
     Disable this on modern hardware to improve touch responsiveness.
 
@@ -858,14 +858,14 @@ class ScrollView(StencilView):
     """
     parallel_delegation = BooleanProperty(True)
     """Controls boundary delegation behavior for parallel nested ScrollViews.
-    
+
     When True (default, web-style):
         - Touch starting at inner boundary, moving away → delegates to outer
         - Touch starting not at boundary → scrolls inner only, never delegates
-    
+
     When False:
         - No delegation, only touched ScrollView scrolls
-    
+
     :attr:`parallel_delegation` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
@@ -874,27 +874,27 @@ class ScrollView(StencilView):
 
     delegate_to_outer = BooleanProperty(True)
     """Controls whether touch scroll gestures delegate to outer ScrollViews.
-    
+
     When True (default):
         - Orthogonal: Cross-axis gestures immediately delegate to outer
           (e.g., horizontal swipe in vertical-only ScrollView)
-        - Parallel: At boundaries, delegates to outer 
+        - Parallel: At boundaries, delegates to outer
           (respects parallel_delegation)
-        - Arbitrary depth: Continues searching up hierarchy for 
+        - Arbitrary depth: Continues searching up hierarchy for
           capable ScrollView
-    
+
     When False:
         - No delegation to outer ScrollViews
         - Only the directly touched ScrollView handles the gesture
-    
+
     NOTE: Mouse wheel events are NOT affected by this property. Wheel scrolling
     always uses web-style behavior: scroll the innermost ScrollView under cursor
-    that can handle the direction. 
-    
+    that can handle the direction.
+
     Example use cases:
         - Set False to lock touch scrolling to a specific nested level
         - Set False to prevent inner touch scroll from affecting outer scroll
-    
+
     :attr:`delegate_to_outer` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
