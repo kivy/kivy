@@ -1873,8 +1873,8 @@ class ScrollView(StencilView):
                     self.do_scroll_x
                     and (
                             (self.always_overscroll and self.do_scroll_x)
-                            or (
-                                    self._viewport and self._viewport.width > self.width)
+                            or (self._viewport and
+                                self._viewport.width > self.width)
                     )
             ):
                 return False  # Can't scroll horizontally, pass to parent
@@ -1884,8 +1884,8 @@ class ScrollView(StencilView):
                     self.do_scroll_y
                     and (
                             (self.always_overscroll and self.do_scroll_y)
-                            or (
-                                    self._viewport and self._viewport.height > self.height)
+                            or (self._viewport and
+                                self._viewport.height > self.height)
                     )
             ):
                 return False  # Can't scroll vertically, pass to parent
