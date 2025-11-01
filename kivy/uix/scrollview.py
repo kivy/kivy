@@ -1331,10 +1331,10 @@ class ScrollView(StencilView):
 
         # Determine configuration type
         is_orthogonal = (
-            outer_axes[0] != inner_axes[0]
-            and outer_axes[1] != inner_axes[1]
-            and (outer_axes[0] or outer_axes[1])
-            and (inner_axes[0] or inner_axes[1])
+                outer_axes[0] != inner_axes[0]
+                and outer_axes[1] != inner_axes[1]
+                and (outer_axes[0] or outer_axes[1])
+                and (inner_axes[0] or inner_axes[1])
         )
 
         if is_orthogonal:
@@ -1479,16 +1479,16 @@ class ScrollView(StencilView):
 
         # Check X boundary only if both child and parent scroll horizontally
         at_boundary_x = (
-            self.do_scroll_x
-            and parent_sv.do_scroll_x
-            and self._is_at_scroll_boundary("x")
+                self.do_scroll_x
+                and parent_sv.do_scroll_x
+                and self._is_at_scroll_boundary("x")
         )
 
         # Check Y boundary only if both child and parent scroll vertically
         at_boundary_y = (
-            self.do_scroll_y
-            and parent_sv.do_scroll_y
-            and self._is_at_scroll_boundary("y")
+                self.do_scroll_y
+                and parent_sv.do_scroll_y
+                and self._is_at_scroll_boundary("y")
         )
 
         # Set delegation_mode based on boundary state in PARALLEL only
@@ -1660,7 +1660,7 @@ class ScrollView(StencilView):
             # Example: V->H->V, inner V at boundary should delegate to outer V
             primary_axis = self._get_primary_scroll_axis(touch)
             if primary_axis and self._is_scrolling_beyond_boundary(
-                primary_axis, touch
+                    primary_axis, touch
             ):
                 # We're at boundary AND scrolling beyond -
                 # search for parallel ancestor
@@ -1705,7 +1705,7 @@ class ScrollView(StencilView):
 
         # At boundary if within threshold of min or max
         return scroll_pos <= _BOUNDARY_THRESHOLD or scroll_pos >= (
-            1.0 - _BOUNDARY_THRESHOLD
+                1.0 - _BOUNDARY_THRESHOLD
         )
 
     def _is_scrolling_beyond_boundary(self, axis, touch):
@@ -1805,7 +1805,7 @@ class ScrollView(StencilView):
         #     uid_key: The unique key for this ScrollView's touch data
 
         if uid_key in touch.ud and not touch.ud[uid_key].get(
-            "can_defocus", True
+                "can_defocus", True
         ):
             FocusBehavior.ignored_touch.append(touch)
 
@@ -1826,11 +1826,11 @@ class ScrollView(StencilView):
 
         # Calculate scrollable dimensions
         width_scrollable = (
-            self.always_overscroll and self.do_scroll_x
-        ) or vp.width > self.width
+                                   self.always_overscroll and self.do_scroll_x
+                           ) or vp.width > self.width
         height_scrollable = (
-            self.always_overscroll and self.do_scroll_y
-        ) or vp.height > self.height
+                                    self.always_overscroll and self.do_scroll_y
+                            ) or vp.height > self.height
 
         # Calculate distance from touch to scroll bar edges
         d = {
@@ -1843,14 +1843,14 @@ class ScrollView(StencilView):
         # Check if touch is in horizontal or vertical scroll bars
         scroll_bar = "bars" in self.scroll_type
         in_bar_x = (
-            scroll_bar
-            and width_scrollable
-            and (0 <= d[self.bar_pos_x] <= self.bar_width)
+                scroll_bar
+                and width_scrollable
+                and (0 <= d[self.bar_pos_x] <= self.bar_width)
         )
         in_bar_y = (
-            scroll_bar
-            and height_scrollable
-            and (0 <= d[self.bar_pos_y] <= self.bar_width)
+                scroll_bar
+                and height_scrollable
+                and (0 <= d[self.bar_pos_y] <= self.bar_width)
         )
 
         return in_bar_x, in_bar_y
@@ -1870,21 +1870,23 @@ class ScrollView(StencilView):
         if btn in self._MOUSE_WHEEL_HORIZONTAL:
             # Horizontal wheel: only handle if we can scroll horizontally
             if not (
-                self.do_scroll_x
-                and (
-                    (self.always_overscroll and self.do_scroll_x)
-                    or (self._viewport and self._viewport.width > self.width)
-                )
+                    self.do_scroll_x
+                    and (
+                            (self.always_overscroll and self.do_scroll_x)
+                            or (
+                                    self._viewport and self._viewport.width > self.width)
+                    )
             ):
                 return False  # Can't scroll horizontally, pass to parent
         elif btn in self._MOUSE_WHEEL_VERTICAL:
             # Vertical wheel: only handle if we can scroll vertically
             if not (
-                self.do_scroll_y
-                and (
-                    (self.always_overscroll and self.do_scroll_y)
-                    or (self._viewport and self._viewport.height > self.height)
-                )
+                    self.do_scroll_y
+                    and (
+                            (self.always_overscroll and self.do_scroll_y)
+                            or (
+                                    self._viewport and self._viewport.height > self.height)
+                    )
             ):
                 return False  # Can't scroll vertically, pass to parent
 
@@ -1906,24 +1908,24 @@ class ScrollView(StencilView):
             return None
 
         width_scrollable = (
-            self.always_overscroll and self.do_scroll_x
-        ) or vp.width > self.width
+                                   self.always_overscroll and self.do_scroll_x
+                           ) or vp.width > self.width
         height_scrollable = (
-            self.always_overscroll and self.do_scroll_y
-        ) or vp.height > self.height
+                                    self.always_overscroll and self.do_scroll_y
+                            ) or vp.height > self.height
 
         if (
-            self.effect_x
-            and self.do_scroll_y
-            and height_scrollable
-            and btn in self._MOUSE_WHEEL_VERTICAL
+                self.effect_x
+                and self.do_scroll_y
+                and height_scrollable
+                and btn in self._MOUSE_WHEEL_VERTICAL
         ):
             return self.effect_x if in_bar_x else self.effect_y
         elif (
-            self.effect_y
-            and self.do_scroll_x
-            and width_scrollable
-            and btn in self._MOUSE_WHEEL_HORIZONTAL
+                self.effect_y
+                and self.do_scroll_x
+                and width_scrollable
+                and btn in self._MOUSE_WHEEL_HORIZONTAL
         ):
             return self.effect_y if in_bar_y else self.effect_x
         return None
@@ -1955,11 +1957,11 @@ class ScrollView(StencilView):
         # Handle scrollbar position jump when clicking in bar but not handle.
         ud = touch.ud
         if in_bar_y and not self._touch_in_handle(
-            self._handle_y_pos, self._handle_y_size, touch
+                self._handle_y_pos, self._handle_y_size, touch
         ):
             self.scroll_y = (touch.y - self.y) / self.height
         elif in_bar_x and not self._touch_in_handle(
-            self._handle_x_pos, self._handle_x_size, touch
+                self._handle_x_pos, self._handle_x_size, touch
         ):
             self.scroll_x = (touch.x - self.x) / self.width
 
@@ -2005,17 +2007,17 @@ class ScrollView(StencilView):
 
         # Horizontal movement that child can't handle, but parent can
         if (
-            abs_dx > abs_dy * 2
-            and not self.do_scroll_x
-            and parent_sv.do_scroll_x
+                abs_dx > abs_dy * 2
+                and not self.do_scroll_x
+                and parent_sv.do_scroll_x
         ):
             return True
 
         # Vertical movement that child can't handle, but parent can
         if (
-            abs_dy > abs_dx * 2
-            and not self.do_scroll_y
-            and parent_sv.do_scroll_y
+                abs_dy > abs_dx * 2
+                and not self.do_scroll_y
+                and parent_sv.do_scroll_y
         ):
             return True
 
@@ -2171,9 +2173,9 @@ class ScrollView(StencilView):
     def _process_scroll_axis_x(self, touch, not_in_bar):
         # Process X-axis scroll movement.
         if (
-            touch.ud["sv.handled"]["x"]
-            or not self.do_scroll_x
-            or not self.effect_x
+                touch.ud["sv.handled"]["x"]
+                or not self.do_scroll_x
+                or not self.effect_x
         ):
             return False
 
@@ -2193,9 +2195,9 @@ class ScrollView(StencilView):
     def _process_scroll_axis_y(self, touch, not_in_bar):
         # Process Y-axis scroll movement.
         if (
-            touch.ud["sv.handled"]["y"]
-            or not self.do_scroll_y
-            or not self.effect_y
+                touch.ud["sv.handled"]["y"]
+                or not self.do_scroll_y
+                or not self.effect_y
         ):
             return False
 
@@ -2490,7 +2492,7 @@ class ScrollView(StencilView):
             # Now check the other levels in the hierarchy
             if result and "nested" in touch.ud:
                 for i in range(
-                    1, hierarchy.depth - 1
+                        1, hierarchy.depth - 1
                 ):  # Skip outer (0) and innermost (already done)
                     child_sv = hierarchy.scrollviews[i]
                     parent_sv = hierarchy.scrollviews[i - 1]
@@ -2499,14 +2501,14 @@ class ScrollView(StencilView):
                     if parent_sv.parallel_delegation:
                         # Check if child is at boundary in parallel directions
                         at_boundary_x = (
-                            child_sv.do_scroll_x
-                            and parent_sv.do_scroll_x
-                            and child_sv._is_at_scroll_boundary("x")
+                                child_sv.do_scroll_x
+                                and parent_sv.do_scroll_x
+                                and child_sv._is_at_scroll_boundary("x")
                         )
                         at_boundary_y = (
-                            child_sv.do_scroll_y
-                            and parent_sv.do_scroll_y
-                            and child_sv._is_at_scroll_boundary("y")
+                                child_sv.do_scroll_y
+                                and parent_sv.do_scroll_y
+                                and child_sv._is_at_scroll_boundary("y")
                         )
 
                         if at_boundary_x or at_boundary_y:
@@ -2547,9 +2549,9 @@ class ScrollView(StencilView):
         # already validated (parent called us directly after finding us
         # with _find_child_scrollview_at_touch)
         skip_collision = (
-            "nested" in touch.ud
-            and "hierarchy" in touch.ud["nested"]
-            and touch.ud["nested"]["hierarchy"].inner == self
+                "nested" in touch.ud
+                and "hierarchy" in touch.ud["nested"]
+                and touch.ud["nested"]["hierarchy"].inner == self
         )
 
         if not skip_collision and not self.collide_point(*touch.pos):
@@ -2591,7 +2593,7 @@ class ScrollView(StencilView):
 
         if "button" in touch.profile and touch.button.startswith("scroll"):
             if self._handle_mouse_wheel_scroll(
-                touch.button, in_bar_x, in_bar_y
+                    touch.button, in_bar_x, in_bar_y
             ):
                 touch.ud[self._get_uid("svavoid")] = True
                 # Start velocity check for scroll stop after mouse wheel
@@ -2709,7 +2711,7 @@ class ScrollView(StencilView):
                             # This ensures their touch state is cleaned up even
                             # though they never handled this touch
                             for skip_idx in range(
-                                current_index - 1, new_index, -1
+                                    current_index - 1, new_index, -1
                             ):
                                 skipped_sv = hierarchy.scrollviews[skip_idx]
                                 skipped_uid = skipped_sv._get_uid()
@@ -2797,7 +2799,8 @@ class ScrollView(StencilView):
 
         # Verify we have established scroll state for this touch
         if not any(
-            isinstance(key, str) and key.startswith("sv.") for key in touch.ud
+                isinstance(key, str) and key.startswith("sv.") for key in
+                touch.ud
         ):
             return self._delegate_to_children(touch, "on_touch_move")
 
@@ -2981,8 +2984,8 @@ class ScrollView(StencilView):
         # Case 2: UID not in touch.ud - we never initialized scroll state
         # (touch went to child widget)
         if (
-            self._get_uid("svavoid") in touch.ud
-            or self._get_uid() not in touch.ud
+                self._get_uid("svavoid") in touch.ud
+                or self._get_uid() not in touch.ud
         ):
             return False
 
@@ -3222,8 +3225,8 @@ class ScrollView(StencilView):
 
         # Check if position changed
         pos_changed = not (
-            isclose(current_pos[0], self._last_scroll_pos[0])
-            and isclose(current_pos[1], self._last_scroll_pos[1])
+                isclose(current_pos[0], self._last_scroll_pos[0])
+                and isclose(current_pos[1], self._last_scroll_pos[1])
         )
         if not pos_changed:
             # Position hasn't changed - increment stable counter
@@ -3338,7 +3341,7 @@ class ScrollView(StencilView):
 
         # Store hierarchy info
         has_hierarchy = (
-            "nested" in touch.ud and "hierarchy" in touch.ud["nested"]
+                "nested" in touch.ud and "hierarchy" in touch.ud["nested"]
         )
         if has_hierarchy:
             hierarchy = touch.ud["nested"]["hierarchy"]
@@ -3474,6 +3477,7 @@ if __name__ == "__main__":
     from kivy.uix.gridlayout import GridLayout
     from kivy.uix.button import Button
 
+
     class ScrollViewApp(App):
 
         def build(self):
@@ -3509,5 +3513,6 @@ if __name__ == "__main__":
             root.add_widget(scrollview1)
             root.add_widget(scrollview2)
             return root
+
 
     ScrollViewApp().run()
