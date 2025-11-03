@@ -20,7 +20,7 @@ kv = '''
     orientation: 'vertical'
     size_hint_y: None
     height: dp(120)
-    
+
     # Inner horizontal ScrollView
     ScrollView:
         id: h_scroll
@@ -30,7 +30,7 @@ kv = '''
         bar_width: dp(6)
         bar_color: 1.0, 0.5, 0.3, 0.8
         smooth_scroll_end: 10
-        
+
         BoxLayout:
             id: content
             orientation: 'horizontal'
@@ -41,7 +41,7 @@ kv = '''
 <VerticalScrollColumn>:
     size_hint_x: None
     width: dp(200)
-    
+
     # Inner vertical ScrollView
     ScrollView:
         id: v_scroll
@@ -51,7 +51,7 @@ kv = '''
         bar_width: dp(6)
         bar_color: 1.0, 0.3, 0.5, 0.8
         smooth_scroll_end: 10
-        
+
         GridLayout:
             id: content
             cols: 1
@@ -64,7 +64,7 @@ BoxLayout:
     orientation: 'horizontal'
     spacing: dp(10)
     padding: dp(10)
-    
+
     # LEFT SIDE: Vertical outer with horizontal inner scrollviews
     ScrollView:
         id: left_scroll
@@ -74,14 +74,14 @@ BoxLayout:
         bar_width: dp(8)
         bar_color: 0.3, 0.6, 1.0, 0.8
         smooth_scroll_end: 10
-        
+
         BoxLayout:
             id: left_container
             orientation: 'vertical'
             spacing: dp(20)
             size_hint_y: None
             height: self.minimum_height
-    
+
     # RIGHT SIDE: Horizontal outer with vertical inner scrollviews
     ScrollView:
         id: right_scroll
@@ -91,7 +91,7 @@ BoxLayout:
         bar_width: dp(8)
         bar_color: 0.3, 1.0, 0.6, 0.8
         smooth_scroll_end: 10
-        
+
         BoxLayout:
             id: right_container
             orientation: 'horizontal'

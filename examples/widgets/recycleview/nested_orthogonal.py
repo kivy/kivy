@@ -33,7 +33,7 @@ kv = '''
         Rectangle:
             pos: self.pos
             size: self.size
-    
+
     # Header label
     Label:
         text: f'Panel {root.panel_index}'
@@ -42,7 +42,7 @@ kv = '''
         bold: True
         font_size: '18sp'
         color: 1, 1, 1, 1
-    
+
     # Inner vertical RecycleView with 50 buttons
     RecycleView:
         id: inner_rv
@@ -51,7 +51,7 @@ kv = '''
         bar_width: dp(10)
         do_scroll_x: False
         do_scroll_y: True
-        
+
         RecycleBoxLayout:
             default_size: None, dp(50)
             default_size_hint: 1, None
@@ -65,16 +65,16 @@ BoxLayout:
     orientation: 'vertical'
     padding: dp(10)
     spacing: dp(10)
-    
+
     # Instructions
     Label:
-        text: 
+        text:
             'Outer: Horizontal RecycleView (20 panels)\\n'\
             'Inner: Vertical RecycleView (50 items each)'
         size_hint_y: None
         height: dp(60)
         font_size: '14sp'
-    
+
     # Outer horizontal RecycleView
     RecycleView:
         id: outer_rv

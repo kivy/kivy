@@ -19,29 +19,29 @@ kv = '''
     orientation: 'vertical'
     size_hint_y: None
     height: dp(260)
-    
+
     # Header row
     BoxLayout:
         size_hint_y: None
         height: dp(44)
         padding: dp(12), 0
-        
+
         Label:
             text: f'Panel {root.panel_index + 1}'
             bold: True
-        
+
         Label:
             text: 'Vertical inner scroll below'
             color: 0.8, 0.8, 0.8, 1
-    
+
     # Inner vertical scroll - centered with spacers
     BoxLayout:
         orientation: 'horizontal'
         size_hint_y: None
         height: dp(200)
-        
+
         Label:  # Left spacer
-        
+
         ScrollView:
             id: inner_scroll
             do_scroll_x: False
@@ -51,7 +51,7 @@ kv = '''
             size_hint_y: None
             size_hint_x: None
             height: dp(200)
-            
+
             BoxLayout:
                 id: content
                 orientation: 'vertical'
@@ -59,7 +59,7 @@ kv = '''
                 size: self.minimum_width, self.minimum_height
                 padding: dp(8)
                 spacing: dp(6)
-        
+
         Label:  # Right spacer
 
 # Main layout
@@ -68,7 +68,7 @@ ScrollView:
     do_scroll_y: True
     bar_width: dp(8)
     scroll_type: ['bars', 'content']
-    
+
     BoxLayout:
         id: outer_layout
         orientation: 'vertical'
@@ -76,10 +76,10 @@ ScrollView:
         height: self.minimum_height
         padding: dp(12)
         spacing: dp(12)
-        
+
         # Info label at the top
         Label:
-            text: 
+            text:
                 'Nested Vertical ScrollViews Test\\n'\
                 'Outer: Vertical scroll (15 panels)\\n'\
                 'Inner: Vertical scroll (30 items each)\\n'\
