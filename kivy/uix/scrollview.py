@@ -143,7 +143,7 @@ All the effects are located in the :mod:`kivy.effects`.
 
 Nested ScrollViews
 ------------------
-An applicaiton can have multiple levels of nested ScrollViews.  The
+An application can have multiple levels of nested ScrollViews.  The
 ScrollView class manages the hierarchy of nested ScrollViews.
 
 It is important to set the :attr:`do_scroll_x` and :attr:`do_scroll_y`
@@ -1229,9 +1229,8 @@ class ScrollView(StencilView):
 
         while current_sv:
             # Classify this parent-child relationship
-            config_type, axis_config = parent_sv._classify_nested_configuration(
-                current_sv
-            )
+            config_type, axis_config = (
+                parent_sv._classify_nested_configuration(current_sv))
 
             # Add to hierarchy
             hierarchy.add_child(current_sv, config_type, axis_config)
@@ -1438,7 +1437,8 @@ class ScrollView(StencilView):
     # TOUCH HANDLER HELPER METHODS
     # =========================================================================
     # The following helper methods support the main touch handling lifecycle.
-    # They are organized by purpose: detection, delegation, intent, finalization.
+    # They are organized by purpose: detection, delegation, intent,
+    # finalization.
 
     def _setup_boundary_delegation(self, touch, in_bar):
         # Configure web-style boundary delegation for parallel nested scrolling.
@@ -2568,7 +2568,24 @@ class ScrollView(StencilView):
                 "scroll"
             )
             if not is_wheel:
-                return False
+                # Check if stored touch is stale (completed but not cleaned up)
+                # This happens when a touch completes via hierarchy handling but
+                # this ScrollView wasn't the one that called _scroll_finalize
+                # This is defensive. All _touch are cleared in scroll_finalize
+                touch_is_stale = (
+                        'sv_hierarchy_handled' in self._touch.ud  # Touch completed
+                        and not any(
+                    ref() is self for ref in (self._touch.grab_list or [])
+                )  # We're not in grab list
+                )
+
+                if touch_is_stale:
+                    # Clear the stale touch reference
+                    self._touch = None
+                    # Fall through to process the new touch
+                else:
+                    # Touch is still active - reject new touch
+                    return False
             # For wheel events, continue even if we have an active touch
 
         if not (self.do_scroll_x or self.do_scroll_y):
@@ -2922,6 +2939,13 @@ class ScrollView(StencilView):
 
             # Mark that ScrollView hierarchy handling is complete
             touch.ud["sv_hierarchy_handled"] = True
+
+            # Proactively clear _touch for ALL ScrollViews in hierarchy
+            # This prevents stale touch references when intermediate ScrollViews
+            # had _touch set but didn't call _scroll_finalize themselves
+            for sv in hierarchy.scrollviews:
+                if sv._touch is touch:
+                    sv._touch = None
 
             # CRITICAL: Check if a child widget (button) claimed this touch
             # We check AFTER cleanup so hierarchy state is properly finalized
