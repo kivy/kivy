@@ -9,7 +9,6 @@ This tests whether the custom ScrollView correctly handles RecycleView's
 internal scrolling in an orthogonal nested configuration.
 """
 
-# NOW we can import RecycleView - it will import our custom ScrollView
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
