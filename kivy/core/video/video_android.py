@@ -136,7 +136,7 @@ class VideoAndroid(VideoBase):
         self.dispatch("on_load")
 
     def unload(self):
-        Logger.info(f"VideoAndroid: Unload")
+        Logger.info("VideoAndroid: Unload")
         # Safely release MediaPlayer
         if hasattr(self, "_mediaplayer"):
             try:
@@ -156,7 +156,12 @@ class VideoAndroid(VideoBase):
 
     # Property overrides
     def _get_position(self):
-        return self._mediaplayer.getCurrentPosition() / 1000.0 if self._mediaplayer else 0
+        pos = 0
+
+        if self._mediaplayer:
+            pos = self._mediaplayer.getCurrentPosition() / 1000.0
+
+        return pos
 
     def _set_position(self, pos):
         if self._mediaplayer:
