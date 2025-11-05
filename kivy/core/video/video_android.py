@@ -1,26 +1,21 @@
-# Author : Sk Sahil (Sahil-pixel)
-# Video core provider for Android using Android MediaPlayer & OpenGL Texture
-# https://github.com/Sahil-pixel/AndroidVideo4Kivy/blob/main/android_video.py
+import math
 
+from jnius import PythonJavaClass, autoclass, java_method
+from kivy.clock import mainthread
+from kivy.core.video import VideoBase
+from kivy.graphics import Callback, Rectangle
+from kivy.graphics.fbo import Fbo
+from kivy.graphics.texture import Texture
+from kivy.logger import Logger
 
 __all__ = ('VideoAndroid', )
-from jnius import autoclass, java_method, PythonJavaClass
-from kivy.clock import mainthread
-from kivy.logger import Logger
-from kivy.core.video import VideoBase
-from kivy.graphics import Rectangle, Callback
-from kivy.graphics.texture import Texture
-from kivy.graphics.fbo import Fbo
-import math
+
 MediaPlayer = autoclass("android.media.MediaPlayer")
 MediaMetadataRetriever = autoclass("android.media.MediaMetadataRetriever")
 Surface = autoclass("android.view.Surface")
 SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
-GLES11Ext = autoclass("android.opengl.GLES11Ext")
-
 
 Logger.info('VideoAndroid: Using Android MediaPlayer')
-
 
 class OnCompletionListener(PythonJavaClass):
     __javainterfaces__ = ["android/media/MediaPlayer$OnCompletionListener"]
@@ -81,9 +76,7 @@ class VideoAndroid(VideoBase):
         self._resolution = (w, h)
 
         # Create OES texture
-        GL_TEXTURE_EXTERNAL_OES = GLES11Ext.GL_TEXTURE_EXTERNAL_OES
-        self._video_texture = Texture(
-            width=w, height=h, target=GL_TEXTURE_EXTERNAL_OES, colorfmt="rgba")
+        self._video_texture = Texture(width=w, height=h, colorfmt="rgba")
         self._video_texture.wrap = "clamp_to_edge"
 
         # SurfaceTexture + Surface
@@ -141,7 +134,7 @@ class VideoAndroid(VideoBase):
         self.dispatch("on_load")
 
     def unload(self):
-        Logger.info(f"VideoAndroid: Unload")
+        Logger.info("VideoAndroid: Unload")
         # Safely release MediaPlayer
         if hasattr(self, "_mediaplayer"):
             try:
@@ -161,7 +154,12 @@ class VideoAndroid(VideoBase):
 
     # Property overrides
     def _get_position(self):
-        return self._mediaplayer.getCurrentPosition() / 1000.0 if self._mediaplayer else 0
+        pos = 0
+
+        if self._mediaplayer:
+            pos = self._mediaplayer.getCurrentPosition() / 1000.0
+
+        return pos
 
     def _set_position(self, pos):
         if self._mediaplayer:
