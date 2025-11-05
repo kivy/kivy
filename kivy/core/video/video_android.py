@@ -1,9 +1,3 @@
-# Author : Sk Sahil (Sahil-pixel)
-# Video core provider for Android using Android MediaPlayer & OpenGL Texture
-# https://github.com/Sahil-pixel/AndroidVideo4Kivy/blob/main/android_video.py
-
-
-__all__ = ('VideoAndroid', )
 from jnius import autoclass, java_method, PythonJavaClass
 from kivy.clock import mainthread
 from kivy.logger import Logger
@@ -12,15 +6,16 @@ from kivy.graphics import Rectangle, Callback
 from kivy.graphics.texture import Texture
 from kivy.graphics.fbo import Fbo
 import math
+
+__all__ = ('VideoAndroid', )
+
 MediaPlayer = autoclass("android.media.MediaPlayer")
 MediaMetadataRetriever = autoclass("android.media.MediaMetadataRetriever")
 Surface = autoclass("android.view.Surface")
 SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
 GLES11Ext = autoclass("android.opengl.GLES11Ext")
 
-
 Logger.info('VideoAndroid: Using Android MediaPlayer')
-
 
 class OnCompletionListener(PythonJavaClass):
     __javainterfaces__ = ["android/media/MediaPlayer$OnCompletionListener"]
