@@ -1,11 +1,12 @@
-from jnius import autoclass, java_method, PythonJavaClass
-from kivy.clock import mainthread
-from kivy.logger import Logger
-from kivy.core.video import VideoBase
-from kivy.graphics import Rectangle, Callback
-from kivy.graphics.texture import Texture
-from kivy.graphics.fbo import Fbo
 import math
+
+from jnius import PythonJavaClass, autoclass, java_method
+from kivy.clock import mainthread
+from kivy.core.video import VideoBase
+from kivy.graphics import Callback, Rectangle
+from kivy.graphics.fbo import Fbo
+from kivy.graphics.texture import Texture
+from kivy.logger import Logger
 
 __all__ = ('VideoAndroid', )
 
