@@ -481,19 +481,26 @@ def test_property_rebind(self):
 
     Builder.load_string('''
 <ObjWidget>:
-    text: 'Active' if (self.button is not None and self.button.active) else ('Inactive' if self.button is not None else 'Unset')
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <ObjWidgetRebindFalse>:
-    text: 'Active' if (self.button is not None and self.button.active) else ('Inactive' if self.button is not None else 'Unset')
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <AliasWidget>:
-    text: 'Active' if (self.button is not None and self.button.active) else ('Inactive' if self.button is not None else 'Unset')
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <DictWidget>:
-    text: 'Active' if (self.button.button is not None and self.button.button.active) else ('Inactive' if self.button.button is not None else 'Unset')
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.active) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 
 <DictWidgetFalse>:
-    text: 'Active' if (self.button.button is not None and self.button.button.active) else ('Inactive' if self.button.button is not None else 'Unset')
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.active) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 ''')
 
     obj = ObjWidget()
@@ -524,7 +531,9 @@ def test_property_rebind(self):
     button.active = True
     Clock.tick()
     self.assertEqual(obj.text, 'Active')
-    self.assertEqual(obj_false.text, 'Inactive')  # Should NOT update (rebind=False)
+    self.assertEqual(
+        obj_false.text, "Inactive"
+    )  # Should NOT update (rebind=False)
     self.assertEqual(dict_rebind.text, 'Active')
     self.assertEqual(dict_false.text, 'Unset')
     self.assertEqual(alias_rebind.text, 'Active')
