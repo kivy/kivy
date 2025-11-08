@@ -238,128 +238,128 @@ class ButtonBehaviorTestCase(GraphicUnitTest):
         # on_press should be called only once
         callback.assert_called_once()
 
-    # def test_release_only_after_all_touches_released(self):
-    #     """Test on_release fires only when ALL touches are released"""
-    #     callback = Mock()
-    #     self.button.bind(on_release=callback)
+    def test_release_only_after_all_touches_released(self):
+        """Test on_release fires only when ALL touches are released"""
+        callback = Mock()
+        self.button.bind(on_release=callback)
 
-    #     # First touch down
-    #     touch1 = create_mock_touch(x=30, y=30)
-    #     self.button.on_touch_down(touch1)
-    #     touch1.grab_current = self.button
+        # First touch down
+        touch1 = create_mock_touch(x=30, y=30)
+        self.button.on_touch_down(touch1)
+        touch1.grab_current = self.button
 
-    #     # Second touch down
-    #     touch2 = create_mock_touch(x=60, y=60)
-    #     self.button.on_touch_down(touch2)
-    #     touch2.grab_current = self.button
+        # Second touch down
+        touch2 = create_mock_touch(x=60, y=60)
+        self.button.on_touch_down(touch2)
+        touch2.grab_current = self.button
 
-    #     # Release first touch - on_release should NOT fire yet
-    #     self.button.on_touch_up(touch1)
-    #     callback.assert_not_called()
-    #     self.assertTrue(self.button.pressed)
+        # Release first touch - on_release should NOT fire yet
+        self.button.on_touch_up(touch1)
+        callback.assert_not_called()
+        self.assertTrue(self.button.pressed)
 
-    #     # Release second touch - NOW on_release should fire
-    #     self.button.on_touch_up(touch2)
-    #     callback.assert_called_once()
-    #     self.assertFalse(self.button.pressed)
+        # Release second touch - NOW on_release should fire
+        self.button.on_touch_up(touch2)
+        callback.assert_called_once()
+        self.assertFalse(self.button.pressed)
 
-    # def test_pressed_state_with_multiple_touches(self):
-    #     """Test pressed state remains True while any touch is active"""
-    #     # Initial state
-    #     self.assertFalse(self.button.pressed)
+    def test_pressed_state_with_multiple_touches(self):
+        """Test pressed state remains True while any touch is active"""
+        # Initial state
+        self.assertFalse(self.button.pressed)
 
-    #     # First touch
-    #     touch1 = create_mock_touch(x=30, y=30)
-    #     self.button.on_touch_down(touch1)
-    #     self.assertTrue(self.button.pressed)
+        # First touch
+        touch1 = create_mock_touch(x=30, y=30)
+        self.button.on_touch_down(touch1)
+        self.assertTrue(self.button.pressed)
 
-    #     # Second touch
-    #     touch2 = create_mock_touch(x=60, y=60)
-    #     self.button.on_touch_down(touch2)
-    #     self.assertTrue(self.button.pressed)
+        # Second touch
+        touch2 = create_mock_touch(x=60, y=60)
+        self.button.on_touch_down(touch2)
+        self.assertTrue(self.button.pressed)
 
-    #     # Third touch
-    #     touch3 = create_mock_touch(x=45, y=45)
-    #     self.button.on_touch_down(touch3)
-    #     self.assertTrue(self.button.pressed)
+        # Third touch
+        touch3 = create_mock_touch(x=45, y=45)
+        self.button.on_touch_down(touch3)
+        self.assertTrue(self.button.pressed)
 
-    #     # Release first touch - still pressed
-    #     touch1.grab_current = self.button
-    #     self.button.on_touch_up(touch1)
-    #     self.assertTrue(self.button.pressed)
+        # Release first touch - still pressed
+        touch1.grab_current = self.button
+        self.button.on_touch_up(touch1)
+        self.assertTrue(self.button.pressed)
 
-    #     # Release second touch - still pressed
-    #     touch2.grab_current = self.button
-    #     self.button.on_touch_up(touch2)
-    #     self.assertTrue(self.button.pressed)
+        # Release second touch - still pressed
+        touch2.grab_current = self.button
+        self.button.on_touch_up(touch2)
+        self.assertTrue(self.button.pressed)
 
-    #     # Release last touch - now not pressed
-    #     touch3.grab_current = self.button
-    #     self.button.on_touch_up(touch3)
-    #     self.assertFalse(self.button.pressed)
+        # Release last touch - now not pressed
+        touch3.grab_current = self.button
+        self.button.on_touch_up(touch3)
+        self.assertFalse(self.button.pressed)
 
-    # def test_cancel_with_multiple_touches(self):
-    #     """Test on_cancel fires when last active touch moves outside"""
-    #     callback = Mock()
-    #     self.button.bind(on_cancel=callback)
-    #     self.button.always_release = False
+    def test_cancel_with_multiple_touches(self):
+        """Test on_cancel fires when last active touch moves outside"""
+        callback = Mock()
+        self.button.bind(on_cancel=callback)
+        self.button.always_release = False
 
-    #     # Two touches down
-    #     touch1 = create_mock_touch(x=30, y=30)
-    #     self.button.on_touch_down(touch1)
-    #     touch1.grab_current = self.button
+        # Two touches down
+        touch1 = create_mock_touch(x=30, y=30)
+        self.button.on_touch_down(touch1)
+        touch1.grab_current = self.button
 
-    #     touch2 = create_mock_touch(x=60, y=60)
-    #     self.button.on_touch_down(touch2)
-    #     touch2.grab_current = self.button
+        touch2 = create_mock_touch(x=60, y=60)
+        self.button.on_touch_down(touch2)
+        touch2.grab_current = self.button
 
-    #     # Move first touch outside - should NOT fire on_cancel yet
-    #     touch1.x, touch1.y = 200, 200
-    #     self.button.on_touch_move(touch1)
-    #     callback.assert_not_called()
-    #     self.assertTrue(self.button.pressed)
+        # Move first touch outside - should NOT fire on_cancel yet
+        touch1.x, touch1.y = 200, 200
+        self.button.on_touch_move(touch1)
+        callback.assert_not_called()
+        self.assertTrue(self.button.pressed)
 
-    #     # Move second touch outside - NOW should fire on_cancel
-    #     touch2.x, touch2.y = 200, 200
-    #     self.button.on_touch_move(touch2)
-    #     callback.assert_called_once()
-    #     self.assertFalse(self.button.pressed)
+        # Move second touch outside - NOW should fire on_cancel
+        touch2.x, touch2.y = 200, 200
+        self.button.on_touch_move(touch2)
+        callback.assert_called_once()
+        self.assertFalse(self.button.pressed)
 
-    # def test_mixed_release_and_cancel_multitouch(self):
-    #     """Test mixed scenario: some touches released inside, some cancelled"""
-    #     on_release = Mock()
-    #     on_cancel = Mock()
-    #     self.button.bind(on_release=on_release, on_cancel=on_cancel)
-    #     self.button.always_release = False
+    def test_mixed_release_and_cancel_multitouch(self):
+        """Test mixed scenario: some touches released inside, some cancelled"""
+        on_release = Mock()
+        on_cancel = Mock()
+        self.button.bind(on_release=on_release, on_cancel=on_cancel)
+        self.button.always_release = False
 
-    #     # Three touches down
-    #     touch1 = create_mock_touch(x=30, y=30)
-    #     self.button.on_touch_down(touch1)
-    #     touch1.grab_current = self.button
+        # Three touches down
+        touch1 = create_mock_touch(x=30, y=30)
+        self.button.on_touch_down(touch1)
+        touch1.grab_current = self.button
 
-    #     touch2 = create_mock_touch(x=60, y=60)
-    #     self.button.on_touch_down(touch2)
-    #     touch2.grab_current = self.button
+        touch2 = create_mock_touch(x=60, y=60)
+        self.button.on_touch_down(touch2)
+        touch2.grab_current = self.button
 
-    #     touch3 = create_mock_touch(x=45, y=45)
-    #     self.button.on_touch_down(touch3)
-    #     touch3.grab_current = self.button
+        touch3 = create_mock_touch(x=45, y=45)
+        self.button.on_touch_down(touch3)
+        touch3.grab_current = self.button
 
-    #     # Cancel first touch (move outside)
-    #     touch1.x, touch1.y = 200, 200
-    #     self.button.on_touch_move(touch1)
-    #     on_cancel.assert_not_called()  # Still have active touches
+        # Cancel first touch (move outside)
+        touch1.x, touch1.y = 200, 200
+        self.button.on_touch_move(touch1)
+        on_cancel.assert_not_called()  # Still have active touches
 
-    #     # Release second touch inside bounds
-    #     self.button.on_touch_up(touch2)
-    #     on_release.assert_not_called()  # Still have active touches
+        # Release second touch inside bounds
+        self.button.on_touch_up(touch2)
+        on_release.assert_not_called()  # Still have active touches
 
-    #     # Cancel last touch
-    #     touch3.x, touch3.y = 250, 250
-    #     self.button.on_touch_move(touch3)
-    #     on_cancel.assert_called_once()  # NOW cancel fires
-    #     on_release.assert_not_called()  # Should NOT fire release
-    #     self.assertFalse(self.button.pressed)
+        # Cancel last touch
+        touch3.x, touch3.y = 250, 250
+        self.button.on_touch_move(touch3)
+        on_cancel.assert_called_once()  # NOW cancel fires
+        on_release.assert_not_called()  # Should NOT fire release
+        self.assertFalse(self.button.pressed)
 
 
 if __name__ == "__main__":
