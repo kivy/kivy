@@ -1157,6 +1157,8 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
     )
     es32_available = glReadPixels_inplace is es32
     available_impls = (es20, es32) if es32_available else (es20, )
+    es20 = staticmethod(es20)
+    es32 = staticmethod(es32)
 
     @requires_graphics
     def test_a_buffer_too_small(self):
@@ -1205,3 +1207,18 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
                 buf = bytearray(b'ABCDEF')
                 impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
                 assert buf == b'\xff\x00\x00DEF'
+
+    def test_an_opengl_type_that_is_not_supported_by_es20_impl(self):
+        from kivy.graphics.opengl import GL_RGB, GL_FLOAT
+        with pytest.raises(ValueError):
+            self.es20(0, 0, 1, 1, GL_RGB, GL_FLOAT, bytearray(16))
+
+    def test_an_opengl_format_that_is_not_supported_by_es20_impl(self):
+        from kivy.graphics.opengl import GL_RGB565, GL_UNSIGNED_BYTE
+        with pytest.raises(ValueError):
+            self.es20(0, 0, 1, 1, GL_RGB565, GL_UNSIGNED_BYTE, bytearray(16))
+
+    def test_an_invalid_alignment_value(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE
+        with pytest.raises(ValueError):
+            self.es20(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, bytearray(16), alignment=7)
