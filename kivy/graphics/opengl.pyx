@@ -1235,6 +1235,10 @@ def _glReadPixels_inplace_es32(GLint x, GLint y, GLsizei width, GLsizei height,
     cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
     cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
 
+# The reason I split glReadPixels_inplace into two implementations, rather than
+# having a single implementation that checks for the availability of glReadnPixels
+# at call time, is to allow testing _glReadPixels_inplace_es20 even when glReadnPixels
+# is available.
 _glReadPixels_inplace_es20.__doc__ = _glReadPixels_inplace_es32.__doc__ = \
     glReadPixels_inplace.__doc__
 glReadPixels_inplace = _glReadPixels_inplace_es20 if cgl.glReadnPixels == NULL \
