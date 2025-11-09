@@ -365,12 +365,12 @@ class ConsoleAddonMode(ConsoleAddon):
 class ConsoleAddonSelect(ConsoleAddon):
     def init(self):
         self.btn = ConsoleToggleButton(text=u"Select")
-        self.btn.bind(state=self.on_button_state)
+        self.btn.bind(activated=self.on_button_state)
         self.console.add_toolbar_widget(self.btn)
         self.console.bind(inspect_enabled=self.on_inspect_enabled)
 
     def on_inspect_enabled(self, instance, value):
-        self.btn.state = "down" if value else "normal"
+        self.btn.activated = True if value else False
 
     def on_button_state(self, instance, value):
         self.console.inspect_enabled = (value == "down")
@@ -564,7 +564,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             for option in prop.options:
                 button = ToggleButton(
                     text=option,
-                    state='down' if option == value else 'normal',
+                    activated=True if option == value else False,
                     group=repr(content.uid),
                     size_hint_y=None,
                     height=44)
@@ -583,8 +583,8 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
                 content = Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
-            state = 'down' if value else 'normal'
-            content = ToggleButton(text=key, state=state)
+            state = True if value else False
+            content = ToggleButton(text=key, activated=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
                                             key, index))
 
@@ -609,7 +609,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
 
     @ignore_exception
     def save_property_boolean(self, widget, key, index, instance, ):
-        value = instance.state == 'down'
+        value = instance.activated
         if index >= 0:
             getattr(widget, key)[index] = value
         else:

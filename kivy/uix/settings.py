@@ -652,8 +652,8 @@ class SettingOptions(SettingItem):
         content.add_widget(Widget(size_hint_y=None, height=1))
         uid = str(self.uid)
         for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option, state=state, group=uid)
+            activated = option == self.value
+            btn = ToggleButton(text=option, activated=activated, group=uid)
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
 

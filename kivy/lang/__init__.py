@@ -151,7 +151,7 @@ the value can use the values of other properties using reserved keywords.
         The keyword self references the "current widget instance"::
 
             Button:
-                text: 'My state is %s' % self.state
+                text: 'My pressed state is %s' % self.pressed
 
     root
         This keyword is available only in rule definitions and represents the
@@ -193,7 +193,7 @@ Class definitions may contain ids which can be used as a keywords:::
         Button:
             id: btn1
         Button:
-            text: 'The state of the other button is %s' % btn1.state
+            text: 'The pressed state of the other button is %s' % btn1.pressed
 
 Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
@@ -207,10 +207,10 @@ the example above, the buttons state could also be accessed as follows:
 .. code-block:: python
 
     widget = MyWidget()
-    state = widget.ids["btn1"].state
+    pressed = widget.ids["btn1"].pressed
 
     # Or, as an alternative syntax,
-    state = widget.ids.btn1.state
+    pressed = widget.ids.btn1.pressed
 
 Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
@@ -222,13 +222,13 @@ Valid expressions
 There are two places that accept python statements in a kv file:
 after a property, which assigns to the property the result of the expression
 (such as the text of a button as shown above) and after a on_property, which
-executes the statement when the property is updated (such as on_state).
+executes the statement when the property is updated (such as on_pressed).
 
 In the former case, the
 `expression <http://docs.python.org/2/reference/expressions.html>`_ can only
 span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
-``text: self.state and ('up' if self.pressed else 'down')``.
+``text: self.pressed and ('up' if self.pressed else 'down')``.
 
 In the latter case, multiple single line statements are valid, including
 those that escape their newline, as long as they don't add an indentation
@@ -238,11 +238,11 @@ Examples of valid statements are:
 
 .. code-block:: python
 
-    on_press: if self.state == 'normal': print('normal')
-    on_state:
-        if self.state == 'normal': print('normal')
+    on_press: if self.pressed: print('normal')
+    on_pressed:
+        if self.pressed: print('normal')
         else: print('down')
-        if self.state == 'normal': \\
+        if self.pressed: \\
         print('multiline normal')
         for i in range(10): print(i)
         print([1,2,3,4,
@@ -252,8 +252,8 @@ An example of a invalid statement:
 
 .. code-block:: python
 
-    on_state:
-        if self.state == 'normal':
+    on_pressed:
+        if self.pressed:
             print('normal')
 
 Relation Between Values and Properties
@@ -274,17 +274,17 @@ occur.
 Here's a simple example that demonstrates this behavior::
 
     Button:
-        text: str(self.state)
+        text: str(self.pressed)
 
-In this example, the parser detects that `self.state` is a dynamic value (a
-property). The :attr:`~kivy.uix.button.Button.state` property of the button
+In this example, the parser detects that `self.pressed` is a dynamic value (a
+property). The :attr:`~kivy.uix.button.Button.pressed` property of the button
 can change at any moment (when the user touches it).
 We now want this button to display its own state as text, even as the state
 changes. To do this, we use the state property of the Button and use it in the
 value expression for the button's `text` property, which controls what text is
 displayed on the button (We also convert the state to a string representation).
-Now, whenever the button state changes, the text property will be updated
-automatically.
+Now, whenever the button `pressed` state changes, the text property will be
+updated automatically.
 
 Remember: The value is a python expression! That means that you can do
 something more interesting like::
