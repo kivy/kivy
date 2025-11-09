@@ -1164,9 +1164,25 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
         self.Window.clearcolor = (1, 0, 0, 1)
         self.advance_frames(1)
         for impl in self.available_impls:
-            buf = bytearray(b'ABC')
-            impl(0, 0, 16, 16, GL_RGB, GL_UNSIGNED_BYTE, buf)
-            assert buf == b'ABC'
+            with self.subTest(impl=impl.__name__):
+                buf = bytearray(b'ABC')
+                impl(0, 0, 16, 16, GL_RGB, GL_UNSIGNED_BYTE, buf)
+                assert buf == b'ABC'
+
+    @requires_graphics
+    def test_a_buffer_too_small2(self):
+        '''
+        A buffer that is large enough to hold byte-aligned pixel data,
+        but not large enough to hold it with 8-byte alignment.
+        '''
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        for impl in self.available_impls:
+            with self.subTest(impl=impl.__name__):
+                buf = bytearray(b'ABCDEF')
+                impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf, alignment=8)
+                assert buf == b'ABCDEF'
 
     @requires_graphics
     def test_a_buffer_of_exact_size(self):
@@ -1174,9 +1190,10 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
         self.Window.clearcolor = (1, 0, 0, 1)
         self.advance_frames(1)
         for impl in self.available_impls:
-            buf = bytearray(b'ABC')
-            impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
-            assert buf == b'\xff\x00\x00'
+            with self.subTest(impl=impl.__name__):
+                buf = bytearray(b'ABCDEF')
+                impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, memoryview(buf)[:3])
+                assert buf == b'\xff\x00\x00DEF'
 
     @requires_graphics
     def test_a_buffer_too_large(self):
@@ -1184,6 +1201,7 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
         self.Window.clearcolor = (1, 0, 0, 1)
         self.advance_frames(1)
         for impl in self.available_impls:
-            buf = bytearray(b'ABCDEF')
-            impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
-            assert buf == b'\xff\x00\x00DEF'
+            with self.subTest(impl=impl.__name__):
+                buf = bytearray(b'ABCDEF')
+                impl(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
+                assert buf == b'\xff\x00\x00DEF'

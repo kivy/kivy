@@ -17,6 +17,7 @@ This module is a Python wrapper for OpenGL commands.
 include "../include/config.pxi"
 include "common.pxi"
 
+cimport cython
 cimport kivy.graphics.cgl as cgldef
 from kivy.graphics.cgl cimport (cgl, GLvoid, GLfloat, GLuint, GLint, GLchar,
     GLubyte, cgl_init, GLboolean, GLenum, GLsizei, GLclampf, GLbitfield,
@@ -1185,46 +1186,53 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     return py_pixels
 
 def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
-                         GLenum format, GLenum type, unsigned char[::1] out_buf):
+                         GLenum format, GLenum type, unsigned char[::1] out_buf,
+                         *, GLint alignment=1):
     '''Read pixels from the framebuffer into a preallocated buffer.
 
     :param format: Must be either ``GL_RGB`` or ``GL_RGBA`` if ``glReadnPixels()`` is
                    not available.
     :param type: Must be ``GL_UNSIGNED_BYTE`` if ``glReadnPixels()`` is not available.
     :param out_buf: A writable object that supports the buffer protocol — for example,
-                    a :any:`bytearray` or a ``numpy`` array. Its size must be at least
-                    ``width * height * bytes_per_pixel``. If the buffer is too small,
-                    no data will be read.
+                    a :class:`bytearray`, an :class:`array.array` or a ``NumPy`` array.
+                    If it's too small, no data will be read.
+    :param alignment: The byte alignment of each row in the output buffer.
+                      The allowable values are 1, 2, 4 and 8. Default is 1.
 
     See: `glReadPixels() on Khronos website
     <https://registry.khronos.org/OpenGL-Refpages/gl4/html/glReadPixels.xhtml>`_
     '''
 
 def _glReadPixels_inplace_es20(GLint x, GLint y, GLsizei width, GLsizei height,
-                               GLenum format, GLenum type, unsigned char[::1] out_buf):
+                               GLenum format, GLenum type, unsigned char[::1] out_buf,
+                               *, GLint alignment=1):
     '''An implementation of glReadPixels_inplace that complies with OpenGL ES 2.0.
     '''
-    cdef long size
+    cdef long pixel_size, row_size
     if type != GL_UNSIGNED_BYTE:
-        raise ValueError("glReadnPixels() not available; only GL_UNSIGNED_BYTE is supported.")
-    size = width * height * sizeof(GLubyte)
+        raise ValueError("Only GL_UNSIGNED_BYTE is supported.")
+    if alignment not in (1, 2, 4, 8):
+        raise ValueError("Invalid alignment value:", alignment)
     if format == GL_RGB:
-        size *= 3
+        pixel_size = sizeof(GLubyte) * 3
     elif format == GL_RGBA:
-        size *= 4
+        pixel_size = sizeof(GLubyte) * 4
     else:
-        raise ValueError("glReadnPixels() not available; only GL_RGB and GL_RGBA are supported.")
-    if out_buf.nbytes < size:
+        raise ValueError("Only GL_RGB and GL_RGBA are supported.")
+    with cython.cdivision(True):
+        row_size = ((pixel_size * width + alignment - 1) / alignment) * alignment
+    if out_buf.nbytes < (row_size * height):
         return
-    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
     cgl.glReadPixels(x, y, width, height, format, type, &out_buf[0])
 
 def _glReadPixels_inplace_es32(GLint x, GLint y, GLsizei width, GLsizei height,
-                               GLenum format, GLenum type, unsigned char[::1] out_buf):
+                               GLenum format, GLenum type, unsigned char[::1] out_buf,
+                               *, GLint alignment=1):
     '''An implementation of glReadPixels_inplace that relies on glReadnPixels, an API
     introduced in OpenGL ES 3.2.
     '''
-    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
     cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
 
 _glReadPixels_inplace_es20.__doc__ = _glReadPixels_inplace_es32.__doc__ = \
