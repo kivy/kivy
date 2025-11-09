@@ -10,6 +10,26 @@ specialized press/release/cancel events and reactive pressed state tracking.
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
 
+Quick overview
+--------------
+
++---------------------------------------------------------------------------+
+| BUTTON BEHAVIOR                                                           |
++-----------------+-----------+---------------------------------------------+
+| STATE           | TYPE      | DESCRIPTION                                 |
++=================+===========+=============================================+
+| `pressed`       | read-only | Currently touched?                          |
++-----------------+-----------+---------------------------------------------+
+| EVENTS                                                                    |
++---------------------------------------------------------------------------+
+| • `on_press`   →   Touch down                                             |
+| • `on_release` →   Touch up (within bounds if `always_release=False`)     |
+| • `on_cancel`  →   Touch left bounds during drag (`always_release=False`) |
+|                                                                           |
+| Note: Bind to `on_pressed` to monitor state changes.                      |
++---------------------------------------------------------------------------+
+
+
 Examples
 --------
 

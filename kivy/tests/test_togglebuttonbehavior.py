@@ -46,13 +46,13 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         self.assertTrue(hasattr(btn, "_do_cancel"))
 
     def test_basic_toggle(self):
-        """Test manual toggle via 'active' property"""
+        """Test manual toggle via 'activated' property"""
         btn = BasicToggleButton()
-        self.assertFalse(btn.active)
-        btn.active = True
-        self.assertTrue(btn.active)
-        btn.active = False
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
+        btn.activated = True
+        self.assertTrue(btn.activated)
+        btn.activated = False
+        self.assertFalse(btn.activated)
 
     # Toggle timing tests (toggle_on property)
 
@@ -63,11 +63,11 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
 
         touch = create_mock_touch(grab_current=btn)
 
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_down(touch)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_up(touch)
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
 
     def test_default_toggle_on_press(self):
         """Test toggle_on='press' behavior"""
@@ -77,11 +77,11 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
 
         touch = create_mock_touch(grab_current=btn)
 
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_down(touch)
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
         btn.on_touch_up(touch)
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
 
     def test_runtime_toggle_on_change(self):
         """Test dynamic toggle_on reassignment changes behavior"""
@@ -90,31 +90,31 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
 
         # Default behavior (release)
         touch = create_mock_touch(grab_current=btn)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_down(touch)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_up(touch)
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
 
         # Switch to press
         btn.toggle_on = "press"
         touch = create_mock_touch(grab_current=btn)
 
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
         btn.on_touch_down(touch)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_up(touch)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
 
         # Switch back to release
         btn.toggle_on = "release"
         touch = create_mock_touch(grab_current=btn)
 
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_down(touch)
-        self.assertFalse(btn.active)
+        self.assertFalse(btn.activated)
         btn.on_touch_up(touch)
-        self.assertTrue(btn.active)
+        self.assertTrue(btn.activated)
 
     # Group behavior tests
 
@@ -123,13 +123,13 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         btn1 = BasicToggleButton(group="test")
         btn2 = BasicToggleButton(group="test")
 
-        btn1.active = True
-        self.assertTrue(btn1.active)
-        self.assertFalse(btn2.active)
+        btn1.activated = True
+        self.assertTrue(btn1.activated)
+        self.assertFalse(btn2.activated)
 
-        btn2.active = True
-        self.assertTrue(btn2.active)
-        self.assertFalse(btn1.active)
+        btn2.activated = True
+        self.assertTrue(btn2.activated)
+        self.assertFalse(btn1.activated)
 
     def test_group_mutual_exclusion_via_touch(self):
         """Test mutual exclusion between buttons in the same group via touch"""
@@ -141,18 +141,18 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         btn1.on_touch_down(touch1)
         btn1.on_touch_up(touch1)
 
-        self.assertTrue(btn1.active)
-        self.assertFalse(btn2.active)
+        self.assertTrue(btn1.activated)
+        self.assertFalse(btn2.activated)
 
         # Now toggle the second button via touch
         touch2 = create_mock_touch(grab_current=btn2)
         btn2.on_touch_down(touch2)
         btn2.on_touch_up(touch2)
 
-        # Expected behavior: the second button becomes active,
+        # Expected behavior: the second button becomes activated,
         # the first deactivates
-        self.assertTrue(btn2.active)
-        self.assertFalse(btn1.active)
+        self.assertTrue(btn2.activated)
+        self.assertFalse(btn1.activated)
 
     def test_scoped_groups_are_independent(self):
         """Test scoped group isolation"""
@@ -162,28 +162,28 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         btn2a = BasicToggleButton(group=(owner2, "g"))
         btn2b = BasicToggleButton(group=(owner2, "g"))
 
-        btn1a.active = True
-        self.assertTrue(btn1a.active)
-        self.assertFalse(btn1b.active)
-        self.assertFalse(btn2a.active)
-        self.assertFalse(btn2b.active)
+        btn1a.activated = True
+        self.assertTrue(btn1a.activated)
+        self.assertFalse(btn1b.activated)
+        self.assertFalse(btn2a.activated)
+        self.assertFalse(btn2b.activated)
 
-        btn2a.active = True
-        self.assertTrue(btn1a.active)
-        self.assertTrue(btn2a.active)
+        btn2a.activated = True
+        self.assertTrue(btn1a.activated)
+        self.assertTrue(btn2a.activated)
 
     def test_group_change_reassigns_correctly(self):
         """Changing group should rebind correctly"""
-        btn1 = BasicToggleButton(group="g1", active=True)
+        btn1 = BasicToggleButton(group="g1", activated=True)
         btn2 = BasicToggleButton(group="g1")
         btn3 = BasicToggleButton(group="g2")
 
         btn1.group = "g2"
-        btn2.active = True
+        btn2.activated = True
 
-        self.assertTrue(btn1.active)
-        self.assertTrue(btn2.active)
-        self.assertFalse(btn3.active)
+        self.assertTrue(btn1.activated)
+        self.assertTrue(btn2.activated)
+        self.assertFalse(btn3.activated)
 
     def test_group_cleanup_when_reassigned(self):
         """Old groups should be cleaned up when reassigning"""
@@ -195,13 +195,13 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         self.assertEqual(len(btn1.get_group()), 1)
         self.assertEqual(len(btn2.get_group()), 1)
 
-    def test_initial_active_conflict_resolution(self):
-        """If multiple in group start active, last should win"""
-        btn1 = BasicToggleButton(group="g", active=True)
-        btn2 = BasicToggleButton(group="g", active=True)
+    def test_initial_activated_conflict_resolution(self):
+        """If multiple in group start activated, last should win"""
+        btn1 = BasicToggleButton(group="g", activated=True)
+        btn2 = BasicToggleButton(group="g", activated=True)
 
-        self.assertFalse(btn1.active)
-        self.assertTrue(btn2.active)
+        self.assertFalse(btn1.activated)
+        self.assertTrue(btn2.activated)
 
     # allow_no_selection tests
 
@@ -209,42 +209,42 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         """allow_no_selection=True should allow deselection via property"""
         btn1 = BasicToggleButton(allow_no_selection=True)
 
-        btn1.active = True
-        self.assertTrue(btn1.active)
+        btn1.activated = True
+        self.assertTrue(btn1.activated)
 
-        btn1.active = False
-        self.assertFalse(btn1.active)
+        btn1.activated = False
+        self.assertFalse(btn1.activated)
 
     def test_allow_no_selection_true_via_touch(self):
         """allow_no_selection=True should allow deselection via touch"""
-        btn1 = BasicToggleButton(allow_no_selection=True, active=True)
+        btn1 = BasicToggleButton(allow_no_selection=True, activated=True)
 
         touch = create_mock_touch(grab_current=btn1)
         btn1.on_touch_down(touch)
         btn1.on_touch_up(touch)
-        self.assertFalse(btn1.active)
+        self.assertFalse(btn1.activated)
 
     def test_allow_no_selection_false_via_property(self):
         """allow_no_selection=False should prevent deselection via property"""
         btn1 = BasicToggleButton(
-            group="test", allow_no_selection=False, active=True
+            group="test", allow_no_selection=False, activated=True
         )
         btn2 = BasicToggleButton(group="test", allow_no_selection=False)
 
-        btn1.active = False
-        self.assertTrue(btn1.active)
+        btn1.activated = False
+        self.assertTrue(btn1.activated)
 
     def test_allow_no_selection_false_via_touch(self):
         """allow_no_selection=False should prevent deselection via touch"""
         btn1 = BasicToggleButton(
-            group="test", allow_no_selection=False, active=True
+            group="test", allow_no_selection=False, activated=True
         )
         btn2 = BasicToggleButton(group="test", allow_no_selection=False)
 
         touch = create_mock_touch(grab_current=btn1)
         btn1.on_touch_down(touch)
         btn1.on_touch_up(touch)
-        self.assertTrue(btn1.active)
+        self.assertTrue(btn1.activated)
 
     # get_group() method tests
 
@@ -428,32 +428,32 @@ class ToggleButtonBehaviorTest(GraphicUnitTest):
         btn2 = BasicToggleButton(group=G.A)
         btn3 = BasicToggleButton(group=G.B)
 
-        btn1.active = True
-        self.assertTrue(btn1.active)
-        self.assertFalse(btn2.active)
-        self.assertFalse(btn3.active)
+        btn1.activated = True
+        self.assertTrue(btn1.activated)
+        self.assertFalse(btn2.activated)
+        self.assertFalse(btn3.activated)
 
         b1 = BasicToggleButton(group=10)
         b2 = BasicToggleButton(group=10)
         b3 = BasicToggleButton(group=20)
-        b1.active = True
-        self.assertTrue(b1.active)
-        self.assertFalse(b2.active)
-        self.assertFalse(b3.active)
+        b1.activated = True
+        self.assertTrue(b1.activated)
+        self.assertFalse(b2.activated)
+        self.assertFalse(b3.activated)
 
     # Event callback tests
 
-    def test_on_active_callback_invoked(self):
-        """Verify subclass on_active callback is called"""
+    def test_on_activated_callback_invoked(self):
+        """Verify subclass on_activated callback is called"""
         changes = []
 
         class SubToggle(BasicToggleButton):
-            def on_active(self, instance, value):
+            def on_activated(self, instance, value):
                 changes.append(value)
 
         btn = SubToggle()
-        btn.active = True
-        btn.active = False
+        btn.activated = True
+        btn.activated = False
         self.assertEqual(changes, [True, False])
 
 
