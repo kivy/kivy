@@ -1212,7 +1212,7 @@ def _glReadPixels_inplace_es20(GLint x, GLint y, GLsizei width, GLsizei height,
     if type != GL_UNSIGNED_BYTE:
         raise ValueError("Only GL_UNSIGNED_BYTE is supported.")
     if alignment not in (1, 2, 4, 8):
-        raise ValueError("Invalid alignment value:", alignment)
+        raise ValueError(f"Invalid alignment value: {alignment}")
     if format == GL_RGB:
         pixel_size = sizeof(GLubyte) * 3
     elif format == GL_RGBA:
