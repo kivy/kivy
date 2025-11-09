@@ -452,15 +452,15 @@ the corresponding public events are dispatched.
 ToggleButtonBehavior
 ====================
 
-*Replacement of `state` with `active` and Major API Improvements*
+*Replacement of `state` with `activated` and Major API Improvements*
 
 In Kivy 3.x.x, `ToggleButtonBehavior` has undergone significant improvements and changes.
-The most notable change is replacing the `state` OptionProperty with an `active` boolean property (`AliasProperty`),
+The most notable change is replacing the `state` OptionProperty with an `activated` boolean property (`AliasProperty`),
 along with new features like scoped groups and the `toggle_on` property.
 
-**Migrating from `state` to `active`**
+**Migrating from `state` to `activated`**
 
-The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `active` property:
+The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `activated` property:
 
 .. code-block:: python
 
@@ -470,9 +470,9 @@ The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `
         toggle.state = 'normal'  # Deactivate
     
     # Kivy 3.x.x
-    if toggle.active:
+    if toggle.activated:
         print("Toggle is active")
-        toggle.active = False  # Deactivate
+        toggle.activated = False  # Deactivate
 
 In KV language:
 
@@ -485,8 +485,8 @@ In KV language:
     
     # Kivy 3.x.x
     ToggleButton:
-        text: "ON" if self.active else "OFF"
-        color: (0, 1, 0, 1) if self.active else (1, 1, 1, 1)
+        text: "ON" if self.activated else "OFF"
+        color: (0, 1, 0, 1) if self.activated else (1, 1, 1, 1)
 
 **New `on_active` Event**
 
@@ -524,7 +524,7 @@ In KV language, bind to property changes:
     
     # Kivy 3.x.x
     <MyToggle@ToggleButton>:
-        on_active: app.handle_toggle(self, self.active)
+        on_active: app.handle_toggle(self, self.activated)
 
 **New `toggle_on` Property**
 
@@ -703,7 +703,7 @@ removed. Group management is now handled automatically through weak references.
     # Kivy 3.x.x - Automatic group management
     class MyToggle(ToggleButtonBehavior, Label):
         def custom_release(self):
-            self.active = False  # Automatically manages group
+            self.activated = False  # Automatically manages group
 
 **Improved Group Cleanup**
 
@@ -726,7 +726,7 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 | Removed/Changed           | Kivy 2.x.x                | Kivy 3.x.x                             |
 +===========================+===========================+========================================+
-| `state` property          | `'normal'` or `'down'`    | Replaced with `active` (bool)          |
+| `state` property          | `'normal'` or `'down'`    | Replaced with `activated` (bool)       |
 +---------------------------+---------------------------+----------------------------------------+
 | `on_state` event          | Fired on state change     | Replaced with `on_active`              |
 +---------------------------+---------------------------+----------------------------------------+
@@ -738,7 +738,7 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 | `_clear_groups()`         | Static method             | Removed - automatic cleanup            |
 +---------------------------+---------------------------+----------------------------------------+
-| `_release_group()`        | Instance method           | Removed - automatic via `active`       |
+| `_release_group()`        | Instance method           | Removed - automatic via `activated`    |
 +---------------------------+---------------------------+----------------------------------------+
 | Group management          | Manual weak references    | Automatic with `WeakSet`               |
 +---------------------------+---------------------------+----------------------------------------+
