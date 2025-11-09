@@ -228,7 +228,7 @@ In the former case, the
 `expression <http://docs.python.org/2/reference/expressions.html>`_ can only
 span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
-``text: self.state and ('up' if self.state == 'normal' else 'down')``.
+``text: self.state and ('up' if self.pressed else 'down')``.
 
 In the latter case, multiple single line statements are valid, including
 those that escape their newline, as long as they don't add an indentation
@@ -290,7 +290,7 @@ Remember: The value is a python expression! That means that you can do
 something more interesting like::
 
     Button:
-        text: 'Plop world' if self.state == 'normal' else 'Release me!'
+        text: 'Plop world' if self.pressed else 'Release me!'
 
 The Button text changes with the state of the button. By default, the button
 text will be 'Plop world', but when the button is being pressed, the text will
@@ -823,7 +823,7 @@ Set a key that will be available anywhere in the kv. For example:
         state: 'normal'
         canvas:
             Color:
-                rgb: my_color if self.state == 'normal' else my_color_hl
+                rgb: my_color if self.pressed else my_color_hl
 
 include <file>
 ~~~~~~~~~~~~~~~~
