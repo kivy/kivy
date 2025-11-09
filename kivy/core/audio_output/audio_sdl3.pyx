@@ -59,13 +59,13 @@ cdef mix_init():
 
     # avoid next call
     if mix_is_init != 0:
-        return
+        return mix_is_init > 0
 
     if SDL_Init(SDL_INIT_AUDIO) < 0:
         Logger.critical('AudioSDL3: Unable to initialize SDL: {}'.format(
                         SDL_GetError()))
         mix_is_init = -1
-        return 0
+        return False
 
     # In mixer 2.0.2, MIX_INIT_MODPLUG is now implied by MIX_INIT_MOD,
     # and MIX_INIT_FLUIDSYNTH was renamed to MIX_INIT_MID. In previous
@@ -79,15 +79,15 @@ cdef mix_init():
 
     desired_spec.freq = 44100
     desired_spec.format = SDL_AUDIO_S16
-    desired_spec.channels = 2    
+    desired_spec.channels = 2
     if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
                         SDL_GetError()))
         mix_is_init = -1
-        return 0
+        return False
 
     mix_is_init = 1
-    return 1
+    return True
 
 # Container for samples (Mix_LoadWAV)
 cdef class ChunkContainer:
