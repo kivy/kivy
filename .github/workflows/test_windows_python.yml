@@ -30,6 +30,11 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Test-kivy
+    - name: Test Kivy with pytest-run-parallel
+      run: |
+        . .\.ci\windows_ci.ps1
+        python -m pip install pytest-run-parallel[psutil]
+        pytest --iterations=8 --parallel-threads=auto --doctest-modules # kivy
     - name: Test Kivy benchmarks
       run: |
         . .\.ci\windows_ci.ps1
