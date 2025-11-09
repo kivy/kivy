@@ -90,7 +90,7 @@ def test_auth_header(kivy_clock):
         ).decode('utf-8'))
     }
     req = UrlRequest(
-        'http://httpbin.org/basic-auth/user/passwd',
+        'http://httpbingo.org/basic-auth/user/passwd',
         on_success=obj._on_success,
         on_progress=obj._on_progress,
         on_error=obj._on_error,
@@ -113,7 +113,7 @@ def test_auth_auto(kivy_clock):
     obj = UrlRequestQueue([])
     queue = obj.queue
     req = UrlRequest(
-        'http://user:passwd@httpbin.org/basic-auth/user/passwd',
+        'http://user:passwd@httpbingo.org/basic-auth/user/passwd',
         on_success=obj._on_success,
         on_progress=obj._on_progress,
         on_error=obj._on_error,
@@ -138,7 +138,7 @@ def test_ca_file(kivy_clock, scheme):
     obj = UrlRequestQueue([])
     queue = obj.queue
     req = UrlRequest(
-        f"{scheme}://httpbin.org/get",
+        f"{scheme}://httpbingo.org/get",
         on_success=obj._on_success,
         on_progress=obj._on_progress,
         on_error=obj._on_error,
