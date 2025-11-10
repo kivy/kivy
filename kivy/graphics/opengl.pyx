@@ -1229,16 +1229,16 @@ def _glReadPixels_inplace_es20(GLint x, GLint y, GLsizei width, GLsizei height,
 def _glReadPixels_inplace_es32(GLint x, GLint y, GLsizei width, GLsizei height,
                                GLenum format, GLenum type, unsigned char[::1] out_buf,
                                *, GLint alignment=1):
-    '''An implementation of glReadPixels_inplace that relies on glReadnPixels, an API
-    introduced in OpenGL ES 3.2.
+    '''An implementation of glReadPixels_inplace that relies on glReadnPixels, which
+    is an API introduced in OpenGL ES 3.2.
     '''
     cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
     cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
 
-# The reason I split glReadPixels_inplace into two implementations, rather than
-# having a single implementation that checks for the availability of glReadnPixels
-# at call time, is to allow testing _glReadPixels_inplace_es20 even when glReadnPixels
-# is available.
+# The reason glReadPixels_inplace is split into two versions, rather than having a
+# single implementation that checks for the availability of glReadnPixels at call time,
+# is to allow testing the one that doesn’t rely on glReadnPixels even when it's
+# available.
 _glReadPixels_inplace_es20.__doc__ = _glReadPixels_inplace_es32.__doc__ = \
     glReadPixels_inplace.__doc__
 glReadPixels_inplace = _glReadPixels_inplace_es20 if cgl.glReadnPixels == NULL \
