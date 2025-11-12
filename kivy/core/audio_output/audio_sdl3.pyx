@@ -59,7 +59,7 @@ cdef mix_init():
 
     # avoid next call
     if mix_is_init != 0:
-        return
+        return mix_is_init > 0 ? 1 : 0;
 
     if SDL_Init(SDL_INIT_AUDIO) < 0:
         Logger.critical('AudioSDL3: Unable to initialize SDL: {}'.format(
@@ -79,7 +79,7 @@ cdef mix_init():
 
     desired_spec.freq = 44100
     desired_spec.format = SDL_AUDIO_S16
-    desired_spec.channels = 2    
+    desired_spec.channels = 2
     if Mix_OpenAudio(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec):
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
                         SDL_GetError()))
