@@ -664,7 +664,7 @@ class Inspector(Factory.FloatLayout):
         except:
             pass
 
-    def save_property_boolean(self, widget, key, index, instance, ):
+    def save_property_boolean(self, widget, key, index, instance, *args):
         try:
             value = instance.activated
             if index >= 0:
