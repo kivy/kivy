@@ -37,11 +37,11 @@ Quick Overview
 +---------------------------------------+-----------+-------------------------------------+
 | **EVENTS**                                                                              |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_press()`                          |           | First touch down                    |
+| `on_press(touch)`                     |           | First touch down on button          |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_release()`                        |           | All touches released                |
+| `on_release(touch)`                   |           | All touches released                |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_cancel()`                         |           | Touch moved outside bounds          |
+| `on_cancel(touch)`                    |           | Touch moved outside bounds          |
 +---------------------------------------+-----------+-------------------------------------+
 | **METHODS**                                                                             |
 +---------------------------------------+-----------+-------------------------------------+
@@ -518,12 +518,12 @@ class ToggleButtonBehavior(ButtonBehavior):
         super().__init__(**kwargs)
 
     # override ButtonBehavior._do_press hook
-    def _do_press(self):
+    def _do_press(self, touch):
         if self.toggle_on == "press":
             self._handle_toggle_on()
 
     # override ButtonBehavior._do_release hook
-    def _do_release(self):
+    def _do_release(self, touch):
         if self.toggle_on == "release":
             self._handle_toggle_on()
 

@@ -25,11 +25,11 @@ Quick overview
 +---------------------------------------+-----------+-------------------------------------+
 | **EVENTS**                                                                              |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_press()`                          |           | First touch down on button          |
+| `on_press(touch)`                     |           | First touch down on button          |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_release()`                        |           | All touches released                |
+| `on_release(touch)`                   |           | All touches released                |
 +---------------------------------------+-----------+-------------------------------------+
-| `on_cancel()`                         |           | Touch moved outside bounds          |
+| `on_cancel(touch)`                    |           | Touch moved outside bounds          |
 +---------------------------------------+-----------+-------------------------------------+
 
 
@@ -51,11 +51,11 @@ Basic button with visual feedback::
             # Visual feedback: red when pressed, white otherwise
             self.color = [1, 0, 0, 1] if is_pressed else [1, 1, 1, 1]
 
-        def on_press(self):
-            print("Button pressed")
+        def on_press(self, touch):
+            print(f"Button pressed at ({touch.x}, {touch.y})")
 
-        def on_release(self):
-            print("Button released")
+        def on_release(self, touch):
+            print(f"Button released at ({touch.x}, {touch.y})")
 
     class SampleApp(App):
         def build(self):
@@ -75,14 +75,14 @@ Handling button cancellation::
             self.text = 'Press me!'
             self.always_release = False  # Enable cancellation
 
-        def on_press(self):
-            self.text = 'Pressed - drag outside to cancel'
+        def on_press(self, touch):
+            self.text = f'Pressed at {touch.pos} - drag outside to cancel'
 
-        def on_release(self):
-            self.text = 'Released!'
+        def on_release(self, touch):
+            self.text = f'Released at {touch.pos}!'
 
-        def on_cancel(self):
-            self.text = 'Action cancelled!'
+        def on_cancel(self, touch):
+            self.text = f'Action cancelled! (left at {touch.pos})'
 
     class SampleApp(App):
         def build(self):
@@ -152,6 +152,7 @@ class ButtonBehavior:
         - Made ``pressed`` read-only via AliasProperty
         - Added :meth:`on_cancel` event
         - Improved multi-touch handling with explicit touch sets
+        - Added touch argument to on_press, on_release, and on_cancel events
     """
 
     always_release = BooleanProperty(False)
@@ -228,8 +229,11 @@ class ButtonBehavior:
     # Do NOT call these directly or bind to them - use
     # on_press/on_release/on_cancel events instead.
 
-    def _do_press(self):
+    def _do_press(self, touch):
         """Internal hook for subclasses. Called before on_press event dispatch.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that
+                      triggered the press
 
         .. note::
             It's not recommended to override this unless subclassing for
@@ -238,8 +242,11 @@ class ButtonBehavior:
         """
         pass
 
-    def _do_release(self):
+    def _do_release(self, touch):
         """Internal hook for subclasses. Called before on_release event dispatch.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that
+                      triggered the release (the last touch being released)
 
         .. note::
             It's not recommended to override this unless subclassing for
@@ -248,8 +255,11 @@ class ButtonBehavior:
         """
         pass
 
-    def _do_cancel(self):
+    def _do_cancel(self, touch):
         """Internal hook for subclasses. Called before on_cancel event dispatch.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that
+                      moved outside bounds and triggered the cancellation
 
         .. note::
             It's not recommended to override this unless subclassing for
@@ -311,8 +321,8 @@ class ButtonBehavior:
 
         # Only dispatch press event on first touch
         if is_first_touch:
-            self._do_press()
-            self.dispatch("on_press")
+            self._do_press(touch)
+            self.dispatch("on_press", touch)
 
         return True
 
@@ -345,8 +355,8 @@ class ButtonBehavior:
 
                     # Dispatch cancel event if this was the last active touch
                     if not self._active_touches:
-                        self._do_cancel()
-                        self.dispatch("on_cancel")
+                        self._do_cancel(touch)
+                        self.dispatch("on_cancel", touch)
 
             return True
 
@@ -395,32 +405,53 @@ class ButtonBehavior:
         ):
             # Only dispatch release after ALL touches are released
             if not self._active_touches:
-                self._do_release()
-                self.dispatch("on_release")
+                self._do_release(touch)
+                self.dispatch("on_release", touch)
 
         # Cleanup cancelled touch tracking
         self._cancelled_touches.discard(touch)
 
         return True
 
-    def on_press(self):
+    def on_press(self, touch):
         """Event handler called when the button is pressed.
 
         This event is fired when the first touch down occurs on the button.
         In multi-touch scenarios, only the first touch triggers this event.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that
+                      triggered the press. Contains position (touch.x, touch.y),
+                      timestamp, and other touch attributes.
+
+        Example::
+
+            def on_press(self, touch):
+                print(f"Pressed at position: {touch.pos}")
+                print(f"Touch ID: {touch.id}")
         """
         pass
 
-    def on_release(self):
+    def on_release(self, touch):
         """Event handler called when the button is released.
 
         This event is fired when the last active touch is released, and only if:
         - The touch is released within button bounds, OR
         - The `always_release` property is True
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` of the
+                      last touch being released. In multi-touch scenarios, this
+                      is the touch that completed the release action.
+
+        Example::
+
+            def on_release(self, touch):
+                print(f"Released at position: {touch.pos}")
+                duration = touch.time_end - touch.time_start
+                print(f"Touch duration: {duration:.2f}s")
         """
         pass
 
-    def on_cancel(self):
+    def on_cancel(self, touch):
         """Event handler called when touch leaves button bounds during drag.
 
         This event is only fired when `always_release` is False and a touch
@@ -430,6 +461,16 @@ class ButtonBehavior:
 
         Use this to restore the button's original appearance or cancel any
         pending actions that would have occurred on release.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that
+                      moved outside the button bounds. Access touch.pos to get
+                      the position where the touch left the bounds.
+
+        Example::
+
+            def on_cancel(self, touch):
+                print(f"Action cancelled at position: {touch.pos}")
+                self.background_color = [1, 1, 1, 1]  # Reset appearance
 
         .. versionadded:: 3.0.0
         """

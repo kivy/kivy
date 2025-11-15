@@ -97,6 +97,83 @@ The `state` OptionProperty, `min_state_time` NumericProperty, and `last_touch` O
 have been **removed**, along with the `trigger_action()` method. A simpler, read-only `pressed`
 BooleanProperty is now used to indicate the button's state.
 
+**Event Signature Changes**
+
+The `on_press`, `on_release`, and `on_cancel` (new event) events now receive a `touch` argument containing
+the :class:`~kivy.input.motionevent.MotionEvent` that triggered the event:
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self):
+            print("Button pressed")
+        
+        def on_release(self):
+            print("Button released")
+    
+    # Kivy 3.x.x
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            print(f"Button pressed at {touch.pos}")
+        
+        def on_release(self, touch):
+            print(f"Button released at {touch.pos}")
+        
+        def on_cancel(self, touch):  # NEW event
+            print(f"Button cancelled at {touch.pos}")
+
+When binding to these events, the callback receives both the widget instance and the touch:
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    def on_press_callback(instance):
+        print(f"{instance} was pressed")
+    
+    button.bind(on_press=on_press_callback)
+    
+    # Kivy 3.x.x
+    def on_press_callback(instance, touch):
+        print(f"{instance} was pressed at {touch.pos}")
+    
+    button.bind(on_press=on_press_callback)
+
+
+.. code-block:: python
+
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            # Store press time for duration calculation
+            self.press_time = touch.time_start
+        
+        def on_release(self, touch):
+            # Calculate how long the button was pressed
+            duration = touch.time_end - self.press_time
+            print(f"Button pressed for {duration:.2f} seconds")
+            
+            # Access touch position
+            print(f"Released at ({touch.x}, {touch.y})")
+
+**Multi-Touch Touch Argument Behavior**
+
+In multi-touch scenarios:
+
+- **on_press**: Receives the **first touch** that triggered the press
+- **on_release**: Receives the **last touch** being released
+- **on_cancel**: Receives the **last touch** that moved outside bounds
+
+.. code-block:: python
+
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            # This is the first touch
+            print(f"First touch ID: {touch.id}")
+        
+        def on_release(self, touch):
+            # This is the last touch being released
+            print(f"Last touch ID: {touch.id}")
+
 **Migrating from `state` to `pressed`**
 
 The `state` property that could be `'normal'` or `'down'` has been replaced with a boolean
@@ -198,14 +275,25 @@ If you need to programmatically trigger button actions in Kivy 3.x.x, you have t
 
 **Option 1: Dispatch events directly (recommended for simple cases)**
 
-Simply dispatch the `on_press` and `on_release` events without simulating the full touch cycle:
+Simply dispatch the `on_press` and `on_release` events. You'll need to provide a touch-like object:
 
 .. code-block:: python
 
     # Kivy 3.x.x - Direct event dispatch
-    button.dispatch('on_press')
+    # Create a simple object with touch attributes
+    class TouchProxy:
+        def __init__(self, pos):
+            self.pos = pos
+            self.x, self.y = pos
+            self.id = 0
+            self.time_start = 0
+            self.time_end = 0
+            self.ud = {}
+    
+    touch = TouchProxy(button.center)
+    button.dispatch('on_press', touch)
     # ... your logic ...
-    button.dispatch('on_release')
+    button.dispatch('on_release', touch)
 
 Note that this approach does NOT update the `pressed` property or trigger internal state
 changes, as those are tied to actual touch events.
@@ -218,6 +306,7 @@ property), you must simulate actual touch events:
 .. code-block:: python
 
     from kivy.input.motionevent import MotionEvent
+    from kivy.clock import Clock
     
     class MyButton(ButtonBehavior, Label):
         def simulate_press(self, duration=0.1):
@@ -250,15 +339,28 @@ Or create a helper method in your custom button class:
     from kivy.uix.behaviors import ButtonBehavior
     from kivy.uix.label import Label
     
+    class TouchProxy:
+        """Simple object that mimics touch attributes."""
+        def __init__(self, pos):
+            self.pos = pos
+            self.x, self.y = pos
+            self.id = 0
+            self.time_start = 0
+            self.time_end = 0
+            self.ud = {}
+    
     class MyButton(ButtonBehavior, Label):
         def trigger_action(self, duration=0.1):
             """Simulate button press/release."""
-            self._do_press()
-            self.dispatch('on_press')
+            # Create touch proxy
+            touch = TouchProxy(self.center)
+            
+            self._do_press(touch)
+            self.dispatch('on_press', touch)
             
             def trigger_release(dt):
-                self._do_release()
-                self.dispatch('on_release')
+                self._do_release(touch)
+                self.dispatch('on_release', touch)
             
             if not duration:
                 trigger_release(0)
@@ -267,8 +369,8 @@ Or create a helper method in your custom button class:
 
 **Removal of `last_touch` Property**
 
-The `last_touch` ObjectProperty has been **removed**. If you need to track touches,
-implement your own tracking:
+The `last_touch` ObjectProperty has been **removed**. However, since events now receive
+the touch as an argument, you can easily track it if needed:
 
 .. code-block:: python
 
@@ -277,21 +379,20 @@ implement your own tracking:
         def on_press(self):
             print(f"Touch at: {self.last_touch.pos}")
     
-    # Kivy 3.x.x
+    # Kivy 3.x.x - Option 1: Use touch argument directly
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            print(f"Touch at: {touch.pos}")
+    
+    # Kivy 3.x.x - Option 2: Track manually if needed elsewhere
     class MyButton(ButtonBehavior, Label):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.last_touch = None
         
-        def on_touch_down(self, touch):
-            result = super().on_touch_down(touch)
-            if result and self in touch.ud:
-                self.last_touch = touch
-            return result
-        
-        def on_press(self):
-            if self.last_touch:
-                print(f"Touch at: {self.last_touch.pos}")
+        def on_press(self, touch):
+            self.last_touch = touch
+            print(f"Touch at: {touch.pos}")
 
 **Improved Multi-Touch Behavior**
 
@@ -304,8 +405,8 @@ The `on_release` event behavior has changed for multi-touch scenarios:
 
     # Example: Multi-touch behavior difference
     class MyButton(ButtonBehavior, Label):
-        def on_release(self):
-            print("Button released")
+        def on_release(self, touch):
+            print(f"Button released - last touch ID: {touch.id}")
     
     # Scenario: User presses button with 3 fingers, then lifts them one by one
     # Kivy 2.x.x: "Button released" prints when the FIRST finger is lifted
@@ -329,8 +430,8 @@ If you need the old behavior (release on first touch up), override `on_touch_up`
         def on_touch_up(self, touch):
             if touch.grab_current is self and not self._first_touch_released:
                 self._first_touch_released = True
-                self._do_release()
-                self.dispatch('on_release')
+                self._do_release(touch)
+                self.dispatch('on_release', touch)
             return super().on_touch_up(touch)
 
 **New `on_cancel` Event**
@@ -341,15 +442,18 @@ during a drag operation. This only occurs when `always_release=False` (the defau
 .. code-block:: python
 
     class MyButton(ButtonBehavior, Label):
-        def on_press(self):
+        def on_press(self, touch):
             self.color = (1, 0, 0, 1)  # Red when pressed
+            print(f"Pressed at {touch.pos}")
         
-        def on_release(self):
+        def on_release(self, touch):
             self.color = (0, 1, 0, 1)  # Green on successful release
+            print(f"Released at {touch.pos}")
             print("Button action executed")
         
-        def on_cancel(self):
+        def on_cancel(self, touch):
             self.color = (1, 1, 1, 1)  # White when cancelled
+            print(f"Cancelled at {touch.pos}")
             print("Button action cancelled")
 
 This event allows you to provide visual feedback when the user drags their finger/pointer
@@ -378,15 +482,15 @@ fire normally. This could cause unexpected side effects.
             super().__init__(**kwargs)
             self.always_release = False  # Default, but explicit here
         
-        def on_press(self):
+        def on_press(self, touch):
             print("Action started")
             self.text = "Release here to confirm"
         
-        def on_release(self):
+        def on_release(self, touch):
             print("Action confirmed!")
             self.text = "Confirmed"
         
-        def on_cancel(self):
+        def on_cancel(self, touch):
             print("Action cancelled")
             self.text = "Cancelled - press again"
 
@@ -401,14 +505,14 @@ and `on_cancel` never fires:
             super().__init__(**kwargs)
             self.always_release = True  # Release fires anywhere
         
-        def on_release(self):
-            print("Released - on_cancel never fires")
+        def on_release(self, touch):
+            print(f"Released at {touch.pos} - on_cancel never fires")
 
 **Internal Hooks for Subclassing**
 
 The methods `_do_press()`, `_do_release()`, and `_do_cancel()` are now documented as
 internal hooks for subclasses (like `ToggleButtonBehavior`). These are called before
-the corresponding public events are dispatched.
+the corresponding public events are dispatched and now also receive the `touch` argument.
 
 .. note::
     Avoid using these methods, they are for internal state management in subclasses. Application code
@@ -417,36 +521,41 @@ the corresponding public events are dispatched.
 .. code-block:: python
 
     class CustomButton(ButtonBehavior, Label):
-        def _do_press(self):
+        def _do_press(self, touch):
             # Internal state changes before event dispatch (for internal use only)
-            super()._do_press()
+            super()._do_press(touch)
             self._internal_state = "pressing"
+            self._press_position = touch.pos
         
-        def on_press(self):
+        def on_press(self, touch):
             # Public event handler for application logic
-            print("Button pressed - use this for your logic")
+            print(f"Button pressed at {touch.pos} - use this for your logic")
 
 **Summary of Breaking Changes**
 
-+-------------------------+---------------------------+----------------------------------------+
-| Removed/Changed         | Kivy 2.x.x                | Kivy 3.x.x                             |
-+=========================+===========================+========================================+
-| `state` property        | `'normal'` or `'down'`    | Removed - use `pressed` (read-only)    |
-+-------------------------+---------------------------+----------------------------------------+
-| `min_state_time`        | NumericProperty (0.035)   | Removed - implement manually           |
-+-------------------------+---------------------------+----------------------------------------+
-| `last_touch`            | ObjectProperty            | Removed - track manually               |
-+-------------------------+---------------------------+----------------------------------------+
-| `trigger_action()`      | Method available          | Removed - dispatch events manually     |
-+-------------------------+---------------------------+----------------------------------------+
-| `on_release` behavior   | Fires on first touch up   | Fires after all touches released       |
-+-------------------------+---------------------------+----------------------------------------+
-| `on_cancel` event       | Not available             | **New** - fires on drag outside bounds |
-+-------------------------+---------------------------+----------------------------------------+
-| `always_release=False`  | Silent non-release        | Explicit `on_cancel` event             |
-+-------------------------+---------------------------+----------------------------------------+
-| Internal hooks          | Undocumented              | Documented `_do_*()` methods           |
-+-------------------------+---------------------------+----------------------------------------+
++-------------------------+---------------------------+------------------------------------------+
+| Removed/Changed         | Kivy 2.x.x                | Kivy 3.x.x                               |
++=========================+===========================+==========================================+
+| `state` property        | `'normal'` or `'down'`    | Removed - use `pressed` (read-only)      |
++-------------------------+---------------------------+------------------------------------------+
+| `min_state_time`        | NumericProperty (0.035)   | Removed - implement manually             |
++-------------------------+---------------------------+------------------------------------------+
+| `last_touch`            | ObjectProperty            | Removed - events receive `touch` arg     |
++-------------------------+---------------------------+------------------------------------------+
+| `trigger_action()`      | Method available          | Removed - dispatch events with mock      |
++-------------------------+---------------------------+------------------------------------------+
+| Event signatures        | `on_press()`              | `on_press(touch)` - touch argument added |
+|                         | `on_release()`            | `on_release(touch)`                      |
++-------------------------+---------------------------+------------------------------------------+
+| `on_release` behavior   | Fires on first touch up   | Fires after all touches released         |
++-------------------------+---------------------------+------------------------------------------+
+| `on_cancel` event       | Not available             | **New** - `on_cancel(touch)` fires on    |
+|                         |                           | drag outside bounds                      |
++-------------------------+---------------------------+------------------------------------------+
+| `always_release=False`  | Silent non-release        | Explicit `on_cancel` event with touch    |
++-------------------------+---------------------------+------------------------------------------+
+| Internal hooks          | Undocumented              | Documented `_do_*(touch)` methods        |
++-------------------------+---------------------------+------------------------------------------+
 
 ====================
 ToggleButtonBehavior
