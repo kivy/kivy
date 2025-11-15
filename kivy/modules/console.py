@@ -438,7 +438,7 @@ class ConsoleAddonBreadcrumbView(RelativeLayout):
         self.parents = parents
         btn.state = "down"
 
-    def highlight_widget(self, instance):
+    def highlight_widget(self, instance, touch):
         self.console.widget = instance.widget_ref()
 
 
@@ -855,7 +855,7 @@ class Console(RelativeLayout):
         btn.bind(on_press=self._activate_panel)
         self._toolbar["panels"].append(btn)
 
-    def _activate_panel(self, instance):
+    def _activate_panel(self, instance, touch):
         if self._panel != instance:
             self._panel.cb_deactivate()
             self._panel.state = "normal"

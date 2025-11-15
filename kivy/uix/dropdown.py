@@ -378,7 +378,7 @@ if __name__ == '__main__':
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
         for i in range(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
-            item.bind(on_release=lambda btn: dp.select(btn.text))
+            item.bind(on_release=lambda btn, touch: dp.select(btn.text))
             dp.add_widget(item)
         dp.open(button)
 
