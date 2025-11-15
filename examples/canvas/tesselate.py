@@ -104,7 +104,7 @@ class ShapeBuilder(FloatLayout):
         Logger.info('tesselate: build: tess.tesselate returns {}'.format(ret))
         self.canvas.after.clear()
 
-        debug = self.ids.debug.state == "down"
+        debug = self.ids.debug.activated
         if debug:
             with self.canvas.after:
                 c = 0
