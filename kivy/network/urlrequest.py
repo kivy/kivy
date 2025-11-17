@@ -35,7 +35,7 @@ Example of fetching JSON::
         for key, value in req.resp_headers.items():
             print('{}: {}'.format(key, value))
 
-    req = UrlRequest('https://httpbin.org/headers', got_json)
+    req = UrlRequest('https:///headers', got_json)
 
 Example of Posting data (adapted from httplib example)::
 
