@@ -92,7 +92,7 @@ FRAMEWORK_SEARCH_PATHS="$(pwd)/kivy-dependencies/dist/Frameworks"
 # Build the dependencies
 pushd kivy-dependencies/build
 
-# libpng is neeeded by SDL3_ttf to render emojis
+# libpng is needed by SDL3_ttf to render emojis
 echo "-- Build libpng (Universal)"
 pushd $MACOS__LIBPNG__FOLDER
   cmake -S . -B build \
