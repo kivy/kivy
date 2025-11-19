@@ -35,7 +35,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Test-kivy-benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: benchmarks-windows-unittests-python-${{ matrix.python }}-${{ matrix.arch }}
         path: .benchmarks-kivy

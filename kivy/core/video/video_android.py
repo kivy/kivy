@@ -15,8 +15,6 @@ MediaMetadataRetriever = autoclass("android.media.MediaMetadataRetriever")
 Surface = autoclass("android.view.Surface")
 SurfaceTexture = autoclass("android.graphics.SurfaceTexture")
 
-Logger.info('VideoAndroid: Using Android MediaPlayer')
-
 class OnCompletionListener(PythonJavaClass):
     __javainterfaces__ = ["android/media/MediaPlayer$OnCompletionListener"]
     __javacontext__ = "app"
@@ -31,24 +29,32 @@ class OnCompletionListener(PythonJavaClass):
             self.callback()
 
 
+class OnErrorListener(PythonJavaClass):
+    __javainterfaces__ = ["android/media/MediaPlayer$OnErrorListener"]
+    __javacontext__ = "app"
+
+    def __init__(self, callback, **kwargs):
+        super(OnErrorListener, self).__init__(**kwargs)
+        self.callback = callback
+
+    @java_method("(Landroid/media/MediaPlayer;II)Z")
+    def onError(self, mp, what, extra):
+        if self.callback:
+            return self.callback(what, extra)
+        return False
+
+
 class VideoAndroid(VideoBase):
     _mediaplayer = None
 
     def __init__(self, **kwargs):
         super(VideoAndroid, self).__init__(**kwargs)
-        self._mediaplayer = None
-        self._surface_texture = None
-        self._surface = None
-        self._video_texture = None
-        self._fbo = None
-        self._texture_cb = None
         self._completion_listener = None
-        self._retriever = None
-        self._resolution = (0, 0)
         self._rotation = 0
 
     def load(self):
-        self.unload()
+        self.unload('Loading')
+
         if not self._filename:
             Logger.error("VideoAndroid: No filename set")
             return
@@ -56,8 +62,9 @@ class VideoAndroid(VideoBase):
         try:
             self._retriever = MediaMetadataRetriever()
             self._retriever.setDataSource(self._filename)
-            self._rotation = int(self._retriever.extractMetadata(
-                MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION))
+            _rotation = self._retriever.extractMetadata(
+                MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+            self._rotation = int(_rotation or self._rotation)
             Logger.info(f"VideoAndroid: Rotation: {self._rotation}")
         except Exception as e:
             Logger.warning(f"VideoAndroid: Failed to get rotation: {e}")
@@ -65,29 +72,27 @@ class VideoAndroid(VideoBase):
 
         self._mediaplayer = MediaPlayer()
         self._mediaplayer.setDataSource(self._filename)
-        self._completion_listener = OnCompletionListener(
-            self._completion_callback
-        )
+        self._completion_listener = OnCompletionListener(self._completion_callback)
         self._mediaplayer.setOnCompletionListener(self._completion_listener)
+        self._error_listener = OnErrorListener(self._error_callback)
+        self._mediaplayer.setOnErrorListener(self._error_listener)
         self._mediaplayer.prepare()
 
-        w = self._mediaplayer.getVideoWidth()
-        h = self._mediaplayer.getVideoHeight()
-        self._resolution = (w, h)
+        width = self._mediaplayer.getVideoWidth()
+        height = self._mediaplayer.getVideoHeight()
+        self._resolution = _resolution = (width, height)
 
-        # Create OES texture
-        self._video_texture = Texture(width=w, height=h, colorfmt="rgba")
-        self._video_texture.wrap = "clamp_to_edge"
+        self._video_texture = Texture.create(size=_resolution, colorfmt="rgba")
 
         # SurfaceTexture + Surface
         self._surface_texture = SurfaceTexture(int(self._video_texture.id))
-        self._surface_texture.setDefaultBufferSize(w, h)
+        self._surface_texture.setDefaultBufferSize(width, height)
         self._surface = Surface(self._surface_texture)
         self._mediaplayer.setSurface(self._surface)
 
         # FBO for Kivy texture
-        self._fbo = Fbo(size=(w, h))
-        self._fbo['resolution'] = (float(w), float(h))
+        self._fbo = Fbo(size=_resolution)
+        self._fbo['resolution'] = (float(width), float(height))
         self._fbo['angle'] = float(math.radians(self._rotation))
         self._fbo.shader.fs = '''
             #extension GL_OES_EGL_image_external : require
@@ -123,20 +128,19 @@ class VideoAndroid(VideoBase):
                 // Sample from external camera texture
                 gl_FragColor = texture2D(texture1, uv);
             }
-
         '''
         with self._fbo:
-            self._texture_cb = Callback(
-                lambda instr: self._video_texture.bind)
-            Rectangle(size=(w, h))
+            self._texture_cb = Callback(lambda instr: self._video_texture.bind)
+            Rectangle(size=_resolution)
 
         self._texture = self._fbo.texture
         self.dispatch("on_load")
 
-    def unload(self):
-        Logger.info("VideoAndroid: Unload")
+    def unload(self, message='Unloading'):
+        Logger.info("VideoAndroid: %s", message)
+
         # Safely release MediaPlayer
-        if hasattr(self, "_mediaplayer"):
+        if self._mediaplayer:
             try:
                 self._mediaplayer.release()
             except Exception:
@@ -151,6 +155,7 @@ class VideoAndroid(VideoBase):
         self._retriever = None
         self._state = ""
         self._resolution = (0, 0)
+        self._error_listener = None
 
     # Property overrides
     def _get_position(self):
@@ -209,13 +214,14 @@ class VideoAndroid(VideoBase):
 
     # Called automatically by VideoBase
     def _update(self, dt):
-
         if not self._surface_texture:
             return
+
         self._surface_texture.updateTexImage()
         self._texture_cb.ask_update()
         self._fbo.draw()
         self._texture = self._fbo.texture
+
         if self._texture:
             self.dispatch("on_frame")
 
@@ -231,4 +237,10 @@ class VideoAndroid(VideoBase):
         elif self.eos == "loop":
             self.stop()
             self.play()
+
         self.dispatch("on_eos")
+
+    def _error_callback(self, what, extra):
+        Logger.error(f"VideoAndroid: MediaPlayer error! What: {what}, Extra: {extra}")
+        self.unload()
+        return True

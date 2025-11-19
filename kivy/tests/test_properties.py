@@ -481,21 +481,26 @@ def test_property_rebind(self):
 
     Builder.load_string('''
 <ObjWidget>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <ObjWidgetRebindFalse>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <AliasWidget>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.active) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <DictWidget>:
-    text: self.button.button.state if self.button.button is not None\
- else 'Unset'
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.active) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 
 <DictWidgetFalse>:
-    text: self.button.button.state if self.button.button is not None\
- else 'Unset'
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.active) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 ''')
 
     obj = ObjWidget()
@@ -503,7 +508,7 @@ def test_property_rebind(self):
     dict_rebind = DictWidget()
     dict_false = DictWidgetFalse()
     alias_rebind = AliasWidget()
-    button = ToggleButton()
+    button = ToggleButton(active=False)  # Explicit initial state
     Clock.tick()
     self.assertEqual(obj.text, 'Unset')
     self.assertEqual(obj_false.text, 'Unset')
@@ -517,27 +522,29 @@ def test_property_rebind(self):
     dict_false.button.button = button
     alias_rebind.button = button
     Clock.tick()
-    self.assertEqual(obj.text, 'normal')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'normal')
+    self.assertEqual(obj.text, 'Inactive')
+    self.assertEqual(obj_false.text, 'Inactive')
+    self.assertEqual(dict_rebind.text, 'Inactive')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'normal')
+    self.assertEqual(alias_rebind.text, 'Inactive')
 
-    button.state = 'down'
+    button.active = True
     Clock.tick()
-    self.assertEqual(obj.text, 'down')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'down')
+    self.assertEqual(obj.text, 'Active')
+    self.assertEqual(
+        obj_false.text, "Inactive"
+    )  # Should NOT update (rebind=False)
+    self.assertEqual(dict_rebind.text, 'Active')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'down')
+    self.assertEqual(alias_rebind.text, 'Active')
 
-    button.state = 'normal'
+    button.active = False
     Clock.tick()
-    self.assertEqual(obj.text, 'normal')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'normal')
+    self.assertEqual(obj.text, 'Inactive')
+    self.assertEqual(obj_false.text, 'Inactive')  # Still old value
+    self.assertEqual(dict_rebind.text, 'Inactive')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'normal')
+    self.assertEqual(alias_rebind.text, 'Inactive')
 
     obj.button = None
     obj_false.button = None

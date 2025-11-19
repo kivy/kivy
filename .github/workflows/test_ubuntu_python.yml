@@ -13,7 +13,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -23,14 +23,19 @@ jobs:
 
   unit_test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.13', '3.14' ]
     env:
       DISPLAY: ':99.0'
+      # TODO: Only run tests on 3.14 once "ffpyplayer" works with Python 3.14
+      KIVY_TEST_AUDIO: ${{ matrix.python == '3.14' && '0' || '1' }}
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: ${{ matrix.python }}
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -60,7 +65,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: benchmarks-ubuntu-unittests-python-3.x
         path: .benchmarks-kivy
@@ -72,7 +77,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
@@ -91,7 +96,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: docs
         path: doc/build/html
