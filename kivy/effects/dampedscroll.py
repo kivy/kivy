@@ -66,31 +66,31 @@ class DampedScrollEffect(ScrollEffect):
 
     rubber_band_coeff = NumericProperty(0.55)
     '''Rubber band resistance coefficient. Higher values = less resistance.
-    
+
     Flutter/iOS typically use ~0.55. Lower values (0.3-0.4) feel stiffer,
     higher values (0.6-0.8) feel more elastic.
-    
+
     :attr:`rubber_band_coeff` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.55.
     '''
 
     spring_mass = NumericProperty(1.0)
     '''Mass for spring simulation (affects bounce-back speed).
-    
+
     :attr:`spring_mass` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.0.
     '''
 
     spring_stiffness = NumericProperty(100.0)
     '''Stiffness for spring simulation (affects bounce-back speed).
-    
+
     :attr:`spring_stiffness` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 100.0.
     '''
 
     min_overscroll = NumericProperty(.5)
     '''An overscroll less than this amount will be normalized to 0.
-    
+
     :attr:`min_overscroll` is a :class:`~kivy.properties.NumericProperty` and
     defaults to .5.
     '''

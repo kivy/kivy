@@ -27,13 +27,13 @@ BoxLayout:
     spacing: dp(10)
     padding: dp(10)
     on_size: print(self.size)
-    
+
     # Left side - Parameter controls
     BoxLayout:
         orientation: 'vertical'
         size_hint_x: 0.4
         spacing: dp(8)
-        
+
         Label:
             size_hint_y: None
             height: dp(40)
@@ -41,13 +41,13 @@ BoxLayout:
             font_size: '16sp'
             bold: True
             color: 1, 1, 1, 1
-        
+
         # Rubber Band Coefficient
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -55,7 +55,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: rubber_band_slider
                 min: 0.1
@@ -65,20 +65,20 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_rubber_band(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Lower = Stiffer | Higher = More elastic'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Spring Stiffness
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -86,7 +86,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: spring_stiffness_slider
                 min: 20
@@ -96,20 +96,20 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_spring_stiffness(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Lower = Slower bounce | Higher = Faster bounce'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Spring Mass
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -117,7 +117,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: spring_mass_slider
                 min: 0.1
@@ -127,20 +127,20 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_spring_mass(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Affects momentum and bounce speed'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Min Overscroll
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -148,7 +148,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: min_overscroll_slider
                 min: 0.0
@@ -158,20 +158,20 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_min_overscroll(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Threshold for activating overscroll'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Friction (inherited from KineticEffect)
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -179,7 +179,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: friction_slider
                 min: 0.01
@@ -189,20 +189,20 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_friction(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Deceleration rate (momentum scrolling)'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Min Velocity (inherited from KineticEffect)
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(80)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(25)
@@ -210,7 +210,7 @@ BoxLayout:
                 font_size: '12sp'
                 halign: 'left'
                 text_size: self.size
-            
+
             Slider:
                 id: min_velocity_slider
                 min: 0.1
@@ -220,14 +220,14 @@ BoxLayout:
                 size_hint_y: None
                 height: dp(30)
                 on_value: app.update_min_velocity(self.value)
-            
+
             Label:
                 size_hint_y: None
                 height: dp(20)
                 text: 'Higher = stops earlier (more abrupt), Lower = slow creep'
                 font_size: '9sp'
                 color: 0.7, 0.7, 0.7, 1
-        
+
         # Calculated critical damping display
         Label:
             size_hint_y: None
@@ -235,7 +235,7 @@ BoxLayout:
             text: f'Critical Damping: {app.critical_damping:.2f}'
             font_size: '11sp'
             color: 0.3, 1.0, 0.3, 1
-        
+
         # Reset button
         Button:
             size_hint_y: None
@@ -244,15 +244,15 @@ BoxLayout:
             font_size: '12sp'
             bold: True
             on_press: app.reset_defaults()
-        
+
         # Spacer
         Widget:
-    
+
     # Right side - ScrollView with test content
     BoxLayout:
         orientation: 'vertical'
         size_hint_x: 0.6
-        
+
         Label:
             size_hint_y: None
             height: dp(40)
@@ -260,7 +260,7 @@ BoxLayout:
             font_size: '16sp'
             bold: True
             color: 0.3, 0.8, 1.0, 1
-        
+
         ScrollView:
             id: test_scroll
             do_scroll_x: False
@@ -268,7 +268,7 @@ BoxLayout:
             scroll_type: ['bars', 'content']
             bar_width: dp(10)
             bar_color: 0.3, 0.8, 1.0, 0.8
-            
+
             BoxLayout:
                 id: scroll_content
                 orientation: 'vertical'
@@ -325,7 +325,7 @@ class DampedScrollEffectTuningApp(App):
         '''Store reference to the Y effect for updates.'''
         self.effect = self.scroll_view.effect_y
         print(f"\nEffect stored: {type(self.effect).__name__}")
-        print(f"Initial parameters:")
+        print("Initial parameters:")
         print(f"  - rubber_band_coeff: {self.effect.rubber_band_coeff}")
         print(f"  - spring_stiffness: {self.effect.spring_stiffness}")
         print(f"  - spring_mass: {self.effect.spring_mass}")
