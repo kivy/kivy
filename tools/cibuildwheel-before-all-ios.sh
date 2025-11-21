@@ -1,6 +1,6 @@
 
 
-FWS_DIR="$PWD/kivy/dist/Frameworks"
+FWS_DIR="$PWD/dist/Frameworks"
 echo "Frameworks dir: $FWS_DIR"
 
 pip install -i https://pypi.anaconda.org/kivyschool/simple kivy-sdl3-angle -t $FWS_DIR
