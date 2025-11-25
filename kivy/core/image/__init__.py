@@ -41,6 +41,89 @@ will be used only for caching)::
     data = io.BytesIO(open("image.png", "rb").read())
     im = CoreImage(data, ext="png", filename="image.png")
 
+Data URI loading
+----------------
+
+Images can be loaded directly from data URIs without needing to save them to disk first.
+This is useful for embedding small images directly in your code or loading images
+from web APIs that return base64-encoded data.
+
+Data URIs must follow the standard format::
+
+    data:image/<type>[;<options>],<data>
+
+Where:
+    - `<type>`: The image format (e.g., 'png', 'jpeg', 'gif', 'webp')
+    - `<options>`: Optional parameters, separated by semicolons. Currently, supports:
+        - `base64`: Indicates the data is base64-encoded (recommended)
+    - `<data>`: The image data, either as raw bytes or base64-encoded string
+
+Typical usage with Image widget
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most common way to use data URIs is with the :class:`~kivy.uix.image.Image` widget,
+which handles positioning, scaling, and other display logic::
+
+    from kivy.uix.image import Image
+
+    # Load a base64-encoded PNG image
+    data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."
+    img = Image(source=data_uri)
+
+In KV language::
+
+    Image:
+        source: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...'
+
+Advanced usage with CoreImage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For custom canvas instructions or more control over texture rendering,
+you can use CoreImage directly::
+
+    from kivy.core.image import Image as CoreImage
+
+    # Load and get the texture
+    data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."
+    core_img = CoreImage(data_uri)
+    texture = core_img.texture
+
+In KV language for custom widgets::
+
+    <MyWidget>:
+        canvas:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                texture: CoreImage('data:image/png;base64,iVBORw0KGg...').texture
+
+**Important notes:**
+
+- Images loaded from data URIs are automatically set to `nocache=True` and will not be
+cached
+- The image type must be supported by one of Kivy's image providers
+(png, jpeg, gif, etc.)
+- Base64 encoding is recommended for binary image formats (PNG, JPEG, etc.)
+- For large images, consider using the BytesIO method instead for better memory
+efficiency
+
+Converting a file to a data URI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here's how to convert an existing image file to a data URI::
+
+    import base64
+    from kivy.uix.image import Image
+
+    # Read and encode an image file
+    with open("image.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode('utf-8')
+
+    # Create data URI and load
+    data_uri = f"data:image/png;base64,{encoded}"
+    img = Image(source=data_uri)
+
+
 Saving an image
 ---------------
 
