@@ -10,6 +10,50 @@ specialized on/off state management with optional radio button grouping.
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
 
+
+Quick Overview
+--------------
+
++-----------------------------------------------------------------------------------------+
+| TOGGLE BUTTON BEHAVIOR (extends ButtonBehavior)                                         |
++---------------------------------------+-----------+-------------------------------------+
+| STATE                                 | TYPE      | DESCRIPTION                         |
++=======================================+===========+=====================================+
+| `pressed`                             | read-only | Currently touched?                  |
++---------------------------------------+-----------+-------------------------------------+
+| `activated`                           | read/write| Persistent on/off state             |
++---------------------------------------+-----------+-------------------------------------+
+| `always_release`                      | read/write| Always fire on_release?             |
++---------------------------------------+-----------+-------------------------------------+
+| `allow_no_selection`                  | read/write| Allow button off?                   |
++---------------------------------------+-----------+-------------------------------------+
+| **GROUPING**                                                                            |
++---------------------------------------+-----------+-------------------------------------+
+| `group`                               | read/write| Group identifier (string or tuple)  |
++---------------------------------------+-----------+-------------------------------------+
+| **CONFIGURATION**                                                                       |
++---------------------------------------+-----------+-------------------------------------+
+| `toggle_on`                           | read/write| 'press' or 'release'                |
++---------------------------------------+-----------+-------------------------------------+
+| **EVENTS**                                                                              |
++---------------------------------------+-----------+-------------------------------------+
+| `on_press(touch)`                     |           | First touch down on button          |
++---------------------------------------+-----------+-------------------------------------+
+| `on_release(touch)`                   |           | All touches released                |
++---------------------------------------+-----------+-------------------------------------+
+| `on_cancel(touch)`                    |           | Touch moved outside bounds          |
++---------------------------------------+-----------+-------------------------------------+
+| **METHODS**                                                                             |
++---------------------------------------+-----------+-------------------------------------+
+| `<togglebutton_instance>.get_group()` |           | Get widgets in button's group       |
++---------------------------------------+-----------+-------------------------------------+
+| `ToggleButtonBehavior.get_group(name)`|           | Get widgets by global group name    |
++---------------------------------------+-----------+-------------------------------------+
+| `ToggleButtonBehavior.get_group(      |           | Get widgets by scoped group         |
+| (owner, name))`                       |           |                                     |
++---------------------------------------+-----------+-------------------------------------+
+
+
 Examples
 --------
 
@@ -32,7 +76,7 @@ Basic toggle with visual feedback::
                 pos: self.pos
         ''')
 
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.color = [0, 1, 0, 1] if value else [1, 1, 1, 1]
 
     class SampleApp(App):
@@ -62,7 +106,7 @@ Radio button group behavior::
                 pos: self.pos
         ''')
 
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.color = [0, 1, 0, 1] if value else [1, 1, 1, 1]
 
 
@@ -103,7 +147,7 @@ Scoped groups for reusable components::
                 pos: self.pos
         ''')
 
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.color = [0, 1, 0, 1] if value else [1, 1, 1, 1]
 
 
@@ -121,7 +165,7 @@ Scoped groups for reusable components::
                     group=(self, "options"),
 
                     allow_no_selection=False,
-                    active=i == 0,
+                    activated=i == 0,
                 )
                 self.add_widget(btn)
 
@@ -139,13 +183,14 @@ Scoped groups for reusable components::
 
 
 See :class:`~kivy.uix.behaviors.ToggleButtonBehavior` for details.
-"""
+"""  # noqa: E501
 
 __all__ = ("ToggleButtonBehavior",)
 
 from collections import defaultdict
 from weakref import WeakSet
 
+from kivy.logger import Logger
 from kivy.properties import (
     AliasProperty,
     BooleanProperty,
@@ -202,15 +247,16 @@ class ToggleButtonBehavior(ButtonBehavior):
     State Management
     ----------------
     Unlike the transient :attr:`pressed` property from ButtonBehavior (which
-    is True only during active touch), the :attr:`active` property maintains
+    is True only during active touch), the :attr:`activated` property maintains
     persistent state:
 
-    - **active=True**: Button is in "on" state (persists after release)
-    - **active=False**: Button is in "off" state (default)
+    - **activated=True**: Button is in "on" state (persists after release)
+    - **activated=False**: Button is in "off" state (default)
 
-    The :attr:`active` property can be set programmatically or toggled by
+    The :attr:`activated` property can be set programmatically or toggled by
     user interaction. When :attr:`allow_no_selection` is False, attempts to
-    deactivate the last active button in a group will be silently rejected.
+    deactivate the last active button in a group are rejected: programmatic
+    attempts log a warning, while touch interactions are silently blocked.
 
     Group Behavior
     --------------
@@ -257,14 +303,10 @@ class ToggleButtonBehavior(ButtonBehavior):
         - :meth:`on_release`: All touches released
         - :meth:`on_cancel`: Touch moved outside bounds
 
-    Additional property events:
-        - :meth:`on_active`: When active state changes
-
     .. versionadded:: 1.8.0
 
     .. versionchanged:: 3.0.0
-        - Replaced ``state`` OptionProperty with ``active`` AliasProperty
-        - Added backward-compatible ``state`` alias
+        - Replaced ``state`` OptionProperty with ``activated`` AliasProperty
         - Improved group management with automatic cleanup
         - Added scoped group support via tuple syntax
         - Replaced ``get_widgets(groupname)`` static method with unified
@@ -337,8 +379,9 @@ class ToggleButtonBehavior(ButtonBehavior):
     - **True (default)**: Clicking active button deactivates it (all buttons off)
     - **False**: At least one button must remain active (radio button behavior)
 
-    When False, attempts to deactivate the last active button (via touch or
-    programmatic ``active = False``) are silently rejected.
+    When False, attempts to deactivate the last active button are rejected:
+    programmatic ``activated = False`` logs a warning, while touch interactions
+    are silently blocked.
 
     Only applies when :attr:`group` is set.
 
@@ -348,41 +391,42 @@ class ToggleButtonBehavior(ButtonBehavior):
     and defaults to True.
     """
 
-    def _get_active(self):
+    def _get_activated(self):
         """Get current active state."""
-        return self._active
+        return self._activated
 
-    def _set_active(self, value):
-        """Set the active state with group validation.
+    def _set_activated(self, value):
+        """Set the activated state with group validation.
 
-        Used as the setter for :attr:`active`. Delegates all logic to
-        :meth:`_change_active_state` to keep programmatic and interactive
+        Used as the setter for :attr:`activated`. Delegates all logic to
+        :meth:`_change_activated_state` to keep programmatic and interactive
         changes consistent.
 
         :param value: Desired active state.
         :type value: bool
         """
-        self._change_active_state(value)
+        self._change_activated_state(value)
 
-    active = AliasProperty(
-        _get_active, _set_active, bind=["_active"], cache=True
+    activated = AliasProperty(
+        _get_activated, _set_activated, bind=["_activated"], cache=True
     )
     """Persistent toggle state of the button.
 
     - **True**: Button is in "on" state
     - **False**: Button is in "off" state
 
-    Unlike :attr:`pressed` (which is True only during touch), :attr:`active`
+    Unlike :attr:`pressed` (which is True only during touch), :attr:`activated`
     maintains state after release. Can be set programmatically or toggled by
     user interaction.
 
-    When button is in a group, setting active=True automatically deactivates
+    When button is in a group, setting activated=True automatically deactivates
     other buttons in that group.
 
-    When :attr:`allow_no_selection` is False, attempts to set active=False
-    on the last active button in a group are silently rejected.
+    When :attr:`allow_no_selection` is False, attempts to set activated=False
+    on the last active button in a group log a warning and are rejected. Touch
+    interactions are silently blocked without warnings.
 
-    :attr:`active` is an :class:`~kivy.properties.AliasProperty` and defaults
+    :attr:`activated` is an :class:`~kivy.properties.AliasProperty` and defaults
     to False.
 
     .. versionadded:: 3.0.0
@@ -403,7 +447,7 @@ class ToggleButtonBehavior(ButtonBehavior):
     accepts either ``"press"`` or ``"release"``. Defaults to ``"release"``.
     """
 
-    _active = BooleanProperty(False)  # Internal storage for active state
+    _activated = BooleanProperty(False)  # Internal storage for activated state
 
     get_group = _GroupAccessor()
     """Get widgets in a group.
@@ -474,49 +518,41 @@ class ToggleButtonBehavior(ButtonBehavior):
         super().__init__(**kwargs)
 
     # override ButtonBehavior._do_press hook
-    def _do_press(self):
+    def _do_press(self, touch):
         if self.toggle_on == "press":
             self._handle_toggle_on()
 
     # override ButtonBehavior._do_release hook
-    def _do_release(self):
+    def _do_release(self, touch):
         if self.toggle_on == "release":
             self._handle_toggle_on()
 
-    def _change_active_state(self, new_value):
+    def _change_activated_state(self, new_value, _from_touch=False):
         """Internal helper to update the active state with full validation and
         group management.
 
-        This centralizes the logic shared by :meth:`_set_active` and
-        :meth:`_handle_toggle_on`.
-
-        Validation rules:
-        - Prevents deactivation if :attr:`allow_no_selection` is False and this
-          is the last active button in its group.
-        - Updates the internal :attr:`_active` property to reflect the new
-          state.
-        - When activating, automatically deactivates all sibling buttons in the
-          same group (global or scoped).
-
-        :param new_value: The desired new state (True for active, False for
-        inactive).
-        :type new_value: bool
+        :param _from_touch: True if called from touch interaction, False if
+        programmatic
         """
         owner, name = self._current_group_key
 
         # Block deactivation if this would leave the group with no active members
         if not new_value and not self.allow_no_selection and name:
             for w in self._toggle_groups[owner][name]:
-                if w is not self and w.active:
+                if w is not self and w.activated:
                     break
             else:
-                return  # Cancel deactivation (cannot leave group empty)
+                # Show warning only for programmatic changes
+                if not _from_touch:
+                    Logger.warning(
+                        f"ToggleButtonBehavior: Cannot deactivate {self}: last "
+                        "active button in group (with allow_no_selection=False)",
+                    )
+                return
 
         # Apply state change
-        self._active = new_value
+        self._activated = new_value
 
-        # When activating, ensure all other buttons in the same group are
-        # deactivated
         if new_value and name is not None:
             self._deactivate_group_siblings()
 
@@ -524,19 +560,19 @@ class ToggleButtonBehavior(ButtonBehavior):
         """Toggle the button state in response to a press or release.
 
         - Skips toggling if :attr:`allow_no_selection` is False and the button
-          is already active.
-        - Otherwise, inverts the :attr:`active` state.
+          is already activated.
+        - Otherwise, inverts the :attr:`activated` state.
         - State validation and group updates are handled by
-          :meth:`_change_active_state`.
+          :meth:`_change_activated_state`.
 
         Called by :meth:`_do_press` or :meth:`_do_release` depending on
           :attr:`toggle_on`.
         """
         owner, name = self._current_group_key
-        if not self.allow_no_selection and name and self.active:
+        if not self.allow_no_selection and name and self.activated:
             return
 
-        self._change_active_state(not self.active)
+        self._change_activated_state(not self.activated, _from_touch=True)
 
     def _parse_group(self, group):
         """Parse group into (owner, name) tuple.
@@ -628,8 +664,8 @@ class ToggleButtonBehavior(ButtonBehavior):
 
         self._current_group_key = (owner, name)
 
-        # Revalidate active state in new group
-        if self.active and name is not None:
+        # Revalidate activated state in new group
+        if self.activated and name is not None:
             self._deactivate_group_siblings()
 
     def _deactivate_group_siblings(self):
@@ -642,15 +678,15 @@ class ToggleButtonBehavior(ButtonBehavior):
             return
 
         for widget in self._toggle_groups[owner][name]:
-            if widget is not self and widget.active:
-                widget.active = False
+            if widget is not self and widget.activated:
+                widget.activated = False
 
-    def on_active(self, instance, value):
-        """Event handler called when active state changes.
+    def on_activated(self, instance, value):
+        """Event handler called when activated state changes.
 
         Override this method to respond to state changes.
 
         :param instance: This button instance
-        :param value: New active state (True/False)
+        :param value: New activated state (True/False)
         """
         pass

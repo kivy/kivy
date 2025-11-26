@@ -481,25 +481,25 @@ def test_property_rebind(self):
 
     Builder.load_string('''
 <ObjWidget>:
-    text: 'Active' if (self.button is not None and self.button.active) \
+    text: 'Active' if (self.button is not None and self.button.activated) \
           else ('Inactive' if self.button is not None else 'Unset')
 
 <ObjWidgetRebindFalse>:
-    text: 'Active' if (self.button is not None and self.button.active) \
+    text: 'Active' if (self.button is not None and self.button.activated) \
           else ('Inactive' if self.button is not None else 'Unset')
 
 <AliasWidget>:
-    text: 'Active' if (self.button is not None and self.button.active) \
+    text: 'Active' if (self.button is not None and self.button.activated) \
           else ('Inactive' if self.button is not None else 'Unset')
 
 <DictWidget>:
     text: 'Active' if (self.button.button is not None and \
-          self.button.button.active) else ('Inactive' if \
+          self.button.button.activated) else ('Inactive' if \
           self.button.button is not None else 'Unset')
 
 <DictWidgetFalse>:
     text: 'Active' if (self.button.button is not None and \
-          self.button.button.active) else ('Inactive' if \
+          self.button.button.activated) else ('Inactive' if \
           self.button.button is not None else 'Unset')
 ''')
 
@@ -508,7 +508,7 @@ def test_property_rebind(self):
     dict_rebind = DictWidget()
     dict_false = DictWidgetFalse()
     alias_rebind = AliasWidget()
-    button = ToggleButton(active=False)  # Explicit initial state
+    button = ToggleButton(activated=False)  # Explicit initial state
     Clock.tick()
     self.assertEqual(obj.text, 'Unset')
     self.assertEqual(obj_false.text, 'Unset')
@@ -528,7 +528,7 @@ def test_property_rebind(self):
     self.assertEqual(dict_false.text, 'Unset')
     self.assertEqual(alias_rebind.text, 'Inactive')
 
-    button.active = True
+    button.activated = True
     Clock.tick()
     self.assertEqual(obj.text, 'Active')
     self.assertEqual(
@@ -538,7 +538,7 @@ def test_property_rebind(self):
     self.assertEqual(dict_false.text, 'Unset')
     self.assertEqual(alias_rebind.text, 'Active')
 
-    button.active = False
+    button.activated = False
     Clock.tick()
     self.assertEqual(obj.text, 'Inactive')
     self.assertEqual(obj_false.text, 'Inactive')  # Still old value

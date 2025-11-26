@@ -9,31 +9,31 @@ class PaddingSpacingTestCase(unittest.TestCase):
         b = CheckBox(allow_no_selection=False, group="check")
 
         # Test activating first checkbox
-        a.active = True
-        self.assertTrue(a.active)
-        self.assertFalse(b.active)
+        a.activated = True
+        self.assertTrue(a.activated)
+        self.assertFalse(b.activated)
 
         # Test activating second checkbox (deactivates first)
-        b.active = True
-        self.assertFalse(a.active)
-        self.assertTrue(b.active)
+        b.activated = True
+        self.assertFalse(a.activated)
+        self.assertTrue(b.activated)
 
         # Test activating first checkbox again
-        a.active = True
-        self.assertTrue(a.active)
-        self.assertFalse(b.active)
+        a.activated = True
+        self.assertTrue(a.activated)
+        self.assertFalse(b.activated)
 
         # Test activating second checkbox again
-        b.active = True
-        self.assertFalse(a.active)
-        self.assertTrue(b.active)
+        b.activated = True
+        self.assertFalse(a.activated)
+        self.assertTrue(b.activated)
 
         # Test deactivating when allow_no_selection=False
-        # This should NOT work - at least one must stay active
-        b.active = False
-        # Since allow_no_selection=False, b should remain active
-        self.assertFalse(a.active)
-        self.assertTrue(b.active)
+        # This should NOT work - at least one must stay activated
+        b.activated = False
+        # Since allow_no_selection=False, b should remain activated
+        self.assertFalse(a.activated)
+        self.assertTrue(b.activated)
 
     def test_checkbox_allow_no_selection(self):
         from kivy.uix.checkbox import CheckBox
@@ -42,16 +42,16 @@ class PaddingSpacingTestCase(unittest.TestCase):
         b = CheckBox(allow_no_selection=True, group="check")
 
         # Test with allow_no_selection=True
-        b.active = True
-        self.assertTrue(b.active)
-        self.assertFalse(a.active)
+        b.activated = True
+        self.assertTrue(b.activated)
+        self.assertFalse(a.activated)
 
         # Now deactivating should work
-        b.active = False
-        self.assertFalse(a.active)
-        self.assertFalse(b.active)
+        b.activated = False
+        self.assertFalse(a.activated)
+        self.assertFalse(b.activated)
 
         # Activate again
-        b.active = True
-        self.assertTrue(b.active)
-        self.assertFalse(a.active)
+        b.activated = True
+        self.assertTrue(b.activated)
+        self.assertFalse(a.activated)
