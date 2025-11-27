@@ -25,7 +25,7 @@ MANYLINUX__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/downloa
 MANYLINUX__SDL3_TTF__FOLDER="SDL3_ttf-$MANYLINUX__SDL3_TTF__VERSION"
 
 # manylinux libpng
-MANYLINUX__LIBPNG__VERSION="1.6.47"
+MANYLINUX__LIBPNG__VERSION="1.6.50"
 MANYLINUX__LIBPNG__URL="https://downloads.sourceforge.net/project/libpng/libpng16/$MANYLINUX__LIBPNG__VERSION/libpng-$MANYLINUX__LIBPNG__VERSION.tar.gz"
 MANYLINUX__LIBPNG__FOLDER="libpng-$MANYLINUX__LIBPNG__VERSION"
 
