@@ -43,9 +43,58 @@ keep this in mind when debugging or running in a
     this functionality, please refer to the
     `audiostream <https://github.com/kivy/audiostream>`_ extension.
 
+Provider selection
+------------------
+
+.. versionadded:: 3.0.0
+
+By default, Kivy automatically selects an audio provider based on platform
+defaults and file type. You can override this to use a specific provider.
+
+Querying available providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To see which providers are available on your system::
+
+    from kivy.core.audio_output import SoundLoader
+    print(SoundLoader.available_providers())  # e.g., ['sdl3', 'ffpyplayer']
+
+Using ``audio_output_provider`` parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify a provider when loading a sound::
+
+    from kivy.core.audio_output import SoundLoader
+
+    # Load with SDL3 provider
+    sound = SoundLoader.load('music.mp3', audio_output_provider='sdl3')
+
+    # Load with ffpyplayer provider
+    sound = SoundLoader.load('music.mp3', audio_output_provider='ffpyplayer')
+
+Strict mode
+~~~~~~~~~~~
+
+By default, if a requested provider is unavailable or fails, Kivy logs a warning
+and falls back to other providers. Enable strict mode to raise exceptions instead::
+
+    import os
+    os.environ['KIVY_PROVIDER_STRICT'] = '1'
+    import kivy
+
+In strict mode:
+
+- Invalid provider names raise ``ValueError``
+- Provider load failures raise ``Exception``
+- No fallback to other providers occurs
+
+This is useful during development to catch configuration errors immediately.
+
 '''
 
 __all__ = ('Sound', 'SoundLoader')
+
+import os
 
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
@@ -59,32 +108,128 @@ from kivy.setupconfig import USE_SDL3
 from sys import float_info
 
 
+def _is_strict_mode():
+    '''Check if provider strict mode is enabled.
+
+    Returns True if KIVY_PROVIDER_STRICT is set to '1', 'true', or 'yes'
+    (case-insensitive).
+    '''
+    value = os.environ.get('KIVY_PROVIDER_STRICT', '').lower()
+    return value in ('1', 'true', 'yes')
+
+
 class SoundLoader:
     '''Load a sound, using the best loader for the given file type.
     '''
 
     _classes = []
+    _loaders_by_name = {}  # O(1) lookup by provider name
 
     @staticmethod
     def register(classobj):
         '''Register a new class to load the sound.'''
         Logger.debug('Audio: register %s' % classobj.__name__)
         SoundLoader._classes.append(classobj)
+        # Build _loaders_by_name for O(1) lookup
+        name = classobj.__name__
+        if name.startswith('Sound'):
+            name = name[len('Sound'):]
+        SoundLoader._loaders_by_name[name.lower()] = classobj
 
     @staticmethod
-    def load(filename) -> "Sound":
-        '''Load a sound, and return a Sound() instance.'''
+    def available_providers():
+        '''Return a list of available audio provider names.
+
+        The returned names can be used with the ``audio_provider`` parameter.
+
+        .. versionadded:: 3.0.0
+
+        :returns: List of provider name strings (e.g., ['sdl3', 'ffpyplayer'])
+        '''
+        return list(SoundLoader._loaders_by_name.keys())
+
+    @staticmethod
+    def load(filename, audio_output_provider=None) -> "Sound":
+        '''Load a sound, and return a Sound() instance.
+
+        :param filename: Path to the audio file to load.
+        :param audio_output_provider: Optional provider name (e.g., 'sdl3',
+            'ffpyplayer'). If specified, only that provider will be used. Use
+            :meth:`available_providers` to get a list of available providers.
+
+            .. versionadded:: 3.0.0
+
+        :returns: A Sound instance, or None if no loader could handle the file.
+        :raises ValueError: If ``audio_output_provider`` is specified but not
+            found or doesn't support the file format (when KIVY_PROVIDER_STRICT=1).
+        '''
         rfn = resource_find(filename)
         if rfn is not None:
             filename = rfn
         ext = filename.split('.')[-1].lower()
         if '?' in ext:
             ext = ext.split('?')[0]
+
+        strict_mode = _is_strict_mode()
+
+        # If specific provider requested
+        if audio_output_provider:
+            target_loader = SoundLoader._loaders_by_name.get(
+                audio_output_provider.lower()
+            )
+
+            if target_loader is None:
+                # Provider not found/available
+                available = list(SoundLoader._loaders_by_name.keys())
+                msg = (
+                    f"Audio: Provider {audio_output_provider!r} not found. "
+                    f"Available: {available}"
+                )
+                if strict_mode:
+                    raise ValueError(msg)
+                else:
+                    Logger.warning(msg + " Falling back to default priority.")
+                    # Fall through to default loading
+                    audio_output_provider = None
+
+            elif ext not in target_loader.extensions():
+                # Provider doesn't support this format
+                msg = (
+                    f"Audio: Provider {audio_output_provider!r} does not support "
+                    f"{ext!r} format."
+                )
+                if strict_mode:
+                    raise ValueError(msg)
+                else:
+                    Logger.warning(msg + " Falling back to default priority.")
+                    # Fall through to default loading
+                    audio_output_provider = None
+
+            else:
+                # Try the requested provider
+                try:
+                    return target_loader(source=filename)
+                except Exception as e:
+                    msg = (
+                        f"Audio: Provider {audio_output_provider!r} failed to load "
+                        f"<{filename}>: {e}"
+                    )
+                    if strict_mode:
+                        raise Exception(msg) from e
+                    else:
+                        Logger.warning(msg + " Falling back to default priority.")
+                        # Fall through to default loading
+
+        # Default loading: try each provider in order
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
-                return classobj(source=filename)
-        Logger.warning('Audio: Unable to find a loader for <%s>' %
-                       filename)
+                try:
+                    return classobj(source=filename)
+                except Exception:
+                    # Try next provider
+                    continue
+
+        Logger.warning('Audio: Unable to find a loader for <%s>' % filename)
         return None
 
 
