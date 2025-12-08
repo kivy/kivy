@@ -143,3 +143,7 @@ class PangoFontContextManager(FontContextManagerBase):
         raise Exception("FontContextManager: Attempt to add non-existent "
                         "font file: '{}' to context '{}'"
                         .format(filename, font_context))
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelPango)

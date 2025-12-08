@@ -81,3 +81,7 @@ class LabelPIL(LabelBase):
         del self._pil_draw
 
         return data
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelPIL)

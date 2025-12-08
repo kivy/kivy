@@ -282,12 +282,13 @@ __all__ = ('Label', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
-from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
+from kivy.core.text import Label as CoreLabel, LabelBase, DEFAULT_FONT
+from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel, get_markup_label_class
 from kivy.properties import StringProperty, OptionProperty, \
     NumericProperty, BooleanProperty, ListProperty, \
     ObjectProperty, DictProperty, ColorProperty, VariableListProperty
 from kivy.utils import get_hex_from_color
+from kivy.logger import Logger
 
 
 class Label(Widget):
@@ -331,6 +332,9 @@ class Label(Widget):
         for x in d:
             fbind(x, update, x)
 
+        # text_provider changes require recreating the label (like markup)
+        fbind('text_provider', update, 'text_provider')
+
         self._label = None
         self._create_label()
 
@@ -338,29 +342,40 @@ class Label(Widget):
         self._trigger_texture()
 
     def _create_label(self):
-        # create the core label class according to markup value
-        if self._label is not None:
-            cls = self._label.__class__
-        else:
-            cls = None
+        # create the core label class according to markup and text_provider
+        current_cls = self._label.__class__ if self._label else None
         markup = self.markup
-        if (markup and cls is not CoreMarkupLabel) or \
-           (not markup and cls is not CoreLabel):
-            # markup have change, we need to change our rendering method.
+        text_provider = self.text_provider
+
+        # Determine defaults and class getter based on markup
+        default_cls = CoreMarkupLabel if markup else CoreLabel
+        get_cls = get_markup_label_class if markup else LabelBase.get_provider_class
+
+        # Get target class
+        if text_provider:
+            target_cls = get_cls(text_provider)
+            if target_cls is None:
+                Logger.warning(
+                    f"Label: text_provider '{text_provider}' not found, "
+                    f"using default. Available: {LabelBase.available_providers()}"
+                )
+                target_cls = default_cls
+        else:
+            target_cls = default_cls
+
+        # Recreate label if class changed
+        if current_cls is not target_cls:
             dkw = {x: getattr(self, x) for x in self._font_properties}
             dkw['usersize'] = self.text_size
             if self.disabled:
                 dkw['color'] = self.disabled_color
                 dkw['outline_color'] = self.disabled_outline_color
 
-            if markup:
-                self._label = CoreMarkupLabel(**dkw)
-            else:
-                self._label = CoreLabel(**dkw)
+            self._label = target_cls(**dkw)
 
     def _trigger_texture_update(self, name=None, source=None, value=None):
-        # check if the label core class need to be switch to a new one
-        if name == 'markup':
+        # check if the label core class need to be switched to a new one
+        if name == 'markup' or name == 'text_provider':
             self._create_label()
         if source:
             if name == 'text':
@@ -600,6 +615,47 @@ class Label(Widget):
 
     :attr:`font_family` is a :class:`~kivy.properties.StringProperty` and
     defaults to None.
+    '''
+
+    text_provider = StringProperty(None, allownone=True)
+    '''Specifies which text rendering provider to use for this label.
+
+    When set, this overrides the default text provider selection. Available
+    providers can be queried using
+    :meth:`~kivy.core.text.LabelBase.available_providers`.
+
+    Common providers include:
+
+    - ``'pil'``: PIL/Pillow-based text rendering
+    - ``'sdl3'``: SDL3_ttf-based text rendering
+    - ``'pango'``: Pango-based text rendering (requires Pango installation)
+
+    If the specified provider is not available, a warning is logged and the
+    default provider is used instead. To raise an error instead, set the
+    ``KIVY_PROVIDER_STRICT`` environment variable to ``'1'``.
+
+    This property works with both regular and markup labels::
+
+        from kivy.uix.label import Label
+
+        # Use PIL for a regular label
+        label = Label(text='Hello', text_provider='pil')
+
+        # Use PIL for a markup label
+        markup_label = Label(text='[b]Hello[/b]', markup=True, text_provider='pil')
+
+        # Query available providers
+        from kivy.core.text import LabelBase
+        print(LabelBase.available_providers())
+
+    .. note::
+        Changing this property will recreate the internal label, which may
+        affect performance if done frequently.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`text_provider` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None (use the default provider).
     '''
 
     font_name = StringProperty(DEFAULT_FONT)

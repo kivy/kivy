@@ -57,3 +57,7 @@ class LabelSDL3(LabelBase):
 
     def _render_end(self):
         return self._surface.get_data()
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelSDL3)
