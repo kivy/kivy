@@ -11,7 +11,7 @@ per application: please don't try to create more than one.
 __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
-from os import getcwd
+from os import environ, getcwd
 from collections import defaultdict
 
 from kivy.core import core_select_lib
@@ -37,6 +37,8 @@ from kivy.core.image import ImageLoader
 VKeyboard = None
 android = None
 Animation = None
+
+GRAPHICS_ENGINE = environ.get("GRAPHICS_ENGINE", "default")
 
 
 class Keyboard(EventDispatcher):
@@ -1465,9 +1467,13 @@ class WindowBase(EventDispatcher):
             ignored=self.gl_backends_ignored)
 
     def initialize_gl(self):
-        from kivy.core.gl import init_gl
-        init_gl(allowed=self.gl_backends_allowed,
-                ignored=self.gl_backends_ignored)
+        if GRAPHICS_ENGINE == "skia":
+            from kivy.core.skia.skia_graphics import initialize_skia_gl
+            initialize_skia_gl("angle" in self.get_gl_backend_name())
+        else:
+            from kivy.core.gl import init_gl
+            init_gl(allowed=self.gl_backends_allowed,
+                    ignored=self.gl_backends_ignored)
 
     def create_window(self, *largs):
         '''Will create the main window and configure it.
@@ -1500,6 +1506,7 @@ class WindowBase(EventDispatcher):
 
             # create the render context and canvas, only the first time.
             from kivy.graphics import RenderContext, Canvas
+
             self.render_context = RenderContext()
             self.canvas = Canvas()
             self.render_context.add(self.canvas)
@@ -1582,14 +1589,17 @@ class WindowBase(EventDispatcher):
 
     def clear(self):
         '''Clear the window with the background color'''
-        # XXX FIXME use late binding
-        from kivy.graphics import opengl as gl
-        gl.glClearColor(*self.clearcolor)
-        gl.glClear(
-            gl.GL_COLOR_BUFFER_BIT
-            | gl.GL_DEPTH_BUFFER_BIT
-            | gl.GL_STENCIL_BUFFER_BIT
-        )
+        if GRAPHICS_ENGINE == "skia":
+            self.render_context.clear(self.clearcolor)
+        else:
+            # XXX FIXME use late binding
+            from kivy.graphics import opengl as gl
+            gl.glClearColor(*self.clearcolor)
+            gl.glClear(
+                gl.GL_COLOR_BUFFER_BIT
+                | gl.GL_DEPTH_BUFFER_BIT
+                | gl.GL_STENCIL_BUFFER_BIT
+            )
 
     def set_title(self, title):
         '''Set the window title.
@@ -1776,6 +1786,15 @@ class WindowBase(EventDispatcher):
         self.property('left').dispatch(self)
 
     def update_viewport(self):
+        if GRAPHICS_ENGINE == "skia":
+            self.render_context.update_viewport(self.size)
+
+            self.canvas.ask_update()
+
+            # and update childs
+            self.update_childsize()
+            return
+
         from kivy.graphics.opengl import glViewport
         from kivy.graphics.transformation import Matrix
         from math import radians
