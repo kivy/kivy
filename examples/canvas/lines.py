@@ -123,7 +123,7 @@ Builder.load_string('''
                 text: 'Close'
             ToggleButton:
                 text: 'Close line'
-                on_press: root.close = self.state == 'down'
+                on_press: root.close = self.activated
 
             Label:
                 text: 'Dashes'
@@ -132,15 +132,15 @@ Builder.load_string('''
                 ToggleButton:
                     group: 'dashes'
                     text: 'none'
-                    state: 'down'
+                    activated: True
                     allow_no_selection: False
                     size_hint_x: None
                     width: self.texture_size[0]
                     padding_x: '5dp'
-                    on_state:
-                        if self.state == 'down': root.dashes = []
-                        if self.state == 'down': root.dash_length = 1
-                        if self.state == 'down': root.dash_offset = 0
+                    on_activated:
+                        if self.activated: root.dashes = []
+                        if self.activated: root.dash_length = 1
+                        if self.activated: root.dash_offset = 0
                 ToggleButton:
                     id: constant
                     group: 'dashes'
@@ -149,11 +149,11 @@ Builder.load_string('''
                     size_hint_x: None
                     width: self.texture_size[0]
                     padding_x: '5dp'
-                    on_state:
-                        if self.state == 'down': root.dashes = []
-                        if self.state == 'down': root.dash_length = \
+                    on_activated:
+                        if self.activated: root.dashes = []
+                        if self.activated: root.dash_length = \
                             int(dash_len.text or 1)
-                        if self.state == 'down': root.dash_offset = \
+                        if self.activated: root.dash_offset = \
                             int(dash_offset.text or 0)
                 Label:
                     text: 'len'
@@ -167,7 +167,7 @@ Builder.load_string('''
                     input_filter: 'int'
                     multiline: False
                     text: '1'
-                    on_text: if constant.state == 'down': \
+                    on_text: if constant.activated: \
                         root.dash_length = int(self.text or 1)
                 Label:
                     text: 'offset'
@@ -181,7 +181,7 @@ Builder.load_string('''
                     input_filter: 'int'
                     multiline: False
                     text: '0'
-                    on_text: if constant.state == 'down': \
+                    on_text: if constant.activated: \
                         root.dash_offset = int(self.text or 0)
                 ToggleButton:
                     id: dash_list
@@ -191,18 +191,18 @@ Builder.load_string('''
                     size_hint_x: None
                     width: self.texture_size[0]
                     padding_x: '5dp'
-                    on_state:
-                        if self.state == 'down': root.dashes = list(map(lambda\
+                    on_activated:
+                        if self.activated: root.dashes = list(map(lambda\
                             x: int(x or 0), dash_list_in.text.split(',')))
-                        if self.state == 'down': root.dash_length = 1
-                        if self.state == 'down': root.dash_offset = 0
+                        if self.activated: root.dash_length = 1
+                        if self.activated: root.dash_offset = 0
                 TextInput:
                     id: dash_list_in
                     size_hint_x: None
                     width: '180dp'
                     multiline: False
                     text: '4,3,10,15'
-                    on_text: if dash_list.state == 'down': root.dashes = \
+                    on_text: if dash_list.activated: root.dashes = \
                         list(map(lambda x: int(x or 0), self.text.split(',')))
 
         AnchorLayout:
@@ -214,7 +214,7 @@ Builder.load_string('''
                     size_hint: None, None
                     size: 100, 44
                     text: 'Animate'
-                    on_state: root.animate(self.state == 'down')
+                    on_activated: root.animate(self.activated)
                 Button:
                     size_hint: None, None
                     size: 100, 44

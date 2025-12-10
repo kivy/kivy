@@ -23,7 +23,7 @@ runTouchApp(Builder.load_string('''
 <MyToggleButton@ToggleButton>:
     hacked_state: False
     allow_no_selection: False
-    on_state: self.hacked_state = self.state == 'down'
+    on_activated: self.hacked_state = self.activated
 <HalignButton@MyToggleButton>:
     text: 'auto'
     group: 'halign'
@@ -291,6 +291,6 @@ BoxLayout:
 #        ToggleButton:
 #            text: 'Enable markup'
 #            state: 'down'
-#            on_state:
-#                for c in boxes.children: c.markup = self.state == 'down'
+#            on_activated:
+#                for c in boxes.children: c.markup = self.activated
 '''))

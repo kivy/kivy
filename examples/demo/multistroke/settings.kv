@@ -51,14 +51,14 @@
             size: self.width, 1
 
 <MultistrokeSettingBoolean>:
-    value: button.state == 'down' and True or False
+    value: button.activated and True or False
     ToggleButton:
         id: button
         text: root.button_text
         size_hint_x: None
         width: 150
         pos: root.pos
-        state: root.value and 'down' or 'normal'
+        activated: root.value and True or False
 
 <MultistrokeSettingString>:
     value: input.text
