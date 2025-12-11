@@ -59,7 +59,7 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
     - name: Cache macOS deps downloads
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: osx-cache
         key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
@@ -181,7 +181,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Cache macOS deps downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: osx-cache
           key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
