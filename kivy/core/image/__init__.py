@@ -394,6 +394,11 @@ class ImageData(object):
 class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # Image.available_providers() to query available provider names.
+
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
                  '_mipmap', '_nocache', '_ext', '_inline')
 
@@ -575,8 +580,15 @@ class ImageLoader(object):
     @staticmethod
     def register(defcls):
         ImageLoader.loaders.append(defcls)
-        name = defcls.__name__[11:].lower()
-        ImageLoader.loaders_by_name[name] = defcls
+        
+        # Require explicit _provider_name attribute
+        name = getattr(defcls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{defcls.__name__} must define a _provider_name class attribute'
+            )
+        
+        ImageLoader.loaders_by_name[name.lower()] = defcls
 
     @staticmethod
     def _load_single(filename, ext, image_provider=None,

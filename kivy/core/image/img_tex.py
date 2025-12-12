@@ -11,6 +11,7 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderTex(ImageLoaderBase):
+    _provider_name = 'tex'
 
     @staticmethod
     def extensions():

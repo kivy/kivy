@@ -41,6 +41,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     artifacts until transparency support is improved.
 
     '''
+    _provider_name = 'pil'
 
     @staticmethod
     def can_save(fmt, is_bytesio_like):

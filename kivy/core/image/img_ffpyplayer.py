@@ -40,6 +40,7 @@ class ImageLoaderFFPy(ImageLoaderBase):
         This provider may support more formats than what is listed in
         :meth:`extensions`.
     '''
+    _provider_name = 'ffpy'
 
     @staticmethod
     def extensions():
