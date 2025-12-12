@@ -309,6 +309,11 @@ class LabelBase(object):
 
     _font_family_support = False
 
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # LabelBase.available_providers() to query available provider names.
+
     # Provider registry
     _providers = []  # List of provider classes in priority order
     _providers_by_name = {}  # O(1) lookup by lowercase name
@@ -461,9 +466,15 @@ class LabelBase(object):
         .. versionadded:: 3.0.0
         '''
         LabelBase._providers.append(cls)
-        # Extract provider name from class name (e.g., LabelPIL -> pil)
-        name = cls.__name__.replace('Label', '').lower()
-        LabelBase._providers_by_name[name] = cls
+        
+        # Require explicit _provider_name attribute
+        name = getattr(cls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{cls.__name__} must define a _provider_name class attribute'
+            )
+        
+        LabelBase._providers_by_name[name.lower()] = cls
 
     @staticmethod
     def available_providers():

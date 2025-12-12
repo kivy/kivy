@@ -94,6 +94,7 @@ from kivy.core.text._text_pango import (
 
 
 class LabelPango(LabelBase):
+    _provider_name = 'pango'
 
     _font_family_support = True
 
