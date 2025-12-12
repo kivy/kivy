@@ -212,7 +212,7 @@ kivy_options = {
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio_output': (
         'gstplayer', 'ffpyplayer', 'sdl3',
-        'avplayer'),
+        'avplayer', 'android'),
     'image': ('tex', 'imageio', 'dds', 'sdl3', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'avfoundation',
                'android', 'picamera'),
