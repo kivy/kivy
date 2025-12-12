@@ -130,10 +130,14 @@ class SoundLoader:
         '''Register a new class to load the sound.'''
         Logger.debug('Audio: register %s' % classobj.__name__)
         SoundLoader._classes.append(classobj)
-        # Build _loaders_by_name for O(1) lookup
-        name = classobj.__name__
-        if name.startswith('Sound'):
-            name = name[len('Sound'):]
+        
+        # Require explicit _provider_name attribute
+        name = getattr(classobj, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{classobj.__name__} must define a _provider_name class attribute'
+            )
+        
         SoundLoader._loaders_by_name[name.lower()] = classobj
 
     @staticmethod
@@ -245,6 +249,13 @@ class Sound(EventDispatcher):
         `on_stop`: None
             Fired when the sound is stopped.
     '''
+
+    _provider_name = None
+    # Internal provider name used for registration.
+    
+    # This must be set by provider implementations. Use
+    # :meth:`SoundLoader.available_providers` to query available provider names.
+
 
     source = StringProperty(None)
     '''Filename / source of your audio file.
