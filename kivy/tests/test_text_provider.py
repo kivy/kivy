@@ -364,7 +364,7 @@ class TestRegisterProvider:
         # Clean up
         LabelBase._providers.remove(LabelTestProvider)
         del LabelBase._providers_by_name["testprovider"]
-    
+
     def test_register_provider_requires_name(self):
         """register_provider should raise ValueError if _provider_name not defined."""
         from kivy.core.text import LabelBase
