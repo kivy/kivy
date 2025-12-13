@@ -29,6 +29,8 @@ class OnCompletionListener(PythonJavaClass):
 
 
 class SoundAndroidPlayer(Sound):
+    _provider_name = 'android'
+
     @staticmethod
     def extensions():
         return ("mp3", "mp4", "aac", "3gp", "flac", "mkv", "wav", "ogg", "m4a",
