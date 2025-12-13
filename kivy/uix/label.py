@@ -323,10 +323,6 @@ class Label(Widget):
         fbind = self.fbind
         update = self._trigger_texture_update
 
-        # NOTE: Compatibility code due to deprecated properties.
-        fbind('padding_x', update, 'padding_x')
-        fbind('padding_y', update, 'padding_y')
-
         fbind('disabled', update, 'disabled')
         for x in d:
             fbind(x, update, x)
@@ -383,14 +379,6 @@ class Label(Widget):
                 # When disabled, color or outline_color changes should not get
                 # assigned or trigger updates.
                 return
-
-            # NOTE: Compatibility code due to deprecated properties
-            # Must be removed along with padding_x and padding_y
-            elif name == 'padding_x':
-                self._label.options['padding'][::2] = [value] * 2
-            elif name == 'padding_y':
-                self._label.options['padding'][1::2] = [value] * 2
-
             else:
                 self._label.options[name] = value
 
@@ -749,34 +737,6 @@ class Label(Widget):
 
     :attr:`strikethrough` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to False.
-    '''
-
-    padding_x = NumericProperty(0, deprecated=True)
-    '''Horizontal padding of the text inside the widget box.
-
-    :attr:`padding_x` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.
-
-    .. versionchanged:: 1.9.0
-        `padding_x` has been fixed to work as expected.
-        In the past, the text was padded by the negative of its values.
-
-    .. deprecated:: 2.2.0
-        Please use :attr:`padding` instead.
-    '''
-
-    padding_y = NumericProperty(0, deprecated=True)
-    '''Vertical padding of the text inside the widget box.
-
-    :attr:`padding_y` is a :class:`~kivy.properties.NumericProperty` and
-    defaults to 0.
-
-    .. versionchanged:: 1.9.0
-        `padding_y` has been fixed to work as expected.
-        In the past, the text was padded by the negative of its values.
-
-    .. deprecated:: 2.2.0
-        Please use :attr:`padding` instead.
     '''
 
     padding = VariableListProperty([0, 0, 0, 0], lenght=4)
