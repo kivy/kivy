@@ -465,15 +465,14 @@ class LabelBase(object):
 
         .. versionadded:: 3.0.0
         '''
-        LabelBase._providers.append(cls)
-        
-        # Require explicit _provider_name attribute
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
         name = getattr(cls, '_provider_name', None)
         if name is None:
             raise ValueError(
                 f'{cls.__name__} must define a _provider_name class attribute'
             )
         
+        LabelBase._providers.append(cls)
         LabelBase._providers_by_name[name.lower()] = cls
 
     @staticmethod
