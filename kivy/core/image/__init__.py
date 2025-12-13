@@ -574,7 +574,7 @@ class ImageLoader(object):
             raise ValueError(
                 f'{defcls.__name__} must define a _provider_name class attribute'
             )
-        
+
         ImageLoader.loaders.append(defcls)
         ImageLoader.loaders_by_name[name.lower()] = defcls
 
@@ -597,7 +597,7 @@ class ImageLoader(object):
         # :raises ValueError: If provider not found or doesn't support format
         #                     (strict mode)
         # :raises Exception: If provider fails to load (strict mode)
-        
+
         def check_compatibility(loader, extension):
             """Check if loader can handle this file."""
             if extension not in loader.extensions():
@@ -612,7 +612,7 @@ class ImageLoader(object):
                 Logger.debug(f'Image{loader.__name__[11:]}: Load <{fname}>')
                 if inline and rawdata is not None:
                     return loader(fname, ext=ext, rawdata=rawdata,
-                                inline=True, **kwargs)
+                                  inline=True, **kwargs)
                 else:
                     return loader(fname, **kwargs)
             except Exception as e:
