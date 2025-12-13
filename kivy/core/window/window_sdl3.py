@@ -312,7 +312,9 @@ class WindowSDL(WindowBase):
             self.system_size = self._win.setup_window(
                 pos[0], pos[1], w, h, self.borderless,
                 self.fullscreen, resizable, state,
-                self.get_gl_backend_name())
+                self.get_gl_backend_name(),
+                self.accessibility
+            )
 
             # We don't have a density or dpi yet set, so let's ask for an update
             self._update_density()
@@ -640,9 +642,13 @@ class WindowSDL(WindowBase):
 
             elif action == 'windowfocusgained':
                 self._focus = True
+                if self.accessibility:
+                    self.accessibility._update_root_window_focus(True)
                 self._update_modifiers_state()
 
             elif action == 'windowfocuslost':
+                if self.accessibility:
+                    self.accessibility._update_root_window_focus(False)
                 self._focus = False
 
             elif action == 'windowenter':
