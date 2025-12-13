@@ -119,14 +119,14 @@ class SoundLoader:
     def register(classobj):
         '''Register a new class to load the sound.'''
         Logger.debug('Audio: register %s' % classobj.__name__)
-        
+
         # Require explicit _provider_name attribute (validate BEFORE adding to list)
         name = getattr(classobj, '_provider_name', None)
         if name is None:
             raise ValueError(
                 f'{classobj.__name__} must define a _provider_name class attribute'
             )
-        
+
         SoundLoader._classes.append(classobj)
         SoundLoader._loaders_by_name[name.lower()] = classobj
 
@@ -213,10 +213,9 @@ class Sound(EventDispatcher):
 
     _provider_name = None
     # Internal provider name used for registration.
-    
+
     # This must be set by provider implementations. Use
     # :meth:`SoundLoader.available_providers` to query available provider names.
-
 
     source = StringProperty(None)
     '''Filename / source of your audio file.
