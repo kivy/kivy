@@ -103,7 +103,8 @@ Licenses
   [here](https://github.com/dejavu-fonts/dejavu-fonts/blob/master/LICENSE).
 - The current UI design has been adapted from Moblintouch theme's SVGs
   and is licensed under the terms of the
-  [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1).
+  [LGPLv2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1) and
+  [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/).
 
 
 ## Code of Conduct
