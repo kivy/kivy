@@ -72,8 +72,7 @@ Builder.load_string("""
         Button:
             text: 'Switch to Complex Demo'
             size_hint_y: 0.1
-            on_release:
-                root.manager.current = 'complex'
+            on_press: root.manager.current = 'complex'
 
 <ComplexScreen>:
     BoxLayout:
@@ -104,8 +103,7 @@ Builder.load_string("""
     HoverOpaqueButton:
         text: 'Switch to Simple Demo'
         size_hint_y: 0.2
-        on_release:
-            root.manager.current = 'simple'
+        on_press: root.manager.current = 'simple'
 """)
 
 
@@ -116,8 +114,8 @@ class HoverButton(HoverBehavior, ButtonBehavior, Label):
         super().__init__(**kwargs)
         self.original_color = self.background_color[:]
 
-    def on_releaseed(self, _, pressed):
-        if pressed:
+    def on_state(self, _, state):
+        if state == "down":
             self.background_color = [0.8, 0.8, 0, 1]
         else:
             self.background_color = (
@@ -125,11 +123,11 @@ class HoverButton(HoverBehavior, ButtonBehavior, Label):
             )
 
     def on_hover_enter(self, me):
-        if self.pressed:
+        if self.state != "down":
             self.background_color = [0.8, 0.2, 0.2, 1]
 
     def on_hover_leave(self, me):
-        if self.pressed:
+        if self.state != "down":
             self.background_color = [0.2, 0.2, 0.2, 1]
 
 
