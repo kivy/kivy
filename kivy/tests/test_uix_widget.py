@@ -119,9 +119,9 @@ class UIXWidgetTestCase(GraphicUnitTest):
         from kivy.uix.label import Label
         self.render(Label())
 
-    def test_button_state_down(self):
+    def test_tooglebutton_activated(self):
         from kivy.uix.togglebutton import ToggleButton
-        self.render(Button(activated=True))
+        self.render(ToggleButton(activated=True))
 
     def test_label_text(self):
         from kivy.uix.label import Label
