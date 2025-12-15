@@ -52,18 +52,17 @@ class TestAvailableProviders:
 
         providers = SoundLoader.available_providers()
 
-        # Get class names (strip 'Sound' prefix and lowercase)
-        class_names = []
+        # Get provider names from _provider_name attribute
+        class_provider_names = []
         for classobj in SoundLoader._classes:
-            name = classobj.__name__
-            if name.startswith("Sound"):
-                name = name[len("Sound"):]
-            class_names.append(name.lower())
+            provider_name = getattr(classobj, '_provider_name', None)
+            if provider_name:
+                class_provider_names.append(provider_name.lower())
 
         # All available providers should correspond to registered classes
         for provider in providers:
-            assert provider in class_names, (
-                f"Provider {provider!r} not in registered classes"
+            assert provider in class_provider_names, (
+                f"Provider {provider!r} not in registered class provider names"
             )
 
     def test_available_providers_no_sound_prefix(self):

@@ -8,13 +8,15 @@ Introduction
 
 Kivy 3.x.x introduces several changes and improvements compared to Kivy 2.x.x. This guide will help you migrate your existing Kivy 2.x.x codebase to Kivy 3.x.x.
 
-Renamed modules
----------------
+Renamed modules and environment variables
+------------------------------------------
 
 *Migration from kivy.core.audio to kivy.core.audio_output*
 
 
 In Kivy 3.x.x, the `kivy.core.audio` module has been renamed as `kivy.core.audio_output`. 
+
+**Import Statement Changes**
 
 To migrate your code, you need to update the import statements in your codebase. For example, if you have the following import statement in your code:
 
@@ -27,6 +29,26 @@ You need to update it to:
 .. code-block:: python
 
     from kivy.core.audio_output import SoundLoader
+
+**Environment Variable Changes**
+
+The environment variable has also been renamed from `KIVY_AUDIO` to `KIVY_AUDIO_OUTPUT`.
+
+If you were using the `KIVY_AUDIO` environment variable to specify audio provider preferences, you need to update it to `KIVY_AUDIO_OUTPUT`. For example:
+
+in Python before importing Kivy:
+
+.. code-block:: python
+
+    import os
+    
+    # Kivy 2.x.x
+    os.environ['KIVY_AUDIO'] = 'sdl3,gstplayer'
+    import kivy
+    
+    # Kivy 3.x.x
+    os.environ['KIVY_AUDIO_OUTPUT'] = 'sdl3,gstplayer'
+    import kivy
 
 
 Removals

@@ -24,6 +24,7 @@ except ImportError:
 
 
 class LabelSDL3(LabelBase):
+    _provider_name = 'sdl3'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

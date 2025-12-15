@@ -309,23 +309,28 @@ class LabelBase(object):
 
     _font_family_support = False
 
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # LabelBase.available_providers() to query available provider names.
+
     # Provider registry
     _providers = []  # List of provider classes in priority order
     _providers_by_name = {}  # O(1) lookup by lowercase name
 
     def __init__(
-        self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, underline=False, strikethrough=False, font_family=None,
-        halign='left', valign='bottom', shorten=False,
-        text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
-        strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace',
-        font_hinting='normal', font_kerning=True, font_blended=True,
-        outline_width=None, outline_color=None, font_context=None,
-        font_features=None, base_direction=None, font_direction='ltr',
-        font_script_name='Latin', text_language=None,
-        limit_render_to_text_bbox=False,
-        **kwargs):
+            self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
+            italic=False, underline=False, strikethrough=False, font_family=None,
+            halign='left', valign='bottom', shorten=False,
+            text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
+            strip_reflow=True, shorten_from='center', split_str=' ',
+            unicode_errors='replace',
+            font_hinting='normal', font_kerning=True, font_blended=True,
+            outline_width=None, outline_color=None, font_context=None,
+            font_features=None, base_direction=None, font_direction='ltr',
+            font_script_name='Latin', text_language=None,
+            limit_render_to_text_bbox=False,
+            **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -360,8 +365,8 @@ class LabelBase(object):
         if isinstance(options['padding'], (int, float)):
             options['padding'] = [options['padding']] * 4
         elif (
-            isinstance(options['padding'], (list, tuple))
-            and len(options['padding']) != 4
+                isinstance(options['padding'], (list, tuple))
+                and len(options['padding']) != 4
         ):
             if len(options['padding']) == 1:
                 options['padding'] = options['padding'] * 4
@@ -460,10 +465,15 @@ class LabelBase(object):
 
         .. versionadded:: 3.0.0
         '''
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
+        name = getattr(cls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{cls.__name__} must define a _provider_name class attribute'
+            )
+
         LabelBase._providers.append(cls)
-        # Extract provider name from class name (e.g., LabelPIL -> pil)
-        name = cls.__name__.replace('Label', '').lower()
-        LabelBase._providers_by_name[name] = cls
+        LabelBase._providers_by_name[name.lower()] = cls
 
     @staticmethod
     def available_providers():
@@ -828,7 +838,7 @@ class LabelBase(object):
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
             if (uw is not None and halign == 'justify' and line and not
-                    layout_line.is_last_line):
+            layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)

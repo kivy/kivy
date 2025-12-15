@@ -242,22 +242,11 @@ from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
-
-def _is_strict_mode():
-    '''Check if provider strict mode is enabled.
-
-    Returns True if KIVY_PROVIDER_STRICT is set to '1', 'true', or 'yes'
-    (case-insensitive).
-    '''
-    value = os.environ.get('KIVY_PROVIDER_STRICT', '').lower()
-    return value in ('1', 'true', 'yes')
-
-
 # Regex for @image_provider:providername(path) URI scheme
 _provider_uri_re = re.compile(r'^@image_provider:(\w+)\((.+)\)$')
 
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs
+from kivy.core import core_register_libs, load_with_provider_selection
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.clock import Clock
@@ -393,6 +382,11 @@ class ImageData(object):
 
 class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
+
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # Image.available_providers() to query available provider names.
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
                  '_mipmap', '_nocache', '_ext', '_inline')
@@ -574,9 +568,15 @@ class ImageLoader(object):
 
     @staticmethod
     def register(defcls):
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
+        name = getattr(defcls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{defcls.__name__} must define a _provider_name class attribute'
+            )
+
         ImageLoader.loaders.append(defcls)
-        name = defcls.__name__[11:].lower()
-        ImageLoader.loaders_by_name[name] = defcls
+        ImageLoader.loaders_by_name[name.lower()] = defcls
 
     @staticmethod
     def _load_single(filename, ext, image_provider=None,
@@ -597,124 +597,52 @@ class ImageLoader(object):
         # :raises ValueError: If provider not found or doesn't support format
         #                     (strict mode)
         # :raises Exception: If provider fails to load (strict mode)
-        strict_mode = _is_strict_mode()
 
-        def _try_load(loader):
-            # Attempt to load with a specific loader, returns (image, error).
-            try:
-                Logger.debug(
-                    f'Image{loader.__name__[11:]}: Load <{filename}>'
-                )
-                if inline and rawdata is not None:
-                    return loader(filename, ext=ext, rawdata=rawdata,
-                                  inline=True, **kwargs), None
-                else:
-                    return loader(filename, **kwargs), None
-            except Exception as e:
-                return None, e
-
-        def _loader_is_compatible(loader):
-            # Check if loader can handle this file.
-            if ext not in loader.extensions():
+        def check_compatibility(loader, extension):
+            """Check if loader can handle this file."""
+            if extension not in loader.extensions():
                 return False
             if require_memory and not loader.can_load_memory():
                 return False
             return True
 
-        def _load_with_priority(exclude=None):
-            # Load using default priority order (first matching loader).
-            for loader in ImageLoader.loaders:
-                if loader is exclude:
-                    continue
-                if not _loader_is_compatible(loader):
-                    continue
-                im, error = _try_load(loader)
-                if im is not None:
-                    return im
-                # Loader failed, try next one
+        def try_load(loader, fname):
+            """Try to load image with the given loader."""
+            try:
+                Logger.debug(f'Image{loader.__name__[11:]}: Load <{fname}>')
+                if inline and rawdata is not None:
+                    return loader(fname, ext=ext, rawdata=rawdata,
+                                  inline=True, **kwargs)
+                else:
+                    return loader(fname, **kwargs)
+            except Exception as e:
                 Logger.warning(
                     f'Image{loader.__name__[11:]}: Failed to load '
-                    f'<{filename}>: {error}'
+                    f'<{fname}>: {e}'
                 )
+                return None
+
+        def fallback_load():
+            """Load using default priority order."""
+            for loader in ImageLoader.loaders:
+                if not check_compatibility(loader, ext):
+                    continue
+                result = try_load(loader, filename)
+                if result is not None:
+                    return result
+            Logger.warning(f'Image: Unknown <{ext}> type, no loader found.')
             return None
 
-        # If specific provider requested
-        if image_provider:
-            target_loader = ImageLoader.loaders_by_name.get(
-                image_provider.lower()
-            )
-
-            if target_loader is None:
-                # Provider not found/available
-                available = list(ImageLoader.loaders_by_name.keys())
-                msg = (
-                    f"Image: Provider {image_provider!r} not found. "
-                    f"Available: {available}"
-                )
-                if strict_mode:
-                    raise ValueError(msg)
-                else:
-                    Logger.warning(msg + " Falling back to default priority.")
-                    im = _load_with_priority()
-                    if im is None:
-                        Logger.warning(
-                            f'Image: All providers failed for <{filename}>'
-                        )
-                    return im
-
-            # Check if provider is compatible
-            if not _loader_is_compatible(target_loader):
-                if require_memory and not target_loader.can_load_memory():
-                    msg = (
-                        f"Image: Provider {image_provider!r} does not support "
-                        f"memory loading."
-                    )
-                else:
-                    msg = (
-                        f"Image: Provider {image_provider!r} does not support "
-                        f"{ext!r} format."
-                    )
-                if strict_mode:
-                    raise ValueError(msg)
-                else:
-                    Logger.warning(msg + " Falling back to default priority.")
-                    im = _load_with_priority()
-                    if im is None:
-                        Logger.warning(
-                            f'Image: All providers failed for <{filename}>'
-                        )
-                    return im
-
-            # Try the requested provider
-            im, error = _try_load(target_loader)
-            if im is not None:
-                return im
-
-            # Provider failed to load
-            msg = (
-                f"Image{target_loader.__name__[11:]}: Failed to load "
-                f"<{filename}>: {error}"
-            )
-            if strict_mode:
-                raise Exception(msg)
-            else:
-                Logger.warning(msg + " Falling back to default priority.")
-                im = _load_with_priority(exclude=target_loader)
-                if im is None:
-                    Logger.warning(
-                        f'Image: All providers failed for <{filename}>'
-                    )
-                return im
-
-        # No specific provider requested - use default priority
-        im = _load_with_priority()
-        if im is None:
-            msg = f"Image: Unknown <{ext}> type, no loader found."
-            if strict_mode:
-                raise Exception(msg)
-            else:
-                Logger.warning(msg)
-        return im
+        return load_with_provider_selection(
+            filename=filename,
+            extension=ext,
+            provider_name=image_provider,
+            providers_by_name=ImageLoader.loaders_by_name,
+            category_name='Image',
+            check_compatibility=check_compatibility,
+            try_load=try_load,
+            fallback_load=fallback_load
+        )
 
     @staticmethod
     def _load_atlas(filename):

@@ -15,6 +15,7 @@ default_font = ImageFont.load_default()
 
 
 class LabelPIL(LabelBase):
+    _provider_name = 'pil'
     _cache = {}
 
     def _select_font(self):

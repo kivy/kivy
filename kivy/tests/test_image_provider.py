@@ -66,17 +66,18 @@ class TestAvailableProviders:
 
         providers = CoreImage.available_providers()
 
-        # Get loader names (strip 'ImageLoader' prefix and lowercase)
-        loader_names = []
+        # Get provider names from _provider_name attribute
+        loader_provider_names = []
         for loader in ImageLoader.loaders:
-            name = loader.__name__
-            if name.startswith("ImageLoader"):
-                name = name[len("ImageLoader") :]
-            loader_names.append(name.lower())
+            provider_name = getattr(loader, '_provider_name', None)
+            if provider_name:
+                loader_provider_names.append(provider_name.lower())
 
         # All available providers should correspond to registered loaders
         for provider in providers:
-            assert provider in loader_names, f"Provider {provider!r} not in loaders"
+            assert provider in loader_provider_names, (
+                f"Provider {provider!r} not in registered loader provider names"
+            )
 
 
 class TestImageProviderParameter:

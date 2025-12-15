@@ -337,33 +337,43 @@ class TestRegisterProvider:
 
         # Create a mock provider class
         class MockLabelProvider(LabelBase):
-            pass
+            _provider_name = 'mockprovider'
 
         LabelBase.register_provider(MockLabelProvider)
 
         assert len(LabelBase._providers) == initial_count + 1
         assert MockLabelProvider in LabelBase._providers
 
-        # Clean up - name is 'mockprovider' (Label is removed from MockLabelProvider)
+        # Clean up
         LabelBase._providers.remove(MockLabelProvider)
         del LabelBase._providers_by_name["mockprovider"]
 
-    def test_register_provider_extracts_name(self):
-        """register_provider should extract name from class name."""
+    def test_register_provider_uses_explicit_name(self):
+        """register_provider should use explicit _provider_name attribute."""
         from kivy.core.text import LabelBase
 
         class LabelTestProvider(LabelBase):
-            pass
+            _provider_name = 'testprovider'
 
         LabelBase.register_provider(LabelTestProvider)
 
-        # 'LabelTestProvider' -> 'testprovider' (Label prefix removed, lowercased)
+        # Should use the explicit _provider_name (lowercased)
         assert "testprovider" in LabelBase._providers_by_name
         assert LabelBase._providers_by_name["testprovider"] is LabelTestProvider
 
         # Clean up
         LabelBase._providers.remove(LabelTestProvider)
         del LabelBase._providers_by_name["testprovider"]
+
+    def test_register_provider_requires_name(self):
+        """register_provider should raise ValueError if _provider_name not defined."""
+        from kivy.core.text import LabelBase
+
+        class LabelNoName(LabelBase):
+            pass  # Missing _provider_name
+
+        with pytest.raises(ValueError, match="must define a _provider_name"):
+            LabelBase.register_provider(LabelNoName)
 
 
 if __name__ == "__main__":
