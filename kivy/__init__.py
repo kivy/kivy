@@ -374,7 +374,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         if platform not in {'android', 'ios'} and not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except:
+            except(TypeError, AttributeError):
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -410,7 +410,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 if opt == '--multiprocessing-fork':
                     mp_fork = True
                     break
-        except:
+        except (ValueError, TypeError):
             pass
 
         # set argv to the non-read args
