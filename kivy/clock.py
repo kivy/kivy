@@ -502,6 +502,10 @@ try:
                 obj, ctypes.byref(delay), 0,
                 ctypes.c_void_p(), ctypes.c_void_p(), False)
             _kernel32.WaitForSingleObject(obj, 0xffffffff)
+    elif platform in ['android', 'ios']:
+        # on mobile platforms, just use time.sleep
+        def _usleep(microseconds, obj=None):
+            time.sleep(microseconds / 1000000.)
     else:
         if platform == 'darwin':
             _libc = ctypes.CDLL('libc.dylib')
@@ -556,9 +560,6 @@ try:
             _libc_usleep(int(microseconds))
 
 except (OSError, ImportError, AttributeError):
-    # ImportError: ctypes is not available on python-for-android.
-    # AttributeError: ctypes is now available on python-for-android, but
-    #   "undefined symbol: clock_gettime". CF #3797
     # OSError: if the libc cannot be read (like with buildbot: invalid ELF
     # header)
 
