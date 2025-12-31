@@ -1,4 +1,4 @@
-"""
+'''
 ScrollView
 ==========
 
@@ -231,10 +231,11 @@ Wheel behavior is always active and is NOT affected by the
 :attr:`parallel_delegation` or :attr:`delegate_to_outer` properties.
 Those only control touch and touchpad gesture behavior.
 
-    .. versionchanged:: VERSION_NEXT
-    The ScrollView widgetnow supports nesting to arbitrary levels
+.. versionchanged:: VERSION_NEXT
+
+    The ScrollView widget now supports nesting to arbitrary levels
     and configurations.
-"""
+'''
 
 __all__ = ("ScrollView",)
 
@@ -305,7 +306,7 @@ class ScrollMode(str, Enum):
 
 
 class DelegationMode(str, Enum):
-    # """Web-style boundary delegation state machine.
+    # Web-style boundary delegation state machine.
 
     # Controls when an inner ScrollView delegates scrolling to its outer
     # ScrollView in parallel nested configurations (both scrolling same axis).
@@ -468,7 +469,7 @@ class ScrollViewHierarchy:
 # Used for parallel nested scrolling to determine when to delegate
 # to outer ScrollView.
 # Note: Set to 15% to account for elastic overscroll bounce-back
-_BOUNDARY_THRESHOLD = 0.15  # 15% from edge
+_BOUNDARY_THRESHOLD = 0.05  # 5% from edge
 
 # When we are generating documentation, Config doesn't exist
 _scroll_timeout = _scroll_distance = 0
@@ -480,7 +481,7 @@ if Config:
 
 
 class ScrollView(StencilView):
-    """ScrollView class. See module documentation for more information.
+    '''ScrollView class. See module documentation for more information.
 
     :Events:
         `on_scroll_start`
@@ -506,10 +507,10 @@ class ScrollView(StencilView):
     .. versionchanged:: 1.7.0
         `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
         been deprecated, use :attr:`effect_cls` instead.
-    """
+    '''
 
     scroll_distance = NumericProperty(_scroll_distance)
-    """Distance to move before scrolling the :class:`ScrollView`, in pixels. As
+    '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance has been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
     It is advisable that you base this value on the dpi of your target device's
@@ -518,10 +519,10 @@ class ScrollView(StencilView):
     :attr:`scroll_distance` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 20 (pixels), according to the default value in user
     configuration.
-    """
+    '''
 
     scroll_wheel_distance = NumericProperty("20sp")
-    """Distance to move when scrolling with a mouse wheel.
+    '''Distance to move when scrolling with a mouse wheel.
     It is advisable that you base this value on the dpi of your target device's
     screen.
 
@@ -529,10 +530,10 @@ class ScrollView(StencilView):
 
     :attr:`scroll_wheel_distance` is a
     :class:`~kivy.properties.NumericProperty` , defaults to 20 pixels.
-    """
+    '''
 
     scroll_timeout = NumericProperty(_scroll_timeout)
-    """Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
+    '''Timeout allowed to trigger the :attr:`scroll_distance`, in milliseconds.
     If the user has not moved :attr:`scroll_distance` within the timeout,
     the scrolling will be disabled, and the touch event will go to the
     children.
@@ -543,10 +544,10 @@ class ScrollView(StencilView):
 
     .. versionchanged:: 1.5.0
         Default value changed from 250 to 55.
-    """
+    '''
 
     scroll_x = NumericProperty(0.0)
-    """X scrolling value, between 0 and 1. If 0, the content's left side will
+    '''X scrolling value, between 0 and 1. If 0, the content's left side will
     touch the left side of the ScrollView. If 1, the content's right side will
     touch the right side.
 
@@ -555,10 +556,10 @@ class ScrollView(StencilView):
 
     :attr:`scroll_x` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 0.
-    """
+    '''
 
     scroll_y = NumericProperty(1.0)
-    """Y scrolling value, between 0 and 1. If 0, the content's bottom side will
+    '''Y scrolling value, between 0 and 1. If 0, the content's bottom side will
     touch the bottom side of the ScrollView. If 1, the content's top side will
     touch the top side.
 
@@ -567,21 +568,21 @@ class ScrollView(StencilView):
 
     :attr:`scroll_y` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
-    """
+    '''
 
     do_scroll_x = BooleanProperty(True)
-    """Allow scroll on X axis.
+    '''Allow scroll on X axis.
 
     :attr:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
-    """
+    '''
 
     do_scroll_y = BooleanProperty(True)
-    """Allow scroll on Y axis.
+    '''Allow scroll on Y axis.
 
     :attr:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty` and
     defaults to True.
-    """
+    '''
 
     def _get_do_scroll(self):
         return (self.do_scroll_x, self.do_scroll_y)
@@ -598,14 +599,14 @@ class ScrollView(StencilView):
         bind=("do_scroll_x", "do_scroll_y"),
         cache=True,
     )
-    """Allow scroll on X or Y axis.
+    '''Allow scroll on X or Y axis.
 
     :attr:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
     (:attr:`do_scroll_x` + :attr:`do_scroll_y`)
-    """
+    '''
 
     always_overscroll = BooleanProperty(True)
-    """Make sure user can overscroll even if there is not enough content
+    '''Make sure user can overscroll even if there is not enough content
     to require scrolling.
 
     This is useful if you want to trigger some action on overscroll, but
@@ -619,7 +620,7 @@ class ScrollView(StencilView):
     The option was added and enabled by default, set to False to get the
     previous behavior of only allowing to overscroll when there is
     enough content to allow scrolling.
-    """
+    '''
 
     def _get_vbar(self):
         # must return (y, height) in %
@@ -640,7 +641,7 @@ class ScrollView(StencilView):
         bind=("scroll_y", "_viewport", "viewport_size", "height"),
         cache=True,
     )
-    """Return a tuple of (position, size) of the vertical scrolling bar.
+    '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
 
@@ -649,7 +650,7 @@ class ScrollView(StencilView):
     internally for drawing the little vertical bar when you're scrolling.
 
     :attr:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
-    """
+    '''
 
     def _get_hbar(self):
         # must return (x, width) in %
@@ -670,7 +671,7 @@ class ScrollView(StencilView):
         bind=("scroll_x", "_viewport", "viewport_size", "width"),
         cache=True,
     )
-    """Return a tuple of (position, size) of the horizontal scrolling bar.
+    '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0
 
@@ -679,10 +680,10 @@ class ScrollView(StencilView):
     internally for drawing the little horizontal bar when you're scrolling.
 
     :attr:`hbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
-    """
+    '''
 
     bar_color = ColorProperty([0.7, 0.7, 0.7, 0.9])
-    """Color of horizontal / vertical scroll bar, in RGBA format.
+    '''Color of horizontal / vertical scroll bar, in RGBA format.
 
     .. versionadded:: 1.2.0
 
@@ -692,10 +693,10 @@ class ScrollView(StencilView):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    """
+    '''
 
     bar_inactive_color = ColorProperty([0.7, 0.7, 0.7, 0.2])
-    """Color of horizontal / vertical scroll bar (in RGBA format), when no
+    '''Color of horizontal / vertical scroll bar (in RGBA format), when no
     scroll is happening.
 
     .. versionadded:: 1.9.0
@@ -706,20 +707,20 @@ class ScrollView(StencilView):
     .. versionchanged:: 2.0.0
         Changed from :class:`~kivy.properties.ListProperty` to
         :class:`~kivy.properties.ColorProperty`.
-    """
+    '''
 
     bar_width = NumericProperty("2dp")
-    """Width of the horizontal / vertical scroll bar. The width is interpreted
+    '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
 
     .. versionadded:: 1.2.0
 
     :attr:`bar_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 2.
-    """
+    '''
 
     bar_pos_x = OptionProperty("bottom", options=("top", "bottom"))
-    """Which side of the ScrollView the horizontal scroll bar should go
+    '''Which side of the ScrollView the horizontal scroll bar should go
     on. Possible values are 'top' and 'bottom'.
 
     .. versionadded:: 1.8.0
@@ -727,10 +728,10 @@ class ScrollView(StencilView):
     :attr:`bar_pos_x` is an :class:`~kivy.properties.OptionProperty`,
     defaults to 'bottom'.
 
-    """
+    '''
 
     bar_pos_y = OptionProperty("right", options=("left", "right"))
-    """Which side of the ScrollView the vertical scroll bar should go
+    '''Which side of the ScrollView the vertical scroll bar should go
     on. Possible values are 'left' and 'right'.
 
     .. versionadded:: 1.8.0
@@ -738,27 +739,27 @@ class ScrollView(StencilView):
     :attr:`bar_pos_y` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'right'.
 
-    """
+    '''
 
     bar_pos = ReferenceListProperty(bar_pos_x, bar_pos_y)
-    """Which side of the scroll view to place each of the bars on.
+    '''Which side of the scroll view to place each of the bars on.
 
     :attr:`bar_pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`bar_pos_x`, :attr:`bar_pos_y`)
-    """
+    '''
 
     bar_margin = NumericProperty(0)
-    """Margin between the bottom / right side of the scrollview when drawing
+    '''Margin between the bottom / right side of the scrollview when drawing
     the horizontal / vertical scroll bar.
 
     .. versionadded:: 1.2.0
 
     :attr:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default
     to 0
-    """
+    '''
 
     effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
-    """Class effect to instantiate for X and Y axis.
+    '''Class effect to instantiate for X and Y axis.
 
     .. versionadded:: 1.7.0
 
@@ -769,32 +770,32 @@ class ScrollView(StencilView):
         If you set a string, the :class:`~kivy.factory.Factory` will be used to
         resolve the class.
 
-    """
+    '''
 
     effect_x = ObjectProperty(None, allownone=True)
-    """Effect to apply for the X axis. If None is set, an instance of
+    '''Effect to apply for the X axis. If None is set, an instance of
     :attr:`effect_cls` will be created.
 
     .. versionadded:: 1.7.0
 
     :attr:`effect_x` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-    """
+    '''
 
     effect_y = ObjectProperty(None, allownone=True)
-    """Effect to apply for the Y axis. If None is set, an instance of
+    '''Effect to apply for the Y axis. If None is set, an instance of
     :attr:`effect_cls` will be created.
 
     .. versionadded:: 1.7.0
 
     :attr:`effect_y` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None, read-only.
-    """
+    '''
 
     viewport_size = ListProperty([0, 0])
-    """(internal) Size of the internal viewport. This is the size of your only
+    '''(internal) Size of the internal viewport. This is the size of your only
     child in the scrollview.
-    """
+    '''
 
     scroll_type = OptionProperty(
         ["content"],
@@ -805,7 +806,7 @@ class ScrollView(StencilView):
             ["content", "bars"],
         ),
     )
-    """Sets the type of scrolling to use for the content of the scrollview.
+    '''Sets the type of scrolling to use for the content of the scrollview.
     Available options are: ['content'], ['bars'], ['bars', 'content'].
 
     +---------------------+------------------------------------------------+
@@ -823,10 +824,10 @@ class ScrollView(StencilView):
 
     :attr:`scroll_type` is an :class:`~kivy.properties.OptionProperty` and
     defaults to ['content'].
-    """
+    '''
 
     smooth_scroll_end = NumericProperty(None, allownone=True)
-    """Whether smooth scroll end should be used when scrolling with the
+    '''Whether smooth scroll end should be used when scrolling with the
     mouse-wheel and the factor of transforming the scroll distance to
     velocity. This option also enables velocity addition meaning if you
     scroll more, you will scroll faster and further. The recommended value
@@ -837,10 +838,10 @@ class ScrollView(StencilView):
 
     :attr:`smooth_scroll_end` is a :class:`~kivy.properties.NumericProperty`
     and defaults to None.
-    """
+    '''
 
     slow_device_support = BooleanProperty(False)
-    """Enable slow device support for scroll gesture detection.
+    '''Enable slow device support for scroll gesture detection.
 
     On very slow devices, at least 3 frames are needed to accumulate
     velocity data for scroll effects to work properly. When enabled,
@@ -855,9 +856,9 @@ class ScrollView(StencilView):
     and defaults to False.
 
     .. versionadded:: NEXT_VERSION
-    """
+    '''
     parallel_delegation = BooleanProperty(True)
-    """Controls boundary delegation behavior for parallel nested ScrollViews.
+    '''Controls boundary delegation behavior for parallel nested ScrollViews.
 
     When True (default, web-style):
         - Touch starting at inner boundary, moving away → delegates to outer
@@ -870,10 +871,10 @@ class ScrollView(StencilView):
     and defaults to True.
 
     .. versionadded:: NEXT_VERSION
-    """
+    '''
 
     delegate_to_outer = BooleanProperty(True)
-    """Controls whether touch scroll gestures delegate to outer ScrollViews.
+    '''Controls whether touch scroll gestures delegate to outer ScrollViews.
 
     When True (default):
         - Orthogonal: Cross-axis gestures immediately delegate to outer
@@ -899,7 +900,7 @@ class ScrollView(StencilView):
     and defaults to True.
 
     .. versionadded:: NEXT_VERSION
-    """
+    '''
 
     # Class constants for mouse wheel scroll button sets
     _MOUSE_WHEEL_HORIZONTAL = {"scrollleft", "scrollright"}
@@ -3060,14 +3061,14 @@ class ScrollView(StencilView):
         return self._get_uid() in touch.ud
 
     def scroll_to(self, widget, padding=10, animate=True):
-        """Scrolls the viewport to ensure that the given widget is visible,
+        '''Scrolls the viewport to ensure that the given widget is visible,
         optionally with padding and animation. If animate is True (the
         default), then the default animation parameters will be used.
         Otherwise, it should be a dict containing arguments to pass to
         :class:`~kivy.animation.Animation` constructor.
 
         .. versionadded:: 1.9.1
-        """
+        '''
         if not self.parent:
             return
 
@@ -3117,12 +3118,12 @@ class ScrollView(StencilView):
             self.scroll_y = syp
 
     def convert_distance_to_scroll(self, dx, dy):
-        """Convert a distance in pixels to a scroll distance, depending on the
+        '''Convert a distance in pixels to a scroll distance, depending on the
         content size and the scrollview size.
 
         The result will be a tuple of scroll distance that can be added to
         :data:`scroll_x` and :data:`scroll_y`
-        """
+        '''
         if not self._viewport:
             return 0, 0
         vp = self._viewport
@@ -3139,13 +3140,13 @@ class ScrollView(StencilView):
         return sx, sy
 
     def update_from_scroll(self, *largs):
-        """Force the reposition of the content, according to current value of
+        '''Force the reposition of the content, according to current value of
         :attr:`scroll_x` and :attr:`scroll_y`.
 
         This method is automatically called when one of the :attr:`scroll_x`,
         :attr:`scroll_y`, :attr:`pos` or :attr:`size` properties change, or
         if the size of the content changes.
-        """
+        '''
         if not self._viewport:
             self.g_translate.xy = self.pos
             return
@@ -3440,7 +3441,7 @@ class ScrollView(StencilView):
         touch.grab_current = None
 
     def on_scroll_start(self):
-        """Event fired when a scroll gesture starts.
+        '''Event fired when a scroll gesture starts.
 
         This event is dispatched when scrolling begins, regardless of the input
         method (touch, mouse wheel, or programmatic). It fires once per scroll
@@ -3454,11 +3455,11 @@ class ScrollView(StencilView):
         .. versionchanged:: NEXT_VERSION
             Removed touch parameter. Use on_touch_down/move/up for
             touch-specific handling.
-        """
+        '''
         pass
 
     def on_scroll_move(self):
-        """Event fired when the scroll position changes.
+        '''Event fired when the scroll position changes.
 
         This event is dispatched whenever the scroll_x or scroll_y properties
         change during an active scroll gesture. It provides a unified way to
@@ -3474,11 +3475,11 @@ class ScrollView(StencilView):
             Removed touch parameter. Use on_touch_down/move/up for touch-specific
             handling. Now fires for all scroll_x/scroll_y changes including
             programmatic updates.
-        """
+        '''
         pass
 
     def on_scroll_stop(self):
-        """Event fired when scrolling motion stops.
+        '''Event fired when scrolling motion stops.
 
         This event is dispatched when the scrolling motion has completely
         stopped.  Fires when both velocity reaches zero and scroll position
@@ -3491,7 +3492,7 @@ class ScrollView(StencilView):
         .. versionchanged:: NEXT_VERSION
             Removed touch parameter. Use on_touch_down/move/up for
             touch-specific handling.
-        """
+        '''
         pass
 
 

@@ -15,23 +15,7 @@ iOS-style scrolling behavior. Key features:
 IMPLEMENTATION NOTES:
 --------------------
 This is a clean-room implementation based on understanding the physics and
-algorithms used in Flutter and iOS, not a direct port of their code.
-
-Key concepts used:
-- Critical damping: Standard physics (ξ = 1.0, c = 2√(km))
-- Rubber band formula: Mathematical transformation inspired by WebKit/iOS
-- Spring physics: Hooke's Law (F = -kx) + damping (F = -cv)
-
-ATTRIBUTION:
------------
-Inspired by:
-- Flutter's BouncingScrollPhysics (BSD 3-Clause License)
-  https://github.com/flutter/flutter
-- iOS UIScrollView rubber-banding behavior
-- WebKit ScrollController implementation (BSD/LGPL)
-
-The mathematical formulas and physics concepts used are not copyrightable.
-No source code was copied from Flutter, iOS, or WebKit.
+algorithms used in Flutter and iOS, not a direct port of the code.
 
 Mathematical formulas, physical laws, and algorithms are not subject to
 copyright. This implementation uses standard physics equations and
@@ -57,9 +41,10 @@ class DampedScrollEffect(ScrollEffect):
     '''Flutter-inspired scroll effect with iOS-style rubber banding.
 
     This implementation uses:
-    - Logarithmic resistance for overscroll (increasing resistance as you pull)
-    - Critically damped spring for bounce-back (no oscillation)
-    - Exponential friction for smooth momentum
+
+    1. Logarithmic resistance for overscroll (increasing resistance as you pull)
+    2. Critically damped spring for bounce-back (no oscillation)
+    3. Exponential friction for smooth momentum
 
     See module documentation for more information.
     '''
