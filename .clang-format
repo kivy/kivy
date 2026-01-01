@@ -1,0 +1,11 @@
+BasedOnStyle: Google
+IndentWidth: 4
+UseTab: Never
+NamespaceIndentation: All
+
+AlignAfterOpenBracket: BlockIndent
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+ColumnLimit: 150
+AccessModifierOffset: -4
