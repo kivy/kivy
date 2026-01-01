@@ -30,6 +30,7 @@ def _on_gstplayer_message(mtype, message):
 
 
 class SoundGstplayer(Sound):
+    _provider_name = 'gstplayer'
 
     @staticmethod
     def extensions():
