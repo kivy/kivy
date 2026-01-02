@@ -1,0 +1,73 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.popup import Popup
+import socket
+import threading
+
+class ChatApp(App):
+    def build(self):
+        self.username = ""
+        self.client = None
+
+        # 用户名弹窗
+        self.name_input = TextInput(hint_text="请输入用户名", multiline=False)
+        confirm_btn = Button(text="确认", size_hint=(1, 0.3))
+        confirm_btn.bind(on_press=self.connect_to_server)
+
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(self.name_input)
+        layout.add_widget(confirm_btn)
+
+        self.popup = Popup(title="欢迎", content=layout,
+                           size_hint=(0.8, 0.4), auto_dismiss=False)
+        self.popup.open()
+
+        # 主界面
+        self.root_layout = BoxLayout(orientation='vertical')
+        self.chat_layout = GridLayout(cols=1, size_hint_y=None)
+        self.chat_layout.bind(minimum_height=self.chat_layout.setter('height'))
+        scroll = ScrollView(size_hint=(1, 0.8))
+        scroll.add_widget(self.chat_layout)
+        self.root_layout.add_widget(scroll)
+
+        input_area = BoxLayout(size_hint=(1, 0.2))
+        self.entry = TextInput(hint_text="输入消息...", multiline=False)
+        send_btn = Button(text="发送", size_hint=(0.3, 1))
+        send_btn.bind(on_press=self.send_message)
+
+        input_area.add_widget(self.entry)
+        input_area.add_widget(send_btn)
+        self.root_layout.add_widget(input_area)
+
+        return self.root_layout
+
+    def connect_to_server(self, instance):
+        self.username = self.name_input.text.strip() or "匿名用户"
+        self.popup.dismiss()
+
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect(("你的服务器IP", 5555))  # 改成你电脑的局域网 IP
+        threading.Thread(target=self.receive_messages, daemon=True).start()
+
+    def receive_messages(self):
+        while True:
+            try:
+                msg = self.client.recv(1024).decode("utf-8")
+                self.chat_layout.add_widget(Label(text=msg, size_hint_y=None, height=30))
+            except:
+                break
+
+    def send_message(self, instance):
+        msg = self.entry.text.strip()
+        if msg:
+            full_msg = f"{self.username}: {msg}"
+            self.client.send(full_msg.encode("utf-8"))
+            self.entry.text = ""
+
+if __name__ == "__main__":
+    ChatApp().run()
