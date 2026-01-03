@@ -1177,8 +1177,16 @@
 # =============================================================================
 # Color Picker
 # =============================================================================
-<ColorPicker_Input@TextInput>
+
+<ColorHexInput>:
     multiline: False
+    input_filter: self._filter_hex
+    padding: sp(5)
+    border: 4, 9, 4, 9
+
+<ColorNumericInput>:
+    multiline: False
+    input_filter: self._filter_numeric
     mroot: None
     padding: sp(5)
     border: 4, 9, 4, 9
@@ -1205,13 +1213,16 @@
     AnchorLayout:
         size_hint_x: None
         width: '50sp'
-        ColorPicker_Input:
+        ColorNumericInput:
             mroot: root.mroot
             text: str(int(sldr.value))
             size_hint_y: None
             height: '28sp'
             on_text:
                 root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+            on_focus:
+                # If focus is lost and text is empty, restore from slider value
+                if not args[1] and not self.text: self.text = str(int(sldr.value))
     Slider:
         id: sldr
         size_hint: 1, .25
@@ -1326,13 +1337,12 @@
                     text: 'X'
                     color: root.foreground_color
                 AnchorLayout:
-                    ColorPicker_Input:
+                    ColorHexInput:
+                        color_picker: root
                         size_hint_y: None
                         height: '28sp'
-                        mroot: root
                         text: str(root.hex_color)
                         on_text: root._trigger_update_hex(args[1])
-
 
         ColorWheel:
             id: wheel
