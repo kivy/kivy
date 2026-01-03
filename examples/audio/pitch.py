@@ -34,7 +34,7 @@ class Test(App):
                 root.add_widget(button)
         return root
 
-    def play_note(self, button):
+    def play_note(self, button, touch):
         self.sound.pitch = button.pitch
         self.sound.play()
 
