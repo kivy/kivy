@@ -9,9 +9,9 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
-<-Button,-ToggleButton>:
-    state_image: self.background_normal if self.pressed else self.background_down
-    disabled_image: self.background_disabled_normal if self.pressed else self.background_disabled_down
+<Button>:
+    state_image: self.background_down if self.pressed else self.background_normal
+    disabled_image: self.background_disabled_down if self.pressed else self.background_disabled_normal
     canvas:
         Color:
             rgba: self.background_color
@@ -26,6 +26,10 @@
             texture: self.texture
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+
+<ToggleButton>:
+    state_image: self.background_down if self.activated else self.background_normal
+    disabled_image: self.background_disabled_down if self.activated else self.background_disabled_normal
 
 <BubbleContent>
     opacity: .7 if self.disabled else 1
@@ -1132,16 +1136,16 @@
 <CheckBox>:
     _checkbox_state_image:
         self.background_checkbox_down \
-        if self.active else self.background_checkbox_normal
+        if self.activated else self.background_checkbox_normal
     _checkbox_disabled_image:
         self.background_checkbox_disabled_down \
-        if self.active else self.background_checkbox_disabled_normal
+        if self.activated else self.background_checkbox_disabled_normal
     _radio_state_image:
         self.background_radio_down \
-        if self.active else self.background_radio_normal
+        if self.activated else self.background_radio_normal
     _radio_disabled_image:
         self.background_radio_disabled_down \
-        if self.active else self.background_radio_disabled_normal
+        if self.activated else self.background_radio_disabled_normal
     _checkbox_image:
         self._checkbox_disabled_image \
         if self.disabled else self._checkbox_state_image

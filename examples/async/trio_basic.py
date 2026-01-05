@@ -14,7 +14,7 @@ BoxLayout:
     BoxLayout:
         Label:
             id: label
-            text: 'Button is "{}"'.format(btn.state)
+            text: 'Button is pressed? {}'.format(btn.pressed)
 '''
 
 
