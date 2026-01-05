@@ -18,7 +18,6 @@ opening a new Bug report instead of relying on your library.
     looking for widgets, please refer to :mod:`kivy.uix` instead.
 '''
 
-
 import os
 import sysconfig
 import sys
@@ -32,6 +31,104 @@ from kivy.logger import Logger
 
 class CoreCriticalException(Exception):
     pass
+
+
+def _is_strict_mode():
+    # Check if provider strict mode is enabled.
+
+    # Returns True if KIVY_PROVIDER_STRICT is set to '1', 'true', or 'yes'
+    # (case-insensitive).
+
+    #
+    value = os.environ.get('KIVY_PROVIDER_STRICT', '').lower()
+    return value in ('1', 'true', 'yes')
+
+
+def load_with_provider_selection(
+        filename,
+        extension,
+        provider_name,
+        providers_by_name,
+        category_name,
+        check_compatibility,
+        try_load,
+        fallback_load
+):
+    #
+    # Generic provider selection and loading logic.
+
+    # This function implements the common pattern for loading resources with
+    # optional provider selection, validation, and fallback behavior used across
+    # audio, image provider systems.
+
+    # :param filename: File to load (used for error messages)
+    # :param extension: File extension (e.g., 'mp3', 'png', 'ttf')
+    # :param provider_name: Requested provider name (or None for auto-selection)
+    # :param providers_by_name: Dict mapping provider names to provider classes
+    # :param category_name: Category for logging (e.g., 'Audio', 'Image', 'Text')
+    # :param check_compatibility: Callable(provider_class, extension) -> bool
+    #     Function to check if provider supports the given extension
+    # :param try_load: Callable(provider_class, filename) -> result or None
+    #     Function to attempt loading with the given provider
+    # :param fallback_load: Callable() -> result or None
+    #     Function to load using default provider priority
+
+    # :returns: Loaded resource or None if loading fails
+
+    # :raises ValueError: If provider not found or incompatible (strict mode only)
+    # :raises Exception: If provider fails to load (strict mode only)
+
+    # .. versionadded:: 3.0.0
+    #
+    strict_mode = _is_strict_mode()
+
+    # If specific provider requested
+    if provider_name:
+        target_provider = providers_by_name.get(provider_name.lower())
+
+        if target_provider is None:
+            # Provider not found/available
+            available = list(providers_by_name.keys())
+            msg = (
+                f"{category_name}: Provider {provider_name!r} not found. "
+                f"Available: {available}"
+            )
+            if strict_mode:
+                raise ValueError(msg)
+            else:
+                Logger.warning(msg + " Falling back to default priority.")
+                return fallback_load()
+
+        # Check if provider is compatible
+        if not check_compatibility(target_provider, extension):
+            msg = (
+                f"{category_name}: Provider {provider_name!r} does not support "
+                f"{extension!r} format."
+            )
+            if strict_mode:
+                raise ValueError(msg)
+            else:
+                Logger.warning(msg + " Falling back to default priority.")
+                return fallback_load()
+
+        # Try the requested provider
+        result = try_load(target_provider, filename)
+        if result is not None:
+            return result
+
+        # Provider failed to load
+        msg = (
+            f"{category_name}: Provider {provider_name!r} failed to load "
+            f"<{filename}>"
+        )
+        if strict_mode:
+            raise Exception(msg)
+        else:
+            Logger.warning(msg + " Falling back to default priority.")
+            return fallback_load()
+
+    # No specific provider requested - use default priority
+    return fallback_load()
 
 
 def core_select_lib(category, llist, create_instance=False,
@@ -95,7 +192,8 @@ def core_select_lib(category, llist, create_instance=False,
             Logger.trace('', exc_info=e)
 
     err = '\n'.join(['{} - {}: {}\n{}'.format(opt, e.__class__.__name__, e,
-                   ''.join(traceback.format_tb(tb))) for opt, e, tb in errs])
+                                              ''.join(traceback.format_tb(tb))) for
+                     opt, e, tb in errs])
     Logger.critical(
         '{0}: Unable to find any valuable {0} provider. Please enable '
         'debug logging (e.g. add -d if running from the command line, or '
@@ -129,10 +227,10 @@ def core_register_libs(category, libs, base='kivy.core'):
             except KeyError:
                 continue
             importlib.__import__(name='{2}.{0}.{1}'.format(category, lib, base),
-                       globals=globals(),
-                       locals=locals(),
-                       fromlist=[lib],
-                       level=0)
+                                 globals=globals(),
+                                 locals=locals(),
+                                 fromlist=[lib],
+                                 level=0)
 
             libs_loaded.append(lib)
 

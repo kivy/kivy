@@ -79,6 +79,7 @@ def _log_callback(message, level):
 
 
 class SoundFFPy(Sound):
+    _provider_name = 'ffpyplayer'
 
     @staticmethod
     def extensions():
