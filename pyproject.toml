@@ -3,7 +3,7 @@ requires = [
     "setuptools~=80.9.0",
     "wheel~=0.45.1",
     "packaging~=25.0",
-    "cython>=0.29.1,<=3.2.0",
+    "cython>=3.2.4,<=3.2.4",
     'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
     'kivy_deps.sdl3_dev~=0.0.9; sys_platform == "win32"',
     'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
