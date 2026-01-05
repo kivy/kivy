@@ -37,6 +37,7 @@ __all__ = ('ColorPicker', 'ColorWheel')
 
 from math import cos, sin, pi, sqrt, atan
 from colorsys import rgb_to_hsv, hsv_to_rgb
+from string import hexdigits
 
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
@@ -63,9 +64,7 @@ class ColorHexInput(TextInput):
         if undo:
             return substring
 
-        hex_chars = '0123456789abcdefABCDEF'
         current_text = self.text
-
         # Already at max length (9 = '#' + 8 hex chars)
         if len(current_text) >= 9:
             return ''
@@ -76,7 +75,7 @@ class ColorHexInput(TextInput):
                 # Only allow '#' at the beginning
                 if not current_text and not result:
                     result = char
-            elif char in hex_chars:
+            elif char in hexdigits:
                 # Auto-add '#' if first character is a hex digit
                 if not current_text and not result:
                     result = '#'
@@ -112,41 +111,34 @@ class ColorNumericInput(TextInput):
             return substring
 
         current_text = self.text
-        result = ''.join(c for c in substring if c in '0123456789')
+        result = substring if substring.isdecimal() else ''
 
-        if not result:
-            return ''
-
-        # Check for leading zeros in the pasted content
+        # 1) Check for leading zeros in the pasted content
         # '01', '001', etc. should be rejected
-        if len(result) > 1 and result[0] == '0':
-            return ''
-
-        # Check if current text is '0' and we're trying to add more digits
+        # 2) Check if current text is '0' and we're trying to add more digits
         # This would create a leading zero: '0' + '5' = '05'
-        if current_text == '0' and result:
+        # 3) Check if we're trying to insert a zero at the start of text
+        # 4) Check if there's no text to add
+        if any((len(result) > 1 and result[0] == '0', #1 ) no pasted leading zeros
+               current_text == '0' and result and self.cursor_col != 0, # 2)
+               result == '0' and current_text and self.cursor_col == 0, # 3)
+               not result)): # 4) nothing to add
             return ''
 
-        # Validate the resulting value
-        try:
-            value = int(result)
-            if value > 255:
+        # Validate the individual value
+        value = int(result)
+        if value > 255:
+            return ''
+
+        # Calculate what the final text will be after inserting at cursor position
+        final_text = (current_text[:self.cursor_col] +
+                      result +
+                      current_text[self.cursor_col:])
+
+        # Validate the final value wouldn't exceed 255
+        if final_text:
+            if int(final_text) > 255:
                 return ''
-
-            # If there's existing text, check if appending would exceed 255
-            if current_text:
-                potential_value = int(current_text + result)
-                if potential_value > 255:
-                    # If they're likely replacing all text (new value is valid),
-                    # allow it - this handles paste/replace scenarios
-                    if len(result) >= len(current_text):
-                        return result
-                    return ''
-        except ValueError:
-            # Should never happen with our filter, but defensive against
-            # programmatic text changes that bypass the filter
-            return ''
-
         return result
 
 
@@ -537,7 +529,7 @@ class ColorPicker(RelativeLayout):
         mode, clr_idx, text = self._upd_clr_list
         try:
             # Treat empty string as 0
-            if not text or text.strip() == '':
+            if not text:
                 text = 0.0
             else:
                 text = min(255.0, max(0.0, float(text)))
