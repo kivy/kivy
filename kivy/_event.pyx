@@ -729,11 +729,15 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
+    @deprecated(msg='Deprecated in 3.0.0,'
+                    'Will be removed after two releases')
     def dispatch_generic(self, event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
         return self.dispatch_children(event_type, *largs, **kwargs)
 
+    @deprecated(msg='Deprecated in 3.0.0,'
+                    'Will be removed after two releases')
     def dispatch_children(self, event_type, *largs, **kwargs):
         for child in self.children[:]:
             if child.dispatch_generic(event_type, *largs, **kwargs):

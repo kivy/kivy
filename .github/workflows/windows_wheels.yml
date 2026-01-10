@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
         arch: ['x64']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
@@ -48,7 +48,7 @@ jobs:
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
     - name: Upload wheels as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: windows_wheels-${{ matrix.python }}-${{ matrix.arch }}
         path: dist
@@ -65,7 +65,7 @@ jobs:
           python-version: 3.x
       - run: |
           python -m pip install -r .ci/cicd-requirements.txt
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           pattern: windows_wheels-*-*
           merge-multiple: true
@@ -86,7 +86,7 @@ jobs:
           . .\.ci\windows_ci.ps1
           Upload-windows-wheels-to-server -ip "$env:SERVER_IP"
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2.4.1
+        uses: softprops/action-gh-release@v2.4.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/*
@@ -104,7 +104,7 @@ jobs:
     needs: windows_wheels_create
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
         arch: [ 'x64' ]
     steps:
       - uses: actions/checkout@v5
@@ -113,7 +113,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           # Only one windows_wheels-*-* artifact contains the kivy-examples
           # However, all artifacts are downloaded ATM, to avoid using
@@ -134,7 +134,7 @@ jobs:
           . .\.ci\windows_ci.ps1
           Test-kivy-benchmark
       - name: Upload benchmarks as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: benchmarks-windows-wheels-python-${{ matrix.python }}-${{ matrix.arch }}
           path: .benchmarks-kivy
@@ -148,7 +148,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           # Only one windows_wheels-*-* artifact contains the sdist
           # However, all artifacts are downloaded ATM, to avoid using

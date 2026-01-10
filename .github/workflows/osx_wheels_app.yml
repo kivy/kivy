@@ -32,7 +32,7 @@ jobs:
       run: |
         KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
     - name: Upload kivy-examples wheel as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: osx_examples_wheel
         path: dist
@@ -41,7 +41,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
       CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15"
-      CIBW_BUILD: "cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2"
+      CIBW_BUILD: "cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2 cp314-macosx_universal2"
       CIBW_ARCHS_MACOS: "x86_64 universal2"
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
         DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
@@ -81,7 +81,7 @@ jobs:
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: osx_wheels
         path: ./wheelhouse/*.whl
@@ -101,7 +101,7 @@ jobs:
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v6
       with:
         name: osx_wheels
         path: dist
@@ -117,7 +117,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         upload_file_to_server "$SERVER_IP" "osx/kivy/"
     - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@v2.4.1
+      uses: softprops/action-gh-release@v2.4.2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: dist/*
@@ -139,7 +139,7 @@ jobs:
         # macos-15-intel runs on Intel x64
         # macos-latest runs on Apple Silicon ARM
         runs_on: ['macos-15-intel', 'macos-latest']
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
@@ -148,7 +148,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: osx_wheels
           path: dist
@@ -156,7 +156,7 @@ jobs:
         run: |
           source .ci/ubuntu_ci.sh
           install_kivy_wheel dev
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: osx_examples_wheel
           path: dist
@@ -206,7 +206,7 @@ jobs:
           source .ci/osx_ci.sh
           generate_osx_app_dmg_from_bundle
       - name: Upload dmg as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: osx_app
           path: app
@@ -222,7 +222,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: 3.x
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: osx_app
           path: app
@@ -239,7 +239,7 @@ jobs:
           source .ci/ubuntu_ci.sh
           upload_file_to_server "$SERVER_IP" "osx/app/" "*.dmg" "app"
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2.4.1
+        uses: softprops/action-gh-release@v2.4.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: app/*
@@ -248,7 +248,7 @@ jobs:
         run: |
           source .ci/osx_ci.sh
           mount_osx_app
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: osx_examples_wheel
           path: dist
