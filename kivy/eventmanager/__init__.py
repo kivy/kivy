@@ -2,15 +2,13 @@
 Event Manager
 =============
 
+.. versionadded:: 2.1.0
+
 The :class:`EventManagerBase` is the abstract class intended for specific
 implementation of dispatching motion events
 (instances of :class:`~kivy.input.motionevent.MotionEvent`) to widgets through
 :meth:`~kivy.uix.widget.Widget.on_motion` method of the
 :class:`~kivy.uix.widget.Widget` class.
-
-.. warning::
-    This feature is experimental and it remains so while this warning is
-    present.
 
 Manager is a layer between the window and its widgets.
 :class:`~kivy.core.window.WindowBase` will forward all the events it receives
@@ -89,6 +87,9 @@ Currently there are three dispatch modes (behaviors) recognized by the
 
 Note that window does not have a `motion_filter` property and therefore does
 not have a list of filtered widgets from its `children` list.
+
+.. versionchanged:: 3.0.0
+    Removed "Experimental" warning.
 '''
 
 MODE_DEFAULT_DISPATCH = 'default'

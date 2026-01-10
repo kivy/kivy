@@ -1033,9 +1033,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''
 
     event_managers_dict = None
@@ -1050,9 +1049,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''
 
     trigger_create_window = None
@@ -1231,10 +1229,8 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so until this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         self.event_managers.insert(0, manager)
         for type_id in manager.type_ids:
@@ -1248,10 +1244,8 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so until this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         self.event_managers.remove(manager)
         for type_id in manager.type_ids:
