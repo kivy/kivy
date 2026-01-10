@@ -542,9 +542,8 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         if self.disabled or me.dispatch_mode == MODE_DONT_DISPATCH:
             return
@@ -786,12 +785,11 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -812,12 +810,11 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -1623,7 +1620,6 @@ class Widget(WidgetBase):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''
