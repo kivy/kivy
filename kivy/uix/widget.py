@@ -1573,7 +1573,6 @@ class Widget(WidgetBase):
                 self.inc_disabled()
             else:
                 self.dec_disabled()
-            return True
 
     def inc_disabled(self, count=1):
         self._disabled_count += count
