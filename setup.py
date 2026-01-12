@@ -159,8 +159,10 @@ platform = sys.platform
 
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
-if ndkplatform is not None and environ.get('LIBLINK'):
-    platform = 'android'
+
+# cibuildwheel will set platform as 'android' during build
+# if ndkplatform is not None and environ.get('LIBLINK'):
+#     platform = 'android'
 
 # no kivy-ios build since cibuildwheel supports ios builds now
 # kivy_ios_root = environ.get('KIVYIOSROOT', None)
@@ -278,6 +280,41 @@ if platform == 'ios':
     ios_data['platform_arch'] = plat_arch
 
     plat_options['ios'] = ios_data
+
+if platform == 'android':
+    android_data = OrderedDict()
+    root = os.getcwd()
+
+    # Android uses .so files instead of frameworks
+    # Assuming SDL3 libraries are in dist/libs/{ABI}/ structure
+    android_data['abis'] = ['arm64-v8a', 'x86_64']
+    
+    android_data['libraries'] = {}
+    
+    for abi in android_data['abis']:
+        lib_path = join(root, 'dist', 'libs', abi)
+        
+        android_data['libraries'][abi] = {
+            'SDL3': {
+                'path': join(lib_path, 'libSDL3.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3'),
+            },
+            'SDL3_image': {
+                'path': join(lib_path, 'libSDL3_image.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_image'),
+            },
+            'SDL3_mixer': {
+                'path': join(lib_path, 'libSDL3_mixer.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_mixer'),
+            },
+            'SDL3_ttf': {
+                'path': join(lib_path, 'libSDL3_ttf.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
+            }
+        }
+    
+    plat_options['android'] = android_data
+
 # -----------------------------------------------------------------------------
 # Detect options
 #
