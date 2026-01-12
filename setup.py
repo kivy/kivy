@@ -287,11 +287,11 @@ if platform == 'android':
 
     # Android uses .so files instead of frameworks
     # Assuming SDL3 libraries are in dist/libs/{ABI}/ structure
-    android_data['abis'] = ['arm64-v8a', 'x86_64']
+    android_abis = ['arm64-v8a', 'x86_64']
     
     android_data['libraries'] = {}
     
-    for abi in android_data['abis']:
+    for abi in android_abis:
         lib_path = join(root, 'dist', 'libs', abi)
         
         android_data['libraries'][abi] = {
@@ -312,6 +312,8 @@ if platform == 'android':
                 'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
             }
         }
+    
+    android_data['abis'] = android_abis
     
     plat_options['android'] = android_data
 
@@ -821,6 +823,23 @@ def determine_angle_flags():
             '-F', dirname(egl['path']),
             '-F', dirname(gles['path']),
         ]
+    elif platform == "android":
+        android_libs = plat_options['android']['libraries']
+        android_abis = plat_options['android']['abis']
+        
+        # Use the first ABI for build configuration
+        primary_abi = android_abis[0]
+        abi_libs = android_libs[primary_abi]
+        
+        sdl3 = abi_libs.get('SDL3')
+        if not sdl3:
+            raise Exception("SDL3 libraries not defined for Android")
+        
+        flags['include_dirs'] = [sdl3['headers']]
+        flags['libraries'] = ['EGL', 'GLESv2']
+        
+        # Add library paths for all ABIs
+        flags['library_dirs'] = [dirname(android_libs[abi]['SDL3']['path']) for abi in android_abis]
     else:
         raise Exception("ANGLE is not supported on this platform")
 
@@ -867,9 +886,10 @@ def determine_gl_flags():
         flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
-        flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
-        flags['libraries'] = ['GLESv2']
+        # For modern cibuildwheel Android builds, OpenGL ES libraries
+        # are provided by the NDK toolchain automatically
+        flags['libraries'] = ['GLESv2', 'EGL']
+        # NDK headers are automatically included by the toolchain
     elif platform == 'rpi':
 
         if not cross_sysroot:
