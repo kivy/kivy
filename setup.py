@@ -524,13 +524,15 @@ print('Using this graphics system: {}'.format(
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
-    print('IOS project environment detect, use it.')
+    print('IOS environment detect, use it.')
     # print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
     c_options['use_sdl3'] = True
 
 elif platform == 'android':
+    print('Android environment detect, use it.')
     c_options['use_android'] = True
+    c_options['use_sdl3'] = True
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
@@ -592,10 +594,11 @@ if platform == 'win32' and c_options['use_sdl3'] is None:
     c_options['use_sdl3'] = True
 
 can_autodetect_sdl3 = (
-    platform not in ("android",) and c_options["use_sdl3"] is None
+    #platform not in ("android",) and c_options["use_sdl3"] is None
+    c_options["use_sdl3"] is None
 )
 if c_options['use_sdl3'] or can_autodetect_sdl3:
-
+    print('Detecting SDL3...')
     sdl3_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
@@ -641,7 +644,7 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             sdl3_source = 'macos-frameworks'
             print('Activate SDL3 compilation')
 
-    if not sdl3_valid and platform != "ios":
+    if not sdl3_valid and platform not in ["android", "ios"]:
         # use pkg-config approach instead
         sdl3_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
         if 'libraries' in sdl3_flags:
@@ -674,6 +677,49 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             print('Found sdl3 frameworks: {}'.format(f_path))
 
         sdl3_source = 'ios-frameworks'
+
+    # if android link against the prebuilt libs in dist/libs
+    if platform == 'android':
+        root = os.getcwd()
+        android_data = plat_options['android']
+        android_libs = android_data['libraries']
+
+        # Determine current ABI from CIBW_HOST_TRIPLET
+        host_triplet = environ.get('CIBW_HOST_TRIPLET', '')
+        if 'aarch64' in host_triplet:
+            current_abi = 'arm64-v8a'
+        elif 'x86_64' in host_triplet:
+            current_abi = 'x86_64'
+        else:
+            current_abi = 'arm64-v8a'  # default
+
+        sdl3_flags = {
+            'extra_link_args': [],
+            'include_dirs': [],
+            'library_dirs': [],
+        }
+
+        # Add base include dir for internal SDL3 includes like <SDL3/SDL_stdinc.h>
+        include_base = join(root, 'dist', 'include')
+        if exists(include_base):
+            sdl3_flags['include_dirs'].append(include_base)
+
+        # Add each library's headers directory for header detection
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            headers_path = join(root, 'dist', 'include', name)
+            if not exists(headers_path):
+                print('Missing headers {}'.format(headers_path))
+                continue
+            sdl3_flags['include_dirs'].append(headers_path)
+            print('Found SDL3 headers: {}'.format(headers_path))
+
+        # Add library directory for current ABI only
+        lib_dir = join(root, 'dist', 'libs', current_abi)
+        if exists(lib_dir):
+            sdl3_flags['library_dirs'].append(lib_dir)
+            print('Found SDL3 libraries for {}: {}'.format(current_abi, lib_dir))
+
+        sdl3_source = 'android-prebuilt'
 
 
 can_autodetect_wayland = (
