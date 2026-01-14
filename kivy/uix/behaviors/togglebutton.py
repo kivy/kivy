@@ -471,7 +471,6 @@ class ToggleButtonBehavior(ButtonBehavior):
 
         # Bind early so initial 'group' value triggers handler
         self.fbind("group", self._handle_group)
-        self._previous_group = None
         if 'accessible_role' not in kwargs:
             kwargs['accessible_role'] = Role.TOGGLE
 
