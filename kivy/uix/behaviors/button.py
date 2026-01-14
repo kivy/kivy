@@ -196,15 +196,6 @@ class ButtonBehavior:
         self._active_touches = set()
         self._cancelled_touches = set()
 
-    # NOTE: Internal hooks for subclassing
-    # ====================================
-    # These methods are called internally before dispatching the corresponding
-    # public events. They allow subclasses to implement internal state changes
-    # (e.g., ToggleButtonBehavior updating its state) separately from
-    # user-facing event handlers, maintaining a clean separation between
-    # internal logic and external event dispatch.
-    # Do NOT call these directly or bind to them - use
-    # on_press/on_release/on_cancel events instead.
         if 'min_state_time' not in kwargs:
             self.min_state_time = float(Config.get('graphics',
                                                    'min_state_time'))
@@ -214,6 +205,16 @@ class ButtonBehavior:
         self.__state_event = None
         self.__touch_time = None
         self.fbind('state', self.cancel_event)
+
+    # NOTE: Internal hooks for subclassing
+    # ====================================
+    # These methods are called internally before dispatching the corresponding
+    # public events. They allow subclasses to implement internal state changes
+    # (e.g., ToggleButtonBehavior updating its state) separately from
+    # user-facing event handlers, maintaining a clean separation between
+    # internal logic and external event dispatch.
+    # Do NOT call these directly or bind to them - use
+    # on_press/on_release/on_cancel events instead.
 
     def _do_press(self):
         """Internal hook for subclasses. Called before on_press event dispatch.
