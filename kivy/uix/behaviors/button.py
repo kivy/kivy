@@ -202,9 +202,6 @@ class ButtonBehavior:
         if 'accessible_role' not in kwargs:
             kwargs['accessible_role'] = Role.BUTTON
         super(ButtonBehavior, self).__init__(**kwargs)
-        self.__state_event = None
-        self.__touch_time = None
-        self.fbind('state', self.cancel_event)
 
     # NOTE: Internal hooks for subclassing
     # ====================================
