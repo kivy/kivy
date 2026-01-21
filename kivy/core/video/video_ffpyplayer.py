@@ -49,8 +49,9 @@ try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
     from ffpyplayer.tools import set_log_callback, get_log_callback
-except:
+except ImportError:
     raise
+
 
 
 from threading import Thread
