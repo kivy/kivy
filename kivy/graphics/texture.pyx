@@ -1390,7 +1390,6 @@ cdef class TextureRegion(Texture):
         from kivy.graphics import Color, Rectangle
         fbo = Fbo(size=self.size)
         fbo.clear()
-        self.flip_vertical()
         with fbo:
             Color(1, 1, 1)
             Rectangle(size=self.size, texture=self,
