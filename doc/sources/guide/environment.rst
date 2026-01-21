@@ -139,7 +139,7 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: sdl3, x11, egl_rpi
+    Values: sdl3, x11
 
 KIVY_TEXT
     Implementation to use for rendering text
@@ -230,25 +230,6 @@ Texture blit    When blitting to a texture, the data (color and
 ==============	====================================================
 
     .. versionadded:: 1.8.1
-
-KIVY_BCM_DISPMANX_ID
-    Change the default Raspberry Pi display to use when using the egl_rpi
-    window provider. The list of available value is accessible in 
-    `vc_dispmanx_types.h`. Default value is 0:
-
-    - 0: DISPMANX_ID_MAIN_LCD
-    - 1: DISPMANX_ID_AUX_LCD
-    - 2: DISPMANX_ID_HDMI
-    - 3: DISPMANX_ID_SDTV
-    - 4: DISPMANX_ID_FORCE_LCD
-    - 5: DISPMANX_ID_FORCE_TV
-    - 6: DISPMANX_ID_FORCE_OTHER
-
-KIVY_BCM_DISPMANX_LAYER
-    Change the default Raspberry Pi dispmanx layer when using the egl_rpi
-    window provider. Default value is 0.
-
-    .. versionadded:: 1.10.1
 
 Event Loop
 ----------
