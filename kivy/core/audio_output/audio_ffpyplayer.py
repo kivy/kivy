@@ -180,6 +180,7 @@ class SoundFFPy(Sound):
             self.stop()
         else:
             self.seek(0.)
+        self.dispatch('on_eos')
 
 
 SoundLoader.register(SoundFFPy)
