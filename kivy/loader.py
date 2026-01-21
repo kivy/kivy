@@ -124,12 +124,11 @@ class LoaderBase(object):
         self._trigger_update = Clock.create_trigger(self._update)
 
     def __del__(self):
-        if self._trigger_update is not None:
-            self._trigger_update.cancel()
+        self.stop()
 
     def _set_num_workers(self, num):
         if num < 2:
-            raise Exception('Must have at least 2 workers')
+            raise ValueError('Must have at least 2 workers')
         self._num_workers = num
 
     def _get_num_workers(self):
@@ -154,7 +153,7 @@ class LoaderBase(object):
 
     def _set_max_upload_per_frame(self, num):
         if num is not None and num < 1:
-            raise Exception('Must have at least 1 image processing per image')
+            raise ValueError('Must have at least 1 image processing per image')
         self._max_upload_per_frame = num
 
     def _get_max_upload_per_frame(self):
@@ -236,6 +235,12 @@ class LoaderBase(object):
         '''Stop the loader thread/process.'''
         self._running = False
 
+        if self._trigger_update is not None:
+            self._trigger_update.cancel()
+
+        with self._resume_cond:
+            self._resume_cond.notify_all()
+
     def pause(self):
         '''Pause the loader, can be useful during interactions.
 
@@ -249,15 +254,13 @@ class LoaderBase(object):
         .. versionadded:: 1.6.0
         '''
         self._paused = False
-        self._resume_cond.acquire()
-        self._resume_cond.notify_all()
-        self._resume_cond.release()
+        with self._resume_cond:
+            self._resume_cond.notify_all()
 
     def _wait_for_resume(self):
-        while self._running and self._paused:
-            self._resume_cond.acquire()
-            self._resume_cond.wait(0.25)
-            self._resume_cond.release()
+        with self._resume_cond:
+            while self._running and self._paused:
+                self._resume_cond.wait()
 
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
@@ -272,13 +275,13 @@ class LoaderBase(object):
         self._wait_for_resume()
 
         filename = kwargs['filename']
+        if not filename:
+            Logger.warning("Loader: _load abandoned because filename missing")
+            return
+
         load_callback = kwargs['load_callback']
         post_callback = kwargs['post_callback']
-        try:
-            proto = filename.split(':', 1)[0]
-        except:
-            # if blank filename then return
-            return
+        proto = filename.split(':', 1)[0]
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp', 'smb'):
@@ -378,11 +381,12 @@ class LoaderBase(object):
         except Exception as ex:
             Logger.exception('Loader: Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
-            try:
-                if _out_osfd:
+            if _out_osfd:
+                try:
                     close(_out_osfd)
-            except OSError:
-                pass
+                    _out_osfd = None
+                except OSError:
+                    pass
 
             # update client
             for c_filename, client in self._client[:]:
@@ -397,9 +401,11 @@ class LoaderBase(object):
         finally:
             if fd:
                 fd.close()
+                fd = None
             if _out_osfd:
                 close(_out_osfd)
-            if _out_filename != '':
+                _out_osfd = None
+            if _out_filename:
                 unlink(_out_filename)
 
         return data
@@ -421,6 +427,7 @@ class LoaderBase(object):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:
+                # No remaining files to load.
                 return
 
             # create the image
@@ -442,7 +449,7 @@ class LoaderBase(object):
 
     def image(self, filename, load_callback=None, post_callback=None,
               **kwargs):
-        '''Load a image using the Loader. A ProxyImage is returned with a
+        '''Load an image using the Loader. A ProxyImage is returned with a
         loading image. You can use it as follows::
 
             from kivy.app import App
@@ -492,7 +499,8 @@ class LoaderBase(object):
 
         return client
 
-    def remove_from_cache(self, filename):
+    @staticmethod
+    def remove_from_cache(filename):
         Cache.remove('kv.loader', filename)
 
 #
@@ -525,7 +533,10 @@ else:
                 try:
                     func(*args, **kargs)
                 except Exception as e:
-                    print(e)
+                    Logger.exception(
+                        "_Worker: Pooled task failed")
+                    Logger.info(
+                        "Failed function: %s(*%r, **%r)", (func, args, kargs))
                 self.tasks.task_done()
 
     class _ThreadPool(object):
@@ -566,7 +577,8 @@ else:
             while self._running:
                 try:
                     parameters = self._q_load.pop()
-                except:
+                except IndexError:
+                    # Nothing to run.
                     return
                 self.pool.add_task(self._load, parameters)
 
