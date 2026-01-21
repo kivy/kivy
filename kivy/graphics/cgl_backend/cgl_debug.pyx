@@ -845,6 +845,15 @@ cdef void __stdcall gil_dbgPolygonOffset (GLfloat factor, GLfloat units) with gi
     cgl_native.glPolygonOffset ( factor, units)
     gl_check_error()
 
+cdef void __stdcall dbgReadnPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei buffer_size, GLvoid* buffer) nogil:
+    with gil:
+        gil_dbgReadnPixels(x, y, width, height, format, type, buffer_size, buffer)
+
+cdef void __stdcall gil_dbgReadnPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei buffer_size, GLvoid* buffer) with gil:
+    gl_debug_print("GL glReadnPixels( x = ", x, ", y = ", y, ", width = ", width, ", height = ", height, ", format = ", format, ", type = ", type, ", buffer_size = ", buffer_size, ", buffer*=", repr(hex(<long long> buffer)), ", )")
+    cgl_native.glReadnPixels ( x, y, width, height, format, type, buffer_size, buffer)
+    gl_check_error()
+
 cdef void __stdcall dbgReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil:
     with gil:
         gil_dbgReadPixels(x, y, width, height, format, type,  pixels)
@@ -1377,6 +1386,7 @@ def init_backend_debug():
     cgl_debug.glLinkProgram = dbgLinkProgram
     cgl_debug.glPixelStorei = dbgPixelStorei
     cgl_debug.glPolygonOffset = dbgPolygonOffset
+    cgl_debug.glReadnPixels = dbgReadnPixels
     cgl_debug.glReadPixels = dbgReadPixels
     cgl_debug.glRenderbufferStorage = dbgRenderbufferStorage
     cgl_debug.glSampleCoverage = dbgSampleCoverage
