@@ -72,6 +72,7 @@ __all__ = ('Image', 'AsyncImage')
 from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
+
 from kivy.properties import (
     StringProperty,
     ObjectProperty,
@@ -82,6 +83,7 @@ from kivy.properties import (
     ColorProperty,
     OptionProperty
 )
+
 from kivy.logger import Logger
 
 # delayed imports
@@ -453,15 +455,28 @@ class AsyncImage(Image):
         have no effect.
     '''
 
+    extra_headers = DictProperty(None, allow_none=True)
+    '''If this property is not set to None, any remote requests made will
+     contain the headers stored in this dict.
+
+    :attr:`extra_headers` is a :class:`~kivy.properties.DictProperty` and
+    defaults to None.
+    .. versionadded:: 2.1.0
+    '''
+
     __events__ = ('on_error', 'on_load')
 
     def __init__(self, **kwargs):
+        # Ensure the headers are saved before the source, so, they can be used
+        # in the request
+        self.extra_headers = kwargs.get('extra_headers')
         self._found_source = None
         self._coreimage = None
         global Loader
         if not Loader:
             from kivy.loader import Loader
         self.fbind('source', self._load_source)
+        self.fbind('extra_headers', self._load_source)
         super().__init__(**kwargs)
 
     def _load_source(self, *args):
@@ -480,7 +495,8 @@ class AsyncImage(Image):
             source,
             nocache=self.nocache,
             mipmap=self.mipmap,
-            anim_delay=self.anim_delay
+            anim_delay=self.anim_delay,
+            extra_headers=self.extra_headers
         )
         image.bind(
             on_load=self._on_source_load,
