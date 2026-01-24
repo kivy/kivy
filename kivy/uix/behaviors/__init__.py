@@ -88,6 +88,7 @@ __all__ = (
     'FocusBehavior',
     'HoverBehavior',
     'KNSpaceBehavior',
+    'MotionCollideBehavior',
     'ToggleButtonBehavior',
     'TouchRippleBehavior',
     'TouchRippleButtonBehavior'
@@ -102,6 +103,7 @@ from kivy.uix.behaviors.emacs import EmacsBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.behaviors.hover import HoverBehavior
 from kivy.uix.behaviors.knspace import KNSpaceBehavior
+from kivy.uix.behaviors.motion import MotionCollideBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleButtonBehavior
