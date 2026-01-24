@@ -78,18 +78,30 @@ offers:
 
 '''
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
-           'FocusBehavior', 'CompoundSelectionBehavior',
-           'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior',
-           'TouchRippleBehavior', 'TouchRippleButtonBehavior')
+__all__ = (
+    'ButtonBehavior',
+    'CodeNavigationBehavior',
+    'CompoundSelectionBehavior',
+    'CoverBehavior',
+    'DragBehavior',
+    'EmacsBehavior',
+    'FocusBehavior',
+    'HoverBehavior',
+    'KNSpaceBehavior',
+    'ToggleButtonBehavior',
+    'TouchRippleBehavior',
+    'TouchRippleButtonBehavior'
+)
 
 from kivy.uix.behaviors.button import ButtonBehavior
-from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
-from kivy.uix.behaviors.drag import DragBehavior
-from kivy.uix.behaviors.focus import FocusBehavior
-from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
 from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
-from kivy.uix.behaviors.emacs import EmacsBehavior
+from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
 from kivy.uix.behaviors.cover import CoverBehavior
+from kivy.uix.behaviors.drag import DragBehavior
+from kivy.uix.behaviors.emacs import EmacsBehavior
+from kivy.uix.behaviors.focus import FocusBehavior
+from kivy.uix.behaviors.hover import HoverBehavior
+from kivy.uix.behaviors.knspace import KNSpaceBehavior
+from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleButtonBehavior
