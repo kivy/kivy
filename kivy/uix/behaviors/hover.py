@@ -13,8 +13,11 @@ HoverBehavior
 :class:`HoverBehavior` is a `mixin <https://en.wikipedia.org/wiki/Mixin>`_
 class which handles hover events received in the
 :meth:`~kivy.uix.widget.Widget.on_motion` method. It depends on
-:class:`HoverManager` and its way of dispatching of hover events - events with
-:attr:`~kivy.input.motionevent.MotionEvent.type_id` set to "hover".
+:class:`~kivy.eventmanager.hover.HoverManager` and its way of dispatching of
+hover events - events with :attr:`~kivy.input.motionevent.MotionEvent.type_id`
+set to "hover". Therefore, for :class:`HoverBehavior` to work,
+:class:`~kivy.eventmanager.hover.HoverManager` must be registered in
+:class:`~kivy.core.window.WindowBase`.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
@@ -32,10 +35,10 @@ Example app showing a widget which when hovered with a mouse indicator will
 change color from gray to green::
 
     from kivy.app import App
+    from kivy.eventmanager.hover import HoverManager
     from kivy.lang import Builder
+    from kivy.uix.behaviors import HoverBehavior
     from kivy.uix.widget import Widget
-
-    from kivy_garden.hover import HoverBehavior, HoverManager
 
     Builder.load_string(\"""
     <RootWidget>:
@@ -95,7 +98,11 @@ events (events with :attr:`~kivy.input.motionevent.MotionEvent.type_id` set to
 Example of using :class:`HoverCollideBehavior` with
 :class:`~kivy.uix.recycleview.RecycleView`::
 
-    FilteredRecycleView(HoverCollideBehavior, RecycleView):
+    from kivy.uix.behaviors import HoverCollideBehavior
+    from kivy.uix.recycleview import RecycleView
+
+
+    class HoverRecycleView(HoverCollideBehavior, RecycleView):
         pass
 
 :class:`HoverCollideBehavior` overrides
@@ -241,7 +248,7 @@ class HoverCollideBehavior(object):
 
     It's recommended to use this behavior with
     :class:`~kivy.uix.stencilview.StencilView` or its subclasses
-    (`RecycleView`, `ScrollView`, etc.) so that hover events don't get handled
+    (`RecycleView`, `ScrollView`, etc.), so that hover events don't get handled
     when outside of stencil view.
     """
 
