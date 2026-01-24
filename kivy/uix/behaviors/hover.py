@@ -75,6 +75,39 @@ change color from gray to green::
         HoverBehaviorApp().run()
 
 See :class:`HoverBehavior` for details.
+
+HoverCollideBehavior
+--------------------
+
+:class:`HoverCollideBehavior` is a
+`mixin <https://en.wikipedia.org/wiki/Mixin>`_ class which filters hover events
+which do not collide with a widget or events for which currently grabbed
+widget is not the widget itself.
+
+For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
+documentation.
+
+:class:`HoverCollideBehavior` is meant to be used with
+:class:`~kivy.uix.stencilview.StencilView` or its subclasses so that hover
+events (events with :attr:`~kivy.input.motionevent.MotionEvent.type_id` set to
+"hover") don't get handled when their position is outside the view.
+
+Example of using :class:`HoverCollideBehavior` with
+:class:`~kivy.uix.recycleview.RecycleView`::
+
+    FilteredRecycleView(HoverCollideBehavior, RecycleView):
+        pass
+
+:class:`HoverCollideBehavior` overrides
+:meth:`~kivy.uix.widget.Widget.on_motion` to add event filtering::
+
+    class HoverCollideBehavior(object):
+
+        def on_motion(self, etype, me):
+            if me.type_id != 'hover':
+                return super().on_motion(etype, me)
+            if me.grab_current is self or self.collide_point(*me.pos):
+                return super().on_motion(etype, me)
 """
 
 from kivy.eventmanager import MODE_DONT_DISPATCH
@@ -198,3 +231,22 @@ class HoverBehavior(object):
 
     def on_hover_leave(self, me):
         pass
+
+
+class HoverCollideBehavior(object):
+    """HoverCollideBehavior `mixin <https://en.wikipedia.org/wiki/Mixin>`_
+    overrides :meth:`~kivy.uix.widget.Widget.on_motion` to filter-out hover
+    events which do not collide with the widget or hover events which are not
+    grabbed events.
+
+    It's recommended to use this behavior with
+    :class:`~kivy.uix.stencilview.StencilView` or its subclasses
+    (`RecycleView`, `ScrollView`, etc.) so that hover events don't get handled
+    when outside of stencil view.
+    """
+
+    def on_motion(self, etype, me):
+        if me.type_id != 'hover':
+            return super().on_motion(etype, me)
+        if me.grab_current is self or self.collide_point(*me.pos):
+            return super().on_motion(etype, me)
