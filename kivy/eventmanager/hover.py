@@ -24,7 +24,7 @@ and then unregister it with
 Example of how to register/unregister a hover manager::
 
     from kivy.app import App
-    from kivy_garden.hover import HoverManager
+    from kivy.eventmanager.hover import HoverManager
 
     class HoverApp(App):
 
