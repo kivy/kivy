@@ -131,6 +131,9 @@ class HoverManager(EventManagerBase):
             )
 
     def stop(self):
+        for me_list in self._events.values():
+            me, grab_list = me_list[0]
+            self._dispatch_to_grabbed_widgets(me, grab_list)
         self._events.clear()
         self._event_times.clear()
         if self._clock_event:
