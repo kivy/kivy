@@ -549,7 +549,10 @@ def async_run(func=None, app_cls_func=None):
         if kivy_eventloop == 'asyncio':
             try:
                 import pytest_asyncio
-                return pytest.mark.asyncio(pytest_asyncio.fixture(func))
+                # In pytest 9, marks on fixtures have no effect.
+                # We only need to mark the async test function,
+                # not turn it into a fixture.
+                return pytest.mark.asyncio(func)
             except ImportError:
                 return pytest.mark.skip(
                     reason='KIVY_EVENTLOOP == "asyncio" but '
