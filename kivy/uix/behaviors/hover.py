@@ -248,8 +248,9 @@ class HoverCollideBehavior(object):
 
     It's recommended to use this behavior with
     :class:`~kivy.uix.stencilview.StencilView` or its subclasses
-    (`RecycleView`, `ScrollView`, etc.), so that hover events don't get handled
-    when outside of stencil view.
+    (:class:`~kivy.uix.recycleview.RecycleView`,
+    :class:`~kivy.uix.scrollview.ScrollView`, etc.), so that hover events don't
+    get handled when outside of stencil view.
     """
 
     def on_motion(self, etype, me):
