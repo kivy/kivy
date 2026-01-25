@@ -46,13 +46,13 @@ BoxLayout:
 
         ToggleButton:
             text: 'Shorten'
-            on_state:
-                app.shorten=self.state=='down'
+            on_activated:
+                app.shorten=self.activated
 
         ToggleButton:
             text: 'max_lines=3'
-            on_state:
-                app.max_lines=3 if self.state=='down' else 0
+            on_activated:
+                app.max_lines=3 if self.activated else 0
 
         Spinner:
             text: 'bottom'
@@ -87,8 +87,8 @@ BoxLayout:
 
     ToggleButton:
         text: 'Disable left'
-        on_state:
-            left_content.disabled=self.state=='down'
+        on_activated:
+            left_content.disabled=self.activated
 
     # Need one Widget without size_hint_y: None, so that BoxLayout fills
     # available space.

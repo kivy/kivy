@@ -1773,13 +1773,13 @@ class TextInput(FocusBehavior, Widget):
         self._position_handles()
         return True
 
-    def _handle_pressed(self, instance):
+    def _handle_pressed(self, instance, touch):
         self._hide_cut_copy_paste()
         from_, to_ = self._selection_from, self.selection_to
         if from_ > to_:
             self._selection_from, self._selection_to = to_, from_
 
-    def _handle_released(self, instance):
+    def _handle_released(self, instance, touch):
         if self._selection_from == self.selection_to:
             return
 

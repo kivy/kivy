@@ -30,7 +30,7 @@ class MyPaintApp(App):
         parent.add_widget(clearbtn)
         return parent
 
-    def clear_canvas(self, obj):
+    def clear_canvas(self, obj, touch):
         self.painter.canvas.clear()
 
 

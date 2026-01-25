@@ -39,8 +39,8 @@ Kv Example::
         text: 'press me'
         on_press: print("ouch! More gently please")
         on_release: print("ahhh")
-        on_state:
-            print("my current state is {}".format(self.state))
+        on_pressed:
+            print("my current pressed state is {}".format(self.state))
 
 '''
 

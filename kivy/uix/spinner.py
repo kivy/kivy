@@ -192,7 +192,7 @@ class Spinner(Button):
         for value in values:
             item = cls(text=value)
             item.height = self.height if self.sync_height else item.height
-            item.bind(on_release=lambda option: dp.select(option.text))
+            item.bind(on_release=lambda option, touch: dp.select(option.text))
             dp.add_widget(item)
         if text_autoupdate:
             if values:

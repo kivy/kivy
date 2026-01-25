@@ -175,7 +175,7 @@ class KeyboardScreen(Screen):
                     text=key,
                     on_release=partial(self.set_layout, key)))
 
-    def set_layout(self, layout, button):
+    def set_layout(self, layout, button, touch):
         """ Change the keyboard layout to the one specified by *layout*. """
         kb = Window.request_keyboard(
             self._keyboard_close, self)

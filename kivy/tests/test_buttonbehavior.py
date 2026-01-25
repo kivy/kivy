@@ -180,21 +180,24 @@ class ButtonBehaviorTestCase(GraphicUnitTest):
         """Test on_press can be overridden"""
 
         class CustomButton(ButtonBehavior, Widget):
-            def on_press(self):
+            def on_press(self, touch):
                 self.custom_flag = True
+                self.received_touch = touch
 
         btn = CustomButton(pos=(0, 0), size=(100, 100))
         touch = create_mock_touch()
         btn.on_touch_down(touch)
 
         self.assertTrue(hasattr(btn, "custom_flag") and btn.custom_flag)
+        self.assertEqual(btn.received_touch, touch)
 
     def test_on_release_override(self):
         """Test on_release can be overridden"""
 
         class CustomButton(ButtonBehavior, Widget):
-            def on_release(self):
+            def on_release(self, touch):
                 self.custom_flag = True
+                self.received_touch = touch
 
         btn = CustomButton(pos=(0, 0), size=(100, 100))
         touch = create_mock_touch()
@@ -203,13 +206,15 @@ class ButtonBehaviorTestCase(GraphicUnitTest):
         btn.on_touch_up(touch)
 
         self.assertTrue(hasattr(btn, "custom_flag") and btn.custom_flag)
+        self.assertEqual(btn.received_touch, touch)
 
     def test_on_cancel_override(self):
         """Test on_cancel can be overridden"""
 
         class CustomButton(ButtonBehavior, Widget):
-            def on_cancel(self):
+            def on_cancel(self, touch):
                 self.custom_flag = True
+                self.received_touch = touch
 
         btn = CustomButton(pos=(0, 0), size=(100, 100))
         touch = create_mock_touch()
@@ -219,6 +224,7 @@ class ButtonBehaviorTestCase(GraphicUnitTest):
         touch.x, touch.y = 200, 200
         btn.on_touch_move(touch)
         self.assertTrue(hasattr(btn, "custom_flag") and btn.custom_flag)
+        self.assertEqual(btn.received_touch, touch)
 
     def test_multiple_touches_only_one_press(self):
         """Test on_press fires only once with multiple touches"""
@@ -360,6 +366,191 @@ class ButtonBehaviorTestCase(GraphicUnitTest):
         on_cancel.assert_called_once()  # NOW cancel fires
         on_release.assert_not_called()  # Should NOT fire release
         self.assertFalse(self.button.pressed)
+
+    def test_on_press_receives_correct_touch(self):
+        """Test on_press receives the triggering touch as argument"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_press=callback)
+        touch = create_mock_touch(x=50, y=50)
+        self.button.on_touch_down(touch)
+
+        self.assertEqual(received_touch, touch)
+
+    def test_on_release_receives_correct_touch(self):
+        """Test on_release receives the triggering touch as argument"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_release=callback)
+        touch = create_mock_touch(x=50, y=50)
+        self.button.on_touch_down(touch)
+        touch.grab_current = self.button
+        self.button.on_touch_up(touch)
+
+        self.assertEqual(received_touch, touch)
+
+    def test_on_cancel_receives_correct_touch(self):
+        """Test on_cancel receives the triggering touch as argument"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_cancel=callback)
+        touch = create_mock_touch(x=50, y=50)
+        self.button.on_touch_down(touch)
+        touch.grab_current = self.button
+        touch.x, touch.y = 200, 200
+        self.button.on_touch_move(touch)
+
+        self.assertEqual(received_touch, touch)
+
+    def test_multitouch_press_receives_first_touch(self):
+        """Test on_press receives the first touch in multitouch scenario"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_press=callback)
+
+        touch1 = create_mock_touch(x=30, y=30)
+        touch2 = create_mock_touch(x=60, y=60)
+
+        self.button.on_touch_down(touch1)
+        self.button.on_touch_down(touch2)
+
+        # Should receive the first touch that triggered the press
+        self.assertEqual(received_touch, touch1)
+
+    def test_multitouch_release_receives_last_touch(self):
+        """Test on_release receives the last touch released"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_release=callback)
+
+        touch1 = create_mock_touch(x=30, y=30)
+        touch2 = create_mock_touch(x=60, y=60)
+
+        self.button.on_touch_down(touch1)
+        touch1.grab_current = self.button
+        self.button.on_touch_down(touch2)
+        touch2.grab_current = self.button
+
+        # Release first touch
+        self.button.on_touch_up(touch1)
+        self.assertIsNone(received_touch)  # Not called yet
+
+        # Release last touch
+        self.button.on_touch_up(touch2)
+        self.assertEqual(received_touch, touch2)  # Should receive touch2
+
+    def test_multitouch_cancel_receives_last_cancelled_touch(self):
+        """Test on_cancel receives the last touch that moved outside"""
+        received_touch = None
+
+        def callback(instance, touch):
+            nonlocal received_touch
+            received_touch = touch
+
+        self.button.bind(on_cancel=callback)
+
+        touch1 = create_mock_touch(x=30, y=30)
+        touch2 = create_mock_touch(x=60, y=60)
+
+        self.button.on_touch_down(touch1)
+        touch1.grab_current = self.button
+        self.button.on_touch_down(touch2)
+        touch2.grab_current = self.button
+
+        # Move first touch outside
+        touch1.x, touch1.y = 200, 200
+        self.button.on_touch_move(touch1)
+        self.assertIsNone(received_touch)  # Not called yet
+
+        # Move second touch outside
+        touch2.x, touch2.y = 200, 200
+        self.button.on_touch_move(touch2)
+        self.assertEqual(received_touch, touch2)  # Should receive touch2
+
+    def test_hooks_receive_touch_argument(self):
+        """Test internal hooks receive touch argument"""
+
+        class HookTestButton(ButtonBehavior, Widget):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.press_touch = None
+                self.release_touch = None
+                self.cancel_touch = None
+
+            def _do_press(self, touch):
+                self.press_touch = touch
+
+            def _do_release(self, touch):
+                self.release_touch = touch
+
+            def _do_cancel(self, touch):
+                self.cancel_touch = touch
+
+        btn = HookTestButton(pos=(0, 0), size=(100, 100))
+        touch = create_mock_touch(x=50, y=50)
+
+        # Test _do_press
+        btn.on_touch_down(touch)
+        self.assertEqual(btn.press_touch, touch)
+
+        # Test _do_cancel
+        touch.grab_current = btn
+        touch.x, touch.y = 200, 200
+        btn.on_touch_move(touch)
+        self.assertEqual(btn.cancel_touch, touch)
+
+        # Test _do_release (new touch for clean test)
+        touch2 = create_mock_touch(x=50, y=50)
+        btn2 = HookTestButton(pos=(0, 0), size=(100, 100))
+        btn2.on_touch_down(touch2)
+        touch2.grab_current = btn2
+        btn2.on_touch_up(touch2)
+        self.assertEqual(btn2.release_touch, touch2)
+
+    def test_touch_argument_consistency_across_events(self):
+        """Test that the same touch object flows through press and release"""
+        press_touch = None
+        release_touch = None
+
+        def on_press_cb(instance, touch):
+            nonlocal press_touch
+            press_touch = touch
+
+        def on_release_cb(instance, touch):
+            nonlocal release_touch
+            release_touch = touch
+
+        self.button.bind(on_press=on_press_cb, on_release=on_release_cb)
+
+        touch = create_mock_touch(x=50, y=50)
+        self.button.on_touch_down(touch)
+        touch.grab_current = self.button
+        self.button.on_touch_up(touch)
+
+        # Same touch object should be passed to both events
+        self.assertIs(press_touch, touch)
+        self.assertIs(release_touch, touch)
+        self.assertIs(press_touch, release_touch)
 
 
 if __name__ == "__main__":
