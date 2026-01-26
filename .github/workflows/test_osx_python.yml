@@ -27,7 +27,7 @@ jobs:
     steps:
     - if: matrix.runs_on == 'macos-26'
       run: xcodebuild -downloadComponent MetalToolchain
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v6
       with:

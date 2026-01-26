@@ -9,7 +9,7 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
@@ -31,7 +31,7 @@ jobs:
       # TODO: Only run tests on 3.14 once "ffpyplayer" works with Python 3.14
       KIVY_TEST_AUDIO: ${{ matrix.python == '3.14' && '0' || '1' }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
@@ -73,7 +73,7 @@ jobs:
   gen_docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
