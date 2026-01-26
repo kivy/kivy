@@ -157,20 +157,6 @@ build_examples = build_examples or \
 
 platform = sys.platform
 
-# Detect Python for android project (http://github.com/kivy/python-for-android)
-ndkplatform = environ.get('NDKPLATFORM')
-
-# cibuildwheel will set platform as 'android' during build
-# if ndkplatform is not None and environ.get('LIBLINK'):
-#     platform = 'android'
-
-# no kivy-ios build since cibuildwheel supports ios builds now
-# kivy_ios_root = environ.get('KIVYIOSROOT', None)
-
-# cibuildwheel will set platform as 'ios' during build
-# if kivy_ios_root is not None:
-#     platform = 'ios'
-
 # proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
     used_pi_version = pi_version
@@ -216,7 +202,9 @@ if platform == 'ios':
 
     from platform import ios_ver
     ios_info = ios_ver()
-    plat_arch = "ios-arm64_x86_64-simulator" if ios_info.is_simulator else "ios-arm64"
+    plat_arch = (
+        "ios-arm64_x86_64-simulator" if ios_info.is_simulator else "ios-arm64"
+    )
 
     ios_data = OrderedDict()
     root = os.getcwd()
@@ -288,12 +276,12 @@ if platform == 'android':
     # Android uses .so files instead of frameworks
     # Assuming SDL3 libraries are in dist/libs/{ABI}/ structure
     android_abis = ['arm64-v8a', 'x86_64']
-    
+
     android_data['libraries'] = {}
-    
+
     for abi in android_abis:
         lib_path = join(root, 'dist', 'libs', abi)
-        
+
         android_data['libraries'][abi] = {
             'SDL3': {
                 'path': join(lib_path, 'libSDL3.so'),
@@ -312,9 +300,9 @@ if platform == 'android':
                 'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
             }
         }
-    
+
     android_data['abis'] = android_abis
-    
+
     plat_options['android'] = android_data
 
 # -----------------------------------------------------------------------------
@@ -349,23 +337,6 @@ for key in list(c_options.keys()):
 use_embed_signature = environ.get('USE_EMBEDSIGNATURE', '0') == '1'
 use_embed_signature = use_embed_signature or bool(
     platform not in ('ios', 'android'))
-
-# -----------------------------------------------------------------------------
-# We want to be able to install kivy as a wheel without a dependency
-# on cython, but we also want to use cython where possible as a setup
-# time dependency through `pyproject.toml` if building from source.
-
-# There are issues with using cython at all on some platforms;
-# exclude them from using or declaring cython.
-
-# This determines whether Cython specific functionality may be used.
-can_use_cython = True
-
-# cythonize on mobile platforms by cibuildwheel works now, so allow it.
-# if platform in ('ios', 'android'):
-#     # NEVER use or declare cython on these platforms
-#     print('Not using cython on %s' % platform)
-#     can_use_cython = False
 
 
 # -----------------------------------------------------------------------------
@@ -476,22 +447,22 @@ CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
     CYTHON_UNSUPPORTED = get_cython_versions()
 cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
 
-if can_use_cython:
-    import Cython
-    from packaging import version
-    print('\nFound Cython at', Cython.__file__)
 
-    cy_version_str = Cython.__version__
-    cy_ver = version.parse(cy_version_str)
-    print('Detected supported Cython version {}'.format(cy_version_str))
+import Cython
+from packaging import version
+print('\nFound Cython at', Cython.__file__)
 
-    if cy_ver < version.Version(MIN_CYTHON_STRING):
-        print(cython_min_msg)
-    elif cy_ver in CYTHON_UNSUPPORTED:
-        print(cython_unsupported_msg)
-    elif cy_ver > version.Version(MAX_CYTHON_STRING):
-        print(cython_max_msg)
-    sleep(1)
+cy_version_str = Cython.__version__
+cy_ver = version.parse(cy_version_str)
+print('Detected supported Cython version {}'.format(cy_version_str))
+
+if cy_ver < version.Version(MIN_CYTHON_STRING):
+    print(cython_min_msg)
+elif cy_ver in CYTHON_UNSUPPORTED:
+    print(cython_unsupported_msg)
+elif cy_ver > version.Version(MAX_CYTHON_STRING):
+    print(cython_max_msg)
+sleep(1)
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
@@ -525,7 +496,6 @@ print('Using this graphics system: {}'.format(
 # check if we are in a kivy-ios build
 if platform == 'ios':
     print('IOS environment detect, use it.')
-    # print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
     c_options['use_sdl3'] = True
 
@@ -594,7 +564,6 @@ if platform == 'win32' and c_options['use_sdl3'] is None:
     c_options['use_sdl3'] = True
 
 can_autodetect_sdl3 = (
-    #platform not in ("android",) and c_options["use_sdl3"] is None
     c_options["use_sdl3"] is None
 )
 if c_options['use_sdl3'] or can_autodetect_sdl3:
@@ -872,20 +841,22 @@ def determine_angle_flags():
     elif platform == "android":
         android_libs = plat_options['android']['libraries']
         android_abis = plat_options['android']['abis']
-        
+
         # Use the first ABI for build configuration
         primary_abi = android_abis[0]
         abi_libs = android_libs[primary_abi]
-        
+
         sdl3 = abi_libs.get('SDL3')
         if not sdl3:
             raise Exception("SDL3 libraries not defined for Android")
-        
+
         flags['include_dirs'] = [sdl3['headers']]
         flags['libraries'] = ['EGL', 'GLESv2']
-        
+
         # Add library paths for all ABIs
-        flags['library_dirs'] = [dirname(android_libs[abi]['SDL3']['path']) for abi in android_abis]
+        flags["library_dirs"] = [
+            dirname(android_libs[abi]["SDL3"]["path"]) for abi in android_abis
+        ]
     else:
         raise Exception("ANGLE is not supported on this platform")
 
@@ -1408,41 +1379,6 @@ def resolve_dependencies(fn, depends):
 
 def get_extensions_from_sources(sources):
 
-    def _get_cythonized_source_extension(cython_file: str, flags: dict) -> str:
-        # The cythonized file can be either a .c or .cpp file
-        # depending on the language tag in the .pyx file, or the
-        # flag passed to the extension.
-
-        # If the language tag or the flag is not set, we assume
-        # the file is a .c file.
-
-        def _to_extension(language: str) -> str:
-            return "cpp" if language == "c++" else "c"
-
-        if "language" in flags:
-            return _to_extension(flags["language"])
-
-        with open(cython_file, "r", encoding="utf-8") as _source_file:
-            for line in _source_file:
-
-                line = line.lstrip()
-                if not line:
-                    continue
-                if line[0] != "#":
-                    break
-
-                line = line[1:].lstrip()
-                if not line.startswith("distutils:"):
-                    continue
-
-                distutils_settings_key, _, distutils_settings_value = [
-                    s.strip() for s in line[len("distutils:"):].partition("=")
-                ]
-                if distutils_settings_key == "language":
-                    return _to_extension(distutils_settings_value)
-
-        return _to_extension("c")
-
     ext_modules = []
     if environ.get('KIVY_FAKE_BUILDEXT'):
         print('Fake build_ext asked, will generate only .h/.c')
@@ -1452,10 +1388,6 @@ def get_extensions_from_sources(sources):
         pyx_path = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
-        if not can_use_cython:
-            # can't use cython, so use the .c or .cpp files instead.
-            _ext = _get_cythonized_source_extension(pyx_path, flags)
-            pyx_path = f"{pyx_path[:-4]}.{_ext}"
         if is_graphics:
             depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
