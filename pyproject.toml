@@ -12,6 +12,15 @@ requires = [
     'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
 ]
 
+[tool.cibuildwheel.ios]
+before-all = "kivy/.ci/ios_frameworks.sh"
+
+[tool.cibuildwheel.android]
+# Use cp to skip the default repair (which requires API 24+ for libc++_shared.so)
+# The Android app bundles libc++_shared.so separately
+environment = { ANDROID_API_LEVEL = "21" }
+repair-wheel-command = "cp {wheel} {dest_dir}/"
+
 [tool.pytest.ini_options]
 addopts = "--benchmark-skip --benchmark-warmup=on --benchmark-warmup-iterations=5 --benchmark-disable-gc --benchmark-name=short --benchmark-sort=mean --benchmark-group-by=fullfunc --benchmark-storage=.benchmarks-kivy --benchmark-save=kivy"
 markers = "incremental: mark a test as incremental."

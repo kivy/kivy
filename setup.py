@@ -3,27 +3,29 @@
 # https://kivy.org/
 #
 
+from kivy.tools.packaging.factory import FactoryBuild
+from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
+import kivy
+from setuptools.command.build_ext import build_ext
+from setuptools import Distribution, Extension, find_packages, setup
+import tempfile
+import textwrap
+import sysconfig
+import logging
+from pathlib import Path
+from time import sleep
+from collections import OrderedDict
+from os import walk, environ, makedirs
+from os.path import join, dirname, exists, basename, isdir
+import os
+from copy import deepcopy
+from kivy.utils import pi_version
 import sys
 build_examples = False
 if "--build_examples" in sys.argv:
     build_examples = True
     sys.argv.remove("--build_examples")
 
-from kivy.utils import pi_version
-from copy import deepcopy
-import os
-from os.path import join, dirname, exists, basename, isdir
-from os import walk, environ, makedirs
-from collections import OrderedDict
-from time import sleep
-from pathlib import Path
-import logging
-import sysconfig
-import textwrap
-import tempfile
-
-from setuptools import Distribution, Extension, find_packages, setup
-from setuptools.command.build_ext import build_ext
 
 if sys.version_info[0] == 2:
     logging.critical(
@@ -157,11 +159,18 @@ platform = sys.platform
 
 # Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
-if ndkplatform is not None and environ.get('LIBLINK'):
-    platform = 'android'
-kivy_ios_root = environ.get('KIVYIOSROOT', None)
-if kivy_ios_root is not None:
-    platform = 'ios'
+
+# cibuildwheel will set platform as 'android' during build
+# if ndkplatform is not None and environ.get('LIBLINK'):
+#     platform = 'android'
+
+# no kivy-ios build since cibuildwheel supports ios builds now
+# kivy_ios_root = environ.get('KIVYIOSROOT', None)
+
+# cibuildwheel will set platform as 'ios' during build
+# if kivy_ios_root is not None:
+#     platform = 'ios'
+
 # proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
     used_pi_version = pi_version
@@ -201,6 +210,112 @@ if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
     print("and set KIVY_DEPS_ROOT to the root of the dependencies directory.")
     print("###############################################")
 
+plat_options = OrderedDict()
+
+if platform == 'ios':
+
+    from platform import ios_ver
+    ios_info = ios_ver()
+    plat_arch = "ios-arm64_x86_64-simulator" if ios_info.is_simulator else "ios-arm64"
+
+    ios_data = OrderedDict()
+    root = os.getcwd()
+
+    sdl3_xc = join(root, 'dist', 'Frameworks', 'SDL3.xcframework')
+    sdl3_image_xc = join(root, 'dist', 'Frameworks', 'SDL3_image.xcframework')
+    sdl3_mixer_xc = join(root, 'dist', 'Frameworks', 'SDL3_mixer.xcframework')
+    sdl3_ttf_xc = join(root, 'dist', 'Frameworks', 'SDL3_ttf.xcframework')
+
+    sdl3_fw = join(sdl3_xc, plat_arch, 'SDL3.framework')
+    sdl3_image_fw = join(sdl3_image_xc, plat_arch, 'SDL3_image.framework')
+    sdl3_mixer_fw = join(sdl3_mixer_xc, plat_arch, 'SDL3_mixer.framework')
+    sdl3_ttf_fw = join(sdl3_ttf_xc, plat_arch, 'SDL3_ttf.framework')
+
+    sdl3_headers = join(sdl3_fw, 'Headers')
+    sdl3_image_headers = join(sdl3_image_fw, 'Headers')
+    sdl3_mixer_headers = join(sdl3_mixer_fw, 'Headers')
+    sdl3_ttf_headers = join(sdl3_ttf_fw, 'Headers')
+
+    egl_xc = join(root, 'dist', 'Frameworks', 'libEGL.xcframework')
+    gles_xc = join(root, 'dist', 'Frameworks', 'libGLESv2.xcframework')
+
+    egl_fw = join(egl_xc, plat_arch, 'libEGL.framework')
+    gles_fw = join(gles_xc, plat_arch, 'libGLESv2.framework')
+
+    egl_headers = join(root, 'dist', 'Frameworks', 'include')
+
+    ios_data['frameworks'] = {
+        'SDL3': {
+            'path': sdl3_fw,
+            'headers': sdl3_headers,
+            'xc': sdl3_xc,
+        },
+        'SDL3_image': {
+            'path': sdl3_image_fw,
+            'headers': sdl3_image_headers,
+            'xc': sdl3_image_xc,
+        },
+        'SDL3_mixer': {
+            'path': sdl3_mixer_fw,
+            'headers': sdl3_mixer_headers,
+            'xc': sdl3_mixer_xc,
+        },
+        'SDL3_ttf': {
+            'path': sdl3_ttf_fw,
+            'headers': sdl3_ttf_headers,
+            'xc': sdl3_ttf_xc,
+        },
+        'EGL': {
+            'path': egl_fw,
+            'headers': egl_headers,
+            'xc': egl_xc,
+        },
+        'GLESv2': {
+            'path': gles_fw,
+            'headers': "",
+            'xc': gles_xc,
+        }
+    }
+
+    ios_data['platform_arch'] = plat_arch
+
+    plat_options['ios'] = ios_data
+
+if platform == 'android':
+    android_data = OrderedDict()
+    root = os.getcwd()
+
+    # Android uses .so files instead of frameworks
+    # Assuming SDL3 libraries are in dist/libs/{ABI}/ structure
+    android_abis = ['arm64-v8a', 'x86_64']
+    
+    android_data['libraries'] = {}
+    
+    for abi in android_abis:
+        lib_path = join(root, 'dist', 'libs', abi)
+        
+        android_data['libraries'][abi] = {
+            'SDL3': {
+                'path': join(lib_path, 'libSDL3.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3'),
+            },
+            'SDL3_image': {
+                'path': join(lib_path, 'libSDL3_image.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_image'),
+            },
+            'SDL3_mixer': {
+                'path': join(lib_path, 'libSDL3_mixer.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_mixer'),
+            },
+            'SDL3_ttf': {
+                'path': join(lib_path, 'libSDL3_ttf.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
+            }
+        }
+    
+    android_data['abis'] = android_abis
+    
+    plat_options['android'] = android_data
 
 # -----------------------------------------------------------------------------
 # Detect options
@@ -246,10 +361,11 @@ use_embed_signature = use_embed_signature or bool(
 # This determines whether Cython specific functionality may be used.
 can_use_cython = True
 
-if platform in ('ios', 'android'):
-    # NEVER use or declare cython on these platforms
-    print('Not using cython on %s' % platform)
-    can_use_cython = False
+# cythonize on mobile platforms by cibuildwheel works now, so allow it.
+# if platform in ('ios', 'android'):
+#     # NEVER use or declare cython on these platforms
+#     print('Not using cython on %s' % platform)
+#     can_use_cython = False
 
 
 # -----------------------------------------------------------------------------
@@ -353,11 +469,9 @@ class KivyBuildExt(build_ext, object):
 print("Python path is:\n{}\n".format('\n'.join(sys.path)))
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
-import kivy
 
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
-from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
 CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
     CYTHON_UNSUPPORTED = get_cython_versions()
 cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
@@ -383,7 +497,6 @@ if can_use_cython:
 # see tools.packaging.{platform}.build.py for custom build commands for
 # portable packages. Also e.g. we use build_ext command from cython if its
 # installed for c extensions.
-from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {
     'build_factory': FactoryBuild,
     'build_ext': KivyBuildExt}
@@ -411,13 +524,15 @@ print('Using this graphics system: {}'.format(
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
-    print('Kivy-IOS project environment detect, use it.')
-    print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
+    print('IOS environment detect, use it.')
+    # print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     c_options['use_ios'] = True
     c_options['use_sdl3'] = True
 
 elif platform == 'android':
+    print('Android environment detect, use it.')
     c_options['use_android'] = True
+    c_options['use_sdl3'] = True
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
@@ -479,10 +594,11 @@ if platform == 'win32' and c_options['use_sdl3'] is None:
     c_options['use_sdl3'] = True
 
 can_autodetect_sdl3 = (
-    platform not in ("android",) and c_options["use_sdl3"] is None
+    #platform not in ("android",) and c_options["use_sdl3"] is None
+    c_options["use_sdl3"] is None
 )
 if c_options['use_sdl3'] or can_autodetect_sdl3:
-
+    print('Detecting SDL3...')
     sdl3_valid = False
     if c_options['use_osx_frameworks'] and platform == 'darwin':
         # check the existence of frameworks
@@ -510,7 +626,8 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
         }
 
         for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
-            f_path = '{}/{}.framework'.format(sdl3_frameworks_search_path, name)
+            f_path = '{}/{}.framework'.format(
+                sdl3_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
                 sdl3_valid = False
@@ -527,13 +644,82 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             sdl3_source = 'macos-frameworks'
             print('Activate SDL3 compilation')
 
-    if not sdl3_valid and platform != "ios":
+    if not sdl3_valid and platform not in ["android", "ios"]:
         # use pkg-config approach instead
         sdl3_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
         if 'libraries' in sdl3_flags:
             print('SDL3 found via pkg-config')
             c_options['use_sdl3'] = True
             sdl3_source = 'pkg-config'
+
+    if platform == 'ios':
+        root = os.getcwd()
+        ios_data = plat_options['ios']
+        ios_frameworks = ios_data['frameworks']
+
+        default_sdl3_frameworks_search_path = join(
+            root, "dist", "Frameworks"
+        )
+        sdl3_flags = {
+            'extra_link_args': [],
+            'include_dirs': [],
+        }
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            fw_info = ios_frameworks[name]
+            f_path = fw_info['path']
+            if not exists(f_path):
+                print('Missing framework {}'.format(f_path))
+                sdl3_valid = False
+                continue
+            sdl3_flags['extra_link_args'] += ['-framework',
+                                              name, '-F', dirname(f_path)]
+            sdl3_flags['include_dirs'] += [join(f_path, 'Headers')]
+            print('Found sdl3 frameworks: {}'.format(f_path))
+
+        sdl3_source = 'ios-frameworks'
+
+    # if android link against the prebuilt libs in dist/libs
+    if platform == 'android':
+        root = os.getcwd()
+        android_data = plat_options['android']
+        android_libs = android_data['libraries']
+
+        # Determine current ABI from CIBW_HOST_TRIPLET
+        host_triplet = environ.get('CIBW_HOST_TRIPLET', '')
+        if 'aarch64' in host_triplet:
+            current_abi = 'arm64-v8a'
+        elif 'x86_64' in host_triplet:
+            current_abi = 'x86_64'
+        else:
+            current_abi = 'arm64-v8a'  # default
+
+        sdl3_flags = {
+            'extra_link_args': [],
+            'include_dirs': [],
+            'library_dirs': [],
+        }
+
+        # Add base include dir for internal SDL3 includes like <SDL3/SDL_stdinc.h>
+        include_base = join(root, 'dist', 'include')
+        if exists(include_base):
+            sdl3_flags['include_dirs'].append(include_base)
+
+        # Add each library's headers directory for header detection
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            headers_path = join(root, 'dist', 'include', name)
+            if not exists(headers_path):
+                print('Missing headers {}'.format(headers_path))
+                continue
+            sdl3_flags['include_dirs'].append(headers_path)
+            print('Found SDL3 headers: {}'.format(headers_path))
+
+        # Add library directory for current ABI only
+        lib_dir = join(root, 'dist', 'libs', current_abi)
+        if exists(lib_dir):
+            sdl3_flags['library_dirs'].append(lib_dir)
+            print('Found SDL3 libraries for {}: {}'.format(current_abi, lib_dir))
+
+        sdl3_source = 'android-prebuilt'
 
 
 can_autodetect_wayland = (
@@ -560,6 +746,7 @@ if c_options["use_wayland"] or can_autodetect_wayland:
 
 # -----------------------------------------------------------------------------
 # declare flags
+
 
 def expand(root, *args):
     return join(root, 'kivy', *args)
@@ -666,7 +853,39 @@ def determine_angle_flags():
             "-Wl,-rpath,{}".format(kivy_angle_lib_dir)
         ]
     elif platform == "ios":
-        flags['include_dirs'] = [kivy_angle_include_dir]
+        ios_frameworks = plat_options['ios']['frameworks']
+        egl = ios_frameworks.get('EGL')
+        gles = ios_frameworks.get('GLESv2')
+        sdl3 = ios_frameworks.get('SDL3')
+        if not egl or not gles:
+            raise Exception("ANGLE frameworks not defined for iOS")
+
+        flags['include_dirs'] = [egl['headers'], sdl3['headers']]
+        flags['extra_link_args'] = [
+            '-framework', 'Foundation',
+            '-framework', 'CoreFoundation',
+            '-framework', 'libEGL',
+            '-framework', 'libGLESv2',
+            '-F', dirname(egl['path']),
+            '-F', dirname(gles['path']),
+        ]
+    elif platform == "android":
+        android_libs = plat_options['android']['libraries']
+        android_abis = plat_options['android']['abis']
+        
+        # Use the first ABI for build configuration
+        primary_abi = android_abis[0]
+        abi_libs = android_libs[primary_abi]
+        
+        sdl3 = abi_libs.get('SDL3')
+        if not sdl3:
+            raise Exception("SDL3 libraries not defined for Android")
+        
+        flags['include_dirs'] = [sdl3['headers']]
+        flags['libraries'] = ['EGL', 'GLESv2']
+        
+        # Add library paths for all ABIs
+        flags['library_dirs'] = [dirname(android_libs[abi]['SDL3']['path']) for abi in android_abis]
     else:
         raise Exception("ANGLE is not supported on this platform")
 
@@ -688,8 +907,22 @@ def determine_gl_flags():
     if platform == 'win32':
         flags['libraries'] = ['opengl32', 'glew32']
     elif platform == 'ios':
-        flags['libraries'] = ['GLESv2']
-        flags['extra_link_args'] = ['-framework', 'OpenGLES']
+        ios_data = plat_options['ios']
+        ios_frameworks = ios_data['frameworks']
+        egl = ios_frameworks.get('EGL')
+        gles = ios_frameworks.get('GLESv2')
+        if not egl or not gles:
+            raise Exception("EGL and GLESv2 frameworks not defined for iOS")
+
+        # flags['libraries'] = ['GLESv2']
+
+        flags['extra_link_args'] = [
+            '-framework', 'libGLESv2',
+            '-framework', 'libEGL',
+            '-F', dirname(egl['path']),
+            '-F', dirname(gles['path']),
+        ]
+
     elif platform == 'darwin':
         flags['extra_link_args'] = ['-framework', 'OpenGL']
     elif platform.startswith('freebsd'):
@@ -699,9 +932,10 @@ def determine_gl_flags():
         flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
-        flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
-        flags['libraries'] = ['GLESv2']
+        # For modern cibuildwheel Android builds, OpenGL ES libraries
+        # are provided by the NDK toolchain automatically
+        flags['libraries'] = ['GLESv2', 'EGL']
+        # NDK headers are automatically included by the toolchain
     elif platform == 'rpi':
 
         if not cross_sysroot:
@@ -755,6 +989,9 @@ def determine_sdl3():
     # configure sdl3 via libs.
     # TODO: Move framework configuration here.
     if sdl3_source == "macos-frameworks":
+        return sdl3_flags
+
+    if platform == "ios":
         return sdl3_flags
 
     default_sdl3_path = None
@@ -987,7 +1224,7 @@ if c_options['use_sdl3'] and sdl3_flags:
     )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
-                                      'android', 'ios', 'win32'):
+        'android', 'ios', 'win32'):
     pango_flags = pkgconfig('pangoft2')
     if pango_flags and 'libraries' in pango_flags:
         print('Pango: pangoft2 found via pkg-config')
@@ -996,20 +1233,22 @@ if c_options['use_pangoft2'] in (None, True) and platform not in (
             'lib/pango/pangoft2.pxi',
             'lib/pango/pangoft2.h']}
         sources['core/text/_text_pango.pyx'] = merge(
-                base_flags, pango_flags, pango_depends)
+            base_flags, pango_flags, pango_depends)
         print(sources['core/text/_text_pango.pyx'])
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
     if platform == 'ios':
+
         osx_flags = {'extra_link_args': [
             '-framework', 'Foundation',
-            '-framework', 'UIKit',
-            '-framework', 'AudioToolbox',
+            '-framework', 'CoreFoundation',
             '-framework', 'CoreGraphics',
-            '-framework', 'QuartzCore',
             '-framework', 'ImageIO',
-            '-framework', 'Accelerate']}
+            '-framework', 'Accelerate',
+            '-framework', 'UniformTypeIdentifiers',
+            '-framework', 'CoreServices'
+        ]}
     else:
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
@@ -1021,17 +1260,44 @@ if platform in ('darwin', 'ios'):
         sources['core/window/window_info.pyx'], osx_flags)
 
 if c_options['use_avfoundation']:
-    import platform as _platform
-    mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
-    if mac_ver >= [10, 7] or platform == 'ios':
-        osx_flags = {
-            'extra_link_args': ['-framework', 'AVFoundation'],
+    # ios app we need xcode >=16.0 for app store support which requires macos >=14.5
+    mac_ver_ok = True
+    if platform == 'darwin':
+        import platform as _platform
+        mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
+        mac_ver_ok = mac_ver >= [10, 7]
+
+    if not mac_ver_ok:
+        print('AVFoundation cannot be used, OSX >= 10.7 is required')
+    else:
+        extra_link_args = [
+            '-framework', 'AVFoundation'
+        ]
+        include_dirs = []
+
+        if platform == 'ios':
+            extra_link_args += [
+                '-framework', 'Foundation',
+                '-framework', 'UIKit',
+                '-framework', 'CoreGraphics',
+                '-framework', 'CoreMedia',
+                '-framework', 'CoreVideo'
+            ]
+            ios_data = plat_options['ios']
+            ios_frameworks = ios_data['frameworks']
+            egl_headers = ios_frameworks['EGL']['headers']
+            include_dirs += [
+                egl_headers
+            ]
+
+        avf_flags = {
+            'include_dirs': include_dirs,
+            'extra_link_args': extra_link_args,
             'extra_compile_args': ['-ObjC++']
         }
         sources['core/camera/camera_avfoundation.pyx'] = merge(
-            base_flags, osx_flags)
-    else:
-        print('AVFoundation cannot be used, OSX >= 10.7 is required')
+            base_flags, avf_flags)
+
 
 if c_options["use_angle_gl_backend"]:
 

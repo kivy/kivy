@@ -1,0 +1,45 @@
+name: iOS wheels
+
+
+on: 
+  #- push
+  #- pull_request
+  - workflow_dispatch
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.arch }}
+    runs-on: macos-15
+    #runs-on: self-hosted
+    strategy:
+      max-parallel: 1
+      matrix:
+        arch: [arm64_iphoneos, arm64_iphonesimulator, x86_64_iphonesimulator]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: SDK Root
+        id: sdk_root
+        shell: bash
+        run: |
+            if [[ "${{ matrix.arch }}" == "arm64_iphoneos" ]]; then
+                echo "sdk_root=$(xcrun --show-sdk-path --sdk iphoneos)" >> $GITHUB_OUTPUT
+            else
+                echo "sdk_root=$(xcrun --show-sdk-path --sdk iphonesimulator)" >> $GITHUB_OUTPUT
+            fi
+
+      - name: chmod +x tool/cibuildwheel-before-all-ios.sh
+        shell: bash
+        run: chmod +x tool/cibuildwheel-before-all-ios.sh
+
+      - name: Build wheel for ${{ matrix.arch }}
+        uses: pypa/cibuildwheel@v3.2.1
+        with:
+            output-dir: wheelhouse
+        env:
+            CIBW_PLATFORM: ios
+            CIBW_ARCHS: ${{ matrix.arch }}
+            KIVY_SPLIT_EXAMPLES: 1
+            IOSSDKROOT: ${{ steps.sdk_root.outputs.sdk_root }}
+    
