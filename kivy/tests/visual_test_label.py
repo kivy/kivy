@@ -161,7 +161,7 @@ kv = '''
             text: 'right'
         TBoolButton:
             text: 'strip'
-            state: 'down'
+            activated: True
         ToggleButton:
             size_hint: None, None
             size: 100, 50

@@ -38,7 +38,7 @@ BoxLayout:
     ToggleButton:
         text: 'Ultra'
         group: 'smaa-quality'
-        state: 'down'
+        activated: True
         on_release: app.smaa.quality = 'ultra'
 
     Label:
@@ -46,7 +46,7 @@ BoxLayout:
     ToggleButton:
         text: 'None'
         group: 'smaa-debug'
-        state: 'down'
+        activated: True
         on_release: app.smaa.debug = ''
     ToggleButton:
         text: 'Source'
