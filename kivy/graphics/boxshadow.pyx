@@ -51,7 +51,7 @@ Example:
                         offset: 0, -10
                         spread_radius: -20, -20
                         border_radius: 10, 10, 10, 10
-                        blur_radius: 80 if self.state == "normal" else 50
+                        blur_radius: 80 if self.pressed else 50
 
 '''
 

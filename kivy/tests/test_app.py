@@ -72,13 +72,13 @@ def button_app():
 @async_run(app_cls_func=button_app)
 async def test_button_app(kivy_app):
     assert kivy_app.root.text == 'Hello, World!'
-    assert kivy_app.root.state == 'normal'
+    assert not kivy_app.root.activated
 
     async for state, touch_pos in kivy_app.do_touch_down_up(
             widget=kivy_app.root, widget_jitter=True):
         pass
 
-    assert kivy_app.root.state == 'down'
+    assert kivy_app.root.activated
 
 
 def scatter_app():

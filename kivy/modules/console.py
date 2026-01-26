@@ -370,10 +370,10 @@ class ConsoleAddonSelect(ConsoleAddon):
         self.console.bind(inspect_enabled=self.on_inspect_enabled)
 
     def on_inspect_enabled(self, instance, value):
-        self.btn.activated = True if value else False
+        self.btn.activated = value
 
     def on_button_state(self, instance, value):
-        self.console.inspect_enabled = (value == "down")
+        self.console.inspect_enabled = value
 
 
 class ConsoleAddonFps(ConsoleAddon):
@@ -407,18 +407,14 @@ class ConsoleAddonBreadcrumbView(RelativeLayout):
     def on_widget(self, instance, value):
         stack = self.ids.stack
 
-        # determine if we can just highlight the current one
-        # or if we need to rebuild the breadcrumb
         prefs = [btn.widget_ref() for btn in self.parents]
         if value in prefs:
-            # ok, so just toggle this one instead.
             index = prefs.index(value)
             for btn in self.parents:
-                btn.state = "normal"
-            self.parents[index].state = "down"
+                btn.activated = False
+            self.parents[index].activated = True
             return
 
-        # we need to rebuild the breadcrumb.
         stack.clear_widgets()
         if not value:
             return
@@ -436,7 +432,7 @@ class ConsoleAddonBreadcrumbView(RelativeLayout):
             stack.add_widget(btn)
         self.ids.sv.scroll_x = 1
         self.parents = parents
-        btn.state = "down"
+        btn.activated = True
 
     def highlight_widget(self, instance, touch):
         self.console.widget = instance.widget_ref()
@@ -608,7 +604,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             setattr(widget, key, instance.text)
 
     @ignore_exception
-    def save_property_boolean(self, widget, key, index, instance, ):
+    def save_property_boolean(self, widget, key, index, instance, touch):
         value = instance.activated
         if index >= 0:
             getattr(widget, key)[index] = value
@@ -794,7 +790,6 @@ class Console(RelativeLayout):
             PopMatrix()
         Clock.schedule_interval(self.update_widget_graphics, 0)
 
-        # instantiate all addons
         self._toolbar = {"left": [], "panels": [], "right": []}
         self._addons = []
         self._panel = None
@@ -802,9 +797,8 @@ class Console(RelativeLayout):
             instance = addon(self)
             self._addons.append(instance)
         self._init_toolbar()
-        # select the first panel
         self._panel = self._toolbar["panels"][0]
-        self._panel.state = "down"
+        self._panel.activated = True
         self._panel.cb_activate()
 
     def _init_toolbar(self):
@@ -858,13 +852,13 @@ class Console(RelativeLayout):
     def _activate_panel(self, instance, touch):
         if self._panel != instance:
             self._panel.cb_deactivate()
-            self._panel.state = "normal"
+            self._panel.activated = False
             self.ids.content.clear_widgets()
             self._panel = instance
             self._panel.cb_activate()
-            self._panel.state = "down"
+            self._panel.activated = True
         else:
-            self._panel.state = "down"
+            self._panel.activated = True
             if self._panel.cb_refresh:
                 self._panel.cb_refresh()
 
