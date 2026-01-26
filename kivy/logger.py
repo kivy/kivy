@@ -570,6 +570,10 @@ Logger = logging.getLogger('kivy')
 Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
+# Set default log level to INFO (will be updated from Config after it loads)
+# This prevents TRACE/DEBUG spam during early import before Config is ready
+Logger.setLevel(logging.INFO)
+
 file_log_handler = (
     FileHandler()
     if 'KIVY_NO_FILELOG' not in os.environ

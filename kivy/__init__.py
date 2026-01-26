@@ -39,6 +39,7 @@ import re
 import importlib
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform
+from kivy.config import Config
 from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
     _kivy_git_hash, _kivy_build_date
 
@@ -347,42 +348,15 @@ if any('pyinstaller' in arg.lower() for arg in sys.argv):
     environ['KIVY_PACKAGING'] = '1'
 
 if not environ.get('KIVY_DOC_INCLUDE'):
-    user_home_dir = expanduser('~')
-    kivy_home_dir = None
+    # NOTE: kivy_home_dir, kivy_config_fn, and kivy_usermodules_dir are now
+    # initialized by App._init_config() to use app-specific directories.
+    # They are set as empty strings at module level and populated when App is created.
 
-    # Configuration management
-    if 'KIVY_HOME' in environ:
-        kivy_home_dir = expanduser(environ['KIVY_HOME'])
-    elif platform == 'android':
-        user_home_dir = environ['ANDROID_APP_PATH']
-    elif platform == 'ios':
-        user_home_dir = join(user_home_dir, 'Documents')
-    elif sys.prefix != sys.base_prefix:
-        # Detection if venv being used with the framework
-        user_home_dir = dirname(sys.prefix)
+    # Flag to indicate if config should be saved and exit (from --save flag)
+    _kivy_config_save_and_exit = False
 
-    kivy_home_dir = kivy_home_dir or join(user_home_dir, '.kivy')
-    kivy_config_fn = join(kivy_home_dir, 'config.ini')
-    kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    icon_dir = join(kivy_home_dir, 'icon')
-
-    if 'KIVY_NO_CONFIG' not in environ:
-        if not exists(kivy_home_dir):
-            mkdir(kivy_home_dir)
-        if not exists(kivy_usermodules_dir):
-            mkdir(kivy_usermodules_dir)
-        if platform not in {'android', 'ios'} and not exists(icon_dir):
-            try:
-                shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except:
-                Logger.exception('Error when copying logo directory')
-
-    # configuration
-    from kivy.config import Config
-
-    # Set level of logger
-    level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
-    Logger.setLevel(level=level)
+    # Logger level will be set after Config is initialized
+    # (via callback registered in config.py: logger_config_update)
 
     # Can be overridden in command line
     if ('KIVY_UNITTEST' not in environ and
@@ -449,8 +423,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             else:
                 raise Exception('Invalid --config value')
             if ol[0] == 'kivy' and ol[1] == 'log_level':
-                level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
-                Logger.setLevel(level=level)
+                # Set log level from command line arg (ol[2] contains the value)
+                if len(ol) == 3:
+                    level = LOG_LEVELS.get(ol[2])
+                    if level:
+                        Logger.setLevel(level=level)
         elif opt in ('-k', '--fake-fullscreen'):
             Config.set('graphics', 'fullscreen', 'fake')
         elif opt in ('-f', '--fullscreen'):
@@ -483,22 +460,17 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             environ['KIVY_DPI'] = arg
 
     if need_save and 'KIVY_NO_CONFIG' not in environ:
-        try:
-            Config.filename = kivy_config_fn
-            Config.write()
-        except Exception as e:
-            Logger.exception('Core: error while saving default'
-                             'configuration file:', str(e))
-        Logger.info('Core: Kivy configuration saved.')
-        sys.exit(0)
+        # Defer config save until App._init_config() when config paths are set
+        # and Config is initialized. The save will happen before App runs.
+        _kivy_config_save_and_exit = True
+        Logger.info('Core: Config changes will be saved when App initializes.')
 
-    # configure all activated modules
-    from kivy.modules import Modules
-    Modules.configure()
+    # configure all activated modules (deferred to App._init_config)
+    # from kivy.modules import Modules
+    # Modules.configure()
 
     # android hooks: force fullscreen and add android touch input provider
     if platform in ('android', 'ios'):
-        from kivy.config import Config
         Config.set('graphics', 'fullscreen', 'auto')
         Config.remove_section('input')
         Config.add_section('input')

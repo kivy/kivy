@@ -615,7 +615,12 @@ class ClockBaseBehavior(object):
         self.init_async_lib(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
-        self._max_fps = float(Config.getint('graphics', 'maxfps'))
+
+        # Get max_fps from Config if initialized, otherwise use default
+        if Config._initialized:
+            self._max_fps = float(Config.getint('graphics', 'maxfps'))
+        else:
+            self._max_fps = 60.0  # Default to 60 FPS
 
     def init_async_lib(self, lib):
         """Manually sets the async library to use internally, when running in
@@ -1127,25 +1132,29 @@ def triggered(timeout=0, interval=False):
 
         _args = []
         _kwargs = {}
+        _cb_trigger = [None]  # Use list to allow mutation in nested function
 
         def cb_function(dt):
             func(*tuple(_args), **_kwargs)
 
-        cb_trigger = Clock.create_trigger(
-            cb_function,
-            timeout=timeout,
-            interval=interval)
-
         @wraps(func)
         def trigger_function(*args, **kwargs):
+            # Lazy initialization: create trigger on first call, not at decoration time
+            if _cb_trigger[0] is None:
+                _cb_trigger[0] = Clock.create_trigger(
+                    cb_function,
+                    timeout=timeout,
+                    interval=interval)
+
             _args[:] = []
             _args.extend(list(args))
             _kwargs.clear()
             _kwargs.update(kwargs)
-            cb_trigger()
+            _cb_trigger[0]()
 
         def trigger_cancel():
-            cb_trigger.cancel()
+            if _cb_trigger[0] is not None:
+                _cb_trigger[0].cancel()
 
         setattr(trigger_function, 'cancel', trigger_cancel)
 
@@ -1157,21 +1166,186 @@ def triggered(timeout=0, interval=False):
     return wrapper_triggered
 
 
+class ClockProxy:
+    '''Lazy proxy for Clock that defers initialization until App.__init__().
+
+    This proxy allows Clock to be imported at module level without reading
+    Config values. The actual Clock instance is created later when
+    Clock._initialize() is called from App._init_config().
+
+    After initialization, all Clock attributes are copied to this proxy instance
+    for zero performance overhead on subsequent accesses.
+
+    .. versionadded:: 3.0.0
+    '''
+
+    def __init__(self):
+        self._initialized = False
+        self._real_clock = None
+
+    def _initialize(self):
+        '''Initialize the real Clock object.
+
+        This is called by App._init_config() after Config is initialized.
+        It reads the clock type from Config and creates the appropriate
+        Clock instance.
+        '''
+        if self._initialized:
+            return
+
+        from kivy.config import Config
+        from os import environ
+
+        # Determine which Clock implementation to use
+        _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
+                    'free_all': ClockBaseFreeInterruptAll,
+                    'free_only': ClockBaseFreeInterruptOnly}
+
+        # Get clock type from environment or Config (if initialized)
+        if 'KIVY_CLOCK' in environ:
+            _clk = environ['KIVY_CLOCK']
+        elif Config._initialized:
+            _clk = Config.get('kivy', 'kivy_clock')
+        else:
+            # Config not initialized yet, use default
+            _clk = 'default'
+        if _clk not in _classes:
+            raise Exception(
+                '{} is not a valid kivy clock. Valid clocks are {}'.format(
+                    _clk, sorted(_classes.keys())))
+
+        # Create the real Clock using register_context
+        self._real_clock = register_context(
+            'Clock', _classes[_clk],
+            async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
+
+        # Don't copy attributes - always forward to real clock for correctness
+        # This ensures attribute changes (like setting handle_exception) are
+        # always reflected when accessed later
+        
+        # Mark as initialized - must use object.__setattr__ here too
+        object.__setattr__(self, '_initialized', True)
+
+    def __getattr__(self, name):
+        '''Forward attribute access to real Clock.
+
+        This is only called for attributes that weren't copied during
+        initialization or if accessed before initialization.
+
+        Raises RuntimeError if accessed before initialization (except for
+        create_trigger which returns a lazy trigger).
+        '''
+        # Check if Clock is initialized first
+        # Use object.__getattribute__ to avoid recursion when checking _initialized
+        try:
+            initialized = object.__getattribute__(self, '_initialized')
+        except AttributeError:
+            initialized = False
+
+        # If initialized, forward everything (including private attrs) to real clock
+        if initialized:
+            real_clock = object.__getattribute__(self, '_real_clock')
+            return getattr(real_clock, name)
+
+        # Not initialized - handle private attributes
+        if name.startswith('_'):
+            # Private attributes go to this proxy
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
+
+        # Not initialized - handle special cases
+        # Special handling for create_trigger - return a lazy wrapper
+        if name == 'create_trigger':
+            def lazy_create_trigger(callback, timeout=0, interval=False):
+                '''Create a lazy trigger that defers initialization.'''
+                trigger_ref = [None]  # Mutable container for the real trigger
+
+                def trigger_wrapper(*args, **kwargs):
+                    '''Wrapper that initializes trigger on first call.'''
+                    if trigger_ref[0] is None:
+                        if not self._initialized:
+                            raise RuntimeError(
+                                "Clock trigger called before Clock "
+                                "initialization. Clock is initialized in "
+                                "App.__init__(). Ensure your App is fully "
+                                "initialized before using triggers."
+                            )
+                        # Create the real trigger now
+                        trigger_ref[0] = self._real_clock.create_trigger(
+                            callback, timeout, interval
+                        )
+                    # Call the real trigger
+                    return trigger_ref[0](*args, **kwargs)
+
+                # Add cancel method
+                def cancel():
+                    if trigger_ref[0] is not None:
+                        trigger_ref[0].cancel()
+
+                trigger_wrapper.cancel = cancel
+                trigger_wrapper.is_triggered = property(
+                    lambda self: (
+                        trigger_ref[0].is_triggered
+                        if trigger_ref[0] else False
+                    )
+                )
+
+                return trigger_wrapper
+
+            return lazy_create_trigger
+
+        raise RuntimeError(
+            f"Clock.{name} accessed before Clock initialization. "
+            "Clock is initialized in App.__init__(). "
+            "Ensure you're accessing Clock from within your App or "
+            "after App creation."
+        )
+
+    def __setattr__(self, name, value):
+        '''Forward attribute setting to real Clock.
+
+        Internal proxy attributes (_initialized, _real_clock) are set on proxy.
+        All other attributes are forwarded to real clock if initialized.
+        '''
+        # Internal proxy attributes
+        if name in ('_initialized', '_real_clock'):
+            object.__setattr__(self, name, value)
+            return
+
+        # Check if initialized
+        try:
+            initialized = object.__getattribute__(self, '_initialized')
+        except AttributeError:
+            initialized = False
+
+        if initialized:
+            # Forward to real clock
+            real_clock = object.__getattribute__(self, '_real_clock')
+            setattr(real_clock, name, value)
+        else:
+            # Not initialized - raise error
+            raise RuntimeError(
+                f"Cannot set Clock.{name} before Clock initialization. "
+                "Clock is initialized in App.__init__()."
+            )
+
+    def __repr__(self):
+        if self._initialized:
+            return repr(self._real_clock)
+        return '<ClockProxy (not initialized)>'
+
+
 if 'KIVY_DOC_INCLUDE' in environ:
     #: Instance of :class:`ClockBaseBehavior`.
     Clock: ClockBase = None
 else:
-    _classes = {'default': ClockBase, 'interrupt': ClockBaseInterrupt,
-                'free_all': ClockBaseFreeInterruptAll,
-                'free_only': ClockBaseFreeInterruptOnly}
-    _clk = environ.get('KIVY_CLOCK', Config.get('kivy', 'kivy_clock'))
-    if _clk not in _classes:
-        raise Exception(
-            '{} is not a valid kivy clock. Valid clocks are {}'.format(
-                _clk, sorted(_classes.keys())))
-
-    Clock: ClockBase = register_context(
-        'Clock', _classes[_clk],
-        async_lib=environ.get('KIVY_EVENTLOOP', 'asyncio'))
+    # Create lazy Clock proxy
+    # Actual Clock instance created in App._init_config() after Config is ready
+    Clock = ClockProxy()
     '''The kivy Clock instance. See module documentation for details.
+
+    .. versionchanged:: 3.0.0
+        Clock is now initialized lazily in App.__init__() to ensure it reads
+        the correct configuration values from the app-specific config file.
     '''

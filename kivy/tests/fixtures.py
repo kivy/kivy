@@ -31,7 +31,46 @@ def kivy_init():
     `trio` based apps need the `kivy_app` fixture.
 
     """
+    from os import environ
+    import tempfile
+
+    environ["KIVY_USE_DEFAULTCONFIG"] = "1"
+
+    # Initialize Clock and Config before importing Window
+    # Note: Clock must be initialized BEFORE Config to allow Window
+    # to be created via Config's on_config_ready callback
+    from kivy.config import Config
+    from kivy.clock import Clock
+
+    if not Clock._initialized:
+        Clock._initialize()
+
+    if not Config._initialized:
+        # Initialize Config with a temporary path for testing
+        temp_dir = tempfile.mkdtemp(prefix='kivy_test_')
+        config_path = os.path.join(temp_dir, 'config.ini')
+        Config._initialize(config_path)
+
+    # force window size + remove all inputs
+    Config.set("graphics", "width", "320")
+    Config.set("graphics", "height", "240")
+    for items in Config.items("input"):
+        Config.remove_option("input", items[0])
+
+    # Import Window (will be _WindowAccessor) and initialize it
     from kivy.core.window import EventLoop, Window, stopTouchApp
+
+    # Explicitly initialize Window now that Config and Clock are ready
+    if hasattr(Window, 'initialize'):
+        Window.initialize()
+
+    # Verify Window was created successfully
+    if not Window:
+        raise RuntimeError(
+            "Unable to initialize Window. This usually means a Window provider "
+            "failed to load. Check that Config and Clock were initialized before "
+            "calling Window.initialize()."
+        )
 
     def clear_window_and_event_loop():
         for child in Window.children[:]:
@@ -45,18 +84,6 @@ def kivy_init():
                 post_proc.touches.clear()
             elif hasattr(post_proc, "last_touches"):
                 post_proc.last_touches.clear()
-
-    from os import environ
-
-    environ["KIVY_USE_DEFAULTCONFIG"] = "1"
-
-    # force window size + remove all inputs
-    from kivy.config import Config
-
-    Config.set("graphics", "width", "320")
-    Config.set("graphics", "height", "240")
-    for items in Config.items("input"):
-        Config.remove_option("input", items[0])
 
     # ensure our window is correctly created
     Window.create_window()
@@ -73,14 +100,27 @@ def kivy_init():
 
 @pytest.fixture()
 def kivy_clock():
-    from kivy.context import Context
-    from kivy.clock import ClockBase
-
-    context = Context(init=False)
-    context['Clock'] = ClockBase()
-    context.push()
-
     from kivy.clock import Clock
+    from kivy.config import Config
+    from os import environ
+    import tempfile
+
+    # Initialize Clock and Config for testing
+    # Note: Clock must be initialized BEFORE Config to allow Window
+    # creation via Config's on_config_ready callback
+    environ["KIVY_USE_DEFAULTCONFIG"] = "1"
+
+    # Initialize Clock first
+    if not Clock._initialized:
+        Clock._initialize()
+
+    # Then initialize Config
+    if not Config._initialized:
+        # Initialize Config with a temporary path for testing
+        temp_dir = tempfile.mkdtemp(prefix='kivy_test_')
+        config_path = os.path.join(temp_dir, 'config.ini')
+        Config._initialize(config_path)
+
     Clock._max_fps = 0
 
     try:
@@ -88,7 +128,7 @@ def kivy_clock():
         yield Clock
         Clock.stop_clock()
     finally:
-        context.pop()
+        pass
 
 
 @pytest.fixture()

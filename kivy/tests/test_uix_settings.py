@@ -6,7 +6,7 @@ from kivy.config import ConfigParser
 from kivy.uix.settings import Settings
 
 
-def test_settings_create_json_panel_errors():
+def test_settings_create_json_panel_errors(kivy_init):
     config = ConfigParser()
 
     with pytest.raises(

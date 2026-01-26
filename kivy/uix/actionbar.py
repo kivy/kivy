@@ -53,11 +53,20 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, \
 from kivy.metrics import sp
 from kivy.lang import Builder
 from functools import partial
+from os import environ
 
 
+# Will be initialized after Config is ready
 window_icon = ''
-if Config:
+
+def _init_window_icon():
+    '''Initialize window_icon from Config after it's ready.'''
+    global window_icon
     window_icon = Config.get('kivy', 'window_icon')
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    Config.on_config_ready(_init_window_icon)
 
 
 class ActionBarException(Exception):

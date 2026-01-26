@@ -195,17 +195,38 @@ class GraphicUnitTest(_base):
 
         # use default kivy configuration (don't load user file.)
         from os import environ
+        import tempfile
+        import os.path
         environ['KIVY_USE_DEFAULTCONFIG'] = '1'
 
-        # force window size + remove all inputs
+        # Initialize Clock and Config before creating Window
+        # Note: Clock must be initialized BEFORE Config to allow Window
+        # creation via Config's on_config_ready callback
         from kivy.config import Config
+        from kivy.clock import Clock
+
+        if not Clock._initialized:
+            Clock._initialize()
+
+        if not Config._initialized:
+            # Initialize Config with a temporary path for testing
+            temp_dir = tempfile.mkdtemp(prefix='kivy_test_')
+            config_path = os.path.join(temp_dir, 'config.ini')
+            Config._initialize(config_path)
+
+        # force window size + remove all inputs
         Config.set('graphics', 'width', '320')
         Config.set('graphics', 'height', '240')
         for items in Config.items('input'):
             Config.remove_option('input', items[0])
 
-        # bind ourself for the later screenshot
+        # Import Window and initialize it now that Config/Clock are ready
         from kivy.core.window import Window
+
+        # Explicitly initialize Window if not already initialized
+        if hasattr(Window, 'initialize') and not Window._initialized:
+            Window.initialize()
+
         self.Window = Window
         Window.bind(on_flip=self.on_window_flip)
 

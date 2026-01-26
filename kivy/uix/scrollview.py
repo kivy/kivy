@@ -239,6 +239,7 @@ Those only control touch and touchpad gesture behavior.
 
 __all__ = ("ScrollView",)
 
+import os
 from functools import partial
 from math import isclose
 from enum import Enum
@@ -468,16 +469,23 @@ class ScrollViewHierarchy:
 # within this threshold of the minimum (0.0) or maximum (1.0) position.
 # Used for parallel nested scrolling to determine when to delegate
 # to outer ScrollView.
-# Note: Set to 15% to account for elastic overscroll bounce-back
+# Note: Set to 5% to account for elastic overscroll bounce-back
 _BOUNDARY_THRESHOLD = 0.05  # 5% from edge
 
-# When we are generating documentation, Config doesn't exist
+# Will be initialized after Config is ready
 _scroll_timeout = _scroll_distance = 0
-if Config:
+
+def _init_scroll_settings():
+    '''Initialize scroll settings from Config after it's ready.'''
+    global _scroll_timeout, _scroll_distance
     _scroll_timeout = Config.getint("widgets", "scroll_timeout")
     _scroll_distance = "{}sp".format(
         Config.getint("widgets", "scroll_distance")
     )
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in os.environ:
+    Config.on_config_ready(_init_scroll_settings)
 
 
 class ScrollView(StencilView):

@@ -416,16 +416,12 @@ Available configuration tokens
 
 __all__ = ('Config', 'ConfigParser')
 
-try:
-    from ConfigParser import ConfigParser as PythonConfigParser
-except ImportError:
-    from configparser import RawConfigParser as PythonConfigParser
+from configparser import RawConfigParser as PythonConfigParser
 from collections import OrderedDict
 from os import environ
 from os.path import exists
 from weakref import ref
 
-from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
 from kivy.utils import pi_version, platform
 
@@ -751,37 +747,544 @@ class ConfigParser(PythonConfigParser, object):
         configs[value] = (ref(self), props)
 
 
-if not environ.get('KIVY_DOC_INCLUDE'):
+class ConfigProxy:
+    '''Lazy proxy for Config that defers initialization until App.__init__().
 
-    #
-    # Read, analyse configuration file
-    # Support upgrade of older config file versions
-    #
+    This proxy enforces strict mode - any attempt to read config values before
+    initialization raises a RuntimeError. This ensures that all config access
+    happens after the config file is loaded from the app-specific directory.
 
-    # Create default configuration
-    Config = ConfigParser(name='kivy')
-    Config.add_callback(logger_config_update, 'kivy', 'log_level')
+    Use Config.on_config_ready(callback) to register callbacks that will be
+    executed after initialization.
+
+    .. versionadded:: 3.0.0
+    '''
+
+    def __init__(self):
+        self._initialized = False
+        self._real_config = None
+        # List of ('set'/'remove_section'/'add_section', args)
+        self._pending_operations = []
+        self._pending_callbacks = []  # [(callback, section, key), ...]
+        self._ready_callbacks = []  # [callback, ...]
+
+    def _initialize(self, config_path):
+        '''Initialize the real Config object.
+
+        This is called by App._init_config() after setting the correct config path.
+        It creates the real ConfigParser, applies defaults, loads the config file,
+        and fires all registered callbacks.
+
+        :Parameters:
+            `config_path`: str
+                Full path to the config.ini file
+        '''
+        if self._initialized:
+            return
+
+        # Create real ConfigParser
+        self._real_config = ConfigParser(name='kivy')
+
+        # Add default sections
+        self._real_config.adddefaultsection('kivy')
+        self._real_config.adddefaultsection('graphics')
+        self._real_config.adddefaultsection('input')
+        self._real_config.adddefaultsection('postproc')
+        self._real_config.adddefaultsection('widgets')
+        self._real_config.adddefaultsection('modules')
+        self._real_config.adddefaultsection('network')
+
+        # Apply all default config values
+        _apply_default_config(self._real_config)
+
+        # Apply KCFG environment variables
+        _apply_env_config(self._real_config)
+
+        # Apply pending callbacks first (before file load)
+        for callback, section, key in self._pending_callbacks:
+            self._real_config.add_callback(callback, section, key)
+
+        # Load config file (reads, upgrades, writes if needed)
+        _load_config_file(self._real_config, config_path)
+
+        # Apply pending operations in order (so they take precedence over file)
+        for operation, args in self._pending_operations:
+            if operation == 'set':
+                section, option, value = args
+                self._real_config.set(section, option, value)
+            elif operation == 'remove_section':
+                section = args
+                if self._real_config.has_section(section):
+                    self._real_config.remove_section(section)
+            elif operation == 'add_section':
+                section = args
+                if not self._real_config.has_section(section):
+                    self._real_config.add_section(section)
+
+        self._initialized = True
+
+        # Trigger pending callbacks with current values (so they initialize properly)
+        # This is important for callbacks like logger_config_update that need to act
+        # on the initial config values, not just future changes
+        for callback, section, key in self._pending_callbacks:
+            if section is not None and key is not None:
+                # Specific section/key callback - trigger with current value
+                if self._real_config.has_option(section, key):
+                    value = self._real_config.get(section, key)
+                    callback(section, key, value)
+            elif section is not None:
+                # Section-wide callback - trigger for all keys in section
+                if self._real_config.has_section(section):
+                    for option in self._real_config.options(section):
+                        value = self._real_config.get(section, option)
+                        callback(section, option, value)
+            else:
+                # Global callback - trigger for all sections/keys
+                for section_name in self._real_config.sections():
+                    for option in self._real_config.options(section_name):
+                        value = self._real_config.get(section_name, option)
+                        callback(section_name, option, value)
+
+        # Fire all ready callbacks
+        for callback in self._ready_callbacks:
+            callback()
+        self._ready_callbacks.clear()
+
+    def on_config_ready(self, callback):
+        '''Register a callback to be called after Config is initialized.
+
+        If Config is already initialized, the callback is called immediately.
+        Otherwise, it's stored and will be called after initialization.
+
+        This is useful for modules that need to read Config values at import time.
+
+        :Parameters:
+            `callback`: callable
+                Function to call after Config is ready. Takes no arguments.
+
+        Example::
+
+            def _init_from_config():
+                global _scroll_distance
+                from kivy.config import Config
+                _scroll_distance = Config.getint('widgets', 'scroll_distance')
+
+            from kivy.config import Config
+            Config.on_config_ready(_init_from_config)
+
+        .. versionadded:: 3.0.0
+        '''
+        if self._initialized:
+            callback()
+        else:
+            self._ready_callbacks.append(callback)
+
+    # Proxy all ConfigParser methods with strict checking
+
+    def set(self, section, option, value):
+        '''Set a configuration value.
+
+        If Config is not yet initialized, the value is stored and will be
+        applied after initialization (taking precedence over file values).
+        '''
+        if not self._initialized:
+            self._pending_operations.append(('set', (section, option, value)))
+        else:
+            self._real_config.set(section, option, value)
+
+    def get(self, section, option, **kwargs):
+        '''Get a configuration value.
+
+        Raises RuntimeError if called before initialization.
+        '''
+        if not self._initialized:
+            raise RuntimeError(
+                f"Config.get('{section}', '{option}') called before "
+                "Config initialization. Config is initialized in App.__init__(). "
+                "Use Config.on_config_ready(callback) to defer access until "
+                "after initialization."
+            )
+        return self._real_config.get(section, option, **kwargs)
+
+    def getint(self, section, option):
+        '''Get a configuration value as an integer.
+
+        Raises RuntimeError if called before initialization.
+        '''
+        if not self._initialized:
+            raise RuntimeError(
+                f"Config.getint('{section}', '{option}') called before "
+                "Config initialization. Use Config.on_config_ready(callback) "
+                "to defer access."
+            )
+        return self._real_config.getint(section, option)
+
+    def getfloat(self, section, option):
+        '''Get a configuration value as a float.
+
+        Raises RuntimeError if called before initialization.
+        '''
+        if not self._initialized:
+            raise RuntimeError(
+                f"Config.getfloat('{section}', '{option}') called before "
+                "Config initialization. Use Config.on_config_ready(callback) "
+                "to defer access."
+            )
+        return self._real_config.getfloat(section, option)
+
+    def getboolean(self, section, option):
+        '''Get a configuration value as a boolean.
+
+        Raises RuntimeError if called before initialization.
+        '''
+        if not self._initialized:
+            raise RuntimeError(
+                f"Config.getboolean('{section}', '{option}') called before "
+                "Config initialization. Use Config.on_config_ready(callback) "
+                "to defer access."
+            )
+        return self._real_config.getboolean(section, option)
+
+    def add_callback(self, callback, section=None, key=None):
+        '''Add a callback. Stored until initialization if not yet initialized.'''
+        if not self._initialized:
+            self._pending_callbacks.append((callback, section, key))
+        else:
+            self._real_config.add_callback(callback, section, key)
+
+    def remove_callback(self, callback, section=None, key=None):
+        '''Remove a callback.'''
+        if not self._initialized:
+            self._pending_callbacks.remove((callback, section, key))
+        else:
+            self._real_config.remove_callback(callback, section, key)
+
+    def read(self, filename):
+        '''Read a config file. Only works after initialization.'''
+        if not self._initialized:
+            raise RuntimeError(
+                'Cannot read config file before initialization. '
+                'Config.read() is called automatically during initialization.'
+            )
+        return self._real_config.read(filename)
+
+    def write(self):
+        '''Write the config file. Only works after initialization.'''
+        if not self._initialized:
+            raise RuntimeError('Cannot write config file before initialization')
+        return self._real_config.write()
+
+    def has_section(self, section):
+        '''Check if a section exists.'''
+        if not self._initialized:
+            # Before init, all standard sections exist
+            return section in ('kivy', 'graphics', 'input', 'postproc',
+                             'widgets', 'modules', 'network')
+        return self._real_config.has_section(section)
+
+    def has_option(self, section, option):
+        '''Check if an option exists in a section.'''
+        if not self._initialized:
+            # Check pending operations
+            for operation, args in self._pending_operations:
+                if operation == 'set':
+                    s, o, v = args
+                    if s == section and o == option:
+                        return True
+            return False
+        return self._real_config.has_option(section, option)
+
+    def add_section(self, section):
+        '''Add a section.'''
+        if not self._initialized:
+            self._pending_operations.append(('add_section', section))
+        else:
+            self._real_config.add_section(section)
+
+    def remove_section(self, section):
+        '''Remove a section.'''
+        if not self._initialized:
+            self._pending_operations.append(('remove_section', section))
+        else:
+            self._real_config.remove_section(section)
+
+    def remove_option(self, section, option):
+        '''Remove an option from a section.'''
+        if not self._initialized:
+            pass  # Can't remove before initialization
+        else:
+            self._real_config.remove_option(section, option)
+
+    def setdefault(self, section, option, value):
+        '''Set default value for an option.'''
+        if not self._initialized:
+            # Check if already in pending operations
+            for operation, args in self._pending_operations:
+                if operation == 'set':
+                    s, o, v = args
+                    if s == section and o == option:
+                        return  # Already set
+            self._pending_operations.append(('set', (section, option, value)))
+        else:
+            self._real_config.setdefault(section, option, value)
+
+    def setdefaults(self, section, keyvalues):
+        '''Set multiple default values.'''
+        for key, value in keyvalues.items():
+            self.setdefault(section, key, value)
+
+    def setall(self, section, keyvalues):
+        '''Set multiple values.'''
+        for key, value in keyvalues.items():
+            self.set(section, key, value)
+
+    def sections(self):
+        '''Return list of sections.'''
+        if not self._initialized:
+            return [
+                'kivy', 'graphics', 'input', 'postproc',
+                'widgets', 'modules', 'network'
+            ]
+        return self._real_config.sections()
+
+    def items(self, section):
+        '''Return items in a section.'''
+        if not self._initialized:
+            raise RuntimeError(
+                f"Config.items('{section}') called before initialization. "
+                "Use Config.on_config_ready(callback) to defer access."
+            )
+        return self._real_config.items(section)
+
+    def getdefault(self, section, option, defaultvalue):
+        '''Get value with a default.'''
+        if not self._initialized:
+            # Check pending operations (reversed to get most recent set)
+            for operation, args in reversed(self._pending_operations):
+                if operation == 'set':
+                    s, o, v = args
+                    if s == section and o == option:
+                        return v
+            return defaultvalue
+        return self._real_config.getdefault(section, option, defaultvalue)
+
+    def getdefaultint(self, section, option, defaultvalue):
+        '''Get integer value with a default.'''
+        if not self._initialized:
+            # Check pending operations (reversed to get most recent set)
+            for operation, args in reversed(self._pending_operations):
+                if operation == 'set':
+                    s, o, v = args
+                    if s == section and o == option:
+                        return int(v)
+            return defaultvalue
+        return self._real_config.getdefaultint(section, option, defaultvalue)
+
+    def update_config(self, filename, overwrite=False):
+        '''Update config from another file.'''
+        if not self._initialized:
+            raise RuntimeError('Cannot update config before initialization')
+        return self._real_config.update_config(filename, overwrite)
+
+    def adddefaultsection(self, section):
+        '''Add a default section.'''
+        if not self._initialized:
+            pass  # Sections added during initialization
+        else:
+            self._real_config.adddefaultsection(section)
+
+    @property
+    def filename(self):
+        '''Get config filename.'''
+        if not self._initialized:
+            return None
+        return self._real_config.filename
+
+    @filename.setter
+    def filename(self, value):
+        '''Set config filename.'''
+        if self._initialized:
+            self._real_config.filename = value
+
+
+def _apply_default_config(config):
+    '''Apply all default configuration values to a ConfigParser instance.
+
+    This sets all the default values for the latest config version.
+
+    :Parameters:
+        `config`: ConfigParser instance
+            The config object to apply defaults to
+
+    .. versionadded:: 3.0.0
+    '''
+    # Apply all defaults for the latest version
+
+    # kivy section
+    config.setdefault('kivy', 'keyboard_repeat_delay', '300')
+    config.setdefault('kivy', 'keyboard_repeat_rate', '30')
+    config.setdefault('kivy', 'log_dir', 'logs')
+    config.setdefault('kivy', 'log_enable', '1')
+    config.setdefault('kivy', 'log_level', 'info')
+    config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
+    config.setdefault('kivy', 'window_icon', '')
+    config.setdefault('kivy', 'keyboard_mode', '')
+    config.setdefault('kivy', 'keyboard_layout', 'qwerty')
+    is_desktop = int(platform in ('win', 'macosx', 'linux'))
+    config.setdefault('kivy', 'desktop', is_desktop)
+    config.setdefault('kivy', 'exit_on_escape', '1')
+    config.setdefault('kivy', 'pause_on_minimize', '0')
+    config.setdefault('kivy', 'kivy_clock', 'default')
+    config.setdefault('kivy', 'default_font', [
+        'Roboto',
+        'data/fonts/Roboto-Regular.ttf',
+        'data/fonts/Roboto-Italic.ttf',
+        'data/fonts/Roboto-Bold.ttf',
+        'data/fonts/Roboto-BoldItalic.ttf'])
+    config.setdefault('kivy', 'log_maxfiles', '100')
+    config.setdefault('kivy', 'window_shape', '')
+    config.setdefault('kivy', 'config_version', KIVY_CONFIG_VERSION)
+
+    # graphics section
+    config.setdefault('graphics', 'display', '-1')
+    config.setdefault('graphics', 'fullscreen', '0')
+    config.setdefault('graphics', 'height', '600')
+    config.setdefault('graphics', 'left', '0')
+    config.setdefault('graphics', 'maxfps', '60')
+    config.setdefault('graphics', 'multisamples', '2')
+    config.setdefault('graphics', 'position', 'auto')
+    config.setdefault('graphics', 'rotation', '0')
+    config.setdefault('graphics', 'show_cursor', '1')
+    config.setdefault('graphics', 'top', '0')
+    config.setdefault('graphics', 'width', '800')
+    config.setdefault('graphics', 'resizable', '1')
+    config.setdefault('graphics', 'borderless', '0')
+    config.setdefault('graphics', 'window_state', 'visible')
+    config.setdefault('graphics', 'minimum_width', '0')
+    config.setdefault('graphics', 'minimum_height', '0')
+    config.setdefault('graphics', 'min_state_time', '.035')
+    config.setdefault('graphics', 'allow_screensaver', '1')
+    config.setdefault('graphics', 'shaped', '0')
+    config.setdefault('graphics', 'vsync', '')
+    config.setdefault('graphics', 'verify_gl_main_thread', '1')
+    config.setdefault('graphics', 'custom_titlebar', '0')
+    config.setdefault('graphics', 'custom_titlebar_border', '5')
+    config.setdefault('graphics', 'always_on_top', '0')
+    config.setdefault('graphics', 'show_taskbar_icon', '1')
+    config.setdefault('graphics', 'alpha_size', '8' if pi_version is None else '0')
+
+    # input section
+    config.setdefault('input', 'mouse', 'mouse')
+    if platform == 'win':
+        config.setdefault('input', 'wm_touch', 'wm_touch')
+        config.setdefault('input', 'wm_pen', 'wm_pen')
+    elif platform == 'linux':
+        probesysfs = 'probesysfs'
+        if _is_rpi:
+            probesysfs += ',provider=hidinput'
+        config.setdefault('input', '%(name)s', probesysfs)
+
+    # postproc section
+    config.setdefault('postproc', 'double_tap_distance', '20')
+    config.setdefault('postproc', 'double_tap_time', '250')
+    config.setdefault('postproc', 'ignore', '[]')
+    config.setdefault('postproc', 'jitter_distance', '0')
+    config.setdefault('postproc', 'jitter_ignore_devices', 'mouse,mactouch,')
+    config.setdefault('postproc', 'retain_distance', '50')
+    config.setdefault('postproc', 'retain_time', '0')
+    config.setdefault('postproc', 'triple_tap_distance', '20')
+    config.setdefault('postproc', 'triple_tap_time', '375')
+
+    # widgets section
+    config.setdefault('widgets', 'keyboard_layout', 'qwerty')
+    config.setdefault('widgets', 'scroll_timeout', '250')
+    config.setdefault('widgets', 'scroll_distance', '20')
+    config.setdefault('widgets', 'scroll_friction', '1.')
+    config.setdefault('widgets', 'scroll_stoptime', '300')
+    config.setdefault('widgets', 'scroll_moves', '5')
+
+    # network section
+    config.setdefault('network', 'useragent', 'curl')
+    config.setdefault('network', 'implementation', 'default')
+
+
+def _apply_env_config(config):
+    '''Apply KCFG_* environment variables to a ConfigParser instance.
+
+    This reads all KCFG_section_key environment variables and applies them
+    to the config. Environment variables take precedence over file values.
+
+    :Parameters:
+        `config`: ConfigParser instance
+            The config object to apply environment variables to
+
+    .. versionadded:: 3.0.0
+    '''
+    from kivy.logger import Logger
+
+    if environ.get('KIVY_NO_ENV_CONFIG', '0') == '1':
+        return
+
+    for key, value in environ.items():
+        if not key.startswith("KCFG_"):
+            continue
+        try:
+            _, section, name = key.split("_", 2)
+        except ValueError:
+            Logger.warning((
+                "Config: Environ `{}` invalid format, "
+                "must be KCFG_section_name").format(key))
+            continue
+
+        # extract and check section
+        section = section.lower()
+        if not config.has_section(section):
+            Logger.warning(
+                "Config: Environ `{}`: unknown section `{}`".format(
+                    key, section))
+            continue
+
+        # extract and check the option name
+        name = name.lower()
+        sections_to_check = {
+            "kivy", "graphics", "widgets", "postproc", "network"}
+        if (section in sections_to_check and
+                not config.has_option(section, name)):
+            Logger.warning((
+                "Config: Environ `{}` unknown `{}` "
+                "option in `{}` section.").format(
+                    key, name, section))
+
+        config.set(section, name, value)
+
+
+def _load_config_file(config, config_filename):
+    '''Load and upgrade the Kivy configuration file.
+
+    This function should be called by ConfigProxy._initialize() after
+    setting the correct config file path. It handles reading the config file,
+    upgrading to the latest version if needed, and writing it back if necessary.
+
+    :Parameters:
+        `config`: ConfigParser instance
+            The config object to load the file into
+        `config_filename`: str
+            Full path to the config.ini file to load
+
+    .. versionadded:: 3.0.0
+    '''
+    from kivy.logger import Logger
 
     # Read config file if exist
-    if (exists(kivy_config_fn) and
+    if (exists(config_filename) and
             'KIVY_USE_DEFAULTCONFIG' not in environ and
             'KIVY_NO_CONFIG' not in environ):
         try:
-            Config.read(kivy_config_fn)
+            config.read(config_filename)
         except Exception:
-            Logger.exception('Core: error while reading local'
-                             'configuration')
+            Logger.exception('Core: error while reading local configuration')
 
-    version = Config.getdefaultint('kivy', 'config_version', 0)
-
-    # Add defaults section
-    Config.adddefaultsection('kivy')
-    Config.adddefaultsection('graphics')
-    Config.adddefaultsection('input')
-    Config.adddefaultsection('postproc')
-    Config.adddefaultsection('widgets')
-    Config.adddefaultsection('modules')
-    Config.adddefaultsection('network')
+    version = config.getdefaultint('kivy', 'config_version', 0)
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -796,241 +1299,116 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Logger.debug('Config: Upgrading from %d to %d' %
                      (version, version + 1))
 
+        # Version upgrades happen here
         if version == 0:
-
-            # log level
-            Config.setdefault('kivy', 'keyboard_repeat_delay', '300')
-            Config.setdefault('kivy', 'keyboard_repeat_rate', '30')
-            Config.setdefault('kivy', 'log_dir', 'logs')
-            Config.setdefault('kivy', 'log_enable', '1')
-            Config.setdefault('kivy', 'log_level', 'info')
-            Config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
-            Config.setdefault('kivy', 'window_icon', '')
-
-            # default graphics parameters
-            Config.setdefault('graphics', 'display', '-1')
-            Config.setdefault('graphics', 'fullscreen', 'no')
-            Config.setdefault('graphics', 'height', '600')
-            Config.setdefault('graphics', 'left', '0')
-            Config.setdefault('graphics', 'maxfps', '0')
-            Config.setdefault('graphics', 'multisamples', '2')
-            Config.setdefault('graphics', 'position', 'auto')
-            Config.setdefault('graphics', 'rotation', '0')
-            Config.setdefault('graphics', 'show_cursor', '1')
-            Config.setdefault('graphics', 'top', '0')
-            Config.setdefault('graphics', 'width', '800')
-
-            # input configuration
-            Config.setdefault('input', 'mouse', 'mouse')
-
-            # activate native input provider in configuration
-            # from 1.0.9, don't activate mactouch by default, or app are
-            # unusable.
-            if platform == 'win':
-                Config.setdefault('input', 'wm_touch', 'wm_touch')
-                Config.setdefault('input', 'wm_pen', 'wm_pen')
-            elif platform == 'linux':
-                probesysfs = 'probesysfs'
-                if _is_rpi:
-                    probesysfs += ',provider=hidinput'
-                Config.setdefault('input', '%(name)s', probesysfs)
-
-            # input postprocessing configuration
-            Config.setdefault('postproc', 'double_tap_distance', '20')
-            Config.setdefault('postproc', 'double_tap_time', '250')
-            Config.setdefault('postproc', 'ignore', '[]')
-            Config.setdefault('postproc', 'jitter_distance', '0')
-            Config.setdefault('postproc', 'jitter_ignore_devices',
-                              'mouse,mactouch,')
-            Config.setdefault('postproc', 'retain_distance', '50')
-            Config.setdefault('postproc', 'retain_time', '0')
-
-            # default configuration for keyboard repetition
-            Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
-            Config.setdefault('widgets', 'keyboard_type', '')
-            Config.setdefault('widgets', 'list_friction', '10')
-            Config.setdefault('widgets', 'list_friction_bound', '20')
-            Config.setdefault('widgets', 'list_trigger_distance', '5')
-
+            pass  # Defaults already applied in _apply_default_config
         elif version == 1:
-            Config.set('graphics', 'maxfps', '60')
-
+            config.set('graphics', 'maxfps', '60')
         elif version == 2:
-            # was a version to automatically copy windows icon in the user
-            # directory, but it's now not used anymore. User can still change
-            # the window icon by touching the config.
-            pass
-
+            pass  # Was icon copy, no longer needed
         elif version == 3:
-            # add token for scrollview
-            Config.setdefault('widgets', 'scroll_timeout', '55')
-            Config.setdefault('widgets', 'scroll_distance', '20')
-            Config.setdefault('widgets', 'scroll_friction', '1.')
-
-            # remove old list_* token
-            Config.remove_option('widgets', 'list_friction')
-            Config.remove_option('widgets', 'list_friction_bound')
-            Config.remove_option('widgets', 'list_trigger_distance')
-
+            config.setdefault('widgets', 'scroll_timeout', '55')
+            config.setdefault('widgets', 'scroll_distance', '20')
+            config.setdefault('widgets', 'scroll_friction', '1.')
         elif version == 4:
-            Config.remove_option('widgets', 'keyboard_type')
-            Config.remove_option('widgets', 'keyboard_layout')
-
-            # add keyboard token
-            Config.setdefault('kivy', 'keyboard_mode', '')
-            Config.setdefault('kivy', 'keyboard_layout', 'qwerty')
-
+            config.setdefault('kivy', 'keyboard_mode', '')
+            config.setdefault('kivy', 'keyboard_layout', 'qwerty')
         elif version == 5:
-            Config.setdefault('graphics', 'resizable', '1')
-
+            config.setdefault('graphics', 'resizable', '1')
         elif version == 6:
-            # if the timeout is still the default value, change it
-            Config.setdefault('widgets', 'scroll_stoptime', '300')
-            Config.setdefault('widgets', 'scroll_moves', '5')
-
+            config.setdefault('widgets', 'scroll_stoptime', '300')
+            config.setdefault('widgets', 'scroll_moves', '5')
         elif version == 7:
-            # desktop bool indicating whether to use desktop specific features
             is_desktop = int(platform in ('win', 'macosx', 'linux'))
-            Config.setdefault('kivy', 'desktop', is_desktop)
-            Config.setdefault('postproc', 'triple_tap_distance', '20')
-            Config.setdefault('postproc', 'triple_tap_time', '375')
-
+            config.setdefault('kivy', 'desktop', is_desktop)
+            config.setdefault('postproc', 'triple_tap_distance', '20')
+            config.setdefault('postproc', 'triple_tap_time', '375')
         elif version == 8:
-            if Config.getint('widgets', 'scroll_timeout') == 55:
-                Config.set('widgets', 'scroll_timeout', '250')
-
+            if config.getint('widgets', 'scroll_timeout') == 55:
+                config.set('widgets', 'scroll_timeout', '250')
         elif version == 9:
-            Config.setdefault('kivy', 'exit_on_escape', '1')
-
+            config.setdefault('kivy', 'exit_on_escape', '1')
         elif version == 10:
-            Config.set('graphics', 'fullscreen', '0')
-            Config.setdefault('graphics', 'borderless', '0')
-
+            config.set('graphics', 'fullscreen', '0')
+            config.setdefault('graphics', 'borderless', '0')
         elif version == 11:
-            Config.setdefault('kivy', 'pause_on_minimize', '0')
-
+            config.setdefault('kivy', 'pause_on_minimize', '0')
         elif version == 12:
-            Config.setdefault('graphics', 'window_state', 'visible')
-
+            config.setdefault('graphics', 'window_state', 'visible')
         elif version == 13:
-            Config.setdefault('graphics', 'minimum_width', '0')
-            Config.setdefault('graphics', 'minimum_height', '0')
-
+            config.setdefault('graphics', 'minimum_width', '0')
+            config.setdefault('graphics', 'minimum_height', '0')
         elif version == 14:
-            Config.setdefault('graphics', 'min_state_time', '.035')
-
+            config.setdefault('graphics', 'min_state_time', '.035')
         elif version == 15:
-            Config.setdefault('kivy', 'kivy_clock', 'default')
-
+            config.setdefault('kivy', 'kivy_clock', 'default')
         elif version == 16:
-            Config.setdefault('kivy', 'default_font', [
+            config.setdefault('kivy', 'default_font', [
                 'Roboto',
                 'data/fonts/Roboto-Regular.ttf',
                 'data/fonts/Roboto-Italic.ttf',
                 'data/fonts/Roboto-Bold.ttf',
                 'data/fonts/Roboto-BoldItalic.ttf'])
-
         elif version == 17:
-            Config.setdefault('graphics', 'allow_screensaver', '1')
-
+            config.setdefault('graphics', 'allow_screensaver', '1')
         elif version == 18:
-            Config.setdefault('kivy', 'log_maxfiles', '100')
-
+            config.setdefault('kivy', 'log_maxfiles', '100')
         elif version == 19:
-            Config.setdefault('graphics', 'shaped', '0')
-            Config.setdefault(
-                'kivy', 'window_shape',
-                'data/images/defaultshape.png'
-            )
-
+            config.setdefault('graphics', 'shaped', '0')
+            config.setdefault('kivy', 'window_shape', 'data/images/defaultshape.png')
         elif version == 20:
-            Config.setdefault('network', 'useragent', 'curl')
-
+            config.setdefault('network', 'useragent', 'curl')
         elif version == 21:
-            Config.setdefault('graphics', 'vsync', '')
-
+            config.setdefault('graphics', 'vsync', '')
         elif version == 22:
-            Config.setdefault('graphics', 'verify_gl_main_thread', '1')
-
+            config.setdefault('graphics', 'verify_gl_main_thread', '1')
         elif version == 23:
-            Config.setdefault('graphics', 'custom_titlebar', '0')
-            Config.setdefault('graphics', 'custom_titlebar_border', '5')
-
+            config.setdefault('graphics', 'custom_titlebar', '0')
+            config.setdefault('graphics', 'custom_titlebar_border', '5')
         elif version == 24:
-            Config.setdefault("network", "implementation", "default")
-
+            config.setdefault("network", "implementation", "default")
         elif version == 25:
-            Config.setdefault('graphics', 'always_on_top', '0')
-
+            config.setdefault('graphics', 'always_on_top', '0')
         elif version == 26:
-            Config.setdefault("graphics", "show_taskbar_icon", "1")
-
+            config.setdefault("graphics", "show_taskbar_icon", "1")
         elif version == 27:
-            if Config.get("kivy", "window_shape") == "data/images/defaultshape.png":
-                Config.set("kivy", "window_shape", "")
-
+            if config.get("kivy", "window_shape") == "data/images/defaultshape.png":
+                config.set("kivy", "window_shape", "")
         elif version == 28:
-            Config.setdefault(
-                "graphics", "alpha_size", "8" if pi_version is None else "0"
-            )
-
+            alpha_size = "8" if pi_version is None else "0"
+            config.setdefault("graphics", "alpha_size", alpha_size)
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !
         else:
-            # for future.
             break
 
-        # Pass to the next version
         version += 1
 
-    # Indicate to the Config that we've upgrade to the latest version.
-    Config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
+    # Indicate to the Config that we've upgraded to the latest version.
+    config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
 
     # Now, activate log file
-    Logger.logfile_activated = bool(Config.getint('kivy', 'log_enable'))
+    Logger.logfile_activated = bool(config.getint('kivy', 'log_enable'))
 
     # If no configuration exist, write the default one.
-    if ((not exists(kivy_config_fn) or need_save) and
+    if ((not exists(config_filename) or need_save) and
             'KIVY_NO_CONFIG' not in environ):
         try:
-            Config.filename = kivy_config_fn
-            Config.write()
+            config.filename = config_filename
+            config.write()
         except Exception:
             Logger.exception('Core: Error while saving default config file')
 
-    # Load configuration from env
-    if environ.get('KIVY_NO_ENV_CONFIG', '0') != '1':
-        for key, value in environ.items():
-            if not key.startswith("KCFG_"):
-                continue
-            try:
-                _, section, name = key.split("_", 2)
-            except ValueError:
-                Logger.warning((
-                    "Config: Environ `{}` invalid format, "
-                    "must be KCFG_section_name").format(key))
-                continue
 
-            # extract and check section
-            section = section.lower()
-            if not Config.has_section(section):
-                Logger.warning(
-                    "Config: Environ `{}`: unknown section `{}`".format(
-                        key, section))
-                continue
+if not environ.get('KIVY_DOC_INCLUDE'):
 
-            # extract and check the option name
-            name = name.lower()
-            sections_to_check = {
-                "kivy", "graphics", "widgets", "postproc", "network"}
-            if (section in sections_to_check and
-                    not Config.has_option(section, name)):
-                Logger.warning((
-                    "Config: Environ `{}` unknown `{}` "
-                    "option in `{}` section.").format(
-                        key, name, section))
-                # we don't avoid to set an unknown option, because maybe
-                # an external modules or widgets (in garden?) may want to
-                # save its own configuration here.
+    #
+    # Create lazy Config proxy at module import time
+    # Actual initialization deferred until App.__init__()
+    #
 
-            Config.set(section, name, value)
+    # Create lazy proxy (no side effects!)
+    Config = ConfigProxy()
+
+    # Register the logger callback (will be applied during initialization)
+    Config.add_callback(logger_config_update, 'kivy', 'log_level')

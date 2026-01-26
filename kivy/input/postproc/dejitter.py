@@ -36,10 +36,18 @@ class InputPostprocDejitter(object):
     '''
 
     def __init__(self):
-        self.jitterdist = Config.getfloat('postproc', 'jitter_distance')
-        ignore_devices = Config.get('postproc', 'jitter_ignore_devices')
-        self.ignore_devices = ignore_devices.split(',')
+        # Set defaults (will be updated when Config is ready)
+        self.jitterdist = 0.004
+        self.ignore_devices = ['mouse', 'mactouch']
         self.last_touches = {}
+        # Register callback to update from Config when ready
+        Config.on_config_ready(self._init_from_config)
+
+    def _init_from_config(self):
+        '''Update settings from Config after it's ready.'''
+        self.jitterdist = Config.getfloat('postproc', 'jitter_distance')
+        ignore_devices_str = Config.get('postproc', 'jitter_ignore_devices')
+        self.ignore_devices = ignore_devices_str.split(',')
 
     def taxicab_distance(self, p, q):
         # Get the taxicab/manhattan/citiblock distance for efficiency reasons

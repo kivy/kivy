@@ -14,8 +14,17 @@ from kivy.graphics.egl_backend.egl_angle cimport EGLANGLE
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
-if not environ.get('KIVY_DOC_INCLUDE'):
+# Will be initialized after Config is ready
+is_desktop = False
+
+def _init_is_desktop():
+    '''Initialize is_desktop from Config after it's ready.'''
+    global is_desktop
     is_desktop = Config.get('kivy', 'desktop') == '1'
+
+# Register callback (skip during documentation generation)
+if not environ.get('KIVY_DOC_INCLUDE'):
+    Config.on_config_ready(_init_is_desktop)
 
 from .window_info cimport (
     WindowInfoiOS,

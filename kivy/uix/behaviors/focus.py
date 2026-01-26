@@ -80,17 +80,25 @@ documentation.
 
 __all__ = ('FocusBehavior', )
 
+from os import environ
 from kivy.properties import OptionProperty, ObjectProperty, BooleanProperty, \
     AliasProperty
 from kivy.config import Config
 from kivy.base import EventLoop
 
-# When we are generating documentation, Config doesn't exist
+# Will be initialized after Config is ready
 _is_desktop = False
 _keyboard_mode = 'system'
-if Config:
+
+def _init_focus_behavior():
+    '''Initialize focus behavior settings from Config after it's ready.'''
+    global _is_desktop, _keyboard_mode
     _is_desktop = Config.getboolean('kivy', 'desktop')
     _keyboard_mode = Config.get('kivy', 'keyboard_mode')
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    Config.on_config_ready(_init_focus_behavior)
 
 
 class FocusBehavior(object):

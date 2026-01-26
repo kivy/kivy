@@ -8,6 +8,94 @@ Introduction
 
 Kivy 3.x.x introduces several changes and improvements compared to Kivy 2.x.x. This guide will help you migrate your existing Kivy 2.x.x codebase to Kivy 3.x.x.
 
+Configuration System Changes
+-----------------------------
+
+*App-Specific Configuration Directories*
+
+In Kivy 3.x.x, the configuration system has been redesigned to use app-specific directories for desktop platforms, 
+similar to mobile platforms. This ensures better isolation between applications and follows platform conventions more closely.
+
+**Key Changes:**
+
+1. **Config File Location**: The ``config.ini`` file is now located in ``user_data_dir/.kivy/config.ini`` instead of a global ``~/.kivy/config.ini``.
+
+2. **App-Specific Paths**: ``user_data_dir`` now returns an app-specific path:
+   
+   - Windows: ``%APPDATA%\<appname>``
+   - macOS: ``~/Library/Application Support/<appname>``
+   - Linux: ``~/.local/share/<appname>`` (XDG compliant)
+   - iOS: ``~/Documents/<appname>`` (unchanged)
+   - Android: App-specific data directory (unchanged)
+
+3. **Cache Directory Support**: A new ``user_cache_dir`` property is available on ``App``:
+   
+   - Windows: ``%LOCALAPPDATA%\<appname>\Cache``
+   - macOS: ``~/Library/Caches/<appname>``
+   - Linux: ``~/.cache/<appname>`` (XDG compliant)
+   - iOS: ``~/Library/Caches/<appname>``
+   - Android: App-specific cache directory
+
+4. **Deferred Config Loading**: Config is now loaded during ``App.__init__()`` instead of at module import time. This ensures the config file is loaded from the correct app-specific location.
+
+5. **KIVY_HOME Override**: The ``KIVY_HOME`` environment variable can still be used to override the default paths for backward compatibility.
+
+**Migration Steps:**
+
+For most applications, no changes are required. The config file will be created in the new location automatically on first run.
+
+If you need to migrate existing configuration files:
+
+.. code-block:: python
+
+    import os
+    import shutil
+    from kivy.app import App
+    
+    class MyApp(App):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            
+            # Optional: Migrate old config to new location
+            old_config = os.path.expanduser('~/.kivy/config.ini')
+            new_config = os.path.join(self.user_data_dir, '.kivy', 'config.ini')
+            
+            if os.path.exists(old_config) and not os.path.exists(new_config):
+                os.makedirs(os.path.dirname(new_config), exist_ok=True)
+                shutil.copy(old_config, new_config)
+                print(f"Migrated config from {old_config} to {new_config}")
+
+Alternatively, you can use the ``KIVY_HOME`` environment variable to keep using the old location temporarily:
+
+.. code-block:: python
+
+    import os
+    os.environ['KIVY_HOME'] = os.path.expanduser('~/.kivy')
+    
+    from kivy.app import App
+    # ... rest of your application
+
+**For Framework Developers:**
+
+If you're developing Kivy extensions or modules that need to read ``Config`` at module import time, you must use the ``Config.on_config_ready()`` callback:
+
+.. code-block:: python
+
+    from kivy.config import Config
+    
+    # Initialize module variable
+    _my_setting = None
+    
+    # Register callback to initialize after Config is ready
+    def _init_my_setting():
+        global _my_setting
+        _my_setting = Config.get('mysection', 'mykey')
+    
+    if Config:
+        Config.on_config_ready(_init_my_setting)
+
+This ensures your code reads the correct configuration values after the config file has been loaded.
+
 Renamed modules
 ---------------
 

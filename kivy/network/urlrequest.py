@@ -783,11 +783,20 @@ implementation_map = {
     "urllib": UrlRequestUrllib,
 }
 
-if not os.environ.get("KIVY_DOC_INCLUDE"):
+# Will be initialized after Config is ready
+prefered_implementation = "default"
+UrlRequest = None
+
+def _init_url_implementation():
+    '''Initialize preferred URL implementation from Config after it's ready.'''
+    global prefered_implementation, UrlRequest
     prefered_implementation = Config.getdefault(
         "network", "implementation", "default"
     )
-else:
-    prefered_implementation = "default"
+    UrlRequest = implementation_map.get(prefered_implementation)
 
-UrlRequest = implementation_map.get(prefered_implementation)
+# Register callback (skip during documentation generation)
+if not os.environ.get("KIVY_DOC_INCLUDE"):
+    Config.on_config_ready(_init_url_implementation)
+else:
+    UrlRequest = implementation_map.get(prefered_implementation)

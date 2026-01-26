@@ -411,9 +411,13 @@ to both case.
 __all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
 
 import os
+import sys
+import kivy
 from inspect import getfile
+from os import makedirs, environ
 from os.path import dirname, join, exists, sep, expanduser, isfile
-from kivy.config import ConfigParser
+from kivy.config import Config, ConfigParser
+from kivy.clock import Clock
 from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
 from kivy.factory import Factory
 from kivy.logger import Logger
@@ -566,6 +570,7 @@ class App(EventDispatcher):
 
     # Stored so that we only need to determine this once
     _user_data_dir = ""
+    _user_cache_dir = ""
 
     def __init__(self, **kwargs):
         App._running_app = self
@@ -590,6 +595,83 @@ class App(EventDispatcher):
 
         # Flag to indicate if the app is ready, i.e., the UI is visible
         self._ready_fired = False
+
+        # Initialize global Config and Clock now that we know the app name
+        self._init_config()
+
+    def _init_config(self):
+        '''Initialize the global Config and Clock.
+
+        This method is called from App.__init__() to set up app-specific
+        configuration paths and initialize the global Config and Clock objects.
+
+        .. versionadded:: 3.0.0
+        '''
+        # Determine user_data_dir based on platform and App.name
+        user_data_dir = self.user_data_dir
+
+        # Don't override Android's ANDROID_APP_PATH
+        if platform != 'android' or 'ANDROID_APP_PATH' not in environ:
+            # Create kivy_home_dir (Kivy subdirectory within user_data_dir)
+            kivy_home = join(user_data_dir, '.kivy')
+            try:
+                makedirs(kivy_home, exist_ok=True)
+            except OSError:
+                pass  # Directory might already exist
+
+            # Update global paths in kivy module
+            kivy.kivy_home_dir = kivy_home
+            kivy.kivy_config_fn = join(kivy_home, 'config.ini')
+            kivy.kivy_usermodules_dir = join(kivy_home, 'mods')
+
+            # Create additional directories if KIVY_NO_CONFIG is not set
+            if 'KIVY_NO_CONFIG' not in environ:
+                # Create user modules directory
+                try:
+                    makedirs(kivy.kivy_usermodules_dir, exist_ok=True)
+                except OSError:
+                    pass
+
+                # Copy logo icons for desktop platforms
+                if platform not in {'android', 'ios'}:
+                    icon_dir = join(kivy_home, 'icon')
+                    if not exists(icon_dir):
+                        try:
+                            import shutil
+                            shutil.copytree(join(kivy.kivy_data_dir, 'logo'), icon_dir)
+                        except Exception:
+                            from kivy.logger import Logger
+                            Logger.exception('Error when copying logo directory')
+
+        # Initialize Config (loads file, fires callbacks)
+        Config._initialize(kivy.kivy_config_fn)
+
+        # Handle --save flag: save config and exit
+        if (hasattr(kivy, '_kivy_config_save_and_exit') and
+                kivy._kivy_config_save_and_exit):
+            try:
+                Config.write()
+                from kivy.logger import Logger
+                Logger.info('Core: Kivy configuration saved.')
+            except Exception as e:
+                from kivy.logger import Logger
+                Logger.exception('Core: error while saving config file: %s' % e)
+            import sys
+            sys.exit(0)
+
+        # Initialize Clock (now that Config is ready)
+        Clock._initialize()
+
+        # Initialize Cache purging (now that Clock is ready)
+        from kivy.cache import Cache
+        if hasattr(Cache, '_initialize_purging'):
+            Cache._initialize_purging()
+
+        # Configure modules (now that Config is ready)
+        from kivy.modules import Modules
+        if 'KIVY_DOC' not in environ and 'KIVY_DOC_INCLUDE' not in environ:
+            Modules.add_path(kivy.kivy_usermodules_dir)
+        Modules.configure()
 
     def build(self):
         '''Initializes the application; it will be called only once.
@@ -815,8 +897,8 @@ class App(EventDispatcher):
         if exists(filename):
             try:
                 config.read(filename)
-            except:
-                Logger.error('App: Corrupted config file, ignored.')
+            except Exception as e:
+                Logger.error(f'App: Corrupted config file, ignored. Error: {e}')
                 config.name = ''
                 try:
                     config = ConfigParser.get_configparser('app')
@@ -852,26 +934,74 @@ class App(EventDispatcher):
 
     def _get_user_data_dir(self):
         # Determine and return the user_data_dir.
+        # Check for KIVY_HOME environment variable first
+        if 'KIVY_HOME' in os.environ:
+            data_dir = os.environ['KIVY_HOME']
+            if not exists(data_dir):
+                os.makedirs(data_dir, exist_ok=True)
+            return data_dir
+
+        # Determine base user home directory
+        user_home_dir = expanduser('~')
+
         data_dir = ""
         if platform == 'ios':
-            data_dir = expanduser(join('~/Documents', self.name))
+            user_home_dir = join(user_home_dir, 'Documents')
+            data_dir = join(user_home_dir, self.name)
         elif platform == 'android':
             from jnius import autoclass, cast
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
             context = cast('android.content.Context', PythonActivity.mActivity)
             file_p = cast('java.io.File', context.getFilesDir())
             data_dir = file_p.getAbsolutePath()
+        elif sys.prefix != sys.base_prefix:
+            # Virtual environment detected - use project directory
+            # This makes config project-specific instead of system-wide
+            user_home_dir = dirname(sys.prefix)
+            data_dir = join(user_home_dir, self.name)
         elif platform == 'win':
             data_dir = os.path.join(os.environ['APPDATA'], self.name)
         elif platform == 'macosx':
             data_dir = '~/Library/Application Support/{}'.format(self.name)
             data_dir = expanduser(data_dir)
         else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = expanduser(join(data_dir, self.name))
+            # Use XDG_DATA_HOME (not XDG_CONFIG_HOME) for data storage
+            data_dir = os.environ.get('XDG_DATA_HOME', expanduser('~/.local/share'))
+            data_dir = join(data_dir, self.name)
         if not exists(data_dir):
-            os.mkdir(data_dir)
+            os.makedirs(data_dir, exist_ok=True)
         return data_dir
+
+    def _get_user_cache_dir(self):
+        # Determine and return the user_cache_dir.
+        # Check for KIVY_HOME environment variable first
+        if 'KIVY_HOME' in os.environ:
+            cache_dir = join(os.environ['KIVY_HOME'], 'cache')
+            if not exists(cache_dir):
+                os.makedirs(cache_dir, exist_ok=True)
+            return cache_dir
+
+        cache_dir = ""
+        if platform == 'ios':
+            cache_dir = expanduser(join('~/Library/Caches', self.name))
+        elif platform == 'android':
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getCacheDir())
+            cache_dir = file_p.getAbsolutePath()
+        elif platform == 'win':
+            cache_dir = os.path.join(os.environ['LOCALAPPDATA'], self.name, 'Cache')
+        elif platform == 'macosx':
+            cache_dir = '~/Library/Caches/{}'.format(self.name)
+            cache_dir = expanduser(cache_dir)
+        else:  # _platform == 'linux' or anything else...:
+            # Use XDG_CACHE_HOME for cache storage
+            cache_dir = os.environ.get('XDG_CACHE_HOME', expanduser('~/.cache'))
+            cache_dir = join(cache_dir, self.name)
+        if not exists(cache_dir):
+            os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
 
     @property
     def user_data_dir(self):
@@ -910,6 +1040,59 @@ Context.html#getFilesDir()>`_ is returned.
         if self._user_data_dir == "":
             self._user_data_dir = self._get_user_data_dir()
         return self._user_data_dir
+
+    @property
+    def user_cache_dir(self):
+        '''
+        .. versionadded:: 3.0.0
+
+        Returns the path to the directory in the users file system which the
+        application can use to store cached data.
+
+        Different platforms have different conventions with regards to where
+        applications should store cache data. This function implements these
+        conventions. The <app_name> directory is created when the property is
+        called, unless it already exists.
+
+        Cache directories are for temporary data that can be recreated and
+        are often excluded from backups.
+
+        On iOS, `~/Library/Caches/<app_name>` is returned (which is inside the
+        app's sandbox).
+
+        On Windows, `%LOCALAPPDATA%/<app_name>/Cache` is returned.
+
+        On OS X, `~/Library/Caches/<app_name>` is returned.
+
+        On Linux, `$XDG_CACHE_HOME/<app_name>` (typically `~/.cache/<app_name>`)
+        is returned.
+
+        On Android, `Context.GetCacheDir
+        <https://developer.android.com/reference/android/content/\
+Context.html#getCacheDir()>`_ is returned.
+
+        .. note::
+
+            **Application Storage Directories**
+
+            Kivy provides the following application storage directories:
+
+            - **user_data_dir**: Internal, persistent, private application storage.
+              Guaranteed to exist and be writable without additional permissions.
+
+            - **user_cache_dir**: Internal, temporary application storage.
+              The system may delete this data at any time.
+
+            For desktop platforms, applications may choose to use the
+            `platformdirs <https://github.com/tox-dev/platformdirs>`_ package
+            to access additional OS-specific directories such as downloads, music,
+            videos, etc. These directories are not exposed by Kivy because they
+            are not consistently available across mobile and sandboxed platforms.
+
+        '''
+        if self._user_cache_dir == "":
+            self._user_cache_dir = self._get_user_cache_dir()
+        return self._user_cache_dir
 
     @property
     def name(self):

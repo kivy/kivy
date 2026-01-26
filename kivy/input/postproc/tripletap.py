@@ -28,11 +28,19 @@ class InputPostprocTripleTap(object):
     '''
 
     def __init__(self):
-        dist = Config.getint('postproc', 'triple_tap_distance')
-        self.triple_tap_distance = dist / 1000.0
-        time = Config.getint('postproc', 'triple_tap_time')
-        self.triple_tap_time = time / 1000.0
+        # Set defaults (will be updated when Config is ready)
+        self.triple_tap_distance = 20 / 1000.0
+        self.triple_tap_time = 250 / 1000.0
         self.touches = {}
+        # Register callback to update from Config when ready
+        Config.on_config_ready(self._init_from_config)
+
+    def _init_from_config(self):
+        '''Update settings from Config after it's ready.'''
+        distance = Config.getint('postproc', 'triple_tap_distance')
+        self.triple_tap_distance = distance / 1000.0
+        time_val = Config.getint('postproc', 'triple_tap_time')
+        self.triple_tap_time = time_val / 1000.0
 
     def find_triple_tap(self, ref):
         '''Find a triple tap touch within *self.touches*.

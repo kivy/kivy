@@ -90,11 +90,19 @@ from kivy.setupconfig import USE_SDL3, USE_PANGOFT2
 from kivy.logger import Logger
 
 
-if 'KIVY_DOC' not in os.environ:
+# Will be initialized after Config is ready
+_default_font_paths = None
+DEFAULT_FONT = None
+
+def _init_default_font():
+    '''Initialize default font from Config after it's ready.'''
+    global _default_font_paths, DEFAULT_FONT
     _default_font_paths = literal_eval(Config.get('kivy', 'default_font'))
     DEFAULT_FONT = _default_font_paths.pop(0)
-else:
-    DEFAULT_FONT = None
+    # Register the default font
+    Label.register(DEFAULT_FONT, *_default_font_paths)
+
+# Callback will be registered after Label class is defined
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -253,7 +261,7 @@ class LabelBase(object):
     _font_family_support = False
 
     def __init__(
-        self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
+        self, text='', font_size=12, font_name=None, bold=False,
         italic=False, underline=False, strikethrough=False, font_family=None,
         halign='left', valign='bottom', shorten=False,
         text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
@@ -269,6 +277,13 @@ class LabelBase(object):
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
         LabelBase.get_system_fonts_dir()
+
+        # Use DEFAULT_FONT if no font_name provided (evaluated at runtime)
+        if font_name is None:
+            font_name = DEFAULT_FONT
+            # Fallback if DEFAULT_FONT not yet initialized
+            if font_name is None:
+                font_name = 'Roboto'
 
         options = {'text': text, 'font_size': font_size,
                    'font_name': font_name, 'bold': bold, 'italic': italic,
@@ -1089,4 +1104,6 @@ if 'KIVY_DOC' not in os.environ:
 
 
 # For the first initialization, register the default font
-    Label.register(DEFAULT_FONT, *_default_font_paths)
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in os.environ:
+    Config.on_config_ready(_init_default_font)

@@ -130,13 +130,20 @@ from time import time
 from os import environ
 
 from kivy.properties import NumericProperty, BooleanProperty, ListProperty
+from kivy.config import Config
 
 
-if 'KIVY_DOC' not in environ:
-    from kivy.config import Config
+# Will be initialized after Config is ready
+_is_desktop = False
+
+def _init_is_desktop():
+    '''Initialize _is_desktop from Config after it's ready.'''
+    global _is_desktop
     _is_desktop = Config.getboolean('kivy', 'desktop')
-else:
-    _is_desktop = False
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    Config.on_config_ready(_init_is_desktop)
 
 
 class CompoundSelectionBehavior(object):

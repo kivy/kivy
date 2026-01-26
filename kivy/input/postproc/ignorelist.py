@@ -24,6 +24,13 @@ class InputPostprocIgnoreList(object):
     '''
 
     def __init__(self):
+        # Set default (will be updated when Config is ready)
+        self.ignore_list = ()
+        # Register callback to update from Config when ready
+        Config.on_config_ready(self._init_from_config)
+
+    def _init_from_config(self):
+        '''Update settings from Config after it's ready.'''
         self.ignore_list = strtotuple(Config.get('postproc', 'ignore'))
 
     def collide_ignore(self, touch):

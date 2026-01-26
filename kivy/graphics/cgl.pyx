@@ -61,9 +61,12 @@ def _update_verify_gl_main_thread(*args):
     global verify_gl_main_thread
     verify_gl_main_thread = Config.getboolean('graphics', 'verify_gl_main_thread')
 
-if not environ.get('KIVY_DOC_INCLUDE'):
+def _init_verify_gl_main_thread():
     Config.add_callback(_update_verify_gl_main_thread, 'graphics', 'verify_gl_main_thread')
     _update_verify_gl_main_thread()
+
+if not environ.get('KIVY_DOC_INCLUDE'):
+    Config.on_config_ready(_init_verify_gl_main_thread)
 
 
 cpdef cgl_get_initialized_backend_name():

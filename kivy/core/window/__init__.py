@@ -11,7 +11,7 @@ per application: please don't try to create more than one.
 __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
-from os import getcwd
+from os import getcwd, environ
 from collections import defaultdict
 
 from kivy.core import core_select_lib
@@ -1085,6 +1085,7 @@ class WindowBase(EventDispatcher):
         self.initialized = False
         self.event_managers = []
         self.event_managers_dict = defaultdict(list)
+        # Config is guaranteed to be initialized when Window is created
         self._is_desktop = Config.getboolean('kivy', 'desktop')
 
         # create a trigger for update/create the window when one of window
@@ -1098,6 +1099,7 @@ class WindowBase(EventDispatcher):
         self.bind(_kheight=lambda *args: self.update_viewport())
 
         # set the default window parameter according to the configuration
+        # Config is guaranteed to be initialized when Window is created
         if 'borderless' not in kwargs:
             kwargs['borderless'] = Config.getboolean('graphics', 'borderless')
         if 'custom_titlebar' not in kwargs:
@@ -2052,15 +2054,8 @@ class WindowBase(EventDispatcher):
                     self.close()
                     return True
 
-    if Config:
-        on_keyboard.exit_on_escape = Config.getboolean(
-                                        'kivy', 'exit_on_escape')
-
-        def __exit(section, name, value):
-            WindowBase.__dict__['on_keyboard'].exit_on_escape = \
-                Config.getboolean('kivy', 'exit_on_escape')
-
-        Config.add_callback(__exit, 'kivy', 'exit_on_escape')
+    # Will be initialized after Config is ready
+    on_keyboard.exit_on_escape = True  # Default value
 
     def on_key_down(self, key, scancode=None, codepoint=None,
                     modifier=None, **kwargs):
@@ -2584,7 +2579,50 @@ class WindowBase(EventDispatcher):
         pass
 
 
-#: Instance of a :class:`WindowBase` implementation
+# Initialize Window and related Config callbacks after WindowBase class is defined
+if Config and 'KIVY_DOC_INCLUDE' not in environ:
+    def _init_exit_on_escape():
+        '''Initialize exit_on_escape from Config after it's ready.'''
+        WindowBase.__dict__['on_keyboard'].exit_on_escape = \
+            Config.getboolean('kivy', 'exit_on_escape')
+
+    def _update_exit_on_escape(section, name, value):
+        '''Update exit_on_escape when Config changes.'''
+        WindowBase.__dict__['on_keyboard'].exit_on_escape = \
+            Config.getboolean('kivy', 'exit_on_escape')
+
+    def _init_is_desktop():
+        '''Initialize _is_desktop from Config after it's ready.'''
+        # Update the instance if Window has been created
+        # WindowBase.__instance is a class variable that won't exist
+        # if no Window has been instantiated yet
+        try:
+            if WindowBase._WindowBase__instance is not None:
+                WindowBase._WindowBase__instance._is_desktop = \
+                    Config.getboolean('kivy', 'desktop')
+        except AttributeError:
+            # Window hasn't been created yet, which is fine
+            # _is_desktop will get set when Window.__init__ runs
+            pass
+
+    def _update_is_desktop(section, name, value):
+        '''Update _is_desktop when Config changes.'''
+        try:
+            if WindowBase._WindowBase__instance is not None:
+                WindowBase._WindowBase__instance._is_desktop = \
+                    Config.getboolean('kivy', 'desktop')
+        except AttributeError:
+            # Window hasn't been created yet
+            pass
+
+    # Register callbacks for WindowBase class properties
+    Config.on_config_ready(_init_exit_on_escape)
+    Config.add_callback(_update_exit_on_escape, 'kivy', 'exit_on_escape')
+    Config.on_config_ready(_init_is_desktop)
+    Config.add_callback(_update_is_desktop, 'kivy', 'desktop')
+
+
+#: List of window implementation providers to try
 window_impl = []
 if platform == 'linux' and (pi_version or 4) < 4:
     window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
@@ -2593,4 +2631,156 @@ if USE_SDL3:
 
 if platform == 'linux':
     window_impl += [('x11', 'window_x11', 'WindowX11')]
-Window: WindowBase = core_select_lib('window', window_impl, True)
+
+
+class _WindowAccessor:
+    """Lazy Window accessor with explicit initialization.
+
+    Window is created only after Config and Clock are initialized,
+    ensuring it's created once with the correct configuration values
+    rather than being created with defaults and updated later (which
+    causes visual artifacts like window resizing).
+
+    The Window can be initialized in two ways:
+    1. Automatically via Config.on_config_ready() callback
+    2. Explicitly by calling Window.initialize()
+    3. Lazily on first access (if Config is already initialized)
+    """
+
+    _window = None
+    _initialized = False
+    _creating = False
+
+    def initialize(self):
+        """Explicitly create Window with Config/Clock ready.
+
+        This is called automatically via Config.on_config_ready() callback
+        when Config is initialized in App.__init__(). It can also be called
+        explicitly if needed.
+
+        Returns:
+            WindowBase: The created Window instance
+
+        Raises:
+            RuntimeError: If Config or Clock are not initialized
+        """
+        if self._initialized:
+            return self._window
+
+        if self._creating:
+            raise RuntimeError(
+                "Circular dependency detected during Window creation. "
+                "This usually means Window is being accessed during its "
+                "own initialization."
+            )
+
+        from kivy.config import Config
+        from kivy.clock import Clock
+
+        if not Config._initialized:
+            raise RuntimeError(
+                "Window.initialize() requires Config to be initialized. "
+                "Config is initialized in App.__init__(). "
+                "Ensure your App is created before initializing Window."
+            )
+
+        if not Clock._initialized:
+            raise RuntimeError(
+                "Window.initialize() requires Clock to be initialized. "
+                "Clock is initialized in App.__init__()."
+            )
+
+        Logger.debug('Window: Creating window with initialized Config/Clock')
+
+        self._creating = True
+        try:
+            # Create Window instance with proper providers
+            # Parameters: category, llist, create_instance
+            self._window = core_select_lib('window', window_impl, True)
+        finally:
+            self._creating = False
+
+        self._initialized = True
+        Logger.debug(f'Window: Created {type(self._window).__name__} instance')
+
+        return self._window
+
+    def __getattr__(self, name):
+        """Forward attribute access to Window, creating if necessary.
+
+        If Window hasn't been created yet and Config is initialized,
+        attempt to create it automatically. Otherwise raise an error.
+        """
+        # Check if trying to access internal attributes
+        if name.startswith('_'):
+            raise AttributeError(
+                f"'_WindowAccessor' object has no attribute '{name}'"
+            )
+
+        if not self._initialized:
+            # Try to auto-initialize if Config is ready
+            from kivy.config import Config
+            from kivy.clock import Clock
+
+            if Config._initialized and Clock._initialized:
+                Logger.debug(
+                    'Window: Auto-initializing on first access '
+                    f'(accessing .{name})'
+                )
+                self.initialize()
+            else:
+                raise RuntimeError(
+                    f"Window.{name} accessed before Window initialization. "
+                    "Window is initialized in App.__init__() after Config "
+                    "and Clock are ready. Ensure your App is created before "
+                    "accessing Window, or use Config.on_config_ready() to "
+                    "defer Window access."
+                )
+
+        return getattr(self._window, name)
+
+    def __setattr__(self, name, value):
+        """Forward attribute setting to Window."""
+        if name.startswith('_'):
+            # Allow setting proxy's own attributes
+            object.__setattr__(self, name, value)
+        else:
+            if not self._initialized:
+                raise RuntimeError(
+                    f"Window.{name} = ... called before Window initialization. "
+                    "Window is initialized in App.__init__(). "
+                    "Ensure your App is created before accessing Window."
+                )
+            setattr(self._window, name, value)
+
+    def __bool__(self):
+        """Check if Window has been created."""
+        return self._initialized
+
+    def __repr__(self):
+        """Representation of the Window accessor."""
+        if self._initialized:
+            return repr(self._window)
+        return '<Window: not yet initialized>'
+
+
+# Create the Window accessor
+Window: WindowBase = _WindowAccessor()
+
+# Register Window initialization with Config callback
+# Window will be automatically created when Config is ready AND Clock is ready
+if 'KIVY_DOC_INCLUDE' not in environ:
+    def _initialize_window():
+        """Initialize Window when Config is ready.
+
+        Only creates Window if Clock is also initialized. Otherwise,
+        Window will be created lazily on first access or via explicit
+        Window.initialize() call.
+        """
+        if isinstance(Window, _WindowAccessor) and not Window._initialized:
+            # Only auto-initialize if Clock is also ready
+            if Clock._initialized:
+                Window.initialize()
+            # Otherwise, Window will be initialized on first access or explicitly
+
+    Config.on_config_ready(_initialize_window)

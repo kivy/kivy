@@ -48,17 +48,25 @@ The following example creates a draggable label::
 
 __all__ = ('DragBehavior', )
 
+import os
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.config import Config
 from kivy.metrics import sp
 from functools import partial
 
-# When we are generating documentation, Config doesn't exist
+# Will be initialized after Config is ready
 _scroll_timeout = _scroll_distance = 0
-if Config:
+
+def _init_scroll_settings():
+    '''Initialize scroll settings from Config after it's ready.'''
+    global _scroll_timeout, _scroll_distance
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in os.environ:
+    Config.on_config_ready(_init_scroll_settings)
 
 
 class DragBehavior(object):

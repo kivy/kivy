@@ -293,8 +293,8 @@ class ModuleBase:
 
 Modules = ModuleBase()
 Modules.add_path(kivy.kivy_modules_dir)
-if 'KIVY_DOC' not in os.environ:
-    Modules.add_path(kivy.kivy_usermodules_dir)
+# Note: kivy.kivy_usermodules_dir is added later in App._init_config()
+# after the path has been determined based on the app name
 
 if __name__ == '__main__':
     print(Modules.list())

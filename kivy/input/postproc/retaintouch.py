@@ -28,10 +28,18 @@ class InputPostprocRetainTouch(object):
     '''
 
     def __init__(self):
-        self.timeout = Config.getint('postproc', 'retain_time') / 1000.0
-        self.distance = Config.getint('postproc', 'retain_distance') / 1000.0
+        # Set defaults (will be updated when Config is ready)
+        self.timeout = 100 / 1000.0
+        self.distance = 50 / 1000.0
         self._available = []
         self._links = {}
+        # Register callback to update from Config when ready
+        Config.on_config_ready(self._init_from_config)
+
+    def _init_from_config(self):
+        '''Update settings from Config after it's ready.'''
+        self.timeout = Config.getint('postproc', 'retain_time') / 1000.0
+        self.distance = Config.getint('postproc', 'retain_distance') / 1000.0
 
     def process(self, events):
         # check if module is disabled

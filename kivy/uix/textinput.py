@@ -231,14 +231,21 @@ _textinput_list = []
 # cache the result
 _is_osx = sys.platform == 'darwin'
 
-# When we are generating documentation, Config doesn't exist
+# Will be initialized after Config is ready
 _is_desktop = False
 _scroll_timeout = _scroll_distance = 0
-if Config:
+
+def _init_textinput_settings():
+    '''Initialize textinput settings from Config after it's ready.'''
+    global _is_desktop, _scroll_timeout, _scroll_distance
     _is_desktop = Config.getboolean('kivy', 'desktop')
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_distance = '{}sp'.format(Config.getint('widgets',
                                                    'scroll_distance'))
+
+# Register callback (skip during documentation generation)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    Config.on_config_ready(_init_textinput_settings)
 
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:

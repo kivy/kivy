@@ -25,10 +25,28 @@ not used the label for 5 seconds and you've reach the limit.
 '''
 
 from os import environ
+from time import perf_counter
 from kivy.logger import Logger
 from kivy.clock import Clock
 
 __all__ = ('Cache', )
+
+
+def _get_time():
+    '''Get current time using perf_counter.
+
+    We always use perf_counter directly (same source as Clock.time())
+    rather than Clock.get_time() because:
+    1. Clock.get_time() returns _last_tick, which only updates on frame ticks
+    2. Before the event loop starts, _last_tick is frozen at initialization time
+    3. This would cause all cache entries between Clock init and first frame
+       to have identical timestamps, breaking timeout logic
+    4. perf_counter provides monotonic time and is the same source Clock uses
+
+    Note: We could check if Clock is running and use Clock.get_time() only
+    then, but perf_counter() is already correct and has negligible overhead.
+    '''
+    return perf_counter()
 
 
 class Cache(object):
@@ -109,8 +127,8 @@ class Cache(object):
         Cache._objects[category][key] = {
             'object': obj,
             'timeout': timeout,
-            'lastaccess': Clock.get_time(),
-            'timestamp': Clock.get_time()}
+            'lastaccess': _get_time(),
+            'timestamp': _get_time()}
 
     @staticmethod
     def get(category, key, default=None):
@@ -125,7 +143,7 @@ class Cache(object):
                 Default value to be returned if the key is not found.
         '''
         try:
-            Cache._objects[category][key]['lastaccess'] = Clock.get_time()
+            Cache._objects[category][key]['lastaccess'] = _get_time()
             return Cache._objects[category][key]['object']
         except Exception:
             return default
@@ -191,7 +209,7 @@ class Cache(object):
     def _purge_oldest(category, maxpurge=1):
         Logger.trace('Cache: Remove oldest in %s' % category)
         import heapq
-        time = Clock.get_time()
+        time = _get_time()
         heap_list = []
         for key in list(Cache._objects[category]):
             obj = Cache._objects[category][key]
@@ -205,14 +223,14 @@ class Cache(object):
                 n += 1
                 lastaccess, key = heapq.heappop(heap_list)
                 Logger.trace('Cache: %d => %s %f %f' %
-                             (n, key, lastaccess, Clock.get_time()))
+                             (n, key, lastaccess, _get_time()))
             except Exception:
                 return
             Cache.remove(category, key)
 
     @staticmethod
     def _purge_by_timeout(dt):
-        curtime = Clock.get_time()
+        curtime = _get_time()
 
         for category in Cache._objects:
             if category not in Cache._categories:
@@ -257,6 +275,18 @@ class Cache(object):
                 str(Cache._categories[category]['timeout'])))
 
 
-if 'KIVY_DOC_INCLUDE' not in environ:
-    # install the schedule clock for purging
+def _initialize_purging():
+    '''Initialize Cache purging after Clock is ready.
+
+    This function is called from App._init_config() after Clock has been
+    initialized. It schedules the periodic cache purging using Clock.
+
+    .. versionadded:: 3.0.0
+    '''
     Clock.schedule_interval(Cache._purge_by_timeout, 1)
+
+
+if 'KIVY_DOC_INCLUDE' not in environ:
+    # Cache purging will be initialized by App._init_config()
+    # after Clock is ready
+    Cache._initialize_purging = _initialize_purging
