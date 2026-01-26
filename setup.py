@@ -841,20 +841,22 @@ def determine_angle_flags():
     elif platform == "android":
         android_libs = plat_options['android']['libraries']
         android_abis = plat_options['android']['abis']
-        
+
         # Use the first ABI for build configuration
         primary_abi = android_abis[0]
         abi_libs = android_libs[primary_abi]
-        
+
         sdl3 = abi_libs.get('SDL3')
         if not sdl3:
             raise Exception("SDL3 libraries not defined for Android")
-        
+
         flags['include_dirs'] = [sdl3['headers']]
         flags['libraries'] = ['EGL', 'GLESv2']
-        
+
         # Add library paths for all ABIs
-        flags['library_dirs'] = [dirname(android_libs[abi]['SDL3']['path']) for abi in android_abis]
+        flags["library_dirs"] = [
+            dirname(android_libs[abi]["SDL3"]["path"]) for abi in android_abis
+        ]
     else:
         raise Exception("ANGLE is not supported on this platform")
 
