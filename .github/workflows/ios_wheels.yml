@@ -17,7 +17,7 @@ jobs:
         arch: [arm64_iphoneos, arm64_iphonesimulator, x86_64_iphonesimulator]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: SDK Root
         id: sdk_root
