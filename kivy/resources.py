@@ -30,6 +30,7 @@ images and icons.
 
 __all__ = ('resource_find', 'resource_add_path', 'resource_remove_path')
 
+import re
 from os.path import join, dirname, exists, abspath
 from kivy import kivy_data_dir
 from kivy.cache import Cache
@@ -39,12 +40,30 @@ import sys
 import os
 import kivy
 
+# Regex for @image_provider:providername(path) URI scheme
+_provider_uri_re = re.compile(r'^@image_provider:(\w+)\((.+)\)$')
+
 resource_paths = ['.', dirname(sys.argv[0])]
 if platform == 'ios':
     resource_paths += [join(dirname(sys.argv[0]), 'YourApp')]
 resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
 
 Cache.register('kv.resourcefind', timeout=60)
+
+
+def _resolve_path(filename):
+    # Resolve a filename to an absolute path by searching resource_paths.
+
+    # :param filename: The filename to resolve
+    # :returns: The absolute path if found, None otherwise
+    abspath_filename = abspath(filename)
+    if exists(abspath_filename):
+        return abspath(filename)
+    for path in reversed(resource_paths):
+        abspath_filename = abspath(join(path, filename))
+        if exists(abspath_filename):
+            return abspath_filename
+    return None
 
 
 def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
@@ -55,6 +74,9 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
 
     .. versionchanged:: 2.1.0
         `use_cache` parameter added and made True by default.
+
+    .. versionchanged:: 3.0.0
+        Added support for @image_provider:providername(path) URI scheme.
     '''
     if not filename:
         return
@@ -63,20 +85,24 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
         found_filename = Cache.get('kv.resourcefind', filename)
         if found_filename:
             return found_filename
-    if filename[:8] == 'atlas://':
+
+    # Handle @image_provider:providername(path) URI scheme
+    provider_match = _provider_uri_re.match(filename)
+    if provider_match:
+        provider_name = provider_match.group(1)
+        inner_path = provider_match.group(2)
+        resolved_path = _resolve_path(inner_path)
+        if resolved_path:
+            found_filename = f'@image_provider:{provider_name}({resolved_path})'
+
+    elif filename[:8] == 'atlas://':
         found_filename = filename
+
     else:
-        abspath_filename = abspath(filename)
-        if exists(abspath_filename):
-            found_filename = abspath(filename)
-        else:
-            for path in reversed(resource_paths):
-                abspath_filename = abspath(join(path, filename))
-                if exists(abspath_filename):
-                    found_filename = abspath_filename
-                    break
+        found_filename = _resolve_path(filename)
         if not found_filename and filename.startswith("data:"):
             found_filename = filename
+
     if use_cache and found_filename:
         Cache.append('kv.resourcefind', filename, found_filename)
     return found_filename

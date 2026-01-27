@@ -136,6 +136,29 @@ Restrict core to specific implementation
 platform. For testing or custom installation, you might want to restrict the
 selector to a specific implementation.
 
+You can specify multiple providers as a comma-separated list to set the priority
+order. Kivy will try each provider in the order listed, using the first one that
+successfully initializes. For example::
+
+    $ KIVY_IMAGE=sdl3,pil python main.py
+
+Or in Python::
+
+    import os
+    os.environ['KIVY_IMAGE'] = 'sdl3,pil'
+    import kivy
+
+This will try the sdl3 image provider first, and fall back to pil if sdl3 is
+unavailable or the file format is not supported by sdl3.
+
+Some core modules also support selecting providers on a per-instance basis,
+allowing different objects to use different provider implementations within the
+same application. See the following modules for details:
+
+- :mod:`kivy.core.audio_output` - Per-instance audio provider selection
+- :mod:`kivy.core.image` - Per-instance image provider selection
+- :mod:`kivy.core.text` - Per-instance text provider selection
+
 KIVY_WINDOW
     Implementation to use for creating the Window
 
@@ -151,7 +174,7 @@ KIVY_VIDEO
 
     Values: gstplayer, ffpyplayer, ffmpeg, android , null
 
-KIVY_AUDIO
+KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio
 
     Values: sdl3, gstplayer, ffpyplayer, avplayer

@@ -64,7 +64,7 @@ If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
 '''
 
-__all__ = ('MarkupLabel', )
+__all__ = ('MarkupLabel', 'get_markup_label_class')
 
 import re
 from kivy.properties import dpi2px
@@ -891,3 +891,70 @@ class MarkupLabel(MarkupLabelBase):
             lh + ypad,
             [LayoutLine(0, 0, lw, lh, 1, 0, line1)]
         )
+
+
+# Cache for dynamically created markup classes with different providers
+_markup_class_cache = {}
+
+
+def get_markup_label_class(provider=None):
+    '''Get a MarkupLabel class that uses a specific text provider.
+
+    :Parameters:
+        `provider`: str or None
+            The provider name (e.g., 'pil', 'sdl3'). If None, returns
+            the default MarkupLabel class.
+
+    :Returns:
+        A MarkupLabel class that inherits from the specified provider,
+        or None if the provider is not found.
+
+    Example::
+
+        from kivy.core.text.markup import get_markup_label_class
+
+        # Get a MarkupLabel that uses PIL
+        MarkupLabelPIL = get_markup_label_class('pil')
+        if MarkupLabelPIL:
+            label = MarkupLabelPIL(text='[b]Hello[/b] World')
+
+    .. versionadded:: 3.0.0
+    '''
+    if provider is None:
+        return MarkupLabel
+
+    provider_lower = provider.lower()
+    if provider_lower in _markup_class_cache:
+        return _markup_class_cache[provider_lower]
+
+    base_cls = LabelBase.get_provider_class(provider)
+    if base_cls is None:
+        return None
+
+    # Copy all MarkupLabel methods/attributes to create a new class
+    # that inherits from the specified provider (skip dunder methods)
+    markup_attrs = {
+        name: value
+        for name, value in MarkupLabel.__dict__.items()
+        if not name.startswith('__')
+    }
+
+    # Create a custom __init__ that properly calls the base class
+    # (can't copy MarkupLabel.__init__ because super(MarkupLabel, self) won't work)
+    def _make_init(provider_base_cls):
+        def __init__(self, *largs, **kwargs):
+            self._style_stack = {}
+            self._refs = {}
+            self._anchors = {}
+            provider_base_cls.__init__(self, *largs, **kwargs)
+            self._internal_size = 0, 0
+            self._cached_lines = []
+        return __init__
+
+    markup_attrs['__init__'] = _make_init(base_cls)
+
+    cls_name = f'MarkupLabel_{provider_lower}'
+    new_cls = type(cls_name, (base_cls,), markup_attrs)
+
+    _markup_class_cache[provider_lower] = new_cls
+    return new_cls
