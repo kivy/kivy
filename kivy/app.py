@@ -406,6 +406,28 @@ to both case.
 
 .. versionadded:: 2.0.0
 
+Application Storage Directories
+--------------------------------
+
+Kivy provides the following application storage directories:
+
+:attr:`App.user_data_dir`
+    Internal, persistent, private application storage.
+    Guaranteed to exist and be writable without additional permissions.
+
+:attr:`App.user_cache_dir`
+    Internal, temporary application storage.
+    The system may delete this data at any time.
+
+On desktop platforms, applications may choose to use the `platformdirs
+<https://github.com/tox-dev/platformdirs>`_ package to access additional
+OS-specific directories such as downloads, music, video, etc. These
+directories are not exposed by Kivy because they are not consistently
+available across mobile and sandboxed platforms.
+
+.. versionadded:: 3.0.0
+    Added :attr:`App.user_cache_dir` property.
+
 '''
 
 __all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
@@ -566,6 +588,7 @@ class App(EventDispatcher):
 
     # Stored so that we only need to determine this once
     _user_data_dir = ""
+    _user_cache_dir = ""
 
     def __init__(self, **kwargs):
         App._running_app = self
@@ -852,9 +875,8 @@ class App(EventDispatcher):
 
     def _get_user_data_dir(self):
         # Determine and return the user_data_dir.
-        data_dir = ""
         if platform == 'ios':
-            data_dir = expanduser(join('~/Documents', self.name))
+            data_dir = join('~/Documents', self.name)
         elif platform == 'android':
             from jnius import autoclass, cast
             PythonActivity = autoclass('org.kivy.android.PythonActivity')
@@ -862,16 +884,40 @@ class App(EventDispatcher):
             file_p = cast('java.io.File', context.getFilesDir())
             data_dir = file_p.getAbsolutePath()
         elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+            data_dir = join(os.environ['APPDATA'], self.name)
         elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
-            data_dir = expanduser(data_dir)
+            data_dir = f'~/Library/Application Support/{self.name}'
         else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = expanduser(join(data_dir, self.name))
+            data_dir = join(os.environ.get('XDG_DATA_HOME', '~/.local/share'),
+                           self.name)
+
+        data_dir = expanduser(data_dir)
         if not exists(data_dir):
-            os.mkdir(data_dir)
+            os.makedirs(data_dir, exist_ok=True)
         return data_dir
+
+    def _get_user_cache_dir(self):
+        # Determine and return the user_cache_dir.
+        if platform == 'ios':
+            cache_dir = join('~/Library/Caches', self.name)
+        elif platform == 'android':
+            from jnius import autoclass, cast
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = cast('android.content.Context', PythonActivity.mActivity)
+            file_p = cast('java.io.File', context.getCacheDir())
+            cache_dir = file_p.getAbsolutePath()
+        elif platform == 'win':
+            cache_dir = join(os.environ['LOCALAPPDATA'], self.name, 'Cache')
+        elif platform == 'macosx':
+            cache_dir = f'~/Library/Caches/{self.name}'
+        else:  # _platform == 'linux' or anything else...:
+            cache_dir = join(os.environ.get('XDG_CACHE_HOME', '~/.cache'),
+                            self.name)
+
+        cache_dir = expanduser(cache_dir)
+        if not exists(cache_dir):
+            os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
 
     @property
     def user_data_dir(self):
@@ -893,7 +939,8 @@ class App(EventDispatcher):
 
         On OS X, `~/Library/Application Support/<app_name>` is returned.
 
-        On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+        On Linux, `$XDG_DATA_HOME/<app_name>` is returned (defaults to
+        `~/.local/share/<app_name>`).
 
         On Android, `Context.GetFilesDir
         <https://developer.android.com/reference/android/content/\
@@ -910,6 +957,39 @@ Context.html#getFilesDir()>`_ is returned.
         if self._user_data_dir == "":
             self._user_data_dir = self._get_user_data_dir()
         return self._user_data_dir
+
+    @property
+    def user_cache_dir(self):
+        '''
+        .. versionadded:: 3.0.0
+
+        Returns the path to the directory in the users file system which the
+        application can use to store cached data.
+
+        Different platforms have different conventions with regards to where
+        the application can store temporary cache data. This property
+        implements these conventions. The <app_name> directory is created
+        when the property is called, unless it already exists.
+
+        The cache directory is intended for temporary data that can be
+        recreated if needed. The system may delete this data at any time
+        (e.g., when storage is low).
+
+        On iOS, `~/Library/Caches/<app_name>` is returned.
+
+        On Windows, `%LOCALAPPDATA%/<app_name>/Cache` is returned.
+
+        On OS X, `~/Library/Caches/<app_name>` is returned.
+
+        On Linux, `$XDG_CACHE_HOME/<app_name>` is returned (defaults to
+        `~/.cache/<app_name>`).
+
+        On Android, `Context.getCacheDir()` is returned.
+
+        '''
+        if self._user_cache_dir == "":
+            self._user_cache_dir = self._get_user_cache_dir()
+        return self._user_cache_dir
 
     @property
     def name(self):
