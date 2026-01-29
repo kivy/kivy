@@ -74,6 +74,33 @@ or before each run of the application change it manually in the console:
 After the change of ``KIVY_HOME``, the folder will behave exactly the same
 as the default ``.kivy/`` folder mentioned above.
 
+App-Specific Configuration
+---------------------------
+
+For production desktop applications, it's recommended to use app-specific
+configuration directories rather than the shared ``~/.kivy`` directory.
+This ensures each application has isolated configuration, logs, and modules.
+
+The recommended approach is to set ``KIVY_HOME`` to ``<App.user_data_dir>/.kivy``
+before importing Kivy. This follows platform conventions:
+
+- Windows: ``%APPDATA%\<appname>\.kivy``
+- macOS: ``~/Library/Application Support/<appname>/.kivy``
+- Linux: ``~/.local/share/<appname>/.kivy``
+
+**Important**: ``KIVY_HOME`` must be set **before** importing any Kivy modules,
+as Kivy reads this variable during initialization.
+
+See ``examples/kivy_home/`` for a complete, ready-to-use implementation that
+handles platform detection and path configuration automatically. Simply copy
+``set_kivy_home.py`` to your project and call it before importing Kivy::
+
+    from set_kivy_home import set_app_name
+    set_app_name('MyApp')  # Must be before kivy import
+    
+    from kivy.app import App
+    # Now Kivy uses app-specific configuration
+
 Understanding config tokens
 ---------------------------
 

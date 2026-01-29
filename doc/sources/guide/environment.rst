@@ -32,7 +32,7 @@ KIVY_MODULES_DIR
 
 KIVY_HOME
     Location of the Kivy home. This directory is used for local configuration,
-    and must be in a writable location.
+    logs, and modules, and must be in a writable location.
 
     Defaults to:
      - Desktop: `<user home>/.kivy`
@@ -40,6 +40,25 @@ KIVY_HOME
      - iOS: `<user home>/Documents/.kivy`
 
     .. versionadded:: 1.9.0
+
+    **App-Specific Configuration (Desktop Platforms)**
+
+    By default on desktop platforms, all Kivy applications share the same
+    `~/.kivy` directory. For production applications, it's recommended to
+    set KIVY_HOME to an app-specific directory to ensure isolated configuration,
+    logs, and modules.
+
+    Best practice: Set KIVY_HOME to `<App.user_data_dir>/.kivy` before importing
+    Kivy. This follows platform conventions and ensures each application has its
+    own configuration environment.
+
+    See the example in `examples/kivy_home/` for a ready-to-use implementation
+    that sets KIVY_HOME based on your application name and platform conventions.
+
+    Example paths when KIVY_HOME is set app-specifically:
+     - Windows: `%APPDATA%\<appname>\.kivy`
+     - macOS: `~/Library/Application Support/<appname>/.kivy`
+     - Linux: `~/.local/share/<appname>/.kivy` (or `$XDG_DATA_HOME/<appname>/.kivy`)
 
 KIVY_SDL3_PATH
     If set, the SDL3 libraries and headers from this path are used when
