@@ -282,6 +282,7 @@ __all__ = ('Label', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from kivy.core.text import Label as CoreLabel, DEFAULT_FONT
 from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
@@ -316,6 +317,7 @@ class Label(Widget):
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
+        kwargs.setdefault('accessible_role', Role.LABEL)
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture

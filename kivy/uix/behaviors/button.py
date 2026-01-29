@@ -98,6 +98,9 @@ __all__ = ("ButtonBehavior",)
 
 from kivy.properties import BooleanProperty, AliasProperty, ObjectProperty
 
+from kivy.config import Config
+from kivy.core.accessibility import Role
+
 
 class ButtonBehavior:
     """Mixin to add button behavior to any Kivy widget.
@@ -217,7 +220,12 @@ class ButtonBehavior:
         self._active_touches = set()
         self._cancelled_touches = set()
 
-        super().__init__(**kwargs)
+        if 'min_state_time' not in kwargs:
+            self.min_state_time = float(Config.get('graphics',
+                                                   'min_state_time'))
+        if 'accessible_role' not in kwargs:
+            kwargs['accessible_role'] = Role.BUTTON
+        super(ButtonBehavior, self).__init__(**kwargs)
 
     # NOTE: Internal hooks for subclassing
     # ====================================
