@@ -406,6 +406,41 @@ to both case.
 
 .. versionadded:: 2.0.0
 
+App-Specific KIVY_HOME Configuration
+-------------------------------------
+
+By default on desktop platforms, all Kivy applications share the same
+``~/.kivy`` directory for configuration, logs, and modules. For production
+applications, it's recommended to use app-specific directories to ensure
+isolated configuration environments.
+
+The ``KIVY_HOME`` environment variable controls where Kivy stores its
+configuration file (``config.ini``), logs, and user modules. Best practice
+is to set ``KIVY_HOME`` to ``<App.user_data_dir>/.kivy`` before importing
+Kivy, which follows platform conventions:
+
+- Windows: ``%APPDATA%\\<appname>\\.kivy``
+- macOS: ``~/Library/Application Support/<appname>/.kivy``
+- Linux: ``~/.local/share/<appname>/.kivy``
+
+**Important**: ``KIVY_HOME`` must be set **before** importing any Kivy modules,
+as it is read during Kivy's initialization.
+
+A complete, ready-to-use implementation is available in ``examples/kivy_home/``.
+Simply copy ``set_kivy_home.py`` to your project and call it before importing
+Kivy::
+
+    from set_kivy_home import set_app_name
+    set_app_name('MyApp')  # Must be before kivy import
+
+    from kivy.app import App
+    # Now Kivy uses app-specific configuration
+
+For more information, see:
+- :ref:`environment` - Environment variables documentation
+- :ref:`configure kivy` - Configuration file documentation
+- ``examples/kivy_home/`` - Complete working example
+
 '''
 
 __all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
