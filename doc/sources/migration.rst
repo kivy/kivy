@@ -851,4 +851,122 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 | Group management          | Manual weak references    | Automatic with `WeakSet`               |
 +---------------------------+---------------------------+----------------------------------------+
+
+
+Application Storage Directories
+================================
+
+*Linux user_data_dir Path Change (XDG Compliance Fix)*
+
+In Kivy 3.x.x, the ``App.user_data_dir`` path on Linux has been corrected to follow
+the XDG Base Directory specification. Previously, it incorrectly used ``XDG_CONFIG_HOME``
+(for configuration files); it now correctly uses ``XDG_DATA_HOME`` (for application data).
+
+**Path Changes on Linux:**
+
++------------------------+------------------------------------------+----------------------------------------------+
+| Property               | Kivy 2.x.x                               | Kivy 3.x.x                                   |
++========================+==========================================+==============================================+
+| ``user_data_dir``      | ``~/.config/<app_name>`` (incorrect)     | ``~/.local/share/<app_name>`` (XDG-compliant)|
++------------------------+------------------------------------------+----------------------------------------------+
+
+**Impact:**
+
+If your Linux application uses ``App.user_data_dir`` to store user data, the data
+will now be stored in a different location after upgrading to Kivy 3.x.x. This is
+the correct XDG-compliant location, but existing apps may need to migrate their data.
+
+**Migration Options:**
+
+1. **Manual Migration** (Recommended for production apps)
+
+   Move existing data from the old location to the new location during app startup:
+
+**Note:** Windows, macOS, iOS, and Android paths are unchanged.
+
+
+*New App.user_cache_dir Property*
+
+Kivy 3.x.x introduces a new ``App.user_cache_dir`` property for temporary/cache data
+that the system may delete at any time.
+
+This is **not a breaking change** - it's a new optional property. Existing apps
+continue to work unchanged.
+
+**Platform Paths:**
+
+- Windows: ``%APPDATA%\<app_name>\Cache``
+- macOS: ``~/Library/Caches/<app_name>``
+- Linux: ``~/.cache/<app_name>`` (respects ``$XDG_CACHE_HOME``)
+- Android: ``Context.getCacheDir()``
+- iOS: ``~/Library/Caches/<app_name>``
+
+*New KIVY_DESKTOP_PATH_ID Environment Variable*
+
+Kivy 3.x.x introduces ``KIVY_DESKTOP_PATH_ID`` to set user-friendly application
+directory names on desktop platforms.
+
+This is **not a breaking change** - it's opt-in. Existing apps continue to work
+unchanged unless you explicitly set this environment variable.
+
+**Key Feature:**
+
+Setting ``KIVY_DESKTOP_PATH_ID`` creates an **application-specific** location for
+the ``.kivy`` directory containing the config and log files. Without
+``KIVY_DESKTOP_PATH_ID``, the config and logs are placed in a single global
+``.kivy`` directory (``~/.kivy``).
+
+This means multiple Kivy applications can now have their own isolated configuration
+and log directories, preventing conflicts between different applications.
+
+**When Set:**
+
+The variable provides a human-readable application title for directories, making it
+easier for end users to identify your app's directories when browsing their filesystem.
+
+**Example:**
+
+.. code-block:: python
+
+    import os
+    os.environ['KIVY_DESKTOP_PATH_ID'] = 'My Photo Editor'
+    
+    from kivy.app import App
+    
+    # On Windows, creates: %APPDATA%\My_Photo_Editor\.kivy
+    # Instead of: %APPDATA%\photoeditor\.kivy
+
+**Priority:**
+
+``KIVY_DESKTOP_PATH_ID`` takes highest priority and affects:
+
+- ``KIVY_HOME`` directory (overrides ``KIVY_HOME`` env var and venv detection)
+- ``App.user_data_dir`` directory
+- ``App.user_cache_dir`` directory
+
+**Platform Behavior:**
+
+- **Desktop platforms** (Windows, macOS, Linux): Uses normalized path_id for directory names
+- **Mobile platforms** (iOS, Android): Ignored - uses ``App.name`` as before
+
+**Desktop Path Examples with KIVY_DESKTOP_PATH_ID='My Photo Editor':**
+
++------------------+----------------------------------------------------+
+| Directory        | Path                                               |
++==================+====================================================+
+| KIVY_HOME        | ``~/Library/Application Support/My_Photo_Editor/`` |
+|                  | ``.kivy`` (macOS)                                  |
++------------------+----------------------------------------------------+
+| user_data_dir    | ``%APPDATA%\My_Photo_Editor`` (Windows)            |
++------------------+----------------------------------------------------+
+| user_cache_dir   | ``%LOCALAPPDATA%\My_Photo_Editor\Cache``           |
+|                  | (Windows)                                          |
++------------------+----------------------------------------------------+
+
+**Warning:**
+
+If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a new
+location. You may need to migrate existing data (see Linux migration example above).
+
+For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
 ```

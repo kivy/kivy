@@ -41,6 +41,44 @@ KIVY_HOME
 
     .. versionadded:: 1.9.0
 
+KIVY_DESKTOP_PATH_ID
+    Sets a user-facing, human-readable application title for desktop platform
+    directories. This makes it easy for end users to identify which application
+    owns which directories when browsing their filesystem.
+
+    **Important:** Setting this creates an **application-specific** location for
+    the ``.kivy`` directory containing the config and log files. Without
+    ``KIVY_DESKTOP_PATH_ID``, the config and logs are placed in a single global
+    ``.kivy`` directory shared by all Kivy applications. This allows multiple
+    Kivy applications to have isolated configuration and log directories.
+
+    When set, the identifier is normalized for filesystem safety (invalid
+    characters like /\\:*?"<>| are replaced with underscores) and used to
+    construct KIVY_HOME, user_data_dir, and user_cache_dir paths.
+
+    Use this to display a clear, recognizable name like "My Photo Editor" or
+    "Company App Name" instead of technical identifiers.
+
+    If not set on desktop platforms, the path construction falls back to using
+    App.name (a string derived from your App class name). A warning is logged
+    recommending you set KIVY_DESKTOP_PATH_ID for better end-user clarity.
+
+    Takes priority over KIVY_HOME environment variable and virtual environment
+    detection. Ignored on mobile platforms (iOS, Android) where file systems
+    are not user-browsable.
+
+    **Note for mobile developers**: If you are developing a mobile app on a
+    desktop platform, you can set KIVY_DESKTOP_PATH_ID to any value to suppress
+    the warning. The variable will have no effect on your mobile app, but setting
+    it prevents the warning during development.
+
+    Example paths when set to "My Photo Editor":
+     - Windows: ``%APPDATA%\\My_Photo_Editor\\.kivy``
+     - macOS: ``~/Library/Application Support/My_Photo_Editor/.kivy``
+     - Linux: ``~/.local/share/My_Photo_Editor/.kivy``
+
+    .. versionadded:: 3.0.0
+
 KIVY_SDL3_PATH
     If set, the SDL3 libraries and headers from this path are used when
     compiling kivy instead of the ones installed system-wide.
