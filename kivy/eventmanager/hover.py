@@ -88,15 +88,19 @@ class HoverManager(EventManagerBase):
     """Manager for dispatching hover events to widgets in the window children
     list.
 
-    When registered, manager will receive all events with `type_id` set to
+    When registered, a manager will receive all events with `type_id` set to
     "hover", transform them to match :attr:`window` size and then dispatch them
     through the `window.children` list using the `on_motion` event.
 
-    To handle a case when the hover event position did not change within
-    `event_repeat_timeout` seconds, manager will re-dispatch the event with all
-    delta values set to 0, so that widgets can re-handle the event.
+    To handle the case when the hover event position did not change within
+    :attr:`event_repeat_timeout` seconds, manager will re-dispatch the event
+    with all delta values set to 0, so that widgets can re-handle the event.
     This is useful for the case when a mouse is used to scroll a recyclable
     list of widgets, but the mouse indicator position is not changing.
+
+    When a manager is stopped and if there are widgets stored in its internal
+    storage who grabbed hover events, then a manager will dispatch event type
+    "end" to all those widgets, so that they can update their internal state.
     """
 
     type_ids = ('hover',)
