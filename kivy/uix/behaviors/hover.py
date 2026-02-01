@@ -84,8 +84,8 @@ HoverCollideBehavior
 
 :class:`HoverCollideBehavior` is a
 `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class which filters hover events
-which do not collide with a widget or events for which currently grabbed
-widget is not the widget itself.
+which are currently grabbed by the widget itself or events which collide with
+the widget.
 
 For an overview of behaviors, please refer to the :mod:`~kivy.uix.behaviors`
 documentation.
@@ -93,7 +93,8 @@ documentation.
 :class:`HoverCollideBehavior` is meant to be used with
 :class:`~kivy.uix.stencilview.StencilView` or its subclasses so that hover
 events (events with :attr:`~kivy.input.motionevent.MotionEvent.type_id` set to
-"hover") don't get handled when their position is outside the view.
+"hover") don't get handled when their position is outside the view's bounding
+box.
 
 Example of using :class:`HoverCollideBehavior` with
 :class:`~kivy.uix.recycleview.RecycleView`::
