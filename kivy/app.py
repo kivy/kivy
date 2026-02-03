@@ -932,8 +932,7 @@ class App(EventDispatcher):
                            app_id)
 
         data_dir = expanduser(data_dir)
-        if not exists(data_dir):
-            os.makedirs(data_dir, exist_ok=True)
+        os.makedirs(data_dir, exist_ok=True)
         return data_dir
 
     def _get_user_cache_dir(self):
@@ -962,8 +961,7 @@ class App(EventDispatcher):
                             app_id)
 
         cache_dir = expanduser(cache_dir)
-        if not exists(cache_dir):
-            os.makedirs(cache_dir, exist_ok=True)
+        os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
 
     @property

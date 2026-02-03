@@ -390,10 +390,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     icon_dir = join(kivy_home_dir, 'icon')
 
     if 'KIVY_NO_CONFIG' not in environ:
-        if not exists(kivy_home_dir):
-            makedirs(kivy_home_dir, exist_ok=True)
-        if not exists(kivy_usermodules_dir):
-            makedirs(kivy_usermodules_dir, exist_ok=True)
+        makedirs(kivy_home_dir, exist_ok=True)
+        makedirs(kivy_usermodules_dir, exist_ok=True)
         if platform not in {'android', 'ios'} and not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
