@@ -10,6 +10,7 @@ import os
 os.environ['KIVY_DESKTOP_PATH_ID'] = 'My Photo Editor'
 
 from textwrap import dedent
+from kivy import kivy_home_dir
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty
@@ -54,7 +55,7 @@ class DesktopPathIdDemoApp(App):
         path_id = os.environ.get('KIVY_DESKTOP_PATH_ID', 'Not set')
 
         # KIVY_HOME is constructed as user_data_dir/.kivy
-        kivy_home = os.path.join(self.user_data_dir, '.kivy')
+        kivy_home = kivy_home_dir
         config_path = os.path.join(kivy_home, 'config.ini')
         logs_path = os.path.join(kivy_home, 'logs')
 
@@ -85,7 +86,7 @@ class DesktopPathIdDemoApp(App):
             """).strip()
 
     def print_paths(self):
-        kivy_home = os.path.join(self.user_data_dir, '.kivy')
+        kivy_home = kivy_home_dir
         config_file = os.path.join(kivy_home, 'config.ini')
         logs_directory = os.path.join(kivy_home, 'logs')
 
