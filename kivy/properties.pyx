@@ -1672,6 +1672,15 @@ cdef class AliasProperty(Property):
         ps.observers.dispatch(obj, self.get(obj), None, None, 0)
 
 
+def alias_property(bind=[], cache=False, rebind=False, watch_before_use=True):
+    """
+    Alias property decorator.
+    """
+    def decorator(getter):
+        return AliasProperty(getter, None, bind=bind, cache=cache, rebind=rebind, watch_before_use=watch_before_use)
+    return decorator
+
+
 cdef class VariableListProperty(Property):
     '''A ListProperty that allows you to work with a variable amount of
     list items and to expand them to the desired list size.
