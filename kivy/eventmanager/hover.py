@@ -129,10 +129,11 @@ class HoverManager(EventManagerBase):
             global Clock
             if not Clock:
                 from kivy.clock import Clock
-            self._clock_event = Clock.schedule_interval(
-                self._dispatch_from_clock,
-                self.event_repeat_timeout
-            )
+            if not self._clock_event:
+                self._clock_event = Clock.schedule_interval(
+                    self._dispatch_from_clock,
+                    self.event_repeat_timeout
+                )
 
     def stop(self):
         for me_list in self._events.values():
