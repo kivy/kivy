@@ -39,7 +39,7 @@ automatically pushed to the device.
 Buildozer currently works only in Linux and macOS (You can still use
 it on Windows via WSL), and can significantly simplify the apk build.
 
-Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation.html>`__
+Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation/>`__
 
 Including the "Targeting Android" section.
 
