@@ -19,11 +19,12 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
            'platform', 'escape_markup', 'reify', 'rgba', 'pi_version',
-           'format_bytes_to_human')
+           'format_bytes_to_human', 'normalize_path_id')
 
 from os import environ, path
 from sys import platform as _sys_platform
-from re import match, split, search, MULTILINE, IGNORECASE
+from re import match, split, search, sub, MULTILINE, IGNORECASE
+from unicodedata import normalize, category
 
 
 def boundary(value, minvalue, maxvalue):
@@ -39,6 +40,93 @@ def intersection(set1, set2):
 def difference(set1, set2):
     '''Return the difference between 2 lists.'''
     return [s for s in set1 if s not in set2]
+
+
+def normalize_path_id(path_id):
+    '''Normalize a path identifier for safe filesystem use.
+
+    Replaces invalid filesystem characters with underscores to create
+    a safe directory name. This is used by KIVY_DESKTOP_PATH_ID to ensure
+    user-provided application titles can be safely used in directory paths.
+
+    Supports Unicode characters for international app names while removing
+    control characters and filesystem-invalid characters. Applies Unicode
+    NFC normalization for cross-platform consistency and limits length to
+    120 characters.
+
+    The normalization process:
+
+    1. Applies Unicode NFC normalization for cross-platform consistency
+    2. Removes control characters (Cc) and format characters (Cf) including
+       zero-width and invisible characters
+    3. Replaces invalid filesystem characters with underscores
+    4. Replaces spaces and other problematic characters with underscores
+    5. Collapses consecutive underscores into a single underscore
+    6. Strips leading/trailing underscores, dots, and spaces
+    7. Limits length to 120 characters (leaving room for subdirectories)
+    8. Validates against Windows reserved names
+
+    Args:
+        path_id (str): The path identifier to normalize
+
+    Returns:
+        str: Normalized path identifier safe for use in directory names,
+        guaranteed to be 120 characters or less
+
+    Raises:
+        ValueError: If path_id is empty or becomes empty after normalization
+
+    Example::
+
+        >>> normalize_path_id("My Photo Editor")
+        'My_Photo_Editor'
+        >>> normalize_path_id("Company: App Name!")
+        'Company_App_Name'
+        >>> normalize_path_id("Café Editor")
+        'Café_Editor'
+        >>> normalize_path_id("A" * 150)  # Length limited
+        'AAAAAA...'  # 120 characters
+
+    .. versionadded:: 3.0.0
+    '''
+    if not path_id or not path_id.strip():
+        raise ValueError("path_id cannot be empty")
+
+    safe_id = normalize('NFC', path_id)
+
+    # Remove control characters (Cc) and format characters (Cf)
+    # This includes \x00-\x1F, \x7F-\x9F, zero-width spaces,
+    # directional marks, and other invisible formatting characters
+    safe_id = ''.join(char for char in safe_id if category(char) not in ('Cc', 'Cf'))
+
+    # Replace invalid filesystem chars with underscore
+    safe_id = sub(r'[/\\:*?"<>|]', '_', safe_id)
+    # Replace other problematic characters (spaces, etc.) with underscore
+    # \w includes Unicode letters and digits (emoji will be replaced)
+    safe_id = sub(r'[^\w\-_.]', '_', safe_id)
+    # Collapse multiple consecutive underscores into one
+    safe_id = sub(r'_+', '_', safe_id)
+    # Strip leading/trailing underscores, dots, and spaces
+    safe_id = safe_id.strip('_. ')
+
+    # Limit length to 120 characters to leave room for subdirectories
+    # and full paths while staying well under filesystem limits (255)
+    if len(safe_id) > 120:
+        safe_id = safe_id[:120].rstrip('_. ')
+
+    # Check Windows reserved names
+    reserved_names = {
+        'CON', 'PRN', 'AUX', 'NUL',
+        'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+        'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+    }
+    if safe_id.upper() in reserved_names:
+        safe_id = f'_{safe_id}'
+
+    if not safe_id:
+        raise ValueError(f"path_id '{path_id}' became empty after normalization")
+
+    return safe_id
 
 
 def strtotuple(s):

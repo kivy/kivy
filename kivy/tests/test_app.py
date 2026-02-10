@@ -30,6 +30,11 @@ class AppTest(GraphicUnitTest):
         data_dir = a.user_data_dir
         assert os.path.exists(data_dir)
 
+    def test_user_cache_dir(self):
+        a = App()
+        cache_dir = a.user_cache_dir
+        assert os.path.exists(cache_dir)
+
     def test_directory(self):
         a = App()
         assert os.path.exists(a.directory)
