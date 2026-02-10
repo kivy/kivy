@@ -35,7 +35,7 @@ function Update-version-metadata {
 }
 
 function Generate-sdist {
-    python -m pip install -U build
+    python -m pip install --retries 10 --timeout 60 -U build
     python -m build --sdist .
     $env:KIVY_BUILD_EXAMPLES = '1'
     python -m build --wheel .
@@ -78,7 +78,7 @@ function Upload-windows-wheels-to-server($ip) {
 }
 
 function Install-kivy {
-    python -m pip install -e .[dev,full]
+    python -m pip install --retries 10 --timeout 60 -e .[dev,full]
 }
 
 function Install-kivy-wheel {
@@ -92,7 +92,7 @@ function Install-kivy-wheel {
     $kivy_fname=(ls $root/dist/Kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
-    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+    python -m pip install --retries 10 --timeout 60 "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
 }
 
 function Install-kivy-sdist {
@@ -100,7 +100,7 @@ function Install-kivy-sdist {
     cd "$HOME"
 
     $kivy_fname=(ls $root/dist/kivy-*.tar.gz).name
-    python -m pip install "$root/dist/$kivy_fname[full,dev]"
+    python -m pip install --retries 10 --timeout 60 "$root/dist/$kivy_fname[full,dev]"
 }
 
 function Test-kivy {
