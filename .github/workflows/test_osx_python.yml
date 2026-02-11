@@ -51,3 +51,8 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy
+    - name: Test Kivy with pytest-run-parallel
+      run: |
+        source .ci/ubuntu_ci.sh
+        python -m pip install pytest-run-parallel[psutil]
+        pytest --iterations=8 --parallel-threads=auto --doctest-modules # kivy
