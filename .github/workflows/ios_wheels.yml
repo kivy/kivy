@@ -34,7 +34,7 @@ jobs:
         run: chmod +x tool/cibuildwheel-before-all-ios.sh
 
       - name: Build wheel for ${{ matrix.arch }}
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.3.1
         with:
             output-dir: wheelhouse
         env:
