@@ -12,7 +12,6 @@ env:
   SERVER_IP: '159.203.106.198'
   GST_REGISTRY: '~/registry.bin'
   KIVY_GL_BACKEND: 'angle_sdl3'
-  SETUPTOOLS_USE_DISTUTILS: local
 
 jobs:
   windows_wheels_create:
