@@ -1065,7 +1065,8 @@ class WindowBase(EventDispatcher):
         'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
-        'on_joy_button_up', 'on_memorywarning', 'on_textedit',
+        'on_joy_button_up', 'on_joy_added', 'on_joy_removed',
+        'on_memorywarning', 'on_textedit',
         # internal
         'on_pre_resize')
 
@@ -2021,6 +2022,18 @@ class WindowBase(EventDispatcher):
         '''Event called when a joystick has a button released.
 
         .. versionadded:: 1.9.0'''
+        pass
+
+    def on_joy_added(self, deviceid):
+        '''Event called when a joystick has been plugged in.
+
+        .. versionadded:: 3.0.0'''
+        pass
+
+    def on_joy_removed(self, deviceid):
+        '''Event called when a joystick has been unplugged.
+
+        .. versionadded:: 3.0.0'''
         pass
 
     def on_keyboard(self, key, scancode=None, codepoint=None,
