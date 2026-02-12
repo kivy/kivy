@@ -43,13 +43,62 @@ keep this in mind when debugging or running in a
     this functionality, please refer to the
     `audiostream <https://github.com/kivy/audiostream>`_ extension.
 
+Provider selection
+------------------
+
+.. versionadded:: 3.0.0
+
+By default, Kivy automatically selects an audio provider based on platform
+defaults and file type. You can override this to use a specific provider.
+
+Querying available providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To see which providers are available on your system::
+
+    from kivy.core.audio_output import SoundLoader
+    print(SoundLoader.available_providers())  # e.g., ['sdl3', 'ffpyplayer']
+
+Using ``audio_output_provider`` parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify a provider when loading a sound::
+
+    from kivy.core.audio_output import SoundLoader
+
+    # Load with SDL3 provider
+    sound = SoundLoader.load('music.mp3', audio_output_provider='sdl3')
+
+    # Load with ffpyplayer provider
+    sound = SoundLoader.load('music.mp3', audio_output_provider='ffpyplayer')
+
+Strict mode
+~~~~~~~~~~~
+
+By default, if a requested provider is unavailable or fails, Kivy logs a warning
+and falls back to other providers. Enable strict mode to raise exceptions instead::
+
+    import os
+    os.environ['KIVY_PROVIDER_STRICT'] = '1'
+    import kivy
+
+In strict mode:
+
+- Invalid provider names raise ``ValueError``
+- Provider load failures raise ``Exception``
+- No fallback to other providers occurs
+
+This is useful during development to catch configuration errors immediately.
+
 '''
 
 __all__ = ('Sound', 'SoundLoader')
 
+import os
+
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs
+from kivy.core import core_register_libs, load_with_provider_selection
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
@@ -64,28 +113,89 @@ class SoundLoader:
     '''
 
     _classes = []
+    _loaders_by_name = {}  # O(1) lookup by provider name
 
     @staticmethod
     def register(classobj):
         '''Register a new class to load the sound.'''
         Logger.debug('Audio: register %s' % classobj.__name__)
+
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
+        name = getattr(classobj, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{classobj.__name__} must define a _provider_name class attribute'
+            )
+
         SoundLoader._classes.append(classobj)
+        SoundLoader._loaders_by_name[name.lower()] = classobj
 
     @staticmethod
-    def load(filename) -> "Sound":
-        '''Load a sound, and return a Sound() instance.'''
+    def available_providers():
+        '''Return a list of available audio provider names.
+
+        The returned names can be used with the ``audio_provider`` parameter.
+
+        .. versionadded:: 3.0.0
+
+        :returns: List of provider name strings (e.g., ['sdl3', 'ffpyplayer'])
+        '''
+        return list(SoundLoader._loaders_by_name.keys())
+
+    @staticmethod
+    def load(filename, audio_output_provider=None) -> "Sound":
+        '''Load a sound, and return a Sound() instance.
+
+        :param filename: Path to the audio file to load.
+        :param audio_output_provider: Optional provider name (e.g., 'sdl3',
+            'ffpyplayer'). If specified, only that provider will be used. Use
+            :meth:`available_providers` to get a list of available providers.
+
+            .. versionadded:: 3.0.0
+
+        :returns: A Sound instance, or None if no loader could handle the file.
+        :raises ValueError: If ``audio_output_provider`` is specified but not
+            found or doesn't support the file format (when KIVY_PROVIDER_STRICT=1).
+        '''
         rfn = resource_find(filename)
         if rfn is not None:
             filename = rfn
         ext = filename.split('.')[-1].lower()
         if '?' in ext:
             ext = ext.split('?')[0]
-        for classobj in SoundLoader._classes:
-            if ext in classobj.extensions():
-                return classobj(source=filename)
-        Logger.warning('Audio: Unable to find a loader for <%s>' %
-                       filename)
-        return None
+
+        def check_compatibility(provider_class, extension):
+            """Check if provider supports the given extension."""
+            return extension in provider_class.extensions()
+
+        def try_load(provider_class, fname):
+            """Try to load sound with the given provider."""
+            try:
+                return provider_class(source=fname)
+            except Exception:
+                return None
+
+        def fallback_load():
+            """Load using default provider priority."""
+            for classobj in SoundLoader._classes:
+                if ext in classobj.extensions():
+                    try:
+                        return classobj(source=filename)
+                    except Exception:
+                        continue
+            Logger.warning('Audio: Unable to find a loader for <%s>' % filename)
+            return None
+
+        return load_with_provider_selection(
+            filename=filename,
+            extension=ext,
+            provider_name=audio_output_provider,
+            providers_by_name=SoundLoader._loaders_by_name,
+            category_name='Audio',
+            check_compatibility=check_compatibility,
+            try_load=try_load,
+            fallback_load=fallback_load
+        )
 
 
 class Sound(EventDispatcher):
@@ -100,6 +210,12 @@ class Sound(EventDispatcher):
         `on_stop`: None
             Fired when the sound is stopped.
     '''
+
+    _provider_name = None
+    # Internal provider name used for registration.
+
+    # This must be set by provider implementations. Use
+    # :meth:`SoundLoader.available_providers` to query available provider names.
 
     source = StringProperty(None)
     '''Filename / source of your audio file.

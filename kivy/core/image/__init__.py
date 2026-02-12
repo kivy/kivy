@@ -142,15 +142,111 @@ Or you can get the bytes (new in `1.11.0`):
     image.save(data, fmt="png")
     png_bytes = data.read()
 
+Provider selection
+------------------
+
+.. versionadded:: 3.0.0
+
+By default, Kivy automatically selects an image provider based on platform
+defaults and file type. You can override this to use a specific provider.
+
+Querying available providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To see which providers are available on your system::
+
+    from kivy.core.image import Image as CoreImage
+    print(CoreImage.available_providers())  # e.g., ['sdl3', 'pil', 'imageio']
+
+Using ``image_provider`` parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify a provider when loading an image::
+
+    from kivy.core.image import Image as CoreImage
+
+    # Load with PIL provider
+    img = CoreImage.load('photo.jpg', image_provider='pil')
+
+    # Or when creating an Image directly
+    img = CoreImage('photo.jpg', image_provider='sdl3')
+
+Provider URI scheme
+~~~~~~~~~~~~~~~~~~~
+
+For graphics instructions (Rectangle, BorderImage, etc.) where you cannot pass
+extra parameters, use the ``@image_provider:`` URI scheme::
+
+    @image_provider:providername(path/to/image.ext)
+
+Example in Python::
+
+    from kivy.graphics import Rectangle
+
+    with widget.canvas:
+        Rectangle(source='@image_provider:pil(images/photo.png)')
+
+Example in KV language::
+
+    <MyWidget>:
+        canvas:
+            Rectangle:
+                source: '@image_provider:sdl3(images/background.png)'
+                pos: self.pos
+                size: self.size
+
+The path inside the parentheses is resolved using :func:`~kivy.resources.resource_find`.
+
+Strict mode
+~~~~~~~~~~~
+
+By default, if a requested provider is unavailable or fails, Kivy logs a warning
+and falls back to other providers. Enable strict mode to raise exceptions instead::
+
+    import os
+    os.environ['KIVY_PROVIDER_STRICT'] = '1'
+    import kivy
+
+In strict mode:
+
+- Invalid provider names raise ``ValueError``
+- Provider load failures raise ``Exception``
+- No fallback to other providers occurs
+
+This is useful during development to catch configuration errors immediately.
+
+Zip file image sequences
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kivy can load multiple images from a zip file as an animated sequence. When you
+load a zip file, all images inside are extracted and combined into a single
+Image object with multiple frames::
+
+    from kivy.core.image import Image as CoreImage
+    anim = CoreImage('sprites.zip')
+
+If you specify an ``image_provider``, it will be applied to **all** images
+within the zip archive::
+
+    # All images in the zip will be loaded using PIL
+    anim = CoreImage('sprites.zip', image_provider='pil')
+
+Note that in strict mode, if the specified provider cannot load any image in
+the zip, a ``ValueError`` will be raised immediately.
+
 '''
+import os
 import re
 from base64 import b64decode
 from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
+# Regex for @image_provider:providername(path) URI scheme
+_provider_uri_re = re.compile(r'^@image_provider:(\w+)\((.+)\)$')
+
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs
+from kivy.core import core_register_libs, load_with_provider_selection
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.clock import Clock
@@ -287,6 +383,11 @@ class ImageData(object):
 class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # Image.available_providers() to query available provider names.
+
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
                  '_mipmap', '_nocache', '_ext', '_inline')
 
@@ -409,6 +510,7 @@ class ImageLoaderBase(object):
 
 class ImageLoader(object):
     loaders = []
+    loaders_by_name = {}
 
     @staticmethod
     def zip_loader(filename, **kwargs):
@@ -418,6 +520,9 @@ class ImageLoader(object):
 
         Returns an Image with a list of type ImageData stored in Image._data
         '''
+        # extract requested provider (if any)
+        image_provider = kwargs.pop('image_provider', None)
+
         # read zip in memory for faster access
         _file = BytesIO(open(filename, 'rb').read())
         # read all images inside the zip
@@ -432,27 +537,24 @@ class ImageLoader(object):
                 # read file and store it in mem with fileIO struct around it
                 tmpfile = BytesIO(z.read(zfilename))
                 ext = zfilename.split('.')[-1].lower()
-                im = None
-                for loader in ImageLoader.loaders:
-                    if (ext not in loader.extensions() or
-                            not loader.can_load_memory()):
-                        continue
-                    Logger.debug('Image%s: Load <%s> from <%s>' %
-                                 (loader.__name__[11:], zfilename, filename))
-                    try:
-                        im = loader(zfilename, ext=ext, rawdata=tmpfile,
-                                    inline=True, **kwargs)
-                    except:
-                        # Loader failed, continue trying.
-                        continue
-                    break
+                im = ImageLoader._load_single(
+                    zfilename, ext,
+                    image_provider=image_provider,
+                    rawdata=tmpfile,
+                    inline=True,
+                    require_memory=True,
+                    **kwargs
+                )
                 if im is not None:
                     # append ImageData to local variable before its
                     # overwritten
                     image_data.append(im._data[0])
                     image = im
                 # else: if not image file skip to next
-            except:
+            except ValueError:
+                # Re-raise ValueError (from strict mode provider validation)
+                raise
+            except Exception:
                 Logger.warning('Image: Unable to load image'
                                '<%s> in zip <%s> trying to continue...'
                                % (zfilename, filename))
@@ -466,50 +568,138 @@ class ImageLoader(object):
 
     @staticmethod
     def register(defcls):
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
+        name = getattr(defcls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{defcls.__name__} must define a _provider_name class attribute'
+            )
+
         ImageLoader.loaders.append(defcls)
+        ImageLoader.loaders_by_name[name.lower()] = defcls
+
+    @staticmethod
+    def _load_single(filename, ext, image_provider=None,
+                     rawdata=None, inline=False, require_memory=False,
+                     **kwargs):
+        # (internal) Load a single image with provider selection.
+
+        # This is the core loading logic shared by load() and zip_loader().
+
+        # :param filename: The filename (used for logging and cache keys)
+        # :param ext: The file extension (e.g., 'png', 'jpg')
+        # :param image_provider: Optional specific provider to use
+        # :param rawdata: Optional BytesIO for in-memory loading
+        # :param inline: Whether this is an inline/memory load
+        # :param require_memory: If True, only use loaders that support memory loading
+        # :param kwargs: Additional arguments passed to the loader
+        # :returns: Loaded image or None if all loaders fail (in lenient mode)
+        # :raises ValueError: If provider not found or doesn't support format
+        #                     (strict mode)
+        # :raises Exception: If provider fails to load (strict mode)
+
+        def check_compatibility(loader, extension):
+            """Check if loader can handle this file."""
+            if extension not in loader.extensions():
+                return False
+            if require_memory and not loader.can_load_memory():
+                return False
+            return True
+
+        def try_load(loader, fname):
+            """Try to load image with the given loader."""
+            try:
+                Logger.debug(f'Image{loader.__name__[11:]}: Load <{fname}>')
+                if inline and rawdata is not None:
+                    return loader(fname, ext=ext, rawdata=rawdata,
+                                  inline=True, **kwargs)
+                else:
+                    return loader(fname, **kwargs)
+            except Exception as e:
+                Logger.warning(
+                    f'Image{loader.__name__[11:]}: Failed to load '
+                    f'<{fname}>: {e}'
+                )
+                return None
+
+        def fallback_load():
+            """Load using default priority order."""
+            for loader in ImageLoader.loaders:
+                if not check_compatibility(loader, ext):
+                    continue
+                result = try_load(loader, filename)
+                if result is not None:
+                    return result
+            Logger.warning(f'Image: Unknown <{ext}> type, no loader found.')
+            return None
+
+        return load_with_provider_selection(
+            filename=filename,
+            extension=ext,
+            provider_name=image_provider,
+            providers_by_name=ImageLoader.loaders_by_name,
+            category_name='Image',
+            check_compatibility=check_compatibility,
+            try_load=try_load,
+            fallback_load=fallback_load
+        )
+
+    @staticmethod
+    def _load_atlas(filename):
+        # Load an image from an atlas:// URI.
+
+        # :param filename: The atlas URI (e.g., 'atlas://path/to/atlas/id')
+        # :returns: Image if this is an atlas URI, None otherwise
+        # :raises ValueError: If the atlas URI format is invalid
+        # :raises Exception: If the atlas file cannot be found
+
+        if not filename.startswith('atlas://'):
+            return None
+
+        # remove the url prefix
+        rfn = filename[8:]
+        # last field is the ID
+        try:
+            rfn, uid = rfn.rsplit('/', 1)
+        except ValueError:
+            raise ValueError(
+                'Image: Invalid %s name for atlas' % filename)
+
+        # search if we already got the atlas loaded
+        atlas = Cache.get('kv.atlas', rfn)
+
+        # atlas already loaded, so reupload the missing texture in cache,
+        # because when it's not in use, the texture can be removed from the
+        # kv.texture cache.
+        if atlas:
+            texture = atlas[uid]
+            fn = f'atlas://{rfn}/{uid}'
+            cid = f'{fn}|0|0'
+            Cache.append('kv.texture', cid, texture)
+            return Image(texture)
+
+        # search with resource
+        afn = rfn
+        if not afn.endswith('.atlas'):
+            afn += '.atlas'
+        afn = resource_find(afn)
+        if not afn:
+            raise Exception('Unable to find %r atlas' % afn)
+        atlas = Atlas(afn)
+        Cache.append('kv.atlas', rfn, atlas)
+        # first time, fill our texture cache.
+        for nid, texture in atlas.textures.items():
+            fn = f'atlas://{rfn}/{nid}'
+            cid = f'{fn}|0|0'
+            Cache.append('kv.texture', cid, texture)
+        return Image(atlas[uid])
 
     @staticmethod
     def load(filename, **kwargs):
-
-        # atlas ?
-        if filename[:8] == 'atlas://':
-            # remove the url
-            rfn = filename[8:]
-            # last field is the ID
-            try:
-                rfn, uid = rfn.rsplit('/', 1)
-            except ValueError:
-                raise ValueError(
-                    'Image: Invalid %s name for atlas' % filename)
-
-            # search if we already got the atlas loaded
-            atlas = Cache.get('kv.atlas', rfn)
-
-            # atlas already loaded, so reupload the missing texture in cache,
-            # because when it's not in use, the texture can be removed from the
-            # kv.texture cache.
-            if atlas:
-                texture = atlas[uid]
-                fn = f'atlas://{rfn}/{uid}'
-                cid = f'{fn}|0|0'
-                Cache.append('kv.texture', cid, texture)
-                return Image(texture)
-
-            # search with resource
-            afn = rfn
-            if not afn.endswith('.atlas'):
-                afn += '.atlas'
-            afn = resource_find(afn)
-            if not afn:
-                raise Exception('Unable to find %r atlas' % afn)
-            atlas = Atlas(afn)
-            Cache.append('kv.atlas', rfn, atlas)
-            # first time, fill our texture cache.
-            for nid, texture in atlas.textures.items():
-                fn = f'atlas://{rfn}/{nid}'
-                cid = f'{fn}|0|0'
-                Cache.append('kv.texture', cid, texture)
-            return Image(atlas[uid])
+        # Handle atlas:// URIs
+        result = ImageLoader._load_atlas(filename)
+        if result is not None:
+            return result
 
         # extract extensions
         ext = filename.split('.')[-1].lower()
@@ -520,6 +710,17 @@ class ImageLoader(object):
 
         filename = resource_find(filename)
 
+        # Handle @image_provider:providername(path) URI scheme
+        # resource_find resolves the inner path and returns the full URI
+        image_provider = kwargs.pop('image_provider', None)
+        provider_match = _provider_uri_re.match(filename) if filename else None
+        if provider_match:
+            # Extract provider and resolved path from URI
+            image_provider = provider_match.group(1)
+            filename = provider_match.group(2)
+            # Re-extract extension from resolved path
+            ext = filename.split('.')[-1].lower()
+
         # Get actual image format instead of extension if possible
         ext = guess_extension(filename) or ext
 
@@ -527,18 +728,13 @@ class ImageLoader(object):
         # will use the special zip_loader in ImageLoader. This might return a
         # sequence of images contained in the zip.
         if ext == 'zip':
-            return ImageLoader.zip_loader(filename)
-        else:
-            im = None
-            for loader in ImageLoader.loaders:
-                if ext not in loader.extensions():
-                    continue
-                Logger.debug(f'Image{loader.__name__[11:]}: Load <{filename}>')
-                im = loader(filename, **kwargs)
-                break
-            if im is None:
-                raise Exception(f'Unknown <{ext}> type, no loader found.')
-            return im
+            return ImageLoader.zip_loader(
+                filename, image_provider=image_provider, **kwargs
+            )
+
+        return ImageLoader._load_single(
+            filename, ext, image_provider=image_provider, **kwargs
+        )
 
 
 class Image(EventDispatcher):
@@ -573,6 +769,12 @@ class Image(EventDispatcher):
             File extension to use in determining how to load raw image data.
         `filename`: str, only with BytesIO `arg`
             Filename to use in the image cache for raw image data.
+        `image_provider`: str, defaults to None
+            Name of the image provider to use for loading (e.g., 'sdl3', 'pil').
+            If None, the default provider selection order is used.
+            Use :meth:`available_providers` to get a list of valid provider names.
+
+            .. versionadded:: 3.0.0
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
@@ -601,6 +803,7 @@ class Image(EventDispatcher):
         self.anim_delay = kwargs.get('anim_delay', .25)
         # indicator of images having been loded in cache
         self._iteration_done = False
+        self._image_provider = kwargs.get('image_provider', None)
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
@@ -776,6 +979,24 @@ class Image(EventDispatcher):
         kwargs.setdefault('keep_data', False)
         return Image(filename, **kwargs)
 
+    @staticmethod
+    def available_providers():
+        '''Return a list of available image provider names.
+
+        .. versionadded:: 3.0.0
+
+        :Returns:
+            list: A list of strings representing the names of available
+            image providers (e.g., ['sdl3', 'pil']).
+
+        Usage::
+
+            from kivy.core.image import Image as CoreImage
+            providers = CoreImage.available_providers()
+            print(providers)  # e.g., ['sdl3', 'pil']
+        '''
+        return list(ImageLoader.loaders_by_name.keys())
+
     def _get_image(self):
         return self._image
 
@@ -828,7 +1049,8 @@ class Image(EventDispatcher):
         tmpfilename = self._filename
         image = ImageLoader.load(
             self._filename, keep_data=self._keep_data,
-            mipmap=self._mipmap, nocache=self._nocache)
+            mipmap=self._mipmap, nocache=self._nocache,
+            image_provider=self._image_provider)
         self._filename = tmpfilename
         # put the image into the cache if needed
         if isinstance(image, Texture):
@@ -847,15 +1069,18 @@ class Image(EventDispatcher):
         '''
         self._filename = filename
 
-        # see if there is a available loader for it
-        loaders = [loader for loader in ImageLoader.loaders if
-                   loader.can_load_memory() and
-                   ext in loader.extensions()]
-        if not loaders:
+        image = ImageLoader._load_single(
+            filename, ext,
+            image_provider=self._image_provider,
+            rawdata=data,
+            inline=True,
+            require_memory=True,
+            nocache=self._nocache,
+            mipmap=self._mipmap,
+            keep_data=self._keep_data
+        )
+        if image is None:
             raise Exception(f'No inline loader found to load {ext}')
-        image = loaders[0](filename, ext=ext, rawdata=data, inline=True,
-                           nocache=self._nocache, mipmap=self._mipmap,
-                           keep_data=self._keep_data)
         if isinstance(image, Texture):
             self._texture = image
             self._size = image.size

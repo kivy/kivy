@@ -10,6 +10,7 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderDDS(ImageLoaderBase):
+    _provider_name = 'dds'
 
     @staticmethod
     def extensions():

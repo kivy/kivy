@@ -18,6 +18,7 @@ except ImportError:
 
 class ImageLoaderSDL3(ImageLoaderBase):
     '''Image loader based on SDL3_image'''
+    _provider_name = 'sdl3'
 
     @staticmethod
     def extensions():

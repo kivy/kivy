@@ -15,6 +15,7 @@ default_font = ImageFont.load_default()
 
 
 class LabelPIL(LabelBase):
+    _provider_name = 'pil'
     _cache = {}
 
     def _select_font(self):
@@ -81,3 +82,7 @@ class LabelPIL(LabelBase):
         del self._pil_draw
 
         return data
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelPIL)

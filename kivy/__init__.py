@@ -207,12 +207,12 @@ def kivy_usage():
 #: Global settings options for kivy
 kivy_options = {
     'window': ('egl_rpi', 'sdl3', 'sdl', 'x11'),
-    'text': ('pil', 'sdl3', 'sdlttf'),
+    'text': ('pil', 'sdl3', 'pango'),
     'video': (
         'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
     'audio_output': (
         'gstplayer', 'ffpyplayer', 'sdl3',
-        'avplayer'),
+        'avplayer', 'android'),
     'image': ('tex', 'imageio', 'dds', 'sdl3', 'pil', 'ffpy', 'gif'),
     'camera': ('opencv', 'gi', 'avfoundation',
                'android', 'picamera'),
