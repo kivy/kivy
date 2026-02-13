@@ -37,7 +37,7 @@ jobs:
             fi
       - name: Fix permissions for cibuildwheel before all script
         shell: bash
-        run: chmod +x tool/cibuildwheel-before-all-ios.sh
+        run: chmod +x tools/cibuildwheel-before-all-ios.sh
       - name: Install CI/CD Python requirements
         run: |
           python -m pip install -r .ci/cicd-requirements.txt
