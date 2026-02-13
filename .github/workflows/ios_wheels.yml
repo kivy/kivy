@@ -1,25 +1,32 @@
 name: iOS wheels
 
+on:
+  push:
+  pull_request:
+  create:
+  schedule:
+    - cron:  '23 1 * * *'
 
-on: 
-  #- push
-  #- pull_request
-  - workflow_dispatch
+env:
+  KIVY_SPLIT_EXAMPLES: 1
+  SERVER_IP: '159.203.106.198'
 
 jobs:
-  build_wheels:
+  ios_wheels_create:
     name: Build wheels on ${{ matrix.arch }}
     runs-on: macos-15
-    #runs-on: self-hosted
+    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]') || github.event_name == 'workflow_dispatch'
     strategy:
-      max-parallel: 1
       matrix:
         arch: [arm64_iphoneos, arm64_iphonesimulator, x86_64_iphonesimulator]
 
     steps:
       - uses: actions/checkout@v6
-
-      - name: SDK Root
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+      - name: Set SDK Root based on architecture
         id: sdk_root
         shell: bash
         run: |
@@ -28,18 +35,64 @@ jobs:
             else
                 echo "sdk_root=$(xcrun --show-sdk-path --sdk iphonesimulator)" >> $GITHUB_OUTPUT
             fi
-
-      - name: chmod +x tool/cibuildwheel-before-all-ios.sh
+      - name: Fix permissions for cibuildwheel before all script
         shell: bash
         run: chmod +x tool/cibuildwheel-before-all-ios.sh
-
+      - name: Install CI/CD Python requirements
+        run: |
+          python -m pip install -r .ci/cicd-requirements.txt
       - name: Build wheel for ${{ matrix.arch }}
-        uses: pypa/cibuildwheel@v3.2.1
-        with:
-            output-dir: wheelhouse
         env:
             CIBW_PLATFORM: ios
             CIBW_ARCHS: ${{ matrix.arch }}
             KIVY_SPLIT_EXAMPLES: 1
             IOSSDKROOT: ${{ steps.sdk_root.outputs.sdk_root }}
-    
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Upload wheels as artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ios_wheels-${{ matrix.arch }} 
+          path: wheelhouse/*.whl
+
+  ios_wheel_upload:
+    runs-on: macos-15
+    needs: ios_wheels_create
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+      - run: |
+          python -m pip install -r .ci/cicd-requirements.txt
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: ios_wheels-*
+          merge-multiple: true
+          path: dist
+      - name: Rename wheels
+        if: github.event.ref_type != 'tag'
+        run: |
+          source .ci/ubuntu_ci.sh
+          rename_wheels
+      - name: Upload wheels to server
+        env:
+          UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
+        run: |
+          source .ci/ubuntu_ci.sh
+          upload_file_to_server "$SERVER_IP" "osx/kivy/"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2.5.0
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
+          draft: true
+      - name: Publish to PyPI
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.pypi_password }}
+        run: |
+          twine upload dist/*
