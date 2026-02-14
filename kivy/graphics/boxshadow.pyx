@@ -176,6 +176,13 @@ cdef class BoxShadow(InstructionGroup):
         `border_radius`: list | tuple, defaults to ``(0.0, 0.0, 0.0, 0.0)``.
             Specifies the radii used for the rounded corners clockwise:
             top-left, top-right, bottom-right, bottom-left.
+        `optimize`: bool, defaults to ``True``.
+            When enabled, uses a fixed size FBO and scales it to the
+            target size for better performance. When disabled, rebuilds the FBO
+            to match the target size for higher quality.
+        `optimize_fbo_size`: list | tuple, defaults to ``(100.0, 100.0)``.
+            Defines the fixed FBO size used when :attr:`optimize` is ``True``.
+            Larger values improve quality but increase memory and startup cost.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -187,6 +194,8 @@ cdef class BoxShadow(InstructionGroup):
         blur_radius = kwargs.get("blur_radius", 15.0)
         spread_radius = kwargs.get("spread_radius", (0.0, 0.0))
         border_radius = kwargs.get("border_radius", (0.0, 0.0, 0.0, 0.0))
+        optimize = kwargs.get("optimize", True)
+        optimize_fbo_size = kwargs.get("optimize_fbo_size", (100.0, 100.0))
 
         self._inset = self._check_bool(inset)
         self._pos = self._check_iter("pos", pos)
@@ -205,21 +214,30 @@ cdef class BoxShadow(InstructionGroup):
             min_value=1.0,
             max_value=min(self.size)
         )
+        self._optimize = self._check_bool(optimize)
+        self._optimize_fbo_size = self._bounded_value(
+            self._check_iter("optimize_fbo_size", optimize_fbo_size),
+            min_value=1.0
+        )
         self._init_texture()
 
     cdef void _init_texture(self):
-        self._fbo = Fbo(noadd=True, size=(100, 100), fs=SHADOW_fs)
+        self._fbo = Fbo(
+            noadd=True,
+            size=self._optimize_fbo_size,
+            fs=SHADOW_fs
+        )
         self.add(self._fbo)
         with self._fbo:
             ClearColor(1, 1, 1, 0)
             ClearBuffers()
             self._fbo_translate = Translate(0, 0)
             self._fbo_scale = Scale(1, 1, 1)
-            self._fbo_rect = Rectangle(size=(100, 100))
+            self._fbo_rect = Rectangle(size=self._optimize_fbo_size)
         self._texture_container = RoundedRectangle(
             noadd=True,
             texture=self._fbo.texture,
-            size=(100, 100),
+            size=self._optimize_fbo_size,
             radius=(1, 1, 1, 1),
             segments=45
         )
@@ -227,8 +245,9 @@ cdef class BoxShadow(InstructionGroup):
         self._update_shadow()
 
     cdef void _update_canvas(self):
-        self._texture_container.pos = self._fbo_rect.pos = self.pos
+        self._texture_container.pos = self.pos
         self._texture_container.size = self._fbo_rect.size = self.size
+        self._fbo_rect.pos = self.pos if self.optimize else (0.0, 0.0)
         if self.inset:
             self._texture_container.radius = self.border_radius
 
@@ -236,12 +255,24 @@ cdef class BoxShadow(InstructionGroup):
         cdef float scale_x, scale_y
         if 0 in self.size:
             return
-        scale_x = 100 / self.size[0]
-        scale_y = 100 / self.size[1]
-        self._fbo_scale.x = scale_x
-        self._fbo_scale.y = scale_y
-        self._fbo_translate.x = - scale_x * self.pos[0]
-        self._fbo_translate.y = - scale_y * self.pos[1]
+        if self.optimize:
+            scale_x = self._optimize_fbo_size[0] / self.size[0]
+            scale_y = self._optimize_fbo_size[1] / self.size[1]
+            self._fbo_scale.x = scale_x
+            self._fbo_scale.y = scale_y
+            self._fbo_translate.x = - scale_x * self.pos[0]
+            self._fbo_translate.y = - scale_y * self.pos[1]
+            if self._fbo.size != self._optimize_fbo_size:
+                self._fbo.size = self._optimize_fbo_size
+                self._texture_container.texture = self._fbo.texture
+        else:
+            self._fbo_scale.x = 1.0
+            self._fbo_scale.y = 1.0
+            self._fbo_translate.x = 0.0
+            self._fbo_translate.y = 0.0
+            if self._fbo.size != self.size:
+                self._fbo.size = self.size
+                self._texture_container.texture = self._fbo.texture
 
     cdef void _update_shadow(self):
         self._update_canvas()
@@ -655,4 +686,41 @@ cdef class BoxShadow(InstructionGroup):
     @inset.setter
     def inset(self, value):
         self._inset = self._check_bool(value)
+        self._update_shadow()
+
+    @property
+    def optimize(self):
+        """Enable fixed size FBO scaling optimization.
+
+        .. versionadded:: 3.0.0
+
+        Defaults to ``True``. When ``False``, the FBO is resized to match the
+        shadow size for higher quality at the cost of performance. When
+        ``True``, the shadow is generated at a fixed resolution and scaled to
+        the target size.
+        """
+        return self._optimize
+
+    @optimize.setter
+    def optimize(self, value):
+        self._optimize = self._check_bool(value)
+        self._update_shadow()
+
+    @property
+    def optimize_fbo_size(self):
+        '''Fixed FBO size used when :attr:`optimize` is ``True``.
+
+        .. versionadded:: 3.0.0
+
+        Defaults to ``(100.0, 100.0)``. Larger values improve quality at the
+        cost of memory usage and FBO creation time.
+        '''
+        return self._optimize_fbo_size
+
+    @optimize_fbo_size.setter
+    def optimize_fbo_size(self, value):
+        self._optimize_fbo_size = self._bounded_value(
+            self._check_iter("optimize_fbo_size", value),
+            min_value=1.0
+        )
         self._update_shadow()

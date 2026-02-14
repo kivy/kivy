@@ -13,6 +13,8 @@ cdef class BoxShadow(InstructionGroup):
     cdef tuple _offset
     cdef tuple _border_radius
     cdef tuple _spread_radius
+    cdef bint _optimize
+    cdef tuple _optimize_fbo_size
     cdef VertexInstruction _fbo_rect
     cdef VertexInstruction _texture_container
     cdef Scale _fbo_scale
