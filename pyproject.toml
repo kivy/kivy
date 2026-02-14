@@ -13,7 +13,7 @@ requires = [
 ]
 
 [tool.cibuildwheel.ios]
-before-all = "kivy/.ci/ios_frameworks.sh"
+before-all = "tools/cibuildwheel-before-all-ios.sh"
 
 [tool.cibuildwheel.android]
 # Use cp to skip the default repair (which requires API 24+ for libc++_shared.so)
