@@ -135,7 +135,7 @@ from kivy import kivy_data_dir
 from kivy.config import Config
 from kivy.utils import platform
 from kivy.graphics.texture import Texture
-from kivy.core import core_register_libs
+from kivy.core import core_register_libs, get_provider_modules, make_provider_tuple
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
 from kivy.setupconfig import USE_SDL3, USE_PANGOFT2
@@ -1204,14 +1204,17 @@ class FontContextManagerBase(object):
 
 
 # Load all available text providers
+# Build platform-specific list from registry
+all_providers = get_provider_modules('text')
 label_libs = []
+
 if USE_PANGOFT2:
-    label_libs += [('pango', 'text_pango')]
+    label_libs.append(make_provider_tuple('pango', all_providers))
 
 if USE_SDL3:
-    label_libs += [('sdl3', 'text_sdl3')]
+    label_libs.append(make_provider_tuple('sdl3', all_providers))
 
-label_libs += [('pil', 'text_pil')]
+label_libs.append(make_provider_tuple('pil', all_providers))
 
 # This imports all available provider modules, which self-register via
 # LabelBase.register_provider()

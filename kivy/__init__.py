@@ -37,6 +37,7 @@ from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
 import importlib
+from kivy.core import get_provider_options
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.utils import platform, normalize_path_id
 from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
@@ -204,22 +205,17 @@ def kivy_usage():
     print(kivy_usage.__doc__ % (basename(sys.argv[0])))
 
 
-#: Global settings options for kivy
+#: Global settings options for kivy, see kivy.core for more details
 kivy_options = {
-    'window': ('egl_rpi', 'sdl3', 'sdl', 'x11'),
-    'text': ('pil', 'sdl3', 'pango'),
-    'video': (
-        'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
-    'audio_output': (
-        'gstplayer', 'ffpyplayer', 'sdl3',
-        'avplayer', 'android'),
-    'image': ('tex', 'imageio', 'dds', 'sdl3', 'pil', 'ffpy', 'gif'),
-    'camera': ('opencv', 'gi', 'avfoundation',
-               'android', 'picamera'),
-    'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': (
-        'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
-        'sdl3', 'dummy', 'gtk3', )}
+    'window': get_provider_options('window'),
+    'text': get_provider_options('text'),
+    'video': get_provider_options('video'),
+    'audio_output': get_provider_options('audio_output'),
+    'image': get_provider_options('image'),
+    'camera': get_provider_options('camera'),
+    'spelling': get_provider_options('spelling'),
+    'clipboard': get_provider_options('clipboard'),
+}
 
 # Read environment
 for option, value in kivy_options.items():

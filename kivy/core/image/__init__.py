@@ -246,7 +246,8 @@ __all__ = ('Image', 'ImageLoader', 'ImageData')
 _provider_uri_re = re.compile(r'^@image_provider:(\w+)\((.+)\)$')
 
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs, load_with_provider_selection
+from kivy.core import core_register_libs, load_with_provider_selection, \
+    get_provider_modules, make_provider_tuple
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.clock import Clock
@@ -1274,20 +1275,21 @@ def load(filename):
 
 
 # load image loaders
+# Build platform-specific list from registry
+all_providers = get_provider_modules('image')
 image_libs = []
 
 if platform in ('macosx', 'ios'):
-    image_libs += [('imageio', 'img_imageio')]
+    image_libs.append(make_provider_tuple('imageio', all_providers))
 
-image_libs += [
-    ('tex', 'img_tex'),
-    ('dds', 'img_dds')]
+image_libs.append(make_provider_tuple('tex', all_providers))
+image_libs.append(make_provider_tuple('dds', all_providers))
+
 if USE_SDL3:
-    image_libs += [('sdl3', 'img_sdl3')]
+    image_libs.append(make_provider_tuple('sdl3', all_providers))
 
-image_libs += [
-    ('ffpy', 'img_ffpyplayer'),
-    ('pil', 'img_pil')]
+image_libs.append(make_provider_tuple('ffpy', all_providers))
+image_libs.append(make_provider_tuple('pil', all_providers))
 
 libs_loaded = core_register_libs('image', image_libs)
 

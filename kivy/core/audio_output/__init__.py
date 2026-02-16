@@ -98,7 +98,8 @@ import os
 
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs, load_with_provider_selection
+from kivy.core import core_register_libs, load_with_provider_selection, \
+    get_provider_modules, make_provider_tuple
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
@@ -320,18 +321,25 @@ class Sound(EventDispatcher):
 
 # Little trick here, don't activate gstreamer on window
 # seem to have lot of crackle or something...
+
+# Build platform-specific list from registry
+all_providers = get_provider_modules('audio_output')
 audio_libs = []
+
 if platform == 'android':
-    audio_libs += [('android', 'audio_android')]
+    audio_libs.append(make_provider_tuple('android', all_providers))
 elif platform in ('macosx', 'ios'):
-    audio_libs += [('avplayer', 'audio_avplayer')]
+    audio_libs.append(make_provider_tuple('avplayer', all_providers))
+
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
-    audio_libs += [('gstplayer', 'audio_gstplayer')]
+    audio_libs.append(make_provider_tuple('gstplayer', all_providers))
 except ImportError:
     pass
-audio_libs += [('ffpyplayer', 'audio_ffpyplayer')]
+
+audio_libs.append(make_provider_tuple('ffpyplayer', all_providers))
+
 if USE_SDL3:
-    audio_libs += [('sdl3', 'audio_sdl3')]
+    audio_libs.append(make_provider_tuple('sdl3', all_providers))
 
 libs_loaded = core_register_libs('audio_output', audio_libs)

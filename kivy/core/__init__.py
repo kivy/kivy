@@ -44,6 +44,145 @@ def _is_strict_mode():
     return value in ('1', 'true', 'yes')
 
 
+#: Centralized provider configuration registry.
+#: Single source of truth for all Kivy core providers.
+#:
+#: Each provider list defines both the available providers and their
+#: priority order (first = highest priority).
+#:
+#: .. versionadded:: 3.0.0
+PROVIDER_CONFIGS = {
+    'window': [
+        ('egl_rpi', 'window_egl_rpi'),
+        ('sdl3', 'window_sdl3'),
+        ('x11', 'window_x11'),
+    ],
+    'text': [
+        ('pil', 'text_pil'),
+        ('sdl3', 'text_sdl3'),
+        ('pango', 'text_pango'),
+    ],
+    'video': [
+        ('gstplayer', 'video_gstplayer'),
+        ('ffmpeg', 'video_ffmpeg'),
+        ('ffpyplayer', 'video_ffpyplayer'),
+        ('null', 'video_null'),
+    ],
+    'audio_output': [
+        ('gstplayer', 'audio_gstplayer'),
+        ('ffpyplayer', 'audio_ffpyplayer'),
+        ('sdl3', 'audio_sdl3'),
+        ('avplayer', 'audio_avplayer'),
+        ('android', 'audio_android'),
+    ],
+    'image': [
+        ('tex', 'img_tex'),
+        ('imageio', 'img_imageio'),
+        ('dds', 'img_dds'),
+        ('sdl3', 'img_sdl3'),
+        ('pil', 'img_pil'),
+        ('ffpy', 'img_ffpyplayer'),
+    ],
+    'camera': [
+        ('opencv', 'camera_opencv'),
+        ('gi', 'camera_gi'),
+        ('avfoundation', 'camera_avfoundation'),
+        ('android', 'camera_android'),
+        ('picamera', 'camera_picamera'),
+    ],
+    'spelling': [
+        ('enchant', 'spelling_enchant'),
+        ('osxappkit', 'spelling_osxappkit'),
+    ],
+    'clipboard': [
+        ('android', 'clipboard_android'),
+        ('winctypes', 'clipboard_winctypes'),
+        ('xsel', 'clipboard_xsel'),
+        ('xclip', 'clipboard_xclip'),
+        ('dbusklipper', 'clipboard_dbusklipper'),
+        ('nspaste', 'clipboard_nspaste'),
+        ('sdl3', 'clipboard_sdl3'),
+        ('dummy', 'clipboard_dummy'),
+        ('gtk3', 'clipboard_gtk3'),
+    ],
+}
+
+
+def get_provider_options(category):
+    '''Get tuple of provider names in priority order for kivy_options.
+
+    :Parameters:
+        `category`: str
+            The provider category (e.g., 'window', 'text', 'image')
+
+    :Returns:
+        tuple: Tuple of provider names in priority order
+
+    .. versionadded:: 3.0.0
+    '''
+    return tuple(name for name, module in PROVIDER_CONFIGS[category])
+
+
+def get_provider_modules(category):
+    '''Get dict mapping provider names to module names.
+
+    :Parameters:
+        `category`: str
+            The provider category (e.g., 'window', 'text', 'image')
+
+    :Returns:
+        dict: Dictionary mapping provider_name to module_name
+
+    .. versionadded:: 3.0.0
+    '''
+    return dict(PROVIDER_CONFIGS[category])
+
+
+def make_provider_tuple(provider_name, all_providers, class_name=None):
+    '''Create a provider tuple for core_register_libs or core_select_lib.
+
+    Helper function to construct provider tuples, eliminating duplication
+    where the provider name appears both as a string and as a dict key.
+
+    :Parameters:
+        `provider_name`: str
+            The provider name (e.g., 'sdl3', 'pil', 'android')
+        `all_providers`: dict
+            Dictionary returned by get_provider_modules()
+        `class_name`: str, optional
+            Class name for 3-tuple format (used by core_select_lib)
+
+    :Returns:
+        tuple: Either (provider_name, module_name) for core_register_libs,
+               or (provider_name, module_name, class_name) for core_select_lib
+
+    :Example:
+        >>> all_providers = get_provider_modules('audio_output')
+        >>> # 2-tuple format for core_register_libs
+        >>> make_provider_tuple('sdl3', all_providers)
+        ('sdl3', 'audio_sdl3')
+        >>> # 3-tuple format for core_select_lib
+        >>> make_provider_tuple('android', all_providers, 'CameraAndroid')
+        ('android', 'camera_android', 'CameraAndroid')
+
+    .. versionadded:: 3.0.0
+    '''
+    if class_name is None:
+        return (provider_name, all_providers[provider_name])
+    return (provider_name, all_providers[provider_name], class_name)
+
+
+def get_all_categories():
+    '''Get list of all provider categories.
+
+    :Returns:
+        list: List of all provider category names
+
+    .. versionadded:: 3.0.0
+    '''
+    return list(PROVIDER_CONFIGS.keys())
+
+
 def load_with_provider_selection(
         filename,
         extension,

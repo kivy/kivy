@@ -21,7 +21,7 @@ Core class for reading video files and managing the video
 __all__ = ('VideoBase', 'Video')
 
 from kivy.clock import Clock
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 
@@ -205,17 +205,20 @@ class VideoBase(EventDispatcher):
 
 
 # Load the appropriate provider
+# Build platform-specific list from registry
+all_providers = get_provider_modules('video')
 video_providers = []
+
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
-    video_providers += [('gstplayer', 'video_gstplayer', 'VideoGstplayer')]
+    video_providers.append(make_provider_tuple(
+        'gstplayer', all_providers, 'VideoGstplayer'
+    ))
 except ImportError:
     pass
-video_providers += [
-    ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
-    ('ffpyplayer', 'video_ffpyplayer', 'VideoFFPy'),
-    ('android', 'video_android', 'VideoAndroid'),
-    ('null', 'video_null', 'VideoNull')]
 
+video_providers.append(make_provider_tuple('ffmpeg', all_providers, 'VideoFFMpeg'))
+video_providers.append(make_provider_tuple('ffpyplayer', all_providers, 'VideoFFPy'))
+video_providers.append(make_provider_tuple('null', all_providers, 'VideoNull'))
 
 Video: VideoBase = core_select_lib('video', video_providers)

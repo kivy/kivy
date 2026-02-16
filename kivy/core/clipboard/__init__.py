@@ -20,7 +20,7 @@ Usage example:
 __all__ = ('ClipboardBase', 'Clipboard')
 
 from kivy import Logger
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.utils import platform
 from kivy.setupconfig import USE_SDL3
 
@@ -108,40 +108,42 @@ class ClipboardBase(object):
 
 
 # load clipboard implementation
+# Build platform-specific list from registry
+all_providers = get_provider_modules('clipboard')
 _clipboards = []
+
 if platform == 'android':
-    _clipboards.append(
-        ('android', 'clipboard_android', 'ClipboardAndroid'))
+    _clipboards.append(make_provider_tuple(
+        'android', all_providers, 'ClipboardAndroid'
+    ))
 elif platform == 'macosx':
-    _clipboards.append(
-        ('nspaste', 'clipboard_nspaste', 'ClipboardNSPaste'))
+    _clipboards.append(make_provider_tuple(
+        'nspaste', all_providers, 'ClipboardNSPaste'
+    ))
 elif platform == 'win':
-    _clipboards.append(
-        ('winctypes', 'clipboard_winctypes', 'ClipboardWindows'))
+    _clipboards.append(make_provider_tuple(
+        'winctypes', all_providers, 'ClipboardWindows'
+    ))
 elif platform == 'linux':
-    _clipboards.append(
-        ('xclip', 'clipboard_xclip', 'ClipboardXclip'))
-    _clipboards.append(
-        ('xsel', 'clipboard_xsel', 'ClipboardXsel'))
-    _clipboards.append(
-        ('dbusklipper', 'clipboard_dbusklipper', 'ClipboardDbusKlipper'))
-    _clipboards.append(
-        ('gtk3', 'clipboard_gtk3', 'ClipboardGtk3'))
+    _clipboards.append(make_provider_tuple('xclip', all_providers, 'ClipboardXclip'))
+    _clipboards.append(make_provider_tuple('xsel', all_providers, 'ClipboardXsel'))
+    _clipboards.append(make_provider_tuple(
+        'dbusklipper', all_providers, 'ClipboardDbusKlipper'
+    ))
+    _clipboards.append(make_provider_tuple('gtk3', all_providers, 'ClipboardGtk3'))
 
 if USE_SDL3:
-    _clipboards.append(
-        ('sdl3', 'clipboard_sdl3', 'ClipboardSDL3'))
+    _clipboards.append(make_provider_tuple('sdl3', all_providers, 'ClipboardSDL3'))
 
-_clipboards.append(
-    ('dummy', 'clipboard_dummy', 'ClipboardDummy'))
+_clipboards.append(make_provider_tuple('dummy', all_providers, 'ClipboardDummy'))
 
 Clipboard: ClipboardBase = core_select_lib('clipboard', _clipboards, True)
 CutBuffer = None
 
 if platform == 'linux':
     _cutbuffers = [
-        ('xclip', 'clipboard_xclip', 'ClipboardXclip'),
-        ('xsel', 'clipboard_xsel', 'ClipboardXsel'),
+        make_provider_tuple('xclip', all_providers, 'ClipboardXclip'),
+        make_provider_tuple('xsel', all_providers, 'ClipboardXsel'),
     ]
 
     if Clipboard.__class__.__name__ in (c[2] for c in _cutbuffers):
