@@ -619,9 +619,9 @@ In KV language:
         text: "ON" if self.activated else "OFF"
         color: (0, 1, 0, 1) if self.activated else (1, 1, 1, 1)
 
-**New `on_active` Event**
+**New `on_activated` Event**
 
-Replace `on_state` bindings with `on_active`:
+Replace `on_state` bindings with `on_activated`:
 
 .. code-block:: python
 
@@ -637,7 +637,7 @@ Replace `on_state` bindings with `on_active`:
     
     # Kivy 3.x.x
     class MyToggle(ToggleButtonBehavior, Label):
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             if value:
                 print("Activated")
                 self.color = (0, 1, 0, 1)
@@ -655,7 +655,7 @@ In KV language, bind to property changes:
     
     # Kivy 3.x.x
     <MyToggle@ToggleButton>:
-        on_active: app.handle_toggle(self, self.activated)
+        on_activated: app.handle_toggle(self, self.activated)
 
 **New `toggle_on` Property**
 
@@ -684,7 +684,7 @@ This is useful when you want instant visual feedback:
             super().__init__(**kwargs)
             self.toggle_on = 'press'  # Toggle immediately
         
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.text = "ON" if value else "OFF"
 
 **Scoped Groups (New Tuple Syntax)**
@@ -859,7 +859,7 @@ You no longer need to manually clean up groups:
 +===========================+===========================+========================================+
 | `state` property          | `'normal'` or `'down'`    | Replaced with `activated` (bool)       |
 +---------------------------+---------------------------+----------------------------------------+
-| `on_state` event          | Fired on state change     | Replaced with `on_active`              |
+| `on_state` event          | Fired on state change     | Replaced with `on_activated`              |
 +---------------------------+---------------------------+----------------------------------------+
 | `toggle_on` property      | Not available             | **New** - 'press' or 'release'         |
 +---------------------------+---------------------------+----------------------------------------+
