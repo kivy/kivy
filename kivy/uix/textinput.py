@@ -31,7 +31,7 @@ To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
 property to False (the 'enter' key will defocus the TextInput and emit an
 :meth:`TextInput.on_text_validate` event)::
 
-    def on_enter(instance, value):
+    def on_enter(instance):
         print('User pressed enter in', instance)
 
     textinput = TextInput(text='Hello world', multiline=False)
