@@ -12,9 +12,6 @@ requires = [
     'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
 ]
 
-[tool.cibuildwheel.ios]
-before-all = "tools/cibuildwheel-before-all-ios.sh"
-
 [tool.cibuildwheel.android]
 # Use cp to skip the default repair (which requires API 24+ for libc++_shared.so)
 # The Android app bundles libc++_shared.so separately
