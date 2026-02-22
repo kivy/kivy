@@ -143,6 +143,23 @@ class TrayMenuItemTest(GraphicUnitTest):
         self.assertEqual(item.label, "Modified")
         self.assertTrue(item.checked)
 
+    def test_item_invalid_property_modifications(self):
+        """Test restricted property constraints"""
+        sep = TrayMenuItem(type="separator")
+        
+        with self.assertRaises(ValueError):
+            sep.label = "Test"
+            
+        with self.assertRaises(ValueError):
+            sep.enabled = False
+            
+        with self.assertRaises(ValueError):
+            sep.callback = lambda: None
+            
+        btn = TrayMenuItem(label="Btn", type="button")
+        with self.assertRaises(ValueError):
+            btn.checked = True
+
     def test_callback_execution(self):
         """Test that callback is properly stored and can be called"""
         callback = Mock()
