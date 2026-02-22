@@ -147,16 +147,62 @@ TrayMenu
 TrayMenuItem
 ~~~~~~~~~~~~
 
-.. class:: TrayMenuItem(label=None, type="item", menu=None)
+.. class:: TrayMenuItem(label=None, type="button", callback=None, enabled=True, checked=False, menu=None)
 
     Individual menu entry.
     
     :param label: Display text for the menu item
     :type label: str or None
-    :param type: Item type ("item", "separator", "submenu")
+    :param type: Item type ("button", "checkbox", "separator", "submenu")
     :type type: str
-    :param menu: Submenu for submenu items
+    :param callback: Function to call when clicked (only for 'button' and 'checkbox')
+    :type callback: callable or None
+    :param enabled: Whether the item is clickable/enabled
+    :type enabled: bool
+    :param checked: Whether the checkbox item is checked (only for 'checkbox')
+    :type checked: bool
+    :param menu: Submenu for submenu items (only for 'submenu')
     :type menu: TrayMenu or None
+
+    .. note::
+        All properties (`label`, `enabled`, `checked`, `callback`) can be changed dynamically 
+        after the item is created, and the visual menu will update immediately.
+
+Dynamic Properties
+------------------
+
+The components are designed to be fully dynamic. You can change properties on the fly 
+and the system tray will update instantly:
+
+.. code-block:: python
+
+    # Change tray icon image and tooltip
+    system_tray.icon = "new_icon.png"
+    system_tray.tooltip = "Syncing (45%)"
+    
+    # Change a specific menu item
+    meu_botao.label = "Cancel Sync"
+    meu_botao.enabled = False
+    
+    # Toggle a checkbox item
+    meu_checkbox.checked = False
+
+Initialization with Lists
+-------------------------
+
+You can directly pass a python `list` of `TrayMenuItem` objects when creating a `TrayIcon`
+or a `TrayMenu`, and they will automatically be parsed:
+
+.. code-block:: python
+
+    system_tray = TrayIcon(
+        icon_path="icon.png",
+        menu=[
+            TrayMenuItem("Enable VPN", type="checkbox", checked=True),
+            TrayMenuItem(type="separator"),
+            TrayMenuItem("Exit", callback=lambda: exit())
+        ]
+    ).create()
 
 Best Practices
 --------------
@@ -201,7 +247,7 @@ See Also
 * System Tray Guidelines: Platform-specific implementation notes
 """
 
-from ._system_tray_sdl3 import (  # pyre-ignore # noqa: F401
+from ._system_tray_sdl3 import (
     TrayIcon,
     TrayMenu,
     TrayMenuItem,
