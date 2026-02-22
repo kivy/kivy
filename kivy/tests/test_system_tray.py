@@ -135,7 +135,7 @@ class TrayMenuItemTest(GraphicUnitTest):
 
     def test_item_property_modification(self):
         """Test modifying item properties after creation"""
-        item = TrayMenuItem(label="Original", type="button")
+        item = TrayMenuItem(label="Original", type="checkbox")
 
         item.label = "Modified"
         item.checked = True
