@@ -146,16 +146,16 @@ class TrayMenuItemTest(GraphicUnitTest):
     def test_item_invalid_property_modifications(self):
         """Test restricted property constraints"""
         sep = TrayMenuItem(type="separator")
-        
+
         with self.assertRaises(ValueError):
             sep.label = "Test"
-            
+
         with self.assertRaises(ValueError):
             sep.enabled = False
-            
+
         with self.assertRaises(ValueError):
             sep.callback = lambda: None
-            
+
         btn = TrayMenuItem(label="Btn", type="button")
         with self.assertRaises(ValueError):
             btn.checked = True
