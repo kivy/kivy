@@ -1486,16 +1486,8 @@ package_data = {
         ] + binary_deps,
 }
 
-# Build data_files list for iOS frameworks
-if platform == "ios" and exists(join(src_path, '.frameworks')):
-    frameworks_path = join(src_path, '.frameworks')
-    frameworks_files = []
-    for root, dirnames, filenames in walk(frameworks_path):
-        for fname in filenames:
-            rel_root = root.replace(src_path, '').lstrip(os.sep)
-            frameworks_files.append(join(rel_root, fname))
-
-    package_data['.frameworks'] = frameworks_files
+if ios_frameworks_folders:
+    package_data['.frameworks'] = ios_frameworks_folders
 
 if not build_examples:
     setup(
