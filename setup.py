@@ -1487,7 +1487,6 @@ package_data = {
 }
 
 # Build data_files list for iOS frameworks
-ios_data_files = []
 if platform == "ios" and exists(join(src_path, '.frameworks')):
     frameworks_path = join(src_path, '.frameworks')
     frameworks_files = []
@@ -1495,8 +1494,8 @@ if platform == "ios" and exists(join(src_path, '.frameworks')):
         for fname in filenames:
             rel_root = root.replace(src_path, '').lstrip(os.sep)
             frameworks_files.append(join(rel_root, fname))
-    if frameworks_files:
-        ios_data_files.append(('.frameworks', frameworks_files))
+
+    package_data['.frameworks'] = frameworks_files
 
 if not build_examples:
     setup(
@@ -1522,7 +1521,7 @@ if not build_examples:
         packages=find_packages(include=['kivy*']),
         package_dir={'kivy': 'kivy'},
         package_data=package_data,
-        data_files=([] if split_examples else list(examples.items())) + ios_data_files,
+        data_files=([] if split_examples else list(examples.items())),
         classifiers=[
             'Development Status :: 5 - Production/Stable',
             'Environment :: MacOS X',
