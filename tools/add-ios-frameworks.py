@@ -5,7 +5,8 @@ import zipfile
 KIVY_DEPS_ROOT = os.environ.get("KIVY_DEPS_ROOT", None)
 if not KIVY_DEPS_ROOT:
     print(
-        "KIVY_DEPS_ROOT environment variable is not set. Please set it to the path where iOS frameworks are located."
+        "KIVY_DEPS_ROOT environment variable is not set. "
+        "Please set it to the path where iOS frameworks are located."
     )
     raise EnvironmentError("KIVY_DEPS_ROOT environment variable is not set")
 
@@ -43,9 +44,11 @@ def add_ios_frameworks_to_wheels(wheels_path: str):
                 print("Adding iOS frameworks to wheel: {}".format(wheel_path))
                 for ios_framework in ios_frameworks_folders:
                     print(
-                        "Adding iOS framework {} to wheel".format(ios_framework)
+                        "Adding iOS framework {} to wheel".format(
+                            ios_framework
+                        )
                     )
-                    for root, dirs, files in os.walk(ios_framework):
+                    for root, _, files in os.walk(ios_framework):
                         for file in files:
                             file_path = os.path.join(root, file)
                             arcname = os.path.relpath(
@@ -59,13 +62,15 @@ def add_ios_frameworks_to_wheels(wheels_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Add iOS .xcframework files in .frameworks folder to all wheels in the specified directory."
+            "Add iOS .xcframework files in .frameworks folder "
+            "to all wheels in the specified directory."
         )
     )
     parser.add_argument(
         "wheels_path",
         help=(
-            "Path to the directory containing the wheels to which iOS frameworks should be added."
+            "Path to the directory containing the wheels "
+            "to which iOS frameworks should be added."
         ),
     )
     args = parser.parse_args()
