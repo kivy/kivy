@@ -1434,29 +1434,6 @@ if isdir(binary_deps_path):
             binary_deps.append(
                 join(root.replace(binary_deps_path, 'binary_deps'), fname))
 
-ios_frameworks_folders = []
-if platform == "ios" and KIVY_DEPS_ROOT:
-    ios_frameworks_path = join(src_path, '.frameworks')
-
-    # Clean up existing .frameworks folder
-    if exists(ios_frameworks_path):
-        shutil.rmtree(ios_frameworks_path)
-
-    # Create .frameworks folder
-    makedirs(ios_frameworks_path)
-
-    ios_deps_path = join(
-        KIVY_DEPS_ROOT, "dist", "Frameworks"
-    )
-    if isdir(ios_deps_path):
-        for dname in os.listdir(ios_deps_path):
-            src_framework = join(ios_deps_path, dname)
-            dst_framework = join(ios_frameworks_path, dname)
-            shutil.copytree(src_framework, dst_framework)
-            # Store relative path for package_data
-            ios_frameworks_folders.append(dname)
-
-
 def glob_paths(*patterns, excludes=('.pyc', )):
     files = []
     base = Path(join(src_path, 'kivy'))
@@ -1485,9 +1462,6 @@ package_data = {
             'setupconfig.py',
         ] + binary_deps,
 }
-
-if ios_frameworks_folders:
-    package_data['.frameworks'] = ios_frameworks_folders
 
 if not build_examples:
     setup(
