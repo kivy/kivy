@@ -28,11 +28,11 @@ Creating a Simple System Tray
 .. code-block:: python
 
     from kivy.core.system_tray import TrayIcon, TrayMenu, TrayMenuItem
-    
+
     # Approach 1: Using internal menu
     system_tray = TrayIcon()
     system_tray.create()
-    
+
     main_menu = system_tray.menu
     main_menu.add_item(TrayMenuItem(label="File"))
     main_menu.add_item(TrayMenuItem(label="Exit"))
@@ -43,7 +43,7 @@ Creating a Simple System Tray
     main_menu = TrayMenu()
     main_menu.add_item(TrayMenuItem(label="File"))
     main_menu.add_item(TrayMenuItem(label="Exit"))
-    
+
     system_tray = TrayIcon(menu=main_menu).create()
 
 Advanced Features
@@ -58,7 +58,7 @@ Creating Submenus
     options_submenu = TrayMenu()
     options_submenu.add_item(TrayMenuItem(label="General"))
     options_submenu.add_item(TrayMenuItem(label="Security"))
-    
+
     # Add to main menu
     main_menu.add_item(
         TrayMenuItem(
@@ -110,21 +110,21 @@ TrayIcon
 .. class:: TrayIcon(menu=None)
 
     Main system tray icon manager.
-    
+
     :param menu: Optional TrayMenu instance
     :type menu: TrayMenu or None
-    
+
     .. method:: create()
-    
+
         Initialize and display the system tray icon.
-        
+
         :returns: TrayIcon instance for method chaining
         :rtype: TrayIcon
-    
+
     .. attribute:: menu
-    
+
         Internal menu reference. Available after create() is called.
-        
+
         :type: TrayMenu
 
 TrayMenu
@@ -133,24 +133,25 @@ TrayMenu
 .. class:: TrayMenu(items=None)
 
     Container for menu items.
-    
+
     :param items: List of TrayMenuItem instances
     :type items: list or None
-    
+
     .. method:: add_item(item)
-    
+
         Add a menu item to the menu.
-        
+
         :param item: Menu item to add
         :type item: TrayMenuItem
 
 TrayMenuItem
 ~~~~~~~~~~~~
 
-.. class:: TrayMenuItem(label=None, type="button", callback=None, enabled=True, checked=False, menu=None)
+.. class:: TrayMenuItem(label=None, type="button", callback=None, enabled=True,
+    checked=False, menu=None)
 
     Individual menu entry.
-    
+
     :param label: Display text for the menu item
     :type label: str or None
     :param type: Item type ("button", "checkbox", "separator", "submenu")
@@ -165,13 +166,14 @@ TrayMenuItem
     :type menu: TrayMenu or None
 
     .. note::
-        All properties (`label`, `enabled`, `checked`, `callback`) can be changed dynamically 
-        after the item is created, and the visual menu will update immediately.
+        All properties (`label`, `enabled`, `checked`, `callback`) can be
+        changed dynamically after the item is created, and the visual menu will
+        update immediately.
 
 Dynamic Properties
 ------------------
 
-The components are designed to be fully dynamic. You can change properties on the fly 
+The components are designed to be fully dynamic. You can change properties on the fly
 and the system tray will update instantly:
 
 .. code-block:: python
@@ -179,19 +181,19 @@ and the system tray will update instantly:
     # Change tray icon image and tooltip
     system_tray.icon = "new_icon.png"
     system_tray.tooltip = "Syncing (45%)"
-    
+
     # Change a specific menu item
     meu_botao.label = "Cancel Sync"
     meu_botao.enabled = False
-    
+
     # Toggle a checkbox item
     meu_checkbox.checked = False
 
 Initialization with Lists
 -------------------------
 
-You can directly pass a python `list` of `TrayMenuItem` objects when creating a `TrayIcon`
-or a `TrayMenu`, and they will automatically be parsed:
+You can directly pass a python `list` of `TrayMenuItem` objects when creating a
+`TrayIcon` or a `TrayMenu`, and they will automatically be parsed:
 
 .. code-block:: python
 
@@ -223,21 +225,21 @@ Complete Application Example
     from kivy.app import App
     from kivy.uix.label import Label
     from kivy.core.system_tray import TrayIcon, TrayMenu, TrayMenuItem
-    
+
     class MyApp(App):
         def build(self):
             # Create system tray
             self.setup_tray()
             return Label(text="App with System Tray")
-        
+
         def setup_tray(self):
             main_menu = TrayMenu()
             main_menu.add_item(TrayMenuItem(label="Show App"))
             main_menu.add_item(TrayMenuItem(type="separator"))
             main_menu.add_item(TrayMenuItem(label="Exit"))
-            
+
             self.system_tray = TrayIcon(menu=main_menu).create()
-    
+
     MyApp().run()
 
 See Also

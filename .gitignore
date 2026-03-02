@@ -90,3 +90,4 @@ kivy/core/tray/_tray_sdl3.c
 kivy/core/system_tray/_system_tray_sdl3.c
 kivy/core/image/_img_sdl3.cpp
 wheelhouse/
+/.vscode
