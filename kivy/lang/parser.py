@@ -501,12 +501,12 @@ class Parser(object):
             elif cmd[:4] == 'set ':
                 try:
                     name, value = cmd[4:].strip().split(' ', 1)
-                except:
+                except Exception:
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid directive syntax')
                 try:
                     value = eval(value, global_idmap)
-                except:
+                except Exception:
                     Logger.exception('')
                     raise ParserException(self, ln, 'Invalid value')
                 global_idmap[name] = value

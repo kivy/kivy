@@ -22,7 +22,7 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy = self._clippy
         try:
             clippy.paste()
-        except:
+        except Exception:
             self.fail(
                 'Can not get data from clipboard')
 
@@ -30,7 +30,7 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy = self._clippy
         try:
             clippy.copy(u"Hello World")
-        except:
+        except Exception:
             self.fail(
                 'Can not put data to clipboard')
 

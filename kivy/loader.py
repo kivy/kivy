@@ -276,7 +276,7 @@ class LoaderBase(object):
         post_callback = kwargs['post_callback']
         try:
             proto = filename.split(':', 1)[0]
-        except:
+        except Exception:
             # if blank filename then return
             return
         if load_callback is not None:
@@ -566,7 +566,7 @@ else:
             while self._running:
                 try:
                     parameters = self._q_load.pop()
-                except:
+                except Exception:
                     return
                 self.pool.add_task(self._load, parameters)
 

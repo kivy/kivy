@@ -84,7 +84,7 @@ else:
             while True:
                 try:
                     t = self.touch_events.pop()
-                except:
+                except Exception:
                     break
 
                 # adjust x,y to window coordinates (0.0 to 1.0)

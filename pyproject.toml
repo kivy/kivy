@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-    "setuptools~=80.10.2",
-    "wheel~=0.45.1",
-    "packaging~=25.0",
+    "setuptools~=82.0.0",
+    "wheel~=0.46.3",
+    "packaging~=26.0",
     "cython>=0.29.1,<=3.2.0",
     'kivy_deps.gstreamer_dev~=0.3.3; sys_platform == "win32"',
     'kivy_deps.sdl3_dev~=0.0.9; sys_platform == "win32"',
@@ -13,7 +13,7 @@ requires = [
 ]
 
 [tool.cibuildwheel.ios]
-before-all = "kivy/.ci/ios_frameworks.sh"
+before-all = "tools/cibuildwheel-before-all-ios.sh"
 
 [tool.cibuildwheel.android]
 # Use cp to skip the default repair (which requires API 24+ for libc++_shared.so)

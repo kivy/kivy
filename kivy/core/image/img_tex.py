@@ -11,6 +11,7 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderTex(ImageLoaderBase):
+    _provider_name = 'tex'
 
     @staticmethod
     def extensions():
@@ -32,7 +33,7 @@ class ImageLoaderTex(ImageLoaderBase):
             if len(data) != info['datalen']:
                 raise Exception('Truncated tex data')
 
-        except:
+        except Exception:
             Logger.warning('Image: Image <%s> is corrupted' % filename)
             raise
 

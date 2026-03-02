@@ -610,7 +610,7 @@ class RstDocument(ScrollView):
             document.walkabout(visitor)
 
             self.title = visitor.title or 'No title'
-        except:
+        except Exception:
             Logger.exception('Rst: error while loading text')
 
     def on_ref_press(self, node, ref):

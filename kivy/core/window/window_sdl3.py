@@ -359,7 +359,7 @@ class WindowSDL(WindowBase):
                 filename_icon = resource_find(
                         join(kivy_data_dir, 'logo', filename_icon))
             self.set_icon(filename_icon)
-        except:
+        except Exception:
             Logger.exception('Window: cannot set icon')
 
     def _update_density(self):

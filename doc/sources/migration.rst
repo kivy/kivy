@@ -8,13 +8,15 @@ Introduction
 
 Kivy 3.x.x introduces several changes and improvements compared to Kivy 2.x.x. This guide will help you migrate your existing Kivy 2.x.x codebase to Kivy 3.x.x.
 
-Renamed modules
----------------
+Renamed modules and environment variables
+------------------------------------------
 
 *Migration from kivy.core.audio to kivy.core.audio_output*
 
 
 In Kivy 3.x.x, the `kivy.core.audio` module has been renamed as `kivy.core.audio_output`. 
+
+**Import Statement Changes**
 
 To migrate your code, you need to update the import statements in your codebase. For example, if you have the following import statement in your code:
 
@@ -27,6 +29,26 @@ You need to update it to:
 .. code-block:: python
 
     from kivy.core.audio_output import SoundLoader
+
+**Environment Variable Changes**
+
+The environment variable has also been renamed from `KIVY_AUDIO` to `KIVY_AUDIO_OUTPUT`.
+
+If you were using the `KIVY_AUDIO` environment variable to specify audio provider preferences, you need to update it to `KIVY_AUDIO_OUTPUT`. For example:
+
+in Python before importing Kivy:
+
+.. code-block:: python
+
+    import os
+    
+    # Kivy 2.x.x
+    os.environ['KIVY_AUDIO'] = 'sdl3,gstplayer'
+    import kivy
+    
+    # Kivy 3.x.x
+    os.environ['KIVY_AUDIO_OUTPUT'] = 'sdl3,gstplayer'
+    import kivy
 
 
 Removals
@@ -597,9 +619,9 @@ In KV language:
         text: "ON" if self.activated else "OFF"
         color: (0, 1, 0, 1) if self.activated else (1, 1, 1, 1)
 
-**New `on_active` Event**
+**New `on_activated` Event**
 
-Replace `on_state` bindings with `on_active`:
+Replace `on_state` bindings with `on_activated`:
 
 .. code-block:: python
 
@@ -615,7 +637,7 @@ Replace `on_state` bindings with `on_active`:
     
     # Kivy 3.x.x
     class MyToggle(ToggleButtonBehavior, Label):
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             if value:
                 print("Activated")
                 self.color = (0, 1, 0, 1)
@@ -633,7 +655,7 @@ In KV language, bind to property changes:
     
     # Kivy 3.x.x
     <MyToggle@ToggleButton>:
-        on_active: app.handle_toggle(self, self.activated)
+        on_activated: app.handle_toggle(self, self.activated)
 
 **New `toggle_on` Property**
 
@@ -662,7 +684,7 @@ This is useful when you want instant visual feedback:
             super().__init__(**kwargs)
             self.toggle_on = 'press'  # Toggle immediately
         
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.text = "ON" if value else "OFF"
 
 **Scoped Groups (New Tuple Syntax)**
@@ -837,7 +859,7 @@ You no longer need to manually clean up groups:
 +===========================+===========================+========================================+
 | `state` property          | `'normal'` or `'down'`    | Replaced with `activated` (bool)       |
 +---------------------------+---------------------------+----------------------------------------+
-| `on_state` event          | Fired on state change     | Replaced with `on_active`              |
+| `on_state` event          | Fired on state change     | Replaced with `on_activated`              |
 +---------------------------+---------------------------+----------------------------------------+
 | `toggle_on` property      | Not available             | **New** - 'press' or 'release'         |
 +---------------------------+---------------------------+----------------------------------------+

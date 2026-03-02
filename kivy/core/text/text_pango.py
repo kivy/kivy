@@ -94,6 +94,7 @@ from kivy.core.text._text_pango import (
 
 
 class LabelPango(LabelBase):
+    _provider_name = 'pango'
 
     _font_family_support = True
 
@@ -143,3 +144,7 @@ class PangoFontContextManager(FontContextManagerBase):
         raise Exception("FontContextManager: Attempt to add non-existent "
                         "font file: '{}' to context '{}'"
                         .format(filename, font_context))
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelPango)

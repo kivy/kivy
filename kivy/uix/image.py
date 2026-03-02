@@ -266,6 +266,22 @@ class Image(Widget):
     to False.
     '''
 
+    image_provider = StringProperty(None, allownone=True)
+    '''Name of the image provider to use for loading (e.g., 'pil', 'sdl3').
+
+    If None, the default provider selection order is used.
+    Use :meth:`~kivy.core.image.Image.available_providers` to get a list
+    of valid provider names.
+
+    For more information on ``image_provider`` and provider selection strict mode
+    (``KIVY_PROVIDER_STRICT``), see :mod:`kivy.core.image`.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`image_provider` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return list(self.size)
@@ -325,6 +341,7 @@ class Image(Widget):
         fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
+        fbind('image_provider', update)
 
         # NOTE: Compatibility code due to deprecated properties.
         fbind('keep_ratio', self._update_fit_mode)
@@ -364,7 +381,8 @@ class Image(Widget):
                 mipmap=self.mipmap,
                 anim_delay=self.anim_delay,
                 keep_data=self.keep_data,
-                nocache=self.nocache
+                nocache=self.nocache,
+                image_provider=self.image_provider
             )
         except Exception:
             Logger.error('Image: Error loading <%s>' % resource)
@@ -480,7 +498,8 @@ class AsyncImage(Image):
             source,
             nocache=self.nocache,
             mipmap=self.mipmap,
-            anim_delay=self.anim_delay
+            anim_delay=self.anim_delay,
+            image_provider=self.image_provider
         )
         image.bind(
             on_load=self._on_source_load,

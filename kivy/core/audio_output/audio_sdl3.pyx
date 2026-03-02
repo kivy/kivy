@@ -128,6 +128,7 @@ cdef class MusicContainer:
 
 
 class SoundSDL3(Sound):
+    _provider_name = 'sdl3'
 
     @staticmethod
     def extensions():
@@ -264,6 +265,7 @@ class SoundSDL3(Sound):
 # LoadMUS supports OGG, MP3, WAV but we only use it for native midi,
 # libmikmod, libmodplug and libfluidsynth to avoid confusion
 class MusicSDL3(Sound):
+    _provider_name = 'sdl3music'
 
     @staticmethod
     def extensions():

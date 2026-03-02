@@ -285,7 +285,7 @@ def ignore_exception(f):
     def f2(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except:
+        except Exception:
             pass
 
     return f2
@@ -489,7 +489,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
                 widget.bind(**{
                     key: partial(self.update_node_content, weakref.ref(node))
                 })
-            except:
+            except Exception:
                 pass
             treeview.add_node(node)
 

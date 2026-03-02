@@ -356,21 +356,21 @@ class AbstractStore(EventDispatcher):
         try:
             value = self.put(key, **value)
             callback(self, key, value)
-        except:
+        except Exception:
             callback(self, key, None)
 
     def store_exists_async(self, key, callback):
         try:
             value = self.store_exists(key)
             callback(self, key, value)
-        except:
+        except Exception:
             callback(self, key, None)
 
     def store_delete_async(self, key, callback):
         try:
             value = self.delete(key)
             callback(self, key, value)
-        except:
+        except Exception:
             callback(self, key, None)
 
     def store_find_async(self, filters, callback):
@@ -382,14 +382,14 @@ class AbstractStore(EventDispatcher):
         try:
             value = self.store_count()
             callback(self, value)
-        except:
+        except Exception:
             callback(self, 0)
 
     def store_keys_async(self, callback):
         try:
             keys = self.store_keys()
             callback(self, keys)
-        except:
+        except Exception:
             callback(self, [])
 
     def store_clear_async(self, callback):

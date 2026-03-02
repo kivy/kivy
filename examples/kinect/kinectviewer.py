@@ -216,7 +216,7 @@ class KinectViewer(Widget):
         self.canvas['size'] = list(map(float, self.size))
         try:
             value = self.kinect.pop()
-        except:
+        except Exception:
             return
         f = value[0].astype('ushort') * 32
         self.texture.blit_buffer(

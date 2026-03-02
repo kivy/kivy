@@ -530,7 +530,7 @@ class Inspector(Factory.FloatLayout):
             try:
                 widget.bind(**{key: partial(
                     self.update_node_content, weakref.ref(node))})
-            except:
+            except Exception:
                 pass
             treeview.add_node(node)
 
@@ -652,7 +652,7 @@ class Inspector(Factory.FloatLayout):
                 getattr(widget, key)[index] = float(instance.text)
             else:
                 setattr(widget, key, float(instance.text))
-        except:
+        except Exception:
             pass
 
     def save_property_text(self, widget, key, index, instance, value):
@@ -661,7 +661,7 @@ class Inspector(Factory.FloatLayout):
                 getattr(widget, key)[index] = instance.text
             else:
                 setattr(widget, key, instance.text)
-        except:
+        except Exception:
             pass
 
     def save_property_boolean(self, widget, key, index, instance, *args):
@@ -671,13 +671,13 @@ class Inspector(Factory.FloatLayout):
                 getattr(widget, key)[index] = value
             else:
                 setattr(widget, key, value)
-        except:
+        except Exception:
             pass
 
     def save_property_option(self, widget, key, instance, *largs):
         try:
             setattr(widget, key, instance.text)
-        except:
+        except Exception:
             pass
 
     def _update_widget_tree_node(self, node, widget, is_open=False):

@@ -125,7 +125,7 @@ def ensure_web_server(root=None):
             http_server.server_activate()
             http_server_ready.set()
             http_server.serve_forever()
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
         finally:
@@ -355,7 +355,7 @@ class GraphicUnitTest(_base):
             try:
                 if reffn != tmpfn:
                     unlink(tmpfn)
-            except:
+            except Exception:
                 pass
             EventLoop.stop()
 

@@ -14,7 +14,7 @@ from os.path import join, exists
 from os import getcwd
 from collections import defaultdict
 
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
@@ -2585,12 +2585,15 @@ class WindowBase(EventDispatcher):
 
 
 #: Instance of a :class:`WindowBase` implementation
+# Build platform-specific list from registry
+all_providers = get_provider_modules('window')
 window_impl = []
-if platform == 'linux' and (pi_version or 4) < 4:
-    window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
-if USE_SDL3:
-    window_impl += [('sdl3', 'window_sdl3', 'WindowSDL')]
 
+if platform == 'linux' and (pi_version or 4) < 4:
+    window_impl.append(make_provider_tuple('egl_rpi', all_providers, 'WindowEglRpi'))
+if USE_SDL3:
+    window_impl.append(make_provider_tuple('sdl3', all_providers, 'WindowSDL'))
 if platform == 'linux':
-    window_impl += [('x11', 'window_x11', 'WindowX11')]
+    window_impl.append(make_provider_tuple('x11', all_providers, 'WindowX11'))
+
 Window: WindowBase = core_select_lib('window', window_impl, True)
