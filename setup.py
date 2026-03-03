@@ -207,12 +207,11 @@ if platform == 'ios':
     )
 
     ios_data = OrderedDict()
-    root = os.getcwd()
 
-    sdl3_xc = join(root, 'dist', 'Frameworks', 'SDL3.xcframework')
-    sdl3_image_xc = join(root, 'dist', 'Frameworks', 'SDL3_image.xcframework')
-    sdl3_mixer_xc = join(root, 'dist', 'Frameworks', 'SDL3_mixer.xcframework')
-    sdl3_ttf_xc = join(root, 'dist', 'Frameworks', 'SDL3_ttf.xcframework')
+    sdl3_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3.xcframework')
+    sdl3_image_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_image.xcframework')
+    sdl3_mixer_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_mixer.xcframework')
+    sdl3_ttf_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_ttf.xcframework')
 
     sdl3_fw = join(sdl3_xc, plat_arch, 'SDL3.framework')
     sdl3_image_fw = join(sdl3_image_xc, plat_arch, 'SDL3_image.framework')
@@ -224,13 +223,13 @@ if platform == 'ios':
     sdl3_mixer_headers = join(sdl3_mixer_fw, 'Headers')
     sdl3_ttf_headers = join(sdl3_ttf_fw, 'Headers')
 
-    egl_xc = join(root, 'dist', 'Frameworks', 'libEGL.xcframework')
-    gles_xc = join(root, 'dist', 'Frameworks', 'libGLESv2.xcframework')
+    egl_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'libEGL.xcframework')
+    gles_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'libGLESv2.xcframework')
 
     egl_fw = join(egl_xc, plat_arch, 'libEGL.framework')
     gles_fw = join(gles_xc, plat_arch, 'libGLESv2.framework')
 
-    egl_headers = join(root, 'dist', 'Frameworks', 'include')
+    egl_headers = join(KIVY_DEPS_ROOT, 'dist', 'include')
 
     ios_data['frameworks'] = {
         'SDL3': {
@@ -622,12 +621,11 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             sdl3_source = 'pkg-config'
 
     if platform == 'ios':
-        root = os.getcwd()
         ios_data = plat_options['ios']
         ios_frameworks = ios_data['frameworks']
 
         default_sdl3_frameworks_search_path = join(
-            root, "dist", "Frameworks"
+            KIVY_DEPS_ROOT, "dist", "Frameworks"
         )
         sdl3_flags = {
             'extra_link_args': [],
@@ -642,7 +640,10 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
                 continue
             sdl3_flags['extra_link_args'] += ['-framework',
                                               name, '-F', dirname(f_path)]
-            sdl3_flags['include_dirs'] += [join(f_path, 'Headers')]
+            sdl3_flags["include_dirs"] += [
+                join(f_path, "Headers"),
+                join(KIVY_DEPS_ROOT, "dist", "include"),
+            ]
             print('Found sdl3 frameworks: {}'.format(f_path))
 
         sdl3_source = 'ios-frameworks'
@@ -755,14 +756,7 @@ def determine_base_flags():
         'library_dirs': [] + libs,
         'extra_link_args': [],
         'extra_compile_args': []}
-    if c_options['use_ios']:
-        sysroot = environ.get('IOSSDKROOT', environ.get('SDKROOT'))
-        if not sysroot:
-            raise Exception('IOSSDKROOT is not set')
-        flags['include_dirs'] += [sysroot]
-        flags['extra_compile_args'] += ['-isysroot', sysroot]
-        flags['extra_link_args'] += ['-isysroot', sysroot]
-    elif platform.startswith('freebsd'):
+    if platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
         flags['library_dirs'] += [join(
