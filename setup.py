@@ -18,7 +18,6 @@ from collections import OrderedDict
 from os import walk, environ, makedirs
 from os.path import join, dirname, exists, basename, isdir
 import os
-import shutil
 from copy import deepcopy
 from kivy.utils import pi_version
 import sys
@@ -757,13 +756,6 @@ def determine_base_flags():
         'library_dirs': [] + libs,
         'extra_link_args': [],
         'extra_compile_args': []}
-    # if c_options['use_ios']:
-    #     sysroot = environ.get('IOSSDKROOT', environ.get('SDKROOT'))
-    #     if not sysroot:
-    #         raise Exception('IOSSDKROOT is not set')
-    #     flags['include_dirs'] += [sysroot]
-    #     flags['extra_compile_args'] += ['-isysroot', sysroot]
-    #     flags['extra_link_args'] += ['-isysroot', sysroot]
     if platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
@@ -1434,6 +1426,7 @@ if isdir(binary_deps_path):
             binary_deps.append(
                 join(root.replace(binary_deps_path, 'binary_deps'), fname))
 
+
 def glob_paths(*patterns, excludes=('.pyc', )):
     files = []
     base = Path(join(src_path, 'kivy'))
@@ -1448,21 +1441,6 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 
 # -----------------------------------------------------------------------------
 # setup !
-# Build package_data dict
-package_data = {
-    'kivy':
-        glob_paths('*.pxd', '*.pxi') +
-        glob_paths('**/*.pxd', '**/*.pxi') +
-        glob_paths('data/**/*.*') +
-        glob_paths('include/**/*.*') +
-        glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
-        glob_paths('graphics/**/*.h') +
-        glob_paths('tests/**/*.*') +
-        [
-            'setupconfig.py',
-        ] + binary_deps,
-}
-
 if not build_examples:
     setup(
         name='Kivy',
@@ -1486,8 +1464,20 @@ if not build_examples:
         cmdclass=cmdclass,
         packages=find_packages(include=['kivy*']),
         package_dir={'kivy': 'kivy'},
-        package_data=package_data,
-        data_files=([] if split_examples else list(examples.items())),
+        package_data={
+            'kivy':
+                glob_paths('*.pxd', '*.pxi') +
+                glob_paths('**/*.pxd', '**/*.pxi') +
+                glob_paths('data/**/*.*') +
+                glob_paths('include/**/*.*') +
+                glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
+                glob_paths('graphics/**/*.h') +
+                glob_paths('tests/**/*.*') +
+                [
+                    'setupconfig.py',
+                ] + binary_deps
+        },
+        data_files=[] if split_examples else list(examples.items()),
         classifiers=[
             'Development Status :: 5 - Production/Stable',
             'Environment :: MacOS X',
