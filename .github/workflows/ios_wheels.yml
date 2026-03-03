@@ -13,7 +13,7 @@ env:
 
 jobs:
   ios_wheels_create:
-    name: Build wheels on ${{ matrix.arch }}
+    name: Build iOS wheels
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]')
     runs-on: macos-15
     steps:
@@ -29,12 +29,12 @@ jobs:
         id: cacheiosdeps
         with:
           path: ios-kivy-dependencies
-          key: ios-deps-${{ runner.os }}-${{ hashFiles('tools/cibuildwheel-before-all-ios.sh') }}
+          key: ios-deps-${{ runner.os }}-${{ hashFiles('tools/build_ios_dependencies.sh') }}
       - name: Build iOS dependencies
         if: steps.cacheiosdeps.outputs.cache-hit != 'true'
         run: |
-          ./tools/cibuildwheel-before-all-ios.sh
-      - name: Build wheel for ${{ matrix.arch }}
+          ./tools/build_ios_dependencies.sh
+      - name: Build iOS wheels
         env:
             CIBW_PLATFORM: ios
             CIBW_ARCHS: "arm64_iphoneos arm64_iphonesimulator x86_64_iphonesimulator"
@@ -42,13 +42,14 @@ jobs:
         run: |
           export KIVY_DEPS_ROOT=$(pwd)/ios-kivy-dependencies
           python -m cibuildwheel --output-dir wheelhouse
-      - name: Add iOS frameworks to wheels
+      - name: Patch iOS wheels to include Kivy dependencies in .framework folder
         run: |
+          export KIVY_DEPS_ROOT=$(pwd)/ios-kivy-dependencies
           python ./tools/add-ios-frameworks.py ./wheelhouse
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v6
         with:
-          name: ios_wheels-${{ matrix.arch }} 
+          name: ios_wheels
           path: wheelhouse/*.whl
 
   ios_wheel_upload:
