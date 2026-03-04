@@ -173,23 +173,75 @@ class TestImageProviderURIScheme:
         """Test that URI scheme regex matches expected patterns."""
         from kivy.core.image import _provider_uri_re
 
-        # Should match
+        # Should match — (provider, params_block, path)
         valid_uris = [
-            ("@image_provider:pil(image.png)", "pil", "image.png"),
-            ("@image_provider:sdl3(/path/to/image.jpg)", "sdl3", "/path/to/image.jpg"),
+            ("@image_provider:pil(image.png)", "pil", None, "image.png"),
+            (
+                "@image_provider:sdl3(/path/to/image.jpg)",
+                "sdl3",
+                None,
+                "/path/to/image.jpg",
+            ),
             (
                 "@image_provider:imageio(../images/icon.png)",
                 "imageio",
+                None,
                 "../images/icon.png",
             ),
-            ("@image_provider:PIL(image.png)", "PIL", "image.png"),
+            ("@image_provider:PIL(image.png)", "PIL", None, "image.png"),
         ]
 
-        for uri, expected_provider, expected_path in valid_uris:
+        for uri, expected_provider, expected_params, expected_path in valid_uris:
             match = _provider_uri_re.match(uri)
             assert match is not None, f"URI {uri!r} should match"
             assert match.group(1) == expected_provider
-            assert match.group(2) == expected_path
+            # group(2) is the optional params block; group(3) is the path
+            assert match.group(2) == expected_params
+            assert match.group(3) == expected_path
+
+    def test_uri_scheme_regex_with_params_block(self):
+        """URI regex must capture the optional [params] block in group(2)."""
+        from kivy.core.image import _provider_uri_re
+
+        cases = [
+            # Single param
+            (
+                "@image_provider:thorvg_svg[size=256](icon.svg)",
+                "thorvg_svg",
+                "size=256",
+                "icon.svg",
+            ),
+            # Multiple params
+            (
+                "@image_provider:thorvg_svg[size=512,mode=fit](a.svg)",
+                "thorvg_svg",
+                "size=512,mode=fit",
+                "a.svg",
+            ),
+            # Params with absolute path
+            (
+                "@image_provider:thorvg_svg[size=128](/abs/path/icon.svg)",
+                "thorvg_svg",
+                "size=128",
+                "/abs/path/icon.svg",
+            ),
+        ]
+
+        for uri, expected_provider, expected_params, expected_path in cases:
+            match = _provider_uri_re.match(uri)
+            assert match is not None, f"URI {uri!r} should match"
+            assert match.group(1) == expected_provider, (
+                f"URI {uri!r}: expected provider {expected_provider!r}, "
+                f"got {match.group(1)!r}"
+            )
+            assert match.group(2) == expected_params, (
+                f"URI {uri!r}: expected params {expected_params!r}, "
+                f"got {match.group(2)!r}"
+            )
+            assert match.group(3) == expected_path, (
+                f"URI {uri!r}: expected path {expected_path!r}, "
+                f"got {match.group(3)!r}"
+            )
 
     def test_uri_scheme_invalid_patterns_dont_match(self):
         """Test that invalid URI patterns don't match."""
@@ -217,7 +269,9 @@ class TestImageProviderURIScheme:
         uri = "@image_provider:pil(my images/photo.jpg)"
         match = _provider_uri_re.match(uri)
         assert match is not None
-        assert match.group(2) == "my images/photo.jpg"
+        # group(2) is the optional params block; group(3) is the path
+        assert match.group(2) is None
+        assert match.group(3) == "my images/photo.jpg"
 
 
 class TestInvalidProviderHandling:
