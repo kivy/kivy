@@ -179,12 +179,29 @@ extra parameters, use the ``@image_provider:`` URI scheme::
 
     @image_provider:providername(path/to/image.ext)
 
+An optional parameter block in square brackets can appear between the provider
+name and the path. Parameters are ``key=value`` pairs separated by commas::
+
+    @image_provider:providername[key=value,key2=value2](path/to/image.ext)
+
+The only parameter currently defined is ``size``, which is recognised by the
+ThorVG SVG provider (``thorvg_svg``) and sets the rasterization size in pixels,
+overriding both the SVG's native size and the ``[svg] default_size`` config
+setting::
+
+    @image_provider:thorvg_svg[size=256](icons/house.svg)
+
 Example in Python::
 
     from kivy.graphics import Rectangle
 
     with widget.canvas:
         Rectangle(source='@image_provider:pil(images/photo.png)')
+
+    # SVG rasterized with 128 px minimum floor (scales up if native size is
+    # smaller; leaves native size unchanged if it already exceeds 128)
+    with widget.canvas:
+        Rectangle(source='@image_provider:thorvg_svg[size=128](icons/house.svg)')
 
 Example in KV language::
 
@@ -196,6 +213,24 @@ Example in KV language::
                 size: self.size
 
 The path inside the parentheses is resolved using :func:`~kivy.resources.resource_find`.
+
+SVG images and mipmap
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``@image_provider:`` URI controls rasterization size but not mipmap
+generation. To create an SVG texture with mipmaps for use in canvas
+instructions, load it explicitly via :class:`~kivy.core.image.Image`::
+
+    from kivy.core.image import Image as CoreImage
+    from kivy.graphics import Rectangle
+
+    tex = CoreImage('icons/house.svg', mipmap=True).texture
+
+    with widget.canvas:
+        Rectangle(texture=tex, pos=self.pos, size=self.size)
+
+The texture is cached (keyed by filename and mipmap flag), so repeated calls
+with the same arguments return the cached result without re-rasterizing.
 
 Strict mode
 ~~~~~~~~~~~
@@ -242,8 +277,36 @@ from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
-# Regex for @image_provider:providername(path) URI scheme
-_provider_uri_re = re.compile(r'^@image_provider:(\w+)\((.+)\)$')
+# Regex for @image_provider:providername[optional_params](path) URI scheme.
+# Groups: (provider_name, params_string_or_None, path)
+_provider_uri_re = re.compile(
+    r'^@image_provider:(\w+)(?:\[([^\]]*)\])?\((.+)\)$'
+)
+
+
+def _parse_uri_params(params_str):
+    """Parse a URI parameter string into a dict of typed values.
+
+    Accepts a comma-separated list of ``key=value`` pairs, e.g.
+    ``"size=512"`` → ``{"size": 512}``.  Integer-looking values are
+    converted to ``int``; all others remain strings.  Returns an empty
+    dict for *None* or empty input.
+    """
+    if not params_str:
+        return {}
+    result = {}
+    for token in params_str.split(','):
+        token = token.strip()
+        if '=' not in token:
+            continue
+        key, _, val = token.partition('=')
+        key = key.strip()
+        val = val.strip()
+        try:
+            result[key] = int(val)
+        except ValueError:
+            result[key] = val
+    return result
 
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs, load_with_provider_selection, \
@@ -702,25 +765,31 @@ class ImageLoader(object):
         if result is not None:
             return result
 
-        # extract extensions
-        ext = filename.split('.')[-1].lower()
-
-        # prevent url querystrings
-        if filename.startswith(('http://', 'https://')):
-            ext = ext.split('?')[0]
-
-        filename = resource_find(filename)
-
-        # Handle @image_provider:providername(path) URI scheme
-        # resource_find resolves the inner path and returns the full URI
         image_provider = kwargs.pop('image_provider', None)
-        provider_match = _provider_uri_re.match(filename) if filename else None
+
+        # Handle @image_provider:providername[params](path) URI scheme.
+        # Must be checked BEFORE resource_find so the URI is not passed to it.
+        provider_match = _provider_uri_re.match(filename)
         if provider_match:
-            # Extract provider and resolved path from URI
+            # Groups: (provider, optional_params, path)
             image_provider = provider_match.group(1)
-            filename = provider_match.group(2)
-            # Re-extract extension from resolved path
+            uri_params = _parse_uri_params(provider_match.group(2))
+            inner_path = provider_match.group(3)
+            # Resolve the inner path, then derive extension from it.
+            filename = resource_find(inner_path) or inner_path
             ext = filename.split('.')[-1].lower()
+            # Pass recognised URI params as loader kwargs (provider-specific).
+            if 'size' in uri_params:
+                kwargs.setdefault('render_size', uri_params['size'])
+        else:
+            # extract extensions
+            ext = filename.split('.')[-1].lower()
+
+            # prevent url querystrings
+            if filename.startswith(('http://', 'https://')):
+                ext = ext.split('?')[0]
+
+            filename = resource_find(filename)
 
         # Get actual image format instead of extension if possible
         ext = guess_extension(filename) or ext
@@ -1290,6 +1359,7 @@ if USE_SDL3:
 
 image_libs.append(make_provider_tuple('ffpy', all_providers))
 image_libs.append(make_provider_tuple('pil', all_providers))
+image_libs.append(make_provider_tuple('thorvg_svg', all_providers))
 
 libs_loaded = core_register_libs('image', image_libs)
 
