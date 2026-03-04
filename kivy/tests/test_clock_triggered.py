@@ -197,7 +197,7 @@ def test_triggered_is_triggered(kivy_clock):
     assert not my_callback.is_triggered
     my_callback(1)
     assert my_callback.is_triggered
-    
+
     time.sleep(0.15)
     kivy_clock.tick()
 
@@ -246,9 +246,9 @@ def test_triggered_classmethod(kivy_clock):
     c1.my_classmethod(1)
     assert c1.my_classmethod.is_triggered
     assert c2.my_classmethod.is_triggered # Shared!
-    
+
     c2.my_classmethod(2) # Overwrites 1
-    
+
     time.sleep(0.15)
     kivy_clock.tick()
 
@@ -270,9 +270,9 @@ def test_triggered_staticmethod(kivy_clock):
     MyClass.my_staticmethod(1)
     obj = MyClass()
     assert obj.my_staticmethod.is_triggered
-    
+
     obj.my_staticmethod(2)
-    
+
     time.sleep(0.15)
     kivy_clock.tick()
 

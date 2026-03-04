@@ -1095,7 +1095,7 @@ def mainthread(func):
     return delayed_func
 
 
-# The @triggered decorator uses two classes to handle the duality of Python 
+# The @triggered decorator uses two classes to handle the duality of Python
 # functions (global functions vs. instance methods):
 #
 # 1. _TriggeredWrapper (The Descriptor):
@@ -1108,7 +1108,7 @@ def mainthread(func):
 #
 # 2. _BoundTrigger (The Instance State):
 #    - The object returned when accessing a method on an instance.
-#    - Maintains a `Clock.create_trigger` and argument buffers 
+#    - Maintains a `Clock.create_trigger` and argument buffers
 #      (`_args`, `_kwargs`) that are fully ISOLATED for each instance of the
 #      widget/object.
 #    - This isolation allows debouncing/throttling to work independently:
