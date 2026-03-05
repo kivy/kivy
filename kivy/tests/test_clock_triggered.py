@@ -144,9 +144,7 @@ def test_triggered_lazy_init(kivy_clock):
     assert wrapper._trigger is not None
 
 
-def test_triggered_debounce(kivy_clock):
-    import time
-
+def test_triggered_debounce(kivy_clock_advance):
     counter = ClockCounter()
 
     @triggered(0.1, debounce=True)
@@ -156,17 +154,15 @@ def test_triggered_debounce(kivy_clock):
     # Call 1: scheduled for +0.1s
     my_func(1)
 
-    # Advance enough for debounce still pending
-    time.sleep(0.05)
-    kivy_clock.tick()
+    # Advance enough for debounce still pending (0.05 < 0.1)
+    kivy_clock_advance(0.05)
     assert counter.counter == 0
 
     # Call 2: cancels Call 1 and reschedules for +0.1s from now
     my_func(2)
 
     # Advance enough to fire; should use args from Call 2
-    time.sleep(0.15)
-    kivy_clock.tick()
+    kivy_clock_advance(0.15)
 
     assert counter.counter == 1
     assert counter.last_args == (2,)
@@ -185,8 +181,7 @@ def test_triggered_callable_as_timeout(kivy_clock):
     assert counter.counter == 1
 
 
-def test_triggered_is_triggered(kivy_clock):
-    import time
+def test_triggered_is_triggered(kivy_clock_advance):
     results = []
 
     @triggered(0.1)
@@ -198,8 +193,8 @@ def test_triggered_is_triggered(kivy_clock):
     my_callback(1)
     assert my_callback.is_triggered
 
-    time.sleep(0.15)
-    kivy_clock.tick()
+    # Advancing manually
+    kivy_clock_advance(0.15)
 
     assert len(results) == 1
     assert not my_callback.is_triggered
@@ -215,8 +210,7 @@ def test_triggered_is_triggered(kivy_clock):
     w.my_method(2)
     assert w.my_method.is_triggered
 
-    time.sleep(0.15)
-    kivy_clock.tick()
+    kivy_clock_advance(0.15)
 
     assert len(results) == 2
     assert results[1] == (w, 2)
@@ -229,8 +223,7 @@ def test_triggered_is_triggered(kivy_clock):
     assert not w.my_method.is_triggered
 
 
-def test_triggered_classmethod(kivy_clock):
-    import time
+def test_triggered_classmethod(kivy_clock_advance):
     results = []
 
     class MyClass:
@@ -249,15 +242,13 @@ def test_triggered_classmethod(kivy_clock):
 
     c2.my_classmethod(2) # Overwrites 1
 
-    time.sleep(0.15)
-    kivy_clock.tick()
+    kivy_clock_advance(0.15)
 
     assert len(results) == 1
     assert results[0] == (MyClass, 2)
 
 
-def test_triggered_staticmethod(kivy_clock):
-    import time
+def test_triggered_staticmethod(kivy_clock_advance):
     results = []
 
     class MyClass:
@@ -273,8 +264,7 @@ def test_triggered_staticmethod(kivy_clock):
 
     obj.my_staticmethod(2)
 
-    time.sleep(0.15)
-    kivy_clock.tick()
+    kivy_clock_advance(0.15)
 
     assert len(results) == 1
     assert results[0] == 2

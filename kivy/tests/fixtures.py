@@ -17,7 +17,7 @@ import weakref
 import time
 import os.path
 
-__all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app',
+__all__ = ('kivy_clock', 'kivy_clock_advance', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app',
            'kivy_init')
 
 @pytest.fixture()
@@ -89,6 +89,28 @@ def kivy_clock():
         Clock.stop_clock()
     finally:
         context.pop()
+
+
+@pytest.fixture()
+def kivy_clock_advance(kivy_clock):
+    """A fixture that provides a helper to advance the Clock
+       deterministically by mocking its time and ticking it.
+       Usage:
+           def test_foo(kivy_clock_advance):
+               kivy_clock_advance(0.1)  # advances the clock by 0.1s
+    """
+    class ClockController:
+        def __init__(self, clock):
+            self.clock = clock
+            self.now = 100.0
+            clock.time = lambda: self.now
+            clock._last_tick = self.now
+
+        def __call__(self, secs):
+            self.now += secs
+            self.clock.tick()
+
+    return ClockController(kivy_clock)
 
 
 @pytest.fixture()
