@@ -98,7 +98,6 @@ class MouseMotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
         self.multitouch_sim = False
-        self.modifiers = []
         super().__init__(*args, **kwargs)
 
     def depack(self, args):

@@ -231,6 +231,18 @@ Wheel behavior is always active and is NOT affected by the
 :attr:`parallel_delegation` or :attr:`delegate_to_outer` properties.
 Those only control touch and touchpad gesture behavior.
 
+**Using "shift" keyboard modifier:**
+
+When the "shift" key is pressed during mouse wheel scrolling, vertical scrolling
+(scrollup/scrolldown) is converted to horizontal scrolling
+(scrollleft/scrollright). This allows the user to change the scrolling direction
+in a ScrollView that supports both directions.
+
+.. versionadded:: 3.0.0
+
+    ScrollView now allows the "shift" key modifier to convert vertical mouse
+    wheel scrolling into horizontal scrolling.
+
 .. versionchanged:: VERSION_NEXT
 
     The ScrollView widget now supports nesting to arbitrary levels
@@ -2475,11 +2487,11 @@ class ScrollView(StencilView):
             # under cursor
             # No delegation through hierarchy - matches standard web browser UX
             if is_wheel:
-                # Try only the innermost ScrollView
-                if inner_sv._scroll_initialize(touch):
-                    return True
-                # Innermost couldn't handle it - don't try outer levels
-                # This prevents scroll hijacking when inner reaches boundary
+                # Find the innermost ScrollView in the hierarchy that can
+                # handle this wheel event (direction/axis)
+                for sv in reversed(hierarchy.scrollviews):
+                    if sv._scroll_initialize(touch):
+                        return True
                 return False
 
             # Non-wheel touch: Initialize scrolling on the innermost child
@@ -2610,8 +2622,16 @@ class ScrollView(StencilView):
         ud["in_bar_y"] = in_bar_y
 
         if "button" in touch.profile and touch.button.startswith("scroll"):
+            btn = touch.button
+            # If "shift" is pressed, convert vertical scroll to horizontal
+            if "shift"in touch.modifiers:
+                if btn == 'scrolldown':
+                    btn = 'scrollright'
+                elif btn == 'scrollup':
+                    btn = 'scrollleft'
+
             if self._handle_mouse_wheel_scroll(
-                    touch.button, in_bar_x, in_bar_y
+                    btn, in_bar_x, in_bar_y
             ):
                 touch.ud[self._get_uid("svavoid")] = True
                 # Start velocity check for scroll stop after mouse wheel
