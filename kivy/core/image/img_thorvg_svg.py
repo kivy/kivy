@@ -115,13 +115,13 @@ def _render_svg_to_rgba(engine, canvas, picture, width, height, source=None):
             f'Image: ThorvgSvg Picture.set_size failed{label}: {result}')
         return None
 
-    canvas.push(picture)
-    for op, name in [
-        (canvas.update, 'update'),
-        (canvas.draw, 'draw'),
-        (canvas.sync, 'sync'),
+    canvas.add(picture)
+    for op, args, name in [
+        (canvas.update, (), 'update'),
+        (canvas.draw, (True,), 'draw'),   # clear=True: zero buffer before render
+        (canvas.sync, (), 'sync'),
     ]:
-        result = op()
+        result = op(*args)
         if result != Result.SUCCESS:
             Logger.warning(
                 f'Image: ThorvgSvg canvas.{name} failed{label}: {result}')
