@@ -114,12 +114,9 @@ class HoverManager(EventManagerBase):
     the value after the manager has started will have no effect.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, event_repeat_timeout=1/30.0):
         super().__init__()
-        self.event_repeat_timeout = kwargs.get(
-            'event_repeat_timeout',
-            HoverManager.event_repeat_timeout
-        )
+        self.event_repeat_timeout = event_repeat_timeout
         self._events = defaultdict(list)  # me.uid -> [(me, me.grab_list[:]),]
         self._event_times = {}  # me.uid -> Clock.get_time()
         self._clock_event = None
