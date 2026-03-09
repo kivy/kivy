@@ -11,8 +11,8 @@ IOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/
 IOS__SDL3_IMAGE__FOLDER="SDL3_image-$IOS__SDL3_IMAGE__VERSION"
 
 # iOS SDL3_mixer
-IOS__SDL3_MIXER__VERSION="3.1.2"
-IOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/prerelease-$IOS__SDL3_MIXER__VERSION/SDL3_mixer-$IOS__SDL3_MIXER__VERSION.tar.gz"
+IOS__SDL3_MIXER__VERSION="3.2.0"
+IOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$IOS__SDL3_MIXER__VERSION/SDL3_mixer-$IOS__SDL3_MIXER__VERSION.tar.gz"
 IOS__SDL3_MIXER__FOLDER="SDL3_mixer-$IOS__SDL3_MIXER__VERSION"
 
 # iOS SDL3_ttf

@@ -51,6 +51,7 @@ cdef MIX_Mixer *mixer_instance = NULL
 
 
 cdef mix_init():
+    print("Initializing SDL3 mixer...")
     cdef SDL_AudioSpec desired_spec
     cdef int want_flags = 0
     global mixer_instance
@@ -74,7 +75,7 @@ cdef mix_init():
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
                         SDL_GetError()))
         return False
-
+    print("Mixer opened with format: {} Hz, {} channels".format(desired_spec.freq, desired_spec.channels))
     return True
 
 # Container for samples (MIX_LoadAudio)
@@ -189,6 +190,7 @@ class SoundSDL3(Sound):
         SDL_free(dst_data)
 
     def play(self):
+        print("Playing sound: {}".format(self.source))
         cdef ChunkContainer cc = self.cc
         self.stop()
         if cc.chunk == NULL:
@@ -204,18 +206,20 @@ class SoundSDL3(Sound):
         super(SoundSDL3, self).play()
 
     def stop(self):
+        print("Stopping sound: {}".format(self.source))
         cdef ChunkContainer cc = self.cc
         if cc.chunk == NULL or cc.track == NULL:
             return
         if MIX_GetTrackAudio(cc.track) == cc.chunk:
             MIX_StopTrack(cc.track, 0)
-        MIX_DestroyTrack(cc.track)
+        # MIX_DestroyTrack(cc.track)
         if self._check_play_ev is not None:
             self._check_play_ev.cancel()
             self._check_play_ev = None
         super(SoundSDL3, self).stop()
 
     def load(self):
+        print("Loading sound: {}".format(self.source))
         cdef ChunkContainer cc = self.cc
         self.unload()
         if self.source is None:
