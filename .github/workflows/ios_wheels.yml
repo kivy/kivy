@@ -66,8 +66,7 @@ jobs:
           python -m pip install -r .ci/cicd-requirements.txt
       - uses: actions/download-artifact@v7
         with:
-          pattern: ios_wheels-*
-          merge-multiple: true
+          name: ios_wheels
           path: dist
       - name: Rename wheels
         if: github.event.ref_type != 'tag'
