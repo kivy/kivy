@@ -895,7 +895,7 @@ cdef extern from "SDL_mixer.h":
     ctypedef struct MIX_Track:
         pass
     cdef int MIX_Init()
-    cdef int MIX_CreateMixerDevice(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
+    cdef MIX_Mixer * MIX_CreateMixerDevice(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
     cdef bint MIX_GetMixerFormat(MIX_Mixer *mixer, SDL_AudioSpec *spec)
     cdef MIX_Audio * MIX_LoadAudio(MIX_Mixer *mixer, const char *path, bool predecode)
     cdef MIX_Audio * MIX_LoadRawAudioNoCopy(MIX_Mixer *mixer, const void *data, size_t datalen, const SDL_AudioSpec *spec, bool free_when_done)
@@ -906,3 +906,6 @@ cdef extern from "SDL_mixer.h":
     cdef bint MIX_StopTrack(MIX_Track *track, Sint64 fade_out_frames)
     cdef bint MIX_TrackPlaying(MIX_Track *track)
     cdef MIX_Audio* MIX_GetTrackAudio(MIX_Track *track)
+    cdef MIX_Track* MIX_CreateTrack(MIX_Mixer *mixer)
+    cdef bint MIX_DestroyTrack(MIX_Track *track)
+    cdef Sint64 MIX_GetAudioDuration(MIX_Audio *audio)

@@ -14,8 +14,8 @@ MACOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/downloa
 MACOS__SDL3_IMAGE__FOLDER="SDL3_image-$MACOS__SDL3_IMAGE__VERSION"
 
 # macOS SDL3_mixer
-MACOS__SDL3_MIXER__VERSION="3.1.2"
-MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/prerelease-$MACOS__SDL3_MIXER__VERSION/SDL3_mixer-$MACOS__SDL3_MIXER__VERSION.tar.gz"
+MACOS__SDL3_MIXER__VERSION="3.2.0"
+MACOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MACOS__SDL3_MIXER__VERSION/SDL3_mixer-$MACOS__SDL3_MIXER__VERSION.tar.gz"
 MACOS__SDL3_MIXER__FOLDER="SDL3_mixer-$MACOS__SDL3_MIXER__VERSION"
 
 # macOS SDL3_ttf
