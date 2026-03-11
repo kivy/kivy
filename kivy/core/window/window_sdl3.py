@@ -215,6 +215,18 @@ class WindowSDL(WindowBase):
     def get_window_info(self):
         return self._win.get_window_info()
 
+    def _open_gamepad(self, device_id=-1):
+        ptr = self._win._open_gamepad(device_id)
+        if ptr:
+            Logger.info(f"Gamepad {device_id} open")
+            return ptr
+        Logger.warning(f"Cannot open gamepad {device_id}")
+        return None
+
+    def _close_gamepad(self, device_id):
+        self._win._close_gamepad(device_id)
+        Logger.info(f"Gamepad {device_id} closed")
+
     def _set_minimum_size(self, *args):
         minimum_width = self.minimum_width
         minimum_height = self.minimum_height
@@ -668,6 +680,13 @@ class WindowSDL(WindowBase):
             elif action == 'joybuttonup':
                 stickid, buttonid = args
                 self.dispatch('on_joy_button_up', stickid, buttonid)
+
+            elif action == 'joyadded':
+                joy_id = args[0]
+                self.dispatch('on_joy_added', joy_id)
+            elif action == 'joyremoved':
+                joy_id = args[0]
+                self.dispatch('on_joy_removed', joy_id)
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, kstr = args
