@@ -129,6 +129,7 @@ pushd $MANYLINUX__SDL3_IMAGE__FOLDER
   cmake -B build -DBUILD_SHARED_LIBS=ON \
           -DCMAKE_BUILD_TYPE=Release \
           -DSDLIMAGE_VENDORED=ON \
+          -DSDLIMAGE_DAV1D=OFF \
           -DCMAKE_INSTALL_PREFIX=../../dist -GNinja
   cmake --build build/ --config Release --parallel --verbose
   cmake --install build/ --config Release
