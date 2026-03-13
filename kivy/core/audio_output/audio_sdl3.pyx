@@ -6,40 +6,12 @@ This core audio implementation require SDL_mixer library.
 It might conflict with any other library that are using SDL_mixer, such as
 ffmpeg-android.
 
-Native formats:
+Supported formats depend on the decoders that SDL_mixer is compiled with,
+but usually include at least WAV, OGG, FLAC and MP3.
 
-* wav, since 1.9.0
-
-Depending the compilation of SDL3 mixer and/or installed libraries:
-
-* ogg since 1.9.1 (mixer needs libvorbis/libogg)
-* flac since 1.9.1 (mixer needs libflac)
-* mp3 since 1.9.1 (mixer needs libsmpeg/libmad; only use mad for GPL apps)
-  * Since 1.10.1 + mixer 2.0.2, mpg123 can also be used
-* sequenced formats since 1.9.1 (midi, mod, s3m, etc. Mixer needs
-  libmodplug or libmikmod)
-
-.. Note::
-
-    Sequenced format support changed with mixer v2.0.2. If mixer is
-    linked with one of libmodplug or libmikmod, format support for
-    both libraries is assumed. This will work perfectly with formats
-    supported by both libraries, but if you were to try to load an
-    obscure format (like `apun` file with mikmod only), it will fail.
-
-    * Kivy <= 1.10.0: will fail to build with mixer >= 2.0.2
-      will report correct format support with < 2.0.2
-    * Kivy >= 1.10.1: will build with old and new mixer, and
-      will "guesstimate" sequenced format support
-
-.. Warning::
-
-    Sequenced formats use the SDL3 Mixer music channel, you can only play
-    one at a time, and .length will be -1 if music fails to load, and 0
-    if loaded successfully (we can't get duration of these formats)
 '''
 
-__all__ = ('SoundSDL3', 'MusicSDL3')
+__all__ = ('SoundSDL3')
 
 include "../../../kivy/lib/sdl3.pxi"
 
@@ -51,14 +23,13 @@ cdef MIX_Mixer *mixer_instance = NULL
 
 cdef mix_init():
     cdef SDL_AudioSpec desired_spec
-    cdef int want_flags = 0
     global mixer_instance
 
-    # avoid next call
+    # Skip initialization if mixer is already initialized.
     if mixer_instance != NULL:
         return False
 
-    if SDL_Init(SDL_INIT_AUDIO) < 0:
+    if not SDL_Init(SDL_INIT_AUDIO):
         Logger.critical('AudioSDL3: Unable to initialize SDL: {}'.format(
                         SDL_GetError()))
         return False
@@ -73,9 +44,18 @@ cdef mix_init():
         Logger.critical('AudioSDL3: Unable to open mixer: {}'.format(
                         SDL_GetError()))
         return False
+
     return True
 
-cdef class AudioTrackContainer:
+cdef class _SDL3AudioTrack:
+    """
+    This container explicitly maps audio and a track together, as we do
+    not need a complex mixer management.
+
+    Once a _SDL3AudioTrack is initialized, a new track on the mixer is created, and will
+    be destroyed when the container is deallocated.
+    """
+
     cdef MIX_Audio *audio
     cdef MIX_Track *track
 
@@ -85,13 +65,89 @@ cdef class AudioTrackContainer:
 
     def __dealloc__(self):
         if self.audio != NULL:
-            if MIX_GetTrackAudio(self.track) == self.audio:
-                MIX_StopTrack(self.track, 0)
+            MIX_StopTrack(self.track, 0)
             MIX_DestroyAudio(self.audio)
             self.audio = NULL
 
         MIX_DestroyTrack(self.track)
         self.track = NULL
+
+    def is_playing(self):
+        if not self.is_audio_set():
+            return False
+        return MIX_TrackPlaying(self.track)
+
+    def is_audio_set(self):
+        if self.audio == NULL:
+            return False
+        return True
+
+    def load_audio(self, source):
+        if not isinstance(source, bytes):
+            source = source.encode('UTF-8')
+        self.audio = MIX_LoadAudio(mixer_instance, <char *><bytes>source, False)
+
+        if not self.is_audio_set():
+            Logger.warning('AudioSDL3: Unable to load {}: {}'.format(
+                           source, SDL_GetError()))
+            return False
+        
+        # Set the loaded audio to the track. We do this here to be sure that the track is always
+        # associated with the audio, even if the track is not playing yet.
+        MIX_SetTrackAudio(self.track, self.audio)
+
+        return True
+
+    def unload_audio(self):
+        if not self.is_audio_set():
+            return
+        MIX_DestroyAudio(self.audio)
+        self.audio = NULL
+
+    def set_volume(self, volume):
+        if not self.is_audio_set():
+            return
+        MIX_SetTrackGain(self.track, volume)
+
+    def set_pitch(self, pitch):
+        if not self.is_audio_set():
+            return
+        if not MIX_SetTrackFrequencyRatio(self.track, pitch):
+            Logger.warning("SoundSDL3: Error setting pitch: %s" % SDL_GetError())
+    
+    def play(self):
+        if not self.is_audio_set():
+            return
+        return MIX_PlayTrack(self.track, 0)
+
+    def stop(self):
+        if not self.is_audio_set():
+            return
+        return MIX_StopTrack(self.track, 0)
+
+    def seek(self, position):
+        if not self.is_audio_set():
+            return
+        new_position_frame = MIX_AudioMSToFrames(self.audio, int(position * 1000))
+        if not MIX_SetTrackPlaybackPosition(self.track, new_position_frame):
+            Logger.warning("SoundSDL3: Error seeking: %s" % SDL_GetError())
+
+    def get_pos(self):
+        if not self.is_audio_set():
+            return 0
+        current_position_frames = MIX_GetTrackPlaybackPosition(self.track)
+        return MIX_AudioFramesToMS(self.audio, current_position_frames) / 1000.0
+    
+    def _get_audio_length_frames(self):
+        if not self.is_audio_set():
+            return 0
+        return MIX_GetAudioDuration(self.audio)
+
+    def get_audio_length(self):
+        if not self.is_audio_set():
+            return 0
+        audio_length_frames = self._get_audio_length_frames()
+        return  MIX_AudioFramesToMS(self.audio, MIX_GetAudioDuration(self.audio)) / 1000.0
 
 
 class SoundSDL3(Sound):
@@ -102,66 +158,65 @@ class SoundSDL3(Sound):
         mix_init()
         cdef int decoders_num = MIX_GetNumAudioDecoders()
         cdef char* decoder
-        decoders = []
+        extensions = set()
         for i in range(decoders_num):
-            decoder = MIX_GetAudioDecoder(i)
-            print("Audio decoder {}: {}".format(i, decoder))
+            decoder = <char *>MIX_GetAudioDecoder(i)
+            decoder_str = decoder.decode('utf-8')
+            if decoder_str == "WAV":
+                extensions.add("wav")
+            elif decoder_str == "STBVORBIS":
+                extensions.add("ogg")
+            elif decoder_str == "DRFLAC":
+                extensions.add("flac")
+            elif decoder_str == "DRMP3":
+                extensions.add("mp3")
+            elif decoder_str == "SINEWAVE":
+                # This is a special decoder that generates a sine wave, we don't want to report it as supported format.
+                continue
+            elif decoder_str == "RAW":
+                # This is a special decoder that loads raw audio data, we don't want to report it as supported format.
+                continue
+            else:
+                Logger.warning("SoundSDL3: Unrecognized audio decoder: %s , you might want to report this to Kivy developers to add support for this format." % decoder)
 
-        extensions = ["wav"]
-        extensions.append("flac")
-        extensions.append("mp3")
-        extensions.append("ogg")
         return extensions
 
     def __init__(self, **kwargs):
         self._check_play_ev = None
         mix_init()
-        self.audio_track_container = AudioTrackContainer()
+        self._audiotrack = _SDL3AudioTrack()
         super(SoundSDL3, self).__init__(**kwargs)
 
     def _check_play(self, dt):
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
-        if audio_track_container.track == NULL or audio_track_container.audio == NULL:
-            return False
-        if MIX_TrackPlaying(audio_track_container.track):
+        if not self._audiotrack.is_audio_set():
             return
+
+        if self._audiotrack.is_playing():
+            return
+
         if self.loop:
             def do_loop(dt):
                 self.play()
             Clock.schedule_once(do_loop)
         else:
             self.stop()
+
         return False
 
     def _get_length(self):
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
-        cdef int freq, channels
-        cdef unsigned int points, frames
-        cdef SDL_AudioSpec spec
-        if audio_track_container.audio == NULL:
-            return 0
-        if not MIX_GetMixerFormat(mixer_instance, &spec):
-            return 0
-        
-        points = <unsigned int>int(MIX_GetAudioDuration(audio_track_container.audio) / ((spec.format & 0xFF) / 8))
-        frames = <unsigned int>int(points / channels)
-        return <double>frames / <double>freq
+        return self._audiotrack.get_audio_length()
 
     def on_pitch(self, instance, value):
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
-        if not MIX_SetTrackFrequencyRatio(audio_track_container.track, value):
-            Logger.warning("SoundSDL3: Error setting pitch: %s" % SDL_GetError())
-            return
+        self._audiotrack.set_pitch(value)
 
     def play(self):
-        print("Playing sound: {}".format(self.source))
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
         self.stop()
-        if audio_track_container.audio == NULL:
+        if not self._audiotrack.is_audio_set():
             return
-        MIX_SetTrackGain(audio_track_container.track, int(self.volume * 128))
-        MIX_SetTrackAudio(audio_track_container.track, audio_track_container.audio)
-        if not MIX_PlayTrack(audio_track_container.track, 0):
+        
+        self._audiotrack.set_volume(self.volume)
+
+        if not self._audiotrack.play():
             Logger.warning('AudioSDL3: Unable to play {}: {}'.format(
                            self.source, SDL_GetError()))
             return
@@ -170,48 +225,31 @@ class SoundSDL3(Sound):
         super(SoundSDL3, self).play()
 
     def stop(self):
-        print("Stopping sound: {}".format(self.source))
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
-        if audio_track_container.audio == NULL or audio_track_container.track == NULL:
-            return
-        if MIX_GetTrackAudio(audio_track_container.track) == audio_track_container.audio:
-            MIX_StopTrack(audio_track_container.track, 0)
+        self._audiotrack.stop()
         if self._check_play_ev is not None:
             self._check_play_ev.cancel()
             self._check_play_ev = None
         super(SoundSDL3, self).stop()
 
     def load(self):
-        print("Loading sound: {}".format(self.source))
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
         self.unload()
         if self.source is None:
             return
 
-        if isinstance(self.source, bytes):
-            fn = self.source
-        else:
-            fn = self.source.encode('UTF-8')
+        if not self._audiotrack.load_audio(self.source):
+            return
 
-        audio_track_container.audio = MIX_LoadAudio(mixer_instance, <char *><bytes>fn, False)
-        if audio_track_container.audio == NULL:
-            Logger.warning('AudioSDL3: Unable to load {}: {}'.format(
-                           self.source, SDL_GetError()))
-        else:
-            MIX_SetTrackGain(audio_track_container.track, int(self.volume * 128))
-            if self.pitch != 1.:
-                self.on_pitch(self, self.pitch)
+    def seek(self, position):
+        self._audiotrack.seek(position)
+
+    def get_pos(self):
+        return self._audiotrack.get_pos()
 
     def unload(self):
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
         self.stop()
-        if audio_track_container.audio != NULL:
-            MIX_DestroyAudio(audio_track_container.audio)
-            audio_track_container.audio = NULL
+        self._audiotrack.unload_audio()
 
     def on_volume(self, instance, volume):
-        cdef AudioTrackContainer audio_track_container = self.audio_track_container
-        if audio_track_container.audio != NULL:
-            MIX_SetTrackGain(audio_track_container.track, int(volume * 128))
+        self._audiotrack.set_volume(volume)
 
 SoundLoader.register(SoundSDL3)
