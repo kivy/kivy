@@ -126,7 +126,7 @@ popd
 echo "-- Build SDL3_image"
 pushd $MANYLINUX__SDL3_IMAGE__FOLDER
   ./external/download.sh;
-  cmake -B build -DBUILD_SHARED_LIBS=ON \
+  cmake -B build -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DSDLIMAGE_TIF_VENDORED=ON \
           -DSDLIMAGE_WEBP_VENDORED=ON \
