@@ -126,14 +126,9 @@ popd
 echo "-- Build SDL3_image"
 pushd $MANYLINUX__SDL3_IMAGE__FOLDER
   ./external/download.sh;
-  cmake -B build -DBUILD_SHARED_LIBS=OFF \
+  cmake -B build -DBUILD_SHARED_LIBS=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DSDLIMAGE_TIF_VENDORED=ON \
-          -DSDLIMAGE_WEBP_VENDORED=ON \
-          -DSDLIMAGE_JPG_VENDORED=ON \
-          -DSDLIMAGE_PNG_VENDORED=ON \
-          -DSDLIMAGE_TIF_SHARED=OFF \
-          -DSDLIMAGE_WEBP_SHARED=OFF \
+          -DSDLIMAGE_VENDORED=ON \
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DSDLIMAGE_VENDORED=OFF -GNinja
   cmake --build build/ --config Release --parallel --verbose
