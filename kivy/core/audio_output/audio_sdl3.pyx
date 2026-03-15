@@ -166,6 +166,17 @@ class SoundSDL3(Sound):
                 extensions.add("wav")
             elif decoder_str == "STBVORBIS":
                 extensions.add("ogg")
+            elif decoder_str == "VORBIS":
+                extensions.add("ogg")
+            elif decoder_str == "WAVPACK":
+                extensions.add("wv")
+            elif decoder_str == "VOC":
+                extensions.add("voc")
+            elif decoder_str == "AIFF":
+                extensions.add("aiff")
+                extensions.add("aif")
+            elif decoder_str == "AU":
+                extensions.add("au")
             elif decoder_str == "DRFLAC":
                 extensions.add("flac")
             elif decoder_str == "DRMP3":
@@ -179,7 +190,7 @@ class SoundSDL3(Sound):
             else:
                 Logger.warning("SoundSDL3: Unrecognized audio decoder: %s , you might want to report this to Kivy developers to add support for this format." % decoder)
 
-        return extensions
+        return list(extensions)
 
     def __init__(self, **kwargs):
         self._check_play_ev = None
