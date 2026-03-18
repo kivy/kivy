@@ -1150,7 +1150,7 @@ class WindowBase(EventDispatcher):
 
         self.fbind(
             'on_drop_file',
-            lambda win, filename, *args: win.dispatch('on_dropfile', filename)
+            lambda win, filename, *args: win.dispatch('on_drop_file', filename)
         )
         super(WindowBase, self).__init__(**kwargs)
 
