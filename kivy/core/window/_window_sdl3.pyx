@@ -155,20 +155,20 @@ cdef class _WindowSDL3Storage:
             return
 
     def _set_sdl_gl_common_attributes(self):
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
+        # SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+        # SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
         # SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+        # SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+        # SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+        # SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
 
         config_alpha_size = Config.getint('graphics', 'alpha_size')
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config_alpha_size)
+        # SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config_alpha_size)
 
         # SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
+        # SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
+        # SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
         if self.gl_backend_name == "angle_sdl3":
             Logger.info("Window: Activate GLES2/ANGLE context")
