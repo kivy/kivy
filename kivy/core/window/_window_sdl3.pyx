@@ -226,7 +226,9 @@ cdef class _WindowSDL3Storage:
                                 SDL_HINT_OVERRIDE)
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
+            print("WindowSDL: SDL_init failed")
             self.die()
+        print("WindowSDL: SDL initialized with video and joystick support")
 
         # Set default orientation (force landscape for now)
         orientations = 'LandscapeLeft LandscapeRight'
