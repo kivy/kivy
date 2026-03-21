@@ -140,7 +140,7 @@ jobs:
         python: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
     env:
       DISPLAY: ':99.0'
-      SDL_VIDEO_X11_VISUALID: 0x00
+      SDL_VIDEO_X11_VISUALID: 0x1b6
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python
@@ -186,7 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISPLAY: ':99.0'
-      SDL_VIDEO_X11_VISUALID: 0x00
+      SDL_VIDEO_X11_VISUALID: 0x1b6
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - uses: actions/checkout@v6
