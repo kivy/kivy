@@ -8,7 +8,7 @@ requires = [
     'kivy_deps.sdl3_dev~=0.0.9; sys_platform == "win32"',
     'kivy_deps.glew_dev~=0.3.1; sys_platform == "win32"',
     'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
-    'kivy_deps.sdl3~=0.0.9; sys_platform == "win32"',
+    'kivy_deps.sdl3~=0.1.0; sys_platform == "win32"',
     'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
 ]
 
