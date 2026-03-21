@@ -105,8 +105,9 @@ cdef class _WindowSDL3Storage:
                 return NULL
         else:
             if self.sdl_manages_egl_context:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+                pass
+                # SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                # SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
 
         if shaped:
             _win_flags |= SDL_WINDOW_TRANSPARENT
