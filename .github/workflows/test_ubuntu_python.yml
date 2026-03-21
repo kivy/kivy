@@ -56,9 +56,9 @@ jobs:
     - name: Install xvfb
       run: |
         sudo apt-get install -y xvfb
-    - name: Start xvfb
+    - name: Print OpenGL info
       run: |
-        Xvfb :99 -screen 0 1024x768x24 &
+        glxinfo
     - name: Test example app
       run: |
         source .ci/ubuntu_ci.sh
