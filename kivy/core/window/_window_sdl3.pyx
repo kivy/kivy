@@ -93,22 +93,6 @@ cdef class _WindowSDL3Storage:
         cdef SDL_Window *win
         cdef int _win_flags = self.win_flags
 
-        if multisamples:
-            if self.sdl_manages_egl_context:
-                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-                SDL_GL_SetAttribute(
-                    SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
-                )
-            else:
-                # Non-SDL GL context, so we can't set the multisample
-                # attributes.
-                return NULL
-        else:
-            if self.sdl_manages_egl_context:
-                pass
-                # SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
-                # SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
-
         if shaped:
             _win_flags |= SDL_WINDOW_TRANSPARENT
 
