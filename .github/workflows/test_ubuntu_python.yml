@@ -63,7 +63,7 @@ jobs:
     - name: Test example app
       run: |
         source .ci/ubuntu_ci.sh
-        python examples/demo/touchtracer/main.py
+        SDL_LOGGING="video=verbose,*=verbose" python examples/demo/touchtracer/main.py
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
