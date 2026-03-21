@@ -53,6 +53,10 @@ jobs:
         source .ci/ubuntu_ci.sh
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         install_kivy
+    - name: Test example app
+      run: |
+        source .ci/ubuntu_ci.sh
+        python examples/demo/touchtracer/main.py
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
