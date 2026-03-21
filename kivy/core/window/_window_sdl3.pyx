@@ -226,7 +226,7 @@ cdef class _WindowSDL3Storage:
                                 SDL_HINT_OVERRIDE)
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
-            print("WindowSDL: SDL_init failed")
+            logger.error("WindowSDL: SDL_Init failed")
             self.die()
         print("WindowSDL: SDL initialized with video and joystick support")
 
@@ -288,6 +288,7 @@ cdef class _WindowSDL3Storage:
                 break
 
         if not self.win:
+            logger.error("WindowSDL: SDL_Init failed at end")
             self.die()
 
         # Set shape in case the user requested a shaped window and the window
