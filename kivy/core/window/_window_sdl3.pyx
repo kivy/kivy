@@ -93,6 +93,21 @@ cdef class _WindowSDL3Storage:
         cdef SDL_Window *win
         cdef int _win_flags = self.win_flags
 
+        if multisamples:
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+                SDL_GL_SetAttribute(
+                    SDL_GL_MULTISAMPLESAMPLES, min(multisamples, 4)
+                )
+            else:
+                # Non-SDL GL context, so we can't set the multisample
+                # attributes.
+                return NULL
+        else:
+            if self.sdl_manages_egl_context:
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0)
+                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0)
+
         if shaped:
             _win_flags |= SDL_WINDOW_TRANSPARENT
 
@@ -150,6 +165,7 @@ cdef class _WindowSDL3Storage:
         config_alpha_size = Config.getint('graphics', 'alpha_size')
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config_alpha_size)
 
+        SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
@@ -211,9 +227,7 @@ cdef class _WindowSDL3Storage:
                                 SDL_HINT_OVERRIDE)
 
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
-            logger.error("WindowSDL: SDL_Init failed")
             self.die()
-        print("WindowSDL: SDL initialized with video and joystick support")
 
         # Set default orientation (force landscape for now)
         orientations = 'LandscapeLeft LandscapeRight'
@@ -254,12 +268,12 @@ cdef class _WindowSDL3Storage:
         # 3. Ordinary window with multisampling
         # 4. Ordinary window without multisampling
         sdl_window_configs = []
-        # if config_multisamples and config_shaped:
-        #     sdl_window_configs.append((config_multisamples, config_shaped))
-        # if config_shaped:
-        #     sdl_window_configs.append((0, config_shaped))
-        # if config_multisamples:
-        #     sdl_window_configs.append((config_multisamples, 0))
+        if config_multisamples and config_shaped:
+            sdl_window_configs.append((config_multisamples, config_shaped))
+        if config_shaped:
+            sdl_window_configs.append((0, config_shaped))
+        if config_multisamples:
+            sdl_window_configs.append((config_multisamples, 0))
         sdl_window_configs.append((0, 0))
 
         for multisamples, shaped in sdl_window_configs:
@@ -273,7 +287,6 @@ cdef class _WindowSDL3Storage:
                 break
 
         if not self.win:
-            logger.error("WindowSDL: SDL_Init failed at end")
             self.die()
 
         # Set shape in case the user requested a shaped window and the window
