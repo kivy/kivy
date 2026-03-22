@@ -28,7 +28,6 @@ jobs:
         python: [ '3.13', '3.14' ]
     env:
       DISPLAY: ':99.0'
-      SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER: "skip"
       # TODO: Only run tests on 3.14 once "ffpyplayer" works with Python 3.14
       KIVY_TEST_AUDIO: ${{ matrix.python == '3.14' && '0' || '1' }}
     steps:

@@ -140,7 +140,6 @@ jobs:
         python: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
     env:
       DISPLAY: ':99.0'
-      SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER: "skip"
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python
@@ -186,7 +185,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISPLAY: ':99.0'
-      SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER: "skip"
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - uses: actions/checkout@v6
