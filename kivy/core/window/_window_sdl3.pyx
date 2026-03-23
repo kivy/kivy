@@ -171,9 +171,15 @@ cdef class _WindowSDL3Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        # Disable sRGB framebuffer to prevent Mesa on Linux from selecting
-        # an sRGB-capable GLX visual and auto-enabling GL_FRAMEBUFFER_SRGB,
-        # which would corrupt color blending in FBOs (SDL3 >= 3.4.2 required).
+        # Request a non-sRGB GLX visual.  Mesa (Linux) changed its default in
+        # SDL3 3.4.0 to "don't care", causing it to pick an sRGB-capable visual
+        # and then auto-enable GL_FRAMEBUFFER_SRGB, which corrupts colour
+        # blending in FBOs.  Setting this attribute to 0 explicitly asks for a
+        # linear visual and is understood by SDL3 3.4.x on all platforms.
+        SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 0)
+        # Belt-and-suspenders: SDL3 >= 3.4.2 also honours this hint to force
+        # the non-sRGB request AND call glDisable(GL_FRAMEBUFFER_SRGB) after
+        # context creation even if the driver ignored the visual request.
         SDL_SetHint(b"SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER", b"0")
 
         if self.gl_backend_name == "angle_sdl3":

@@ -37,6 +37,13 @@ cdef void reset_gl_context():
     cgl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
     cgl.glActiveTexture(GL_TEXTURE0)
     cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    # GL_FRAMEBUFFER_SRGB (0x8DB9): Mesa auto-enables this when an sRGB-capable
+    # GLX visual is selected, causing wrong colour blending in FBOs.  Explicitly
+    # disable it here so Kivy's linear-light blending is always correct,
+    # regardless of SDL version or driver behaviour.  Only relevant for desktop
+    # OpenGL; GLES2 platforms do not expose this capability.
+    if not kivy_opengl_es2:
+        cgl.glDisable(0x8DB9)
 
 
 _FLAG_UPDATE_DOC = """Indicate that the instruction needs to be redrawn on the next frame.
