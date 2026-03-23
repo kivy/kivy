@@ -888,97 +888,28 @@ cdef extern from "SDL_video.h":
     SDL_SystemTheme SDL_GetSystemTheme() nogil
 
 cdef extern from "SDL_mixer.h":
-    cdef struct Mix_Chunk:
-        int allocated
-        Uint8 *abuf
-        Uint32 alen
-        Uint8 volume
-    ctypedef struct Mix_Music:
+    ctypedef struct MIX_Mixer:
         pass
-    ctypedef enum Mix_Fading:
-        MIX_NO_FADING
-        MIX_FADING_OUT
-        MIX_FADING_IN
-    ctypedef enum MIX_InitFlags:
-        MIX_INIT_FLAC        = 0x00000001
-        MIX_INIT_MOD         = 0x00000002
-        MIX_INIT_MODPLUG     = 0x00000004 # Removed in mixer 2.0.2
-        MIX_INIT_MP3         = 0x00000008
-        MIX_INIT_OGG         = 0x00000010
-        MIX_INIT_MID         = 0x00000020 # Previously _FLUIDSYNTH
-
-    cdef int MIX_MAX_VOLUME
-
-    cdef int Mix_Init(int flags)
-    cdef void Mix_Quit()
-    cdef int Mix_OpenAudio(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
-    cdef  int  Mix_AllocateChannels(int numchans)
-    cdef  int  Mix_QuerySpec(int *frequency,Uint16 *format,int *channels)
-    cdef  Mix_Chunk *  Mix_LoadWAV(char *file)
-    cdef  Mix_Music *  Mix_LoadMUS(char *file)
-    cdef  Mix_Chunk *  Mix_QuickLoad_WAV(Uint8 *mem)
-    cdef  Mix_Chunk *  Mix_QuickLoad_RAW(Uint8 *mem, Uint32 len)
-    cdef  void  Mix_FreeChunk(Mix_Chunk *chunk)
-    cdef  void  Mix_FreeMusic(Mix_Music *music)
-    cdef int  Mix_GetNumChunkDecoders()
-    cdef  char *  Mix_GetChunkDecoder(int index)
-    cdef int  Mix_GetNumMusicDecoders()
-    cdef  char *  Mix_GetMusicDecoder(int index)
-    cdef void  Mix_SetPostMix(void (*mix_func)(void *udata, Uint8 *stream, int len), void *arg)
-    cdef void  Mix_HookMusic(void (*mix_func) (void *udata, Uint8 *stream, int len), void *arg)
-    cdef void  Mix_HookMusicFinished(void (*music_finished)())
-    cdef void *  Mix_GetMusicHookData()
-    cdef void  Mix_ChannelFinished(void (*channel_finished)(int channel))
-    #    typedef void (*Mix_EffectFunc_t)(int chan, void *stream, int len, void *udata)
-    #    typedef void (*Mix_EffectDone_t)(int chan, void *udata)
-    #    cdef int  Mix_RegisterEffect(int chan, Mix_EffectFunc_t f,
-    #    cdef int  Mix_UnregisterEffect(int channel, Mix_EffectFunc_t f)
-    cdef int  Mix_UnregisterAllEffects(int channel)
-    cdef int Mix_SetPanning(int channel, Uint8 left, Uint8 right)
-    cdef int  Mix_SetPosition(int channel, Sint16 angle, Uint8 distance)
-    cdef int  Mix_SetDistance(int channel, Uint8 distance)
-    cdef int  Mix_SetReverseStereo(int channel, int flip)
-    cdef int  Mix_ReserveChannels(int num)
-    cdef int  Mix_GroupChannel(int which, int tag)
-    cdef int  Mix_GroupChannels(int _from, int to, int tag)
-    cdef int  Mix_GroupAvailable(int tag)
-    cdef int  Mix_GroupCount(int tag)
-    cdef int  Mix_GroupOldest(int tag)
-    cdef int  Mix_GroupNewer(int tag)
-    cdef int  Mix_PlayChannel(int channel, Mix_Chunk *chunk, int loops)
-    cdef int  Mix_PlayChannelTimed(int channel, Mix_Chunk *chunk, int loops, int ticks)
-    cdef int  Mix_PlayMusic(Mix_Music *music, int loops)
-    cdef int  Mix_FadeInMusic(Mix_Music *music, int loops, int ms)
-    cdef int  Mix_FadeInMusicPos(Mix_Music *music, int loops, int ms, double position)
-    cdef int  Mix_FadeInChannel(int channel, Mix_Chunk *chunk, int loops, int ms)
-    cdef int  Mix_FadeInChannelTimed(int channel, Mix_Chunk *chunk, int loops, int ms, int ticks)
-    cdef int  Mix_Volume(int channel, int volume)
-    cdef int  Mix_VolumeChunk(Mix_Chunk *chunk, int volume)
-    cdef int  Mix_VolumeMusic(int volume)
-    cdef int  Mix_HaltChannel(int channel)
-    cdef int  Mix_HaltGroup(int tag)
-    cdef int  Mix_HaltMusic()
-    cdef int  Mix_ExpireChannel(int channel, int ticks)
-    cdef int  Mix_FadeOutChannel(int which, int ms)
-    cdef int  Mix_FadeOutGroup(int tag, int ms)
-    cdef int  Mix_FadeOutMusic(int ms)
-    cdef Mix_Fading  Mix_FadingMusic()
-    cdef Mix_Fading  Mix_FadingChannel(int which)
-    cdef void  Mix_Pause(int channel)
-    cdef void  Mix_Resume(int channel)
-    cdef int  Mix_Paused(int channel)
-    cdef void  Mix_PauseMusic()
-    cdef void  Mix_ResumeMusic()
-    cdef void  Mix_RewindMusic()
-    cdef int  Mix_PausedMusic()
-    cdef int  Mix_SetMusicPosition(double position)
-    cdef int  Mix_Playing(int channel)
-    cdef int  Mix_PlayingMusic()
-    cdef int  Mix_SetMusicCMD( char *command)
-    cdef int  Mix_SetSynchroValue(int value)
-    cdef int  Mix_GetSynchroValue()
-    cdef int  Mix_SetSoundFonts( char *paths)
-    cdef  char*  Mix_GetSoundFonts()
-    #cdef int  Mix_EachSoundFont(int (*function)( char*, void*), void *data)
-    cdef Mix_Chunk *  Mix_GetChunk(int channel)
-    cdef void  Mix_CloseAudio()
+    ctypedef struct MIX_Audio:
+        pass
+    ctypedef struct MIX_Track:
+        pass
+    cdef int MIX_Init()
+    cdef MIX_Mixer * MIX_CreateMixerDevice(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
+    cdef MIX_Audio * MIX_LoadAudio(MIX_Mixer *mixer, const char *path, bool predecode)
+    cdef void MIX_DestroyAudio(MIX_Audio *audio)
+    cdef bint MIX_SetTrackAudio(MIX_Track *track, MIX_Audio *audio)
+    cdef bint MIX_PlayTrack(MIX_Track *track, SDL_PropertiesID options)
+    cdef bint MIX_SetTrackGain(MIX_Track *track, float gain)
+    cdef bint MIX_SetTrackFrequencyRatio(MIX_Track *track, float ratio)
+    cdef bint MIX_StopTrack(MIX_Track *track, Sint64 fade_out_frames)
+    cdef bint MIX_TrackPlaying(MIX_Track *track)
+    cdef MIX_Track* MIX_CreateTrack(MIX_Mixer *mixer)
+    cdef bint MIX_DestroyTrack(MIX_Track *track)
+    cdef Sint64 MIX_GetAudioDuration(MIX_Audio *audio)
+    cdef Sint64 MIX_AudioFramesToMS(MIX_Audio *audio, Sint64 frames)
+    cdef Sint64 MIX_AudioMSToFrames(MIX_Audio *audio, Sint64 ms)
+    cdef int MIX_GetNumAudioDecoders()
+    cdef char* MIX_GetAudioDecoder(int index)
+    cdef bint MIX_SetTrackPlaybackPosition(MIX_Track *track, Sint64 frames)
+    cdef Sint64 MIX_GetTrackPlaybackPosition(MIX_Track *track)
