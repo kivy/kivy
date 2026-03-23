@@ -171,6 +171,11 @@ cdef class _WindowSDL3Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
+        # Disable sRGB framebuffer to prevent Mesa on Linux from selecting
+        # an sRGB-capable GLX visual and auto-enabling GL_FRAMEBUFFER_SRGB,
+        # which would corrupt color blending in FBOs (SDL3 >= 3.4.2 required).
+        SDL_SetHint(b"SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER", b"0")
+
         if self.gl_backend_name == "angle_sdl3":
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
