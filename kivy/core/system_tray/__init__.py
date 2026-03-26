@@ -249,8 +249,14 @@ See Also
 * System Tray Guidelines: Platform-specific implementation notes
 """
 
-from ._system_tray_sdl3 import (
-    TrayIcon,
-    TrayMenu,
-    TrayMenuItem,
-)
+import os
+
+if 'KIVY_DOC' in os.environ:
+    # documentation hack
+    TrayIcon = TrayMenu = TrayMenuItem = None
+else:
+    from ._system_tray_sdl3 import (
+        TrayIcon,
+        TrayMenu,
+        TrayMenuItem,
+    )
