@@ -47,7 +47,7 @@ jobs:
           export KIVY_DEPS_ROOT=$(pwd)/ios-kivy-dependencies
           python ./tools/add-ios-frameworks.py ./wheelhouse
       - name: Upload wheels as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios_wheels
           path: wheelhouse/*.whl
@@ -64,7 +64,7 @@ jobs:
           python-version: 3.x
       - run: |
           python -m pip install -r .ci/cicd-requirements.txt
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: ios_wheels
           path: dist
