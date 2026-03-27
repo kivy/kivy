@@ -122,7 +122,8 @@ install_manylinux_build_deps() {
             libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
-            libdrm-devel mesa-libgbm-devel libsamplerate-devel
+            libdrm-devel mesa-libgbm-devel libsamplerate-devel \
+            libayatana-appindicator-gtk3-devel
 }
 
 install_ubuntu_build_deps() {
@@ -135,7 +136,8 @@ install_ubuntu_build_deps() {
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
+          libayatana-appindicator3-dev
 }
 
 generate_rpi_wheels() {
