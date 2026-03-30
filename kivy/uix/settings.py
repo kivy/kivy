@@ -1032,7 +1032,9 @@ class Settings(BoxLayout):
     def on_config_change(self, config, section, key, value):
         pass
 
-    def add_json_panel(self, title, config, filename=None, *, data=None, encoding='utf-8'):
+    def add_json_panel(
+            self, title, config, filename=None, *,
+            data=None, encoding='utf-8'):
         '''Create and add a new :class:`SettingsPanel` using the configuration
         `config` with the JSON definition `filename`. If `filename` is not set,
         then the JSON definition is read from the `data` parameter instead.
