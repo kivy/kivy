@@ -456,7 +456,8 @@ __all__ = (
 
 from sys import platform
 from os import environ
-from functools import wraps, partial
+from functools import wraps, partial, update_wrapper
+from weakref import WeakKeyDictionary, ref as weakref_ref
 from kivy.context import register_context
 from kivy.config import Config
 from kivy.logger import Logger
@@ -1094,62 +1095,227 @@ def mainthread(func):
     return delayed_func
 
 
-def triggered(timeout=0, interval=False):
-    '''Decorator that will trigger the call of the function at the specified
-    timeout, through the method :meth:`CyClockBase.create_trigger`. Subsequent
-    calls to the decorated function (while the timeout is active) are ignored.
+# The @triggered decorator uses two classes to handle the duality of Python
+# functions (global functions vs. instance methods):
+#
+# 1. _TriggeredWrapper (The Descriptor):
+#    - Lives at the module level (global) or class level.
+#    - For global functions: Manages its own `_trigger` and state in __call__.
+#    - For class methods: Implements the Descriptor Protocol (__get__) to
+#      intercept access via an instance (e.g., `widget.method()`).
+#    - Uses a WeakKeyDictionary to map instances to their respective
+#      _BoundTrigger objects, ensuring no memory leaks.
+#
+# 2. _BoundTrigger (The Instance State):
+#    - The object returned when accessing a method on an instance.
+#    - Maintains a `Clock.create_trigger` and argument buffers
+#      (`_args`, `_kwargs`) that are fully ISOLATED for each instance of the
+#      widget/object.
+#    - This isolation allows debouncing/throttling to work independently:
+#      triggering on 'Widget A' does not affect or cancel the schedule of
+#      'Widget B'.
+#
+# This separation resolves "cross-talk" between instances while keeping
+# the decorator flexible enough for use outside of classes.
 
-    It can be helpful when an expensive function (i.e. call to a server) can be
-    triggered by different methods. Setting a proper timeout will delay the
-    calling and only one of them will be triggered.
 
-        @triggered(timeout, interval=False)
-        def callback(id):
-            print('The callback has been called with id=%d' % id)
+class _TriggeredWrapper:
+    def __init__(self, func, timeout, interval, debounce):
+        self._func = func
+        self._timeout = timeout
+        self._interval = interval
+        self._debounce = debounce
+        self._args = []
+        self._kwargs = {}
+        self._trigger = None
+        self._instances = WeakKeyDictionary()
+        update_wrapper(self, func, updated=())
 
-        >> callback(id=1)
-        >> callback(id=2)
-        The callback has been called with id=2
+    @property
+    def is_triggered(self):
+        """Returns True if the trigger is currently scheduled."""
+        if self._trigger is not None:
+            return self._trigger.is_triggered
+        return False
 
-    The decorated callback can also be unscheduled using:
+    def _ensure_trigger(self):
+        if self._trigger is None:
+            self._trigger = Clock.create_trigger(
+                self.cb_function, timeout=self._timeout, interval=self._interval
+            )
 
-        >> callback.cancel()
+    def cb_function(self, dt):
+        self._func(*tuple(self._args), **self._kwargs)
+
+    def __call__(self, *args, **kwargs):
+        self._ensure_trigger()
+        if self._debounce:
+            self._trigger.cancel()
+        self._args[:] = args
+        self._kwargs.clear()
+        self._kwargs.update(kwargs)
+        self._trigger()
+
+    def cancel(self):
+        if self._trigger is not None:
+            self._trigger.cancel()
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if instance not in self._instances:
+            # Create a bound version for this instance
+            inst_weak = weakref_ref(instance)
+            inst_args = []
+            inst_kwargs = {}
+            func = self._func
+            timeout = self._timeout
+            interval = self._interval
+            debounce = self._debounce
+
+            def inst_cb(dt):
+                inst = inst_weak()
+                if inst is not None:
+                    func(inst, *tuple(inst_args), **inst_kwargs)
+
+            inst_trigger = Clock.create_trigger(
+                inst_cb, timeout=timeout, interval=interval
+            )
+
+            bound_trigger = _BoundTrigger(
+                inst_trigger, inst_args, inst_kwargs, inst_weak, debounce
+            )
+            update_wrapper(bound_trigger, func)
+            self._instances[instance] = bound_trigger
+
+        return self._instances[instance]
+
+
+class _BoundTrigger(object):
+
+    def __init__(self, trigger, args, kwargs, inst_weak, debounce):
+        self._trigger = trigger
+        self._args = args
+        self._kwargs = kwargs
+        self._inst_weak = inst_weak
+        self._debounce = debounce
+
+    def __call__(self, *args, **kwargs):
+        if self._inst_weak() is not None:
+            if self._debounce:
+                self._trigger.cancel()
+            self._args[:] = args
+            self._kwargs.clear()
+            self._kwargs.update(kwargs)
+            self._trigger()
+
+    @property
+    def is_triggered(self):
+        """Returns True if the trigger is currently scheduled."""
+        return self._trigger.is_triggered
+
+    def cancel(self):
+        """Unschedule the trigger."""
+        self._trigger.cancel()
+
+
+def triggered(timeout=0, interval=False, debounce=False):
+    """Decorator that schedules the execution of a function after a specified
+    timeout using :meth:`CyClockBase.create_trigger`.
+
+    This decorator provides several key behaviors:
+
+    * **Throttling** (default): Subsequent calls while a trigger is active are
+      ignored. The function fires once after the initial timeout.
+    * **Debouncing**: If ``debounce=True``, subsequent calls cancel any
+      pending execution and reschedule it. The function only fires after the
+      caller stops calling it for the duration of the ``timeout``.
+    * **Last Arguments Win**: If called multiple times before the trigger
+      fires, the arguments from the **latest** call are used.
+    * **Instance Isolation**: When used as a method decorator, each instance
+      gets its own isolated trigger and state.
+    * **Thread Safety**: Safe to call from external threads.
+
+    The decorated function gains a ``.cancel()`` method to unschedule any
+    pending execution, and an ``.is_triggered`` property to check its status.
+
+    :param timeout: The delay (in seconds) before the function is called.
+    :type timeout: float, defaults to 0
+    :param interval: If True, the trigger will be repeating (standard Clock
+        interval behavior).
+    :type interval: bool, defaults to False
+    :param debounce: If True, subsequent calls will cancel and reschedule the
+        trigger.
+    :type debounce: bool, defaults to False
+
+    Example of a global function without debouncing::
+
+        @triggered(0.1)
+        def sync_data(user_id):
+            print(f"Syncing data for {user_id}")
+
+        sync_data(1)
+        sync_data(2)  # Overwrites arguments of the first call
+        # 0.1s later: "Syncing data for 2"
+
+    Example of a global function with debouncing::
+
+        @triggered(0.1, debounce=True)
+        def sync_data(user_id):
+            print(f"Syncing data for {user_id}")
+
+        sync_data(1)
+        # 0.05s later
+        sync_data(2)  # Cancels the first call and reschedules for 0.1s from now
+        # 0.1s after the LAST call ("sync_data(2)"): "Syncing data for 2"
+
+    Example of an instance method::
+
+        class DataMapper:
+            @triggered(0.2)
+            def refresh(self, *args):
+                # This will be throttled per-instance
+                pass
+
+        dm1, dm2 = DataMapper(), DataMapper()
+        dm1.refresh() # Scheduled
+        dm2.refresh() # Scheduled independently
+
+    Example with ``classmethod`` and ``staticmethod`` (always put
+    ``@triggered`` below them)::
+
+        class Utils:
+            @classmethod
+            @triggered(0.1)
+            def global_refresh(cls, *args):
+                # shared by all instances
+                pass
+
+            @staticmethod
+            @triggered(0.1, debounce=True)
+            def log_event(message):
+                pass
+
+    To cancel a pending call::
+
+        sync_data.cancel()
 
     .. versionadded:: 1.10.1
-    '''
+    .. versionchanged:: 3.0.0
+        Fixed behavior for instance methods to ensure state isolation between
+        different objects. Added ``debounce`` parameter.
+    """
     fun = None
 
+    # handle both shorthand usage (@triggered)
+    # and parameterized usage (@triggered(0.1))
     if callable(timeout):
         fun = timeout
         timeout = 0
 
     def wrapper_triggered(func):
-
-        _args = []
-        _kwargs = {}
-
-        def cb_function(dt):
-            func(*tuple(_args), **_kwargs)
-
-        cb_trigger = Clock.create_trigger(
-            cb_function,
-            timeout=timeout,
-            interval=interval)
-
-        @wraps(func)
-        def trigger_function(*args, **kwargs):
-            _args[:] = []
-            _args.extend(list(args))
-            _kwargs.clear()
-            _kwargs.update(kwargs)
-            cb_trigger()
-
-        def trigger_cancel():
-            cb_trigger.cancel()
-
-        setattr(trigger_function, 'cancel', trigger_cancel)
-
-        return trigger_function
+        return _TriggeredWrapper(func, timeout, interval, debounce)
 
     if fun is not None:
         return wrapper_triggered(fun)
