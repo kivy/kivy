@@ -219,7 +219,7 @@ if _thorvg_available:
             picture = tvg.Picture(engine)
             try:
                 try:
-                    result = picture.load_data(data, 'svg', copy=True)
+                    result = picture.load_data(data, 'svg', None, True)
                 except Exception as e:
                     Logger.warning(
                         f'Image: ThorvgSvg unable to load from memory: {e}')
