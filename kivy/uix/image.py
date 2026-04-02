@@ -66,6 +66,45 @@ And in your kivy language file::
                 size: self.width + 20, self.height + 20
                 pos: self.x - 10, self.y - 10
 
+SVG Images
+----------
+
+.. versionadded:: 3.0.0
+
+SVG files are supported via the ThorVG image provider (``img_thorvg_svg``),
+which requires the ``thorvg-python`` package::
+
+    pip install thorvg-python
+
+Once installed, ``.svg`` files are loaded automatically::
+
+    Image(source='icons/house.svg')
+
+Because SVG is a vector format with no fixed pixel size, the provider
+rasterizes the file to a bitmap.  The rasterization size is determined by:
+
+1. An explicit ``size`` parameter in the ``@image_provider:`` URI (see below).
+2. The SVG's own declared width/height, subject to a configured minimum.
+3. The ``[svg] default_size`` config key (default ``512``), used when the SVG
+   has no declared size or when the declared size is smaller.
+
+To change the global minimum raster size::
+
+    from kivy.config import Config
+    Config.set('svg', 'default_size', '256')  # must be set before first load
+
+Explicit raster size via URI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To rasterize an SVG at a specific size (overriding the config default), use
+the ``@image_provider:`` URI with a ``size`` parameter::
+
+    # Rasterize at 128 pixels (aspect ratio preserved)
+    Image(source='@image_provider:thorvg_svg[size=128](icons/house.svg)')
+
+This is useful when you know the maximum display size and want to avoid
+rasterizing at the full 512-pixel default for small icons.
+
 '''
 __all__ = ('Image', 'AsyncImage')
 
@@ -368,11 +407,15 @@ class Image(Widget):
         if not resource:
             self._clear_core_image()
             return
-        source = resource_find(resource)
-        if not source:
-            Logger.error('Image: Not found <%s>' % resource)
-            self._clear_core_image()
-            return
+        # @image_provider: URIs are resolved inside ImageLoader; skip here.
+        if resource.startswith('@image_provider:'):
+            source = resource
+        else:
+            source = resource_find(resource)
+            if not source:
+                Logger.error('Image: Not found <%s>' % resource)
+                self._clear_core_image()
+                return
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
         try:
