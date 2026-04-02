@@ -23,11 +23,6 @@ from kivy.core.svg import SvgProviderBase, SvgLoader
 _engine = None
 _accessor = None
 
-# Cached ctypes function wrappers - set once on first use so that
-# argtypes/restype are not reassigned on every render call.
-_tvg_generate_id_fn = None
-_tvg_get_paint_fn = None
-
 
 def _get_engine():
     '''Return the shared ThorVG Engine, initialising it if needed.'''
@@ -41,56 +36,16 @@ def _get_engine():
 def _generate_id(name):
     '''Hash *name* to the uint32 paint ID that ThorVG uses internally.
 
-    This is a workaround for a bug in ``thorvg_python``'s
-    ``Accessor.accessor_generate_id()`` method.
-
-    Wraps ``tvg_accessor_generate_id`` from the ThorVG C library directly.
-    The ``thorvg_python`` binding's ``Accessor.accessor_generate_id()`` calls
-    ``.value`` on the ctypes return, which fails on platforms where ctypes
-    already unwraps ``c_uint32`` to a plain Python ``int``.  Using ``int()``
-    here handles both cases safely.
-
-    argtypes/restype are set once and cached in ``_tvg_generate_id_fn`` so
-    that repeated calls do not pay the ctypes attribute-set overhead.
+    Uses ``Accessor.accessor_generate_id()``, which is a pure hash function
+    and does not require a loaded Picture.  The Accessor is a module-level
+    singleton so the initialisation cost is paid only once.
     '''
-    global _accessor, _tvg_generate_id_fn
-    import ctypes
+    global _accessor
     from thorvg_python.accessor import Accessor
     engine = _get_engine()
     if _accessor is None:
         _accessor = Accessor(engine, None)
-    if _tvg_generate_id_fn is None:
-        fn = _accessor.thorvg_lib.tvg_accessor_generate_id
-        fn.argtypes = [ctypes.c_char_p]
-        fn.restype = ctypes.c_uint32
-        _tvg_generate_id_fn = fn
-    # c_char_p passes a null-terminated byte string; encode() provides UTF-8.
-    return int(_tvg_generate_id_fn(name.encode()))
-
-
-def _picture_get_paint(pic, hash_id):
-    '''Retrieve a Paint node from a Picture by its uint32 hash ID.
-
-    Works around a bug in ``thorvg_python``'s ``Picture.get_paint``
-    where all three ctypes calls incorrectly name ``tvg_picture_get_size``
-    instead of ``tvg_picture_get_paint``, causing an access violation when
-    the function writes floats into what should be a pointer-return path.
-
-    argtypes/restype are set once and cached in ``_tvg_get_paint_fn``.
-    '''
-    global _tvg_get_paint_fn
-    import ctypes
-    from thorvg_python.base import PaintPointer
-    from thorvg_python.paint import Paint
-    if _tvg_get_paint_fn is None:
-        fn = pic.thorvg_lib.tvg_picture_get_paint
-        fn.argtypes = [PaintPointer, ctypes.c_uint32]
-        fn.restype = PaintPointer
-        _tvg_get_paint_fn = fn
-    paint_ptr = _tvg_get_paint_fn(pic._paint, ctypes.c_uint32(hash_id))
-    if not paint_ptr:
-        return None
-    return Paint(pic.engine, paint_ptr)
+    return _accessor.accessor_generate_id(name)
 
 
 def _parse_element_ids(svg_bytes):
@@ -372,7 +327,7 @@ class SvgProviderThorvg(SvgProviderBase):
         if element_overrides:
             for elem_id, overrides in element_overrides.items():
                 hash_id = _generate_id(elem_id)
-                paint = _picture_get_paint(pic, hash_id)
+                paint = pic.get_paint(hash_id)
                 if paint is None:
                     # Warning logged by widget layer; skip silently here.
                     continue
