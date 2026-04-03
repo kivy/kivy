@@ -105,6 +105,9 @@ PROVIDER_CONFIGS = {
         ('dummy', 'clipboard_dummy'),
         ('gtk3', 'clipboard_gtk3'),
     ],
+    'svg': [
+        ('thorvg', 'svg_thorvg'),
+    ],
 }
 
 
