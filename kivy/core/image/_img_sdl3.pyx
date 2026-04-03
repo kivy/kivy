@@ -159,10 +159,6 @@ cdef load_from_surface(SDL_Surface *image):
         fmt = 'rgba'
     elif image.format == want_bgra:
         fmt = 'bgra'
-    elif image.format == SDL_PIXELFORMAT_INDEX1MSB and sfc_palette != NULL:
-        fmt = 'rgba'
-        target_fmt = want_rgba
-
 
     # Alpha mask or colorkey must be converted to rgba
     elif sfc_fmt_details.Amask or SDL_GetSurfaceColorKey(image, NULL) == 0:
@@ -193,14 +189,7 @@ cdef load_from_surface(SDL_Surface *image):
         fimage = image
         if target_fmt != 0:
             with nogil:
-                if sfc_palette == NULL:
-                    # No palette, just convert the surface
-                    image2 = SDL_ConvertSurface(image, <SDL_PixelFormat>target_fmt)
-                else:
-                    # Paletted surface, convert with palette and colorspace (for indexed formats)
-                    image2 = SDL_ConvertSurfaceAndColorspace(
-                        image, <SDL_PixelFormat>target_fmt, sfc_palette, <SDL_Colorspace>0, 0
-                    )
+                image2 = SDL_ConvertSurface(image, <SDL_PixelFormat>target_fmt)
             if image2 == NULL:
                 Logger.warn('ImageSDL3: error converting {} to {}: {}'.format(
                         SDL_GetPixelFormatName(image.format),
