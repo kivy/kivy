@@ -38,6 +38,7 @@ cdef extern from "SDL.h":
         SDL_PIXELFORMAT_ABGR8888
         SDL_PIXELFORMAT_RGB24
         SDL_PIXELFORMAT_BGR24
+        SDL_PIXELFORMAT_INDEX1MSB
 
     ctypedef enum SDL_GLattr:
         SDL_GL_RED_SIZE
@@ -116,6 +117,9 @@ cdef extern from "SDL.h":
         SDL_Color *colors
         Uint32 version
         int refcount
+
+    cdef enum SDL_Colorspace:
+        SDL_COLORSPACE_UNKNOWN = 0x0
 
     cdef struct SDL_PixelFormatDetails:
         SDL_PixelFormat format;
@@ -532,6 +536,7 @@ cdef extern from "SDL.h":
     cdef SDL_PixelFormat SDL_GetPixelFormatForMasks(int bpp, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
     cdef SDL_PixelFormatDetails * SDL_GetPixelFormatDetails(SDL_PixelFormat format)
     cdef SDL_Surface* SDL_ConvertSurface(SDL_Surface* src, Uint32 pixel_format) nogil
+    cdef SDL_Surface* SDL_ConvertSurfaceAndColorspace(SDL_Surface *surface, SDL_PixelFormat format, SDL_Palette *palette, SDL_Colorspace colorspace, SDL_PropertiesID props) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
     cdef int SDL_GetSurfaceColorKey(SDL_Surface *surface, Uint32 *key)
     cdef SDL_Palette * SDL_GetSurfacePalette(SDL_Surface *surface)
