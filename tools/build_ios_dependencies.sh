@@ -1,22 +1,19 @@
 set -e -x
 
 # iOS SDL3
-IOS__SDL3__VERSION="3.2.22"
+IOS__SDL3__VERSION="3.4.2"
 IOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$IOS__SDL3__VERSION/SDL3-$IOS__SDL3__VERSION.tar.gz"
 IOS__SDL3__FOLDER="SDL3-$IOS__SDL3__VERSION"
 
 # iOS SDL3_image
-IOS__SDL3_IMAGE__VERSION="3.2.4"
+IOS__SDL3_IMAGE__VERSION="3.4.0"
 IOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$IOS__SDL3_IMAGE__VERSION/SDL3_image-$IOS__SDL3_IMAGE__VERSION.tar.gz"
 IOS__SDL3_IMAGE__FOLDER="SDL3_image-$IOS__SDL3_IMAGE__VERSION"
 
 # iOS SDL3_mixer
-# IOS__SDL2_MIXER__VERSION="2.6.3"
-# IOS__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$IOS__SDL2_MIXER__VERSION/SDL2_mixer-$IOS__SDL2_MIXER__VERSION.tar.gz"
-# IOS__SDL2_MIXER__FOLDER="SDL2_mixer-${IOS__SDL2_MIXER__VERSION}"
-IOS__SDL3_MIXER__HASH="78a2035cf4cf95066d7d9e6208e99507376409a7"
-IOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/$IOS__SDL3_MIXER__HASH.tar.gz"
-IOS__SDL3_MIXER__FOLDER="SDL_mixer-$IOS__SDL3_MIXER__HASH"
+IOS__SDL3_MIXER__VERSION="3.2.0"
+IOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$IOS__SDL3_MIXER__VERSION/SDL3_mixer-$IOS__SDL3_MIXER__VERSION.tar.gz"
+IOS__SDL3_MIXER__FOLDER="SDL3_mixer-$IOS__SDL3_MIXER__VERSION"
 
 # iOS SDL3_ttf
 IOS__SDL3_TTF__VERSION="3.2.2"
