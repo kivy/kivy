@@ -64,6 +64,11 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
+    - name: Test Kivy with pytest-run-parallel
+      run: |
+        source .ci/ubuntu_ci.sh
+        python -m pip install pytest-run-parallel[psutil]
+        pytest --iterations=8 --parallel-threads=auto --doctest-modules # kivy
     - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v6
       with:
