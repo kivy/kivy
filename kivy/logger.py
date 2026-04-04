@@ -330,7 +330,7 @@ class LoggerHistory(logging.Handler):
     history = []
 
     def emit(self, message):
-        LoggerHistory.history = [message] + LoggerHistory.history[:100]
+        LoggerHistory.history = [message] + LoggerHistory.history[:99]
 
     @classmethod
     def clear_history(cls):
