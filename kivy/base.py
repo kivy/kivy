@@ -136,7 +136,7 @@ class EventLoopBase(EventDispatcher):
         import kivy.core.window  # NOQA
         if not self.window:
             Logger.critical('App: Unable to get a Window, abort.')
-            sys.exit(1)
+            raise RuntimeError("No window provider available.")
 
     def set_window(self, window):
         '''Set the window used for the event loop.
@@ -615,3 +615,15 @@ def stopTouchApp():
         return
     Logger.info('Base: Leaving application in progress...')
     EventLoop.close()
+
+
+import os
+os.environ['KIVY_WINDOW'] = 'none'
+from kivy.logger import Logger
+from kivy.base import EventLoop
+Logger.info('Starting test')
+try:
+    EventLoop.ensure_window()
+except SystemExit as e:
+    Logger.info(f'SystemExit: {e}')
+    print(f'SystemExit: {e}')
