@@ -122,8 +122,7 @@ install_manylinux_build_deps() {
             libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
-            libdrm-devel mesa-libgbm-devel libsamplerate-devel \
-            libayatana-appindicator-gtk3-devel
+            libdrm-devel mesa-libgbm-devel libsamplerate-devel
 }
 
 install_ubuntu_build_deps() {
