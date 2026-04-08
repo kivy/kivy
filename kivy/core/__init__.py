@@ -90,6 +90,10 @@ PROVIDER_CONFIGS = {
         ('android', 'camera_android'),
         ('picamera', 'camera_picamera'),
     ],
+    'lottie': [
+        ('thorvg', 'lottie_thorvg'),
+        ('null',   'lottie_null'),
+    ],
     'spelling': [
         ('enchant', 'spelling_enchant'),
         ('osxappkit', 'spelling_osxappkit'),
