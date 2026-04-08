@@ -265,8 +265,13 @@ cdef extern from "SDL.h":
 
     cdef struct SDL_DropEvent:
         Uint32 type
-        Uint32 timestamp
-        char* file
+        Uint32 reserved
+        Uint64 timestamp
+        Uint32 windowID
+        Sint32 x
+        Sint32 y
+        char* source
+        char* data
 
     cdef struct SDL_MouseMotionEvent:
         Uint32 type
