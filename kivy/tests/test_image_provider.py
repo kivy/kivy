@@ -274,6 +274,46 @@ class TestImageProviderURIScheme:
         assert match.group(3) == "my images/photo.jpg"
 
 
+class TestParseUriParams:
+    """Pure unit tests for the URI parameter parser (_parse_uri_params)."""
+
+    @pytest.fixture(autouse=True)
+    def import_helper(self):
+        from kivy.core.image import _parse_uri_params
+        self.fn = _parse_uri_params
+
+    def test_none_returns_empty(self):
+        assert self.fn(None) == {}
+
+    def test_empty_string_returns_empty(self):
+        assert self.fn('') == {}
+
+    def test_single_int_param(self):
+        assert self.fn('size=512') == {'size': 512}
+
+    def test_multiple_params(self):
+        result = self.fn('size=256,quality=high')
+        assert result['size'] == 256
+        assert result['quality'] == 'high'
+
+    def test_int_conversion(self):
+        result = self.fn('size=128')
+        assert isinstance(result['size'], int)
+
+    def test_non_int_stays_string(self):
+        result = self.fn('mode=contain')
+        assert result['mode'] == 'contain'
+
+    def test_whitespace_around_tokens_ignored(self):
+        result = self.fn(' size = 512 ')
+        assert result['size'] == 512
+
+    def test_token_without_equals_ignored(self):
+        result = self.fn('badtoken,size=64')
+        assert 'badtoken' not in result
+        assert result['size'] == 64
+
+
 class TestInvalidProviderHandling:
     """Tests for invalid provider name handling."""
 
