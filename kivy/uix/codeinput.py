@@ -42,7 +42,7 @@ from pygments import lexers
 from pygments import styles
 from pygments.formatters import BBCodeFormatter
 
-from kivy.uix.textinput import TextInput
+from kivy.uix.textinput import TextInput, FL_IS_LINEBREAK, FL_IS_WORDBREAK
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import ObjectProperty, OptionProperty
@@ -112,6 +112,8 @@ class CodeInput(CodeNavigationBehavior, TextInput):
         self.foreground_color = [1, 1, 1, .999]
         if not kwargs.get('background_color'):
             self.background_color = [.9, .92, .92, 1]
+        self.FL_IS_LINEBREAK = FL_IS_LINEBREAK
+        self.FL_IS_WORDBREAK = FL_IS_WORDBREAK
 
     def on_style_name(self, *args):
         self.style = styles.get_style_by_name(self.style_name)
