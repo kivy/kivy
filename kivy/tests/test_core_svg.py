@@ -179,14 +179,14 @@ class TestSvgParseDim(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# _parse_element_ids
+# _extract_element_ids_xml
 # ---------------------------------------------------------------------------
 
 class TestParseElementIds(unittest.TestCase):
 
     def setUp(self):
-        from kivy.core.svg.svg_thorvg import _parse_element_ids
-        self._fn = _parse_element_ids
+        from kivy.core.svg.svg_thorvg import _extract_element_ids_xml
+        self._fn = _extract_element_ids_xml
 
     def test_returns_all_ids(self):
         svg = (

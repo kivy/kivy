@@ -48,13 +48,19 @@ def _generate_id(name):
     return _accessor.accessor_generate_id(name)
 
 
-def _parse_element_ids(svg_bytes):
-    '''Return a list of all ``id`` attribute values in the SVG XML.'''
+def _extract_element_ids_xml(svg_bytes):
+    '''Fallback: return ``id`` attribute values from the SVG XML.
+
+    Used when the installed ``thorvg-python`` predates the accessible-mode API
+    (``Picture.set_accessible`` / ``Accessor.get_name``).  Returns *all* XML
+    ``id`` attributes, including the root ``<svg>`` element which is not
+    addressable as a ThorVG Paint node.
+
+    Prefer :func:`_extract_element_ids_accessible` when available.
+    '''
     ids = []
     try:
         root = ET.fromstring(svg_bytes)
-        # Strip namespace prefixes so we can match elements regardless of
-        # whether the SVG uses a default namespace.
         for elem in root.iter():
             eid = elem.get('id')
             if eid:
@@ -63,6 +69,44 @@ def _parse_element_ids(svg_bytes):
         Logger.warning(
             f'SvgThorvg: XML parse error scanning element IDs: {exc}'
         )
+    return ids
+
+
+def _extract_element_ids_accessible(pic, engine):
+    '''Return element IDs directly from ThorVG using the accessible-mode API.
+
+    Requires ``thorvg-python`` built against ThorVG ≥ master/post-1.0.3 (PR
+    #4294), which adds ``Picture.set_accessible`` and ``Accessor.get_name``.
+
+    ``pic`` must have been created with ``set_accessible(True)`` **before**
+    ``load_data()`` was called.  The paint tree is walked via
+    ``Accessor.set()``; inside the callback ``Accessor.get_name(hash_id)``
+    returns the original SVG ``id`` string for every named element.
+
+    Only paint nodes that carry a non-zero ID *and* have a resolvable name are
+    included, so the root ``<svg>`` element (which is not a Paint node) is
+    automatically excluded.
+
+    :param pic: A loaded ``thorvg_python.Picture`` with accessible mode enabled.
+    :param engine: The shared ThorVG ``Engine``.
+    :returns: List of original SVG ``id`` strings in paint-tree order.
+    '''
+    from thorvg_python.accessor import Accessor
+    from thorvg_python.paint import Paint as TvgPaint
+
+    ids = []
+    accessor = Accessor(engine, None)
+
+    def _visitor(paint_ptr, _data):
+        p = TvgPaint(engine, paint_ptr)
+        h = p.get_id()
+        if h:
+            name = accessor.get_name(h)
+            if name is not None:
+                ids.append(name)
+        return True  # continue traversal
+
+    accessor.set(pic, _visitor, b'')
     return ids
 
 
@@ -154,9 +198,10 @@ class SvgProviderThorvg(SvgProviderBase):
     def load(self, source):
         '''Load an SVG from *source* (file path).
 
-        Reads the file bytes, caches them for :meth:`render`, and scans the
-        XML to populate :meth:`get_element_ids`.  Uses a temporary ThorVG
-        ``Picture`` to retrieve the intrinsic document size.
+        Reads the file bytes, caches them for :meth:`render`, and uses a
+        single ThorVG ``Picture`` (with accessible mode enabled) to retrieve
+        both the intrinsic document size and the addressable element IDs via
+        :func:`_extract_element_ids_accessible`.
 
         :returns: ``True`` on success.
         '''
@@ -169,8 +214,7 @@ class SvgProviderThorvg(SvgProviderBase):
 
         self._source_path = source
         self._source_data = data
-        self._element_ids = _parse_element_ids(data)
-        self._doc_size = self._probe_size_from_data(data)
+        self._doc_size, self._element_ids = self._probe_from_data(data)
         Logger.debug(f'SvgThorvg: loaded {source!r}  size={self._doc_size}')
         return True
 
@@ -185,38 +229,69 @@ class SvgProviderThorvg(SvgProviderBase):
 
         self._source_path = None
         self._source_data = data
-        self._element_ids = _parse_element_ids(data)
-        self._doc_size = self._probe_size_from_data(data)
+        self._doc_size, self._element_ids = self._probe_from_data(data)
         Logger.debug(
             f'SvgThorvg: loaded in-memory SVG ({len(data)} bytes)'
             f'  size={self._doc_size}'
         )
         return True
 
-    def _probe_size_from_data(self, data):
-        '''Create a temporary Picture just to read the intrinsic SVG size.
+    def _probe_from_data(self, data):
+        '''Create a temporary Picture to read the SVG size and element IDs.
 
-        Falls back to XML parsing when ThorVG returns non-finite dimensions
-        (e.g. an SVG with only a ``height`` attribute and no ``width``).
+        Sets ``accessible=True`` before loading so that
+        :func:`_extract_element_ids_accessible` can retrieve the original SVG
+        ``id`` strings directly from ThorVG without XML parsing.
+
+        Falls back to XML-based element ID discovery when the installed
+        ``thorvg-python`` does not support the accessible-mode API (i.e. pre
+        ThorVG master/PR-#4294).
+
+        Falls back to XML dimension parsing when ThorVG returns non-finite
+        dimensions (e.g. an SVG with only a ``height`` attribute).
+
+        :returns: ``((w, h), element_ids)`` tuple.
         '''
         try:
             import thorvg_python as tvg
             engine = _get_engine()
             pic = tvg.Picture(engine)
+
+            # Enable accessible mode so get_name() works inside the callback.
+            # Graceful fallback: older thorvg-python builds lack this method.
+            accessible_supported = hasattr(pic, 'set_accessible')
+            if accessible_supported:
+                pic.set_accessible(True)
+
             result = pic.load_data(data, 'svg', None, False)
             if result != tvg.Result.SUCCESS:
                 Logger.warning(
-                    f'SvgThorvg: could not probe SVG size (result={result})'
+                    f'SvgThorvg: could not probe SVG (result={result})'
                 )
-                return (0.0, 0.0)
+                return (0.0, 0.0), []
+
+            # --- size ---
             res, w, h = pic.get_size()
             if math.isfinite(w) and math.isfinite(h) and w > 0 and h > 0:
-                return (w, h)
-            # ThorVG returned inf/nan - fall back to XML for viewBox / w / h.
-            return self._probe_size_from_xml(data)
+                size = (w, h)
+            else:
+                size = self._probe_size_from_xml(data)
+
+            # --- element IDs ---
+            if accessible_supported:
+                element_ids = _extract_element_ids_accessible(pic, engine)
+            else:
+                Logger.debug(
+                    'SvgThorvg: accessible mode not available; '
+                    'falling back to XML for element IDs'
+                )
+                element_ids = _extract_element_ids_xml(data)
+
+            return size, element_ids
+
         except Exception as exc:
-            Logger.warning(f'SvgThorvg: size probe failed: {exc}')
-            return (0.0, 0.0)
+            Logger.warning(f'SvgThorvg: probe failed: {exc}')
+            return (0.0, 0.0), []
 
     def _probe_size_from_xml(self, data):
         '''Parse width/height/viewBox directly from the SVG XML.'''
