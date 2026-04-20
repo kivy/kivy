@@ -893,10 +893,15 @@ def determine_thorvg_flags():
         flags['library_dirs'].append(explicit_lib)
 
     if KIVY_DEPS_ROOT:
-        flags['include_dirs'].append(
-            join(KIVY_DEPS_ROOT, 'dist', 'include'))
-        flags['library_dirs'].append(join(KIVY_DEPS_ROOT, 'dist', 'lib'))
-        flags['library_dirs'].append(join(KIVY_DEPS_ROOT, 'dist', 'lib64'))
+        dist = join(KIVY_DEPS_ROOT, 'dist')
+        # ThorVG's meson install places headers under
+        # ``include/thorvg-1/thorvg_capi.h`` (versioned subdir). Add both
+        # that and the parent ``include`` so a user who flattens the
+        # install, or a custom prefix layout, still resolves the header.
+        flags['include_dirs'].append(join(dist, 'include', 'thorvg-1'))
+        flags['include_dirs'].append(join(dist, 'include'))
+        flags['library_dirs'].append(join(dist, 'lib'))
+        flags['library_dirs'].append(join(dist, 'lib64'))
 
     # ThorVG is C++; a static archive needs the C++ runtime linked in on
     # Unix-like systems. On Windows (MSVC) the runtime is pulled in
@@ -1386,13 +1391,36 @@ if c_options['use_gstreamer']:
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
 # ThorVG v1.0.4 wrapper (kivy.lib.thorvg._thorvg).
-# Auto-enabled when a static ThorVG build is discoverable at either
-# KIVY_THORVG_*_DIR or $KIVY_DEPS_ROOT/dist/{include,lib}.
+#
+# Matches the auto-detection pattern used by ``use_gstreamer`` /
+# ``use_sdl3``: if ``use_thorvg`` is left at ``None`` we probe for
+# ``thorvg_capi.h`` under the search paths returned by
+# ``determine_thorvg_flags()`` and only enable the wrapper when found.
+# This keeps tree-ish dev builds and the existing Kivy CI workflows
+# (which do not yet build ThorVG as a dep) working: the wrapper simply
+# doesn't get compiled if ThorVG isn't installed.
+#
+# Users / mobile recipes / the lightweight wrapper gate opt in explicitly
+# by setting ``USE_THORVG=1`` / ``KIVY_THORVG_INCLUDE_DIR`` /
+# ``KIVY_THORVG_LIB_DIR`` so the detect succeeds.
+thorvg_flags = determine_thorvg_flags()
 if c_options['use_thorvg'] is None:
-    c_options['use_thorvg'] = True
+    header_found = any(
+        exists(join(inc, 'thorvg_capi.h'))
+        for inc in thorvg_flags['include_dirs']
+    )
+    if header_found:
+        print('ThorVG headers detected - building kivy.lib.thorvg wrapper')
+        c_options['use_thorvg'] = True
+    else:
+        print(
+            'ThorVG headers not found; skipping kivy.lib.thorvg wrapper. '
+            'Set KIVY_THORVG_INCLUDE_DIR / KIVY_THORVG_LIB_DIR or '
+            'USE_THORVG=1 to force a build.'
+        )
+        c_options['use_thorvg'] = False
 
 if c_options['use_thorvg']:
-    thorvg_flags = determine_thorvg_flags()
     sources['lib/thorvg/_thorvg.pyx'] = merge(
         base_flags, thorvg_flags, {
             'depends': ['lib/thorvg/thorvg.pxd'],
