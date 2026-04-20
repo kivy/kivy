@@ -320,6 +320,7 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
+c_options['use_thorvg'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
@@ -857,6 +858,57 @@ def determine_angle_flags():
     return flags
 
 
+def determine_thorvg_flags():
+    """Flags to build and statically link the internal kivy.lib.thorvg
+    Cython wrapper against ThorVG v1.0.4.
+
+    Header + static library lookup order:
+
+    1. ``KIVY_THORVG_INCLUDE_DIR`` / ``KIVY_THORVG_LIB_DIR`` environment
+       variables (set by mobile recipes - p4a, kivy-ios - and by users with
+       custom ThorVG installations).
+    2. ``$KIVY_DEPS_ROOT/dist/{include,lib,lib64}`` (the standard location
+       produced by the desktop CI build scripts and kivy-dependencies).
+
+    Static linkage is used on all platforms: no ``kivy-deps.thorvg`` wheel
+    is produced and no shared ThorVG library is shipped alongside Kivy.
+    """
+    # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
+    # __declspec(dllimport) annotations and the Unix visibility
+    # attributes - required when linking against a static ThorVG archive.
+    flags = {
+        'include_dirs': [],
+        'library_dirs': [],
+        'libraries': ['thorvg'],
+        'extra_compile_args': [],
+        'extra_link_args': [],
+        'define_macros': [('TVG_STATIC', '1')],
+    }
+
+    explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
+    explicit_lib = environ.get('KIVY_THORVG_LIB_DIR')
+    if explicit_include:
+        flags['include_dirs'].append(explicit_include)
+    if explicit_lib:
+        flags['library_dirs'].append(explicit_lib)
+
+    if KIVY_DEPS_ROOT:
+        flags['include_dirs'].append(
+            join(KIVY_DEPS_ROOT, 'dist', 'include'))
+        flags['library_dirs'].append(join(KIVY_DEPS_ROOT, 'dist', 'lib'))
+        flags['library_dirs'].append(join(KIVY_DEPS_ROOT, 'dist', 'lib64'))
+
+    # ThorVG is C++; a static archive needs the C++ runtime linked in on
+    # Unix-like systems. On Windows (MSVC) the runtime is pulled in
+    # automatically via the standard link libraries.
+    if platform == 'darwin':
+        flags['extra_link_args'].append('-lc++')
+    elif platform not in ('win32', 'android', 'ios'):
+        flags['extra_link_args'].append('-lstdc++')
+
+    return flags
+
+
 def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
@@ -1332,6 +1384,24 @@ if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
+
+# ThorVG v1.0.4 wrapper (kivy.lib.thorvg._thorvg).
+# Auto-enabled when a static ThorVG build is discoverable at either
+# KIVY_THORVG_*_DIR or $KIVY_DEPS_ROOT/dist/{include,lib}.
+if c_options['use_thorvg'] is None:
+    c_options['use_thorvg'] = True
+
+if c_options['use_thorvg']:
+    thorvg_flags = determine_thorvg_flags()
+    sources['lib/thorvg/_thorvg.pyx'] = merge(
+        base_flags, thorvg_flags, {
+            'depends': ['lib/thorvg/thorvg.pxd'],
+            # Compile as C++ so the ThorVG C API header's `bool` return
+            # types (`#include <stdbool.h>` vs C++ `bool`) have a
+            # consistent ABI with the statically linked ThorVG library,
+            # which is itself compiled as C++.
+            'language': 'c++',
+        })
 
 # -----------------------------------------------------------------------------
 # extension modules

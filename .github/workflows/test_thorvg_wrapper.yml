@@ -1,0 +1,165 @@
+name: ThorVG Wrapper (lightweight gate)
+
+on:
+  push:
+    paths:
+      - 'kivy/lib/thorvg/**'
+      - 'kivy/tests/test_thorvg_wrapper.py'
+      - 'kivy/tests/bench_thorvg_wrapper.py'
+      - '.github/workflows/test_thorvg_wrapper.yml'
+      - '.ci/thorvg_wrapper_bootstrap.py'
+      - '.ci/thorvg_wrapper_conftest.py'
+      - '.ci/thorvg_wrapper_build.py'
+      - 'setup.py'
+  pull_request:
+    paths:
+      - 'kivy/lib/thorvg/**'
+      - 'kivy/tests/test_thorvg_wrapper.py'
+      - 'kivy/tests/bench_thorvg_wrapper.py'
+      - '.github/workflows/test_thorvg_wrapper.yml'
+      - '.ci/thorvg_wrapper_bootstrap.py'
+      - '.ci/thorvg_wrapper_conftest.py'
+      - '.ci/thorvg_wrapper_build.py'
+      - 'setup.py'
+  workflow_dispatch:
+
+# Lightweight gate for the ``kivy.lib.thorvg`` Cython wrapper.
+#
+# This job deliberately avoids a full ``pip install -e .`` (which would
+# build every Kivy Cython extension and pull in SDL3 / GStreamer / image
+# providers) so that wrapper-only changes get sub-5-minute feedback on
+# all three desktop OSes.
+#
+# Flow:
+#   1. Build ThorVG v1.0.4 as a static library (Meson + Ninja, CPU engine,
+#      SVG + Lottie + PNG + JPG + TTF loaders, no threads).
+#   2. Build the ``kivy.lib.thorvg._thorvg`` Cython extension in-place via
+#      ``.ci/thorvg_wrapper_build.py``.
+#   3. Run ``pytest`` against a scratch ``gate_tests/`` directory seeded
+#      with ``.ci/thorvg_wrapper_conftest.py`` (which registers minimal
+#      stubs for ``kivy`` / ``kivy.lib`` / ``kivy.logger`` so the test
+#      files can ``import kivy.lib.thorvg`` without dragging in the full
+#      Kivy package).
+#
+# The full end-to-end provider tests still run in the existing
+# ``test_{ubuntu,osx,windows}_python.yml`` workflows.
+
+env:
+  THORVG_VERSION: '1.0.4'
+
+jobs:
+  wrapper_tests:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.12']
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja cython setuptools wheel pytest pytest-benchmark
+
+      - name: Set up MSVC (Windows only)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install OS-level build prerequisites (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ pkg-config
+
+      - name: Download ThorVG v${{ env.THORVG_VERSION }} source
+        shell: bash
+        run: |
+          mkdir -p thorvg_build
+          curl -fsSL -o thorvg_build/thorvg.tar.gz \
+            "https://github.com/thorvg/thorvg/archive/refs/tags/v${THORVG_VERSION}.tar.gz"
+          tar -xzf thorvg_build/thorvg.tar.gz -C thorvg_build
+          mv "thorvg_build/thorvg-${THORVG_VERSION}" thorvg_build/src
+
+      - name: Configure ThorVG (static, CPU engine, SVG+Lottie loaders)
+        shell: bash
+        working-directory: thorvg_build/src
+        run: |
+          meson setup build \
+            --buildtype=release \
+            --default-library=static \
+            --prefix="$GITHUB_WORKSPACE/thorvg_build/dist" \
+            -Dlog=false \
+            -Dstatic=true \
+            -Dthreads=false \
+            -Dtests=false \
+            -Dbindings=capi \
+            -Dloaders=svg,lottie,png,jpg,ttf \
+            -Dengines=cpu
+
+      - name: Build + install ThorVG
+        shell: bash
+        working-directory: thorvg_build/src
+        run: |
+          meson compile -C build
+          meson install -C build
+
+      - name: Normalise static library filename
+        shell: bash
+        run: |
+          # Meson installs the ThorVG static archive as ``libthorvg-1.a``.
+          # setuptools resolves ``libraries=['thorvg']`` to ``libthorvg.a`` /
+          # ``thorvg.lib`` depending on platform, so provide that name too.
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cp thorvg_build/dist/lib/libthorvg-1.a thorvg_build/dist/lib/thorvg.lib
+          else
+            cp thorvg_build/dist/lib/libthorvg-1.a thorvg_build/dist/lib/libthorvg.a
+          fi
+          ls -l thorvg_build/dist/lib/
+
+      - name: Build the Cython wrapper in-place
+        shell: bash
+        env:
+          KIVY_THORVG_INCLUDE_DIR: ${{ github.workspace }}/thorvg_build/dist/include/thorvg-1
+          KIVY_THORVG_LIB_DIR: ${{ github.workspace }}/thorvg_build/dist/lib
+        run: |
+          python .ci/thorvg_wrapper_build.py build_ext --inplace
+
+      - name: Assemble scratch test directory with bootstrap conftest
+        shell: bash
+        run: |
+          mkdir -p gate_tests
+          cp .ci/thorvg_wrapper_conftest.py gate_tests/conftest.py
+          cp kivy/tests/test_thorvg_wrapper.py gate_tests/
+          cp kivy/tests/bench_thorvg_wrapper.py gate_tests/
+
+      - name: Run wrapper unit tests
+        shell: bash
+        run: |
+          python -m pytest gate_tests/test_thorvg_wrapper.py -v \
+            --confcutdir=gate_tests -p no:cacheprovider
+
+      - name: Run wrapper benchmarks
+        shell: bash
+        run: |
+          python -m pytest gate_tests/bench_thorvg_wrapper.py \
+            --confcutdir=gate_tests -p no:cacheprovider \
+            --benchmark-only \
+            --benchmark-json=benchmarks-${{ matrix.os }}.json
+
+      - name: Upload benchmark JSON
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: thorvg-wrapper-benchmarks-${{ matrix.os }}
+          path: benchmarks-*.json
+          if-no-files-found: ignore
