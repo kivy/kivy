@@ -75,6 +75,28 @@ jobs:
         with:
           arch: x64
 
+      - name: Hide Git's GNU link.exe so Meson picks MSVC link.exe (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # ``ilammy/msvc-dev-cmd`` prepends MSVC's link.exe to cmd/pwsh
+          # PATH, but later steps use ``shell: bash``, and Git-for-Windows
+          # ships its own ``/usr/bin/link.exe`` (GNU ld-wrapper) which
+          # bash resolves first. Meson probes link.exe to detect MSVC and
+          # bails with "Found GNU link.exe instead of MSVC link.exe". Hide
+          # the GNU one so MSVC's wins for this job.
+          for candidate in \
+            "/c/Program Files/Git/usr/bin/link.exe" \
+            "/usr/bin/link.exe" \
+            "/usr/bin/link"; do
+            if [ -f "$candidate" ]; then
+              mv "$candidate" "${candidate}.disabled"
+              echo "Disabled $candidate"
+            fi
+          done
+          echo "link.exe now resolves to: $(which link.exe || true)"
+          echo "cl.exe now resolves to:   $(which cl.exe || true)"
+
       - name: Install OS-level build prerequisites (Linux only)
         if: runner.os == 'Linux'
         run: |
@@ -116,15 +138,29 @@ jobs:
       - name: Normalise static library filename
         shell: bash
         run: |
-          # Meson installs the ThorVG static archive as ``libthorvg-1.a``.
-          # setuptools resolves ``libraries=['thorvg']`` to ``libthorvg.a`` /
-          # ``thorvg.lib`` depending on platform, so provide that name too.
+          # Meson installs the ThorVG static archive under a name that
+          # varies by platform / meson version, e.g.:
+          #   - Linux/macOS: libthorvg-1.a (sometimes libthorvg.a)
+          #   - Windows MSVC: libthorvg-1.a (UNIX-style even on MSVC) or
+          #                   thorvg-1.lib / thorvg.lib
+          # setuptools resolves ``libraries=['thorvg']`` to ``libthorvg.a``
+          # or ``thorvg.lib`` depending on platform, so copy whatever is
+          # there to the expected filename.
+          libdir="thorvg_build/dist/lib"
+          echo "--- Contents of $libdir ---"
+          ls -lR "$libdir" || true
+
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            cp thorvg_build/dist/lib/libthorvg-1.a thorvg_build/dist/lib/thorvg.lib
+            src=$(ls "$libdir"/*.lib "$libdir"/*.a 2>/dev/null | grep -Ei '(^|/)(lib)?thorvg(-1)?\.(a|lib)$' | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found"; exit 1; }
+            cp "$src" "$libdir/thorvg.lib"
           else
-            cp thorvg_build/dist/lib/libthorvg-1.a thorvg_build/dist/lib/libthorvg.a
+            src=$(ls "$libdir"/libthorvg*.a 2>/dev/null | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found"; exit 1; }
+            cp "$src" "$libdir/libthorvg.a"
           fi
-          ls -l thorvg_build/dist/lib/
+          echo "--- After normalisation ---"
+          ls -l "$libdir"
 
       - name: Build the Cython wrapper in-place
         shell: bash
