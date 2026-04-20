@@ -116,6 +116,14 @@ jobs:
         shell: bash
         working-directory: thorvg_build/src
         run: |
+          # -Dextra='' disables the defaults ['lottie_exp', 'openmp']:
+          #   * openmp: the CPU renderer unconditionally ``#include <omp.h>``
+          #     under the openmp extra, but Apple Clang does not ship libomp
+          #     and we already call ``tvg_engine_init(SW, threads=0)`` at
+          #     module import, so OpenMP parallelism is dead code for us.
+          #   * lottie_exp: pulls in the JerryScript JS engine for Lottie
+          #     expression support (~130 extra compile units); none of the
+          #     Kivy providers (svg / svg-image / lottie) need expressions.
           meson setup build \
             --buildtype=release \
             --default-library=static \
@@ -126,7 +134,8 @@ jobs:
             -Dtests=false \
             -Dbindings=capi \
             -Dloaders=svg,lottie,png,jpg,ttf \
-            -Dengines=cpu
+            -Dengines=cpu \
+            -Dextra=''
 
       - name: Build + install ThorVG
         shell: bash
