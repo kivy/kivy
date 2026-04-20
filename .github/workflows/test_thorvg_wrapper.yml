@@ -128,6 +128,7 @@ jobs:
             --buildtype=release \
             --default-library=static \
             --prefix="$GITHUB_WORKSPACE/thorvg_build/dist" \
+            --libdir=lib \
             -Dlog=false \
             -Dstatic=true \
             -Dthreads=false \
@@ -159,13 +160,16 @@ jobs:
           echo "--- Contents of $libdir ---"
           ls -lR "$libdir" || true
 
+          # Recursive find covers both ``lib/`` (our --libdir=lib setting)
+          # and Debian/Ubuntu multiarch ``lib/x86_64-linux-gnu/`` in case
+          # a newer meson version overrides --libdir silently.
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            src=$(ls "$libdir"/*.lib "$libdir"/*.a 2>/dev/null | grep -Ei '(^|/)(lib)?thorvg(-1)?\.(a|lib)$' | head -n1)
-            [ -n "$src" ] || { echo "No ThorVG static archive found"; exit 1; }
+            src=$(find "$libdir" -maxdepth 3 \( -name 'thorvg*.lib' -o -name 'libthorvg*.a' \) 2>/dev/null | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found under $libdir"; exit 1; }
             cp "$src" "$libdir/thorvg.lib"
           else
-            src=$(ls "$libdir"/libthorvg*.a 2>/dev/null | head -n1)
-            [ -n "$src" ] || { echo "No ThorVG static archive found"; exit 1; }
+            src=$(find "$libdir" -maxdepth 3 -name 'libthorvg*.a' 2>/dev/null | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found under $libdir"; exit 1; }
             cp "$src" "$libdir/libthorvg.a"
           fi
           echo "--- After normalisation ---"
