@@ -548,6 +548,301 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
     def test_multitouch_disabled_rightmove(self):
         self.multitouch_dot_move('right', disabled=True)
 
+    def test_ctrl_left_multitouch_enabled(self):
+        # ctrl + left click creates a multitouch dot when multitouch is enabled,
+        # behaving identically to a right-click
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        self.assertEqual(mouse.counter, 0)
+        self.assertEqual(mouse.touches, {})
+
+        # ctrl + left button down: red dot should appear
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', ['ctrl']
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertEqual(mouse.counter, 1)
+        self.assertIsNotNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # the red dot is present
+
+        # ctrl + left button up: dot should persist (same as right-click)
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'left', ['ctrl']
+        )
+        self.assertEqual(mouse.counter, 1)
+        self.assertIn(event_id, mouse.touches)
+        self.assertIsNotNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # red dot persists after button release
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_ctrl_left_multitouch_disabled(self):
+        # ctrl + left click with disable_multitouch creates a plain touch
+        # with no red dot, and the touch is removed on button release
+        eventloop, win, mouse, wid = self.mouse_init(disabled=True)
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        self.assertEqual(mouse.counter, 0)
+        self.assertEqual(mouse.touches, {})
+
+        # ctrl + left button down: no red dot because multitouch is disabled
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', ['ctrl']
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertEqual(mouse.counter, 1)
+        self.assertIsNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # no red dot
+
+        # left button up: touch is removed
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'left', ['ctrl']
+        )
+        self.assertEqual(mouse.counter, 1)
+        self.assertNotIn(event_id, mouse.touches)
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+
+    def test_button_all_removes_all_touches(self):
+        # button='all' in on_mouse_release (sent by Numpad 0 / Fn on Windows)
+        # must remove every live touch without crashing — this is the scenario
+        # reported in issue #9289
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        self.assertEqual(mouse.counter, 0)
+        self.assertEqual(mouse.touches, {})
+
+        # start a left-button drag
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', {}
+        )
+        self.assertEqual(mouse.counter, 1)
+        self.assertEqual(len(mouse.touches), 1)
+
+        win.dispatch(
+            'on_mouse_move',
+            20, self.correct_y(win, 20),
+            {}
+        )
+
+        # Numpad 0 / Fn triggers button='all' — all touches must be cleared
+        win.dispatch(
+            'on_mouse_up',
+            20, self.correct_y(win, 20),
+            'all', {}
+        )
+        self.assertEqual(len(mouse.touches), 0)
+        self.assertIsNone(mouse.current_drag)
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_button_all_with_multitouch_dot(self):
+        # button='all' must also clear a live multitouch simulation dot
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        # place a multitouch dot with right-click
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'right', {}
+        )
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'right', {}
+        )
+        self.assertEqual(len(mouse.touches), 1)
+
+        # button='all' must clear the sticky dot too
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'all', {}
+        )
+        self.assertEqual(len(mouse.touches), 0)
+        self.assertIsNone(mouse.current_drag)
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_modifiers_in_touch_profile(self):
+        # 'modifiers' must be declared in the profile for every touch type
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        for button, modifiers in [
+            ('left', {}),
+            ('right', {}),
+            ('left', ['ctrl']),
+        ]:
+            win.dispatch(
+                'on_mouse_down',
+                10, self.correct_y(win, 10),
+                button, modifiers
+            )
+            event_id = next(iter(mouse.touches))
+            self.assertIn('modifiers', mouse.touches[event_id].profile)
+            win.dispatch(
+                'on_mouse_up',
+                10, self.correct_y(win, 10),
+                button, modifiers
+            )
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_touch_modifiers_updated(self):
+        # touch.modifiers must reflect the modifiers at press time and
+        # be updated with each subsequent mouse-move event
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        # press with ctrl held
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', ['ctrl']
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertEqual(mouse.touches[event_id].modifiers, ['ctrl'])
+
+        # move with shift held — modifiers must update
+        win.dispatch(
+            'on_mouse_move',
+            20, self.correct_y(win, 20),
+            ['shift']
+        )
+        self.assertEqual(mouse.touches[event_id].modifiers, ['shift'])
+
+        # move with no modifiers
+        win.dispatch(
+            'on_mouse_move',
+            30, self.correct_y(win, 30),
+            []
+        )
+        self.assertEqual(mouse.touches[event_id].modifiers, [])
+
+        win.dispatch(
+            'on_mouse_up',
+            30, self.correct_y(win, 30),
+            'left', []
+        )
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_middle_button_multitouch_enabled(self):
+        # middle click creates a multitouch dot, behaving like right-click
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        self.assertEqual(mouse.counter, 0)
+        self.assertEqual(mouse.touches, {})
+
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'middle', {}
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertEqual(mouse.counter, 1)
+        self.assertIsNotNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # red dot present
+
+        # middle button up: dot persists (same as right-click)
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'middle', {}
+        )
+        self.assertEqual(mouse.counter, 1)
+        self.assertIn(event_id, mouse.touches)
+        self.assertIsNotNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # dot still present after release
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_middle_button_multitouch_disabled(self):
+        # middle click with disable_multitouch creates a plain touch, no dot
+        eventloop, win, mouse, wid = self.mouse_init(disabled=True)
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        self.assertEqual(mouse.counter, 0)
+        self.assertEqual(mouse.touches, {})
+
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'middle', {}
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertEqual(mouse.counter, 1)
+        self.assertIsNone(
+            mouse.touches[event_id].ud.get('_drawelement')
+        )  # no red dot
+
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'middle', {}
+        )
+        self.assertEqual(mouse.counter, 1)
+        self.assertNotIn(event_id, mouse.touches)
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
 
 if __name__ == '__main__':
     import unittest

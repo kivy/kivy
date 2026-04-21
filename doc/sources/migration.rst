@@ -875,6 +875,68 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 
 
+=====
+Clock
+=====
+
+*Improved @triggered Decorator Behavior, Instance Isolation and Debouncing*
+
+In Kivy 3.x.x, the :func:`~kivy.clock.triggered` decorator has been significantly
+improved. Previously, when used as a method decorator, it shared a single trigger
+and state across all instances of a class. This meant that calling the method on
+one instance would throttle calls on all other instances, and arguments from
+different instances could overwrite each other.
+
+**Behavior Changes**
+
+* Improved **Instance Isolation**: Each instance now has its own isolated trigger and
+  argument storage. Calling a triggered method on ``widget_a`` no longer affects
+  ``widget_b``.
+* Improved **Lazy Initialization**: Triggers are now created only when the decorated
+  function is first called, improving initialization performance.
+* New **is_triggered Property**: A new ``is_triggered`` property was added to the decorated
+  function/method, allowing you to check if a call is currently pending.
+* New **debounce Parameter**: A new ``debounce=False`` (default) parameter was
+  added.
+
+  * **Throttling** (default): Subsequent calls while a trigger is active
+    update the arguments but do *not* reset the timer. The function fires once
+    after the initial timeout.
+  * **Debouncing** (``debounce=True``): Subsequent calls cancel any pending
+    execution and reschedule it. The function only fires after the caller
+    stops calling it for the duration of the ``timeout``.
+
+**Migration Impact**
+
+This is primarily a **bug fix** and a set of **new features**. It should not
+require code changes for most applications. However, if your codebase
+intentionally relied on the legacy shared throttling behavior across different
+instances, you can restore this behavior by using the **``@classmethod``** 
+decorator above ``@triggered``. 
+
+This ensures the trigger is bound to the class object rather than individual 
+instances, restoring the shared behavior in an idiomatic way.
+
+.. code-block:: python
+
+    class MyWidget(Widget):
+        # Default in 3.x.x: Isolated per instance
+        @triggered(0.1)
+        def sync_ui(self, *args):
+            pass
+
+        # Shared behavior (same as legacy 2.x.x): Shared by all instances
+        @classmethod
+        @triggered(0.1)
+        def sync_shared_data(cls, *args):
+            pass
+
+        # Optional: Debouncing (0.1s from the LAST call)
+        @triggered(0.1, debounce=True)
+        def search_input(self, text):
+            pass
+
+
 Application Storage Directories
 ================================
 
