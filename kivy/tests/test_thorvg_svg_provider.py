@@ -6,7 +6,8 @@ Coverage:
 - _parse_uri_params() helper (no OpenGL, no thorvg required)
 - Updated _provider_uri_re regex with optional [params] block
 - Config [svg] default_size default value
-- Integration: load an SVG file (skipped if thorvg-python not installed)
+- Integration: load an SVG file (skipped if the internal ``kivy.lib.thorvg``
+  Cython extension was not compiled with this build of Kivy)
 - Integration: render_size kwarg is honoured
 """
 
@@ -29,7 +30,7 @@ _SVG_PATH = os.path.join(
 # ---------------------------------------------------------------------------
 
 class TestApplyMinRasterSize:
-    """Pure unit tests — no OpenGL, no thorvg required."""
+    """Pure unit tests - no OpenGL, no ThorVG extension required."""
 
     @pytest.fixture(autouse=True)
     def import_helper(self):
@@ -94,7 +95,8 @@ class TestConfigDefaultSize:
 
 
 # ---------------------------------------------------------------------------
-# Integration tests (require thorvg-python and an OpenGL context)
+# Integration tests (require the compiled kivy.lib.thorvg extension and an
+# OpenGL context)
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope='module')
@@ -106,8 +108,14 @@ def kivy_window():
 
 @pytest.fixture(scope='module')
 def thorvg():
-    """Skip the entire module if thorvg-python is not installed."""
-    return pytest.importorskip('thorvg_python')
+    """Skip the whole module if this build of Kivy has no ThorVG extension.
+
+    ``kivy.lib.thorvg`` is compiled into Kivy by ``setup.py`` when the
+    ThorVG C headers are available at build time. If it's missing the
+    SVG provider falls back to a silent no-op, so integration tests that
+    assume SVGs can be rasterized have to be skipped.
+    """
+    return pytest.importorskip('kivy.lib.thorvg._thorvg')
 
 
 @pytest.fixture
@@ -119,7 +127,7 @@ def svg_path():
 
 
 class TestThorvgSvgLoad:
-    """Integration tests — require thorvg-python and kivy_window."""
+    """Integration tests - require kivy.lib.thorvg and kivy_window."""
 
     def test_loader_is_registered(self, thorvg):
         from kivy.core.image import ImageLoader

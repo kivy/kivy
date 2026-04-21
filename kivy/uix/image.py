@@ -72,11 +72,9 @@ SVG Images
 .. versionadded:: 3.0.0
 
 SVG files are supported via the ThorVG image provider (``img_thorvg_svg``),
-which requires the ``thorvg-python`` package::
-
-    pip install thorvg-python
-
-Once installed, ``.svg`` files are loaded automatically::
+which uses Kivy's internal :mod:`kivy.lib.thorvg` binding.  This binding is
+compiled into Kivy and ships with the official Kivy wheels, so ``.svg``
+files are loaded automatically with no extra install step::
 
     Image(source='icons/house.svg')
 

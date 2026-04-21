@@ -20,7 +20,11 @@ https://github.com/lucide-icons/lucide/blob/main/LICENSE
 
 Requirements
 ------------
-  pip install kivy[base] thorvg-python
+  pip install kivy[base]
+
+SVG support is provided by Kivy's internal ``kivy.lib.thorvg`` binding,
+which ships with the official Kivy wheels - no extra install step is
+required.
 
 Run from the project root::
 
