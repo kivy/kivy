@@ -7,8 +7,8 @@
 #   * the Meson build options (engine / loaders / extras / static) that the
 #     ``kivy.lib.thorvg._thorvg`` Cython wrapper expects, and
 #   * the ugly platform-specific glue (Windows link.exe collision, macOS
-#     universal2 via lipo, Ubuntu multiarch libdir) that we previously had
-#     to duplicate in multiple CI workflows.
+#     universal2 via multi-arch Apple Clang, Ubuntu multiarch libdir)
+#     that we previously had to duplicate in multiple CI workflows.
 #
 # Inputs (all optional):
 #   THORVG_VERSION              ThorVG git tag to build (default 1.0.4)
@@ -17,9 +17,12 @@
 #   THORVG_INSTALL_PREFIX       Final install prefix
 #                               (default: $(pwd)/kivy-dependencies/dist)
 #   THORVG_MACOS_UNIVERSAL      "1" to build a universal2 (x86_64 + arm64)
-#                               static archive on macOS via two meson builds
-#                               + lipo. Ignored on non-macOS. Default: "1"
-#                               on macOS (matches libpng in the same tree).
+#                               static archive on macOS by passing both
+#                               ``-arch`` flags to Apple Clang in a single
+#                               meson invocation (same trick libpng uses via
+#                               ``CMAKE_OSX_ARCHITECTURES="x86_64;arm64"``).
+#                               Ignored on non-macOS. Default: "1" on macOS
+#                               (matches libpng in the same tree).
 #
 # Requires ``meson``, ``ninja``, ``curl``, ``tar``, and a working C++14
 # toolchain on PATH. On Windows, the caller must have already sourced the
@@ -114,8 +117,7 @@ if [ "$IS_WINDOWS" = "1" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Configure + compile + install. A helper so we can run the whole thing
-#    twice on macOS universal2.
+# 3. Configure + compile + install.
 #
 # Meson option notes (keep in sync with .github/workflows/test_thorvg_wrapper.yml):
 #   -Dextra=           disables the two defaulted ``extra`` features
@@ -164,52 +166,31 @@ _thorvg_configure_and_install() {
 }
 
 if [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
-  # Build each arch into its own prefix, then lipo-merge the static
-  # archives on top of the primary prefix.
-  _arm64_prefix="$THORVG_BUILD_ROOT/install-arm64"
-  _x86_64_prefix="$THORVG_BUILD_ROOT/install-x86_64"
-  rm -rf "$_arm64_prefix" "$_x86_64_prefix"
+  # Single-invocation universal2 build (matches libpng's CMake
+  # ``-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"`` path in
+  # tools/build_macos_dependencies.sh).
+  #
+  # Passing multiple ``-arch`` flags to Apple Clang produces universal2
+  # object files in a single compile; ``ar`` / ``libtool`` then archive
+  # them directly into a fat static library - no lipo-merge, no second
+  # meson invocation, and critically no arm64 cross-compile sanity check
+  # that would fail on Intel runners (``macos-15-intel`` in
+  # test_osx_python.yml) where Meson can't execute the freshly built
+  # arm64 ``sanitycheckcpp.exe`` binary (``[Errno 86] Bad CPU type in
+  # executable``). Universal2 binaries run natively on both arches so
+  # the sanity check succeeds regardless of host CPU.
+  echo "-- Build ThorVG (universal2 via single meson invocation)"
+  _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX" \
+    -Dc_args="-arch x86_64 -arch arm64" \
+    -Dcpp_args="-arch x86_64 -arch arm64" \
+    -Dc_link_args="-arch x86_64 -arch arm64" \
+    -Dcpp_link_args="-arch x86_64 -arch arm64"
 
-  echo "-- Build ThorVG (arm64)"
-  _thorvg_configure_and_install "build-arm64" "$_arm64_prefix" \
-    -Dc_args="-arch arm64" \
-    -Dcpp_args="-arch arm64" \
-    -Dc_link_args="-arch arm64" \
-    -Dcpp_link_args="-arch arm64"
-
-  echo "-- Build ThorVG (x86_64)"
-  _thorvg_configure_and_install "build-x86_64" "$_x86_64_prefix" \
-    -Dc_args="-arch x86_64" \
-    -Dcpp_args="-arch x86_64" \
-    -Dc_link_args="-arch x86_64" \
-    -Dcpp_link_args="-arch x86_64"
-
-  # Install the arm64 tree into the final prefix (headers + pkgconfig are
-  # arch-independent) and then overwrite the static archive with a
-  # lipo-merged universal2 version.
-  mkdir -p "$THORVG_INSTALL_PREFIX/include"
-  mkdir -p "$THORVG_INSTALL_PREFIX/lib"
-  if [ -d "$_arm64_prefix/include" ]; then
-    cp -R "$_arm64_prefix/include/"* "$THORVG_INSTALL_PREFIX/include/"
+  # Verify the produced archive is actually fat.
+  _fat_a=$(find "$THORVG_INSTALL_PREFIX/lib" -maxdepth 2 -name 'libthorvg*.a' | head -n1)
+  if [ -n "$_fat_a" ]; then
+    lipo -info "$_fat_a" || true
   fi
-  # Preserve pkgconfig .pc files (the .pc file points to ``prefix``,
-  # which is arch-independent since we merge the .a in place).
-  if [ -d "$_arm64_prefix/lib/pkgconfig" ]; then
-    mkdir -p "$THORVG_INSTALL_PREFIX/lib/pkgconfig"
-    cp -R "$_arm64_prefix/lib/pkgconfig/"* \
-      "$THORVG_INSTALL_PREFIX/lib/pkgconfig/"
-  fi
-
-  _arm64_a=$(find "$_arm64_prefix/lib" -maxdepth 2 -name 'libthorvg*.a' | head -n1)
-  _x86_64_a=$(find "$_x86_64_prefix/lib" -maxdepth 2 -name 'libthorvg*.a' | head -n1)
-  [ -n "$_arm64_a" ] && [ -n "$_x86_64_a" ] || {
-    echo "FATAL: could not locate per-arch libthorvg*.a archives" >&2
-    exit 1
-  }
-
-  _fat_a="$THORVG_INSTALL_PREFIX/lib/$(basename "$_arm64_a")"
-  lipo -create "$_arm64_a" "$_x86_64_a" -output "$_fat_a"
-  lipo -info "$_fat_a"
 else
   _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX"
 fi
