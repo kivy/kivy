@@ -35,10 +35,17 @@ jobs:
       shell: bash
       run: |
         bash tools/build_thorvg.sh
-        # Propagate the shared dependencies root to subsequent steps so
-        # setup.py's determine_thorvg_flags() picks up the static archive
-        # and headers we just produced.
-        echo "KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies" >> "$GITHUB_ENV"
+        # Expose ONLY the ThorVG include/lib paths to subsequent steps
+        # (not ``KIVY_DEPS_ROOT``). On Windows, SDL3 comes from the
+        # ``kivy_deps.sdl3`` pip package installed by ``[dev,full]``, not
+        # from ``kivy-dependencies/``. ``determine_sdl3()`` in setup.py
+        # keys off ``KIVY_DEPS_ROOT`` and, if set, uses ONLY that tree for
+        # SDL3 discovery - skipping the pip-package fallback. Setting
+        # ``KIVY_DEPS_ROOT`` here would therefore silently disable every
+        # ``*_sdl3.pyx`` provider (window / text / clipboard / image /
+        # audio / system_tray) and break the Kivy test suite.
+        echo "KIVY_THORVG_INCLUDE_DIR=$(pwd)/kivy-dependencies/dist/include/thorvg-1" >> "$GITHUB_ENV"
+        echo "KIVY_THORVG_LIB_DIR=$(pwd)/kivy-dependencies/dist/lib" >> "$GITHUB_ENV"
     - name: Install Kivy
       run: |
         . .\.ci\windows_ci.ps1
