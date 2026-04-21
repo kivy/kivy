@@ -21,6 +21,24 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+    - name: Set up MSVC toolchain
+      # Needed by ``tools/build_thorvg.sh`` (Meson probes cl.exe / link.exe)
+      # and by setup.py's C++ extension compilation for kivy.lib.thorvg.
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
+    - name: Install build tooling for ThorVG
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade meson ninja
+    - name: Build ThorVG (static, x64)
+      shell: bash
+      run: |
+        bash tools/build_thorvg.sh
+        # Propagate the shared dependencies root to subsequent steps so
+        # setup.py's determine_thorvg_flags() picks up the static archive
+        # and headers we just produced.
+        echo "KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies" >> "$GITHUB_ENV"
     - name: Install Kivy
       run: |
         . .\.ci\windows_ci.ps1

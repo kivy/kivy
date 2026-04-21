@@ -123,6 +123,10 @@ install_manylinux_build_deps() {
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
             libdrm-devel mesa-libgbm-devel libsamplerate-devel
+  # ThorVG (kivy.lib.thorvg wrapper) builds via meson; the yum-shipped
+  # meson on manylinux2014 is too old for ThorVG 1.0.x, so pin a recent
+  # version through pip.
+  python3 -m pip install --upgrade meson
 }
 
 install_ubuntu_build_deps() {
@@ -131,7 +135,7 @@ install_ubuntu_build_deps() {
   # See: https://wiki.libsdl.org/SDL3/README/linux
   sudo apt-get update
   sudo apt-get -y install build-essential git make autoconf automake libtool \
-          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          pkg-config cmake ninja-build meson libasound2-dev libpulse-dev libaudio-dev \
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \

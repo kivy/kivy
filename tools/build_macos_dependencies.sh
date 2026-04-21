@@ -159,3 +159,12 @@ cp -a Xcode/build/Release/SDL3_ttf.framework ../../dist/Frameworks
 popd
 
 popd
+
+echo "-- Build ThorVG (Universal, static)"
+# ThorVG is statically linked into the ``kivy.lib.thorvg`` Cython
+# wrapper (see ``setup.py::determine_thorvg_flags``), so it must be
+# available at Kivy build time. Built universal2 via two meson
+# invocations + lipo (matches libpng/SDL3 above). The script below
+# pins the ThorVG version and meson options in a single place shared
+# by Linux, macOS and Windows CI; see ``tools/build_thorvg.sh``.
+bash "$(dirname "$0")/build_thorvg.sh"

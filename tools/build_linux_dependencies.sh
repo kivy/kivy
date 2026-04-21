@@ -159,3 +159,11 @@ pushd $MANYLINUX__SDL3_TTF__FOLDER
 popd
 
 popd
+
+echo "-- Build ThorVG (static)"
+# ThorVG is statically linked into the ``kivy.lib.thorvg`` Cython
+# wrapper (see ``setup.py::determine_thorvg_flags``), so it must be
+# available at Kivy build time. The script below pins the ThorVG
+# version and meson options in a single place shared by Linux, macOS
+# and Windows CI; see ``tools/build_thorvg.sh`` for details.
+bash "$(dirname "$0")/build_thorvg.sh"
