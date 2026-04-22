@@ -142,7 +142,7 @@ cdef class Paint:
         """Return the paint's internal ID hash, or 0 if unset."""
         if self._paint == NULL:
             return 0
-        return <int>tvg.tvg_paint_get_id(self._paint)
+        return <unsigned long>tvg.tvg_paint_get_id(self._paint)
 
 
 # ---------------------------------------------------------------------------
@@ -231,16 +231,23 @@ cdef class Picture(Paint):
             self._paint, &w, &h)
         return (_wrap_result(r), float(w), float(h))
 
-    def get_paint(self, int id):
+    def get_paint(self, id):
         """Look up a child paint by ID hash; return ``None`` if not found.
+
+        *id* is a ``uint32_t`` handle - typically obtained from
+        :meth:`Accessor.accessor_generate_id` or :meth:`Paint.get_id`.
+        The parameter is declared untyped so that Python ints in the full
+        ``uint32_t`` range (0..2^32 - 1) are accepted without Cython
+        raising ``OverflowError`` on values above ``INT_MAX``.
 
         The returned :class:`Paint` is not owned by Python - it is a
         non-owning view into the picture's scene tree.
         """
         if self._paint == NULL:
             return None
+        cdef uint32_t c_id = <uint32_t><unsigned long>id
         cdef tvg.Tvg_Paint child = <tvg.Tvg_Paint>tvg.tvg_picture_get_paint(
-            self._paint, <uint32_t>id)
+            self._paint, c_id)
         if child == NULL:
             return None
         return Paint._wrap(child, False)
@@ -530,18 +537,21 @@ cdef class Accessor:
             name_bytes = bytes(name)
         cdef bytes _n = name_bytes
         cdef const char *np = _n
-        return <int>tvg.tvg_accessor_generate_id(np)
+        return <unsigned long>tvg.tvg_accessor_generate_id(np)
 
-    def get_name(self, int id):
+    def get_name(self, id):
         """Look up the original SVG ``id`` string for a given ID hash.
 
-        Only valid inside an :meth:`set` callback for a :class:`Picture`
-        loaded with :meth:`Picture.set_accessible` ``True``.
+        *id* accepts the full ``uint32_t`` range returned by
+        :meth:`accessor_generate_id` / :meth:`Paint.get_id`.  Only valid
+        inside an :meth:`set` callback for a :class:`Picture` loaded
+        with :meth:`Picture.set_accessible` ``True``.
         """
         if self._accessor == NULL:
             return None
+        cdef uint32_t c_id = <uint32_t><unsigned long>id
         cdef const char *s = tvg.tvg_accessor_get_name(
-            self._accessor, <uint32_t>id)
+            self._accessor, c_id)
         if s is NULL:
             return None
         return s.decode('utf-8')
@@ -686,19 +696,36 @@ cdef class LottieAnimation:
             b = bytes(slot)
         cdef bytes _b = b
         cdef const char *p = _b
-        return <int>tvg.tvg_lottie_animation_gen_slot(self._animation, p)
+        cdef uint32_t handle = tvg.tvg_lottie_animation_gen_slot(
+            self._animation, p)
+        return <unsigned long>handle
 
-    def apply_slot(self, int id):
+    def apply_slot(self, id):
+        """Apply the slot override identified by *id*.
+
+        *id* is the unsigned 32-bit handle returned by :meth:`gen_slot`
+        (or ``0`` to clear all active overrides). The parameter is
+        declared untyped so that Python ints in the full ``uint32_t``
+        range (0..2^32 - 1) can be accepted without Cython raising
+        ``OverflowError`` on values above ``INT_MAX``.
+        """
         if self._animation == NULL:
             return Result.INVALID_ARGUMENT
+        cdef uint32_t c_id = <uint32_t><unsigned long>id
         return _wrap_result(tvg.tvg_lottie_animation_apply_slot(
-            self._animation, <uint32_t>id))
+            self._animation, c_id))
 
-    def del_slot(self, int id):
+    def del_slot(self, id):
+        """Delete the slot override identified by *id*.
+
+        Accepts the full ``uint32_t`` range returned by :meth:`gen_slot`
+        (see :meth:`apply_slot` for rationale).
+        """
         if self._animation == NULL:
             return Result.INVALID_ARGUMENT
+        cdef uint32_t c_id = <uint32_t><unsigned long>id
         return _wrap_result(tvg.tvg_lottie_animation_del_slot(
-            self._animation, <uint32_t>id))
+            self._animation, c_id))
 
     def set_quality(self, int value):
         if self._animation == NULL:

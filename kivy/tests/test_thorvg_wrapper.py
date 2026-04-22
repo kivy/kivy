@@ -147,6 +147,30 @@ def test_accessor_generate_id_is_deterministic():
     assert a.accessor_generate_id('foo') != a.accessor_generate_id('bar')
 
 
+def test_accessor_generate_id_is_unsigned_uint32():
+    # ThorVG hashes the name to a uint32_t; about half of the output values
+    # have the high bit set. The wrapper must expose the raw unsigned value
+    # so that round-tripping through Picture.get_paint / Accessor.get_name
+    # works for every possible hash - not just the ones that happen to fit
+    # in a signed 32-bit int.
+    a = tvg.Accessor()
+    # Try a handful of candidate names so we almost certainly hit at least
+    # one hash with the sign bit set.  Each result must be a non-negative
+    # Python int within the uint32_t range.
+    names = ['r1', 'r2', 'background', 'foreground', 'layer-1', 'ICON_MAIN',
+             'clip_0', 'group_42', 'id_aaaaaa', 'id_zzzzzz']
+    ids = [a.accessor_generate_id(n) for n in names]
+    for n, hid in zip(names, ids):
+        assert isinstance(hid, int), (n, type(hid))
+        assert 0 <= hid <= 0xFFFFFFFF, (n, hid)
+    # Sanity: at least one of those names should hash to a value above
+    # INT_MAX, otherwise the test is not actually exercising the high-bit
+    # path.  If this ever fires, add more names.
+    assert any(hid > 0x7FFFFFFF for hid in ids), (
+        'Test expected at least one high-bit hash to exercise the '
+        'uint32 round-trip; got {!r}'.format(ids))
+
+
 def test_accessor_walks_svg_element_ids():
     pic = tvg.Picture()
     assert pic.set_accessible(True) == tvg.Result.SUCCESS
@@ -270,10 +294,28 @@ def test_lottie_slot_apply_and_del():
     # Passing empty or malformed slot data should not crash.
     slot_id = a.gen_slot(b'')
     assert isinstance(slot_id, int)
+    # ThorVG returns a ``uint32_t``; the wrapper must expose it as an
+    # unsigned Python int so that apply_slot / del_slot can round-trip
+    # every possible hash (including those with the high bit set).
+    assert 0 <= slot_id <= 0xFFFFFFFF
     if slot_id:
         # If ThorVG somehow accepted an empty slot (unlikely), the round-trip
         # should still succeed.
         assert a.del_slot(slot_id) == tvg.Result.SUCCESS
+
+
+def test_lottie_slot_accepts_high_bit_handle_without_overflow():
+    # Direct regression check: apply_slot / del_slot must accept Python ints
+    # in the full uint32_t range (0..2^32 - 1) without raising OverflowError,
+    # even when the animation has no such slot (the C API will return an
+    # error code, which is fine - we only care that the Python -> C
+    # conversion does not blow up on values > INT_MAX).
+    a = tvg.LottieAnimation()
+    a.get_picture().load_data(_LOTTIE_SINGLE_LAYER, 'lottie')
+    high_bit_handle = 0xDEADBEEF  # 3_735_928_559 > INT_MAX
+    # These must not raise; return value is allowed to be any Result.
+    a.apply_slot(high_bit_handle)
+    a.del_slot(high_bit_handle)
 
 
 def test_lottie_set_quality_clamps_range():
