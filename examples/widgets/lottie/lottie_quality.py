@@ -6,7 +6,8 @@ Rendering quality (blur / shadow fidelity)
 accuracy for **effect-heavy** Lotties (blur, drop shadow, etc.). This demo uses
 a composition with Gaussian blur.
 
-Requires a Lottie provider (e.g. ``pip install thorvg-python``).
+Requires a Lottie provider.  The default ThorVG backend ships with
+Kivy's official desktop wheels and needs no extra install.
 
 Run from ``examples/widgets/lottie/``::
 

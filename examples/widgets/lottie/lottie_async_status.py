@@ -9,7 +9,8 @@ The Lottie file (lottie_async_status.json) contains a dual arc loader plus
 vector overlays: green **check mark** for **success**, red crossed bars for **error**.
 Markers: ``loading`` (frames ``0 … 78``), ``success``, ``error``.
 
-Requires a Lottie provider (e.g. ``pip install thorvg-python``).
+Requires a Lottie provider.  The default ThorVG backend ships with
+Kivy's official desktop wheels and needs no extra install.
 
 Run from ``examples/widgets/lottie/``::
 

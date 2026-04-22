@@ -26,9 +26,10 @@ Provider selection
 
 Kivy tries each registered provider in priority order and uses the first
 one that loads successfully.  The only built-in provider is
-``thorvg`` (backed by ``thorvg-python``).  If no provider succeeds the
-``null`` provider is used as a last resort (it renders nothing but allows
-code that depends on a ``Lottie`` object to still import and run).
+``thorvg`` (backed by Kivy's internal :mod:`kivy.lib.thorvg` binding).
+If no provider succeeds the ``null`` provider is used as a last resort
+(it renders nothing but allows code that depends on a ``Lottie`` object
+to still import and run).
 
 DOM manipulation API
 --------------------

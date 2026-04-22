@@ -6,7 +6,8 @@ Demonstrates :meth:`~kivy.uix.lottie.LottieWidget.set_color` on a named slot
 (``logoFill`` on the main logo fill in ``lottie_logo_anim.json``) so the same
 Lottie file can be tinted for different brands or themes without reloading.
 
-Requires a Lottie provider (e.g. ``pip install thorvg-python``).
+Requires a Lottie provider.  The default ThorVG backend ships with
+Kivy's official desktop wheels and needs no extra install.
 
 Run from ``examples/widgets/lottie/``::
 

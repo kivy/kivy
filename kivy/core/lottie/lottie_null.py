@@ -19,9 +19,11 @@ from kivy.logger import Logger
 class LottieNull(LottieBase):
     '''Lottie provider that does nothing.
 
-    Used as a last-resort fallback when ``thorvg-python`` (or any other
-    real provider) is not installed.  All DOM API methods return safe
-    "no-op" values matching the documented return types of
+    Used as a last-resort fallback when no functional Lottie provider is
+    available.  In practice this happens when Kivy was built without
+    ThorVG support (``kivy.lib.thorvg`` is unavailable, so the
+    ``lottie_thorvg`` provider fails to import).  All DOM API methods
+    return safe "no-op" values matching the documented return types of
     :class:`~kivy.core.lottie.LottieBase`.
     '''
 
@@ -29,7 +31,8 @@ class LottieNull(LottieBase):
         Logger.warning(
             'LottieNull: no Lottie provider available; '
             f'<{self._filename}> will not be rendered. '
-            'Install thorvg-python: pip install thorvg-python')
+            'This build of Kivy was compiled without ThorVG support - '
+            'reinstall Kivy from an official wheel to enable Lottie.')
 
     # ------------------------------------------------------------------
     # Tier 1: Segments and markers (no-ops)

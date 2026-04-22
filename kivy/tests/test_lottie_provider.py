@@ -11,8 +11,9 @@ The test file is split into three layers:
 * **Null provider tests** - verify all no-op methods return the correct types.
 
 * **ThorVG provider tests** - integration tests that load the real Lottie
-  fixture and exercise each API tier.  Skipped when ``thorvg-python`` is not
-  installed.
+  fixture and exercise each API tier.  Skipped when the Cython
+  :mod:`kivy.lib.thorvg` binding is not compiled into the current Kivy
+  build.
 '''
 
 import os
@@ -264,7 +265,7 @@ class TestLottieNullProvider(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 try:
-    import thorvg_python  # noqa: F401
+    import kivy.lib.thorvg._thorvg  # noqa: F401
     _THORVG_AVAILABLE = True
 except ImportError:
     _THORVG_AVAILABLE = False
@@ -272,7 +273,8 @@ except ImportError:
 _FIXTURE_EXISTS = os.path.exists(FIXTURE)
 _SKIP_THORVG = not (_THORVG_AVAILABLE and _FIXTURE_EXISTS)
 _SKIP_REASON = (
-    'thorvg-python not installed' if not _THORVG_AVAILABLE
+    'kivy.lib.thorvg not compiled into this Kivy build'
+    if not _THORVG_AVAILABLE
     else f'fixture not found: {FIXTURE}'
 )
 

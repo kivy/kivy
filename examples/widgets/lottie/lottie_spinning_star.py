@@ -12,7 +12,8 @@ hard-coded animation names in Python.
 returns to the idle frame when the segment ends
 (:attr:`~kivy.uix.lottie.LottieWidget.eos` ``'stop'``).
 
-Requires a Lottie provider (e.g. ``pip install thorvg-python``).
+Requires a Lottie provider.  The default ThorVG backend ships with
+Kivy's official desktop wheels and needs no extra install.
 
 Run from ``examples/widgets/lottie/``::
 

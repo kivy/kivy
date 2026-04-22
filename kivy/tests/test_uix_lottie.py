@@ -11,7 +11,8 @@ The file is split into three layers:
   directly, without touching GL or actual Lottie files.
 
 * **GraphicUnitTest (integration)** — full load cycle using a mock that
-  simulates what ThorVG returns, so tests pass without ``thorvg-python``.
+  simulates what ThorVG returns, so tests pass without requiring the
+  :mod:`kivy.lib.thorvg` Cython binding to be compiled.
 '''
 
 import os

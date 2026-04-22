@@ -3,18 +3,15 @@ ThorVG Lottie provider
 ======================
 
 Rasterizes Lottie animations to a Kivy :class:`~kivy.graphics.texture.Texture`
-using ``thorvg-python``'s software renderer.
+using Kivy's internal ThorVG binding (:mod:`kivy.lib.thorvg`) and its
+software renderer.
 
-Installation
-------------
-
-::
-
-    pip install thorvg-python
-
-If the package is not available this module raises ``ImportError`` and the
-provider is silently skipped; Kivy will fall back to the next provider in the
-priority list (ultimately the ``null`` provider).
+No external installation is required: the ThorVG library and its Cython
+wrapper ship with Kivy and are compiled into the binary wheels.  If this
+build of Kivy was compiled without ThorVG support, the
+``import kivy.lib.thorvg`` below raises ``ImportError`` and this provider
+is skipped; Kivy will fall back to the next provider in the priority list
+(ultimately the ``null`` provider).
 
 Rasterization size
 ------------------
@@ -49,8 +46,8 @@ __all__ = ('LottieThorvg',)
 import json
 
 try:
-    import thorvg_python as tvg
-    from thorvg_python.base import Result
+    from kivy.lib import thorvg as tvg
+    from kivy.lib.thorvg import Result
 except ImportError:
     raise
 
@@ -60,7 +57,9 @@ from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from kivy.resources import resource_find
 
-Logger.info('LottieThorvg: Using thorvg-python {}'.format(tvg.__version__))
+Logger.info(
+    'LottieThorvg: Using kivy.lib.thorvg (ThorVG {})'.format(
+        tvg.engine_version()))
 
 _DEFAULT_SIZE = 512
 
@@ -94,7 +93,7 @@ def _marker_names_from_animation(anim):
     '''Return an ordered list of marker names from the loaded animation.
 
     Uses ``get_markers_cnt`` and ``get_marker`` on the
-    ``thorvg-python`` ``LottieAnimation`` instance.
+    :class:`kivy.lib.thorvg.LottieAnimation` instance.
     '''
     names = []
     r, cnt = anim.get_markers_cnt()
@@ -150,21 +149,21 @@ def _collect_slot_ids(lottie_bytes):
 
 
 class LottieThorvg(LottieBase):
-    '''Lottie animation provider backed by ``thorvg-python``.
+    '''Lottie animation provider backed by :mod:`kivy.lib.thorvg`.
 
-    This class keeps a ThorVG ``Engine``, ``SwCanvas``, and
-    ``LottieAnimation`` alive for the lifetime of the loaded animation so
-    that :meth:`_render_frame` can rasterize individual frames efficiently
-    without re-creating those objects on every tick.
+    This class keeps a ThorVG :class:`~kivy.lib.thorvg.SwCanvas` and
+    :class:`~kivy.lib.thorvg.LottieAnimation` alive for the lifetime of the
+    loaded animation so that :meth:`_render_frame` can rasterize individual
+    frames efficiently without re-creating those objects on every tick.
 
-    Requires ``thorvg-python``.
+    Requires Kivy to be built with ThorVG support (the default for the
+    official wheels on desktop platforms).
     '''
 
     SUPPORTS_SLOTS = True
     SUPPORTS_QUALITY = True
 
     def __init__(self, **kwargs):
-        self._engine = None
         self._tvg_canvas = None
         self._tvg_anim = None
         self._render_w = 0
@@ -187,18 +186,22 @@ class LottieThorvg(LottieBase):
             Logger.warning(f'LottieThorvg: file not found <{self._filename}>')
             return
 
+        # Failure path: any error below falls through to the ``except`` at the
+        # bottom which re-runs ``_teardown()``. The ``canvas`` and ``anim``
+        # locals are owned by this function until we assign them to
+        # ``self`` (last step before dispatching ``on_load``), so if we
+        # return early their reference count drops to zero and their
+        # ``__dealloc__`` tears ThorVG down cleanly - no explicit
+        # ``canvas.destroy()`` / ``engine.term()`` needed.
         try:
-            engine = tvg.Engine(threads=0)
-            canvas = tvg.SwCanvas(engine)
-            anim = tvg.LottieAnimation(engine)
+            canvas = tvg.SwCanvas()
+            anim = tvg.LottieAnimation()
             picture = anim.get_picture()
 
             result = picture.load(path)
             if result != Result.SUCCESS:
                 Logger.warning(
                     f'LottieThorvg: Picture.load failed <{path}>: {result}')
-                canvas.destroy()
-                engine.term()
                 return
 
             # Resolve animation metadata.
@@ -207,16 +210,12 @@ class LottieThorvg(LottieBase):
             if res_dur != Result.SUCCESS or res_frames != Result.SUCCESS:
                 Logger.warning(
                     f'LottieThorvg: could not read metadata <{path}>')
-                canvas.destroy()
-                engine.term()
                 return
 
             if duration <= 0 or total_frames <= 0:
                 Logger.warning(
                     f'LottieThorvg: animation has zero duration or frames '
                     f'<{path}> (duration={duration}, frames={total_frames})')
-                canvas.destroy()
-                engine.term()
                 return
 
             # Resolve rasterization size.
@@ -227,8 +226,6 @@ class LottieThorvg(LottieBase):
             if result != Result.SUCCESS:
                 Logger.warning(
                     f'LottieThorvg: Picture.set_size failed <{path}>: {result}')
-                canvas.destroy()
-                engine.term()
                 return
 
             # Allocate the SwCanvas pixel buffer.
@@ -236,8 +233,6 @@ class LottieThorvg(LottieBase):
             if result != Result.SUCCESS:
                 Logger.warning(
                     f'LottieThorvg: SwCanvas.set_target failed <{path}>: {result}')
-                canvas.destroy()
-                engine.term()
                 return
 
             # Add the picture to the canvas scene (once; reused every frame).
@@ -245,8 +240,6 @@ class LottieThorvg(LottieBase):
             if result != Result.SUCCESS:
                 Logger.warning(
                     f'LottieThorvg: canvas.add failed <{path}>: {result}')
-                canvas.destroy()
-                engine.term()
                 return
 
             # Slot IDs still require a JSON scan (no ThorVG enumeration API).
@@ -259,7 +252,6 @@ class LottieThorvg(LottieBase):
 
             self._marker_names = _marker_names_from_animation(anim)
 
-            self._engine     = engine
             self._tvg_canvas = canvas
             self._tvg_anim   = anim
             self._render_w   = w
@@ -290,21 +282,17 @@ class LottieThorvg(LottieBase):
         self._teardown()
 
     def _teardown(self):
-        '''Destroy ThorVG objects and reset internal state.'''
-        if self._tvg_canvas is not None:
-            try:
-                self._tvg_canvas.destroy()
-            except Exception:
-                pass
-            self._tvg_canvas = None
+        '''Release ThorVG objects and reset internal state.
 
-        if self._engine is not None:
-            try:
-                self._engine.term()
-            except Exception:
-                pass
-            self._engine = None
-
+        The SwCanvas and LottieAnimation own their native ThorVG handles
+        and free them in ``__dealloc__``, so dropping the Python references
+        is sufficient - there is no global engine term step to run. This
+        matches the other ThorVG-backed providers (``svg_thorvg``,
+        ``img_thorvg_svg``) and the :mod:`kivy.lib.thorvg` binding which
+        initialises/terminates the ThorVG engine itself at module load /
+        interpreter shutdown.
+        '''
+        self._tvg_canvas = None
         self._tvg_anim = None
         self._render_w = 0
         self._render_h = 0
@@ -355,8 +343,13 @@ class LottieThorvg(LottieBase):
                     f'LottieThorvg: canvas.{name} failed: {res}')
                 return
 
-        self._texture.blit_buffer(
-            bytes(self._tvg_canvas.buffer_arr), colorfmt='rgba')
+        # Zero-copy upload: ``SwCanvas`` implements the Python buffer
+        # protocol over ThorVG's own pixel buffer, and ``blit_buffer``
+        # accepts any buffer-protocol object. Passing the canvas directly
+        # skips the ``bytes(canvas.buffer_arr)`` copy that would otherwise
+        # allocate ``w * h * 4`` bytes per frame (~1 MB at 512x512,
+        # ~67 MB at 4K) on every tick of the Lottie clock.
+        self._texture.blit_buffer(self._tvg_canvas, colorfmt='rgba')
         self.dispatch('on_frame')
 
     # ------------------------------------------------------------------
