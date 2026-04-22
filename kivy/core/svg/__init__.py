@@ -31,7 +31,7 @@ class SvgProviderBase(ABC):
 
     Subclasses must set :attr:`_provider_name` and implement all methods.
     The interface separates **loading** (parse the SVG document once) from
-    **rendering** (rasterize to RGBA bytes at a requested size), so that a
+    **rendering** (rasterize to RGBA pixels at a requested size), so that a
     single loaded document can be re-rendered at different sizes or with
     different runtime overrides without re-parsing from disk.
     '''
@@ -80,7 +80,7 @@ class SvgProviderBase(ABC):
 
     @abstractmethod
     def render(self, width, height, current_color=None, element_overrides=None):
-        '''Rasterize the SVG to RGBA bytes at the given pixel dimensions.
+        '''Rasterize the SVG to RGBA pixels at the given dimensions.
 
         :param int width: Render width in pixels.
         :param int height: Render height in pixels.
@@ -98,9 +98,21 @@ class SvgProviderBase(ABC):
 
             Absent keys use SVG defaults.
         :type element_overrides: dict or None
-        :returns: Raw RGBA bytes of length ``width * height * 4``, or
-            ``None`` on failure.
-        :rtype: bytes or None
+        :returns: A buffer-protocol object exposing ``width * height * 4``
+            bytes of raw RGBA pixels, or ``None`` on failure.
+
+            Providers are allowed to return either a plain :class:`bytes`
+            object or any other object that implements the Python buffer
+            protocol (for example, a backend-native render target that
+            avoids a pixel-buffer copy). Consumers that need an owned
+            :class:`bytes` instance should wrap the return value in
+            :func:`bytes` explicitly; consumers that call
+            :meth:`kivy.graphics.texture.Texture.blit_buffer` can pass the
+            return value through directly because ``blit_buffer`` accepts
+            buffer-protocol objects and will not copy the pixels a second
+            time.
+        :rtype: buffer-protocol object (``bytes``, ``memoryview``,
+            backend render target, ...) or ``None``
         '''
 
 

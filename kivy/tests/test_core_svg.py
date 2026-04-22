@@ -386,19 +386,22 @@ class TestSvgProviderThorvg(unittest.TestCase):
         p.load_data(self._SVG)
         self.assertIsNone(p.render(64, 0))
 
-    def test_render_returns_bytes_of_correct_length(self):
+    def test_render_returns_buffer_of_correct_length(self):
         p = self._make_provider()
         p.load_data(self._SVG)
         rgba = p.render(64, 64)
-        self.assertIsInstance(rgba, bytes)
-        self.assertEqual(len(rgba), 64 * 64 * 4)
+        # ``render()`` is documented as returning a buffer-protocol object,
+        # not necessarily ``bytes`` - the ThorVG backend returns the
+        # underlying SwCanvas so Texture.blit_buffer can upload zero-copy.
+        self.assertIsNotNone(rgba)
+        self.assertEqual(memoryview(rgba).nbytes, 64 * 64 * 4)
 
     def test_render_current_color_does_not_raise(self):
         p = self._make_provider()
         p.load_data(self._SVG)
         rgba = p.render(32, 32, current_color=(1.0, 0.0, 0.0))
         self.assertIsNotNone(rgba)
-        self.assertEqual(len(rgba), 32 * 32 * 4)
+        self.assertEqual(memoryview(rgba).nbytes, 32 * 32 * 4)
 
 
 if __name__ == '__main__':

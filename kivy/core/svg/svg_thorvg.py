@@ -113,33 +113,6 @@ def _apply_current_color(svg_bytes, color_tuple):
     return svg_bytes.replace(b'currentColor', hex_color)
 
 
-def _rgba_bytes_from_canvas(canvas):
-    '''Extract RGBA bytes from a rendered ThorVG SwCanvas.
-
-    ThorVG's default ABGR8888 colorspace names the *integer* bit layout
-    (A in the high byte, R in the low byte).  On a little-endian machine
-    those bytes land in memory as [R, G, B, A] - exactly Kivy's ``rgba``
-    format.  All of Kivy's supported platforms (x86-64, ARM64/iOS,
-    ARM64/Android, Apple Silicon) run in little-endian mode, so no
-    byte-swapping is needed.
-
-    .. note:: Optimisation opportunity - this call copies the full pixel
-        buffer into a new Python ``bytes`` object (~47 MB at 4K). The
-        underlying :class:`kivy.lib.thorvg.SwCanvas` implements the Python
-        buffer protocol, so callers that can consume a buffer-protocol
-        object directly (e.g. :meth:`Texture.blit_buffer`) may skip this
-        copy entirely by using ``canvas`` or ``canvas.buffer_arr`` without
-        wrapping it in :func:`bytes`.
-
-    :returns: bytes, or ``None`` on failure.
-    '''
-    try:
-        return bytes(canvas.buffer_arr)
-    except Exception as exc:
-        Logger.error(f'SvgThorvg: failed to extract pixel buffer: {exc}')
-        return None
-
-
 def _svg_parse_dim(s):
     '''Parse *s* as a positive finite float; return ``None`` on failure.
 
@@ -309,7 +282,19 @@ class SvgProviderThorvg(SvgProviderBase):
         :param current_color: If set, every ``currentColor`` token in the SVG
             source is replaced with this colour before loading into ThorVG.
         :param element_overrides: Per-element visibility/opacity dict.
-        :returns: RGBA bytes or ``None`` on failure.
+        :returns: A :class:`kivy.lib.thorvg.SwCanvas` exposing ``width *
+            height * 4`` RGBA bytes via the Python buffer protocol, or
+            ``None`` on failure. Consumers should treat the return value as
+            a read-only buffer-protocol object - it can be passed directly
+            to :meth:`kivy.graphics.texture.Texture.blit_buffer` without a
+            :class:`bytes` copy, or converted to :class:`bytes` explicitly
+            via ``bytes(result)`` if an owned copy is needed.
+
+            ThorVG's default ABGR8888 colorspace names the *integer* bit
+            layout (A in the high byte, R in the low byte); on the
+            little-endian platforms Kivy targets (x86-64, Apple Silicon,
+            ARM64/iOS, ARM64/Android) those bytes land in memory as
+            ``[R, G, B, A]`` - exactly Kivy's ``'rgba'`` colorfmt.
         '''
         if not self._source_data:
             Logger.error('SvgThorvg: render() called before load()')
@@ -331,13 +316,17 @@ class SvgProviderThorvg(SvgProviderBase):
             return None
 
         # ---- set up canvas ----
+        # No explicit ``canvas.destroy()`` anywhere below: the SwCanvas owns
+        # its pixel buffer and frees it in ``__dealloc__``. Returning the
+        # canvas to the caller (instead of a ``bytes`` copy) keeps the
+        # buffer alive for as long as the caller holds the reference, which
+        # is the whole point of skipping the copy.
         canvas = tvg.SwCanvas()
         result = canvas.set_target(width, height)
         if result != tvg.Result.SUCCESS:
             Logger.error(
                 f'SvgThorvg: set_target({width}, {height}) failed: {result}'
             )
-            canvas.destroy()
             return None
 
         # ---- prepare SVG data (apply currentColor if needed) ----
@@ -352,7 +341,6 @@ class SvgProviderThorvg(SvgProviderBase):
             Logger.error(
                 f'SvgThorvg: Picture.load_data() failed: {result}'
             )
-            canvas.destroy()
             return None
 
         pic.set_size(float(width), float(height))
@@ -378,13 +366,13 @@ class SvgProviderThorvg(SvgProviderBase):
         canvas.draw(True)
         canvas.sync()
 
-        rgba = _rgba_bytes_from_canvas(canvas)
-        canvas.destroy()
-
-        if rgba is None:
-            Logger.error('SvgThorvg: failed to extract RGBA bytes from canvas')
-
-        return rgba
+        # Return the canvas (a buffer-protocol object backing ``width *
+        # height * 4`` RGBA bytes) rather than a ``bytes`` copy. The caller
+        # is expected to be something like
+        # ``Texture.blit_buffer(canvas, colorfmt='rgba', bufferfmt='ubyte')``
+        # which honours the buffer protocol and uploads the pixels directly
+        # to the GPU without an intermediate Python-level copy.
+        return canvas
 
 
 # Self-register when this module is imported.

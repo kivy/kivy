@@ -757,42 +757,19 @@ class SvgWidget(Widget):
             colorfmt='rgba',
             mipmap=self.mipmap,
         )
-        # --- Future optimisation: zero-copy texture upload -------------------
+        # ``rgba`` is whatever the SVG provider's ``render()`` returned: for
+        # the default ThorVG backend that is a :class:`kivy.lib.thorvg.SwCanvas`
+        # buffer-protocol object wrapping ThorVG's own render target, not a
+        # :class:`bytes` copy. ``blit_buffer`` accepts any buffer-protocol
+        # object and uploads its pixels straight to the GPU, so we avoid the
+        # ``~width * height * 4``-byte copy that ``bytes(canvas.buffer_arr)``
+        # would have cost per frame (~67 MB at 4K).
         #
-        # Current path (this code):
-        #   ThorVG canvas  ->  bytes() copy (~47 MB at 4K)  ->  blit_buffer
-        #
-        # The copy exists because blit_buffer is documented to accept a bytes-
-        # like object, and _rgba_bytes_from_canvas() converts canvas.buffer_arr
-        # (a ctypes array) to bytes.  canvas.buffer_arr already implements the
-        # Python buffer protocol, so blit_buffer *could* read ThorVG's memory
-        # directly - eliminating the copy entirely.
-        #
-        # What is needed to make this safe:
-        #
-        # 1. A Cython wrapper for the ThorVG SwCanvas that exposes buffer_arr
-        #    as a proper memoryview (the ctypes array works today but is
-        #    fragile; a Cython typed memoryview is the right vehicle).
-        #
-        # 2. The ThorVG SwCanvas object (not Kivy's canvas) must stay alive
-        #    until blit_buffer returns.  On the main thread this is trivially
-        #    true.  Once rasterization is moved to a background thread (see
-        #    point 3), the SwCanvas must be kept alive explicitly - e.g. held
-        #    in a local variable or a short-lived strong reference - until the
-        #    main thread signals that the upload is complete.
-        #
-        # 3. Move the ThorVG render() call - the step that walks the SVG scene
-        #    graph and writes pixels into the SwCanvas buffer - to a background
-        #    thread (e.g. Python's ThreadPoolExecutor or a dedicated
-        #    rasterization thread).  This prevents large or complex SVGs from
-        #    freezing Kivy's event loop (animations, touch events) during
-        #    rendering.  The SwCanvas lifetime management in point 2 is most
-        #    cleanly solved here at the same time.
-        #
-        # Expected benefit: eliminates a ~47 MB allocation and memcpy per
-        # frame at 4K.  At smaller sizes (e.g. 256x256 icon) the saving is
-        # proportionally smaller (~256 KB) but the pattern is the same.
-        # -------------------------------------------------------------------
+        # Future optimisation: move the render() call itself off the main
+        # thread (e.g. via ThreadPoolExecutor) so that rasterising a large or
+        # complex SVG does not block Kivy's event loop. The SwCanvas
+        # lifetime stays trivially safe as long as the reference returned
+        # from render() is held until after blit_buffer has completed.
         tex.blit_buffer(rgba, colorfmt='rgba', bufferfmt='ubyte')
         tex.flip_vertical()
 
