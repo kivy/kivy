@@ -14,9 +14,9 @@ The file is split into three layers:
   operate on DictProperty without touching GL, but require a Kivy Widget
   context.  A mock provider is injected directly into the widget instance.
 
-* **GraphicUnitTest (integration)** — full load-and-rasterize cycle.  A mock
+* **GraphicUnitTest (integration)** - full load-and-rasterize cycle.  A mock
   SvgProviderBase registered with SvgLoader replaces ThorVG so the tests run
-  without thorvg-python installed.
+  without needing the ``kivy.lib.thorvg`` extension to be compiled.
 '''
 
 import unittest
@@ -246,7 +246,7 @@ class TestSvgWidgetIntegration(_SvgLoaderIsolation, GraphicUnitTest):
     '''Integration tests for SvgWidget using a mock SVG provider.
 
     The mock provider is registered with SvgLoader so no real SVG
-    rasterization (and no thorvg-python dependency) is needed.
+    rasterization (and no ``kivy.lib.thorvg`` dependency) is needed.
     '''
 
     def setUp(self):

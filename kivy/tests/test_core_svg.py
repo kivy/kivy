@@ -6,8 +6,8 @@ Tests for :mod:`kivy.core.svg` (SvgLoader registry) and
 :mod:`kivy.core.svg.svg_thorvg` (provider helper functions).
 
 These tests are pure-Python and do not require a display or GL context.
-ThorVG-dependent tests are skipped automatically when thorvg-python is
-not installed.
+ThorVG-dependent tests are skipped automatically when this build of Kivy
+was compiled without the :mod:`kivy.lib.thorvg` extension.
 '''
 
 import unittest
@@ -15,7 +15,7 @@ import unittest
 
 def _thorvg_available():
     try:
-        import thorvg_python  # noqa: F401
+        import kivy.lib.thorvg._thorvg  # noqa: F401
         return True
     except ImportError:
         return False
@@ -317,14 +317,14 @@ class TestProbeSizeFromXml(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# SvgProviderThorvg — requires thorvg-python
+# SvgProviderThorvg - requires kivy.lib.thorvg
 # ---------------------------------------------------------------------------
 
-@unittest.skipUnless(_thorvg_available(), 'thorvg-python not installed')
+@unittest.skipUnless(_thorvg_available(), 'kivy.lib.thorvg not available')
 class TestSvgProviderThorvg(unittest.TestCase):
     '''Integration tests for SvgProviderThorvg.
 
-    Skipped when thorvg-python is not installed.
+    Skipped when this build of Kivy has no ``kivy.lib.thorvg`` extension.
     '''
 
     # A minimal valid SVG used across tests.

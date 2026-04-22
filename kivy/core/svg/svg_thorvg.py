@@ -2,11 +2,9 @@
 SVG provider - ThorVG backend
 =============================
 
-Implements :class:`~kivy.core.svg.SvgProviderBase` using ``thorvg-python``.
-
-Requires ``thorvg-python``.  Install with::
-
-    pip install thorvg-python
+Implements :class:`~kivy.core.svg.SvgProviderBase` using Kivy's internal
+:mod:`kivy.lib.thorvg` Cython binding.  The binding ships with the official
+Kivy wheels, so no extra ``pip install`` is required.
 
 .. versionadded:: 3.0.0
 '''
@@ -17,20 +15,10 @@ import xml.etree.ElementTree as ET
 from kivy.logger import Logger
 from kivy.core.svg import SvgProviderBase, SvgLoader
 
-# Module-level ThorVG engine and Accessor singletons.  Initialised on first
-# use so that importing this module does not hard-fail when thorvg-python
-# is absent.
-_engine = None
+# Module-level Accessor singleton.  The Accessor is stateless for the
+# ``accessor_generate_id()`` use-case and can be reused across calls - it's
+# cached here so the allocation cost is paid only once per process.
 _accessor = None
-
-
-def _get_engine():
-    '''Return the shared ThorVG Engine, initialising it if needed.'''
-    global _engine
-    if _engine is None:
-        import thorvg_python as tvg
-        _engine = tvg.Engine(threads=0)
-    return _engine
 
 
 def _generate_id(name):
@@ -41,18 +29,17 @@ def _generate_id(name):
     singleton so the initialisation cost is paid only once.
     '''
     global _accessor
-    from thorvg_python.accessor import Accessor
-    engine = _get_engine()
+    from kivy.lib.thorvg import Accessor
     if _accessor is None:
-        _accessor = Accessor(engine, None)
+        _accessor = Accessor()
     return _accessor.accessor_generate_id(name)
 
 
 def _extract_element_ids_xml(svg_bytes):
     '''Fallback: return ``id`` attribute values from the SVG XML.
 
-    Used when the installed ``thorvg-python`` predates the accessible-mode API
-    (``Picture.set_accessible`` / ``Accessor.get_name``).  Returns *all* XML
+    Used when ThorVG's accessible-mode API (``Picture.set_accessible`` /
+    ``Accessor.get_name``) is unavailable at runtime.  Returns *all* XML
     ``id`` attributes, including the root ``<svg>`` element which is not
     addressable as a ThorVG Paint node.
 
@@ -72,11 +59,8 @@ def _extract_element_ids_xml(svg_bytes):
     return ids
 
 
-def _extract_element_ids_accessible(pic, engine):
+def _extract_element_ids_accessible(pic):
     '''Return element IDs directly from ThorVG using the accessible-mode API.
-
-    Requires ``thorvg-python`` built against ThorVG ≥ master/post-1.0.3 (PR
-    #4294), which adds ``Picture.set_accessible`` and ``Accessor.get_name``.
 
     ``pic`` must have been created with ``set_accessible(True)`` **before**
     ``load_data()`` was called.  The paint tree is walked via
@@ -87,19 +71,17 @@ def _extract_element_ids_accessible(pic, engine):
     included, so the root ``<svg>`` element (which is not a Paint node) is
     automatically excluded.
 
-    :param pic: A loaded ``thorvg_python.Picture`` with accessible mode enabled.
-    :param engine: The shared ThorVG ``Engine``.
+    :param pic: A loaded :class:`kivy.lib.thorvg.Picture` with accessible
+        mode enabled.
     :returns: List of original SVG ``id`` strings in paint-tree order.
     '''
-    from thorvg_python.accessor import Accessor
-    from thorvg_python.paint import Paint as TvgPaint
+    from kivy.lib.thorvg import Accessor
 
     ids = []
-    accessor = Accessor(engine, None)
+    accessor = Accessor()
 
-    def _visitor(paint_ptr, _data):
-        p = TvgPaint(engine, paint_ptr)
-        h = p.get_id()
+    def _visitor(paint, _data):
+        h = paint.get_id()
         if h:
             name = accessor.get_name(h)
             if name is not None:
@@ -142,16 +124,12 @@ def _rgba_bytes_from_canvas(canvas):
     byte-swapping is needed.
 
     .. note:: Optimisation opportunity - this call copies the full pixel
-        buffer into a new Python ``bytes`` object (~47 MB at 4K).
-
-        If a Cython wrapper for ThorVG is introduced (e.g. to bundle ThorVG
-        directly into the Kivy build the way other backends are), this
-        becomes trivial: ``SwCanvas.__getbuffer__`` can expose the render
-        target directly, allowing ``Texture.blit_buffer(canvas)`` with zero
-        copies and clean lifetime management via a context manager.  The
-        choice between ``thorvg_python`` (optional pip dependency) and a
-        Cython wrapper (compiled backend) is an architecture decision for
-        the Kivy maintainers.
+        buffer into a new Python ``bytes`` object (~47 MB at 4K). The
+        underlying :class:`kivy.lib.thorvg.SwCanvas` implements the Python
+        buffer protocol, so callers that can consume a buffer-protocol
+        object directly (e.g. :meth:`Texture.blit_buffer`) may skip this
+        copy entirely by using ``canvas`` or ``canvas.buffer_arr`` without
+        wrapping it in :func:`bytes`.
 
     :returns: bytes, or ``None`` on failure.
     '''
@@ -243,25 +221,15 @@ class SvgProviderThorvg(SvgProviderBase):
         :func:`_extract_element_ids_accessible` can retrieve the original SVG
         ``id`` strings directly from ThorVG without XML parsing.
 
-        Falls back to XML-based element ID discovery when the installed
-        ``thorvg-python`` does not support the accessible-mode API (i.e. pre
-        ThorVG master/PR-#4294).
-
         Falls back to XML dimension parsing when ThorVG returns non-finite
         dimensions (e.g. an SVG with only a ``height`` attribute).
 
         :returns: ``((w, h), element_ids)`` tuple.
         '''
         try:
-            import thorvg_python as tvg
-            engine = _get_engine()
-            pic = tvg.Picture(engine)
-
-            # Enable accessible mode so get_name() works inside the callback.
-            # Graceful fallback: older thorvg-python builds lack this method.
-            accessible_supported = hasattr(pic, 'set_accessible')
-            if accessible_supported:
-                pic.set_accessible(True)
+            from kivy.lib import thorvg as tvg
+            pic = tvg.Picture()
+            pic.set_accessible(True)
 
             result = pic.load_data(data, 'svg', None, False)
             if result != tvg.Result.SUCCESS:
@@ -278,14 +246,7 @@ class SvgProviderThorvg(SvgProviderBase):
                 size = self._probe_size_from_xml(data)
 
             # --- element IDs ---
-            if accessible_supported:
-                element_ids = _extract_element_ids_accessible(pic, engine)
-            else:
-                Logger.debug(
-                    'SvgThorvg: accessible mode not available; '
-                    'falling back to XML for element IDs'
-                )
-                element_ids = _extract_element_ids_xml(data)
+            element_ids = _extract_element_ids_accessible(pic)
 
             return size, element_ids
 
@@ -361,18 +322,16 @@ class SvgProviderThorvg(SvgProviderBase):
             return None
 
         try:
-            import thorvg_python as tvg
+            from kivy.lib import thorvg as tvg
         except ImportError:
             Logger.error(
-                'SvgThorvg: thorvg-python is not installed. '
-                'Run: pip install thorvg-python'
+                'SvgThorvg: kivy.lib.thorvg is not available. '
+                'This build of Kivy was compiled without ThorVG support.'
             )
             return None
 
-        engine = _get_engine()
-
         # ---- set up canvas ----
-        canvas = tvg.SwCanvas(engine)
+        canvas = tvg.SwCanvas()
         result = canvas.set_target(width, height)
         if result != tvg.Result.SUCCESS:
             Logger.error(
@@ -387,7 +346,7 @@ class SvgProviderThorvg(SvgProviderBase):
             svg_data = _apply_current_color(svg_data, current_color)
 
         # ---- load picture ----
-        pic = tvg.Picture(engine)
+        pic = tvg.Picture()
         result = pic.load_data(svg_data, 'svg', None, True)
         if result != tvg.Result.SUCCESS:
             Logger.error(
