@@ -1,11 +1,13 @@
 #!/bin/bash
-# Builds ThorVG as a static library and installs it into Kivy's shared
-# dependencies tree so that setup.py can statically link ``kivy.lib.thorvg``.
+# Builds ThorVG and installs it into Kivy's shared dependencies tree so
+# that setup.py can link ``kivy.lib.thorvg._thorvg`` against it. Produces
+# a static archive by default; set ``THORVG_SHARED=1`` for a shared
+# library (used by Linux + macOS desktop wheels).
 #
 # This script is the single source of truth for:
 #   * the pinned ThorVG version,
-#   * the Meson build options (engine / loaders / extras / static) that the
-#     ``kivy.lib.thorvg._thorvg`` Cython wrapper expects, and
+#   * the Meson build options (engine / loaders / extras / static-vs-shared)
+#     that the ``kivy.lib.thorvg._thorvg`` Cython wrapper expects, and
 #   * the ugly platform-specific glue (Windows link.exe collision, macOS
 #     universal2 via multi-arch Apple Clang, Ubuntu multiarch libdir)
 #     that we previously had to duplicate in multiple CI workflows.
@@ -16,8 +18,18 @@
 #                               (default: $(pwd)/kivy-dependencies/build/thorvg)
 #   THORVG_INSTALL_PREFIX       Final install prefix
 #                               (default: $(pwd)/kivy-dependencies/dist)
+#   THORVG_SHARED               "1" to build a shared library
+#                               (``--default-library=shared -Dstatic=false``)
+#                               instead of the default static archive. Kivy's
+#                               desktop wheels use shared on Linux (bundled
+#                               into ``kivy.libs/`` by ``auditwheel repair``)
+#                               and on macOS (wrapped as ``KivyThorVG.framework``
+#                               and embedded by ``delocate-wheel``). Windows
+#                               stays on the static default because Kivy's
+#                               Windows pipeline does not run a wheel-repair
+#                               step. Default: "0".
 #   THORVG_MACOS_UNIVERSAL      "1" to build a universal2 (x86_64 + arm64)
-#                               static archive on macOS by passing both
+#                               archive/dylib on macOS by passing both
 #                               ``-arch`` flags to Apple Clang in a single
 #                               meson invocation (same trick libpng uses via
 #                               ``CMAKE_OSX_ARCHITECTURES="x86_64;arm64"``).
@@ -33,6 +45,7 @@ set -e -x
 THORVG_VERSION="${THORVG_VERSION:-1.0.4}"
 THORVG_BUILD_ROOT="${THORVG_BUILD_ROOT:-$(pwd)/kivy-dependencies/build/thorvg}"
 THORVG_INSTALL_PREFIX="${THORVG_INSTALL_PREFIX:-$(pwd)/kivy-dependencies/dist}"
+THORVG_SHARED="${THORVG_SHARED:-0}"
 
 # Detect Windows (git-bash / msys / cygwin) so we can keep the rest of the
 # script POSIX-style while still emitting .lib / handling link.exe.
@@ -134,6 +147,14 @@ fi
 #                      ``lib/x86_64-linux-gnu/`` multiarch, which setup.py
 #                      does not probe. Force a flat install.
 # ---------------------------------------------------------------------------
+if [ "$THORVG_SHARED" = "1" ]; then
+  _THORVG_DEFAULT_LIBRARY="shared"
+  _THORVG_STATIC_OPT="false"
+else
+  _THORVG_DEFAULT_LIBRARY="static"
+  _THORVG_STATIC_OPT="true"
+fi
+
 _thorvg_configure_and_install() {
   local build_dir="$1"
   local prefix="$2"
@@ -146,11 +167,11 @@ _thorvg_configure_and_install() {
 
   meson setup "$build_dir" \
     --buildtype=release \
-    --default-library=static \
+    --default-library="$_THORVG_DEFAULT_LIBRARY" \
     --prefix="$prefix" \
     --libdir=lib \
     -Dlog=false \
-    -Dstatic=true \
+    -Dstatic="$_THORVG_STATIC_OPT" \
     -Dthreads=false \
     -Dtests=false \
     -Dbindings=capi \
@@ -196,15 +217,39 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Normalise the installed archive name to ``libthorvg.a`` (Unix) /
-#    ``thorvg.lib`` (Windows) so that setup.py's ``libraries=['thorvg']``
-#    resolves cleanly without having to know the ThorVG soversion.
+# 4. Post-install: verify and (for static builds) normalise the archive name.
+#
+# Static builds:
+#   Rename the produced archive to ``libthorvg.a`` (Unix) / ``thorvg.lib``
+#   (Windows) so that setup.py's ``libraries=['thorvg']`` resolves cleanly
+#   without having to know the ThorVG soversion.
+#
+# Shared builds (``THORVG_SHARED=1``):
+#   No renaming - setup.py uses ``-lthorvg-1`` which matches Meson's
+#   versioned output (``libthorvg-1.so.X`` on Linux, ``libthorvg-1.dylib``
+#   on macOS). ``auditwheel repair`` / ``delocate-wheel`` / the framework
+#   wrapper in ``build_macos_dependencies.sh`` take it from there. We still
+#   fail fast here if Meson silently produced only a static archive.
 # ---------------------------------------------------------------------------
 _libdir="$THORVG_INSTALL_PREFIX/lib"
 echo "--- Contents of $_libdir ---"
 ls -lR "$_libdir" || true
 
-if [ "$IS_WINDOWS" = "1" ]; then
+if [ "$THORVG_SHARED" = "1" ]; then
+  if [ "$IS_MACOS" = "1" ]; then
+    _shared_files=$(find "$_libdir" -maxdepth 3 -name 'libthorvg*.dylib' \
+      2>/dev/null)
+  else
+    _shared_files=$(find "$_libdir" -maxdepth 3 -name 'libthorvg*.so*' \
+      2>/dev/null)
+  fi
+  if [ -z "$_shared_files" ]; then
+    echo "FATAL: THORVG_SHARED=1 but no shared ThorVG library found under $_libdir" >&2
+    exit 1
+  fi
+  echo "--- ThorVG shared library (THORVG_SHARED=1) ---"
+  echo "$_shared_files"
+elif [ "$IS_WINDOWS" = "1" ]; then
   src=$(find "$_libdir" -maxdepth 3 \
     \( -name 'thorvg*.lib' -o -name 'libthorvg*.a' \) 2>/dev/null | head -n1)
   [ -n "$src" ] || {

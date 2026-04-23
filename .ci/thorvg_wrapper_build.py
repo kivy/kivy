@@ -11,8 +11,10 @@ This helper is shared by:
 * Developers who want a fast inner loop on wrapper changes without
   rebuilding every Kivy Cython extension.
 
-ThorVG v1.0.4 must already be built as a static library. The include /
-library directories are resolved in this order:
+ThorVG must already be built as a static library (the version is pinned
+by the caller - ``.github/workflows/test_thorvg_wrapper.yml`` for the CI
+gate, or by the developer for a local dev build). The include / library
+directories are resolved in this order:
 
 1. ``$KIVY_THORVG_INCLUDE_DIR`` / ``$KIVY_THORVG_LIB_DIR`` if both are
    set (CI sets these explicitly after the ThorVG meson build).

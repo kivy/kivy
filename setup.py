@@ -859,10 +859,13 @@ def determine_angle_flags():
 
 
 def determine_thorvg_flags():
-    """Flags to build and statically link the internal kivy.lib.thorvg
-    Cython wrapper against ThorVG v1.0.4.
+    """Compiler / linker flags for the internal ``kivy.lib.thorvg`` Cython
+    wrapper. The ThorVG version itself is pinned in
+    ``tools/build_thorvg.sh``; this function is version-agnostic and just
+    resolves headers + library search paths for whatever was installed
+    there.
 
-    Header + static library lookup order:
+    Header + library lookup order:
 
     1. ``KIVY_THORVG_INCLUDE_DIR`` / ``KIVY_THORVG_LIB_DIR`` environment
        variables (set by mobile recipes - p4a, kivy-ios - and by users with
@@ -870,20 +873,52 @@ def determine_thorvg_flags():
     2. ``$KIVY_DEPS_ROOT/dist/{include,lib,lib64}`` (the standard location
        produced by the desktop CI build scripts and kivy-dependencies).
 
-    Static linkage is used on all platforms: no ``kivy-deps.thorvg`` wheel
-    is produced and no shared ThorVG library is shipped alongside Kivy.
+    Linkage per platform:
+
+    * **Linux** - dynamic: ``libthorvg-1.so.*`` produced by
+      ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1`` and bundled into
+      ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. No
+      ``-lstdc++`` needed - the shared library's ``DT_NEEDED`` carries
+      the C++ runtime dependency itself.
+    * **macOS** - dynamic (pending macOS sub-step): will link against
+      ``KivyThorVG.framework`` embedded by ``delocate-wheel``. Still static
+      on this PR until the macOS conversion lands.
+    * **Windows** - static: ``thorvg.lib`` normalised by
+      ``tools/build_thorvg.sh``. Kivy's Windows wheel pipeline does not
+      run a wheel-repair step, so dynamic linking would force a separate
+      ``kivy_deps.thorvg`` package - out of scope for this PR.
+    * **iOS / Android** - handled by mobile recipes / cibuildwheel (not
+      this function's concern beyond ``KIVY_THORVG_*`` env var support).
     """
-    # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
-    # __declspec(dllimport) annotations and the Unix visibility
-    # attributes - required when linking against a static ThorVG archive.
+    # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
+    # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
+    # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
+    # archive is normalised to ``thorvg.lib`` by ``build_thorvg.sh`` so
+    # the bare name ``thorvg`` resolves.
+    if platform == 'win32':
+        thorvg_lib = 'thorvg'
+    else:
+        thorvg_lib = 'thorvg-1'
+
     flags = {
         'include_dirs': [],
         'library_dirs': [],
-        'libraries': ['thorvg'],
+        'libraries': [thorvg_lib],
         'extra_compile_args': [],
         'extra_link_args': [],
-        'define_macros': [('TVG_STATIC', '1')],
+        'define_macros': [],
     }
+
+    # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
+    # __declspec(dllimport) annotations and the Unix visibility attributes.
+    # It is required when linking a static archive; when linking a shared
+    # library it must be omitted so the visibility attributes stay active
+    # and dynamic symbol resolution works.
+    if platform in ('win32', 'darwin', 'android', 'ios'):
+        # Static on Windows; macOS stays static until the macOS sub-step
+        # flips it to a framework; mobile recipes continue to link
+        # ThorVG statically for now.
+        flags['define_macros'].append(('TVG_STATIC', '1'))
 
     explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
     explicit_lib = environ.get('KIVY_THORVG_LIB_DIR')
@@ -903,9 +938,17 @@ def determine_thorvg_flags():
         flags['library_dirs'].append(join(dist, 'lib'))
         flags['library_dirs'].append(join(dist, 'lib64'))
 
-    # ThorVG is C++; a static archive needs the C++ runtime linked in on
-    # Unix-like systems. On Windows (MSVC) the runtime is pulled in
-    # automatically via the standard link libraries.
+    # ThorVG is C++. A static archive needs the C++ runtime linked
+    # explicitly on Unix-like systems. On Linux a shared libthorvg-1.so
+    # already carries ``libstdc++.so.6`` in its own ``DT_NEEDED``, so the
+    # flag is redundant for the default shared path - but we keep it so
+    # a user who supplies a static ThorVG via ``KIVY_THORVG_LIB_DIR``
+    # still gets a working link. auditwheel / manylinux treats
+    # ``libstdc++.so.6`` as a system-provided library (not vendored), so
+    # the extra ``DT_NEEDED`` entry is free. Windows (MSVC) pulls the
+    # runtime in automatically. Mobile toolchains (Android NDK, iOS) use
+    # libc++ and arrange the runtime themselves in the recipe /
+    # cibuildwheel config, not here.
     if platform == 'darwin':
         flags['extra_link_args'].append('-lc++')
     elif platform not in ('win32', 'android', 'ios'):
@@ -1391,7 +1434,8 @@ if c_options['use_gstreamer']:
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
-# ThorVG v1.0.4 wrapper (kivy.lib.thorvg._thorvg).
+# ThorVG wrapper (kivy.lib.thorvg._thorvg). Version is pinned in
+# tools/build_thorvg.sh.
 #
 # Matches the auto-detection pattern used by ``use_gstreamer`` /
 # ``use_sdl3``: if ``use_thorvg`` is left at ``None`` we probe for
@@ -1416,8 +1460,10 @@ if c_options['use_thorvg'] is None:
     else:
         print(
             'ThorVG headers not found; skipping kivy.lib.thorvg wrapper. '
-            'Set KIVY_THORVG_INCLUDE_DIR / KIVY_THORVG_LIB_DIR or '
-            'USE_THORVG=1 to force a build.'
+            'Set KIVY_THORVG_INCLUDE_DIR / KIVY_THORVG_LIB_DIR (direct '
+            'paths), KIVY_DEPS_ROOT (expects '
+            '$KIVY_DEPS_ROOT/dist/include/thorvg-1/thorvg_capi.h), or '
+            'USE_THORVG=1 to force a build attempt.'
         )
         c_options['use_thorvg'] = False
 
@@ -1427,8 +1473,8 @@ if c_options['use_thorvg']:
             'depends': ['lib/thorvg/thorvg.pxd'],
             # Compile as C++ so the ThorVG C API header's `bool` return
             # types (`#include <stdbool.h>` vs C++ `bool`) have a
-            # consistent ABI with the statically linked ThorVG library,
-            # which is itself compiled as C++.
+            # consistent ABI with the ThorVG library, which is itself
+            # compiled as C++.
             'language': 'c++',
         })
 

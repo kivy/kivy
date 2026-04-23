@@ -20,6 +20,26 @@ update_version_metadata() {
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
     --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
+
+  # Ubuntu source-install tests (test_ubuntu_python.yml::unit_test via
+  # ``install_kivy`` = ``pip install -e .``, and manylinux_wheels.yml::sdist_test
+  # via ``install_kivy_sdist``) link the ``kivy.lib.thorvg._thorvg``
+  # extension against the shared ``libthorvg-1.so`` produced by
+  # ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1``. Those paths do
+  # not run ``auditwheel repair``, so the freshly built extension still
+  # carries a ``DT_NEEDED: libthorvg-1.so.0`` that the dynamic linker
+  # must resolve at import time. Export LD_LIBRARY_PATH to include our
+  # kivy-dependencies dist/lib; propagate to subsequent GHA steps via
+  # GITHUB_ENV so ``Install Kivy`` / ``Test Kivy`` pick it up. No-op if
+  # kivy-dependencies/ has not been built (e.g. wheel-install test
+  # paths, which use auditwheel-repaired wheels).
+  local _thorvg_lib_dir="$(pwd)/kivy-dependencies/dist/lib"
+  if [ -d "$_thorvg_lib_dir" ]; then
+    export LD_LIBRARY_PATH="${_thorvg_lib_dir}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    if [ -n "${GITHUB_ENV:-}" ]; then
+      echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+    fi
+  fi
 }
 
 install_kivy() {
