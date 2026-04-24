@@ -252,11 +252,22 @@ if [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
   # executable``). Universal2 binaries run natively on both arches so
   # the sanity check succeeds regardless of host CPU.
   echo "-- Build ThorVG (universal2 via single meson invocation)"
+  # ``-lc++`` on the link line is only needed for the shared build
+  # (``THORVG_SHARED=1`` -> libthorvg-1.1.dylib). Meson invokes Apple
+  # Clang as ``clang`` (not ``clang++``) for the final link step of
+  # this target, which skips libc++ auto-linking and leaves every
+  # ``std::__1::*`` reference unresolved on both slices; the error
+  # surfaces first on the x86_64 slice with
+  # ``Undefined symbols for architecture x86_64: "std::__1::mutex::lock()"``.
+  # Adding ``-lc++`` explicitly resolves libc++ via ``/usr/lib/libc++.dylib``
+  # (universal fat binary shipped by the Xcode CLT) for both slices.
+  # For the static archive path (``ar`` just bundles .o files, no link
+  # resolution) the flag is harmless - ``ar`` ignores ``-l*``.
   _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX" \
     -Dc_args="-arch x86_64 -arch arm64" \
     -Dcpp_args="-arch x86_64 -arch arm64" \
     -Dc_link_args="-arch x86_64 -arch arm64" \
-    -Dcpp_link_args="-arch x86_64 -arch arm64"
+    -Dcpp_link_args="-arch x86_64 -arch arm64 -lc++"
 
   # Verify the produced archive / dylib is actually fat. ``lipo -info``
   # covers both ``libthorvg-1.a`` (static path) and
