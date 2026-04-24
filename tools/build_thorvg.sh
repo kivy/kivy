@@ -19,15 +19,23 @@
 #   THORVG_INSTALL_PREFIX       Final install prefix
 #                               (default: $(pwd)/kivy-dependencies/dist)
 #   THORVG_SHARED               "1" to build a shared library
-#                               (``--default-library=shared -Dstatic=false``)
-#                               instead of the default static archive. Kivy's
-#                               desktop wheels use shared on Linux (bundled
-#                               into ``kivy.libs/`` by ``auditwheel repair``)
-#                               and on macOS (wrapped as ``KivyThorVG.framework``
+#                               (``--default-library=shared``) instead of the
+#                               default static archive. Kivy's desktop wheels
+#                               use shared on Linux (bundled into
+#                               ``kivy.libs/`` by ``auditwheel repair``) and
+#                               on macOS (wrapped as ``KivyThorVG.framework``
 #                               and embedded by ``delocate-wheel``). Windows
 #                               stays on the static default because Kivy's
 #                               Windows pipeline does not run a wheel-repair
 #                               step. Default: "0".
+#
+#                               Note: ``THORVG_SHARED`` only flips
+#                               ``--default-library``. The (confusingly named)
+#                               ThorVG ``-Dstatic`` Meson option controls
+#                               loader-plugin bundling, not library kind, and
+#                               is *always* passed as ``true`` below so the
+#                               bundled LodePNG / JPGd codecs are linked into
+#                               libthorvg directly on every platform.
 #   THORVG_MACOS_UNIVERSAL      "1" to build a universal2 (x86_64 + arm64)
 #                               archive/dylib on macOS by passing both
 #                               ``-arch`` flags to Apple Clang in a single
@@ -146,38 +154,46 @@ fi
 #   -Dloaders=...      svg + lottie + ttf for vector content, plus png +
 #                      jpg so that raster assets *embedded* in SVG
 #                      data-URIs and Lottie ``<image>`` layers decode.
-#                      ThorVG ships two implementations per raster
-#                      format (see thorvg/src/loaders/meson.build):
-#                        * ``-Dstatic=true`` (our Windows path): always
-#                          uses the **bundled** self-contained codecs -
-#                          LodePNG for PNG, JPGd for JPEG - with no
-#                          external library deps.
-#                        * ``-Dstatic=false`` (our Linux + macOS shared
-#                          path): tries pkg-config for ``libpng`` +
-#                          ``libturbojpeg`` first, else **falls back
-#                          to the same bundled codecs**. The
-#                          ``PKG_CONFIG_LIBDIR`` isolation below
-#                          prevents Meson from discovering Homebrew's
-#                          arm64-only ``libpng.pc`` on Apple Silicon
-#                          runners (which would otherwise break the
-#                          universal2 x86_64 slice with ``found
-#                          architecture 'arm64', required architecture
-#                          'x86_64'``), so the fallback kicks in and
-#                          we get self-contained bundled codecs on
-#                          every desktop platform.
-#                      Net effect: embedded raster assets decode
-#                      identically on Linux / macOS / Windows, with
-#                      zero extra dependency pins to track / audit.
+#                      Combined with ``-Dstatic=true`` below, ThorVG
+#                      links its **bundled** self-contained codecs
+#                      (LodePNG for PNG, JPGd for JPEG, in
+#                      ``src/loaders/{png,jpg}/``) directly into
+#                      libthorvg on every platform - no external
+#                      ``libpng`` / ``libturbojpeg`` runtime
+#                      dependency, no pkg-config / Homebrew detection
+#                      to break universal2 builds. See the
+#                      ``-Dstatic=true`` note below for the actual
+#                      switch that selects the bundled path.
+#   -Dstatic=true      Loader-plugin bundling switch (poorly named:
+#                      this is *not* the same as
+#                      ``--default-library=static``). When ``true``,
+#                      ``src/loaders/meson.build`` skips
+#                      ``subdir('external_png')`` /
+#                      ``subdir('external_jpg')`` and unconditionally
+#                      compiles the bundled codecs in
+#                      ``src/loaders/{png,jpg}/``. When ``false`` (the
+#                      ThorVG default), Meson tries pkg-config and
+#                      then falls back to ``cc.find_library('turbojpeg')``
+#                      / ``cc.find_library('png')``, which uses the
+#                      compiler's link search path
+#                      (``/usr/local/lib`` on Intel macOS,
+#                      ``/opt/homebrew/lib`` on Apple Silicon) and
+#                      links Homebrew's single-arch dylibs into our
+#                      universal2 ``libthorvg-1.dylib`` - which then
+#                      fails with ``found architecture 'x86_64',
+#                      required architecture 'arm64'`` (or vice versa)
+#                      on whichever slice Homebrew did not provide.
+#                      We always force ``true`` below, regardless of
+#                      ``THORVG_SHARED``, so libthorvg is fully
+#                      self-contained on Linux / macOS / Windows.
 #   --libdir=lib       Meson on Debian/Ubuntu defaults to
 #                      ``lib/x86_64-linux-gnu/`` multiarch, which setup.py
 #                      does not probe. Force a flat install.
 # ---------------------------------------------------------------------------
 if [ "$THORVG_SHARED" = "1" ]; then
   _THORVG_DEFAULT_LIBRARY="shared"
-  _THORVG_STATIC_OPT="false"
 else
   _THORVG_DEFAULT_LIBRARY="static"
-  _THORVG_STATIC_OPT="true"
 fi
 
 _thorvg_configure_and_install() {
@@ -190,39 +206,13 @@ _thorvg_configure_and_install() {
   # Clean stale build dir from previous invocations (idempotent CI reruns).
   rm -rf "$build_dir"
 
-  # Scope pkg-config's search path to Kivy's own dependency tree so
-  # Meson can't discover the host system's / Homebrew's libpng or
-  # libturbojpeg. We explicitly *want* no match here: ThorVG's Meson
-  # build then falls back to its bundled LodePNG / JPGd codecs (see
-  # ``src/loaders/meson.build`` - ``if not png_dep.found(): subdir('png')``),
-  # which is the same decoder path the ``-Dstatic=true`` / Windows
-  # build already takes.
-  #
-  # This matters specifically on macOS universal2 builds: Homebrew on
-  # Apple Silicon runners ships ``libpng.dylib`` / ``libturbojpeg.dylib``
-  # as arm64-only, and Meson's default pkg-config path
-  # (``/opt/homebrew/lib/pkgconfig``) would otherwise be picked up,
-  # link-time-resolving every symbol and exploding the x86_64 slice of
-  # ``libthorvg-1.dylib`` with ``found architecture 'arm64', required
-  # architecture 'x86_64'``. ``PKG_CONFIG_LIBDIR`` (not
-  # ``PKG_CONFIG_PATH``) is the right env var because it *replaces*
-  # the default search path; prepending would still let Homebrew win
-  # whenever our dist tree is empty.
-  #
-  # On Linux the net effect is the same - system pkg-config stays
-  # out of the mix - which keeps libthorvg-1.so.* self-contained and
-  # reproducible regardless of which manylinux image contains which
-  # libpng version.
-  export PKG_CONFIG_LIBDIR="$THORVG_INSTALL_PREFIX/lib/pkgconfig"
-  echo "-- PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR (bundled-loader fallback)"
-
   meson setup "$build_dir" \
     --buildtype=release \
     --default-library="$_THORVG_DEFAULT_LIBRARY" \
     --prefix="$prefix" \
     --libdir=lib \
     -Dlog=false \
-    -Dstatic="$_THORVG_STATIC_OPT" \
+    -Dstatic=true \
     -Dthreads=false \
     -Dtests=false \
     -Dbindings=capi \
