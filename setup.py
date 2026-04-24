@@ -880,9 +880,14 @@ def determine_thorvg_flags():
       ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. No
       ``-lstdc++`` needed - the shared library's ``DT_NEEDED`` carries
       the C++ runtime dependency itself.
-    * **macOS** - dynamic (pending macOS sub-step): will link against
-      ``KivyThorVG.framework`` embedded by ``delocate-wheel``. Still static
-      on this PR until the macOS conversion lands.
+    * **macOS** - dynamic: links against
+      ``KivyThorVG.framework`` (wrapped from ``libthorvg-1.dylib`` by
+      ``tools/macos_framework_wrapper.sh``), embedded into the wheel
+      by ``delocate-wheel`` at cibuildwheel-repair time. The framework
+      branch mirrors SDL3's ``macos-frameworks`` path: ``-F`` +
+      ``-framework KivyThorVG`` + an ``@rpath`` entry so delocate can
+      rewrite paths to ``@loader_path/../.dylibs/`` in the repaired
+      wheel.
     * **Windows** - static: ``thorvg.lib`` normalised by
       ``tools/build_thorvg.sh``. Kivy's Windows wheel pipeline does not
       run a wheel-repair step, so dynamic linking would force a separate
@@ -890,6 +895,48 @@ def determine_thorvg_flags():
     * **iOS / Android** - handled by mobile recipes / cibuildwheel (not
       this function's concern beyond ``KIVY_THORVG_*`` env var support).
     """
+    # macOS (desktop): look for ``KivyThorVG.framework`` first. This is
+    # the path produced by ``tools/build_macos_dependencies.sh`` and
+    # used by every standard macOS wheel build. We short-circuit to
+    # framework-style flags here (same shape as SDL3's
+    # ``macos-frameworks`` branch above) instead of threading an
+    # ``is_framework`` boolean through the rest of this function, so
+    # the downstream ``library_dirs`` / ``-l`` logic stays exclusively
+    # for dylib + static-archive consumers (Linux / Windows / dev
+    # override).
+    #
+    # If the framework is absent - e.g. a developer pointed
+    # ``KIVY_THORVG_LIB_DIR`` at a raw Meson ``dist/lib/``, or
+    # ``c_options['use_osx_frameworks']`` was explicitly disabled - we
+    # fall through to the generic dylib path, which still produces a
+    # working build (just without delocate-wheel's framework-embedding
+    # magic).
+    if platform == 'darwin' and c_options['use_osx_frameworks']:
+        if KIVY_DEPS_ROOT:
+            thorvg_fw_root = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks')
+        else:
+            thorvg_fw_root = environ.get(
+                'KIVY_THORVG_FRAMEWORKS_SEARCH_PATH',
+                '/Library/Frameworks',
+            )
+        thorvg_fw = join(thorvg_fw_root, 'KivyThorVG.framework')
+        if exists(thorvg_fw):
+            return {
+                'include_dirs': [join(thorvg_fw, 'Headers')],
+                'library_dirs': [],
+                'libraries': [],
+                'extra_compile_args': ['-F{}'.format(thorvg_fw_root)],
+                'extra_link_args': [
+                    '-F{}'.format(thorvg_fw_root),
+                    '-Xlinker', '-rpath',
+                    '-Xlinker', thorvg_fw_root,
+                    '-Xlinker', '-headerpad',
+                    '-Xlinker', '190',
+                    '-framework', 'KivyThorVG',
+                ],
+                'define_macros': [],
+            }
+
     # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
     # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
     # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
@@ -914,10 +961,14 @@ def determine_thorvg_flags():
     # It is required when linking a static archive; when linking a shared
     # library it must be omitted so the visibility attributes stay active
     # and dynamic symbol resolution works.
-    if platform in ('win32', 'darwin', 'android', 'ios'):
-        # Static on Windows; macOS stays static until the macOS sub-step
-        # flips it to a framework; mobile recipes continue to link
-        # ThorVG statically for now.
+    #
+    # Windows stays static (Kivy has no wheel-repair step there).
+    # macOS desktop is shared via the framework branch above - the
+    # fallback dylib path reaches this branch only when the framework
+    # is absent, in which case we treat it as shared too (no TVG_STATIC).
+    # Mobile (android, ios) still links statically today; that flips in
+    # STAGE 2.
+    if platform in ('win32', 'android', 'ios'):
         flags['define_macros'].append(('TVG_STATIC', '1'))
 
     explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')

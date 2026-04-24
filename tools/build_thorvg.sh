@@ -207,10 +207,15 @@ if [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
     -Dc_link_args="-arch x86_64 -arch arm64" \
     -Dcpp_link_args="-arch x86_64 -arch arm64"
 
-  # Verify the produced archive is actually fat.
-  _fat_a=$(find "$THORVG_INSTALL_PREFIX/lib" -maxdepth 2 -name 'libthorvg*.a' | head -n1)
-  if [ -n "$_fat_a" ]; then
-    lipo -info "$_fat_a" || true
+  # Verify the produced archive / dylib is actually fat. ``lipo -info``
+  # covers both ``libthorvg-1.a`` (static path) and
+  # ``libthorvg-1.dylib`` (``THORVG_SHARED=1`` path); Apple's linker
+  # handles universal2 for both output kinds given the multi-``-arch``
+  # flags above.
+  _fat_bin=$(find "$THORVG_INSTALL_PREFIX/lib" -maxdepth 2 \
+    \( -name 'libthorvg*.a' -o -name 'libthorvg*.dylib' \) | head -n1)
+  if [ -n "$_fat_bin" ]; then
+    lipo -info "$_fat_bin" || true
   fi
 else
   _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX"
