@@ -143,6 +143,31 @@ fi
 #                      JerryScript JS engine for Lottie expression support
 #                      (~130 extra compile units); none of the Kivy
 #                      providers (svg / svg-image / lottie) need it.
+#   -Dloaders=...      svg + lottie + ttf for vector content, plus png +
+#                      jpg so that raster assets *embedded* in SVG
+#                      data-URIs and Lottie ``<image>`` layers decode.
+#                      ThorVG ships two implementations per raster
+#                      format (see thorvg/src/loaders/meson.build):
+#                        * ``-Dstatic=true`` (our Windows path): always
+#                          uses the **bundled** self-contained codecs -
+#                          LodePNG for PNG, JPGd for JPEG - with no
+#                          external library deps.
+#                        * ``-Dstatic=false`` (our Linux + macOS shared
+#                          path): tries pkg-config for ``libpng`` +
+#                          ``libturbojpeg`` first, else **falls back
+#                          to the same bundled codecs**. The
+#                          ``PKG_CONFIG_LIBDIR`` isolation below
+#                          prevents Meson from discovering Homebrew's
+#                          arm64-only ``libpng.pc`` on Apple Silicon
+#                          runners (which would otherwise break the
+#                          universal2 x86_64 slice with ``found
+#                          architecture 'arm64', required architecture
+#                          'x86_64'``), so the fallback kicks in and
+#                          we get self-contained bundled codecs on
+#                          every desktop platform.
+#                      Net effect: embedded raster assets decode
+#                      identically on Linux / macOS / Windows, with
+#                      zero extra dependency pins to track / audit.
 #   --libdir=lib       Meson on Debian/Ubuntu defaults to
 #                      ``lib/x86_64-linux-gnu/`` multiarch, which setup.py
 #                      does not probe. Force a flat install.
@@ -164,6 +189,32 @@ _thorvg_configure_and_install() {
 
   # Clean stale build dir from previous invocations (idempotent CI reruns).
   rm -rf "$build_dir"
+
+  # Scope pkg-config's search path to Kivy's own dependency tree so
+  # Meson can't discover the host system's / Homebrew's libpng or
+  # libturbojpeg. We explicitly *want* no match here: ThorVG's Meson
+  # build then falls back to its bundled LodePNG / JPGd codecs (see
+  # ``src/loaders/meson.build`` - ``if not png_dep.found(): subdir('png')``),
+  # which is the same decoder path the ``-Dstatic=true`` / Windows
+  # build already takes.
+  #
+  # This matters specifically on macOS universal2 builds: Homebrew on
+  # Apple Silicon runners ships ``libpng.dylib`` / ``libturbojpeg.dylib``
+  # as arm64-only, and Meson's default pkg-config path
+  # (``/opt/homebrew/lib/pkgconfig``) would otherwise be picked up,
+  # link-time-resolving every symbol and exploding the x86_64 slice of
+  # ``libthorvg-1.dylib`` with ``found architecture 'arm64', required
+  # architecture 'x86_64'``. ``PKG_CONFIG_LIBDIR`` (not
+  # ``PKG_CONFIG_PATH``) is the right env var because it *replaces*
+  # the default search path; prepending would still let Homebrew win
+  # whenever our dist tree is empty.
+  #
+  # On Linux the net effect is the same - system pkg-config stays
+  # out of the mix - which keeps libthorvg-1.so.* self-contained and
+  # reproducible regardless of which manylinux image contains which
+  # libpng version.
+  export PKG_CONFIG_LIBDIR="$THORVG_INSTALL_PREFIX/lib/pkgconfig"
+  echo "-- PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR (bundled-loader fallback)"
 
   meson setup "$build_dir" \
     --buildtype=release \

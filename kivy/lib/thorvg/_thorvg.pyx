@@ -178,7 +178,7 @@ cdef class Picture(Paint):
         """Load a picture from in-memory *data* bytes.
 
         :param bytes data: Raw file contents.
-        :param str mimetype: e.g. ``'svg'``, ``'lottie'``, ``'png'``.
+        :param str mimetype: e.g. ``'svg'``, ``'lottie'``.
         :param rpath: Optional resource path string for external references.
         :param bool copy: If ``True``, ThorVG copies *data* into its own
             buffer. If ``False``, the caller must keep *data* alive for the

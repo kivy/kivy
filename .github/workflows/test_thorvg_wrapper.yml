@@ -32,7 +32,8 @@ on:
 #
 # Flow:
 #   1. Build ThorVG v1.0.4 as a static library (Meson + Ninja, CPU engine,
-#      SVG + Lottie + PNG + JPG + TTF loaders, no threads).
+#      SVG + Lottie + TTF loaders, no threads - see ``-Dloaders`` comment
+#      below for why this gate drops png + jpg).
 #   2. Build the ``kivy.lib.thorvg._thorvg`` Cython extension in-place via
 #      ``.ci/thorvg_wrapper_build.py``.
 #   3. Run ``pytest`` against a scratch ``gate_tests/`` directory seeded
@@ -116,14 +117,29 @@ jobs:
         shell: bash
         working-directory: thorvg_build/src
         run: |
-          # -Dextra='' disables the defaults ['lottie_exp', 'openmp']:
-          #   * openmp: the CPU renderer unconditionally ``#include <omp.h>``
-          #     under the openmp extra, but Apple Clang does not ship libomp
-          #     and we already call ``tvg_engine_init(SW, threads=0)`` at
-          #     module import, so OpenMP parallelism is dead code for us.
-          #   * lottie_exp: pulls in the JerryScript JS engine for Lottie
-          #     expression support (~130 extra compile units); none of the
-          #     Kivy providers (svg / svg-image / lottie) need expressions.
+          # Meson option notes (must stay in sync with tools/build_thorvg.sh):
+          #   -Dextra='' disables the defaults ['lottie_exp', 'openmp']:
+          #     * openmp: the CPU renderer unconditionally ``#include <omp.h>``
+          #       under the openmp extra, but Apple Clang does not ship libomp
+          #       and we already call ``tvg_engine_init(SW, threads=0)`` at
+          #       module import, so OpenMP parallelism is dead code for us.
+          #     * lottie_exp: pulls in the JerryScript JS engine for Lottie
+          #       expression support (~130 extra compile units); none of the
+          #       Kivy providers (svg / svg-image / lottie) need expressions.
+          #   -Dloaders=svg,lottie,ttf deliberately drops png + jpg in
+          #     THIS gate, even though tools/build_thorvg.sh (used by
+          #     the production *_wheels.yml / test_*_python.yml flows)
+          #     ships the full svg,lottie,png,jpg,ttf set. This gate is
+          #     a *wrapper smoke test*: it verifies that
+          #     kivy.lib.thorvg._thorvg.pyx still compiles and talks to
+          #     the ThorVG C API cleanly, not that the full raster
+          #     pipeline works. The Cython wrapper never references the
+          #     png / jpg loader symbols, so dropping them here does not
+          #     reduce wrapper coverage; it just skips ~20 extra
+          #     compile units (LodePNG + JPGd) per runner and keeps the
+          #     gate firmly under a 5-minute feedback budget. Raster
+          #     loading is exercised end-to-end in the full-provider
+          #     test suites (kivy/tests/test_*_svg*.py + test_lottie.py).
           meson setup build \
             --buildtype=release \
             --default-library=static \
@@ -134,7 +150,7 @@ jobs:
             -Dthreads=false \
             -Dtests=false \
             -Dbindings=capi \
-            -Dloaders=svg,lottie,png,jpg,ttf \
+            -Dloaders=svg,lottie,ttf \
             -Dengines=cpu \
             -Dextra=''
 
