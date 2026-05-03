@@ -2,7 +2,7 @@
 :mod:`kivy.lib.thorvg`
 ======================
 
-Minimal, internal Python binding to the ThorVG v1.0.4 C API, used by Kivy's
+Minimal, internal Python binding to the ThorVG C API, used by Kivy's
 SVG, SVG-image and Lottie providers.
 
 This is **not** a general-purpose Python binding for ThorVG: it exposes only

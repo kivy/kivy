@@ -1,7 +1,7 @@
 # cython: language_level=3
 # distutils: language = c++
 """
-Cython wrapper around the minimal ThorVG v1.0.4 C API used by Kivy's SVG,
+Cython wrapper around the minimal ThorVG C API used by Kivy's SVG,
 SVG-image and Lottie providers.
 
 Public surface (imported through [kivy/lib/thorvg/__init__.py](__init__.py)):

@@ -1,6 +1,6 @@
 # cython: language_level=3
 """
-Minimal Cython declarations for the ThorVG v1.0.4 C API (``thorvg_capi.h``).
+Minimal Cython declarations for the ThorVG C API (``thorvg_capi.h``).
 
 Only the surface required by Kivy's SVG, SVG-image and Lottie providers is
 declared here. See [kivy/lib/thorvg/_thorvg.pyx](_thorvg.pyx) for the wrapper
