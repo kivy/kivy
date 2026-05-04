@@ -61,7 +61,7 @@ Using apt::
 
     sudo apt update
     apt-get -y install build-essential git make autoconf automake libtool \
-          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          pkg-config cmake meson ninja-build libasound2-dev libpulse-dev libaudio-dev \
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
