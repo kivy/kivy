@@ -320,6 +320,7 @@ c_options['use_mesagl'] = False
 c_options['use_x11'] = False
 c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
+c_options['use_thorvg'] = None
 c_options['use_avfoundation'] = platform in ['darwin', 'ios']
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
@@ -857,6 +858,156 @@ def determine_angle_flags():
     return flags
 
 
+def determine_thorvg_flags():
+    """Compiler / linker flags for the internal ``kivy.lib.thorvg`` Cython
+    wrapper. The ThorVG version itself is pinned in
+    ``tools/build_thorvg.sh``; this function is version-agnostic and just
+    resolves headers + library search paths for whatever was installed
+    there.
+
+    Header + library lookup order:
+
+    1. ``KIVY_THORVG_INCLUDE_DIR`` / ``KIVY_THORVG_LIB_DIR`` environment
+       variables (set by mobile recipes - p4a, kivy-ios - and by users with
+       custom ThorVG installations).
+    2. ``$KIVY_DEPS_ROOT/dist/{include,lib,lib64}`` (the standard location
+       produced by the desktop CI build scripts and kivy-dependencies).
+
+    Linkage per platform:
+
+    * **Linux** - dynamic: ``libthorvg-1.so.*`` produced by
+      ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1`` and bundled into
+      ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. No
+      ``-lstdc++`` needed - the shared library's ``DT_NEEDED`` carries
+      the C++ runtime dependency itself.
+    * **macOS** - dynamic: links against
+      ``KivyThorVG.framework`` (wrapped from ``libthorvg-1.dylib`` by
+      ``tools/macos_framework_wrapper.sh``), embedded into the wheel
+      by ``delocate-wheel`` at cibuildwheel-repair time. The framework
+      branch mirrors SDL3's ``macos-frameworks`` path: ``-F`` +
+      ``-framework KivyThorVG`` + an ``@rpath`` entry so delocate can
+      rewrite paths to ``@loader_path/../.dylibs/`` in the repaired
+      wheel.
+    * **Windows** - static: ``thorvg.lib`` normalised by
+      ``tools/build_thorvg.sh``. Kivy's Windows wheel pipeline does not
+      run a wheel-repair step, so dynamic linking would force a separate
+      ``kivy_deps.thorvg`` package - out of scope for this PR.
+    * **iOS / Android** - handled by mobile recipes / cibuildwheel (not
+      this function's concern beyond ``KIVY_THORVG_*`` env var support).
+    """
+    # macOS (desktop): look for ``KivyThorVG.framework`` first. This is
+    # the path produced by ``tools/build_macos_dependencies.sh`` and
+    # used by every standard macOS wheel build. We short-circuit to
+    # framework-style flags here (same shape as SDL3's
+    # ``macos-frameworks`` branch above) instead of threading an
+    # ``is_framework`` boolean through the rest of this function, so
+    # the downstream ``library_dirs`` / ``-l`` logic stays exclusively
+    # for dylib + static-archive consumers (Linux / Windows / dev
+    # override).
+    #
+    # If the framework is absent - e.g. a developer pointed
+    # ``KIVY_THORVG_LIB_DIR`` at a raw Meson ``dist/lib/``, or
+    # ``c_options['use_osx_frameworks']`` was explicitly disabled - we
+    # fall through to the generic dylib path, which still produces a
+    # working build (just without delocate-wheel's framework-embedding
+    # magic).
+    if platform == 'darwin' and c_options['use_osx_frameworks']:
+        if KIVY_DEPS_ROOT:
+            thorvg_fw_root = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks')
+        else:
+            thorvg_fw_root = environ.get(
+                'KIVY_THORVG_FRAMEWORKS_SEARCH_PATH',
+                '/Library/Frameworks',
+            )
+        thorvg_fw = join(thorvg_fw_root, 'KivyThorVG.framework')
+        if exists(thorvg_fw):
+            return {
+                'include_dirs': [join(thorvg_fw, 'Headers')],
+                'library_dirs': [],
+                'libraries': [],
+                'extra_compile_args': ['-F{}'.format(thorvg_fw_root)],
+                'extra_link_args': [
+                    '-F{}'.format(thorvg_fw_root),
+                    '-Xlinker', '-rpath',
+                    '-Xlinker', thorvg_fw_root,
+                    '-Xlinker', '-headerpad',
+                    '-Xlinker', '190',
+                    '-framework', 'KivyThorVG',
+                ],
+                'define_macros': [],
+            }
+
+    # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
+    # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
+    # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
+    # archive is normalised to ``thorvg.lib`` by ``build_thorvg.sh`` so
+    # the bare name ``thorvg`` resolves.
+    if platform == 'win32':
+        thorvg_lib = 'thorvg'
+    else:
+        thorvg_lib = 'thorvg-1'
+
+    flags = {
+        'include_dirs': [],
+        'library_dirs': [],
+        'libraries': [thorvg_lib],
+        'extra_compile_args': [],
+        'extra_link_args': [],
+        'define_macros': [],
+    }
+
+    # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
+    # __declspec(dllimport) annotations and the Unix visibility attributes.
+    # It is required when linking a static archive; when linking a shared
+    # library it must be omitted so the visibility attributes stay active
+    # and dynamic symbol resolution works.
+    #
+    # Windows stays static (Kivy has no wheel-repair step there).
+    # macOS desktop is shared via the framework branch above - the
+    # fallback dylib path reaches this branch only when the framework
+    # is absent, in which case we treat it as shared too (no TVG_STATIC).
+    # Mobile (android, ios) still links statically today; that flips in
+    # STAGE 2.
+    if platform in ('win32', 'android', 'ios'):
+        flags['define_macros'].append(('TVG_STATIC', '1'))
+
+    explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
+    explicit_lib = environ.get('KIVY_THORVG_LIB_DIR')
+    if explicit_include:
+        flags['include_dirs'].append(explicit_include)
+    if explicit_lib:
+        flags['library_dirs'].append(explicit_lib)
+
+    if KIVY_DEPS_ROOT:
+        dist = join(KIVY_DEPS_ROOT, 'dist')
+        # ThorVG's meson install places headers under
+        # ``include/thorvg-1/thorvg_capi.h`` (versioned subdir). Add both
+        # that and the parent ``include`` so a user who flattens the
+        # install, or a custom prefix layout, still resolves the header.
+        flags['include_dirs'].append(join(dist, 'include', 'thorvg-1'))
+        flags['include_dirs'].append(join(dist, 'include'))
+        flags['library_dirs'].append(join(dist, 'lib'))
+        flags['library_dirs'].append(join(dist, 'lib64'))
+
+    # ThorVG is C++. A static archive needs the C++ runtime linked
+    # explicitly on Unix-like systems. On Linux a shared libthorvg-1.so
+    # already carries ``libstdc++.so.6`` in its own ``DT_NEEDED``, so the
+    # flag is redundant for the default shared path - but we keep it so
+    # a user who supplies a static ThorVG via ``KIVY_THORVG_LIB_DIR``
+    # still gets a working link. auditwheel / manylinux treats
+    # ``libstdc++.so.6`` as a system-provided library (not vendored), so
+    # the extra ``DT_NEEDED`` entry is free. Windows (MSVC) pulls the
+    # runtime in automatically. Mobile toolchains (Android NDK, iOS) use
+    # libc++ and arrange the runtime themselves in the recipe /
+    # cibuildwheel config, not here.
+    if platform == 'darwin':
+        flags['extra_link_args'].append('-lc++')
+    elif platform not in ('win32', 'android', 'ios'):
+        flags['extra_link_args'].append('-lstdc++')
+
+    return flags
+
+
 def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
@@ -1333,6 +1484,50 @@ if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
+
+# ThorVG wrapper (kivy.lib.thorvg._thorvg). Version is pinned in
+# tools/build_thorvg.sh.
+#
+# Matches the auto-detection pattern used by ``use_gstreamer`` /
+# ``use_sdl3``: if ``use_thorvg`` is left at ``None`` we probe for
+# ``thorvg_capi.h`` under the search paths returned by
+# ``determine_thorvg_flags()`` and only enable the wrapper when found.
+# This keeps tree-ish dev builds and the existing Kivy CI workflows
+# (which do not yet build ThorVG as a dep) working: the wrapper simply
+# doesn't get compiled if ThorVG isn't installed.
+#
+# Users / mobile recipes / the lightweight wrapper gate opt in explicitly
+# by setting ``USE_THORVG=1`` / ``KIVY_THORVG_INCLUDE_DIR`` /
+# ``KIVY_THORVG_LIB_DIR`` so the detect succeeds.
+thorvg_flags = determine_thorvg_flags()
+if c_options['use_thorvg'] is None:
+    header_found = any(
+        exists(join(inc, 'thorvg_capi.h'))
+        for inc in thorvg_flags['include_dirs']
+    )
+    if header_found:
+        print('ThorVG headers detected - building kivy.lib.thorvg wrapper')
+        c_options['use_thorvg'] = True
+    else:
+        print(
+            'ThorVG headers not found; skipping kivy.lib.thorvg wrapper. '
+            'Set KIVY_THORVG_INCLUDE_DIR / KIVY_THORVG_LIB_DIR (direct '
+            'paths), KIVY_DEPS_ROOT (expects '
+            '$KIVY_DEPS_ROOT/dist/include/thorvg-1/thorvg_capi.h), or '
+            'USE_THORVG=1 to force a build attempt.'
+        )
+        c_options['use_thorvg'] = False
+
+if c_options['use_thorvg']:
+    sources['lib/thorvg/_thorvg.pyx'] = merge(
+        base_flags, thorvg_flags, {
+            'depends': ['lib/thorvg/thorvg.pxd'],
+            # Compile as C++ so the ThorVG C API header's `bool` return
+            # types (`#include <stdbool.h>` vs C++ `bool`) have a
+            # consistent ABI with the ThorVG library, which is itself
+            # compiled as C++.
+            'language': 'c++',
+        })
 
 # -----------------------------------------------------------------------------
 # extension modules

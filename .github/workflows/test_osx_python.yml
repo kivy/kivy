@@ -37,7 +37,10 @@ jobs:
       run: |
         # we had cmake installed from installed a different Homebrew tap (local/pinned) in the past
         brew uninstall cmake || true
-        brew install pkg-config cmake ninja
+        # ``meson`` is required by ``tools/build_thorvg.sh`` (static ThorVG
+        # build for the kivy.lib.thorvg Cython wrapper). The rest are the
+        # existing SDL3 / libpng dependencies.
+        brew install pkg-config cmake ninja meson
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh

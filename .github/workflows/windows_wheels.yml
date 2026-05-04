@@ -28,6 +28,28 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+    - name: Set up MSVC toolchain
+      # Needed by tools/build_thorvg.sh (Meson probes cl.exe / link.exe)
+      # and by setup.py's C++ extension compilation for kivy.lib.thorvg.
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
+    - name: Install build tooling for ThorVG
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade meson ninja
+    - name: Build ThorVG (static, x64)
+      shell: bash
+      run: |
+        bash tools/build_thorvg.sh
+        # Use dedicated KIVY_THORVG_* env vars (not KIVY_DEPS_ROOT). On
+        # Windows SDL3 ships via the kivy_deps.sdl3 pip package pulled
+        # in by [dev,full]; pointing KIVY_DEPS_ROOT at our ThorVG-only
+        # tree would hijack determine_sdl3() and silently disable every
+        # *_sdl3.pyx provider. See commit f846fe8b7 on this branch /
+        # test_windows_python.yml for the cross-reference.
+        echo "KIVY_THORVG_INCLUDE_DIR=$(pwd)/kivy-dependencies/dist/include/thorvg-1" >> "$GITHUB_ENV"
+        echo "KIVY_THORVG_LIB_DIR=$(pwd)/kivy-dependencies/dist/lib" >> "$GITHUB_ENV"
     - name: Generate version metadata
       run: |
         . .\.ci\windows_ci.ps1
@@ -155,6 +177,23 @@ jobs:
           pattern: windows_wheels-*-*
           merge-multiple: true
           path: dist
+      - name: Set up MSVC toolchain
+        # Install-kivy-sdist pip-installs from the sdist tarball, which
+        # rebuilds Kivy (and the kivy.lib.thorvg C++ extension) from
+        # source. Needs the same MSVC + ThorVG prep as windows_wheels_create.
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install build tooling for ThorVG
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade meson ninja
+      - name: Build ThorVG (static, x64)
+        shell: bash
+        run: |
+          bash tools/build_thorvg.sh
+          echo "KIVY_THORVG_INCLUDE_DIR=$(pwd)/kivy-dependencies/dist/include/thorvg-1" >> "$GITHUB_ENV"
+          echo "KIVY_THORVG_LIB_DIR=$(pwd)/kivy-dependencies/dist/lib" >> "$GITHUB_ENV"
       - name: Install Kivy sdist
         env:
           KIVY_SPLIT_EXAMPLES: 0

@@ -20,6 +20,26 @@ update_version_metadata() {
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
     --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
+
+  # Ubuntu source-install tests (test_ubuntu_python.yml::unit_test via
+  # ``install_kivy`` = ``pip install -e .``, and manylinux_wheels.yml::sdist_test
+  # via ``install_kivy_sdist``) link the ``kivy.lib.thorvg._thorvg``
+  # extension against the shared ``libthorvg-1.so`` produced by
+  # ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1``. Those paths do
+  # not run ``auditwheel repair``, so the freshly built extension still
+  # carries a ``DT_NEEDED: libthorvg-1.so.0`` that the dynamic linker
+  # must resolve at import time. Export LD_LIBRARY_PATH to include our
+  # kivy-dependencies dist/lib; propagate to subsequent GHA steps via
+  # GITHUB_ENV so ``Install Kivy`` / ``Test Kivy`` pick it up. No-op if
+  # kivy-dependencies/ has not been built (e.g. wheel-install test
+  # paths, which use auditwheel-repaired wheels).
+  local _thorvg_lib_dir="$(pwd)/kivy-dependencies/dist/lib"
+  if [ -d "$_thorvg_lib_dir" ]; then
+    export LD_LIBRARY_PATH="${_thorvg_lib_dir}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    if [ -n "${GITHUB_ENV:-}" ]; then
+      echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+    fi
+  fi
 }
 
 install_kivy() {
@@ -123,6 +143,10 @@ install_manylinux_build_deps() {
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
             libdrm-devel mesa-libgbm-devel libsamplerate-devel
+  # ThorVG (kivy.lib.thorvg wrapper) builds via meson; the yum-shipped
+  # meson on manylinux2014 is too old for ThorVG 1.0.x, so pin a recent
+  # version through pip.
+  python3 -m pip install --upgrade meson
 }
 
 install_ubuntu_build_deps() {
@@ -132,7 +156,7 @@ install_ubuntu_build_deps() {
   sudo apt-get update
   sudo apt-get -y install build-essential git make autoconf automake libtool \
           libpipewire-0.3-dev libdecor-0-dev liburing-dev \
-          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+          pkg-config cmake ninja-build meson gnome-desktop-testing libasound2-dev libpulse-dev \
           libaudio-dev libfribidi-dev libjack-dev libsndio-dev libsamplerate0-dev libx11-dev \
           libxtst-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
           libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \

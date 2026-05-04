@@ -69,7 +69,10 @@ jobs:
         update_version_metadata
     - name: Install build dependencies
       run: |
-        brew install pkg-config cmake ninja
+        # ``meson`` is required by tools/build_thorvg.sh (static ThorVG
+        # build for the kivy.lib.thorvg Cython wrapper); the rest are
+        # existing SDL3 / libpng dependencies.
+        brew install pkg-config cmake ninja meson
     - name: Build universal Kivy dependencies
       run: |
         ./tools/build_macos_dependencies.sh
@@ -77,6 +80,14 @@ jobs:
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
     - name: Build wheels
+      env:
+        # ThorVG was built into kivy-dependencies/dist by
+        # build_macos_dependencies.sh above; surface it as an extra
+        # cibuildwheel environment so setup.py's
+        # determine_thorvg_flags() finds it inside the isolated PEP 517
+        # build environment (cibuildwheel does NOT inherit the outer
+        # process env on macOS - CIBW_ENVIRONMENT is the hook).
+        CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies"
       run: |
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks

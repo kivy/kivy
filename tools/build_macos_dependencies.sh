@@ -156,3 +156,39 @@ cp -a Xcode/build/Release/SDL3_ttf.framework ../../dist/Frameworks
 popd
 
 popd
+
+echo "-- Build ThorVG (Universal, dynamic -> KivyThorVG.framework)"
+# ThorVG is dynamically linked into the ``kivy.lib.thorvg`` Cython
+# wrapper on macOS (matches SDL3 / libpng / ANGLE in this tree), and
+# embedded into the wheel by ``delocate-wheel`` at cibuildwheel-repair
+# time (see ``.github/workflows/osx_wheels_app.yml``'s
+# ``CIBW_REPAIR_WHEEL_COMMAND_MACOS``, which sets
+# ``DYLD_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks``).
+#
+# Two steps:
+#
+#   1. ``build_thorvg.sh THORVG_SHARED=1`` produces a universal2
+#      ``libthorvg-1.dylib`` under ``kivy-dependencies/dist/lib``.
+#      ``THORVG_MACOS_UNIVERSAL`` defaults to 1 so we get x86_64 +
+#      arm64 in a single meson invocation, bypassing the arm64
+#      sanitycheck failure on Intel runners.
+#   2. ``macos_framework_wrapper.sh`` rewraps that dylib into
+#      ``kivy-dependencies/dist/Frameworks/KivyThorVG.framework``,
+#      rewriting ``LC_ID_DYLIB`` to
+#      ``@rpath/KivyThorVG.framework/KivyThorVG`` so delocate's
+#      ``@rpath``-fixup pipeline treats it the same as SDL3.framework.
+#
+# Bundle name is ``KivyThorVG`` (not bare ``ThorVG``) to signal Kivy
+# ownership and avoid colliding with an app that bundles the
+# full ``thorvg-python`` package independently.
+#
+# ``tools/build_thorvg.sh`` pins the ThorVG version and the meson
+# options (loaders, engines, static-vs-shared) in a single place
+# shared by Linux, macOS and Windows CI.
+THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
+
+bash "$(dirname "$0")/macos_framework_wrapper.sh" \
+  "$(pwd)/kivy-dependencies/dist/lib/libthorvg-1.dylib" \
+  "KivyThorVG" \
+  "$(pwd)/kivy-dependencies/dist/Frameworks" \
+  "$(pwd)/kivy-dependencies/dist/include/thorvg-1"

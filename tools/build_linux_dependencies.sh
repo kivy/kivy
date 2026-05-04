@@ -150,3 +150,16 @@ pushd $MANYLINUX__SDL3_TTF__FOLDER
 popd
 
 popd
+
+echo "-- Build ThorVG (shared)"
+# ThorVG is built as a shared library on Linux so that ``auditwheel
+# repair`` - invoked automatically by cibuildwheel in
+# ``.github/workflows/manylinux_wheels.yml`` - can bundle it into
+# ``kivy.libs/`` with a hash-mangled soname and rewrite the extension's
+# RPATH. ``tools/build_thorvg.sh`` is the single source of truth for
+# the pinned ThorVG version and Meson options; setting
+# ``THORVG_SHARED=1`` switches it from the default static-archive build
+# to ``--default-library=shared`` and installs ``libthorvg-1.so.*`` into
+# ``kivy-dependencies/dist/lib/`` where setup.py picks it up via
+# ``-lthorvg-1``.
+THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"

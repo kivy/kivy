@@ -1,0 +1,230 @@
+name: ThorVG Wrapper (lightweight gate)
+
+on:
+  push:
+    paths:
+      - 'kivy/lib/thorvg/**'
+      - 'kivy/tests/test_thorvg_wrapper.py'
+      - 'kivy/tests/bench_thorvg_wrapper.py'
+      - '.github/workflows/test_thorvg_wrapper.yml'
+      - '.ci/thorvg_wrapper_bootstrap.py'
+      - '.ci/thorvg_wrapper_conftest.py'
+      - '.ci/thorvg_wrapper_build.py'
+      - 'setup.py'
+  pull_request:
+    paths:
+      - 'kivy/lib/thorvg/**'
+      - 'kivy/tests/test_thorvg_wrapper.py'
+      - 'kivy/tests/bench_thorvg_wrapper.py'
+      - '.github/workflows/test_thorvg_wrapper.yml'
+      - '.ci/thorvg_wrapper_bootstrap.py'
+      - '.ci/thorvg_wrapper_conftest.py'
+      - '.ci/thorvg_wrapper_build.py'
+      - 'setup.py'
+  workflow_dispatch:
+
+# Lightweight gate for the ``kivy.lib.thorvg`` Cython wrapper.
+#
+# This job deliberately avoids a full ``pip install -e .`` (which would
+# build every Kivy Cython extension and pull in SDL3 / GStreamer / image
+# providers) so that wrapper-only changes get sub-5-minute feedback on
+# all three desktop OSes.
+#
+# Flow:
+#   1. Build ThorVG v1.0.4 as a static library (Meson + Ninja, CPU engine,
+#      SVG + Lottie + TTF loaders, no threads - see ``-Dloaders`` comment
+#      below for why this gate drops png + jpg).
+#   2. Build the ``kivy.lib.thorvg._thorvg`` Cython extension in-place via
+#      ``.ci/thorvg_wrapper_build.py``.
+#   3. Run ``pytest`` against a scratch ``gate_tests/`` directory seeded
+#      with ``.ci/thorvg_wrapper_conftest.py`` (which registers minimal
+#      stubs for ``kivy`` / ``kivy.lib`` / ``kivy.logger`` so the test
+#      files can ``import kivy.lib.thorvg`` without dragging in the full
+#      Kivy package).
+#
+# The full end-to-end provider tests still run in the existing
+# ``test_{ubuntu,osx,windows}_python.yml`` workflows.
+
+env:
+  THORVG_VERSION: '1.0.4'
+
+jobs:
+  wrapper_tests:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.12']
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja cython setuptools wheel pytest pytest-benchmark
+
+      - name: Set up MSVC (Windows only)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Hide Git's GNU link.exe so Meson picks MSVC link.exe (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # ``ilammy/msvc-dev-cmd`` prepends MSVC's link.exe to cmd/pwsh
+          # PATH, but later steps use ``shell: bash``, and Git-for-Windows
+          # ships its own ``/usr/bin/link.exe`` (GNU ld-wrapper) which
+          # bash resolves first. Meson probes link.exe to detect MSVC and
+          # bails with "Found GNU link.exe instead of MSVC link.exe". Hide
+          # the GNU one so MSVC's wins for this job.
+          for candidate in \
+            "/c/Program Files/Git/usr/bin/link.exe" \
+            "/usr/bin/link.exe" \
+            "/usr/bin/link"; do
+            if [ -f "$candidate" ]; then
+              mv "$candidate" "${candidate}.disabled"
+              echo "Disabled $candidate"
+            fi
+          done
+          echo "link.exe now resolves to: $(which link.exe || true)"
+          echo "cl.exe now resolves to:   $(which cl.exe || true)"
+
+      - name: Install OS-level build prerequisites (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ pkg-config
+
+      - name: Download ThorVG v${{ env.THORVG_VERSION }} source
+        shell: bash
+        run: |
+          mkdir -p thorvg_build
+          curl -fsSL -o thorvg_build/thorvg.tar.gz \
+            "https://github.com/thorvg/thorvg/archive/refs/tags/v${THORVG_VERSION}.tar.gz"
+          tar -xzf thorvg_build/thorvg.tar.gz -C thorvg_build
+          mv "thorvg_build/thorvg-${THORVG_VERSION}" thorvg_build/src
+
+      - name: Configure ThorVG (static, CPU engine, SVG+Lottie loaders)
+        shell: bash
+        working-directory: thorvg_build/src
+        run: |
+          # Meson option notes (must stay in sync with tools/build_thorvg.sh):
+          #   -Dextra='' disables the defaults ['lottie_exp', 'openmp']:
+          #     * openmp: the CPU renderer unconditionally ``#include <omp.h>``
+          #       under the openmp extra, but Apple Clang does not ship libomp
+          #       and we already call ``tvg_engine_init(SW, threads=0)`` at
+          #       module import, so OpenMP parallelism is dead code for us.
+          #     * lottie_exp: pulls in the JerryScript JS engine for Lottie
+          #       expression support (~130 extra compile units); none of the
+          #       Kivy providers (svg / svg-image / lottie) need expressions.
+          #   -Dloaders=svg,lottie,ttf deliberately drops png + jpg in
+          #     THIS gate, even though tools/build_thorvg.sh (used by
+          #     the production *_wheels.yml / test_*_python.yml flows)
+          #     ships the full svg,lottie,png,jpg,ttf set. This gate is
+          #     a *wrapper smoke test*: it verifies that
+          #     kivy.lib.thorvg._thorvg.pyx still compiles and talks to
+          #     the ThorVG C API cleanly, not that the full raster
+          #     pipeline works. The Cython wrapper never references the
+          #     png / jpg loader symbols, so dropping them here does not
+          #     reduce wrapper coverage; it just skips ~20 extra
+          #     compile units (LodePNG + JPGd) per runner and keeps the
+          #     gate firmly under a 5-minute feedback budget. Raster
+          #     loading is exercised end-to-end in the full-provider
+          #     test suites (kivy/tests/test_*_svg*.py + test_lottie.py).
+          meson setup build \
+            --buildtype=release \
+            --default-library=static \
+            --prefix="$GITHUB_WORKSPACE/thorvg_build/dist" \
+            --libdir=lib \
+            -Dlog=false \
+            -Dstatic=true \
+            -Dthreads=false \
+            -Dtests=false \
+            -Dbindings=capi \
+            -Dloaders=svg,lottie,ttf \
+            -Dengines=cpu \
+            -Dextra=''
+
+      - name: Build + install ThorVG
+        shell: bash
+        working-directory: thorvg_build/src
+        run: |
+          meson compile -C build
+          meson install -C build
+
+      - name: Normalise static library filename
+        shell: bash
+        run: |
+          # Meson installs the ThorVG static archive under a name that
+          # varies by platform / meson version, e.g.:
+          #   - Linux/macOS: libthorvg-1.a (sometimes libthorvg.a)
+          #   - Windows MSVC: libthorvg-1.a (UNIX-style even on MSVC) or
+          #                   thorvg-1.lib / thorvg.lib
+          # setuptools resolves ``libraries=['thorvg']`` to ``libthorvg.a``
+          # or ``thorvg.lib`` depending on platform, so copy whatever is
+          # there to the expected filename.
+          libdir="thorvg_build/dist/lib"
+          echo "--- Contents of $libdir ---"
+          ls -lR "$libdir" || true
+
+          # Recursive find covers both ``lib/`` (our --libdir=lib setting)
+          # and Debian/Ubuntu multiarch ``lib/x86_64-linux-gnu/`` in case
+          # a newer meson version overrides --libdir silently.
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            src=$(find "$libdir" -maxdepth 3 \( -name 'thorvg*.lib' -o -name 'libthorvg*.a' \) 2>/dev/null | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found under $libdir"; exit 1; }
+            cp "$src" "$libdir/thorvg.lib"
+          else
+            src=$(find "$libdir" -maxdepth 3 -name 'libthorvg*.a' 2>/dev/null | head -n1)
+            [ -n "$src" ] || { echo "No ThorVG static archive found under $libdir"; exit 1; }
+            cp "$src" "$libdir/libthorvg.a"
+          fi
+          echo "--- After normalisation ---"
+          ls -l "$libdir"
+
+      - name: Build the Cython wrapper in-place
+        shell: bash
+        env:
+          KIVY_THORVG_INCLUDE_DIR: ${{ github.workspace }}/thorvg_build/dist/include/thorvg-1
+          KIVY_THORVG_LIB_DIR: ${{ github.workspace }}/thorvg_build/dist/lib
+        run: |
+          python .ci/thorvg_wrapper_build.py build_ext --inplace
+
+      - name: Assemble scratch test directory with bootstrap conftest
+        shell: bash
+        run: |
+          mkdir -p gate_tests
+          cp .ci/thorvg_wrapper_conftest.py gate_tests/conftest.py
+          cp kivy/tests/test_thorvg_wrapper.py gate_tests/
+          cp kivy/tests/bench_thorvg_wrapper.py gate_tests/
+
+      - name: Run wrapper unit tests
+        shell: bash
+        run: |
+          python -m pytest gate_tests/test_thorvg_wrapper.py -v \
+            --confcutdir=gate_tests -p no:cacheprovider
+
+      - name: Run wrapper benchmarks
+        shell: bash
+        run: |
+          python -m pytest gate_tests/bench_thorvg_wrapper.py \
+            --confcutdir=gate_tests -p no:cacheprovider \
+            --benchmark-only \
+            --benchmark-json=benchmarks-${{ matrix.os }}.json
+
+      - name: Upload benchmark JSON
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: thorvg-wrapper-benchmarks-${{ matrix.os }}
+          path: benchmarks-*.json
+          if-no-files-found: ignore

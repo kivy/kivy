@@ -27,8 +27,17 @@ RUN /bin/bash -c 'rm patchelf-0.17.2-armv7l.tar.gz'
 RUN /bin/bash -c 'pip install auditwheel'
 
 
-# Build the dependencies (sdl)
+# Build the dependencies (sdl, libpng, ThorVG).
 RUN ./tools/build_linux_dependencies.sh
+
+# Make libthorvg-1.so discoverable by both the pip-wheel linker step and
+# (critically) the subsequent ``auditwheel repair`` step, which runs ldd
+# over each extension's DT_NEEDED and fails if it cannot resolve a
+# library. ``tools/build_thorvg.sh`` installs ``libthorvg-1.so.*`` into
+# this directory; manylinux_wheels.yml sets the same env via
+# CIBW_ENVIRONMENT_LINUX, but the RPi pipeline does not use cibuildwheel
+# so the path must be set directly in the Dockerfile.
+ENV LD_LIBRARY_PATH=/kivy/kivy-dependencies/dist/lib:/kivy/kivy-dependencies/dist/lib64
 
 # Build the wheel.
 RUN KIVY_SPLIT_EXAMPLES=1 USE_X11=1 USE_SDL3=1 USE_PANGOFT2=0 USE_GSTREAMER=0 KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies KIVY_CROSS_PLATFORM="$KIVY_CROSS_PLATFORM" python3 -m pip -v wheel --extra-index-url https://www.piwheels.org/simple . -w /kivy-wheel
