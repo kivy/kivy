@@ -223,7 +223,7 @@ jobs:
 
       - name: Upload benchmark JSON
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: thorvg-wrapper-benchmarks-${{ matrix.os }}
           path: benchmarks-*.json
