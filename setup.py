@@ -264,6 +264,16 @@ if platform == 'ios':
         }
     }
 
+    thorvg_xc = join(
+        KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'KivyThorVG.xcframework')
+    thorvg_fw = join(thorvg_xc, plat_arch, 'KivyThorVG.framework')
+    thorvg_headers = join(thorvg_fw, 'Headers')
+    ios_data['frameworks']['KivyThorVG'] = {
+        'path': thorvg_fw,
+        'headers': thorvg_headers,
+        'xc': thorvg_xc,
+    }
+
     ios_data['platform_arch'] = plat_arch
 
     plat_options['ios'] = ios_data
@@ -911,6 +921,29 @@ def determine_thorvg_flags():
     # fall through to the generic dylib path, which still produces a
     # working build (just without delocate-wheel's framework-embedding
     # magic).
+    if platform == 'ios':
+        # iOS: link against the per-slice KivyThorVG.framework from inside
+        # KivyThorVG.xcframework.  plat_options['ios']['frameworks'] already
+        # resolved the correct slice path (ios-arm64 for device,
+        # ios-arm64_x86_64-simulator for simulator) via plat_arch.
+        # No TVG_STATIC — the xcframework slice is a shared dylib, not a
+        # static archive.  The @executable_path/Frameworks rpath matches
+        # Kivy's iOS app bundle layout (same as SDL3 on iOS).
+        ios_thorvg = plat_options['ios']['frameworks']['KivyThorVG']
+        thorvg_fw_dir = dirname(ios_thorvg['path'])
+        return {
+            'include_dirs': [ios_thorvg['headers']],
+            'library_dirs': [],
+            'libraries': [],
+            'extra_compile_args': [],
+            'extra_link_args': [
+                '-F', thorvg_fw_dir,
+                '-framework', 'KivyThorVG',
+                '-Wl,-rpath,@executable_path/Frameworks',
+            ],
+            'define_macros': [],
+        }
+
     if platform == 'darwin' and c_options['use_osx_frameworks']:
         if KIVY_DEPS_ROOT:
             thorvg_fw_root = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks')
@@ -966,9 +999,9 @@ def determine_thorvg_flags():
     # macOS desktop is shared via the framework branch above - the
     # fallback dylib path reaches this branch only when the framework
     # is absent, in which case we treat it as shared too (no TVG_STATIC).
-    # Mobile (android, ios) still links statically today; that flips in
-    # STAGE 2.
-    if platform in ('win32', 'android', 'ios'):
+    # iOS returns early above via the framework path (shared dylib —
+    # no TVG_STATIC).  Windows and Android still link statically.
+    if platform in ('win32', 'android'):
         flags['define_macros'].append(('TVG_STATIC', '1'))
 
     explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
