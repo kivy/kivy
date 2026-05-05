@@ -215,6 +215,7 @@ kivy_options = {
     'camera': get_provider_options('camera'),
     'spelling': get_provider_options('spelling'),
     'clipboard': get_provider_options('clipboard'),
+    'svg': get_provider_options('svg'),
 }
 
 # Read environment
