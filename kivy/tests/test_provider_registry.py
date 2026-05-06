@@ -31,12 +31,12 @@ class TestProviderRegistryCompleteness:
         assert callable(get_all_categories)
 
     def test_registry_has_all_categories(self):
-        """Registry should contain all 8 core provider categories."""
+        """Registry should contain all 9 core provider categories."""
         from kivy.core import PROVIDER_CONFIGS
 
         expected_categories = {
             'window', 'text', 'video', 'audio_output',
-            'image', 'camera', 'spelling', 'clipboard', 'lottie'
+            'image', 'camera', 'spelling', 'clipboard', 'svg', 'lottie'
         }
 
         actual_categories = set(PROVIDER_CONFIGS.keys())
@@ -524,6 +524,7 @@ class TestRegistryCorrectness:
             'camera': 'camera_',
             'spelling': 'spelling_',
             'clipboard': 'clipboard_',
+            'svg': 'svg_',
             'lottie': 'lottie_',
         }
 

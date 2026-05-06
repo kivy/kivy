@@ -1,5 +1,10 @@
 set -e -x
 
+# Absolute path to the repo root.  Captured before any pushd so we can
+# locate tools/build_thorvg.sh and tools/macos_framework_wrapper.sh
+# regardless of which sub-directory we are in during the build.
+_REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
 # iOS SDL3
 IOS__SDL3__VERSION="3.4.2"
 IOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$IOS__SDL3__VERSION/SDL3-$IOS__SDL3__VERSION.tar.gz"
@@ -138,5 +143,49 @@ xcodebuild -create-xcframework \
     -framework Xcode/SDL_ttf/build/Release-iphonesimulator.xcarchive/Products/Library/Frameworks/SDL3_ttf.framework \
     -output ../../dist/Frameworks/SDL3_ttf.xcframework
 popd
+
+# ---------------------------------------------------------------------------
+# Build ThorVG — two SDK slices → per-slice .framework → KivyThorVG.xcframework
+#
+# build_thorvg.sh handles download + Meson cross-compile for each slice.
+# macos_framework_wrapper.sh wraps the resulting dylib into a non-versioned
+# .framework bundle (rewrites LC_ID_DYLIB to @rpath/...).
+# xcodebuild -create-xcframework then merges both frameworks into one
+# xcframework that add-ios-frameworks.py picks up automatically.
+#
+# The THORVG_BUILD_ROOT is shared across both slices so the source tarball
+# is only downloaded once; build_thorvg.sh creates a per-slice build
+# directory (build-iphoneos / build-iphonesimulator) inside that root.
+# ---------------------------------------------------------------------------
+echo "-- Build ThorVG (universal iOS XCFramework)"
+
+_THORVG_BUILD_ROOT="$(pwd)/../dist/thorvg-build"
+
+for _slice in iphoneos iphonesimulator; do
+    _thorvg_prefix="$(pwd)/../dist/thorvg-${_slice}"
+
+    THORVG_IOS="${_slice}" \
+    THORVG_BUILD_ROOT="${_THORVG_BUILD_ROOT}" \
+    THORVG_INSTALL_PREFIX="${_thorvg_prefix}" \
+    bash "${_REPO_ROOT}/tools/build_thorvg.sh"
+
+    mkdir -p "${_thorvg_prefix}/Frameworks"
+
+    # Find the real dylib (not the symlink) produced by Meson.
+    _thorvg_dylib=$(find "${_thorvg_prefix}/lib" -maxdepth 1 \
+        -name 'libthorvg-*.dylib' ! -type l | head -n1)
+
+    FRAMEWORK_MIN_OS_VERSION=16.0 \
+    bash "${_REPO_ROOT}/tools/macos_framework_wrapper.sh" \
+        "${_thorvg_dylib}" \
+        KivyThorVG \
+        "${_thorvg_prefix}/Frameworks" \
+        "${_thorvg_prefix}/include/thorvg-1"
+done
+
+xcodebuild -create-xcframework \
+    -framework "../dist/thorvg-iphoneos/Frameworks/KivyThorVG.framework" \
+    -framework "../dist/thorvg-iphonesimulator/Frameworks/KivyThorVG.framework" \
+    -output "../dist/Frameworks/KivyThorVG.xcframework"
 
 popd

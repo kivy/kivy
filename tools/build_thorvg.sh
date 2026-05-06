@@ -41,19 +41,50 @@
 #                               ``-arch`` flags to Apple Clang in a single
 #                               meson invocation (same trick libpng uses via
 #                               ``CMAKE_OSX_ARCHITECTURES="x86_64;arm64"``).
-#                               Ignored on non-macOS. Default: "1" on macOS
+#                               Ignored on non-macOS and ignored when
+#                               THORVG_IOS is set. Default: "1" on macOS
 #                               (matches libpng in the same tree).
+#   THORVG_IOS                  When set to "iphoneos" or "iphonesimulator",
+#                               cross-compile for that iOS SDK slice instead
+#                               of building for the macOS host.  Full Xcode
+#                               must be installed and selected via
+#                               ``xcode-select`` (the iphoneos /
+#                               iphonesimulator SDKs are not shipped with
+#                               the Command Line Tools package alone).
+#
+#                               iOS builds always force THORVG_SHARED=1:
+#                               the resulting dylib must be wrapped into a
+#                               ``.framework`` bundle by
+#                               ``tools/macos_framework_wrapper.sh`` and
+#                               assembled into an XCFramework.  A static
+#                               archive cannot be used as an xcframework
+#                               slice.
+#
+#                               Deployment target: iOS 16.0 (matches the
+#                               ANGLE xcframework — the highest minimum
+#                               already present in the Kivy iOS bundle).
+#
+#                               THORVG_MACOS_UNIVERSAL is forced to 0 when
+#                               this is set. Default: "" (disabled; builds
+#                               for the host platform).
 #
 # Requires ``meson``, ``ninja``, ``curl``, ``tar``, and a working C++14
 # toolchain on PATH. On Windows, the caller must have already sourced the
 # MSVC environment (e.g. via ``ilammy/msvc-dev-cmd``).
+# On iOS (THORVG_IOS set), full Xcode is also required (xcrun must resolve
+# the named SDK).
 
 set -e -x
+
+# Absolute path to this script's directory, used to locate cross-files
+# (tools/meson-cross-ios-*.ini) regardless of CWD.
+_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 THORVG_VERSION="${THORVG_VERSION:-1.0.4}"
 THORVG_BUILD_ROOT="${THORVG_BUILD_ROOT:-$(pwd)/kivy-dependencies/build/thorvg}"
 THORVG_INSTALL_PREFIX="${THORVG_INSTALL_PREFIX:-$(pwd)/kivy-dependencies/dist}"
 THORVG_SHARED="${THORVG_SHARED:-0}"
+THORVG_IOS="${THORVG_IOS:-}"
 
 # Detect Windows (git-bash / msys / cygwin) so we can keep the rest of the
 # script POSIX-style while still emitting .lib / handling link.exe.
@@ -92,7 +123,14 @@ fi
 # dependencies (SDL3, libpng) that ``build_macos_dependencies.sh`` already
 # produces universal2. The caller can opt out for a single-arch local
 # build via ``THORVG_MACOS_UNIVERSAL=0``.
-if [ "$IS_MACOS" = "1" ]; then
+# When THORVG_IOS is set we are cross-compiling for a specific iOS SDK
+# slice (not the macOS host), so the universal2 path is irrelevant and
+# THORVG_SHARED is forced to 1 — the dylib must be wrapped into a
+# .framework bundle; a static archive cannot serve as an xcframework slice.
+if [ -n "$THORVG_IOS" ]; then
+  THORVG_MACOS_UNIVERSAL=0
+  THORVG_SHARED=1
+elif [ "$IS_MACOS" = "1" ]; then
   THORVG_MACOS_UNIVERSAL="${THORVG_MACOS_UNIVERSAL:-1}"
 else
   THORVG_MACOS_UNIVERSAL=0
@@ -227,7 +265,67 @@ _thorvg_configure_and_install() {
   popd
 }
 
-if [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
+if [ -n "$THORVG_IOS" ]; then
+  # ---------------------------------------------------------------------------
+  # iOS cross-compile path (THORVG_IOS=iphoneos | iphonesimulator).
+  #
+  # The SDK sysroot is resolved at runtime via xcrun so the build picks up
+  # the SDK from whichever Xcode version is active (xcode-select -p).
+  #
+  # Deployment target: iOS 16.0.  This matches ANGLE xcframework
+  # (the highest minimum already in the Kivy iOS bundle; SDL3 is 11.0 but
+  # ANGLE at 16.0 is the effective floor for the whole bundle).
+  #
+  # -lc++ rationale: same as the macOS universal2 path below — Meson links
+  # the final shared library with clang (not clang++), skipping libc++ auto-
+  # linking.  Explicit -lc++ resolves std::__1::* against the SDK-bundled
+  # libc++.tbd.
+  # ---------------------------------------------------------------------------
+  case "$THORVG_IOS" in
+    iphoneos)
+      _IOS_ARCHS="-arch arm64"
+      _IOS_MINVER="-mios-version-min=16.0"
+      _IOS_CROSS_FILE="$_SCRIPT_DIR/meson-cross-ios-device.ini"
+      _IOS_LABEL="iOS device (arm64, iphoneos)"
+      ;;
+    iphonesimulator)
+      _IOS_ARCHS="-arch arm64 -arch x86_64"
+      _IOS_MINVER="-mios-simulator-version-min=16.0"
+      _IOS_CROSS_FILE="$_SCRIPT_DIR/meson-cross-ios-sim.ini"
+      _IOS_LABEL="iOS Simulator (universal arm64+x86_64, iphonesimulator)"
+      ;;
+    *)
+      echo "FATAL: THORVG_IOS must be 'iphoneos' or 'iphonesimulator', got: '$THORVG_IOS'" >&2
+      exit 1
+      ;;
+  esac
+
+  _IOS_SDK_PATH="$(xcrun --sdk "$THORVG_IOS" --show-sdk-path)"
+  echo "-- Build ThorVG ($_IOS_LABEL)"
+  echo "   SDK        : $_IOS_SDK_PATH"
+  echo "   Cross-file : $_IOS_CROSS_FILE"
+
+  _thorvg_configure_and_install "build-$THORVG_IOS" "$THORVG_INSTALL_PREFIX" \
+    --cross-file "$_IOS_CROSS_FILE" \
+    -Dc_args="-isysroot $_IOS_SDK_PATH $_IOS_ARCHS $_IOS_MINVER" \
+    -Dcpp_args="-isysroot $_IOS_SDK_PATH $_IOS_ARCHS $_IOS_MINVER" \
+    -Dc_link_args="-isysroot $_IOS_SDK_PATH $_IOS_ARCHS $_IOS_MINVER" \
+    -Dcpp_link_args="-isysroot $_IOS_SDK_PATH $_IOS_ARCHS $_IOS_MINVER -lc++"
+
+  # Quick sanity check immediately after the build (before framework wrap).
+  # The full post-install section below also verifies the dylib exists.
+  _ios_dylib=$(find "$THORVG_INSTALL_PREFIX/lib" -maxdepth 2 \
+    -name 'libthorvg*.dylib' 2>/dev/null | head -n1)
+  if [ -n "$_ios_dylib" ]; then
+    echo "--- iOS dylib architectures (lipo) ---"
+    lipo -info "$_ios_dylib" || true
+    echo "--- iOS dylib deployment target (LC_BUILD_VERSION / LC_VERSION_MIN) ---"
+    otool -l "$_ios_dylib" | grep -A5 "LC_BUILD_VERSION\|LC_VERSION_MIN_IPHONEOS" || true
+    echo "--- iOS dylib install name (LC_ID_DYLIB) ---"
+    otool -D "$_ios_dylib" || true
+  fi
+
+elif [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
   # Single-invocation universal2 build (matches libpng's CMake
   # ``-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"`` path in
   # tools/build_macos_dependencies.sh).
@@ -306,6 +404,13 @@ if [ "$THORVG_SHARED" = "1" ]; then
   fi
   echo "--- ThorVG shared library (THORVG_SHARED=1) ---"
   echo "$_shared_files"
+  # For iOS slices, show the dynamic library dependencies so the caller
+  # can confirm the dylib is self-contained (no Homebrew paths leaked in)
+  # before passing it to macos_framework_wrapper.sh.
+  if [ -n "$THORVG_IOS" ]; then
+    echo "--- iOS dylib link dependencies (otool -L) ---"
+    otool -L $(echo "$_shared_files" | head -n1) || true
+  fi
 elif [ "$IS_WINDOWS" = "1" ]; then
   src=$(find "$_libdir" -maxdepth 3 \
     \( -name 'thorvg*.lib' -o -name 'libthorvg*.a' \) 2>/dev/null | head -n1)

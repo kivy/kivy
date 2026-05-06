@@ -30,6 +30,9 @@ jobs:
         with:
           path: ios-kivy-dependencies
           key: ios-deps-${{ runner.os }}-${{ hashFiles('tools/build_ios_dependencies.sh') }}
+      - name: Install iOS build tools (meson + ninja)
+        if: steps.cacheiosdeps.outputs.cache-hit != 'true'
+        run: pip install meson ninja
       - name: Build iOS dependencies
         if: steps.cacheiosdeps.outputs.cache-hit != 'true'
         run: |

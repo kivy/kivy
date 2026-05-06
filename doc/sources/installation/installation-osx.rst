@@ -55,10 +55,10 @@ To install Kivy from source, please follow the :ref:`installation guide<kivy-whe
 :ref:`Kivy install step<kivy-source-install>` and then install the additional dependencies
 below before continuing.
 
-**pkg-config**, **cmake**, **ninja** are required to build Kivy from source. If you're using ``brew`` as your
-package manager, you can install it with::
+**pkg-config**, **cmake**, **meson**, **ninja** are required to build Kivy from source. If you're using ``brew`` as your
+package manager, you can install them with::
 
-    brew install pkg-config cmake ninja
+    brew install pkg-config cmake meson ninja
 
 Now that you have all the dependencies for kivy, you need to make sure
 you have the command line tools installed::

@@ -82,6 +82,7 @@ PROVIDER_CONFIGS = {
         ('sdl3', 'img_sdl3'),
         ('pil', 'img_pil'),
         ('ffpy', 'img_ffpyplayer'),
+        ('thorvg_svg', 'img_thorvg_svg'),
     ],
     'camera': [
         ('opencv', 'camera_opencv'),
@@ -108,6 +109,9 @@ PROVIDER_CONFIGS = {
         ('sdl3', 'clipboard_sdl3'),
         ('dummy', 'clipboard_dummy'),
         ('gtk3', 'clipboard_gtk3'),
+    ],
+    'svg': [
+        ('thorvg', 'svg_thorvg'),
     ],
 }
 
