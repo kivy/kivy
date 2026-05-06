@@ -9,13 +9,49 @@ via the ``ca_file=`` parameter.
 
 Two server fixtures are exposed:
 
-* ``httpserver`` (provided by ``pytest-httpserver``): plain HTTP.
+* ``httpserver`` (provided by ``pytest-httpserver``): plain HTTP, bound
+  to ``localhost`` on a random port via the
+  ``httpserver_listen_address`` override below.
 * ``httpsserver``: a separately constructed HTTPS server backed by the
   same ``trustme`` CA used for ``ca_cert_path``.
+
+Also installs a session-scoped, autouse stub for ``socket.getfqdn``.
+``werkzeug``'s ``BaseWSGIServer`` (which backs ``pytest-httpserver``)
+calls ``socket.getfqdn(host)`` after binding to populate
+``server_name``. On some CI hosts (notably macOS GitHub runners) the
+reverse-DNS lookup for the loopback address hangs for tens of seconds,
+which trips ``pytest-timeout`` before the server even finishes
+starting. The FQDN is purely cosmetic for our loopback servers, so we
+short-circuit it.
 """
+import socket
 import ssl
 
 import pytest
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _fast_loopback_getfqdn():
+    """Bypass slow reverse-DNS for loopback addresses during this session."""
+    original = socket.getfqdn
+    loopback = {'', '0.0.0.0', '::', '127.0.0.1', '::1', 'localhost'}
+
+    def _stub(name=''):
+        if name in loopback:
+            return 'localhost'
+        return original(name)
+
+    socket.getfqdn = _stub
+    try:
+        yield
+    finally:
+        socket.getfqdn = original
+
+
+@pytest.fixture(scope="session")
+def httpserver_listen_address():
+    """Force ``pytest-httpserver`` to bind to ``localhost`` on a random port."""
+    return ("localhost", 0)
 
 
 @pytest.fixture(scope="session")
