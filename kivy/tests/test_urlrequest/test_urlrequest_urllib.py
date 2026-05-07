@@ -48,7 +48,7 @@ def wait_for_terminal_event(kivy_clock, queue, timeout=10):
         if (datetime.now() - start).total_seconds() > timeout:
             break
         kivy_clock.tick()
-        sleep(.05)
+        sleep(.005)
     raise AssertionError(
         f"Timed out waiting for a terminal event; queue={list(queue)!r}"
     )
@@ -346,8 +346,12 @@ def test_on_failure(kivy_clock, httpserver):
 def test_on_error(kivy_clock):
     """A connection error invokes ``on_error`` with the underlying exception.
 
-    Points the request at a closed loopback port so the OS responds with
-    a TCP RST immediately, making the test fast and deterministic.
+    Points the request at a closed loopback port. On Linux/macOS the OS
+    returns ECONNREFUSED instantly. On Windows the connect attempt is
+    silently retried for ~1s before timing out, so a short ``timeout=``
+    is supplied to keep the test fast across platforms; either failure
+    mode produces an ``OSError`` (``ConnectionRefusedError`` /
+    ``TimeoutError``), which is what the test asserts.
     """
     port = _grab_unused_port()
     obj = UrlRequestQueue()
@@ -359,6 +363,7 @@ def test_on_error(kivy_clock):
         on_error=obj._on_error,
         on_redirect=obj._on_redirect,
         on_failure=obj._on_failure,
+        timeout=0.5,
         debug=True,
     )
     wait_for_terminal_event(kivy_clock, obj.queue)

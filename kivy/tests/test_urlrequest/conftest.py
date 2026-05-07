@@ -10,10 +10,17 @@ via the ``ca_file=`` parameter.
 Two server fixtures are exposed:
 
 * ``httpserver`` (provided by ``pytest-httpserver``): plain HTTP, bound
-  to ``localhost`` on a random port via the
+  to ``127.0.0.1`` on a random port via the
   ``httpserver_listen_address`` override below.
 * ``httpsserver``: a separately constructed HTTPS server backed by the
   same ``trustme`` CA used for ``ca_cert_path``.
+
+Both servers bind explicitly to ``127.0.0.1``. Binding to ``localhost``
+turned out to be a 1000x slowdown on Windows: the client side resolves
+``localhost`` to ``::1`` first and waits ~2 seconds for the IPv6
+connection attempt to time out before falling back to IPv4 (the server
+only listens on IPv4). Using ``127.0.0.1`` avoids the dual-stack
+fallback entirely.
 
 Also installs a session-scoped, autouse stub for ``socket.getfqdn``.
 ``werkzeug``'s ``BaseWSGIServer`` (which backs ``pytest-httpserver``)
@@ -50,8 +57,13 @@ def _fast_loopback_getfqdn():
 
 @pytest.fixture(scope="session")
 def httpserver_listen_address():
-    """Force ``pytest-httpserver`` to bind to ``localhost`` on a random port."""
-    return ("localhost", 0)
+    """Force ``pytest-httpserver`` to bind to ``127.0.0.1`` on a random port.
+
+    Binding to ``127.0.0.1`` (rather than ``localhost``) avoids a ~2s
+    IPv6 connection-timeout penalty on Windows when the client side
+    tries ``::1`` first and the server only listens on IPv4.
+    """
+    return ("127.0.0.1", 0)
 
 
 @pytest.fixture(scope="session")
@@ -75,15 +87,28 @@ def _https_ssl_context(ca):
     return context
 
 
-@pytest.fixture
-def httpsserver(_https_ssl_context):
-    """A pytest-httpserver instance serving over HTTPS."""
+@pytest.fixture(scope="session")
+def _httpsserver_session(_https_ssl_context):
     pytest.importorskip("pytest_httpserver")
     from pytest_httpserver import HTTPServer
 
-    server = HTTPServer(host="localhost", port=0, ssl_context=_https_ssl_context)
+    server = HTTPServer(host="127.0.0.1", port=0, ssl_context=_https_ssl_context)
     server.start()
-    yield server
-    server.clear()
-    if server.is_running():
-        server.stop()
+    try:
+        yield server
+    finally:
+        if server.is_running():
+            server.stop()
+
+
+@pytest.fixture
+def httpsserver(_httpsserver_session):
+    """A pytest-httpserver instance serving over HTTPS.
+
+    Mirrors the function-scoped/session-backed pattern used by
+    pytest-httpserver's own ``httpserver`` fixture: the server is
+    started once per session and reused across tests, with each test
+    seeing a clean expectation slate.
+    """
+    yield _httpsserver_session
+    _httpsserver_session.clear()
