@@ -36,7 +36,7 @@ class TestProviderRegistryCompleteness:
 
         expected_categories = {
             'window', 'text', 'video', 'audio_output',
-            'image', 'camera', 'spelling', 'clipboard', 'svg'
+            'image', 'camera', 'spelling', 'clipboard', 'svg', 'lottie'
         }
 
         actual_categories = set(PROVIDER_CONFIGS.keys())
@@ -478,6 +478,18 @@ class TestRegistryDiscovery:
                 f"Clipboard provider file {file!r} exists but not in PROVIDER_CONFIGS"
             )
 
+    def test_lottie_providers_complete(self):
+        """All lottie provider files should be in PROVIDER_CONFIGS."""
+        from kivy.core import PROVIDER_CONFIGS
+
+        provider_files = self.get_provider_module_files('lottie')
+        registry_modules = {module for name, module in PROVIDER_CONFIGS['lottie']}
+
+        for file in provider_files:
+            assert file in registry_modules, (
+                f"Lottie provider file {file!r} exists but not in PROVIDER_CONFIGS"
+            )
+
 
 class TestRegistryCorrectness:
     """Tests to ensure provider names and modules are correctly formatted."""
@@ -513,6 +525,7 @@ class TestRegistryCorrectness:
             'spelling': 'spelling_',
             'clipboard': 'clipboard_',
             'svg': 'svg_',
+            'lottie': 'lottie_',
         }
 
         for category, providers in PROVIDER_CONFIGS.items():
@@ -698,6 +711,22 @@ class TestRegistryUsageInModules:
         )
         assert 'get_provider_modules(\'clipboard\')' in content, (
             "Clipboard module should call get_provider_modules('clipboard')"
+        )
+
+    def test_lottie_module_uses_registry(self):
+        """Lottie module should import from kivy.core and use registry."""
+        source_path = self._get_source_file_path('kivy/core/lottie/__init__.py')
+        if source_path is None:
+            pytest.skip("Source files not available (installed package)")
+
+        with open(source_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        assert 'get_provider_modules' in content, (
+            "Lottie module should import get_provider_modules"
+        )
+        assert "get_provider_modules('lottie')" in content, (
+            "Lottie module should call get_provider_modules('lottie')"
         )
 
     def test_kivy_init_uses_get_provider_options(self):

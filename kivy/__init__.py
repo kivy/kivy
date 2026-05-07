@@ -216,6 +216,7 @@ kivy_options = {
     'spelling': get_provider_options('spelling'),
     'clipboard': get_provider_options('clipboard'),
     'svg': get_provider_options('svg'),
+    'lottie': get_provider_options('lottie'),
 }
 
 # Read environment
