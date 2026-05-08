@@ -54,8 +54,8 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.9 (Raspberry Pi OS Bullseye)
-and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.11 (Raspberry Pi OS Bookworm)
+via the `PiWheels <https://www.piwheels.org/>`_ project.
 
 For other Python versions, on 32 bit OSes, you will need to install from source.
 

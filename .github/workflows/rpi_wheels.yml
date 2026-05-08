@@ -16,7 +16,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel armv7l]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel armv7l]')
     strategy:
       matrix:
-        image_version: ['3.9-bullseye', '3.11-bookworm']
+        image_version: ['3.11-bookworm']
     steps:
     - uses: actions/checkout@v6
     - name: Generate version metadata

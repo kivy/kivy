@@ -1722,8 +1722,6 @@ if not build_examples:
             'Operating System :: Microsoft :: Windows',
             'Operating System :: POSIX :: BSD :: FreeBSD',
             'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3.9',
-            'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
             'Programming Language :: Python :: 3.12',
             'Programming Language :: Python :: 3.13',
