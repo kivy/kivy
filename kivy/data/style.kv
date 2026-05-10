@@ -342,23 +342,20 @@
         id: layout
         controller: root
 
-[FileListEntry@FloatLayout+TreeViewNode]:
-    locked: False
-    entries: []
-    path: ctx.path
+<FileListEntry>:
     # FIXME: is_selected is actually a read_only treeview property. In this
     # case, however, we're doing this because treeview only has single-selection
     # hardcoded in it. The fix to this would be to update treeview to allow
     # multiple selection.
-    is_selected: self.path in ctx.controller().selection
+    is_selected: root.path in root.controller().selection if root.controller else False
 
     orientation: 'horizontal'
     size_hint_y: None
     height: '48dp' if dp(1) > 1 else '24dp'
     # Don't allow expansion of the ../ node
-    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+    is_leaf: not root.isdir or root.name.endswith('..' + root.sep) or self.locked
+    on_touch_down: self.collide_point(*args[1].pos) and root.controller and root.controller().entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and root.controller and root.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
         size_hint_x: None
@@ -368,14 +365,14 @@
             text_size: self.width, None
             halign: 'left'
             shorten: True
-            text: ctx.name
-            font_name: ctx.controller().font_name
+            text: root.name
+            font_name: root.controller().font_name if root.controller else ''
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
-            text: '{}'.format(ctx.get_nice_size())
-            font_name: ctx.controller().font_name
+            text: root.get_nice_size()
+            font_name: root.controller().font_name if root.controller else ''
 
 <FileChooserIconLayout>:
     on_entry_added: stacklayout.add_widget(args[1])
@@ -406,14 +403,12 @@
         id: layout
         controller: root
 
-[FileIconEntry@Widget]:
-    locked: False
-    path: ctx.path
-    selected: self.path in ctx.controller().selection
+<FileIconEntry>:
+    selected: root.path in root.controller().selection if root.controller else False
     size_hint: None, None
 
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+    on_touch_down: self.collide_point(*args[1].pos) and root.controller and root.controller().entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and root.controller and root.controller().entry_released(self, args[1])
     size: '100dp', '100dp'
 
     canvas:
@@ -427,19 +422,19 @@
 
     Image:
         size: '48dp', '48dp'
-        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
+        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if root.isdir else 'file')
         pos: root.x + dp(24), root.y + dp(40)
     Label:
-        text: ctx.name
-        font_name: ctx.controller().font_name
+        text: root.name
+        font_name: root.controller().font_name if root.controller else ''
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
         size: '100dp', '16dp'
         pos: root.x, root.y + dp(16)
     Label:
-        text: '{}'.format(ctx.get_nice_size())
-        font_name: ctx.controller().font_name
+        text: root.get_nice_size()
+        font_name: root.controller().font_name if root.controller else ''
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'
@@ -738,10 +733,10 @@
 # Accordion widget
 # =============================================================================
 
-[AccordionItemTitle@Label]:
-    text: ctx.title
-    normal_background: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
-    disabled_background: ctx.item.background_disabled_normal if ctx.item.collapse else ctx.item.background_disabled_selected
+<AccordionItemTitle>:
+    text: root.title
+    normal_background: (root.item.background_normal if root.item.collapse else root.item.background_selected) if root.item else ''
+    disabled_background: (root.item.background_disabled_normal if root.item.collapse else root.item.background_disabled_selected) if root.item else ''
     canvas.before:
         Color:
             rgba: self.disabled_color if self.disabled else self.color
@@ -753,7 +748,7 @@
         Translate:
             xy: self.center_x, self.center_y
         Rotate:
-            angle: 90 if ctx.item.orientation == 'horizontal' else 0
+            angle: 90 if root.item and root.item.orientation == 'horizontal' else 0
             axis: 0, 0, 1
         Translate:
             xy: -self.center_x, -self.center_y

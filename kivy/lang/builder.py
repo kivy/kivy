@@ -9,7 +9,6 @@ from os import environ
 from os.path import join
 from copy import copy
 from types import CodeType
-from functools import partial
 
 from kivy.factory import Factory
 from kivy.lang.parser import (
@@ -20,8 +19,6 @@ from kivy.lang.parser import (
     ParserRuleProperty,
 )
 from kivy.logger import Logger
-from kivy.utils import QueryDict
-from kivy.cache import Cache
 from kivy import kivy_data_dir
 from kivy.context import register_context
 from kivy.resources import resource_find
@@ -46,13 +43,6 @@ class BuilderException(ParserException):
     '''Exception raised when the Builder fails to apply a rule on a widget.
     '''
     pass
-
-
-def get_proxy(widget):
-    try:
-        return widget.proxy_ref
-    except AttributeError:
-        return widget
 
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
@@ -252,7 +242,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
 
 class BuilderBase(object):
     '''The Builder is responsible for creating a :class:`Parser` for parsing a
-    kv file, merging the results into its internal rules, templates, etc.
+    kv file, merging the results into its internal rules, dynamic classes,
+    etc.
 
     By default, :class:`Builder` is a global Kivy instance used in widgets
     that you can use to load other kv files in addition to the default ones.
@@ -267,14 +258,16 @@ class BuilderBase(object):
             Classes crated in Kivy-language code.
             They were created with the ``<Class@Superclass>:`` syntax,
             rather than in Python.
-        `templates`: dict
-            Superseded by :attr:`dynamic_classes` in version 1.0.5.
-            Modern Kivy apps should not use templates.
         `rules`: list
             Rules loaded from Kivy-language code.
         `rulectx`: dict
             Context used by each rule.
             Mostly, the IDs of widgets.
+
+    .. versionchanged:: 3.0.0
+        The deprecated Kivy lang templates feature has been removed.
+        ``Builder.template`` and the ``Builder.templates`` dict no longer
+        exist; use dynamic classes (``<Name@Base>:``) instead.
     '''
 
     def __init__(self):
@@ -283,7 +276,6 @@ class BuilderBase(object):
         self._match_name_cache = {}
         self.files = []
         self.dynamic_classes = {}
-        self.templates = {}
         self.rules = []
         self.rulectx = {}
 
@@ -300,7 +292,6 @@ class BuilderBase(object):
         obj._match_name_cache = copy(builder._match_name_cache)
         obj.files = copy(builder.files)
         obj.dynamic_classes = copy(builder.dynamic_classes)
-        obj.templates = copy(builder.templates)
         obj.rules = list(builder.rules)
         assert not builder.rulectx
         obj.rulectx = dict(builder.rulectx)
@@ -335,19 +326,13 @@ class BuilderBase(object):
 
         .. warning::
 
-            This will not remove rules or templates already applied/used on
-            current widgets. It will only effect the next widgets creation or
-            template invocation.
+            This will not remove rules already applied/used on current
+            widgets. It will only effect the next widgets creation.
         '''
-        # remove rules and templates
+        # remove rules associated with this file
         filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
         self._clear_matchcache()
-        templates = {}
-        for x, y in self.templates.items():
-            if y[2] != filename:
-                templates[x] = y
-        self.templates = templates
 
         if filename in self.files:
             self.files.remove(filename)
@@ -399,13 +384,6 @@ class BuilderBase(object):
             self.rules.extend(parser.rules)
             self._clear_matchcache()
 
-            # add the template found by the parser into ours
-            for name, cls, template in parser.templates:
-                self.templates[name] = (cls, template, fn)
-                Factory.register(name,
-                                 cls=partial(self.template, name),
-                                 is_template=True, warn=True)
-
             # register all the dynamic classes
             for name, baseclasses in parser.dynamic_classes.items():
                 Factory.register(name, baseclasses=baseclasses, filename=fn,
@@ -418,9 +396,8 @@ class BuilderBase(object):
                                 'directives' % filename)
 
             # save the loaded files only if there is a root without
-            # template/dynamic classes
-            if fn and (parser.templates or
-                       parser.dynamic_classes or parser.rules):
+            # dynamic classes
+            if fn and (parser.dynamic_classes or parser.rules):
                 self.files.append(fn)
 
             if parser.root:
@@ -438,37 +415,6 @@ class BuilderBase(object):
                 return widget
         finally:
             self._current_filename = None
-
-    def template(self, *args, **ctx):
-        '''Create a specialized template using a specific context.
-
-        .. versionadded:: 1.0.5
-
-        With templates, you can construct custom widgets from a kv lang
-        definition by giving them a context. Check :ref:`Template usage
-        <template_usage>`.
-        '''
-        # Prevent naming clash with whatever the user might be putting into the
-        # ctx as key.
-        name = args[0]
-        if name not in self.templates:
-            raise Exception('Unknown <%s> template name' % name)
-        baseclasses, rule, fn = self.templates[name]
-        key = '%s|%s' % (name, baseclasses)
-        cls = Cache.get('kv.lang', key)
-        if cls is None:
-            rootwidgets = []
-            for basecls in baseclasses.split('+'):
-                rootwidgets.append(Factory.get(basecls))
-            cls = type(name, tuple(rootwidgets), {})
-            Cache.append('kv.lang', key, cls)
-        widget = cls()
-        # in previous versions, ``ctx`` is passed as is as ``template_ctx``
-        # preventing widgets in it from be collected by the GC. This was
-        # especially relevant to AccordionItem's title_template.
-        proxy_ctx = {k: get_proxy(v) for k, v in ctx.items()}
-        self._apply_rule(widget, rule, rule, template_ctx=proxy_ctx)
-        return widget
 
     def apply_rules(
             self, widget, rule_name, ignored_consts=set(), rule_children=None,
@@ -572,7 +518,7 @@ class BuilderBase(object):
         self._match_cache.clear()
         self._match_name_cache.clear()
 
-    def _apply_rule(self, widget, rule, rootrule, template_ctx=None,
+    def _apply_rule(self, widget, rule, rootrule,
                     ignored_consts=set(), rule_children=None):
         # widget: the current instantiated widget
         # rule: the current rule
@@ -587,10 +533,6 @@ class BuilderBase(object):
         # extract the context of the rootrule (not rule!)
         assert rootrule in self.rulectx
         rctx = self.rulectx[rootrule]
-
-        # if a template context is passed, put it as "ctx"
-        if template_ctx is not None:
-            rctx['ids']['ctx'] = QueryDict(template_ctx)
 
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
@@ -629,7 +571,6 @@ class BuilderBase(object):
 
         # create children tree
         Factory_get = Factory.get
-        Factory_is_template = Factory.is_template
         for crule in rule.children:
             cname = crule.name
 
@@ -639,55 +580,20 @@ class BuilderBase(object):
                     'Canvas instructions added in kv must '
                     'be declared before child widgets.')
 
-            # depending if the child rule is a template or not, we are not
-            # having the same approach
             cls = Factory_get(cname)
 
-            if Factory_is_template(cname):
-                # we got a template, so extract all the properties and
-                # handlers, and push them in a "ctx" dictionary.
-                ctx = {}
-                idmap = copy(global_idmap)
-                idmap.update({'root': rctx['ids']['root']})
-                if 'ctx' in rctx['ids']:
-                    idmap.update({'ctx': rctx['ids']['ctx']})
-                try:
-                    for prule in crule.properties.values():
-                        value = prule.co_value
-                        if type(value) is CodeType:
-                            value = eval(value, idmap)
-                        ctx[prule.name] = value
-                    for prule in crule.handlers:
-                        value = eval(prule.value, idmap)
-                        ctx[prule.name] = value
-                except Exception as e:
-                    tb = sys.exc_info()[2]
-                    raise BuilderException(
-                        prule.ctx, prule.line,
-                        '{}: {}'.format(e.__class__.__name__, e), cause=tb)
+            # we can't construct it without __no_builder=True, because the
+            # previous implementation was doing the add_widget() before
+            # apply(), and so, we could use "self.parent".
+            child = cls(__no_builder=True)
+            widget.add_widget(child)
+            child.apply_class_lang_rules(
+                root=rctx['ids']['root'], rule_children=rule_children)
+            self._apply_rule(
+                child, crule, rootrule, rule_children=rule_children)
 
-                # create the template with an explicit ctx
-                child = cls(**ctx)
-                widget.add_widget(child)
-
-                # reference it on our root rule context
-                if crule.id:
-                    rctx['ids'][crule.id] = child
-
-            else:
-                # we got a "normal" rule, construct it manually
-                # we can't construct it without __no_builder=True, because the
-                # previous implementation was doing the add_widget() before
-                # apply(), and so, we could use "self.parent".
-                child = cls(__no_builder=True)
-                widget.add_widget(child)
-                child.apply_class_lang_rules(
-                    root=rctx['ids']['root'], rule_children=rule_children)
-                self._apply_rule(
-                    child, crule, rootrule, rule_children=rule_children)
-
-                if rule_children is not None:
-                    rule_children.append(child)
+            if rule_children is not None:
+                rule_children.append(child)
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
