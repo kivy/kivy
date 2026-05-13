@@ -1186,63 +1186,32 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     return py_pixels
 
 def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
-                         GLenum format, GLenum type, unsigned char[::1] out_buf,
-                         *, GLint alignment=1):
+                         GLenum format, GLenum type, unsigned char[::1] out_buf):
     '''Read pixels from the framebuffer into a preallocated buffer.
 
-    :param format: Must be either ``GL_RGB`` or ``GL_RGBA`` if ``glReadnPixels()`` is
-                   not available.
-    :param type: Must be ``GL_UNSIGNED_BYTE`` if ``glReadnPixels()`` is not available.
     :param out_buf: A writable object that supports the buffer protocol — for example,
                     a :class:`bytearray`, an :class:`array.array` or a ``NumPy`` array.
-                    If it's too small, no data will be read.
-    :param alignment: The byte alignment of each row in the output buffer.
-                      The allowable values are 1, 2, 4 and 8. Default is 1.
 
     See: `glReadPixels() on Khronos website
-    <https://registry.khronos.org/OpenGL-Refpages/gl4/html/glReadPixels.xhtml>`_
-    '''
+    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml>`_
 
-def _glReadPixels_inplace_es20(GLint x, GLint y, GLsizei width, GLsizei height,
-                               GLenum format, GLenum type, unsigned char[::1] out_buf,
-                               *, GLint alignment=1):
-    '''An implementation of glReadPixels_inplace that complies with OpenGL ES 2.0.
+    We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
+    type.
     '''
-    cdef long pixel_size, row_size
+    cdef long bytes_per_pixels
+
     if type != GL_UNSIGNED_BYTE:
-        raise ValueError("Only GL_UNSIGNED_BYTE is supported.")
-    if alignment not in (1, 2, 4, 8):
-        raise ValueError(f"Invalid alignment value: {alignment}")
+        raise ValueError("Only GL_UNSIGNED_BYTE is supported as a type.")
     if format == GL_RGB:
-        pixel_size = sizeof(GLubyte) * 3
+        bytes_per_pixels = sizeof(GLubyte) * 3
     elif format == GL_RGBA:
-        pixel_size = sizeof(GLubyte) * 4
+        bytes_per_pixels = sizeof(GLubyte) * 4
     else:
-        raise ValueError("Only GL_RGB and GL_RGBA are supported.")
-    with cython.cdivision(True):
-        row_size = ((pixel_size * width + alignment - 1) / alignment) * alignment
-    if out_buf.nbytes < (row_size * height):
-        return
-    cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
+        raise ValueError("Only GL_RGB and GL_RGBA are supported as a format.")
+    if out_buf.nbytes < (bytes_per_pixels * width * height):
+        raise ValueError("The output buffer is too small.")
+    cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     cgl.glReadPixels(x, y, width, height, format, type, &out_buf[0])
-
-def _glReadPixels_inplace_es32(GLint x, GLint y, GLsizei width, GLsizei height,
-                               GLenum format, GLenum type, unsigned char[::1] out_buf,
-                               *, GLint alignment=1):
-    '''An implementation of glReadPixels_inplace that relies on glReadnPixels, which
-    is an API introduced in OpenGL ES 3.2.
-    '''
-    cgl.glPixelStorei(GL_PACK_ALIGNMENT, alignment)
-    cgl.glReadnPixels(x, y, width, height, format, type, out_buf.nbytes, &out_buf[0])
-
-# The reason glReadPixels_inplace is split into two versions, rather than having a
-# single implementation that checks for the availability of glReadnPixels at call time,
-# is to allow testing the one that doesn’t rely on glReadnPixels even when it's
-# available.
-_glReadPixels_inplace_es20.__doc__ = _glReadPixels_inplace_es32.__doc__ = \
-    glReadPixels_inplace.__doc__
-glReadPixels_inplace = _glReadPixels_inplace_es20 if cgl.glReadnPixels == NULL \
-    else _glReadPixels_inplace_es32
 
 # XXX This one is commented out because a) it's not necessary and
 #                       b) it's breaking on OSX for some reason
