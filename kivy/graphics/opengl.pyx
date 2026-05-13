@@ -17,7 +17,6 @@ This module is a Python wrapper for OpenGL commands.
 include "../include/config.pxi"
 include "common.pxi"
 
-cimport cython
 cimport kivy.graphics.cgl as cgldef
 from kivy.graphics.cgl cimport (cgl, GLvoid, GLfloat, GLuint, GLint, GLchar,
     GLubyte, cgl_init, GLboolean, GLenum, GLsizei, GLclampf, GLbitfield,
