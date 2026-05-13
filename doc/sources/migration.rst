@@ -937,6 +937,58 @@ instances, restoring the shared behavior in an idiomatic way.
             pass
 
 
+===
+SVG
+===
+
+*Removal of the experimental kivy.graphics.svg module*
+
+In Kivy 3.x.x, the experimental ``Svg`` canvas instruction in
+``kivy.graphics.svg`` has been removed, along with its example scripts under
+``examples/svg/`` (``benchmark.py``, ``main.py``, ``main-smaa.py``) and its
+Factory registration. The module had been marked experimental since its
+introduction and is superseded by the new SVG support added in Kivy 3.x.x.
+
+**Replacement: SvgWidget / AsyncSvgWidget**
+
+For most use cases, drop in :class:`~kivy.uix.svg.SvgWidget` (local sources)
+or :class:`~kivy.uix.svg.AsyncSvgWidget` (network sources):
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    from kivy.graphics.svg import Svg
+
+    with widget.canvas:
+        Svg('image.svg')
+
+    # Kivy 3.x.x
+    from kivy.uix.svg import SvgWidget
+
+    widget.add_widget(SvgWidget(source='image.svg'))
+
+In KV language:
+
+.. code-block:: kv
+
+    # Kivy 3.x.x
+    SvgWidget:
+        source: 'image.svg'
+
+**Replacement: kivy.core.svg image provider**
+
+For loading SVGs through the standard image pipeline (for example as a
+texture for :class:`~kivy.uix.image.Image`), the new ``kivy.core.svg``
+provider is selected automatically when an ``.svg`` source is loaded; no
+explicit import or Factory registration is required.
+
+**Factory registration**
+
+The ``Svg`` Factory entry that pointed at ``kivy.graphics.svg`` has been
+removed. ``SvgWidget`` and ``AsyncSvgWidget`` are registered in the Factory
+under their own names and can be used directly from KV.
+
+
 Application Storage Directories
 ================================
 

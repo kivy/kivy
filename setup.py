@@ -1273,8 +1273,6 @@ graphics_dependencies = {
         'gl_debug_logger.pxi'],
     'scissor_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'cgl.pxd'],
-    'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
-                'vertex_instructions.pxd', 'tesselator.pxd'],
     'texture.pxd': ['cgl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
@@ -1338,7 +1336,6 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags_base),
     'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base)
 }
 
