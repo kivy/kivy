@@ -196,8 +196,6 @@ cdef void __stdcall mockPixelStorei(GLenum pname, GLint param) nogil:
     pass
 cdef void __stdcall mockPolygonOffset(GLfloat factor, GLfloat units) nogil:
     pass
-cdef void __stdcall mockReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei buffer_size, GLvoid* buffer) nogil:
-    pass
 cdef void __stdcall mockReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil:
     pass
 # cdef void __stdcall mockReleaseShaderCompiler() nogil:
@@ -389,7 +387,6 @@ def init_backend():
     cgl.glLinkProgram = mockLinkProgram
     cgl.glPixelStorei = mockPixelStorei
     cgl.glPolygonOffset = mockPolygonOffset
-    cgl.glReadnPixels = mockReadnPixels
     cgl.glReadPixels = mockReadPixels
     cgl.glRenderbufferStorage = mockRenderbufferStorage
     cgl.glSampleCoverage = mockSampleCoverage
