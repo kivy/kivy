@@ -82,7 +82,7 @@ You can launch a .py file with Python using the *Send to* menu:
 #. Open Windows Explorer (the file explorer in Windows 8), and to go the address
    'shell:sendto'. You should get the special Windows directory `SendTo`.
 #. Paste the previously copied ``python.exe`` file **as a shortcut**.
-#. Rename it to python <python-version>. E.g. ``python39``.
+#. Rename it to python <python-version>. E.g. ``python311``.
 
 You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".
