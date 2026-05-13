@@ -1180,6 +1180,7 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
             glReadPixels_inplace(0, 0, 1, 1, GL_RGB, GL_FLOAT, bytearray(16))
 
     def test_unsupported_format(self):
-        from kivy.graphics.opengl import GL_RGB565, GL_UNSIGNED_BYTE, glReadPixels_inplace
+        from kivy.graphics.opengl import GL_RGB565, GL_UNSIGNED_BYTE, \
+            glReadPixels_inplace
         with pytest.raises(ValueError):
             glReadPixels_inplace(0, 0, 1, 1, GL_RGB565, GL_UNSIGNED_BYTE, bytearray(16))
