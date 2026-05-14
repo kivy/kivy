@@ -40,15 +40,45 @@ One can display the placeholder image when the video stops by reacting on eos::
             self.set_texture_from_resource(self.preview)
 
     video.bind(eos=on_eos_change)
+
+.. versionadded:: 3.0.0
+
+An observable :attr:`buffering` boolean for loading-overlay UX and a
+provider-specific :attr:`options` dict were added in 3.0.0::
+
+    video = Video(
+        source='movie.mp4',
+        state='play',
+        # Provider-specific options forwarded opaquely; each provider
+        # documents the keys it honors. AVFoundation example:
+        options={'automatically_waits_to_minimize_stalling': False},
+    )
+
+    # Drive a loading overlay from a single rule that covers both the
+    # initial wait and any mid-stream rebuffer:
+    video.bind(
+        loaded=lambda v, l: overlay.set_visible(
+            not l or v.buffering),
+        buffering=lambda v, b: overlay.set_visible(
+            not v.loaded or b),
+    )
+
+Static thumbnails can be generated without instantiating a widget via
+:meth:`Video.generate_thumbnail`::
+
+    texture = Video.generate_thumbnail(
+        'movie.mp4', time=5.0, size=(320, 180))
+    if texture is not None:
+        thumbnail_image.texture = texture
 '''
 
 __all__ = ('Video', )
 
 from kivy.clock import Clock
 from kivy.uix.image import Image
-from kivy.core.video import Video as CoreVideo
+from kivy.core.video import Video as CoreVideo, VideoBase
 from kivy.resources import resource_find
-from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty,
+from kivy.properties import (BooleanProperty, DictProperty, NumericProperty,
                              OptionProperty, StringProperty)
 
 
@@ -124,13 +154,86 @@ class Video(Image):
     to 1.
     '''
 
-    options = ObjectProperty({})
-    '''Options to pass at Video core object creation.
+    options = DictProperty(rebind=False, allownone=True)
+    '''Provider-specific options forwarded to the underlying core video
+    at construction. Each video provider documents the keys it honors on
+    its own class (the canonical reference for behavior and defaults);
+    the per-provider summary below is a quick lookup for the keys most
+    apps reach for.
+
+    Unknown keys for the selected provider are logged as a warning and
+    otherwise left untouched in this dict (so apps that stash extra
+    metadata in ``options`` keep working across Kivy / provider
+    upgrades).
+
+    **Providers that consume options:**
+
+    * AVFoundation (macOS / iOS) -- see
+      :class:`~kivy.core.video.video_avfoundation.VideoAVFoundation` for
+      full detail:
+
+      - ``automatically_waits_to_minimize_stalling`` (``bool``,
+        default ``True``) -- forwards to the ``AVPlayer`` property of
+        the same name. The default matches AVPlayer's own and favors
+        uninterrupted playback at the cost of start-up latency. Set to
+        ``False`` for snappier start (playback begins as soon as the
+        first decodable frame is available rather than buffering
+        ahead).
+      - ``force_cpu_copy`` (``bool``, default ``False``) -- bypass the
+        zero-copy IOSurface texture path and always use the CPU
+        ``memcpy`` fallback. Useful for A/B testing and debugging.
+
+    Other providers (GStreamer, FFmpeg / ffpyplayer) currently expose no
+    documented ``options`` keys: unknown kwargs in ``options`` are also
+    unpacked as keyword arguments to the core video for back-compat with
+    apps that put well-known kwargs (e.g. ``eos='loop'``) in this dict.
+
+    Example::
+
+        video = Video(
+            source='clip.mp4',
+            state='play',
+            options={'automatically_waits_to_minimize_stalling': False},
+        )
 
     .. versionadded:: 1.0.4
 
-    :attr:`options` is an :class:`kivy.properties.ObjectProperty` and defaults
-    to {}.
+    .. versionchanged:: 3.0.0
+        In addition to being unpacked as keyword arguments (as before),
+        the full dict is also forwarded to the core video as a single
+        ``options=`` kwarg, giving providers a clean, introspectable
+        place to look for provider-specific keys. Documented keys for
+        the AVFoundation provider added in 3.0.0; see above.
+
+        Reclassified from :class:`~kivy.properties.ObjectProperty` to
+        :class:`~kivy.properties.DictProperty` (with ``allownone=True``)
+        so the property now validates that the assigned value is either
+        a ``dict`` or ``None``, each instance gets its own dict (no
+        shared mutable default), and top-level mutations
+        (``video.options['k'] = v``) dispatch ``on_options`` instead of
+        only full reassignment.
+
+    :attr:`options` is a :class:`~kivy.properties.DictProperty` and
+    defaults to ``{}``. ``None`` is accepted (treated as an empty dict
+    by the core video).
+    '''
+
+    buffering = BooleanProperty(False)
+    '''Whether playback is currently delayed/stalled while trying to
+    satisfy ``state='play'``. Mirrors
+    :attr:`kivy.core.video.VideoBase.buffering` -- ``True`` covers both
+    the initial pre-playback wait and any mid-stream rebuffer; always
+    ``False`` while paused or stopped. Providers that cannot detect
+    stalls leave it ``False``.
+
+    For a single-rule loading overlay::
+
+        overlay.visible = not video.loaded or video.buffering
+
+    .. versionadded:: 3.0.0
+
+    :attr:`buffering` is a :class:`~kivy.properties.BooleanProperty` and
+    defaults to ``False``.
     '''
 
     _video_load_event = None
@@ -194,11 +297,22 @@ class Video(Image):
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
-            self._video = CoreVideo(filename=filename, **self.options)
+            # Forward both the dict (for providers that introspect
+            # self._options) and the unpacked kwargs (back-compat with
+            # apps that put well-known kwargs like 'eos' in options).
+            # ``options`` accepts None as a legal value -- normalize it
+            # to {} here so the rest of the stack only sees a dict.
+            options = self.options if self.options is not None else {}
+            core_kwargs = dict(options)
+            self._video = CoreVideo(
+                filename=filename,
+                options=options,
+                **core_kwargs)
             self._video.volume = self.volume
             self._video.bind(on_load=self._on_load,
                              on_frame=self._on_video_frame,
-                             on_eos=self._on_eos)
+                             on_eos=self._on_eos,
+                             on_buffering=self._on_buffering)
             if self.state == 'play':
                 self._video.play()
             self.duration = 1.
@@ -237,9 +351,49 @@ class Video(Image):
         self.loaded = True
         self._on_video_frame(largs)
 
+    def _on_buffering(self, instance, value):
+        self.buffering = bool(value)
+
     def on_volume(self, instance, value):
         if self._video:
             self._video.volume = value
+
+    @classmethod
+    def generate_thumbnail(cls, filename, time, size=None):
+        '''Generate a thumbnail :class:`~kivy.graphics.texture.Texture`
+        from the given video file at the given timestamp, without
+        instantiating a :class:`Video` widget or starting playback.
+        Delegates to the currently selected core video provider.
+
+        :Parameters:
+            `filename`: str
+                Path or URI to the video. Resolved through
+                :func:`~kivy.resources.resource_find` when it does not
+                look like a URL.
+            `time`: float
+                Timestamp in seconds at which to grab the thumbnail.
+            `size`: tuple of (int, int), optional
+                Target ``(width, height)``. When ``None`` the source
+                video's native frame size is used.
+
+        :Returns:
+            A :class:`~kivy.graphics.texture.Texture`, or ``None`` if no
+            provider could generate the thumbnail.
+
+        .. versionadded:: 3.0.0
+        '''
+        if CoreVideo is None:
+            return None
+        resolved = filename
+        if resolved and '://' not in resolved:
+            resolved = resource_find(resolved) or resolved
+        # CoreVideo here is a provider class (subclass of VideoBase),
+        # so its classmethod is the provider-specific implementation.
+        try:
+            return CoreVideo.generate_thumbnail(resolved, time, size=size)
+        except Exception:
+            # Fall back to the base implementation (returns None and logs)
+            return VideoBase.generate_thumbnail(resolved, time, size=size)
 
     def unload(self):
         '''Unload the video. The playback will be stopped.
@@ -251,6 +405,7 @@ class Video(Image):
             self._video.unload()
             self._video = None
         self.loaded = False
+        self.buffering = False
 
 
 if __name__ == '__main__':
