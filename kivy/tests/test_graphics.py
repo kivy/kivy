@@ -1149,6 +1149,16 @@ def test_change_graphics_second_thread(widget_verify_thread):
         raise exception[0].with_traceback(exception[1])
 
 
+class Test_glReadPixels(GraphicUnitTest):
+    @requires_graphics
+    def test_glReadPixels(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        pixels = glReadPixels(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE)
+        assert pixels == b"\xff\x00\x00"
+
+
 class Test_glReadPixels_inplace(GraphicUnitTest):
     @requires_graphics
     def test_a_buffer_too_small(self):
