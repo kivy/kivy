@@ -1197,17 +1197,17 @@ def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
     We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
     '''
-    cdef long bytes_per_pixels
+    cdef long bytes_per_pixel
 
     if type != GL_UNSIGNED_BYTE:
         raise ValueError("Only GL_UNSIGNED_BYTE is supported as a type.")
     if format == GL_RGB:
-        bytes_per_pixels = sizeof(GLubyte) * 3
+        bytes_per_pixel = sizeof(GLubyte) * 3
     elif format == GL_RGBA:
-        bytes_per_pixels = sizeof(GLubyte) * 4
+        bytes_per_pixel = sizeof(GLubyte) * 4
     else:
         raise ValueError("Only GL_RGB and GL_RGBA are supported as a format.")
-    if out_buf.nbytes < (bytes_per_pixels * width * height):
+    if out_buf.nbytes < (bytes_per_pixel * width * height):
         raise ValueError("The output buffer is too small.")
     cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     cgl.glReadPixels(x, y, width, height, format, type, &out_buf[0])
