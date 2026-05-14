@@ -133,7 +133,8 @@ VideoPlayer::VideoPlayer(const char *url)
       mCurrentFrame(NULL), mHasFrame(false),
       mPreviousPixelBuffer(NULL),
       mItemPrepared(false), mObserversInstalled(false),
-      mZeroCopyProbed(false), mZeroCopyAvailable(false)
+      mZeroCopyProbed(false), mZeroCopyAvailable(false),
+      mCPUCopyLogged(false)
 #ifdef KIVY_VIDEO_AVF_HAS_ANGLE
       , mEGLDisplay(NULL), mEGLConfig(NULL), mEGLPbuffer(NULL)
       , mBoundPixelBuffer(NULL)
@@ -185,6 +186,9 @@ void VideoPlayer::load() {
         return;
     }
     unload();
+    // Fresh load: re-arm the per-load "which pixel path" diagnostic so
+    // an "Apply (reload)" or source change re-emits the path it took.
+    mCPUCopyLogged = false;
 
     @autoreleasepool {
         // Accept both bare file paths and full URI strings.
@@ -443,6 +447,21 @@ void VideoPlayer::_stageFrameFromBuffer(CVPixelBufferRef pb, double pts) {
         if (mZeroCopyAvailable && _bindFrameZeroCopy(pb, pts)) {
             // _bindFrameZeroCopy took ownership of pb on success.
             return;
+        }
+    }
+
+    // First frame for this player to take the CPU-copy path: log it so
+    // we can tell from the demo / app logs which pixel pipeline is
+    // actually in use. This fires at most once per VideoPlayer
+    // instance and never on the per-frame hot path beyond the first.
+    if (!mCPUCopyLogged) {
+        mCPUCopyLogged = true;
+        if (mForceCPUCopy) {
+            NSLog(@"VideoAVFoundation: using CPU-copy path "
+                  @"(force_cpu_copy=true)");
+        } else {
+            NSLog(@"VideoAVFoundation: using CPU-copy path "
+                  @"(zero-copy unavailable or per-frame bind failed)");
         }
     }
 
@@ -717,6 +736,8 @@ void VideoPlayer::_probeZeroCopy() {
     mEGLConfig = (void *)config;
     mGLTexture = (unsigned int)tex;
     mZeroCopyAvailable = true;
+    NSLog(@"VideoAVFoundation: zero-copy active "
+          @"(IOSurface -> ANGLE pbuffer -> GL_TEXTURE_2D)");
 }
 
 bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {

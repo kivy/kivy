@@ -142,6 +142,9 @@ private:
     // suppresses unused-private-field warnings on stub builds.
     bool mZeroCopyProbed;
     bool mZeroCopyAvailable;
+    // One-shot flag so the "using CPU-copy path" diagnostic only fires
+    // on the first frame, not on every decoded frame.
+    bool mCPUCopyLogged;
 #ifdef KIVY_VIDEO_AVF_HAS_ANGLE
     void *mEGLDisplay;
     void *mEGLConfig;

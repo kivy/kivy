@@ -125,6 +125,17 @@ CLIPS = [
             "standard clips ship without audio."),
     },
     {
+        'title': 'Big Buck Bunny 1080p, 10s (H.264 / MP4, silent)',
+        'source': (
+            'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/'
+            'Big_Buck_Bunny_1080_10s_5MB.mp4'),
+        'remote': True,
+        'note': (
+            "5 MB at 1080p. Quick-to-download stress test for the "
+            "pixel pipeline: 1920x1080x4 bytes per frame x ~30 fps is "
+            "~240 MB/s of memcpy on the force_cpu_copy path."),
+    },
+    {
         'title': 'Sintel 1080p, 10s (H.264 / MP4, silent)',
         'source': (
             'https://test-videos.co.uk/vids/sintel/mp4/h264/1080/'
@@ -141,9 +152,12 @@ CLIPS = [
             'Jellyfish_1080_10s_30MB.mp4'),
         'remote': True,
         'note': (
-            "30 MB at 1080p, high-motion content. Useful for "
-            "comparing zero-copy vs ``force_cpu_copy`` frame rates. "
-            "test-videos.co.uk standard clips ship without audio."),
+            "30 MB at 1080p, high-motion content. Marquee zero-copy "
+            "vs force_cpu_copy comparison clip: load it, toggle "
+            "force_cpu_copy, hit Apply (reload), and watch the log "
+            "for 'zero-copy active' vs 'using CPU-copy path'. The "
+            "memcpy stress (~240 MB/s) is also visible in Activity "
+            "Monitor's Energy column."),
     },
     {
         'title': 'BipBop 16x9 (HLS / TS, with audio)',
@@ -476,39 +490,21 @@ KV = '''
                 spacing: dp(4)
                 size_hint_x: 0.55
 
-                BoxLayout:
+                ToggleButton:
                     size_hint_y: None
                     height: dp(28)
-                    spacing: dp(6)
-                    Label:
-                        text: f"options={{'automatically_waits_to_minimize_stalling': {root.auto_wait_to_minimize_stalling}}}"
-                        size_hint_x: 0.7
-                        font_size: '11sp'
-                        halign: 'left'
-                        valign: 'middle'
-                        text_size: self.size
-                        color: 0.8, 0.8, 0.8, 1
-                    CheckBox:
-                        active: root.auto_wait_to_minimize_stalling
-                        size_hint_x: 0.3
-                        on_active: root.auto_wait_to_minimize_stalling = self.active
+                    font_size: '11sp'
+                    text: f"automatically_waits_to_minimize_stalling = {root.auto_wait_to_minimize_stalling}"
+                    state: 'down' if root.auto_wait_to_minimize_stalling else 'normal'
+                    on_release: root.auto_wait_to_minimize_stalling = not root.auto_wait_to_minimize_stalling
 
-                BoxLayout:
+                ToggleButton:
                     size_hint_y: None
                     height: dp(28)
-                    spacing: dp(6)
-                    Label:
-                        text: f"options={{'force_cpu_copy': {root.force_cpu_copy}}}"
-                        size_hint_x: 0.7
-                        font_size: '11sp'
-                        halign: 'left'
-                        valign: 'middle'
-                        text_size: self.size
-                        color: 0.8, 0.8, 0.8, 1
-                    CheckBox:
-                        active: root.force_cpu_copy
-                        size_hint_x: 0.3
-                        on_active: root.force_cpu_copy = self.active
+                    font_size: '11sp'
+                    text: f"force_cpu_copy = {root.force_cpu_copy}  (zero-copy is the default)"
+                    state: 'down' if root.force_cpu_copy else 'normal'
+                    on_release: root.force_cpu_copy = not root.force_cpu_copy
 
                 BoxLayout:
                     size_hint_y: None
