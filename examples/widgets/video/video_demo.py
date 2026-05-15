@@ -2,9 +2,9 @@
 Video provider demo — cross-platform
 =====================================
 
-Visual / interactive test-bed for the new
-:class:`kivy.core.video.VideoBase` API additions: thumbnails, the
-``buffering`` signal, and provider-specific ``options``.
+Visual / interactive test-bed for the new V3.0
+:class:`kivy.core.video.VideoBase` API additions: thumbnails, and the
+``buffering`` signal.
 
 The demo exercises features that every Kivy video provider should
 support once the new APIs land:
@@ -101,7 +101,8 @@ CLIPS = [
             'https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/'
             'Jellyfish_1080_10s_30MB.mp4'),
         'remote': True,
-        'note': '30 MB at 1080p. High-motion content — good pixel-pipeline stress test.',
+        'note': ('30 MB at 1080p. High-motion content — '
+                 'good pixel-pipeline stress test.'),
     },
 ]
 
@@ -270,7 +271,7 @@ KV = '''
             valign: 'middle'
             text_size: self.size
             color: 0.7, 0.7, 0.7, 1
-            text: 'Tap a card to open the player. Thumbnails are generated via Video.generate_thumbnail() after each clip is cached locally.'
+            text: 'Tap any card to open the player. Thumbnails load after download.'
 
         GridLayout:
             id: cards
@@ -366,7 +367,7 @@ KV = '''
                             size: self.size
                             radius: [dp(8)]
                     Label:
-                        text: ('Buffering...' if video.buffering else 'Loading...') if not video.loaded else 'Buffering...'
+                        text: 'Buffering...' if video.buffering else 'Loading...'
                         font_size: '14sp'
                         bold: True
                         color: 1, 1, 1, 1
@@ -409,7 +410,7 @@ KV = '''
                     value: str(bool(video.buffering))
                 StatusReadout:
                     label: 'texture size'
-                    value: f'{video.texture.size[0]}x{video.texture.size[1]}' if video.texture else '-'
+                    value: root.fmt_texture_size(video.texture)
                 StatusReadout:
                     label: 'source'
                     value: root.source.rsplit('/', 1)[-1] if root.source else '-'
@@ -444,7 +445,7 @@ KV = '''
                 on_scrub: root.scrub_move(self.value)
                 on_release: root.scrub_end(self.value)
             Label:
-                text: f'{root.fmt_time(video.position)} / {root.fmt_time(video.duration)}'
+                text: root.fmt_time_range(video.position, video.duration)
                 size_hint_x: None
                 width: dp(110)
                 font_size: '11sp'
@@ -692,6 +693,15 @@ class PlayerScreen(Screen):
             return '00:00'
         m, s = divmod(int(seconds), 60)
         return f'{m:02d}:{s:02d}'
+
+    def fmt_time_range(self, pos: float, dur: float) -> str:
+        return f'{self.fmt_time(pos)} / {self.fmt_time(dur)}'
+
+    @staticmethod
+    def fmt_texture_size(texture) -> str:
+        if texture is None:
+            return '-'
+        return f'{texture.size[0]}x{texture.size[1]}'
 
 
 # --------------------------------------------------------------------- #
