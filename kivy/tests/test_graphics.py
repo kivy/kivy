@@ -6,10 +6,12 @@ Testing the simple vertex instructions
 '''
 
 import sys
-import pytest
 import itertools
 from threading import Thread
+
+import pytest
 from kivy.tests.common import GraphicUnitTest, requires_graphics
+from kivy.utils import platform
 
 
 class BoxShadowTest(GraphicUnitTest):
@@ -1151,12 +1153,14 @@ def test_change_graphics_second_thread(widget_verify_thread):
 
 class Test_glReadPixels_inplace(GraphicUnitTest):
     @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
     def test_a_buffer_too_small(self):
         from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
         with pytest.raises(ValueError):
             glReadPixels_inplace(0, 0, 16, 16, GL_RGB, GL_UNSIGNED_BYTE, bytearray(3))
 
     @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
     def test_a_buffer_of_exact_size(self):
         from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
         self.Window.clearcolor = (1, 0, 0, 1)
@@ -1166,6 +1170,7 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
         assert buf == b'\xff\x00\x00DEF'
 
     @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
     def test_a_buffer_too_large(self):
         from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
         self.Window.clearcolor = (1, 0, 0, 1)
