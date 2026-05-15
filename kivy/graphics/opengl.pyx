@@ -1158,31 +1158,26 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
 
     We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
+
+    .. versionchanged:: 3.0.0
+       The return value is now a :class:`bytearray` instead of a :class:`bytes` object.
     '''
     assert format in (GL_RGB, GL_RGBA)
     assert type == GL_UNSIGNED_BYTE
 
-    cdef object py_pixels = None
     cdef long size
-    cdef char *data
+    cdef bytearray data
 
     size = width * height * sizeof(GLubyte)
     if format == GL_RGB:
         size *= 3
     else:
         size *= 4
-    data = <char *>malloc(size)
-    if data == NULL:
-        raise MemoryError('glReadPixels()')
+    data = bytearray(size)
 
     cgl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
-    cgl.glReadPixels(x, y, width, height, format, type, data)
-    try:
-        py_pixels = data[:size]
-    finally:
-        free(data)
-
-    return py_pixels
+    cgl.glReadPixels(x, y, width, height, format, type, <GLubyte*>data)
+    return data
 
 def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
                          GLenum format, GLenum type, unsigned char[::1] out_buf):
@@ -1196,6 +1191,8 @@ def glReadPixels_inplace(GLint x, GLint y, GLsizei width, GLsizei height,
 
     We support only GL_RGB/GL_RGBA as a format and GL_UNSIGNED_BYTE as a
     type.
+
+    .. versionadded:: 3.0.0
     '''
     cdef long bytes_per_pixel
 
