@@ -99,7 +99,8 @@ class TestProviderRegistryCompleteness:
             ('window', 'x11', 'window_x11'),         # Linux-only
             ('audio_output', 'sdl3', 'audio_sdl3'),  # May not be built/installed
             ('image', 'imageio', 'img_imageio'),     # Optional dependency
-            ('camera', 'avfoundation', 'camera_avfoundation'),  # macOS-only
+            ('camera', 'avfoundation', 'camera_avfoundation'),  # macOS/iOS-only
+            ('video', 'avfoundation', 'video_avfoundation'),    # macOS/iOS-only
         }
 
         for category, providers in PROVIDER_CONFIGS.items():
