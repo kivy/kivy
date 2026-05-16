@@ -6,10 +6,12 @@ Testing the simple vertex instructions
 '''
 
 import sys
-import pytest
 import itertools
 from threading import Thread
+
+import pytest
 from kivy.tests.common import GraphicUnitTest, requires_graphics
+from kivy.utils import platform
 
 
 class BoxShadowTest(GraphicUnitTest):
@@ -1147,3 +1149,43 @@ def test_change_graphics_second_thread(widget_verify_thread):
     thread.join()
     if exception is not None:
         raise exception[0].with_traceback(exception[1])
+
+
+class Test_glReadPixels_inplace(GraphicUnitTest):
+    @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
+    def test_a_buffer_too_small(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
+        with pytest.raises(ValueError):
+            glReadPixels_inplace(0, 0, 16, 16, GL_RGB, GL_UNSIGNED_BYTE, bytearray(3))
+
+    @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
+    def test_a_buffer_of_exact_size(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        buf = bytearray(b'ABCDEF')
+        glReadPixels_inplace(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, memoryview(buf)[:3])
+        assert buf == b'\xff\x00\x00DEF'
+
+    @requires_graphics
+    @pytest.mark.skipif(platform == "win", reason="May require Windows CI support")
+    def test_a_buffer_too_large(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels_inplace
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        buf = bytearray(b'ABCDEF')
+        glReadPixels_inplace(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buf)
+        assert buf == b'\xff\x00\x00DEF'
+
+    def test_unsupported_type(self):
+        from kivy.graphics.opengl import GL_RGB, GL_FLOAT, glReadPixels_inplace
+        with pytest.raises(ValueError):
+            glReadPixels_inplace(0, 0, 1, 1, GL_RGB, GL_FLOAT, bytearray(16))
+
+    def test_unsupported_format(self):
+        from kivy.graphics.opengl import GL_RGB565, GL_UNSIGNED_BYTE, \
+            glReadPixels_inplace
+        with pytest.raises(ValueError):
+            glReadPixels_inplace(0, 0, 1, 1, GL_RGB565, GL_UNSIGNED_BYTE, bytearray(16))
