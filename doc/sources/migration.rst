@@ -108,6 +108,84 @@ The `file_encodings` property was deprecated and it was kept for backward compat
 To migrate your code, you just need to remove any references to the `file_encodings` property in your codebase.
 
 
+*Removal of the Kv-lang Templates feature*
+
+In Kivy 3.x.x, the deprecated Kivy language Templates feature (introduced in 1.0.5,
+deprecated in 1.7.0) has been removed. The following are gone:
+
+- The ``[Name@Base]:`` Kv-lang template syntax (any kv file that contains a
+  ``[...]:`` selector will now raise a ``ParserException`` at load time).
+- ``Builder.template(name, **ctx)`` and the ``Builder.templates`` dict.
+- ``Factory.is_template()`` and the ``is_template=`` keyword argument of
+  ``Factory.register()``.
+
+Migrate to *dynamic classes* (``<Name@Base>:``). Dynamic classes have largely
+superseded templates since Kivy 1.7.0 and support normal Kivy properties,
+binding and inheritance.
+
+**Migrating a template in `.kv`**
+
+.. code-block:: kv
+
+    # Kivy 2.x.x
+    [IconItem@BoxLayout]:
+        Image:
+            source: ctx.image
+        Label:
+            text: ctx.title
+
+    # Kivy 3.x.x
+    <IconItem@BoxLayout>:
+        image: ''
+        title: ''
+        Image:
+            source: root.image
+        Label:
+            text: root.title
+
+Note the two changes: ``[...]:`` becomes ``<...>:``, and ``ctx.foo`` references
+become ``root.foo`` references against properties declared on the rule itself.
+
+**Migrating `Builder.template(...)` instantiation**
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    from kivy.lang import Builder
+    icon = Builder.template('IconItem', title='Hello', image='myimage.png')
+
+    # Kivy 3.x.x
+    from kivy.factory import Factory
+    icon = Factory.IconItem()
+    icon.title = 'Hello'
+    icon.image = 'myimage.png'
+
+Because dynamic-class properties are added to the widget by the rule (rather
+than declared on the class), they are not yet present when ``__init__``
+processes its kwargs - so pass values via ``setattr`` (or property assignment)
+after construction rather than as constructor kwargs. If you need
+constructor-kwarg support, define the widget as a regular Python class with
+explicit :class:`~kivy.properties.Property` declarations instead.
+
+
+*AccordionItem: `title_template` and `title_args` replaced by `title_class`*
+
+The :class:`~kivy.uix.accordion.AccordionItem` widget previously used the Kv-lang
+templates feature to render its title bar via the ``title_template`` (string)
+and ``title_args`` (dict) properties. Both properties have been removed.
+
+The replacement is :attr:`~kivy.uix.accordion.AccordionItem.title_class`. It accepts
+either a class object or a Factory-resolvable string. The class is instantiated
+with two keyword arguments: ``title`` and ``item``.
+
+To customise the appearance of the title widget, subclass
+:class:`~kivy.uix.accordion.AccordionItemTitle` (or write any widget that
+accepts ``title`` and ``item`` kwargs) and pass it via ``title_class``.
+
+.. seealso::
+
+    :attr:`~kivy.uix.accordion.AccordionItem.title_class` documentation.
+
 ==============
 ButtonBehavior
 ==============
