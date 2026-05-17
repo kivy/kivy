@@ -44,7 +44,6 @@ cdef extern from "video_avfoundation_implem.mm":
         bint isBuffering()
 
         void setAutomaticallyWaitsToMinimizeStalling(bint wait)
-        void setForceCPUCopy(bint forced)
 
         @staticmethod
         VideoFrame *generateThumbnail(
@@ -64,7 +63,6 @@ from kivy.logger import Logger
 # legitimately stash extra metadata in the dict.
 _KNOWN_OPTIONS = frozenset({
     'automatically_waits_to_minimize_stalling',
-    'force_cpu_copy',
 })
 
 
@@ -119,17 +117,16 @@ cdef _frame_to_texture(VideoFrame *frame, existing_texture):
     if frame.data == NULL or datasize == 0 or width == 0 or height == 0:
         return existing_texture
 
-    # CPU-copy path. The .mm layer hands us BGRA pixel data (from
-    # ``kCVPixelFormatType_32BGRA`` for playback, or a BGRA
-    # ``CGBitmapContext`` for thumbnails). We swizzle BGRA -> RGBA
-    # in-place and upload as native RGBA rather than relying on
-    # Kivy's ``colorfmt='bgra'`` upload, which fails silently on
-    # Kivy's ANGLE/Metal GL backend (``EXT_bgra`` is not exposed,
-    # so ``glTexImage2D`` rejects ``GL_BGRA`` with
-    # ``GL_INVALID_ENUM`` and the resulting texture renders black).
-    # Doing the swap here also makes downstream operations like
-    # ``Texture.pixels`` (FBO readback) work, which they don't on a
-    # BGRA-flagged texture in this backend.
+    # CPU-copy path. Only used for thumbnails: playback frames come
+    # back through the gl_texture_id branch above. AVAssetImageGenerator
+    # gives us BGRA via a ``CGBitmapContext``, which we swizzle to RGBA
+    # in-place before upload. We can't just upload as ``colorfmt='bgra'``
+    # because Kivy's ANGLE/Metal GL backend doesn't expose ``EXT_bgra``;
+    # ``glTexImage2D`` would reject ``GL_BGRA`` with ``GL_INVALID_ENUM``
+    # and the resulting texture would render black. Swizzling here also
+    # keeps downstream operations like ``Texture.pixels`` (FBO readback)
+    # working, which they don't on a BGRA-flagged texture in this
+    # backend.
     buf = <unsigned char *>frame.data
     with nogil:
         for i in range(0, datasize, 4):
@@ -170,30 +167,34 @@ class VideoAVFoundation(VideoBase):
     '''Implementation of :class:`VideoBase` using the AVFoundation
     framework on macOS / iOS.
 
-    Pixel transfer uses zero-copy when running on Kivy's ANGLE/Metal GL
-    backend: the ``CVPixelBufferRef``'s underlying ``IOSurface`` is
-    wrapped as an EGL pbuffer (via
+    Pixel transfer is zero-copy: the ``CVPixelBufferRef``'s underlying
+    ``IOSurface`` is wrapped as an EGL pbuffer (via
     ``EGL_ANGLE_iosurface_client_buffer``) and bound to a persistent
     ``GL_TEXTURE_2D``, whose id is surfaced through
-    :attr:`VideoFrame.gl_texture_id`. On any other backend (or when the
-    runtime probe fails) the implementation falls back automatically to
-    a CPU-copy path that ``memcpy``'s the BGRA pixel buffer into a
-    :class:`~kivy.graphics.texture.Texture` via ``blit_buffer``. The
-    selection is per-frame: a single frame failing to bind doesn't
-    disable zero-copy for the rest of the stream.
+    :attr:`VideoFrame.gl_texture_id` and wrapped into a
+    :class:`~kivy.graphics.texture.Texture` with ``nofree=True``. There
+    is no per-frame ``memcpy`` and no ``Texture.blit_buffer``.
+
+    Kivy's ANGLE GL backend is required (the only supported backend on
+    macOS / iOS in Kivy 3.0). If the zero-copy probe fails at runtime
+    -- e.g. running under a non-ANGLE GL backend, missing the
+    ``EGL_ANGLE_iosurface_client_buffer`` extension, or a decoded
+    ``CVPixelBuffer`` arrives without an ``IOSurface`` (typically an
+    unsupported codec using a software decoder) -- the player drops
+    the pixel buffer, logs a single diagnostic message, and dispatches
+    EOS through the standard ``on_eos`` event. The widget surfaces a
+    clean failure rather than a stuck black screen.
 
     Provider-specific options (read from :attr:`VideoBase.options`):
 
     - ``automatically_waits_to_minimize_stalling`` (bool, default
-      ``True``): forwarded to ``AVPlayer.automaticallyWaitsToMinimizeStalling``.
-      The default (``True``) matches AVPlayer's own default and favors
+      ``True``): forwarded to
+      ``AVPlayer.automaticallyWaitsToMinimizeStalling``. The default
+      (``True``) matches AVPlayer's own default and favors
       uninterrupted playback at the cost of start-up latency. Set to
-      ``False`` for snappier start (AVPlayer begins playback as soon as
-      the first decodable frame is available rather than buffering
+      ``False`` for snappier start (AVPlayer begins playback as soon
+      as the first decodable frame is available rather than buffering
       ahead).
-    - ``force_cpu_copy`` (bool, default ``False``): bypass the zero-copy
-      path (when available) and always use the CPU-copy path. Useful for
-      A/B testing and debugging.
 
     Unknown keys in ``options`` are logged as a warning at construction
     time and otherwise ignored.
@@ -253,8 +254,9 @@ class VideoAVFoundation(VideoBase):
         if frame == NULL:
             return None
         try:
-            # Thumbnails always come back via the CPU-copy path
-            # (AVAssetImageGenerator -> memcpy -> blit_buffer).
+            # Thumbnails come back as CPU-copy BGRA bytes from
+            # AVAssetImageGenerator; _frame_to_texture handles the
+            # BGRA->RGBA swizzle and blit_buffer upload.
             texture = _frame_to_texture(frame, None)
         finally:
             del frame
@@ -275,13 +277,10 @@ class VideoAVFoundation(VideoBase):
             if isinstance(self._filename, str) else bytes(self._filename)
         storage.player = new VideoPlayer(<const char *>url_b)
         # Apply options that need to be in place before load(). Defaults
-        # match AVPlayer's own (automaticallyWaitsToMinimizeStalling=YES,
-        # zero-copy when available).
+        # match AVPlayer's own (automaticallyWaitsToMinimizeStalling=YES).
         storage.player.setAutomaticallyWaitsToMinimizeStalling(
             <bint>bool(self._options.get(
                 'automatically_waits_to_minimize_stalling', True)))
-        storage.player.setForceCPUCopy(
-            <bint>bool(self._options.get('force_cpu_copy', False)))
         storage.player.load()
         storage.player.setVolume(<double>self._volume)
 

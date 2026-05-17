@@ -1,22 +1,24 @@
 /*
  * Video provider implementation for macOS / iOS using AVFoundation.
  *
- * Phase 1 (always available): CPU-copy pixel transfer via memcpy from
- * CVPixelBuffer base address into a tightly-packed BGRA buffer that the
- * Cython layer hands to Texture.blit_buffer().
- *
- * Phase 2 (compiled in when KIVY_VIDEO_AVF_HAS_ANGLE is defined): the
- * CVPixelBufferRef's underlying IOSurface is wrapped as an ANGLE EGL
- * pbuffer via EGL_ANGLE_iosurface_client_buffer and bound to a
- * persistent GL_TEXTURE_2D, whose id is surfaced through
+ * Pixel pipeline: the CVPixelBufferRef's underlying IOSurface is wrapped
+ * as an ANGLE EGL pbuffer via EGL_ANGLE_iosurface_client_buffer and
+ * bound to a persistent GL_TEXTURE_2D whose id is surfaced through
  * VideoFrame::gl_texture_id. The Cython layer wraps that id directly
- * into a kivy.graphics.Texture and skips blit_buffer entirely.
+ * into a kivy.graphics.Texture (with nofree=True) -- no per-frame
+ * memcpy, no Texture.blit_buffer.
  *
- * Zero-copy is attempted lazily on the first frame (so we don't poke at
- * EGL before the Kivy window has created its GL context). If the probe
- * fails for any reason (no ANGLE display, IOSurface ext missing,
- * eglChooseConfig fails, eglCreatePbufferFromClientBuffer fails) we fall
- * back to the CPU-copy path for the rest of this player's lifetime.
+ * Zero-copy is probed lazily on the first decoded frame (the Kivy GL
+ * context isn't necessarily current at VideoPlayer construction time).
+ * If the probe fails -- which on Kivy 3.0 macOS / iOS only happens when
+ * something is fundamentally wrong (no ANGLE display, IOSurface
+ * extension missing, eglChooseConfig fails, eglCreatePbufferFromClient-
+ * Buffer fails on a known-good frame) -- the player gives up cleanly
+ * and dispatches an EOS so the widget surfaces a clear failure instead
+ * of a stuck black screen.
+ *
+ * Thumbnails (generateThumbnail) still use a CPU-copy CGImage -> BGRA
+ * path; that's a one-shot read, not the per-frame hot path.
  */
 
 #include "video_avfoundation_implem.h"
@@ -24,35 +26,33 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef KIVY_VIDEO_AVF_HAS_ANGLE
-#  include <EGL/egl.h>
-#  include <EGL/eglext.h>
-#  if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-#    include <OpenGLES/ES2/gl.h>
-#    include <OpenGLES/ES2/glext.h>
-#  else
-#    include <GLES2/gl2.h>
-#    include <GLES2/gl2ext.h>
-#  endif
-#  ifndef GL_BGRA_EXT
-#    define GL_BGRA_EXT 0x80E1
-#  endif
-#  ifndef EGL_IOSURFACE_ANGLE
-#    define EGL_IOSURFACE_ANGLE             0x3454
-#  endif
-#  ifndef EGL_IOSURFACE_PLANE_ANGLE
-#    define EGL_IOSURFACE_PLANE_ANGLE       0x345A
-#  endif
-#  ifndef EGL_TEXTURE_TYPE_ANGLE
-#    define EGL_TEXTURE_TYPE_ANGLE          0x345C
-#  endif
-#  ifndef EGL_TEXTURE_INTERNAL_FORMAT_ANGLE
-#    define EGL_TEXTURE_INTERNAL_FORMAT_ANGLE 0x345D
-#  endif
-#  ifndef EGL_BIND_TO_TEXTURE_TARGET_ANGLE
-#    define EGL_BIND_TO_TEXTURE_TARGET_ANGLE 0x348D
-#  endif
-#endif  /* KIVY_VIDEO_AVF_HAS_ANGLE */
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#  include <OpenGLES/ES2/gl.h>
+#  include <OpenGLES/ES2/glext.h>
+#else
+#  include <GLES2/gl2.h>
+#  include <GLES2/gl2ext.h>
+#endif
+#ifndef GL_BGRA_EXT
+#  define GL_BGRA_EXT 0x80E1
+#endif
+#ifndef EGL_IOSURFACE_ANGLE
+#  define EGL_IOSURFACE_ANGLE             0x3454
+#endif
+#ifndef EGL_IOSURFACE_PLANE_ANGLE
+#  define EGL_IOSURFACE_PLANE_ANGLE       0x345A
+#endif
+#ifndef EGL_TEXTURE_TYPE_ANGLE
+#  define EGL_TEXTURE_TYPE_ANGLE          0x345C
+#endif
+#ifndef EGL_TEXTURE_INTERNAL_FORMAT_ANGLE
+#  define EGL_TEXTURE_INTERNAL_FORMAT_ANGLE 0x345D
+#endif
+#ifndef EGL_BIND_TO_TEXTURE_TARGET_ANGLE
+#  define EGL_BIND_TO_TEXTURE_TARGET_ANGLE 0x348D
+#endif
 
 
 // KVO context tag for the single observer we install (timeControlStatus).
@@ -129,17 +129,14 @@ VideoPlayer::VideoPlayer(const char *url)
       mDelegate(nil),
       mVolume(1.0),
       mWantPlay(false), mIsEOS(false), mBuffering(false),
-      mAutomaticallyWaitsToMinimizeStalling(true), mForceCPUCopy(false),
+      mAutomaticallyWaitsToMinimizeStalling(true),
       mCurrentFrame(NULL), mHasFrame(false),
-      mPreviousPixelBuffer(NULL),
       mItemPrepared(false), mObserversInstalled(false),
+      mZeroCopyFailed(false),
       mZeroCopyProbed(false), mZeroCopyAvailable(false),
-      mCPUCopyLogged(false)
-#ifdef KIVY_VIDEO_AVF_HAS_ANGLE
-      , mEGLDisplay(NULL), mEGLConfig(NULL), mEGLPbuffer(NULL)
-      , mBoundPixelBuffer(NULL)
-      , mGLTexture(0), mGLTextureWidth(0), mGLTextureHeight(0)
-#endif
+      mEGLDisplay(NULL), mEGLConfig(NULL), mEGLPbuffer(NULL),
+      mBoundPixelBuffer(NULL),
+      mGLTexture(0), mGLTextureWidth(0), mGLTextureHeight(0)
 {
     if (url != NULL) {
         mUrl = [[NSString alloc] initWithUTF8String:url];
@@ -159,10 +156,6 @@ void VideoPlayer::setAutomaticallyWaitsToMinimizeStalling(bool wait) {
     if (mItemPrepared) {
         _applyBufferConfig();
     }
-}
-
-void VideoPlayer::setForceCPUCopy(bool forced) {
-    mForceCPUCopy = forced;
 }
 
 void VideoPlayer::_applyBufferConfig() {
@@ -186,9 +179,10 @@ void VideoPlayer::load() {
         return;
     }
     unload();
-    // Fresh load: re-arm the per-load "which pixel path" diagnostic so
-    // an "Apply (reload)" or source change re-emits the path it took.
-    mCPUCopyLogged = false;
+    // Fresh load: re-arm zero-copy state. unload() already cleared the
+    // probe and texture; clear the one-shot failure latch so a brand
+    // new load gets a clean shot at the probe.
+    mZeroCopyFailed = false;
 
     @autoreleasepool {
         // Accept both bare file paths and full URI strings.
@@ -302,7 +296,6 @@ void VideoPlayer::unload() {
                 mCurrentFrame = NULL;
             }
             mHasFrame = false;
-            _releasePreviousPixelBuffer();
             _teardownZeroCopy();
         }
 
@@ -310,13 +303,6 @@ void VideoPlayer::unload() {
         mIsEOS = false;
         mWantPlay = false;
         mBuffering = false;
-    }
-}
-
-void VideoPlayer::_releasePreviousPixelBuffer() {
-    if (mPreviousPixelBuffer != NULL) {
-        CVPixelBufferRelease(mPreviousPixelBuffer);
-        mPreviousPixelBuffer = NULL;
     }
 }
 
@@ -437,91 +423,43 @@ void VideoPlayer::_stageFrameFromBuffer(CVPixelBufferRef pb, double pts) {
         return;
     }
 
-    // Phase 2: try zero-copy first. The probe is lazy because the
-    // VideoPlayer can be constructed before Kivy's GL context exists;
-    // by the time the first frame is decoded the context is live.
-    if (!mForceCPUCopy) {
-        if (!mZeroCopyProbed) {
-            _probeZeroCopy();
-        }
-        if (mZeroCopyAvailable && _bindFrameZeroCopy(pb, pts)) {
-            // _bindFrameZeroCopy took ownership of pb on success.
-            return;
-        }
+    // The probe is lazy because the VideoPlayer can be constructed
+    // before Kivy's GL context exists; by the time the first frame is
+    // decoded the context is live.
+    if (!mZeroCopyProbed) {
+        _probeZeroCopy();
     }
-
-    // First frame for this player to take the CPU-copy path: log it so
-    // we can tell from the demo / app logs which pixel pipeline is
-    // actually in use. This fires at most once per VideoPlayer
-    // instance and never on the per-frame hot path beyond the first.
-    if (!mCPUCopyLogged) {
-        mCPUCopyLogged = true;
-        if (mForceCPUCopy) {
-            NSLog(@"VideoAVFoundation: using CPU-copy path "
-                  @"(force_cpu_copy=true)");
-        } else {
-            NSLog(@"VideoAVFoundation: using CPU-copy path "
-                  @"(zero-copy unavailable or per-frame bind failed)");
-        }
-    }
-
-    // CPU-copy fallback.
-    CVPixelBufferLockBaseAddress(pb, kCVPixelBufferLock_ReadOnly);
-    size_t w = CVPixelBufferGetWidth(pb);
-    size_t h = CVPixelBufferGetHeight(pb);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pb);
-    void *src = CVPixelBufferGetBaseAddress(pb);
-
-    if (src == NULL || w == 0 || h == 0) {
-        CVPixelBufferUnlockBaseAddress(pb, kCVPixelBufferLock_ReadOnly);
-        CVPixelBufferRelease(pb);
+    if (mZeroCopyAvailable && _bindFrameZeroCopy(pb, pts)) {
+        // _bindFrameZeroCopy took ownership of pb on success.
         return;
     }
 
-    size_t rowOut = w * 4;
-    size_t total = rowOut * h;
-    char *buf = (char *)malloc(total);
-    if (buf != NULL) {
-        if (bytesPerRow == rowOut) {
-            memcpy(buf, src, total);
-        } else {
-            // Pixel buffer has row padding; copy row by row.
-            const char *s = (const char *)src;
-            char *d = buf;
-            for (size_t y = 0; y < h; y++) {
-                memcpy(d, s, rowOut);
-                s += bytesPerRow;
-                d += rowOut;
-            }
+    // Zero-copy can't deliver this frame. The only situations this
+    // happens in a Kivy 3.0 macOS / iOS build are:
+    //   - Kivy isn't actually on the ANGLE GL backend, so
+    //     eglGetCurrentDisplay() returned EGL_NO_DISPLAY.
+    //   - The IOSurface client_buffer extension is missing.
+    //   - eglChooseConfig / eglCreatePbufferFromClientBuffer failed.
+    //   - The decoded CVPixelBuffer has no IOSurface (e.g. software
+    //     decoder for an unsupported codec).
+    //
+    // All of these are unrecoverable for this player: every subsequent
+    // frame will hit the same failure. Drop the pixel buffer, latch a
+    // one-shot failure flag, log a clear diagnostic, and dispatch EOS
+    // so the widget surfaces a clean failure rather than a stuck
+    // black screen.
+    CVPixelBufferRelease(pb);
+    if (!mZeroCopyFailed.exchange(true)) {
+        NSLog(@"VideoAVFoundation: zero-copy delivery failed; this "
+              @"build requires the ANGLE GL backend with the "
+              @"EGL_ANGLE_iosurface_client_buffer extension. "
+              @"Dispatching EOS.");
+        mIsEOS = true;
+        if (mDelegate != nil) {
+            [mDelegate performSelectorOnMainThread:@selector(playbackEnded:)
+                                        withObject:nil
+                                     waitUntilDone:NO];
         }
-    }
-    CVPixelBufferUnlockBaseAddress(pb, kCVPixelBufferLock_ReadOnly);
-
-    // Two-frame retention: keep the prior pixel buffer alive one extra
-    // frame so any pending GL read against its IOSurface (Phase 2 path)
-    // can complete safely. For the CPU-copy path the retention is
-    // harmless.
-    {
-        std::lock_guard<std::mutex> lock(mFrameLock);
-        _releasePreviousPixelBuffer();
-        mPreviousPixelBuffer = pb;  // takes ownership
-
-        if (mCurrentFrame == NULL) {
-            mCurrentFrame = new VideoFrame();
-        }
-        if (mCurrentFrame->data != NULL) {
-            free(mCurrentFrame->data);
-            mCurrentFrame->data = NULL;
-        }
-        mCurrentFrame->data = buf;
-        mCurrentFrame->datasize = buf ? (unsigned int)total : 0;
-        mCurrentFrame->rowsize = (unsigned int)rowOut;
-        mCurrentFrame->width = (int)w;
-        mCurrentFrame->height = (int)h;
-        mCurrentFrame->pts = pts;
-        mCurrentFrame->gl_texture_id = 0;  // CPU-copy path
-        mCurrentFrame->gl_target = 0;
-        mHasFrame = true;
     }
 }
 
@@ -666,15 +604,14 @@ VideoFrame *VideoPlayer::generateThumbnail(const char *url, double t,
 
 
 /* =====================================================================
- * Phase 2: zero-copy IOSurface -> GL_TEXTURE_2D via ANGLE.
+ * Zero-copy IOSurface -> GL_TEXTURE_2D via ANGLE.
  *
- * Compiled in only when KIVY_VIDEO_AVF_HAS_ANGLE is defined (i.e. the
- * ANGLE/Metal GL backend is configured at build time). Otherwise the
- * helpers below are stubs that simply leave mZeroCopyAvailable false so
- * the CPU-copy path is always used.
+ * ANGLE is the only supported GL backend on macOS / iOS in Kivy 3.0, so
+ * this path is compiled in unconditionally. Probe failure at runtime
+ * (no ANGLE display, missing IOSurface extension, ...) is treated as a
+ * load failure in _stageFrameFromBuffer rather than silently falling
+ * back to a CPU-copy path.
  * ===================================================================== */
-
-#ifdef KIVY_VIDEO_AVF_HAS_ANGLE
 
 static bool _eglDisplayHasIOSurfaceExt(EGLDisplay display) {
     const char *exts = eglQueryString(display, EGL_EXTENSIONS);
@@ -690,13 +627,16 @@ void VideoPlayer::_probeZeroCopy() {
 
     EGLDisplay display = eglGetCurrentDisplay();
     if (display == EGL_NO_DISPLAY) {
-        // Not running on ANGLE (or GL context not yet current). Fall
-        // back to CPU copy for the rest of this player's lifetime.
+        // Kivy isn't on the ANGLE GL backend (or the context isn't
+        // current yet). Leave mZeroCopyAvailable false -- the caller
+        // will surface this as a load failure in _stageFrameFromBuffer.
+        NSLog(@"VideoAVFoundation: no current EGL display "
+              @"(ANGLE GL backend required)");
         return;
     }
     if (!_eglDisplayHasIOSurfaceExt(display)) {
         NSLog(@"VideoAVFoundation: EGL_ANGLE_iosurface_client_buffer "
-              @"not present, using CPU copy");
+              @"extension not present");
         return;
     }
 
@@ -714,8 +654,7 @@ void VideoPlayer::_probeZeroCopy() {
     EGLint numConfigs = 0;
     if (!eglChooseConfig(display, configAttribs, &config, 1, &numConfigs)
         || numConfigs < 1) {
-        NSLog(@"VideoAVFoundation: eglChooseConfig for IOSurface "
-              @"failed, using CPU copy");
+        NSLog(@"VideoAVFoundation: eglChooseConfig for IOSurface failed");
         return;
     }
 
@@ -723,7 +662,7 @@ void VideoPlayer::_probeZeroCopy() {
     GLuint tex = 0;
     glGenTextures(1, &tex);
     if (tex == 0) {
-        NSLog(@"VideoAVFoundation: glGenTextures failed, using CPU copy");
+        NSLog(@"VideoAVFoundation: glGenTextures failed");
         return;
     }
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -736,8 +675,6 @@ void VideoPlayer::_probeZeroCopy() {
     mEGLConfig = (void *)config;
     mGLTexture = (unsigned int)tex;
     mZeroCopyAvailable = true;
-    NSLog(@"VideoAVFoundation: zero-copy active "
-          @"(IOSurface -> ANGLE pbuffer -> GL_TEXTURE_2D)");
 }
 
 bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {
@@ -748,9 +685,11 @@ bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {
 
     IOSurfaceRef ioSurface = CVPixelBufferGetIOSurface(pb);
     if (ioSurface == NULL) {
-        // Not all CVPixelBuffers are IOSurface-backed; fall back to CPU
-        // for this frame (and let the caller retry with the next one --
-        // we keep mZeroCopyAvailable true so other frames can succeed).
+        // Decoded into a non-IOSurface-backed CVPixelBuffer (e.g. a
+        // software decoder for an unsupported codec). Every subsequent
+        // frame from this AVPlayerItem will hit the same condition, so
+        // _stageFrameFromBuffer treats this as an unrecoverable
+        // failure.
         return false;
     }
 
@@ -778,8 +717,6 @@ bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {
         display, EGL_IOSURFACE_ANGLE,
         (EGLClientBuffer)ioSurface, config, surfaceAttribs);
     if (pbuffer == EGL_NO_SURFACE) {
-        // Surface creation can fail for unusual pixel formats; record
-        // and fall back this frame, but stay on the zero-copy path.
         return false;
     }
 
@@ -802,10 +739,6 @@ bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {
         mBoundPixelBuffer = pb;  // takes ownership of the CFRetain
         mGLTextureWidth = (int)w;
         mGLTextureHeight = (int)h;
-
-        // The CPU-copy two-frame retention list is unused on this path
-        // but we still recycle any straggler from a previous CPU frame.
-        _releasePreviousPixelBuffer();
 
         if (mCurrentFrame == NULL) {
             mCurrentFrame = new VideoFrame();
@@ -859,26 +792,3 @@ void VideoPlayer::_teardownZeroCopy() {
     mEGLDisplay = NULL;
     mEGLConfig = NULL;
 }
-
-#else  /* !KIVY_VIDEO_AVF_HAS_ANGLE */
-
-void VideoPlayer::_probeZeroCopy() {
-    mZeroCopyProbed = true;
-    mZeroCopyAvailable = false;
-}
-
-bool VideoPlayer::_bindFrameZeroCopy(CVPixelBufferRef pb, double pts) {
-    (void)pb;
-    (void)pts;
-    return false;
-}
-
-void VideoPlayer::_releaseZeroCopyBinding() {
-    // Nothing to release when zero-copy is compiled out.
-}
-
-void VideoPlayer::_teardownZeroCopy() {
-    // Nothing to tear down when zero-copy is compiled out.
-}
-
-#endif  /* KIVY_VIDEO_AVF_HAS_ANGLE */

@@ -5,13 +5,17 @@
  * an Objective-C++ wrapper around AVPlayer / AVPlayerItemVideoOutput that
  * exposes a plain C++ class to Cython.
  *
- * Phase 1 (CPU copy): pixel buffers are memcpy'd into VideoFrame::data and
- * blit_buffer'd into a Kivy Texture on the Python side.
+ * Pixel pipeline: zero-copy IOSurface -> ANGLE pbuffer -> GL_TEXTURE_2D.
+ * The CVPixelBufferRef's IOSurface is wrapped via
+ * EGL_ANGLE_iosurface_client_buffer and bound to a persistent GL texture;
+ * the GL texture id is surfaced through VideoFrame::gl_texture_id and the
+ * Cython layer wraps it in a Kivy Texture with nofree=True (no
+ * Texture.blit_buffer per frame). This requires Kivy's ANGLE GL backend
+ * (the only supported macOS / iOS backend in Kivy 3.0).
  *
- * Phase 2 (zero-copy, ANGLE/Metal backend only): the CVPixelBufferRef's
- * IOSurface is wrapped via EGL_ANGLE_iosurface_client_buffer and bound to
- * a GL texture; the GL texture id is surfaced through
- * VideoFrame::gl_texture_id and the Cython layer skips blit_buffer.
+ * Thumbnails (VideoPlayer::generateThumbnail) still produce CPU-copy
+ * BGRA bytes from AVAssetImageGenerator + CGImage; that path is
+ * one-shot and never on the per-frame hot path.
  */
 
 #ifndef KIVY_VIDEO_AVFOUNDATION_IMPLEM_H
@@ -33,7 +37,9 @@ public:
     VideoFrame();
     ~VideoFrame();
 
-    // CPU-copy path: BGRA pixel bytes (NULL when zero-copy is used).
+    // CPU-copy BGRA pixel bytes (used only by VideoPlayer::generateThumbnail;
+    // playback frames leave these NULL / zero and deliver pixels via the
+    // zero-copy GL texture below).
     char *data;
     unsigned int datasize;
     unsigned int rowsize;
@@ -42,9 +48,11 @@ public:
     int height;
     double pts;
 
-    // Zero-copy path: externally-owned GL texture id (0 when CPU-copy).
+    // Zero-copy delivery: externally-owned GL texture id whose backing
+    // store is the CVPixelBuffer's IOSurface, wrapped via ANGLE's
+    // EGL_ANGLE_iosurface_client_buffer. Zero for thumbnail frames.
     unsigned int gl_texture_id;
-    unsigned int gl_target;       // GL_TEXTURE_2D when zero-copy
+    unsigned int gl_target;       // GL_TEXTURE_2D for playback
 };
 
 class VideoPlayer;
@@ -97,7 +105,6 @@ public:
     // own default and favors uninterrupted playback at the cost of
     // start-up latency.
     void setAutomaticallyWaitsToMinimizeStalling(bool wait);
-    void setForceCPUCopy(bool forced);
 
     // Thumbnails: produces a CPU-copy VideoFrame; caller owns it and must
     // delete it. Returns NULL on error.
@@ -121,31 +128,24 @@ private:
     std::atomic<bool> mBuffering;
 
     bool mAutomaticallyWaitsToMinimizeStalling;
-    bool mForceCPUCopy;
 
     // Frame staging: latest decoded frame, protected by mFrameLock.
     std::mutex mFrameLock;
     VideoFrame *mCurrentFrame;
     bool mHasFrame;
-    // Previously-delivered pixel buffer kept alive one frame so any GL
-    // read against its IOSurface (zero-copy path) is safe to complete.
-    CVPixelBufferRef mPreviousPixelBuffer;
 
     bool mItemPrepared;
     bool mObserversInstalled;
+    // Set true once we have decided this player can't produce frames
+    // (probe failed, or the first zero-copy bind didn't take). Triggers
+    // a one-shot EOS dispatch so the widget surfaces a clean failure
+    // instead of a stuck black screen.
+    std::atomic<bool> mZeroCopyFailed;
 
-    // Phase 2: zero-copy state. mEGLDisplay / mEGLConfig / mEGLPbuffer
-    // are held as void* so this header doesn't pull in EGL/egl.h (which
-    // is only available when ANGLE is configured at build time). The
-    // members beyond the probe flags are only referenced when
-    // KIVY_VIDEO_AVF_HAS_ANGLE is defined; gating their declarations
-    // suppresses unused-private-field warnings on stub builds.
+    // Zero-copy state. EGL handles are held as void* so this header
+    // doesn't pull in EGL/egl.h into Cython-generated translation units.
     bool mZeroCopyProbed;
     bool mZeroCopyAvailable;
-    // One-shot flag so the "using CPU-copy path" diagnostic only fires
-    // on the first frame, not on every decoded frame.
-    bool mCPUCopyLogged;
-#ifdef KIVY_VIDEO_AVF_HAS_ANGLE
     void *mEGLDisplay;
     void *mEGLConfig;
     void *mEGLPbuffer;
@@ -153,16 +153,14 @@ private:
     unsigned int mGLTexture;
     int mGLTextureWidth;
     int mGLTextureHeight;
-#endif
 
     void _applyBufferConfig();
     void _stageFrameFromBuffer(CVPixelBufferRef pb, double pts);
-    void _releasePreviousPixelBuffer();
     void _installObservers();
     void _removeObservers();
 
-    // Phase 2 helpers. _probeZeroCopy() is a no-op (returning false)
-    // when the implementation is built without ANGLE support.
+    // Zero-copy helpers. _probeZeroCopy() runs lazily on the first
+    // decoded frame so the GL context is guaranteed to be current.
     void _probeZeroCopy();
     bool _bindFrameZeroCopy(CVPixelBufferRef pb, double pts);
     void _releaseZeroCopyBinding();
