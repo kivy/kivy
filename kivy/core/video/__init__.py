@@ -6,8 +6,7 @@ Core class for reading video files and managing the video
 :class:`~kivy.graphics.texture.Texture`.
 
 .. versionchanged:: 3.0.0
-    Added native AVFoundation provider for macOS / iOS (default on
-    Darwin builds) and extended :class:`VideoBase` with:
+    Extended :class:`VideoBase` with:
 
       - :meth:`VideoBase.generate_thumbnail` classmethod for creating a
         :class:`~kivy.graphics.texture.Texture` from a frame at a
@@ -18,8 +17,7 @@ Core class for reading video files and managing the video
         event that fires whenever it changes.
       - :attr:`VideoBase.options` provider-specific options dict so apps
         can pass opaque configuration through to the backend
-        implementation. Each provider documents the keys it honors;
-        see e.g. :class:`~kivy.core.video.video_avfoundation.VideoAVFoundation`.
+        implementation. Each provider documents the keys it honors.
 
 .. versionchanged:: 1.10.0
     The pyglet, pygst and gi providers have been removed.
@@ -65,10 +63,7 @@ class VideoBase(EventDispatcher):
             implementation. The base class consumes the documented kwargs
             above; any other keys are placed in :attr:`options` for the
             selected provider to consume. Each provider documents the keys
-            it honors; for example the AVFoundation provider honors
-            ``options={'automatically_waits_to_minimize_stalling': False}``
-            for low-latency playback and ``options={'force_cpu_copy': True}``
-            to bypass its zero-copy texture path. Keys not recognized by
+            it honors. Keys not recognized by
             the selected provider are typically logged as a warning and
             ignored.
 
@@ -224,11 +219,9 @@ class VideoBase(EventDispatcher):
             "intent). ``True`` covers both the initial pre-playback "
             'wait (asset still loading, buffer still filling) and '
             'any mid-stream rebuffer. Providers update this from '
-            'their authoritative signal (e.g. AVFoundation\'s '
-            '``AVPlayer.timeControlStatus ==`` '
-            '``.waitingToPlayAtSpecifiedRate``); providers that '
-            'cannot detect stalls leave it ``False``. Apps that '
-            'want a loading overlay can use '
+            'their own authoritative signal; providers that cannot '
+            'detect stalls leave it ``False``. Apps that want a '
+            'loading overlay can use '
             "``not video.loaded or video.buffering`` as the gate."
             '\n\n.. versionadded:: 3.0.0')
 

@@ -35,14 +35,14 @@ class VideoBaseAPITestCase(unittest.TestCase):
 
     def test_options_roundtrip(self):
         from kivy.core.video import VideoBase
-        opts = {'force_cpu_copy': True, 'custom': 'x'}
+        opts = {'demo_flag': True, 'custom': 'x'}
         vb = VideoBase(filename=None, options=opts)
         try:
             self.assertEqual(vb.options, opts)
             # Mutating the caller's dict must not retroactively change
             # what the provider sees: VideoBase copies it.
-            opts['force_cpu_copy'] = False
-            self.assertTrue(vb.options.get('force_cpu_copy'))
+            opts['demo_flag'] = False
+            self.assertTrue(vb.options.get('demo_flag'))
         finally:
             vb.unload()
 

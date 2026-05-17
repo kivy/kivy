@@ -85,16 +85,6 @@ class VideoAVFoundationOptionsTestCase(unittest.TestCase):
         finally:
             v.unload()
 
-    def test_force_cpu_copy_option_roundtrip(self):
-        v = self.provider(
-            filename=None,
-            options={'force_cpu_copy': True},
-        )
-        try:
-            self.assertTrue(v.options.get('force_cpu_copy'))
-        finally:
-            v.unload()
-
     def test_auto_wait_option_roundtrip(self):
         v = self.provider(
             filename=None,

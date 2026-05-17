@@ -179,9 +179,6 @@ class Video(Image):
         ``False`` for snappier start (playback begins as soon as the
         first decodable frame is available rather than buffering
         ahead).
-      - ``force_cpu_copy`` (``bool``, default ``False``) -- bypass the
-        zero-copy IOSurface texture path and always use the CPU
-        ``memcpy`` fallback. Useful for A/B testing and debugging.
 
     Other providers (GStreamer, FFmpeg / ffpyplayer) currently expose no
     documented ``options`` keys: unknown kwargs in ``options`` are also
