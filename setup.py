@@ -1445,6 +1445,66 @@ if c_options['use_avfoundation']:
         sources['core/camera/camera_avfoundation.pyx'] = merge(
             base_flags, avf_flags)
 
+        # Video provider needs the same Apple media frameworks on all
+        # platforms (CoreMedia / CoreVideo / CoreGraphics / Foundation are
+        # already added for the iOS camera build above, but on macOS the
+        # camera only links -framework AVFoundation; the video pipeline
+        # uses CMTime, CVPixelBufferRef, CGImage and NSAutoreleasePool so
+        # we add them explicitly here so the same flag block works for
+        # both macOS and iOS).
+        video_extra_link_args = list(extra_link_args)
+        if platform == 'darwin':
+            for fw in ('Foundation', 'CoreFoundation', 'CoreGraphics',
+                       'CoreMedia', 'CoreVideo'):
+                if fw not in video_extra_link_args:
+                    video_extra_link_args += ['-framework', fw]
+
+        video_compile_args = ['-ObjC++']
+
+        # Zero-copy (Phase 2) requires the ANGLE EGL extension
+        # EGL_ANGLE_iosurface_client_buffer, which we use directly from
+        # the .mm via #include <EGL/egl.h>. Kivy's other ANGLE-using
+        # modules dlopen libEGL at runtime so they don't need the
+        # headers at build time; we do.
+        #
+        # We only enable the zero-copy compile path when ANGLE EGL
+        # headers are actually findable. Otherwise the .mm falls back
+        # to its stub helpers (CPU-copy only) -- the AVFoundation
+        # provider still works fully, it just doesn't get the IOSurface
+        # zero-copy fast path. This keeps the build green on dev
+        # machines without KIVY_DEPS_ROOT / ANGLE installed.
+        video_avf_flags = {
+            'include_dirs': list(include_dirs),
+            'extra_link_args': video_extra_link_args,
+            'extra_compile_args': video_compile_args,
+            'depends': [
+                'core/video/video_avfoundation_implem.h',
+                'core/video/video_avfoundation_implem.mm',
+            ],
+        }
+        angle_egl_available = False
+        if c_options.get('use_angle_gl_backend'):
+            # Inspect every include_dir we'd actually pass to the
+            # compiler (our local ones plus the ones from gl_flags) and
+            # look for EGL/egl.h.
+            candidate_dirs = list(video_avf_flags['include_dirs'])
+            candidate_dirs += gl_flags.get('include_dirs', []) or []
+            for inc_dir in candidate_dirs:
+                if inc_dir and exists(join(inc_dir, 'EGL', 'egl.h')):
+                    angle_egl_available = True
+                    break
+        if angle_egl_available:
+            video_compile_args.append('-DKIVY_VIDEO_AVF_HAS_ANGLE=1')
+            video_avf_flags = merge(video_avf_flags, gl_flags)
+        else:
+            print(
+                'VideoAVFoundation: ANGLE EGL headers not found; '
+                'building CPU-copy only (set KIVY_DEPS_ROOT or '
+                'KIVY_ANGLE_INCLUDE_DIR to enable the IOSurface '
+                'zero-copy pixel path).')
+        sources['core/video/video_avfoundation.pyx'] = merge(
+            base_flags, video_avf_flags)
+
 
 if c_options["use_angle_gl_backend"]:
 
