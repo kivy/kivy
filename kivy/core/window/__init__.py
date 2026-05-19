@@ -24,7 +24,7 @@ from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty, \
     ColorProperty
-from kivy.utils import platform, reify, deprecated, pi_version
+from kivy.utils import platform, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
 from kivy.setupconfig import USE_SDL3
@@ -1062,7 +1062,7 @@ class WindowBase(EventDispatcher):
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
         'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
-        'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
+        'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -2154,12 +2154,6 @@ class WindowBase(EventDispatcher):
         .. versionchanged:: 2.1.0
             Renamed from `on_dropfile` to `on_drop_file`.
         '''
-        pass
-
-    @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
-                    'Event on_dropfile will be removed in the next two '
-                    'releases.')
-    def on_dropfile(self, filename):
         pass
 
     def on_drop_text(self, text, x, y, *args):
