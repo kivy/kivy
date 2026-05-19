@@ -1148,10 +1148,6 @@ class WindowBase(EventDispatcher):
         if 'shape_image' not in kwargs:
             kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
-        self.fbind(
-            'on_drop_file',
-            lambda win, filename, *args: win.dispatch('on_dropfile', filename)
-        )
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window

@@ -971,11 +971,9 @@ cdef class _WindowSDL3Storage:
             s = event.edit.text.decode('utf-8')
             return ('textedit', s)
         elif event.type == SDL_EVENT_DROP_FILE:
-            # return ('dropfile', event.drop.file)
-            pass
+            return ('dropfile', event.drop.data)
         elif event.type == SDL_EVENT_DROP_TEXT:
-            # return ('droptext', event.drop.file)
-            pass
+            return ('droptext', event.drop.data)
         elif event.type == SDL_EVENT_DROP_BEGIN:
             return ('dropbegin',)
         elif event.type == SDL_EVENT_DROP_COMPLETE:
