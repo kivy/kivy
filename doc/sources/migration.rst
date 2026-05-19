@@ -108,6 +108,36 @@ The `file_encodings` property was deprecated and it was kept for backward compat
 To migrate your code, you just need to remove any references to the `file_encodings` property in your codebase.
 
 
+*Removal of deprecated `on_dropfile` Window event name*
+
+In Kivy 3.x.x, the previously deprecated `on_dropfile` event name has been removed.
+Use `on_drop_file` instead.
+
+The event was renamed in Kivy 2.1.0, so any remaining compatibility code that still binds
+to `on_dropfile` now needs to be updated.
+
+.. code-block:: python
+
+    # Kivy 2.x.x (legacy/deprecated name)
+    from kivy.core.window import Window
+
+    def handle_drop(window, filename):
+        print(filename)
+
+    Window.bind(on_dropfile=handle_drop)
+
+    # Kivy 3.x.x
+    from kivy.core.window import Window
+
+    def handle_drop(window, filename, x, y, *args):
+        print(filename, x, y)
+
+    Window.bind(on_drop_file=handle_drop)
+
+If you dispatch or override the event directly, also rename any `on_dropfile`
+method implementations to `on_drop_file`.
+
+
 *Removal of the Kv-lang Templates feature*
 
 In Kivy 3.x.x, the deprecated Kivy language Templates feature (introduced in 1.0.5,
