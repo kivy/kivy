@@ -953,7 +953,7 @@ cdef extern from "SDL_mixer.h":
         pass
     cdef int MIX_Init()
     cdef MIX_Mixer * MIX_CreateMixerDevice(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
-    cdef MIX_Audio * MIX_LoadAudio(MIX_Mixer *mixer, const char *path, bool predecode)
+    cdef MIX_Audio * MIX_LoadAudio(MIX_Mixer *mixer, const char *path, bint predecode)
     cdef void MIX_DestroyAudio(MIX_Audio *audio)
     cdef bint MIX_SetTrackAudio(MIX_Track *track, MIX_Audio *audio)
     cdef bint MIX_PlayTrack(MIX_Track *track, SDL_PropertiesID options)
