@@ -1034,7 +1034,7 @@ class Settings(BoxLayout):
 
     def add_json_panel(
             self, title, config, filename=None,
-            data=None, *, encoding='utf-8'):
+            data=None, encoding='utf-8'):
         '''Create and add a new :class:`SettingsPanel` using the configuration
         `config` with the JSON definition `filename`. If `filename` is not set,
         then the JSON definition is read from the `data` parameter instead.
@@ -1043,14 +1043,14 @@ class Settings(BoxLayout):
         information about JSON format and the usage of this function.
         '''
         panel = self.create_json_panel(
-            title, config, filename, data, file_encoding=encoding)
+            title, config, filename, data, encoding)
         uid = panel.uid
         if self.interface is not None:
             self.interface.add_panel(panel, title, uid)
 
     def create_json_panel(
             self, title, config,
-            filename=None, data=None, *, file_encoding='utf-8'):
+            filename=None, data=None, file_encoding='utf-8'):
         '''Create new :class:`SettingsPanel`.
 
         .. versionadded:: 1.5.0
