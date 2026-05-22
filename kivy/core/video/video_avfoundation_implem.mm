@@ -55,8 +55,151 @@
 #endif
 
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+/* =====================================================================
+ * GL entry-point resolution via eglGetProcAddress (iOS only).
+ *
+ * kivy-ios's ``ios`` recipe declares ``OpenGLES.framework`` in its
+ * pbx_frameworks list, so any kivy-ios host project links Apple's
+ * native OpenGL ES framework alongside ANGLE's
+ * ``libGLESv2.xcframework`` (Kivy 3.0's actual GL provider on iOS).
+ * Both export the same core GL symbols (glGenTextures, glBindTexture,
+ * glTexParameteri, glDeleteTextures, glGetError, ...). At final link
+ * time the linker resolves those names to ``OpenGLES.framework``,
+ * whose implementations target ``EAGLContext`` -- Apple's native ES
+ * context type, completely separate from the ``EGLContext`` that
+ * ANGLE creates and Kivy currents on the main thread.
+ *
+ * With no ``EAGLContext`` bound, Apple's ``glGenTextures`` silently
+ * returns 0 and leaves ``glGetError() == GL_NO_ERROR`` -- so the
+ * zero-copy probe in ``_probeZeroCopy`` fails with no actionable
+ * signal even though the ANGLE EGL context is healthy. We confirmed
+ * this end-to-end during iOS bring-up (real A15 GPU and simulator
+ * both, see kivy/kivy PR thread for the diagnostic traces).
+ *
+ * Fix: resolve the GL entry points we use through ``eglGetProcAddress``
+ * against ANGLE's libEGL. Per EGL spec the returned pointer comes
+ * from the same provider whose display is current, so this is robust
+ * to any future change in the linked-frameworks list (including
+ * ``OpenGLES.framework`` being removed from the kivy-ios template).
+ *
+ * macOS has no ``OpenGLES.framework`` available to link, so on that
+ * platform the linker resolves directly to ANGLE's ``libGLESv2`` and
+ * no indirection is required -- this block is iOS-only.
+ * ===================================================================== */
+typedef void (*_KivyGLGenTexturesProc)(GLsizei, GLuint *);
+typedef void (*_KivyGLBindTextureProc)(GLenum, GLuint);
+typedef void (*_KivyGLTexParameteriProc)(GLenum, GLenum, GLint);
+typedef void (*_KivyGLDeleteTexturesProc)(GLsizei, const GLuint *);
+typedef GLenum (*_KivyGLGetErrorProc)(void);
+
+static _KivyGLGenTexturesProc _kivy_glGenTextures = NULL;
+static _KivyGLBindTextureProc _kivy_glBindTexture = NULL;
+static _KivyGLTexParameteriProc _kivy_glTexParameteri = NULL;
+static _KivyGLDeleteTexturesProc _kivy_glDeleteTextures = NULL;
+static _KivyGLGetErrorProc _kivy_glGetError = NULL;
+
+static bool _kivyResolveANGLEGL(void) {
+    if (_kivy_glGenTextures != NULL) {
+        return true;
+    }
+    _kivy_glGenTextures = (_KivyGLGenTexturesProc)
+        eglGetProcAddress("glGenTextures");
+    _kivy_glBindTexture = (_KivyGLBindTextureProc)
+        eglGetProcAddress("glBindTexture");
+    _kivy_glTexParameteri = (_KivyGLTexParameteriProc)
+        eglGetProcAddress("glTexParameteri");
+    _kivy_glDeleteTextures = (_KivyGLDeleteTexturesProc)
+        eglGetProcAddress("glDeleteTextures");
+    _kivy_glGetError = (_KivyGLGetErrorProc)
+        eglGetProcAddress("glGetError");
+    if (_kivy_glGenTextures == NULL || _kivy_glBindTexture == NULL ||
+        _kivy_glTexParameteri == NULL || _kivy_glDeleteTextures == NULL ||
+        _kivy_glGetError == NULL) {
+        // Partial resolve. Reset so the next probe retries; we'd rather
+        // try again on the next decoded frame than commit to a half-
+        // bound state.
+        _kivy_glGenTextures = NULL;
+        _kivy_glBindTexture = NULL;
+        _kivy_glTexParameteri = NULL;
+        _kivy_glDeleteTextures = NULL;
+        _kivy_glGetError = NULL;
+        return false;
+    }
+    return true;
+}
+
+// Shadow the standard GL names with our ANGLE-resolved pointers so the
+// call sites below stay readable. The macros only affect this
+// translation unit and do not leak through the header.
+#define glGenTextures    _kivy_glGenTextures
+#define glBindTexture    _kivy_glBindTexture
+#define glTexParameteri  _kivy_glTexParameteri
+#define glDeleteTextures _kivy_glDeleteTextures
+#define glGetError       _kivy_glGetError
+#endif  /* TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR */
+
+
 // KVO context tag for the single observer we install (timeControlStatus).
 static char kTimeControlStatusContext;
+
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+/* =====================================================================
+ * iOS audio session setup.
+ *
+ * AVAudioSession is iOS-only -- macOS has no equivalent and routes
+ * AVPlayer audio without app involvement. On iOS, without an active
+ * AVAudioSession the AVPlayer audio output is silent (the device's
+ * silent switch also forces audio off under the default category),
+ * which makes a working video pipeline look broken.
+ *
+ * We activate the shared session lazily on the first VideoPlayer::load()
+ * rather than at module import time so:
+ *   - Importing Kivy or the video provider has no audio side effect
+ *     for apps that never instantiate a video player.
+ *   - An app that has already configured AVAudioSession before the
+ *     first video loads keeps its choices; we only override the
+ *     category if the session is still on iOS's default
+ *     (``AVAudioSessionCategorySoloAmbient``).
+ *
+ * Policy when we do override: ``.playback`` + ``.moviePlayback``.
+ * Canonical for a video player and matches user expectation -- audio
+ * continues even when the device's silent switch is engaged. Apps
+ * that want different semantics (e.g. ``.ambient`` to mix with other
+ * audio, or ``.playAndRecord`` to also use the mic) should set the
+ * category themselves before loading a video; we'll then see a
+ * non-default category and leave it alone.
+ *
+ * Interruption / route-change handling is deliberately not done here.
+ * AVPlayer handles route changes transparently (continues playback on
+ * the new output), and apps that want explicit pause-on-interruption
+ * can observe AVAudioSessionInterruptionNotification themselves.
+ * ===================================================================== */
+static dispatch_once_t _kivyAudioSessionOnce;
+static void _kivyEnsureAudioSession() {
+    dispatch_once(&_kivyAudioSessionOnce, ^{
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        NSError *err = nil;
+        if ([session.category isEqualToString:
+                AVAudioSessionCategorySoloAmbient]) {
+            [session setCategory:AVAudioSessionCategoryPlayback
+                            mode:AVAudioSessionModeMoviePlayback
+                         options:0
+                           error:&err];
+            if (err != nil) {
+                NSLog(@"VideoAVFoundation: failed to set AVAudioSession "
+                      @"category: %@", err);
+                err = nil;
+            }
+        }
+        if (![session setActive:YES error:&err]) {
+            NSLog(@"VideoAVFoundation: failed to activate "
+                  @"AVAudioSession: %@", err);
+        }
+    });
+}
+#endif
 
 
 /* =====================================================================
@@ -183,6 +326,12 @@ void VideoPlayer::load() {
     // probe and texture; clear the one-shot failure latch so a brand
     // new load gets a clean shot at the probe.
     mZeroCopyFailed = false;
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    // First-load-wins activation of the iOS audio session. No-op on
+    // every subsequent call (dispatch_once) and on macOS (compiled out).
+    _kivyEnsureAudioSession();
+#endif
 
     @autoreleasepool {
         // Accept both bare file paths and full URI strings.
@@ -640,6 +789,18 @@ void VideoPlayer::_probeZeroCopy() {
         return;
     }
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    // Resolve ANGLE's GL entry points up front (see file-level comment
+    // on the GL function pointer block). Must happen before any GL
+    // call in this translation unit -- the #define-shadowed names
+    // below all dispatch through these pointers.
+    if (!_kivyResolveANGLEGL()) {
+        NSLog(@"VideoAVFoundation: failed to resolve ANGLE GL entry "
+              @"points via eglGetProcAddress");
+        return;
+    }
+#endif
+
     const EGLint configAttribs[] = {
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
@@ -662,7 +823,9 @@ void VideoPlayer::_probeZeroCopy() {
     GLuint tex = 0;
     glGenTextures(1, &tex);
     if (tex == 0) {
-        NSLog(@"VideoAVFoundation: glGenTextures failed");
+        NSLog(@"VideoAVFoundation: glGenTextures failed "
+              @"(glGetError=0x%04x eglGetError=0x%04x)",
+              glGetError(), eglGetError());
         return;
     }
     glBindTexture(GL_TEXTURE_2D, tex);

@@ -4,7 +4,7 @@ AVFoundation Video
 ==================
 
 Video implementation using the AVFoundation framework, the default video
-provider on macOS (and, in a follow-up PR, iOS).
+provider on macOS and iOS.
 
 .. versionadded:: 3.0.0
 '''
