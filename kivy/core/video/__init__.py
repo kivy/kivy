@@ -316,7 +316,7 @@ video_providers = []
 # avfoundation is the default video provider on Darwin (macOS / iOS).
 # It is compiled only when c_options['use_avfoundation'] is True in
 # setup.py, so the import naturally fails on non-Darwin platforms and
-# core_select_lib falls through to gstplayer / ffmpeg / ffpyplayer.
+# core_select_lib falls through to a different provider.
 video_providers.append(make_provider_tuple(
     'avfoundation', all_providers, 'VideoAVFoundation'
 ))
