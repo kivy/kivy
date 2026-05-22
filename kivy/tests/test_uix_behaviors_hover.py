@@ -1,2 +1,3 @@
 def test_kivy_init(kivy_init):
-    pass
+    from kivy.tests.common import advance_frames
+    advance_frames(1)
