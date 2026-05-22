@@ -54,20 +54,6 @@ def register_widgets_to_factory():
     Factory.unregister("HoverCollideScrollView")
 
 
-@pytest.fixture(autouse=True)
-def enable_mouse_motion_event_provider(kivy_init):
-    from kivy.base import EventLoop
-    from kivy.input.providers.mouse import MouseMotionEventProvider
-    from kivy.core.window import Window
-    Window.mouse_pos = Window.property("mouse_pos").defaultvalue
-    provider = MouseMotionEventProvider("mouse", "")
-    EventLoop.add_input_provider(provider)
-    provider.start()
-    yield
-    provider.stop()
-    EventLoop.remove_input_provider(provider)
-
-
 @contextmanager
 def enable_hover_manager(event_repeat_timeout):
     from kivy.core.window import Window
