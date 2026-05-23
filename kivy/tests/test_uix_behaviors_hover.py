@@ -1,3 +1,5 @@
-def test_kivy_init(kivy_init):
-    from kivy.tests.common import advance_frames
-    advance_frames(1)
+from kivy.tests.common import GraphicUnitTest
+
+class Test(GraphicUnitTest):
+    def test_advance_frames(self):
+        self.advance_frames(1)
