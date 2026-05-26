@@ -517,6 +517,7 @@ elif platform == 'android':
 # If KIVY_SDL3_PATH is explicitly provided by the caller (e.g. a kivy-ios
 # cross-build running on a macOS host), treat it as an unconditional request
 # to use SDL3 via that path rather than system frameworks.
+# Regression: https://github.com/kivy/kivy/issues/9316
 if c_options['use_sdl3'] is None and environ.get('KIVY_SDL3_PATH'):
     print('KIVY_SDL3_PATH set, enabling SDL3 and bypassing framework probe.')
     c_options['use_sdl3'] = True
@@ -590,8 +591,9 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
     if c_options['use_osx_frameworks'] and platform == 'darwin' \
             and not environ.get('KIVY_SDL3_PATH'):
         # check the existence of frameworks
-        # (skipped when KIVY_SDL3_PATH is set — path-based config takes
-        # precedence over the system/vendored framework probe)
+        # Guard: skipped when KIVY_SDL3_PATH is set — path-based config takes
+        # precedence over the system/vendored framework probe.
+        # Regression: https://github.com/kivy/kivy/issues/9316
         if KIVY_DEPS_ROOT:
             default_sdl3_frameworks_search_path = join(
                 KIVY_DEPS_ROOT, "dist", "Frameworks"
