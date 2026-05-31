@@ -95,7 +95,7 @@ class VideoBase(EventDispatcher):
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
         kwargs.setdefault('fps', 30)
-        kwargs.setdefault('options', None)
+        kwargs.setdefault('options', {})
 
         super(VideoBase, self).__init__()
 
@@ -111,7 +111,7 @@ class VideoBase(EventDispatcher):
         self._async = kwargs.get('async')
         self.eos = kwargs.get('eos')
         self._fps = kwargs.get('fps')
-        self._options = dict(kwargs.get('options') or {})
+        self._options = dict(kwargs['options'])
         if self.eos == 'pause':
             Logger.warning("'pause' is deprecated. Use 'stop' instead.")
             self.eos = 'stop'

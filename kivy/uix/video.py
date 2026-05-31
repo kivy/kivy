@@ -211,8 +211,8 @@ class Video(Image):
         only full reassignment.
 
     :attr:`options` is a :class:`~kivy.properties.DictProperty` and
-    defaults to ``{}``. ``None`` is accepted (treated as an empty dict
-    by the core video).
+    defaults to ``{}``. ``None`` is accepted and normalized to ``{}``
+    before forwarding to the core video.
     '''
 
     buffering = BooleanProperty(False)
