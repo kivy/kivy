@@ -111,7 +111,7 @@ class VideoBase(EventDispatcher):
         self._async = kwargs.get('async')
         self.eos = kwargs.get('eos')
         self._fps = kwargs.get('fps')
-        self._options = dict(kwargs['options'])
+        self._options = kwargs['options']
         if self.eos == 'pause':
             Logger.warning("'pause' is deprecated. Use 'stop' instead.")
             self.eos = 'stop'

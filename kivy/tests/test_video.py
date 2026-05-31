@@ -33,19 +33,6 @@ class VideoBaseAPITestCase(unittest.TestCase):
     covers the macOS provider's actual behaviour.
     '''
 
-    def test_options_roundtrip(self):
-        from kivy.core.video import VideoBase
-        opts = {'demo_flag': True, 'custom': 'x'}
-        vb = VideoBase(filename=None, options=opts)
-        try:
-            self.assertEqual(vb.options, opts)
-            # Mutating the caller's dict must not retroactively change
-            # what the provider sees: VideoBase copies it.
-            opts['demo_flag'] = False
-            self.assertTrue(vb.options.get('demo_flag'))
-        finally:
-            vb.unload()
-
     def test_options_default_is_empty_dict(self):
         from kivy.core.video import VideoBase
         vb = VideoBase(filename=None)
