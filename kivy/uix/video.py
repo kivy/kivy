@@ -298,7 +298,7 @@ class Video(Image):
             # self._options) and the unpacked kwargs (back-compat with
             # apps that put well-known kwargs like 'eos' in options).
             # ``options`` accepts None as a legal value -- normalize it
-            # to {} here so the rest of the stack only sees a dict.
+            # to {} here so kivy.core.video only sees a dict.
             options = self.options if self.options is not None else {}
             core_kwargs = dict(options)
             self._video = CoreVideo(

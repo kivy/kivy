@@ -58,7 +58,7 @@ class VideoBase(EventDispatcher):
             providers).
         `autoplay`: bool, defaults to False
             Auto play the video on init.
-        `options`: dict, defaults to None
+        `options`: dict, defaults to {}
             Provider-specific options forwarded opaquely to the underlying
             implementation. The base class consumes the documented kwargs
             above; any other keys are placed in :attr:`options` for the
