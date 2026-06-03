@@ -13,10 +13,11 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import os
-import sys
+from datetime import datetime
 import configparser
+import os
 import sphinx
+import sys
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -66,7 +67,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2010-2025, Kivy Team and other contributors'
+copyright = f'2010-{datetime.now().year}, Kivy Team and other contributors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
