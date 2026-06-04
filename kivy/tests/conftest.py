@@ -4,7 +4,7 @@ import os
 kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
 
 try:
-    from .fixtures import kivy_app, kivy_clock, kivy_clock_advance, \
+    from .fixtures import kivy_app, kivy_clock, kivy_clock_advance, kivy_init, \
         kivy_metrics, kivy_exception_manager
 except (SyntaxError, ImportError):
     # async app tests would be skipped due to async_run forcing it to skip so
