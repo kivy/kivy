@@ -352,6 +352,43 @@ class ScrollViewTestCase(GraphicUnitTest):
         EventLoop.idle()
         assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
 
+    def test_scroll_key_modifier_simple(self):
+        EventLoop.ensure_window()
+        win = EventLoop.window
+        scroll = ScrollView(size=(500, 500), do_scroll_x=True, do_scroll_y=True)
+        scroll.add_widget(Label(size_hint=(None, None), size=(2000, 2000)))
+
+        # set initial scroll pos
+        scroll.scroll_x = 0.5
+        scroll.scroll_y = 0.5
+
+        # 1. scrolldown WITHOUT shift -> scroll_y changes
+        t = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height)
+        })
+        t.profile.append('button')
+        t.button = 'scrolldown'
+        scroll.on_touch_down(t)
+        assert scroll.scroll_x == 0.5
+        assert scroll.scroll_y != 0.5
+
+        # reset
+        scroll.scroll_x = 0.5
+        scroll.scroll_y = 0.5
+
+        # 2. scrolldown WITH shift -> scroll_x changes
+        t = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height)
+        })
+        t.modifiers = ['shift']
+        t.profile.append('button')
+        t.button = 'scrolldown'
+        scroll.on_touch_down(t)
+        assert scroll.scroll_x != 0.5
+        assert scroll.scroll_y == 0.5
+
 
 if __name__ == '__main__':
     import unittest

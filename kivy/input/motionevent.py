@@ -102,6 +102,8 @@ angle          2D angle. Accessed via the `a` property.
 button         Mouse button ('left', 'right', 'middle', 'scrollup' or
                'scrolldown'). Accessed via the `button` property.
 markerid       Marker or Fiducial ID. Accessed via the `fid` property.
+modifiers      Keyboard modifiers active during the event (e.g., 'shift',
+               'ctrl', 'alt'). Accessed via the `modifiers` property.
 pos            2D position. Accessed via the `x`, `y` or `pos` properties.
 pos3d          3D position. Accessed via the `x`, `y` or `z` properties.
 pressure       Pressure of the contact. Accessed via the `pressure` property.
@@ -176,6 +178,7 @@ class MotionEvent(MotionEventBase):
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
          'is_touch', 'type_id', 'id', 'dispatch_mode', 'shape', 'profile',
+         'modifiers',  # keyboard modifiers
          # current position, in 0-1 range
          'sx', 'sy', 'sz',
          # first position set, in 0-1 range
@@ -247,6 +250,14 @@ class MotionEvent(MotionEventBase):
 
         #: Currently pressed button.
         self.button = None
+
+        #: List of keyboard modifiers currently active during the event.
+        #: Common modifiers include 'shift', 'ctrl', 'alt', 'meta'.
+        #: This is typically set by input providers for mouse and keyboard
+        #: events.
+        #:
+        #: .. versionadded:: 3.0.0
+        self.modifiers = []
 
         #: Profiles currently used in the event.
         self.profile = []
