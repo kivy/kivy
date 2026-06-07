@@ -30,7 +30,7 @@ jobs:
         python -m pip install -r .ci/cicd-requirements.txt
     - name: Create wheel
       run: |
-        KIVY_BUILD_EXAMPLES=1 python3 -m build --wheel .
+        python3 -m build --wheel --outdir dist packaging/kivy_examples
     - name: Upload kivy-examples wheel as artifact
       uses: actions/upload-artifact@v7
       with:
