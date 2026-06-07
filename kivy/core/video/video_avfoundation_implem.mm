@@ -28,13 +28,8 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-#  include <OpenGLES/ES2/gl.h>
-#  include <OpenGLES/ES2/glext.h>
-#else
-#  include <GLES2/gl2.h>
-#  include <GLES2/gl2ext.h>
-#endif
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #ifndef GL_BGRA_EXT
 #  define GL_BGRA_EXT 0x80E1
 #endif
@@ -59,29 +54,23 @@
 /* =====================================================================
  * GL entry-point resolution via eglGetProcAddress (iOS only).
  *
- * kivy-ios's ``ios`` recipe declares ``OpenGLES.framework`` in its
- * pbx_frameworks list, so any kivy-ios host project links Apple's
- * native OpenGL ES framework alongside ANGLE's
- * ``libGLESv2.xcframework`` (Kivy 3.0's actual GL provider on iOS).
- * Both export the same core GL symbols (glGenTextures, glBindTexture,
- * glTexParameteri, glDeleteTextures, glGetError, ...). At final link
- * time the linker resolves those names to ``OpenGLES.framework``,
- * whose implementations target ``EAGLContext`` -- Apple's native ES
- * context type, completely separate from the ``EGLContext`` that
- * ANGLE creates and Kivy currents on the main thread.
- *
- * With no ``EAGLContext`` bound, Apple's ``glGenTextures`` silently
- * returns 0 and leaves ``glGetError() == GL_NO_ERROR`` -- so the
- * zero-copy probe in ``_probeZeroCopy`` fails with no actionable
- * signal even though the ANGLE EGL context is healthy. We confirmed
- * this end-to-end during iOS bring-up (real A15 GPU and simulator
- * both, see kivy/kivy PR thread for the diagnostic traces).
+ * Kivy 3.0 uses ANGLE (``libGLESv2.xcframework``) as its GL provider
+ * on iOS.  A host app may also link Apple's ``OpenGLES.framework``
+ * for its own purposes; both libraries export the same core GL symbols
+ * (glGenTextures, glBindTexture, glTexParameteri, glDeleteTextures,
+ * glGetError, ...).  If the static linker resolves those names to
+ * Apple's implementation, the calls target ``EAGLContext`` -- a
+ * context type entirely separate from the ``EGLContext`` that ANGLE
+ * creates.  With no ``EAGLContext`` bound, Apple's ``glGenTextures``
+ * silently returns 0 and leaves ``glGetError() == GL_NO_ERROR``,
+ * causing the zero-copy probe in ``_probeZeroCopy`` to fail with no
+ * actionable diagnostic even though the ANGLE EGL context is healthy.
  *
  * Fix: resolve the GL entry points we use through ``eglGetProcAddress``
- * against ANGLE's libEGL. Per EGL spec the returned pointer comes
- * from the same provider whose display is current, so this is robust
- * to any future change in the linked-frameworks list (including
- * ``OpenGLES.framework`` being removed from the kivy-ios template).
+ * against ANGLE's libEGL.  Per EGL spec the returned pointer comes
+ * from the same provider whose display is current, so we are always
+ * guaranteed ANGLE's implementation regardless of what the host app
+ * links.
  *
  * macOS has no ``OpenGLES.framework`` available to link, so on that
  * platform the linker resolves directly to ANGLE's ``libGLESv2`` and
