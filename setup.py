@@ -16,7 +16,7 @@ from pathlib import Path
 from time import sleep
 from collections import OrderedDict
 from os import walk, environ, makedirs
-from os.path import join, dirname, exists, basename, isdir
+from os.path import join, dirname, exists, basename, isdir, relpath
 import os
 from copy import deepcopy
 from kivy.utils import pi_version
@@ -1614,12 +1614,20 @@ def get_extensions_from_sources(sources):
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
         module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
-        flags_clean = {'depends': depends}
+        # setuptools' wheel/editable-wheel builders require ext_modules source
+        # and depends paths to be relative to the project root (the setup.py
+        # directory). Under PEP 517/660 builds __file__ is absolute, which would
+        # otherwise make these paths absolute and abort the build.
+        flags_clean = {'depends': [relpath(x, src_path) for x in depends]}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
+        sources_list = [
+            relpath(x, src_path)
+            for x in [pyx_path] + f_depends + c_depends
+        ]
         ext_modules.append(CythonExtension(
-            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
+            module_name, sources_list, **flags_clean))
     return ext_modules
 
 
