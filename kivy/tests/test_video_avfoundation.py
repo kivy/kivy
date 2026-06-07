@@ -5,7 +5,7 @@ The provider is a compiled Cython extension (built only when
 ``c_options['use_avfoundation']`` is True in ``setup.py``), so these
 tests gracefully skip when:
 
-  - the host platform is not Darwin (macOS / iOS);
+  - the host platform is not macOS or iOS;
   - the provider failed to import for any reason (provider not compiled
     in the current build, AVFoundation framework unavailable, etc.).
 
@@ -25,7 +25,7 @@ import pytest
 
 
 pytestmark = pytest.mark.skipif(
-    sys.platform != 'darwin',
+    sys.platform not in ('darwin', 'ios'),
     reason='AVFoundation video provider is macOS / iOS only',
 )
 
