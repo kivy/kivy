@@ -1458,6 +1458,44 @@ if c_options['use_avfoundation']:
         sources['core/camera/camera_avfoundation.pyx'] = merge(
             base_flags, avf_flags)
 
+        # Video provider needs the same Apple media frameworks on all
+        # platforms (CoreMedia / CoreVideo / CoreGraphics / Foundation are
+        # already added for the iOS camera build above, but on macOS the
+        # camera only links -framework AVFoundation; the video pipeline
+        # uses CMTime, CVPixelBufferRef, CGImage and NSAutoreleasePool so
+        # we add them explicitly here so the same flag block works for
+        # both macOS and iOS).
+        video_extra_link_args = list(extra_link_args)
+        if platform == 'darwin':
+            for fw in ('Foundation', 'CoreFoundation', 'CoreGraphics',
+                       'CoreMedia', 'CoreVideo'):
+                if fw not in video_extra_link_args:
+                    video_extra_link_args += ['-framework', fw]
+
+        video_compile_args = ['-ObjC++']
+
+        # The video pipeline uses the ANGLE EGL extension
+        # EGL_ANGLE_iosurface_client_buffer to deliver zero-copy
+        # IOSurface -> GL_TEXTURE_2D frames. The same ANGLE EGL headers
+        # are already a hard build-time dependency for the rest of the
+        # Kivy 3.0 Apple-platform build (kivy.graphics.egl_backend.*
+        # and kivy.graphics.cgl_backend.cgl_angle), so we just merge in
+        # gl_flags unconditionally here. If ANGLE deps are missing the
+        # AVFoundation provider build fails with the same "EGL/egl.h
+        # not found" error as the rest of the GL stack, which is the
+        # honest signal to point the user at KIVY_DEPS_ROOT.
+        video_avf_flags = merge({
+            'include_dirs': list(include_dirs),
+            'extra_link_args': video_extra_link_args,
+            'extra_compile_args': video_compile_args,
+            'depends': [
+                'core/video/video_avfoundation_implem.h',
+                'core/video/video_avfoundation_implem.mm',
+            ],
+        }, gl_flags)
+        sources['core/video/video_avfoundation.pyx'] = merge(
+            base_flags, video_avf_flags)
+
 
 if c_options["use_angle_gl_backend"]:
 

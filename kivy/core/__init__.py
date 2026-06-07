@@ -63,6 +63,7 @@ PROVIDER_CONFIGS = {
         ('pango', 'text_pango'),
     ],
     'video': [
+        ('avfoundation', 'video_avfoundation'),
         ('gstplayer', 'video_gstplayer'),
         ('ffmpeg', 'video_ffmpeg'),
         ('ffpyplayer', 'video_ffpyplayer'),
