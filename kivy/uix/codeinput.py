@@ -200,8 +200,7 @@ class CodeInput(CodeNavigationBehavior, TextInput):
                 return offset
         except Exception:
             pass
-        finally:
-            return offset
+        return offset
 
     def on_lexer(self, instance, value):
         self._trigger_refresh_text()
