@@ -309,40 +309,42 @@ document.addEventListener("DOMContentLoaded", function() {
             localStorage.setItem('theme', newTheme);
         });
     }
+
     var selector = document.getElementById("version_selector");
 
     if (selector) {
-        // Listen for version dropdown changes
         selector.addEventListener('change', function() {
-            // Replace the version part of the url with the selected version
-            document.location.pathname = document.location.pathname.replace(
-                /^(\/.*?\/).*?(\/.*)/,
-                '$1' + this.value + '$2'
-            );
+            // Clean up the path into segments, ignoring empty spaces
+            var paths = window.location.pathname.split('/').filter(Boolean);
+
+            if (paths.length > 0) {
+                paths[0] = this.value;
+                document.location.pathname = '/' + paths.join('/') + '/';
+            }
         });
 
-        var url = document.documentElement.getAttribute('data-content_root') + '_static/versions.json';
+        var url = "/doc/versions.json";
 
-        // Fetch versions dynamically using native Fetch API instead of $.getJSON
         fetch(url)
             .then(function(response) {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
+                if (!response.ok) throw new Error("Network response was not ok");
                 return response.json();
             })
             .then(function(versions) {
-                var current = window.location.pathname.split('/')[2];
-                
+                var paths = window.location.pathname.split('/').filter(Boolean);
+                var current = paths[0];
+
+                selector.innerHTML = '';
+
                 versions.forEach(function(version) {
                     var option = document.createElement("option");
                     option.value = version;
                     option.textContent = version;
-                    
+
                     if (version === current) {
                         option.selected = true;
                     }
-                    
+
                     selector.appendChild(option);
                 });
             })
