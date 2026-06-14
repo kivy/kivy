@@ -771,6 +771,7 @@ html.dark .vt-switch-icon .moon {
 .highlight .nv, /* Name.Variable */
 .highlight .ow, /* Operator.Word */
 .highlight .w {
+    color: var(--neutral-secondary-text) !important;
     text-decoration: none !important;
     border-bottom: none !important;
 }
