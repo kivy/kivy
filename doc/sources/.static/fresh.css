@@ -773,7 +773,6 @@ html.dark .vt-switch-icon .moon {
 .highlight .w   /* Text.Whitespace */ {
     color: var(--neutral-secondary-text);
     text-decoration: none;
-    border-bottom: none;
 }
 .highlight .mb, /* Literal.Number.Bin */
 .highlight .mf, /* Literal.Number.Float */
