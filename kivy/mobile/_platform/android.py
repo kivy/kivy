@@ -1,26 +1,25 @@
 """Android placeholder for the kivy.mobile platform API.
 
-.. warning:: **This module is a placeholder — it is not yet implemented.**
+.. warning:: **This module is a placeholder — it has not been tested on Android.**
 
-    A complete Android implementation requires the python-for-android (p4a)
-    bootstrap to be refactored so that platform geometry (DPI, display
-    density, keyboard height, safe-area / window insets) is exposed through
-    a stable, Kivy-owned interface rather than through p4a's internal
-    ``android`` and ``jnius`` modules.
+    The implementations for ``get_dpi()``, ``get_scale()``, and
+    ``get_keyboard_height()`` are straightforward — they use ``jnius``
+    (a standalone Kivy-org package: https://github.com/kivy/pyjnius) and
+    the ``android`` module provided by python-for-android, both of which
+    are already present in every Kivy Android build.
 
-    That refactor is tracked separately and must be approved by the p4a
-    maintainers before this file can be filled in.
+    The placeholder exists because we currently have no Android CI runner
+    or test device to validate the implementation.  Once testing is
+    available, this file should be replaced with the working implementation.
 
-    Until then, all functions return the same safe defaults as the generic
-    desktop fallback so that Android apps continue to run without crashing.
-
-TODO (follow-up PR — depends on p4a bootstrap refactor):
-    * get_dpi()              — read via jnius Hardware.getDPI() or AConfiguration NDK C API
-    * get_scale()            — read via jnius Hardware.metrics.scaledDensity
-    * get_keyboard_height()  — read via android.get_keyboard_height() (p4a module)
-    * get_safe_area()        — read via WindowInsetsCompat system-gesture insets (API 29+)
-    * get_display_cutout()   — read via DisplayCutout bounding rects (API 28+)
-    * get_system_bar_insets() — read status-bar / nav-bar insets separately
+TODO (follow-up PR — needs Android device or emulator to validate):
+    * get_dpi()               — jnius: Hardware.getDPI()
+    * get_scale()             — jnius: Hardware.metrics.scaledDensity
+    * get_keyboard_height()   — android module: android.get_keyboard_height()
+    * subscribe_keyboard_height() — drive from android keyboard events
+    * get_safe_area()         — WindowInsetsCompat system-gesture insets (API 29+)
+    * get_display_cutout()    — DisplayCutout bounding rects (API 28+)
+    * get_system_bar_insets() — status-bar / nav-bar insets separated
 
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'android'``.  Do not import it directly.
