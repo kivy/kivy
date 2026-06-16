@@ -693,6 +693,8 @@ class WindowBase(EventDispatcher):
 
     def _refresh_safe_area(self, *args):
         """Update Window.safe_area from kivy.mobile.get_safe_area()."""
+        if platform not in ('ios', 'android'):
+            return
         try:
             from kivy.mobile import get_safe_area
             self.safe_area = get_safe_area()
