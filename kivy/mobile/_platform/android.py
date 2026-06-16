@@ -6,7 +6,7 @@
     ``get_keyboard_height()`` are straightforward — they use ``jnius``
     (a standalone Kivy-org package: https://github.com/kivy/pyjnius) and
     the ``android`` module provided by python-for-android, both of which
-    are already present in every Kivy Android build. 
+    are already present in every Kivy Android build.
 
     I would propose changes to p4a that would need to be acceped by the
     p4a maintainers prior to completing this implementation.
