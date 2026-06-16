@@ -231,7 +231,7 @@ Wheel behavior is always active and is NOT affected by the
 :attr:`parallel_delegation` or :attr:`delegate_to_outer` properties.
 Those only control touch and touchpad gesture behavior.
 
-.. versionchanged:: VERSION_NEXT
+.. versionchanged:: 3.0.0
 
     The ScrollView widget now supports nesting to arbitrary levels
     and configurations.
@@ -493,7 +493,7 @@ class ScrollView(StencilView):
             Dispatched when scrolling stops. Fires when velocity reaches zero
             and scroll position stabilizes for 3 consecutive frames.
 
-    .. versionchanged:: VERSION_NEXT
+    .. versionchanged:: 3.0.0
         `on_scroll_start`, `on_scroll_move` and `on_scroll_stop` events are
         now dispatched for nested and non-nested ScrollViews. The behavior
         has been updated.  Previously these events mirrored the behavior of the
@@ -855,7 +855,7 @@ class ScrollView(StencilView):
     :attr:`slow_device_support` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to False.
 
-    .. versionadded:: NEXT_VERSION
+    .. versionadded:: 3.0.0
     '''
     parallel_delegation = BooleanProperty(True)
     '''Controls boundary delegation behavior for parallel nested ScrollViews.
@@ -870,7 +870,7 @@ class ScrollView(StencilView):
     :attr:`parallel_delegation` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
-    .. versionadded:: NEXT_VERSION
+    .. versionadded:: 3.0.0
     '''
 
     delegate_to_outer = BooleanProperty(True)
@@ -899,7 +899,7 @@ class ScrollView(StencilView):
     :attr:`delegate_to_outer` is a :class:`~kivy.properties.BooleanProperty`
     and defaults to True.
 
-    .. versionadded:: NEXT_VERSION
+    .. versionadded:: 3.0.0
     '''
 
     # Class constants for mouse wheel scroll button sets
@@ -3452,7 +3452,7 @@ class ScrollView(StencilView):
         the scrollbar is initially grabbed. For mouse wheel scrolling, it fires
         on the first scroll wheel event.
 
-        .. versionchanged:: NEXT_VERSION
+        .. versionchanged:: 3.0.0
             Removed touch parameter. Use on_touch_down/move/up for
             touch-specific handling.
         '''
@@ -3471,7 +3471,7 @@ class ScrollView(StencilView):
         implementing scroll-based animations, progress indicators, or parallax
         effects.
 
-        .. versionchanged:: NEXT_VERSION
+        .. versionchanged:: 3.0.0
             Removed touch parameter. Use on_touch_down/move/up for touch-specific
             handling. Now fires for all scroll_x/scroll_y changes including
             programmatic updates.
@@ -3489,7 +3489,7 @@ class ScrollView(StencilView):
         such as loading more content, snapping to grid positions, or updating
         UI state.
 
-        .. versionchanged:: NEXT_VERSION
+        .. versionchanged:: 3.0.0
             Removed touch parameter. Use on_touch_down/move/up for
             touch-specific handling.
         '''
