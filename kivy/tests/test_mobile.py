@@ -30,10 +30,6 @@ class TestGenericFallback:
         from kivy.mobile._platform.generic import get_keyboard_height
         assert get_keyboard_height() == 0.0
 
-    def test_get_kheight_is_zero(self):
-        from kivy.mobile._platform.generic import get_kheight
-        assert get_kheight() == 0.0
-
     def test_get_safe_area_keys(self):
         from kivy.mobile._platform.generic import get_safe_area
         sa = get_safe_area()
@@ -65,7 +61,6 @@ class TestPublicInterface:
         "get_scale",
         "get_density",
         "get_keyboard_height",
-        "get_kheight",
         "get_safe_area",
         "subscribe_keyboard_height",
         "get_display_cutout",
@@ -89,10 +84,6 @@ class TestPublicInterface:
         h = get_keyboard_height()
         assert isinstance(h, (int, float))
         assert h >= 0
-
-    def test_kheight_alias(self):
-        from kivy.mobile import get_keyboard_height, get_kheight
-        assert get_kheight() == get_keyboard_height()
 
     def test_density_alias(self):
         from kivy.mobile import get_density, get_scale

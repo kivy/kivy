@@ -366,11 +366,6 @@ def get_keyboard_height() -> float:
     return _keyboard_height
 
 
-def get_kheight() -> float:
-    """Alias for get_keyboard_height().  Kept for backwards compatibility."""
-    return get_keyboard_height()
-
-
 def subscribe_keyboard_height(callback) -> None:
     """Register *callback(height: float)* for keyboard height changes.
 

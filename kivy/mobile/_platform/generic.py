@@ -44,11 +44,6 @@ def get_keyboard_height() -> float:
     return 0.0
 
 
-def get_kheight() -> float:
-    """Alias for get_keyboard_height()."""
-    return 0.0
-
-
 def get_safe_area() -> dict[str, float]:
     """Safe-area insets.  All zeros on desktop."""
     return {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}

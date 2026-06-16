@@ -14,7 +14,6 @@ Public API — Tier 1 (always available on all platforms)
         get_scale,
         get_density,
         get_keyboard_height,
-        get_kheight,
         get_safe_area,
         subscribe_keyboard_height,
     )
@@ -30,9 +29,6 @@ Public API — Tier 1 (always available on all platforms)
 
 ``get_keyboard_height()`` → float
     Current software-keyboard height in layout points.  Returns 0 when hidden.
-
-``get_kheight()`` → float
-    Alias for ``get_keyboard_height()``.
 
 ``get_safe_area()`` → dict
     Safe-area insets in layout points::
@@ -69,7 +65,6 @@ if platform == 'ios':
         get_scale,
         get_density,
         get_keyboard_height,
-        get_kheight,
         get_safe_area,
         subscribe_keyboard_height,
         get_display_cutout,
@@ -81,7 +76,6 @@ elif platform == 'android':
         get_scale,
         get_density,
         get_keyboard_height,
-        get_kheight,
         get_safe_area,
         subscribe_keyboard_height,
         get_display_cutout,
@@ -93,7 +87,6 @@ else:
         get_scale,
         get_density,
         get_keyboard_height,
-        get_kheight,
         get_safe_area,
         subscribe_keyboard_height,
         get_display_cutout,
