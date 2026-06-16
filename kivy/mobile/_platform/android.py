@@ -3,14 +3,11 @@
 Provides the same interface as the iOS implementation; Android-specific
 Tier-2 extras (display cutout, system bar insets) are also available.
 
+Uses ``jnius`` to call Java/Android APIs via JNI.  ``jnius`` is always
+present in a python-for-android build so there is no additional dependency.
+
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'android'``.  Do not import it directly.
-
-.. note::
-    The keyboard height and DPI implementations here currently mirror the
-    existing ``android`` module calls used in ``kivy.metrics`` and
-    ``kivy.core.window``.  A future iteration will consolidate Android
-    runtime geometry fully within this module.
 """
 
 from __future__ import annotations
