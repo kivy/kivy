@@ -1210,6 +1210,14 @@ class WindowBase(EventDispatcher):
         self.bind(rotation=self._refresh_safe_area)
         self._refresh_safe_area()  # populate on startup
 
+        if platform == 'ios':
+            from kivy.mobile import subscribe_keyboard_height
+            subscribe_keyboard_height(
+                lambda h: self.trigger_keyboard_height()
+            )
+        # TODO(kivy.mobile): subscribe Android keyboard height here once
+        # kivy/mobile/_platform/android.py implements subscribe_keyboard_height.
+
         self.bind(show_cursor=lambda *dt: self._set_cursor_state(dt[1]))
 
         # init privates
