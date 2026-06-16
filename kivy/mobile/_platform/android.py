@@ -8,9 +8,9 @@
     the ``android`` module provided by python-for-android, both of which
     are already present in every Kivy Android build.
 
-    The placeholder exists because we currently have no Android CI runner
-    or test device to validate the implementation.  Once testing is
-    available, this file should be replaced with the working implementation.
+    The placeholder exists because the implementation has not yet been
+    tested on a real Android device.  Once validated locally or in CI,
+    this file should be replaced with the working implementation.
 
 TODO (follow-up PR — needs Android device or emulator to validate):
     * get_dpi()               — jnius: Hardware.getDPI()
