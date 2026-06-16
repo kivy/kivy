@@ -685,6 +685,9 @@ class WindowBase(EventDispatcher):
         self._animate_content()
 
     def _get_ios_kheight(self):
+        # TODO(kivy.mobile): once kivy.mobile Android is validated, collapse
+        # _get_ios_kheight and _get_android_kheight into a single
+        # kivy.mobile call in _get_kheight and remove both helpers.
         from kivy.mobile import get_keyboard_height
         return get_keyboard_height()
 
@@ -697,6 +700,8 @@ class WindowBase(EventDispatcher):
             pass
 
     def _get_android_kheight(self):
+        # TODO(kivy.mobile): replace with kivy.mobile.get_keyboard_height()
+        # once kivy/mobile/_platform/android.py is validated on a device.
         if USE_SDL3:  # Placeholder until the SDL3 bootstrap supports this
             return 0
         global android
@@ -723,6 +728,10 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_kheight(self):
+        # TODO(kivy.mobile): once _get_android_kheight is replaced, simplify to:
+        #   if platform in ('android', 'ios'):
+        #       from kivy.mobile import get_keyboard_height
+        #       return get_keyboard_height()
         if platform == 'android':
             return self._get_android_kheight()
         elif platform == 'ios':

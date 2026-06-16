@@ -6,13 +6,12 @@
     ``get_keyboard_height()`` are straightforward — they use ``jnius``
     (a standalone Kivy-org package: https://github.com/kivy/pyjnius) and
     the ``android`` module provided by python-for-android, both of which
-    are already present in every Kivy Android build.
+    are already present in every Kivy Android build. 
 
-    The placeholder exists because the implementation has not yet been
-    tested on a real Android device.  Once validated locally or in CI,
-    this file should be replaced with the working implementation.
+    I would propose changes to p4a that would need to be acceped by the
+    p4a maintainers prior to completing this implementation.
 
-TODO (follow-up PR — needs Android device or emulator to validate):
+TODO (follow-up PR — post p4a changes, needs Android device or emulator to validate):
     * get_dpi()               — jnius: Hardware.getDPI()
     * get_scale()             — jnius: Hardware.metrics.scaledDensity
     * get_keyboard_height()   — android module: android.get_keyboard_height()
@@ -58,7 +57,12 @@ def get_density() -> float:
 
 
 def get_keyboard_height() -> float:
-    """Placeholder — returns 0.0 until Android support is implemented."""
+    """Placeholder — returns 0.0 until Android support is implemented.
+
+    TODO: implement using android.get_keyboard_height() (p4a module) with
+    the USE_SDL3 guard from the legacy _get_android_kheight() in
+    kivy/core/window/__init__.py, then remove that method.
+    """
     return 0.0
 
 
