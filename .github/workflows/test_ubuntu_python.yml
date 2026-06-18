@@ -90,7 +90,7 @@ jobs:
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy
+        install_kivy full,docs
     - name: Generate docs
       run: |
         source .ci/ubuntu_ci.sh
