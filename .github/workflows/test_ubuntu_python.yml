@@ -52,7 +52,7 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
-        install_kivy full,docs
+        install_kivy
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
