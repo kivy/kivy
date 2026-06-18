@@ -18,7 +18,7 @@ jobs:
       matrix:
         image_version: ['3.11-bookworm']
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Generate version metadata
       run: |
         source .ci/ubuntu_ci.sh
