@@ -83,10 +83,6 @@ jobs:
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
-    - name: Setup env
-      run: |
-        source .ci/ubuntu_ci.sh
-        prepare_env_for_unittest
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
