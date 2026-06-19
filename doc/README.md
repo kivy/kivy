@@ -17,7 +17,7 @@ Building the documentation
 
 Install the documentation dependencies (Sphinx requires Python 3.12+)::
 
-  ``pip install -e ".[full,docs]"``
+  ``pip install -e ".[docs]"``
 
 Generate documentation using make: ``make html``.
 

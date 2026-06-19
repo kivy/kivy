@@ -83,10 +83,12 @@ jobs:
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
+
+    # Note: Removed prepare_env_for_unittest as it's already tested before gen_docs
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy dev,docs
+        install_kivy docs
     - name: Generate docs
       run: |
         source .ci/ubuntu_ci.sh
