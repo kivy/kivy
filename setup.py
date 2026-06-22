@@ -16,15 +16,11 @@ from pathlib import Path
 from time import sleep
 from collections import OrderedDict
 from os import walk, environ, makedirs
-from os.path import join, dirname, exists, basename, isdir
+from os.path import join, dirname, exists, basename, isdir, relpath
 import os
 from copy import deepcopy
 from kivy.utils import pi_version
 import sys
-build_examples = False
-if "--build_examples" in sys.argv:
-    build_examples = True
-    sys.argv.remove("--build_examples")
 
 
 if sys.version_info[0] == 2:
@@ -36,11 +32,6 @@ if sys.version_info[0] == 2:
 
 def ver_equal(self, other):
     return self.version == other
-
-
-def get_description():
-    with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
-        return fileh.read().decode("utf8").replace('\r\n', '\n')
 
 
 def getoutput(cmd, env=None):
@@ -151,9 +142,6 @@ def check_c_source_compiles(code, include_dirs=None):
 # -----------------------------------------------------------------------------
 
 # Determine on which platform we are
-
-build_examples = build_examples or \
-    os.environ.get('KIVY_BUILD_EXAMPLES', '0') == '1'
 
 platform = sys.platform
 
@@ -1664,12 +1652,20 @@ def get_extensions_from_sources(sources):
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
         module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
-        flags_clean = {'depends': depends}
+        # setuptools' wheel/editable-wheel builders require ext_modules source
+        # and depends paths to be relative to the project root (the setup.py
+        # directory). Under PEP 517/660 builds __file__ is absolute, which would
+        # otherwise make these paths absolute and abort the build.
+        flags_clean = {'depends': [relpath(x, src_path) for x in depends]}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
+        sources_list = [
+            relpath(x, src_path)
+            for x in [pyx_path] + f_depends + c_depends
+        ]
         ext_modules.append(CythonExtension(
-            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
+            module_name, sources_list, **flags_clean))
     return ext_modules
 
 
@@ -1718,84 +1714,27 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 
 # -----------------------------------------------------------------------------
 # setup !
-if not build_examples:
-    setup(
-        name='Kivy',
-        version=__version__,
-        author='Kivy Team and other contributors',
-        author_email='kivy-dev@googlegroups.com',
-        url='http://kivy.org',
-        project_urls={
-            'Source': 'https://github.com/kivy/kivy',
-            'Documentation': 'https://kivy.org/doc/stable/',
-            'Bug Reports': "https://github.com/kivy/kivy/issues",
-        },
-        license='MIT',
-        description=(
-            'An open-source Python framework for developing '
-            'GUI apps that work cross-platform, including '
-            'desktop, mobile and embedded platforms.'),
-        long_description=get_description(),
-        long_description_content_type='text/markdown',
-        ext_modules=ext_modules,
-        cmdclass=cmdclass,
-        packages=find_packages(include=['kivy*']),
-        package_dir={'kivy': 'kivy'},
-        package_data={
-            'kivy':
-                glob_paths('*.pxd', '*.pxi') +
-                glob_paths('**/*.pxd', '**/*.pxi') +
-                glob_paths('data/**/*.*') +
-                glob_paths('include/**/*.*') +
-                glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
-                glob_paths('graphics/**/*.h') +
-                glob_paths('tests/**/*.*') +
-                [
-                    'setupconfig.py',
-                ] + binary_deps
-        },
-        data_files=[] if split_examples else list(examples.items()),
-        classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: MacOS X',
-            'Environment :: Win32 (MS Windows)',
-            'Environment :: X11 Applications',
-            'Intended Audience :: Developers',
-            'Intended Audience :: End Users/Desktop',
-            'Intended Audience :: Information Technology',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: MIT License',
-            'Natural Language :: English',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows',
-            'Operating System :: POSIX :: BSD :: FreeBSD',
-            'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3.11',
-            'Programming Language :: Python :: 3.12',
-            'Programming Language :: Python :: 3.13',
-            'Programming Language :: Python :: 3.14',
-            'Topic :: Artistic Software',
-            'Topic :: Games/Entertainment',
-            'Topic :: Multimedia :: Graphics :: 3D Rendering',
-            'Topic :: Multimedia :: Graphics :: Capture :: Digital Camera',
-            'Topic :: Multimedia :: Graphics :: Presentation',
-            'Topic :: Multimedia :: Graphics :: Viewers',
-            'Topic :: Multimedia :: Sound/Audio :: Players :: MP3',
-            'Topic :: Multimedia :: Video :: Display',
-            'Topic :: Scientific/Engineering :: Human Machine Interfaces',
-            'Topic :: Scientific/Engineering :: Visualization',
-            ('Topic :: Software Development :: Libraries :: '
-             'Application Frameworks'),
-            'Topic :: Software Development :: User Interfaces'])
-else:
-    setup(
-        name='Kivy-examples',
-        version=__version__,
-        author='Kivy Team and other contributors',
-        author_email='kivy-dev@googlegroups.com',
-        url='http://kivy.org',
-        license='MIT',
-        description=('Kivy examples.'),
-        long_description_content_type='text/markdown',
-        long_description=get_description(),
-        data_files=list(examples.items()))
+# Project metadata (name, version, description, license, classifiers, urls and
+# runtime dependencies) lives in pyproject.toml. Only the dynamic build pieces
+# that setuptools cannot express statically are configured here.
+setup(
+    version=__version__,
+    ext_modules=ext_modules,
+    cmdclass=cmdclass,
+    packages=find_packages(include=['kivy*']),
+    package_dir={'kivy': 'kivy'},
+    package_data={
+        'kivy':
+            glob_paths('*.pxd', '*.pxi') +
+            glob_paths('**/*.pxd', '**/*.pxi') +
+            glob_paths('data/**/*.*') +
+            glob_paths('include/**/*.*') +
+            glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
+            glob_paths('graphics/**/*.h') +
+            glob_paths('tests/**/*.*') +
+            [
+                'setupconfig.py',
+            ] + binary_deps
+    },
+    data_files=[] if split_examples else list(examples.items()),
+)
