@@ -1189,3 +1189,24 @@ class Test_glReadPixels_inplace(GraphicUnitTest):
             glReadPixels_inplace
         with pytest.raises(ValueError):
             glReadPixels_inplace(0, 0, 1, 1, GL_RGB565, GL_UNSIGNED_BYTE, bytearray(16))
+
+
+class Test_glReadPixels(GraphicUnitTest):
+    @requires_graphics
+    def test_read_pixels(self):
+        from kivy.graphics.opengl import GL_RGB, GL_UNSIGNED_BYTE, glReadPixels
+        self.Window.clearcolor = (1, 0, 0, 1)
+        self.advance_frames(1)
+        pixels = glReadPixels(0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE)
+        assert pixels == b'\xff\x00\x00'
+
+    def test_unsupported_type(self):
+        from kivy.graphics.opengl import GL_RGB, GL_FLOAT, glReadPixels
+        with pytest.raises(AssertionError):
+            glReadPixels(0, 0, 1, 1, GL_RGB, GL_FLOAT)
+
+    def test_unsupported_format(self):
+        from kivy.graphics.opengl import GL_RGB565, GL_UNSIGNED_BYTE, \
+            glReadPixels
+        with pytest.raises(AssertionError):
+            glReadPixels(0, 0, 1, 1, GL_RGB565, GL_UNSIGNED_BYTE)
