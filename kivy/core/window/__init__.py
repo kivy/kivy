@@ -23,7 +23,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty, \
-    ColorProperty
+    ColorProperty, DictProperty
 from kivy.utils import platform, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
@@ -685,10 +685,25 @@ class WindowBase(EventDispatcher):
         self._animate_content()
 
     def _get_ios_kheight(self):
-        import ios
-        return ios.get_kheight()
+        # TODO(kivy.mobile): once kivy.mobile Android is validated, collapse
+        # _get_ios_kheight and _get_android_kheight into a single
+        # kivy.mobile call in _get_kheight and remove both helpers.
+        from kivy.mobile import get_keyboard_height
+        return get_keyboard_height()
+
+    def _refresh_safe_area(self, *args):
+        """Update Window.safe_area from kivy.mobile.get_safe_area()."""
+        if platform not in ('ios', 'android'):
+            return
+        try:
+            from kivy.mobile import get_safe_area
+            self.safe_area = get_safe_area()
+        except Exception:
+            pass
 
     def _get_android_kheight(self):
+        # TODO(kivy.mobile): replace with kivy.mobile.get_keyboard_height()
+        # once kivy/mobile/_platform/android.py is validated on a device.
         if USE_SDL3:  # Placeholder until the SDL3 bootstrap supports this
             return 0
         global android
@@ -715,6 +730,10 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_kheight(self):
+        # TODO(kivy.mobile): once _get_android_kheight is replaced, simplify to:
+        #   if platform in ('android', 'ios'):
+        #       from kivy.mobile import get_keyboard_height
+        #       return get_keyboard_height()
         if platform == 'android':
             return self._get_android_kheight()
         elif platform == 'ios':
@@ -753,6 +772,36 @@ class WindowBase(EventDispatcher):
 
     :attr:`keyboard_padding` is a
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    '''
+
+    safe_area = DictProperty(
+        {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
+    )
+    '''Safe-area insets in layout points for the current device and orientation.
+
+    Covers areas of the screen that should not be obscured by app content:
+    the status bar / Dynamic Island (top), the home indicator (bottom), and
+    the notch / rounded-corner overhang (left / right in landscape).
+
+    The dictionary always contains the keys ``"top"``, ``"left"``,
+    ``"bottom"``, and ``"right"``.  All values are in the same coordinate
+    system as Kivy layout (UIKit points on iOS).
+
+    The property is refreshed automatically on ``on_rotate``.  On desktop
+    platforms it remains ``{"top": 0, "left": 0, "bottom": 0, "right": 0}``.
+
+    Usage example::
+
+        from kivy.core.window import Window
+
+        def on_safe_area(window, insets):
+            print("top inset:", insets["top"])
+
+        Window.bind(safe_area=on_safe_area)
+
+    .. versionadded:: 3.0.0
+
+    :attr:`safe_area` is a :class:`~kivy.properties.DictProperty`.
     '''
 
     def _set_system_size(self, size):
@@ -1157,6 +1206,17 @@ class WindowBase(EventDispatcher):
 
         self.bind(softinput_mode=lambda *dt: self.update_viewport(),
                   keyboard_height=lambda *dt: self.update_viewport())
+
+        self.bind(rotation=self._refresh_safe_area)
+        self._refresh_safe_area()  # populate on startup
+
+        if platform == 'ios':
+            from kivy.mobile import subscribe_keyboard_height
+            subscribe_keyboard_height(
+                lambda h: self.trigger_keyboard_height()
+            )
+        # TODO(kivy.mobile): subscribe Android keyboard height here once
+        # kivy/mobile/_platform/android.py implements subscribe_keyboard_height.
 
         self.bind(show_cursor=lambda *dt: self._set_cursor_state(dt[1]))
 
