@@ -494,7 +494,7 @@ class Widget(WidgetBase):
             >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
             True
         '''
-        return self.x <= x <= self.right and self.y <= y <= self.top
+        return self.x <= x < self.right and self.y <= y < self.top
 
     def collide_widget(self, wid):
         '''
