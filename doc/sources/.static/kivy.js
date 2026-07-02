@@ -313,13 +313,22 @@ document.addEventListener("DOMContentLoaded", function() {
     var selector = document.getElementById("version_selector");
 
     if (selector) {
-        selector.addEventListener('change', function() {
-            // Clean up the path into segments, ignoring empty spaces
-            var paths = window.location.pathname.split('/').filter(Boolean);
+        // Docs are served under "/doc/<version>/...", so the version is the
+        // path segment right after "doc". Keep the raw split (with its leading
+        // empty segment) so the rest of the path is preserved exactly and no
+        // spurious trailing slash is introduced when switching versions.
+        function version_index(segments) {
+            var doc_index = segments.indexOf('doc');
+            return doc_index === -1 ? -1 : doc_index + 1;
+        }
 
-            if (paths.length > 0) {
-                paths[0] = this.value;
-                document.location.pathname = '/' + paths.join('/') + '/';
+        selector.addEventListener('change', function() {
+            var segments = window.location.pathname.split('/');
+            var index = version_index(segments);
+
+            if (index !== -1 && index < segments.length) {
+                segments[index] = this.value;
+                document.location.pathname = segments.join('/');
             }
         });
 
@@ -331,8 +340,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 return response.json();
             })
             .then(function(versions) {
-                var paths = window.location.pathname.split('/').filter(Boolean);
-                var current = paths[0];
+                var segments = window.location.pathname.split('/');
+                var index = version_index(segments);
+                var current = index === -1 ? undefined : segments[index];
 
                 selector.innerHTML = '';
 
