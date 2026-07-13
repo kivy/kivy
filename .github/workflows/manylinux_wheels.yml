@@ -92,7 +92,7 @@ jobs:
   manylinux_wheel_upload:
     runs-on: ubuntu-latest
     needs: [manylinux_wheel_create, kivy_examples_create]
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python 3.x

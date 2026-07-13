@@ -100,7 +100,7 @@ jobs:
   osx_wheel_upload:
     runs-on: macos-latest
     needs: osx_wheels_create
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:

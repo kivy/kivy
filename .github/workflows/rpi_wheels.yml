@@ -33,7 +33,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         rename_wheels
     - name: Upload wheels to server
-      if: github.event_name != 'pull_request'
+      if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
       env:
         UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
       run: |

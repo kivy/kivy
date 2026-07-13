@@ -77,7 +77,7 @@ jobs:
   windows_wheel_upload:
     runs-on: windows-latest
     needs: windows_wheels_create
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python
