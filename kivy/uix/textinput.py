@@ -3058,32 +3058,22 @@ class TextInput(FocusBehavior, Widget):
         Window.unbind(on_textedit=self.window_on_textedit)
 
     def window_on_textedit(self, window, ime_input):
-        text_lines = self._lines or ['']
         if self._ime_composition:
-            pcc, pcr = self._ime_cursor
-            text = text_lines[pcr]
+            ci = self.cursor_index()
             len_ime = len(self._ime_composition)
-            if text[pcc - len_ime:pcc] == self._ime_composition:  # always?
-                remove_old_ime_text = text[:pcc - len_ime] + text[pcc:]
-                ci = self.cursor_index()
-                self._refresh_text_from_property(
-                    "insert",
-                    *self._get_line_from_cursor(pcr, remove_old_ime_text)
-                )
-                self.cursor = self.get_cursor_from_index(ci - len_ime)
+
+            self._selection_from = max(0, ci - len_ime)
+            self._selection_to = ci
+            self._selection = True
+
+            self.delete_selection()
 
         if ime_input:
             if self._selection:
                 self.delete_selection()
-            cc, cr = self.cursor
-            text = text_lines[cr]
-            new_text = text[:cc] + ime_input + text[cc:]
-            self._refresh_text_from_property(
-                "insert", *self._get_line_from_cursor(cr, new_text)
-            )
-            self.cursor = self.get_cursor_from_index(
-                self.cursor_index() + len(ime_input)
-            )
+
+            self.insert_text(ime_input)
+
         self._ime_composition = ime_input
         self._ime_cursor = self.cursor
 
