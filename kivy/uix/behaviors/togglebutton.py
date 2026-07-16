@@ -191,6 +191,7 @@ class _GroupAccessor:
             return []
         return list(cls._toggle_groups.get(owner, {}).get(name, []))
 
+
 from kivy.core.accessibility import Role
 
 
@@ -366,9 +367,7 @@ class ToggleButtonBehavior(ButtonBehavior):
         """
         self._change_active_state(value)
 
-    active = AliasProperty(
-        _get_active, _set_active, bind=["_active"], cache=True
-    )
+    active = AliasProperty(_get_active, _set_active, bind=["_active"], cache=True)
     """Persistent toggle state of the button.
 
     - **True**: Button is in "on" state
@@ -471,9 +470,8 @@ class ToggleButtonBehavior(ButtonBehavior):
 
         # Bind early so initial 'group' value triggers handler
         self.fbind("group", self._handle_group)
-        self._previous_group = None
-        if 'accessible_role' not in kwargs:
-            kwargs['accessible_role'] = Role.TOGGLE
+        if "accessible_role" not in kwargs:
+            kwargs["accessible_role"] = Role.TOGGLE
 
         # Initialize parent behavior
         super().__init__(**kwargs)
@@ -577,9 +575,7 @@ class ToggleButtonBehavior(ButtonBehavior):
                 )
             owner, name = group
             if name is None:
-                raise ValueError(
-                    "Group name (second tuple element) cannot be None"
-                )
+                raise ValueError("Group name (second tuple element) cannot be None")
             return owner, name
 
         return None, group

@@ -300,7 +300,8 @@ cdef class _WindowSDL3Storage:
         window_info = self.get_window_info()
         if accessibility is not None:
             accessibility.install(window_info, w, h)
-        IF UNAME_SYSNAME == 'Windows':
+
+        if PLATFORM == 'Windows':
             self.show_window()
 
         # Set shape in case the user requested a shaped window and the window
