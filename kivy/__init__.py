@@ -32,13 +32,14 @@ import sys
 import shutil
 from getopt import getopt, GetoptError
 import os
-from os import environ, mkdir
+from os import environ, makedirs
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
 import re
 import importlib
+from kivy.core import get_provider_options
 from kivy.logger import Logger, LOG_LEVELS
-from kivy.utils import platform
+from kivy.utils import platform, normalize_path_id
 from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
     _kivy_git_hash, _kivy_build_date
 
@@ -204,22 +205,19 @@ def kivy_usage():
     print(kivy_usage.__doc__ % (basename(sys.argv[0])))
 
 
-#: Global settings options for kivy
+#: Global settings options for kivy, see kivy.core for more details
 kivy_options = {
-    'window': ('egl_rpi', 'sdl3', 'sdl', 'x11'),
-    'text': ('pil', 'sdl3', 'sdlttf'),
-    'video': (
-        'gstplayer', 'ffmpeg', 'ffpyplayer', 'null'),
-    'audio_output': (
-        'gstplayer', 'ffpyplayer', 'sdl3',
-        'avplayer'),
-    'image': ('tex', 'imageio', 'dds', 'sdl3', 'pil', 'ffpy', 'gif'),
-    'camera': ('opencv', 'gi', 'avfoundation',
-               'android', 'picamera'),
-    'spelling': ('enchant', 'osxappkit', ),
-    'clipboard': (
-        'android', 'winctypes', 'xsel', 'xclip', 'dbusklipper', 'nspaste',
-        'sdl3', 'dummy', 'gtk3', )}
+    'window': get_provider_options('window'),
+    'text': get_provider_options('text'),
+    'video': get_provider_options('video'),
+    'audio_output': get_provider_options('audio_output'),
+    'image': get_provider_options('image'),
+    'camera': get_provider_options('camera'),
+    'spelling': get_provider_options('spelling'),
+    'clipboard': get_provider_options('clipboard'),
+    'svg': get_provider_options('svg'),
+    'lottie': get_provider_options('lottie'),
+}
 
 # Read environment
 for option, value in kivy_options.items():
@@ -351,7 +349,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     kivy_home_dir = None
 
     # Configuration management
-    if 'KIVY_HOME' in environ:
+    # Check for KIVY_DESKTOP_PATH_ID first on desktop platforms
+    if platform in {'win', 'macosx', 'linux'} and 'KIVY_DESKTOP_PATH_ID' in environ:
+        path_id = normalize_path_id(environ['KIVY_DESKTOP_PATH_ID'])
+
+        if platform == 'win':
+            base_dir = environ['APPDATA']
+        elif platform == 'macosx':
+            base_dir = expanduser('~/Library/Application Support')
+        else:  # linux
+            base_dir = expanduser(environ.get('XDG_DATA_HOME', '~/.local/share'))
+
+        kivy_home_dir = join(base_dir, path_id, '.kivy')
+    elif 'KIVY_HOME' in environ:
         kivy_home_dir = expanduser(environ['KIVY_HOME'])
     elif platform == 'android':
         user_home_dir = environ['ANDROID_APP_PATH']
@@ -361,20 +371,29 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         # Detection if venv being used with the framework
         user_home_dir = dirname(sys.prefix)
 
+    # Log warning if KIVY_DESKTOP_PATH_ID not set on desktop
+    if (platform in {'win', 'macosx', 'linux'} and
+            'KIVY_DESKTOP_PATH_ID' not in environ and
+            kivy_home_dir is None):
+        Logger.warning(
+            'Kivy: KIVY_DESKTOP_PATH_ID not set. If your application '
+            'targets desktop platforms, set it to provide a '
+            'user-friendly application name for directories. '
+            'See https://kivy.org/doc/stable/guide/environment.html'
+        )
+
     kivy_home_dir = kivy_home_dir or join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     icon_dir = join(kivy_home_dir, 'icon')
 
     if 'KIVY_NO_CONFIG' not in environ:
-        if not exists(kivy_home_dir):
-            mkdir(kivy_home_dir)
-        if not exists(kivy_usermodules_dir):
-            mkdir(kivy_usermodules_dir)
+        makedirs(kivy_home_dir, exist_ok=True)
+        makedirs(kivy_usermodules_dir, exist_ok=True)
         if platform not in {'android', 'ios'} and not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except:
+            except Exception:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -410,7 +429,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 if opt == '--multiprocessing-fork':
                     mp_fork = True
                     break
-        except:
+        except Exception:
             pass
 
         # set argv to the non-read args

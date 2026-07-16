@@ -101,7 +101,7 @@ else:
 
                 try:
                     etype, x, y = self.pen_events.pop()
-                except:
+                except Exception:
                     break
 
                 if etype == 'begin':

@@ -637,7 +637,22 @@ cdef class Texture:
 
     def __init__(self, width, height, target, texid=0, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None, callback=None,
-            icolorfmt='rgb'):
+            icolorfmt='rgb', nofree=False):
+        '''
+        :Parameters:
+            `nofree`: bool, defaults to False
+                When True, Kivy will not queue a ``glDeleteTextures``
+                for this texture id on ``__dealloc__`` / context
+                reload. Use this when wrapping a GL texture whose
+                lifetime is owned by an external system (e.g. a native
+                video provider that allocated the id via
+                ``glGenTextures`` and will release it via
+                ``glDeleteTextures`` itself). Double-deletes are
+                otherwise silent in GL but can land on a *recycled*
+                id, corrupting an unrelated live texture.
+
+                .. versionadded:: 3.0.0
+        '''
         self.observers = []
         self._width         = width
         self._height        = height
@@ -656,7 +671,7 @@ cdef class Texture:
         self._bufferfmt     = bufferfmt
         self._icolorfmt     = icolorfmt
         self._source        = source
-        self._nofree        = 0
+        self._nofree        = 1 if nofree else 0
         self._callback      = callback
 
         if texid == 0:

@@ -27,7 +27,7 @@ class TestApp(App):
         b = Button(on_press=self.show_popup, text="Show Popup")
         return b
 
-    def show_popup(self, b):
+    def show_popup(self, *args):
         p = CustomPopup()
         p.open()
 

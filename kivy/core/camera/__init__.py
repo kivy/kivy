@@ -20,7 +20,7 @@ __all__ = ('CameraBase', 'Camera')
 from kivy.utils import platform
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 
 
 class CameraBase(EventDispatcher):
@@ -134,18 +134,20 @@ class CameraBase(EventDispatcher):
 
 
 # Load the appropriate providers
-providers = ()
+# Build platform-specific list from registry
+all_providers = get_provider_modules('camera')
+providers = []
 
 if platform in ['macosx', 'ios']:
-    providers += (('avfoundation', 'camera_avfoundation',
-                   'CameraAVFoundation'), )
+    providers.append(make_provider_tuple(
+        'avfoundation', all_providers, 'CameraAVFoundation'
+    ))
 elif platform == 'android':
-    providers += (('android', 'camera_android', 'CameraAndroid'), )
+    providers.append(make_provider_tuple('android', all_providers, 'CameraAndroid'))
 else:
-    providers += (('picamera', 'camera_picamera', 'CameraPiCamera'), )
-    providers += (('gi', 'camera_gi', 'CameraGi'), )
+    providers.append(make_provider_tuple('picamera', all_providers, 'CameraPiCamera'))
+    providers.append(make_provider_tuple('gi', all_providers, 'CameraGi'))
 
-providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
+providers.append(make_provider_tuple('opencv', all_providers, 'CameraOpenCV'))
 
-
-Camera: CameraBase = core_select_lib('camera', (providers))
+Camera: CameraBase = core_select_lib('camera', providers)

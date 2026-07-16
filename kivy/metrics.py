@@ -189,17 +189,9 @@ class MetricsBase(EventDispatcher):
         if not force_recompute and self._dpi is not None:
             return self._dpi
 
-        if platform == 'android':
-            if USE_SDL3:
-                import jnius
-                Hardware = jnius.autoclass('org.renpy.android.Hardware')
-                value = Hardware.getDPI()
-            else:
-                import android
-                value = android.get_dpi()
-        elif platform == 'ios':
-            import ios
-            value = ios.get_dpi()
+        if platform in ('android', 'ios'):
+            from kivy.mobile import get_dpi as _mobile_get_dpi
+            value = _mobile_get_dpi()
         else:
             # for all other platforms..
             from kivy.base import EventLoop
@@ -252,13 +244,9 @@ class MetricsBase(EventDispatcher):
             return self._density
 
         value = 1.0
-        if platform == 'android':
-            import jnius
-            Hardware = jnius.autoclass('org.renpy.android.Hardware')
-            value = Hardware.metrics.scaledDensity
-        elif platform == 'ios':
-            import ios
-            value = ios.get_scale()
+        if platform in ('android', 'ios'):
+            from kivy.mobile import get_density as _mobile_get_density
+            value = _mobile_get_density()
         elif platform in ('macosx', 'win'):
             value = self.dpi / 96.
 

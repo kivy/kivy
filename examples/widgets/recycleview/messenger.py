@@ -16,8 +16,8 @@ KV = '''
         PushMatrix
         Scale:
             origin: self.center
-            x: .75 if self.state == 'down' else 1
-            y: .75 if self.state == 'down' else 1
+            x: .75 if self.pressed else 1
+            y: .75 if self.pressed else 1
 
     canvas.after:
         PopMatrix

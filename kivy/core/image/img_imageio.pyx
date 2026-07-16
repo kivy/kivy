@@ -348,6 +348,7 @@ cdef list _supported_source_extensions = _ImageIOInterface().get_supported_sourc
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO OS X Framework
     '''
+    _provider_name = 'imageio'
 
     @staticmethod
     def extensions():

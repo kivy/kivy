@@ -198,10 +198,9 @@ class CodeInput(CodeNavigationBehavior, TextInput):
                 offset = self._get_text_width(
                     self._lines[self.cursor_row][:self.cursor_col])
                 return offset
-        except:
+        except Exception:
             pass
-        finally:
-            return offset
+        return offset
 
     def on_lexer(self, instance, value):
         self._trigger_refresh_text()

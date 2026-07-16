@@ -31,12 +31,12 @@ BoxLayout:
         ToggleButton:
             group: 'video'
             text: 'Play'
-            state: 'down' if myvideo.state == 'play' else 'normal'
+            activated: myvideo.state == 'play'
             on_press: myvideo.state = 'play'
 
         ToggleButton:
             group: 'video'
             text: 'Stop'
-            state: 'down' if myvideo.state != 'play' else 'normal'
+            activated: myvideo.state != 'play'
             on_press: myvideo.state = 'stop'
 

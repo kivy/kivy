@@ -386,7 +386,7 @@ class SettingString(SettingItem):
             self.popup.dismiss()
         self.popup = None
 
-    def _validate(self, instance):
+    def _validate(self, *largs):
         self._dismiss()
         value = self.textinput.text.strip()
         self.value = value
@@ -551,12 +551,12 @@ class SettingColor(SettingItem):
             self.popup.dismiss()
         self.popup = None
 
-    def _validate(self, instance):
+    def _validate(self, *args):
         self._dismiss()
         value = utils.get_hex_from_color(self.colorpicker.color)
         self.value = value
 
-    def _create_popup(self, instance):
+    def _create_popup(self, *args):
         # create popup layout
         content = BoxLayout(orientation='vertical', spacing='5dp')
         popup_width = min(0.95 * Window.width, dp(500))
@@ -635,7 +635,7 @@ class SettingOptions(SettingItem):
             return
         self.fbind('on_release', self._create_popup)
 
-    def _set_option(self, instance):
+    def _set_option(self, instance, *args):
         self.value = instance.text
         self.popup.dismiss()
 
@@ -652,8 +652,8 @@ class SettingOptions(SettingItem):
         content.add_widget(Widget(size_hint_y=None, height=1))
         uid = str(self.uid)
         for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option, state=state, group=uid)
+            activated = option == self.value
+            btn = ToggleButton(text=option, activated=activated, group=uid)
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
 
@@ -771,7 +771,7 @@ class InterfaceWithSidebar(BoxLayout):
     def __init__(self, *args, **kwargs):
         super(InterfaceWithSidebar, self).__init__(*args, **kwargs)
         self.menu.close_button.bind(
-            on_release=lambda j: self.dispatch('on_close'))
+            on_release=lambda *args: self.dispatch('on_close'))
 
     def add_panel(self, panel, name, uid):
         '''This method is used by Settings to add new panels for possible
@@ -828,7 +828,7 @@ class InterfaceWithSpinner(BoxLayout):
     def __init__(self, *args, **kwargs):
         super(InterfaceWithSpinner, self).__init__(*args, **kwargs)
         self.menu.close_button.bind(
-            on_release=lambda j: self.dispatch('on_close'))
+            on_release=lambda *args: self.dispatch('on_close'))
 
     def add_panel(self, panel, name, uid):
         '''This method is used by Settings to add new panels for possible
@@ -1032,7 +1032,9 @@ class Settings(BoxLayout):
     def on_config_change(self, config, section, key, value):
         pass
 
-    def add_json_panel(self, title, config, filename=None, data=None):
+    def add_json_panel(
+            self, title, config, filename=None,
+            data=None, encoding='utf-8'):
         '''Create and add a new :class:`SettingsPanel` using the configuration
         `config` with the JSON definition `filename`. If `filename` is not set,
         then the JSON definition is read from the `data` parameter instead.
@@ -1040,12 +1042,15 @@ class Settings(BoxLayout):
         Check the :ref:`settings_json` section in the documentation for more
         information about JSON format and the usage of this function.
         '''
-        panel = self.create_json_panel(title, config, filename, data)
+        panel = self.create_json_panel(
+            title, config, filename, data, encoding)
         uid = panel.uid
         if self.interface is not None:
             self.interface.add_panel(panel, title, uid)
 
-    def create_json_panel(self, title, config, filename=None, data=None):
+    def create_json_panel(
+            self, title, config,
+            filename=None, data=None, file_encoding='utf-8'):
         '''Create new :class:`SettingsPanel`.
 
         .. versionadded:: 1.5.0
@@ -1055,7 +1060,7 @@ class Settings(BoxLayout):
         if filename is None and data is None:
             raise Exception('You must specify either the filename or data')
         if filename is not None:
-            with open(filename, 'r') as fd:
+            with open(filename, 'r', encoding=file_encoding) as fd:
                 data = json.loads(fd.read())
         else:
             data = json.loads(data)
@@ -1188,7 +1193,7 @@ class InterfaceWithTabbedPanel(FloatLayout):
 
     def __init__(self, *args, **kwargs):
         super(InterfaceWithTabbedPanel, self).__init__(*args, **kwargs)
-        self.close_button.bind(on_release=lambda j: self.dispatch('on_close'))
+        self.close_button.bind(on_release=lambda *args: self.dispatch('on_close'))
 
     def add_panel(self, panel, name, uid):
         scrollview = ScrollView()

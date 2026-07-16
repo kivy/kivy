@@ -1,16 +1,19 @@
-
 __all__ = ('AnimatedButton')
 
 from kivy.factory import Factory
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, OptionProperty, \
-                            ObjectProperty, BooleanProperty
+                            ObjectProperty, BooleanProperty, AliasProperty
 
 
 class AnimatedButton(Label):
 
-    state = OptionProperty('normal', options=('normal', 'down'))
+    def _get_pressed(self):
+        return self._pressed
+
+    pressed = AliasProperty(_get_pressed, None, bind=('_pressed',))
+
     fit_mode = StringProperty("fill")
     border = ObjectProperty(None)
     anim_delay = ObjectProperty(None)
@@ -21,29 +24,25 @@ class AnimatedButton(Label):
             'atlas://data/images/defaulttheme/button_pressed')
 
     def __init__(self, **kwargs):
+        self._pressed = False
         super(AnimatedButton, self).__init__(**kwargs)
 
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        # borderImage.border by default is ...
         self.border = (16, 16, 16, 16)
-        # Image to display depending on state
         self.img = Image(
             source=self.background_normal,
             fit_mode=self.fit_mode,
             mipmap=True)
 
-        # reset animation if anim_delay is changed
         def anim_reset(*l):
             self.img.anim_delay = self.anim_delay
 
         self.bind(anim_delay=anim_reset)
         self.anim_delay = .1
-        # update self.texture when image.texture changes
         self.img.bind(texture=self.on_tex_changed)
         self.on_tex_changed()
 
-        # update image source when background image is changed
         def background_changed(*l):
             self.img.source = self.background_normal
             self.anim_delay = .1
@@ -53,11 +52,11 @@ class AnimatedButton(Label):
     def on_tex_changed(self, *largs):
         self.texture_background = self.img.texture
 
-    def _do_press(self):
-        self.state = 'down'
+    def _do_press(self, touch):
+        self._pressed = True
 
-    def _do_release(self):
-        self.state = 'normal'
+    def _do_release(self, touch):
+        self._pressed = False
 
     def on_touch_down(self, touch):
         if not self.collide_point(touch.x, touch.y):
@@ -69,8 +68,8 @@ class AnimatedButton(Label):
         _animdelay = self.img.anim_delay
         self.img.source = self.background_down
         self.img.anim_delay = _animdelay
-        self._do_press()
-        self.dispatch('on_press')
+        self._do_press(touch)
+        self.dispatch('on_press', touch)
         return True
 
     def on_touch_move(self, touch):
@@ -84,14 +83,14 @@ class AnimatedButton(Label):
         _animdelay = self.img._coreimage.anim_delay
         self.img.source = self.background_normal
         self.anim_delay = _animdelay
-        self._do_release()
-        self.dispatch('on_release')
+        self._do_release(touch)
+        self.dispatch('on_release', touch)
         return True
 
-    def on_press(self):
+    def on_press(self, touch):
         pass
 
-    def on_release(self):
+    def on_release(self, touch):
         pass
 
 

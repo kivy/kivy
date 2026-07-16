@@ -1,0 +1,191 @@
+set -e -x
+
+# Absolute path to the repo root.  Captured before any pushd so we can
+# locate tools/build_thorvg.sh and tools/macos_framework_wrapper.sh
+# regardless of which sub-directory we are in during the build.
+_REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# iOS SDL3
+IOS__SDL3__VERSION="3.4.2"
+IOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$IOS__SDL3__VERSION/SDL3-$IOS__SDL3__VERSION.tar.gz"
+IOS__SDL3__FOLDER="SDL3-$IOS__SDL3__VERSION"
+
+# iOS SDL3_image
+IOS__SDL3_IMAGE__VERSION="3.4.0"
+IOS__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$IOS__SDL3_IMAGE__VERSION/SDL3_image-$IOS__SDL3_IMAGE__VERSION.tar.gz"
+IOS__SDL3_IMAGE__FOLDER="SDL3_image-$IOS__SDL3_IMAGE__VERSION"
+
+# iOS SDL3_mixer
+IOS__SDL3_MIXER__VERSION="3.2.0"
+IOS__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$IOS__SDL3_MIXER__VERSION/SDL3_mixer-$IOS__SDL3_MIXER__VERSION.tar.gz"
+IOS__SDL3_MIXER__FOLDER="SDL3_mixer-$IOS__SDL3_MIXER__VERSION"
+
+# iOS SDL3_ttf
+IOS__SDL3_TTF__VERSION="3.2.2"
+IOS__SDL3_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-$IOS__SDL3_TTF__VERSION/SDL3_ttf-$IOS__SDL3_TTF__VERSION.tar.gz"
+IOS__SDL3_TTF__FOLDER="SDL3_ttf-$IOS__SDL3_TTF__VERSION"
+
+IOS__ANGLE__VERSION="chromium-6943_rev1"
+IOS__ANGLE_URL="https://github.com/kivy/angle-builder/releases/download/${IOS__ANGLE__VERSION}/angle-iphoneall-universal.tar.gz"
+IOS__ANGLE__FOLDER="angle-iphoneall-universal"
+
+# Clean the dependencies folder
+rm -rf ios-kivy-dependencies
+
+# Create the dependencies folder
+mkdir ios-kivy-dependencies
+
+# Download the dependencies
+echo "Downloading dependencies..."
+mkdir ios-kivy-dependencies/download
+pushd ios-kivy-dependencies/download
+curl -L $IOS__SDL3__URL -o "${IOS__SDL3__FOLDER}.tar.gz"
+curl -L $IOS__SDL3_IMAGE__URL -o "${IOS__SDL3_IMAGE__FOLDER}.tar.gz"
+curl -L $IOS__SDL3_MIXER__URL -o "${IOS__SDL3_MIXER__FOLDER}.tar.gz"
+curl -L $IOS__SDL3_TTF__URL -o "${IOS__SDL3_TTF__FOLDER}.tar.gz"
+curl -L $IOS__ANGLE_URL -o "${IOS__ANGLE__FOLDER}.tar.gz"
+popd
+
+# Extract the dependencies into build folder
+echo "Extracting dependencies..."
+mkdir ios-kivy-dependencies/build
+pushd ios-kivy-dependencies/build
+tar -xzf ../download/${IOS__SDL3__FOLDER}.tar.gz
+tar -xzf ../download/${IOS__SDL3_IMAGE__FOLDER}.tar.gz
+tar -xzf ../download/${IOS__SDL3_MIXER__FOLDER}.tar.gz
+tar -xzf ../download/${IOS__SDL3_TTF__FOLDER}.tar.gz
+popd
+
+# Create distribution folder
+echo "Creating distribution folder..."
+mkdir ios-kivy-dependencies/dist
+mkdir ios-kivy-dependencies/dist/Frameworks
+mkdir ios-kivy-dependencies/dist/include
+mkdir ios-kivy-dependencies/dist/lib
+
+
+# Extract ANGLE in distribution folder
+echo "Extracting ANGLE..."
+pushd ios-kivy-dependencies/dist
+mkdir $IOS__ANGLE__FOLDER
+tar -xzf ../download/${IOS__ANGLE__FOLDER}.tar.gz -C $IOS__ANGLE__FOLDER
+cp -a ${IOS__ANGLE__FOLDER}/include/* include
+cp -r ${IOS__ANGLE__FOLDER}/*.xcframework Frameworks
+rm -r $IOS__ANGLE__FOLDER
+popd
+
+# Build the dependencies
+pushd ios-kivy-dependencies/build
+
+echo "-- Build SDL3 (Universal)"
+pushd $IOS__SDL3__FOLDER
+for platform in "iOS" "iOS Simulator"; do
+    platform_arg=$([ "$platform" = "iOS" ] && echo "iphoneos" || echo "iphonesimulator")
+    xcodebuild archive -scheme SDL3 -project Xcode/SDL/SDL.xcodeproj \
+        -archivePath "Xcode/SDL/build/Release-${platform_arg}" \
+        -destination "generic/platform=${platform}" -configuration Release \
+        "BUILD_LIBRARY_FOR_DISTRIBUTION=YES" "SKIP_INSTALL=NO"
+done
+xcodebuild -create-xcframework \
+    -framework Xcode/SDL/build/Release-iphoneos.xcarchive/Products/Library/Frameworks/SDL3.framework \
+    -framework Xcode/SDL/build/Release-iphonesimulator.xcarchive/Products/Library/Frameworks/SDL3.framework \
+    -output ../../dist/Frameworks/SDL3.xcframework
+
+# Copy SDL3 headers to distribution folder
+mkdir -p ../../dist/include/SDL3
+cp -a Xcode/SDL/build/Release-iphoneos.xcarchive/Products/Library/Frameworks/SDL3.framework/Headers/* ../../dist/include/SDL3
+
+popd
+
+echo "-- Build SDL3_mixer (Universal)"
+pushd $IOS__SDL3_MIXER__FOLDER
+for platform in "iOS" "iOS Simulator"; do
+    platform_arg=$([ "$platform" = "iOS" ] && echo "iphoneos" || echo "iphonesimulator")
+    xcodebuild archive -scheme SDL3_mixer -project Xcode/SDL_mixer.xcodeproj \
+        -archivePath "Xcode/SDL_mixer/build/Release-${platform_arg}" \
+        -destination "generic/platform=${platform}" -configuration Release \
+        "BUILD_LIBRARY_FOR_DISTRIBUTION=YES" "SKIP_INSTALL=NO"
+done
+xcodebuild -create-xcframework \
+    -framework Xcode/SDL_mixer/build/Release-iphoneos.xcarchive/Products/Library/Frameworks/SDL3_mixer.framework \
+    -framework Xcode/SDL_mixer/build/Release-iphonesimulator.xcarchive/Products/Library/Frameworks/SDL3_mixer.framework \
+    -output ../../dist/Frameworks/SDL3_mixer.xcframework
+popd
+
+echo "-- Build SDL3_image (Universal)"
+pushd $IOS__SDL3_IMAGE__FOLDER
+for platform in "iOS" "iOS Simulator"; do
+    platform_arg=$([ "$platform" = "iOS" ] && echo "iphoneos" || echo "iphonesimulator")
+    xcodebuild archive -scheme SDL3_image -project Xcode/SDL_image.xcodeproj \
+        -archivePath "Xcode/SDL_image/build/Release-${platform_arg}" \
+        -destination "generic/platform=${platform}" -configuration Release \
+        "BUILD_LIBRARY_FOR_DISTRIBUTION=YES" "SKIP_INSTALL=NO"
+done
+xcodebuild -create-xcframework \
+    -framework Xcode/SDL_image/build/Release-iphoneos.xcarchive/Products/Library/Frameworks/SDL3_image.framework \
+    -framework Xcode/SDL_image/build/Release-iphonesimulator.xcarchive/Products/Library/Frameworks/SDL3_image.framework \
+    -output ../../dist/Frameworks/SDL3_image.xcframework
+popd
+
+echo "-- Build SDL3_ttf (Universal)"
+pushd $IOS__SDL3_TTF__FOLDER
+sh ./external/download.sh
+
+for platform in "iOS" "iOS Simulator"; do
+    platform_arg=$([ "$platform" = "iOS" ] && echo "iphoneos" || echo "iphonesimulator")
+    xcodebuild archive -scheme SDL3_ttf -project Xcode/SDL_ttf.xcodeproj \
+        -archivePath "Xcode/SDL_ttf/build/Release-${platform_arg}" \
+        -destination "generic/platform=${platform}" -configuration Release \
+        "BUILD_LIBRARY_FOR_DISTRIBUTION=YES" "SKIP_INSTALL=NO"
+done
+xcodebuild -create-xcframework \
+    -framework Xcode/SDL_ttf/build/Release-iphoneos.xcarchive/Products/Library/Frameworks/SDL3_ttf.framework \
+    -framework Xcode/SDL_ttf/build/Release-iphonesimulator.xcarchive/Products/Library/Frameworks/SDL3_ttf.framework \
+    -output ../../dist/Frameworks/SDL3_ttf.xcframework
+popd
+
+# ---------------------------------------------------------------------------
+# Build ThorVG — two SDK slices → per-slice .framework → KivyThorVG.xcframework
+#
+# build_thorvg.sh handles download + Meson cross-compile for each slice.
+# macos_framework_wrapper.sh wraps the resulting dylib into a non-versioned
+# .framework bundle (rewrites LC_ID_DYLIB to @rpath/...).
+# xcodebuild -create-xcframework then merges both frameworks into one
+# xcframework that add-ios-frameworks.py picks up automatically.
+#
+# The THORVG_BUILD_ROOT is shared across both slices so the source tarball
+# is only downloaded once; build_thorvg.sh creates a per-slice build
+# directory (build-iphoneos / build-iphonesimulator) inside that root.
+# ---------------------------------------------------------------------------
+echo "-- Build ThorVG (universal iOS XCFramework)"
+
+_THORVG_BUILD_ROOT="$(pwd)/../dist/thorvg-build"
+
+for _slice in iphoneos iphonesimulator; do
+    _thorvg_prefix="$(pwd)/../dist/thorvg-${_slice}"
+
+    THORVG_IOS="${_slice}" \
+    THORVG_BUILD_ROOT="${_THORVG_BUILD_ROOT}" \
+    THORVG_INSTALL_PREFIX="${_thorvg_prefix}" \
+    bash "${_REPO_ROOT}/tools/build_thorvg.sh"
+
+    mkdir -p "${_thorvg_prefix}/Frameworks"
+
+    # Find the real dylib (not the symlink) produced by Meson.
+    _thorvg_dylib=$(find "${_thorvg_prefix}/lib" -maxdepth 1 \
+        -name 'libthorvg-*.dylib' ! -type l | head -n1)
+
+    FRAMEWORK_MIN_OS_VERSION=16.0 \
+    bash "${_REPO_ROOT}/tools/macos_framework_wrapper.sh" \
+        "${_thorvg_dylib}" \
+        KivyThorVG \
+        "${_thorvg_prefix}/Frameworks" \
+        "${_thorvg_prefix}/include/thorvg-1"
+done
+
+xcodebuild -create-xcframework \
+    -framework "../dist/thorvg-iphoneos/Frameworks/KivyThorVG.framework" \
+    -framework "../dist/thorvg-iphonesimulator/Frameworks/KivyThorVG.framework" \
+    -output "../dist/Frameworks/KivyThorVG.xcframework"
+
+popd

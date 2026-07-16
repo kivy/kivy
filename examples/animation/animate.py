@@ -17,7 +17,7 @@ from kivy.uix.button import Button
 
 class TestApp(App):
 
-    def animate(self, instance):
+    def animate(self, instance, touch):
         # create an animation object. This object could be stored
         # and reused each call or reused across different widgets.
         # += is a sequential step, while &= is in parallel

@@ -285,7 +285,7 @@ def ignore_exception(f):
     def f2(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except:
+        except Exception:
             pass
 
     return f2
@@ -365,15 +365,15 @@ class ConsoleAddonMode(ConsoleAddon):
 class ConsoleAddonSelect(ConsoleAddon):
     def init(self):
         self.btn = ConsoleToggleButton(text=u"Select")
-        self.btn.bind(state=self.on_button_state)
+        self.btn.bind(activated=self.on_button_state)
         self.console.add_toolbar_widget(self.btn)
         self.console.bind(inspect_enabled=self.on_inspect_enabled)
 
     def on_inspect_enabled(self, instance, value):
-        self.btn.state = "down" if value else "normal"
+        self.btn.activated = value
 
     def on_button_state(self, instance, value):
-        self.console.inspect_enabled = (value == "down")
+        self.console.inspect_enabled = value
 
 
 class ConsoleAddonFps(ConsoleAddon):
@@ -407,18 +407,14 @@ class ConsoleAddonBreadcrumbView(RelativeLayout):
     def on_widget(self, instance, value):
         stack = self.ids.stack
 
-        # determine if we can just highlight the current one
-        # or if we need to rebuild the breadcrumb
         prefs = [btn.widget_ref() for btn in self.parents]
         if value in prefs:
-            # ok, so just toggle this one instead.
             index = prefs.index(value)
             for btn in self.parents:
-                btn.state = "normal"
-            self.parents[index].state = "down"
+                btn.activated = False
+            self.parents[index].activated = True
             return
 
-        # we need to rebuild the breadcrumb.
         stack.clear_widgets()
         if not value:
             return
@@ -436,9 +432,9 @@ class ConsoleAddonBreadcrumbView(RelativeLayout):
             stack.add_widget(btn)
         self.ids.sv.scroll_x = 1
         self.parents = parents
-        btn.state = "down"
+        btn.activated = True
 
-    def highlight_widget(self, instance):
+    def highlight_widget(self, instance, touch):
         self.console.widget = instance.widget_ref()
 
 
@@ -493,7 +489,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
                 widget.bind(**{
                     key: partial(self.update_node_content, weakref.ref(node))
                 })
-            except:
+            except Exception:
                 pass
             treeview.add_node(node)
 
@@ -564,7 +560,7 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             for option in prop.options:
                 button = ToggleButton(
                     text=option,
-                    state='down' if option == value else 'normal',
+                    activated=True if option == value else False,
                     group=repr(content.uid),
                     size_hint_y=None,
                     height=44)
@@ -583,8 +579,8 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
                 content = Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
-            state = 'down' if value else 'normal'
-            content = ToggleButton(text=key, state=state)
+            state = True if value else False
+            content = ToggleButton(text=key, activated=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
                                             key, index))
 
@@ -608,8 +604,8 @@ class ConsoleAddonWidgetPanel(ConsoleAddon):
             setattr(widget, key, instance.text)
 
     @ignore_exception
-    def save_property_boolean(self, widget, key, index, instance, ):
-        value = instance.state == 'down'
+    def save_property_boolean(self, widget, key, index, instance, touch):
+        value = instance.activated
         if index >= 0:
             getattr(widget, key)[index] = value
         else:
@@ -794,7 +790,6 @@ class Console(RelativeLayout):
             PopMatrix()
         Clock.schedule_interval(self.update_widget_graphics, 0)
 
-        # instantiate all addons
         self._toolbar = {"left": [], "panels": [], "right": []}
         self._addons = []
         self._panel = None
@@ -802,9 +797,8 @@ class Console(RelativeLayout):
             instance = addon(self)
             self._addons.append(instance)
         self._init_toolbar()
-        # select the first panel
         self._panel = self._toolbar["panels"][0]
-        self._panel.state = "down"
+        self._panel.activated = True
         self._panel.cb_activate()
 
     def _init_toolbar(self):
@@ -855,16 +849,16 @@ class Console(RelativeLayout):
         btn.bind(on_press=self._activate_panel)
         self._toolbar["panels"].append(btn)
 
-    def _activate_panel(self, instance):
+    def _activate_panel(self, instance, touch):
         if self._panel != instance:
             self._panel.cb_deactivate()
-            self._panel.state = "normal"
+            self._panel.activated = False
             self.ids.content.clear_widgets()
             self._panel = instance
             self._panel.cb_activate()
-            self._panel.state = "down"
+            self._panel.activated = True
         else:
-            self._panel.state = "down"
+            self._panel.activated = True
             if self._panel.cb_refresh:
                 self._panel.cb_refresh()
 

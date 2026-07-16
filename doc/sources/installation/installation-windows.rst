@@ -44,7 +44,12 @@ required, and they are available for free. You can either:
   under "Tools for Visual Studio 2019". More info about this topic can be found
   `in the Kivy wiki <https://github.com/kivy/kivy/wiki/Using-Visual-C---Build-Tools-instead-of-Visual-Studio-on-Windows>`_.
 
-Now that the compiler is installed, continue to :ref:`install Kivy<kivy-source-install>`.
+In addition to the compiler, **meson** and **ninja** are required to build the bundled
+ThorVG vector graphics library. Both are available on PyPI::
+
+    python -m pip install meson ninja
+
+Now that the compiler and build tools are installed, continue to :ref:`install Kivy<kivy-source-install>`.
 
 Making Python available anywhere
 --------------------------------
@@ -77,7 +82,7 @@ You can launch a .py file with Python using the *Send to* menu:
 #. Open Windows Explorer (the file explorer in Windows 8), and to go the address
    'shell:sendto'. You should get the special Windows directory `SendTo`.
 #. Paste the previously copied ``python.exe`` file **as a shortcut**.
-#. Rename it to python <python-version>. E.g. ``python39``.
+#. Rename it to python <python-version>. E.g. ``python311``.
 
 You can now execute your application by right clicking on the `.py` file ->
 "Send To" -> "python <python-version>".

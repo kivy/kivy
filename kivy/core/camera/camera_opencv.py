@@ -147,7 +147,7 @@ class CameraOpenCV(CameraBase):
                 # which can be reshaped to 1-d.
                 self._buffer = frame.reshape(-1)
             self._copy_to_gpu()
-        except:
+        except Exception:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')
 
     def start(self):

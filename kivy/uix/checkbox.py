@@ -20,12 +20,12 @@ An example usage::
 
     def on_checkbox_active(checkbox, value):
         if value:
-            print('The checkbox', checkbox, 'is active')
+            print('The checkbox', checkbox, 'is activated')
         else:
             print('The checkbox', checkbox, 'is inactive')
 
     checkbox = CheckBox()
-    checkbox.bind(active=on_checkbox_active)
+    checkbox.bind(activated=on_checkbox_active)
 """
 
 __all__ = ("CheckBox",)
@@ -38,14 +38,14 @@ from kivy.uix.widget import Widget
 class CheckBox(ToggleButtonBehavior, Widget):
     """CheckBox class, see module documentation for more information."""
 
-    # NOTE: 'active' property is inherited from ToggleButtonBehavior
+    # NOTE: 'activated' property is inherited from ToggleButtonBehavior
     # No need to redefine it here anymore in Kivy 3.x
 
     background_checkbox_normal = StringProperty(
         "atlas://data/images/defaulttheme/checkbox_off"
     )
     """Background image of the checkbox used for the default graphical
-    representation when the checkbox is not active.
+    representation when the checkbox is not activated.
 
     .. versionadded:: 1.9.0
 
@@ -58,7 +58,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_on"
     )
     """Background image of the checkbox used for the default graphical
-    representation when the checkbox is active.
+    representation when the checkbox is activated.
 
     .. versionadded:: 1.9.0
 
@@ -71,7 +71,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_disabled_off"
     )
     """Background image of the checkbox used for the default graphical
-    representation when the checkbox is disabled and not active.
+    representation when the checkbox is disabled and not activated.
 
     .. versionadded:: 1.9.0
 
@@ -84,7 +84,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_disabled_on"
     )
     """Background image of the checkbox used for the default graphical
-    representation when the checkbox is disabled and active.
+    representation when the checkbox is disabled and activated.
 
     .. versionadded:: 1.9.0
 
@@ -97,7 +97,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_radio_off"
     )
     """Background image of the radio button used for the default graphical
-    representation when the radio button is not active.
+    representation when the radio button is not activated.
 
     .. versionadded:: 1.9.0
 
@@ -110,7 +110,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_radio_on"
     )
     """Background image of the radio button used for the default graphical
-    representation when the radio button is active.
+    representation when the radio button is activated.
 
     .. versionadded:: 1.9.0
 
@@ -123,7 +123,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_radio_disabled_off"
     )
     """Background image of the radio button used for the default graphical
-    representation when the radio button is disabled and not active.
+    representation when the radio button is disabled and not activated.
 
     .. versionadded:: 1.9.0
 
@@ -136,7 +136,7 @@ class CheckBox(ToggleButtonBehavior, Widget):
         "atlas://data/images/defaulttheme/checkbox_radio_disabled_on"
     )
     """Background image of the radio button used for the default graphical
-    representation when the radio button is disabled and active.
+    representation when the radio button is disabled and activated.
 
     .. versionadded:: 1.9.0
 

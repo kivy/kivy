@@ -26,7 +26,7 @@ __all__ = ('Spelling', 'SpellingBase', 'NoSuchLangError',
            'NoLanguageSelectedError')
 
 import sys
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 
 
 class NoSuchLangError(Exception):
@@ -128,8 +128,13 @@ class SpellingBase(object):
                                   'spelling base class!')
 
 
-_libs = (('enchant', 'spelling_enchant', 'SpellingEnchant'), )
-if sys.platform == 'darwin':
-    _libs += (('osxappkit', 'spelling_osxappkit', 'SpellingOSXAppKit'), )
 
+# Build platform-specific list from registry
+_libs = []
+
+all_providers = get_provider_modules('spelling')
+_libs.append(make_provider_tuple('enchant', all_providers, 'SpellingEnchant'))
+
+if sys.platform == 'darwin':
+    _libs.append(make_provider_tuple('osxappkit', all_providers, 'SpellingOSXAppKit'))
 Spelling: SpellingBase = core_select_lib('spelling', _libs)

@@ -22,6 +22,7 @@ your concern isn't addressed in the documentation, feel free to
 `contact us <https://github.com/kivy/kivy/blob/master/CONTACT.md>`_.
 
 .. include:: contents.rst.inc
+.. |year| date:: %Y
 
 Appendix
 ========
@@ -48,4 +49,4 @@ For a list of authors, please see the file ``AUTHORS`` that accompanies the
 Kivy source code distribution (next to ``LICENSE``).
 
 
-Kivy -- Copyright 2010-2025, The Kivy Authors.
+Kivy -- Copyright 2010-|year|, The Kivy Authors.

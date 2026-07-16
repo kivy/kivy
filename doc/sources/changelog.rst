@@ -4410,7 +4410,7 @@ Documentation
 - [:repo:`192`] Add PDF download link in sidebar
 - Added vim highlighter
 - Enhanced documentation widget with images
-- Enhance OpenGL wrapper documentation with Kronos website links
+- Enhance OpenGL wrapper documentation with Khronos website links
 - Rework documentation for Graphics part
 - Several typo fixes
 

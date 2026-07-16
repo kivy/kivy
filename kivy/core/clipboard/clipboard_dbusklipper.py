@@ -14,7 +14,7 @@ try:
     import dbus
     bus = dbus.SessionBus()
     proxy = bus.get_object("org.kde.klipper", "/klipper")
-except:
+except Exception:
     raise
 
 

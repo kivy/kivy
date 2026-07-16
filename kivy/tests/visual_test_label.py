@@ -38,7 +38,7 @@ kv = '''
     size_hint: None, None
     size: 100, 50
     group: 'slider'
-    on_press: self.parent.slider.name = self.text if self.state =='down' else\
+    on_activated: self.parent.slider.name = self.text if self.activated else\
     'dummy'
 
 <TSpinner@Spinner>:
@@ -50,7 +50,7 @@ kv = '''
 <TBoolButton@ToggleButton>:
     size_hint: None, None
     size: 100, 50
-    on_state: setattr(self.parent.label, self.text, self.state == 'down')
+    on_activated: setattr(self.parent.label, self.text, self.activated)
 
 <TLabel@Label>:
     size_hint: None, None
@@ -161,12 +161,12 @@ kv = '''
             text: 'right'
         TBoolButton:
             text: 'strip'
-            state: 'down'
+            activated: True
         ToggleButton:
             size_hint: None, None
             size: 100, 50
             text: 'random size'
-            on_state: label.text = root.sized_text if self.state == 'down'\
+            on_activated: label.text = root.sized_text if self.activated\
             else root.text
         TLabel:
             text: 'Slider control:'

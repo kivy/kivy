@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="48" viewBox="0 0 200 48">
+  <defs>
+    <!-- Base colour: light blue at top fading to deeper blue at bottom -->
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#6ab4d8"/>
+      <stop offset="55%"  stop-color="#3d8db8"/>
+      <stop offset="100%" stop-color="#2a6f96"/>
+    </linearGradient>
+    <!-- Gloss: white radial shine centred at the top of the button face.
+         Placed in userSpaceOnUse so it looks the same regardless of button size. -->
+    <radialGradient id="gloss"
+        cx="30" cy="8" r="88"
+        gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="45%"  stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.00"/>
+    </radialGradient>
+  </defs>
+  <!-- Outer border ring -->
+  <rect width="200" height="48" rx="8" fill="#1a4a65"/>
+  <!-- Base gradient fill -->
+  <rect x="2" y="2" width="196" height="44" rx="6" fill="url(#base)"/>
+  <!-- Gloss overlay on top of the base -->
+  <rect x="2" y="2" width="196" height="44" rx="6" fill="url(#gloss)"/>
+</svg>

@@ -374,7 +374,7 @@ else:
                 while True:
                     event_type, touch = self.queue.popleft()
                     dispatch_fn(event_type, touch)
-            except:
+            except Exception:
                 pass
 
     MotionEventFactory.register('mtdev', MTDMotionEventProvider)

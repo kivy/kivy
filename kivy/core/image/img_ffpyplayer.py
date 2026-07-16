@@ -40,6 +40,7 @@ class ImageLoaderFFPy(ImageLoaderBase):
         This provider may support more formats than what is listed in
         :meth:`extensions`.
     '''
+    _provider_name = 'ffpy'
 
     @staticmethod
     def extensions():
@@ -53,7 +54,7 @@ class ImageLoaderFFPy(ImageLoaderBase):
     def load(self, filename):
         try:
             loader = ffImageLoader(filename)
-        except:
+        except Exception:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 

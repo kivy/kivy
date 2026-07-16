@@ -49,7 +49,7 @@ try:
     import ffpyplayer
     from ffpyplayer.player import MediaPlayer
     from ffpyplayer.tools import set_log_callback, get_log_callback, formats_in
-except:
+except Exception:
     raise
 
 
@@ -62,7 +62,7 @@ import time
 try:
     Logger.info(
         'SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.__version__))
-except:
+except Exception:
     Logger.info('SoundFFPy: Using ffpyplayer {}'.format(ffpyplayer.version))
 
 
@@ -79,6 +79,7 @@ def _log_callback(message, level):
 
 
 class SoundFFPy(Sound):
+    _provider_name = 'ffpyplayer'
 
     @staticmethod
     def extensions():

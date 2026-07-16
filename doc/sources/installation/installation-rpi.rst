@@ -18,8 +18,8 @@ Installing Python
 
 Python and python-pip must be installed from the package manager:
 
-Raspberry Pi OS Bullseye/Bookworm
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Raspberry Pi OS Bookworm
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using apt::
 
@@ -54,41 +54,39 @@ To install Kivy from source, please follow the :ref:`installation guide<kivy-whe
 :ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
 before continuing.
 
-Raspberry Pi OS Bullseye/Bookworm
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Raspberry Pi OS Bookworm
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using apt::
 
     sudo apt update
     apt-get -y install build-essential git make autoconf automake libtool \
-          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          pkg-config cmake meson ninja-build libasound2-dev libpulse-dev libaudio-dev \
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
+          libayatana-appindicator3-dev
 
     apt-get install xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers
 
-Cross-Compilation for Raspberry Pi OS Bullseye/Bookworm (32 bit)
+Cross-Compilation for Raspberry Pi OS Bookworm (32 bit)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Kivy performs a dockerized cross-compilation for Raspberry Pi OS Bullseye/Bookworm (32 bit) wheels.
-The base images used for cross-compilation are the `balenalib`_ images for raspberrypi3 (bullseye and bookworm).
+Kivy performs a dockerized cross-compilation for Raspberry Pi OS Bookworm (32 bit) wheels.
+The base images used for cross-compilation are the `balenalib`_ images for raspberrypi3 (bookworm).
 
 .. _balenalib: https://www.balena.io/docs/reference/base-images/base-images-ref/
 
 The docker images are built using the `Dockerfile.armv7l` file in the `.ci` directory.
 
-The raspberrypi3 balenalib images have almost the same environment as the real Raspberry Pi OS Bullseye/Bookworm (32 bit) system,
+The raspberrypi3 balenalib images have almost the same environment as the real Raspberry Pi OS Bookworm (32 bit) system,
 which makes it possible to include/exclude RPi specific features (like the `egl_rpi` window provider) during the build process.
 
-We have an helper, named `generate_rpi_wheels`, that can be used to easily generate the wheels and copy the artifacts for Raspberry Pi OS Bullseye/Bookworm (32 bit).
+We have an helper, named `generate_rpi_wheels`, that can be used to easily generate the wheels and copy the artifacts for Raspberry Pi OS Bookworm (32 bit).
 To cross-compile the wheels, you need to run the following commands::
 
     source .ci/ubuntu_ci.sh
-
-    # Generate wheels for Raspberry Pi OS Bullseye (32 bit, Python 3.9)
-    generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.9-bullseye
 
     # Generate wheels for Raspberry Pi OS Bookworm (32 bit, Python 3.11)
     generate_rpi_wheels balenalib/raspberrypi3-debian-python:3.11-bookworm

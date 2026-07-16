@@ -16,6 +16,8 @@ NSString = autoclass("NSString")
 
 
 class SoundAvplayer(Sound):
+    _provider_name = 'avplayer'
+
     @staticmethod
     def extensions():
         # taken from https://goo.gl/015kvU

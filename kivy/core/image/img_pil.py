@@ -41,6 +41,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     artifacts until transparency support is improved.
 
     '''
+    _provider_name = 'pil'
 
     @staticmethod
     def can_save(fmt, is_bytesio_like):
@@ -65,7 +66,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         if _img_tmp.mode.lower() not in ('rgb', 'rgba'):
             try:
                 imc = _img_tmp.convert('RGBA')
-            except:
+            except Exception:
                 Logger.warning(
                     'Image: Unable to convert image to rgba (was %s)' %
                     (_img_tmp.mode.lower()))
@@ -100,7 +101,7 @@ class ImageLoaderPIL(ImageLoaderBase):
     def load(self, filename):
         try:
             im = PILImage.open(filename)
-        except:
+        except Exception:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
         # update internals

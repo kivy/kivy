@@ -138,61 +138,20 @@ class LangTestCase(unittest.TestCase):
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
 
-    def test_references_with_template(self):
+    def test_template_syntax_removed(self):
+        # The deprecated [Name@Base]: template syntax was removed in
+        # Kivy 3.0.0. Any kv string using it must raise a ParserException.
         Builder = self.import_builder()
-        Builder.load_string(dedent('''
+        from kivy.lang import ParserException
+        kv_code = dedent('''
         [Item@TLangClass3]:
             title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            Item:
-                title: 'bleh'
-            TLangClass2:
-                id: textinput
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
-
-    def test_references_with_template_case_2(self):
-        Builder = self.import_builder()
-        Builder.load_string(dedent('''
-        [Item@TLangClass3]:
-            title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            TLangClass2:
-                id: textinput
-                Item:
-                    title: 'bleh'
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
-
-    def test_references_with_template_case_3(self):
-        Builder = self.import_builder()
-        Builder.load_string(dedent('''
-        [Item@TLangClass3]:
-            title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            TLangClass2:
-                Item:
-                    title: 'bleh'
-                TLangClass2:
-                    TLangClass2:
-                        id: textinput
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
+        ''')
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Templates should raise ParserException.')
+        except ParserException as e:
+            self.assertIn('template', str(e).lower())
 
     def test_with_multiline(self):
         Builder = self.import_builder()

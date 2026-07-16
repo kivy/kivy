@@ -1,0 +1,22 @@
+[build-system]
+requires = [
+    "setuptools~=82.0.0",
+    "wheel~=0.47.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Kivy-examples"
+dynamic = ["version"]
+description = "Kivy examples."
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    { name = "Kivy Team and other contributors", email = "kivy-dev@googlegroups.com" },
+]
+
+[project.urls]
+Homepage = "http://kivy.org"
+Source = "https://github.com/kivy/kivy"
+Documentation = "https://kivy.org/doc/stable/"
+"Bug Reports" = "https://github.com/kivy/kivy/issues"

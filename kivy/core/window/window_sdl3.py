@@ -361,7 +361,7 @@ class WindowSDL(WindowBase):
                 filename_icon = resource_find(
                         join(kivy_data_dir, 'logo', filename_icon))
             self.set_icon(filename_icon)
-        except:
+        except Exception:
             Logger.exception('Window: cannot set icon')
 
     def _update_density(self):
@@ -505,7 +505,7 @@ class WindowSDL(WindowBase):
                 continue
 
             action, args = event[0], event[1:]
-            if action == 'quit':
+            if action in ('windowclose', 'quit'):
                 if self.dispatch('on_request_close'):
                     continue
                 EventLoop.quit = True
@@ -785,7 +785,7 @@ class WindowSDL(WindowBase):
                 continue
 
             action, args = event[0], event[1:]
-            if action == 'quit':
+            if action in ('windowclose', 'quit'):
                 EventLoop.quit = True
                 break
             elif action == 'app_willenterforeground':

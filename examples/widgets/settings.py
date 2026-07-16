@@ -20,13 +20,13 @@ class SettingsApp(App):
         paneltype = Label(text='What kind of settings panel to use?')
 
         sidebar_button = Button(text='Sidebar')
-        sidebar_button.bind(on_press=lambda j: self.set_settings_cls(
+        sidebar_button.bind(on_press=lambda *args: self.set_settings_cls(
             SettingsWithSidebar))
         spinner_button = Button(text='Spinner')
-        spinner_button.bind(on_press=lambda j: self.set_settings_cls(
+        spinner_button.bind(on_press=lambda *args: self.set_settings_cls(
             SettingsWithSpinner))
         tabbed_button = Button(text='TabbedPanel')
-        tabbed_button.bind(on_press=lambda j: self.set_settings_cls(
+        tabbed_button.bind(on_press=lambda *args: self.set_settings_cls(
             SettingsWithTabbedPanel))
 
         buttons = BoxLayout(orientation='horizontal')
@@ -37,9 +37,9 @@ class SettingsApp(App):
         displaytype = Label(text='How to display the settings?')
         display_buttons = BoxLayout(orientation='horizontal')
         onwin_button = Button(text='on window')
-        onwin_button.bind(on_press=lambda j: self.set_display_type('normal'))
+        onwin_button.bind(on_press=lambda *args: self.set_display_type('normal'))
         popup_button = Button(text='in a popup')
-        popup_button.bind(on_press=lambda j: self.set_display_type('popup'))
+        popup_button.bind(on_press=lambda *args: self.set_display_type('popup'))
         display_buttons.add_widget(onwin_button)
         display_buttons.add_widget(popup_button)
 

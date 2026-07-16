@@ -9,7 +9,7 @@ jobs:
   PEP8_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
@@ -31,7 +31,7 @@ jobs:
       # TODO: Only run tests on 3.14 once "ffpyplayer" works with Python 3.14
       KIVY_TEST_AUDIO: ${{ matrix.python == '3.14' && '0' || '1' }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
@@ -65,7 +65,7 @@ jobs:
         source .ci/ubuntu_ci.sh
         test_kivy_benchmark
     - name: Upload benchmarks as artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: benchmarks-ubuntu-unittests-python-3.x
         path: .benchmarks-kivy
@@ -73,7 +73,7 @@ jobs:
   gen_docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3
       uses: actions/setup-python@v6
       with:
@@ -83,20 +83,18 @@ jobs:
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
         ./tools/build_linux_dependencies.sh
-    - name: Setup env
-      run: |
-        source .ci/ubuntu_ci.sh
-        prepare_env_for_unittest
+
+    # Note: Removed prepare_env_for_unittest as it's already tested before gen_docs
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy
+        install_kivy docs
     - name: Generate docs
       run: |
         source .ci/ubuntu_ci.sh
         generate_docs
     - name: Upload docs as artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: docs
         path: doc/build/html

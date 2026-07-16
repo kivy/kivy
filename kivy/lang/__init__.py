@@ -4,7 +4,8 @@
 The Kivy language is a language dedicated to describing user interface and
 interactions. You could compare this language to Qt's QML
 (http://qt.nokia.com), but we included new concepts such as rule definitions
-(which are somewhat akin to what you may know from CSS), templating and so on.
+(which are somewhat akin to what you may know from CSS), dynamic classes and
+so on.
 
 .. versionchanged:: 1.7.0
 
@@ -42,11 +43,11 @@ The language consists of several constructs that you can use:
         Dynamic classes let you create new widgets and rules on-the-fly,
         without any Python declaration.
 
-    Templates (deprecated)
-        *(introduced in version 1.0.5, deprecated from version 1.7.0)*
-        Templates were used to populate parts of an application, such as
-        styling the content of a list (e.g. icon on the left, text on the
-        right). They are now deprecated by dynamic classes.
+.. versionchanged:: 3.0.0
+
+    The deprecated ``[Name@Base]:`` template syntax (introduced in 1.0.5,
+    deprecated in 1.7.0) has been removed. Use dynamic classes
+    (``<Name@Base>:``) instead.
 
 
 Syntax of a kv File
@@ -64,8 +65,8 @@ For now, use 1.0::
 
     # content here
 
-The `content` can contain rule definitions, a root widget, dynamic class
-definitions and templates::
+The `content` can contain rule definitions, a root widget and dynamic
+class definitions::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces: they are part of the definition.
@@ -83,12 +84,8 @@ definitions and templates::
     <NewWidget@BaseClass>:
         # .. definitions ..
 
-    # Syntax for creating a template
-    [TemplateName@BaseClass1,BaseClass2]:
-        # .. definitions ..
-
-Regardless of whether it's a rule, root widget, dynamic class or
-template you're defining, the definition should look like this::
+Regardless of whether it's a rule, root widget, or dynamic class you're
+defining, the definition should look like this::
 
     # With the braces it's a rule. Without them, it's a root widget.
     <ClassName>:
@@ -137,8 +134,7 @@ Here is a simple example of a kv file that contains a root widget::
 Both the :meth:`~BuilderBase.load_file` and the
 :meth:`~BuilderBase.load_string` methods
 return the root widget defined in your kv file/string. They will also add any
-class and template definitions to the :class:`~kivy.factory.Factory` for later
-usage.
+class definitions to the :class:`~kivy.factory.Factory` for later usage.
 
 Value Expressions, on_property Expressions, ids, and Reserved Keywords
 ---------------------------------------------------------------------
@@ -151,7 +147,7 @@ the value can use the values of other properties using reserved keywords.
         The keyword self references the "current widget instance"::
 
             Button:
-                text: 'My state is %s' % self.state
+                text: 'My pressed state is %s' % self.pressed
 
     root
         This keyword is available only in rule definitions and represents the
@@ -193,7 +189,7 @@ Class definitions may contain ids which can be used as a keywords:::
         Button:
             id: btn1
         Button:
-            text: 'The state of the other button is %s' % btn1.state
+            text: 'The pressed state of the other button is %s' % btn1.pressed
 
 Please note that the `id` will not be available in the widget instance:
 it is used exclusively for external references. `id` is a weakref to the
@@ -207,10 +203,10 @@ the example above, the buttons state could also be accessed as follows:
 .. code-block:: python
 
     widget = MyWidget()
-    state = widget.ids["btn1"].state
+    pressed = widget.ids["btn1"].pressed
 
     # Or, as an alternative syntax,
-    state = widget.ids.btn1.state
+    pressed = widget.ids.btn1.pressed
 
 Note that the outermost widget applies the kv rules to all its inner widgets
 before any other rules are applied. This means if an inner widget contains ids,
@@ -222,13 +218,13 @@ Valid expressions
 There are two places that accept python statements in a kv file:
 after a property, which assigns to the property the result of the expression
 (such as the text of a button as shown above) and after a on_property, which
-executes the statement when the property is updated (such as on_state).
+executes the statement when the property is updated (such as on_pressed).
 
 In the former case, the
 `expression <http://docs.python.org/2/reference/expressions.html>`_ can only
 span a single line, cannot be extended to multiple lines using newline
 escaping, and must return a value. An example of a valid expression is
-``text: self.state and ('up' if self.pressed else 'down')``.
+``text: self.pressed and ('up' if self.pressed else 'down')``.
 
 In the latter case, multiple single line statements are valid, including
 those that escape their newline, as long as they don't add an indentation
@@ -238,11 +234,11 @@ Examples of valid statements are:
 
 .. code-block:: python
 
-    on_press: if self.state == 'normal': print('normal')
-    on_state:
-        if self.state == 'normal': print('normal')
+    on_press: if self.pressed: print('normal')
+    on_pressed:
+        if self.pressed: print('normal')
         else: print('down')
-        if self.state == 'normal': \\
+        if self.pressed: \\
         print('multiline normal')
         for i in range(10): print(i)
         print([1,2,3,4,
@@ -252,8 +248,8 @@ An example of a invalid statement:
 
 .. code-block:: python
 
-    on_state:
-        if self.state == 'normal':
+    on_pressed:
+        if self.pressed:
             print('normal')
 
 Relation Between Values and Properties
@@ -274,17 +270,17 @@ occur.
 Here's a simple example that demonstrates this behavior::
 
     Button:
-        text: str(self.state)
+        text: str(self.pressed)
 
-In this example, the parser detects that `self.state` is a dynamic value (a
-property). The :attr:`~kivy.uix.button.Button.state` property of the button
+In this example, the parser detects that `self.pressed` is a dynamic value (a
+property). The :attr:`~kivy.uix.button.Button.pressed` property of the button
 can change at any moment (when the user touches it).
 We now want this button to display its own state as text, even as the state
 changes. To do this, we use the state property of the Button and use it in the
 value expression for the button's `text` property, which controls what text is
 displayed on the button (We also convert the state to a string representation).
-Now, whenever the button state changes, the text property will be updated
-automatically.
+Now, whenever the button `pressed` state changes, the text property will be
+updated automatically.
 
 Remember: The value is a python expression! That means that you can do
 something more interesting like::
@@ -477,167 +473,6 @@ In Python, you can create an instance of the dynamic class as follows:
     This however, leads to the unintuitive situation where the parent
     properties/methods override those of the child. Be careful if you choose
     to do this.
-
-.. _template_usage:
-
-Templates
----------
-
-.. versionchanged:: 1.7.0
-
-    Template usage is now deprecated. Please use Dynamic classes instead.
-
-Syntax of templates
-~~~~~~~~~~~~~~~~~~~
-
-Using a template in Kivy requires 2 things :
-
-    #. a context to pass for the context (will be ctx inside template).
-    #. a kv definition of the template.
-
-Syntax of a template:
-
-.. code-block:: kv
-
-    # With only one base class
-    [ClassName@BaseClass]:
-        # .. definitions ..
-
-    # With more than one base class
-    [ClassName@BaseClass1,BaseClass2]:
-        # .. definitions ..
-
-For example, for a list, you'll need to create a entry with a image on
-the left, and a label on the right. You can create a template for making
-that definition easier to use.
-So, we'll create a template that uses 2 entries in the context: an image
-filename and a title:
-
-.. code-block:: kv
-
-    [IconItem@BoxLayout]:
-        Image:
-            source: ctx.image
-        Label:
-            text: ctx.title
-
-Then in Python, you can instantiate the template using:
-
-.. code-block:: python
-
-    from kivy.lang import Builder
-
-    # create a template with hello world + an image
-    # the context values should be passed as kwargs to the Builder.template
-    # function
-    icon1 = Builder.template('IconItem', title='Hello world',
-        image='myimage.png')
-
-    # create a second template with other information
-    ctx = {'title': 'Another hello world',
-           'image': 'myimage2.png'}
-    icon2 = Builder.template('IconItem', **ctx)
-    # and use icon1 and icon2 as other widget.
-
-
-Template example
-~~~~~~~~~~~~~~~~
-
-Most of time, when you are creating a screen in the kv lang, you use a lot of
-redefinitions. In our example, we'll create a Toolbar, based on a
-BoxLayout, and put in a few :class:`~kivy.uix.image.Image` widgets that
-will react to the *on_touch_down* event.
-
-.. code-block:: kv
-
-    <MyToolbar>:
-        BoxLayout:
-            Image:
-                source: 'data/text.png'
-                size: self.texture_size
-                size_hint: None, None
-                on_touch_down: self.collide_point(*args[1].pos) and\
- root.create_text()
-
-            Image:
-                source: 'data/image.png'
-                size: self.texture_size
-                size_hint: None, None
-                on_touch_down: self.collide_point(*args[1].pos) and\
- root.create_image()
-
-            Image:
-                source: 'data/video.png'
-                size: self.texture_size
-                size_hint: None, None
-                on_touch_down: self.collide_point(*args[1].pos) and\
- root.create_video()
-
-We can see that the size and size_hint attribute are exactly the same.
-More than that, the callback in on_touch_down and the image are changing.
-These can be the variable part of the template that we can put into a context.
-Let's try to create a template for the Image:
-
-.. code-block:: kv
-
-    [ToolbarButton@Image]:
-
-        # This is the same as before
-        size: self.texture_size
-        size_hint: None, None
-
-        # Now, we are using the ctx for the variable part of the template
-        source: 'data/%s.png' % ctx.image
-        on_touch_down: self.collide_point(*args[1].pos) and ctx.callback()
-
-The template can be used directly in the MyToolbar rule:
-
-.. code-block:: kv
-
-    <MyToolbar>:
-        BoxLayout:
-            ToolbarButton:
-                image: 'text'
-                callback: root.create_text
-            ToolbarButton:
-                image: 'image'
-                callback: root.create_image
-            ToolbarButton:
-                image: 'video'
-                callback: root.create_video
-
-That's all :)
-
-
-Template limitations
-~~~~~~~~~~~~~~~~~~~~
-
-When you are creating a context:
-
-    #. you cannot use references other than "root":
-
-        .. code-block:: kv
-
-            <MyRule>:
-                Widget:
-                    id: mywidget
-                    value: 'bleh'
-                Template:
-                    ctxkey: mywidget.value # << fail, this references the id
-                    # mywidget
-
-    #. not all of the dynamic parts will be understood:
-
-        .. code-block:: kv
-
-            <MyRule>:
-                Template:
-                    ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
-                    # root.prop1 is a property, if it changes value, ctxkey
-                    # will not be updated
-
-Template definitions also replace any similarly named definitions in their
-entirety and thus do not support inheritance.
 
 .. _redefining-style:
 

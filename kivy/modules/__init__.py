@@ -225,7 +225,7 @@ class ModuleBase:
             for name in modules_to_activate:
                 try:
                     self.activate_module(name, win)
-                except:
+                except Exception:
                     import traceback
                     traceback.print_exc()
                     raise

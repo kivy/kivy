@@ -356,6 +356,24 @@ Available configuration tokens
             Please use
             :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
+:svg:
+
+    `default_size`: int, defaults to 512
+        The minimum rasterization size (in pixels) used when loading SVG files
+        via the ThorVG image provider (``img_thorvg_svg``).
+
+        When an SVG file has no intrinsic width/height, it is rasterized at
+        this size. When the native size is smaller than this value, the image
+        is scaled up proportionally so that no dimension falls below
+        ``default_size``. This prevents blurry upscaling when an SVG icon is
+        displayed larger than its declared size.
+
+        To override for a specific image, use the URI syntax::
+
+            Image(source='@image_provider:thorvg_svg[size=256](icon.svg)')
+
+        .. versionadded:: 3.0.0
+
 :modules:
 
     You can activate modules with this syntax::
@@ -368,6 +386,7 @@ Available configuration tokens
 
 .. versionadded:: 3.0.0
     `alpha_size` have been added to the `graphics` section.
+    The `svg` section has been added with the ``default_size`` option.
 
 .. versionadded:: 2.2.0
     `always_on_top` have been added to the `graphics` section.
@@ -782,6 +801,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
     Config.adddefaultsection('network')
+    Config.adddefaultsection('svg')
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -973,6 +993,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault(
                 "graphics", "alpha_size", "8" if pi_version is None else "0"
             )
+            Config.setdefault('svg', 'default_size', '512')
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !

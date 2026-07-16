@@ -1,0 +1,379 @@
+'''
+SVG provider - ThorVG backend
+=============================
+
+Implements :class:`~kivy.core.svg.SvgProviderBase` using Kivy's internal
+:mod:`kivy.lib.thorvg` Cython binding.  The binding ships with the official
+Kivy wheels, so no extra ``pip install`` is required.
+
+.. versionadded:: 3.0.0
+'''
+
+import math
+import xml.etree.ElementTree as ET
+
+from kivy.logger import Logger
+from kivy.core.svg import SvgProviderBase, SvgLoader
+
+# Module-level Accessor singleton.  The Accessor is stateless for the
+# ``accessor_generate_id()`` use-case and can be reused across calls - it's
+# cached here so the allocation cost is paid only once per process.
+_accessor = None
+
+
+def _generate_id(name):
+    '''Hash *name* to the uint32 paint ID that ThorVG uses internally.
+
+    Uses ``Accessor.accessor_generate_id()``, which is a pure hash function
+    and does not require a loaded Picture.  The Accessor is a module-level
+    singleton so the initialisation cost is paid only once.
+    '''
+    global _accessor
+    from kivy.lib.thorvg import Accessor
+    if _accessor is None:
+        _accessor = Accessor()
+    return _accessor.accessor_generate_id(name)
+
+
+def _extract_element_ids_xml(svg_bytes):
+    '''Fallback: return ``id`` attribute values from the SVG XML.
+
+    Used when ThorVG's accessible-mode API (``Picture.set_accessible`` /
+    ``Accessor.get_name``) is unavailable at runtime.  Returns *all* XML
+    ``id`` attributes, including the root ``<svg>`` element which is not
+    addressable as a ThorVG Paint node.
+
+    Prefer :func:`_extract_element_ids_accessible` when available.
+    '''
+    ids = []
+    try:
+        root = ET.fromstring(svg_bytes)
+        for elem in root.iter():
+            eid = elem.get('id')
+            if eid:
+                ids.append(eid)
+    except ET.ParseError as exc:
+        Logger.warning(
+            f'SvgThorvg: XML parse error scanning element IDs: {exc}'
+        )
+    return ids
+
+
+def _extract_element_ids_accessible(pic):
+    '''Return element IDs directly from ThorVG using the accessible-mode API.
+
+    ``pic`` must have been created with ``set_accessible(True)`` **before**
+    ``load_data()`` was called.  The paint tree is walked via
+    ``Accessor.set()``; inside the callback ``Accessor.get_name(hash_id)``
+    returns the original SVG ``id`` string for every named element.
+
+    Only paint nodes that carry a non-zero ID *and* have a resolvable name are
+    included, so the root ``<svg>`` element (which is not a Paint node) is
+    automatically excluded.
+
+    :param pic: A loaded :class:`kivy.lib.thorvg.Picture` with accessible
+        mode enabled.
+    :returns: List of original SVG ``id`` strings in paint-tree order.
+    '''
+    from kivy.lib.thorvg import Accessor
+
+    ids = []
+    accessor = Accessor()
+
+    def _visitor(paint, _data):
+        h = paint.get_id()
+        if h:
+            name = accessor.get_name(h)
+            if name is not None:
+                ids.append(name)
+        return True  # continue traversal
+
+    accessor.set(pic, _visitor, b'')
+    return ids
+
+
+def _apply_current_color(svg_bytes, color_tuple):
+    '''Replace every ``currentColor`` token in *svg_bytes* with a hex colour.
+
+    ``currentColor`` is an SVG reserved keyword and will not appear inside
+    element names or IDs, so a plain byte-string replacement is safe.
+
+    Per the SVG 1.1 spec, ``currentColor`` carries only RGB - opacity is
+    expressed separately via ``fill-opacity`` / ``stroke-opacity``.  Only
+    the first three components of *color_tuple* are used.
+
+    :param bytes svg_bytes: Raw SVG source.
+    :param tuple color_tuple: ``(r, g, b[, a])`` floats 0.0-1.0.  The alpha
+        component, if present, is ignored.
+    :returns: Modified SVG bytes.
+    '''
+    r, g, b = color_tuple[:3]
+    hex_color = (f'#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}'
+                 ).encode('ascii')
+    return svg_bytes.replace(b'currentColor', hex_color)
+
+
+def _svg_parse_dim(s):
+    '''Parse *s* as a positive finite float; return ``None`` on failure.
+
+    Strips trailing ``px`` units before conversion.
+    '''
+    try:
+        v = float((s or '').strip().rstrip('px').strip())
+        return v if math.isfinite(v) and v > 0 else None
+    except (ValueError, TypeError):
+        return None
+
+
+class SvgProviderThorvg(SvgProviderBase):
+    '''ThorVG-backed SVG provider.
+
+    Each instance represents one loaded SVG document.  The document is parsed
+    once at :meth:`load` / :meth:`load_data` time; subsequent :meth:`render`
+    calls create a fresh ThorVG ``Picture`` from the cached document data,
+    apply any runtime overrides, and return RGBA bytes.
+    '''
+
+    _provider_name = 'thorvg'
+
+    def __init__(self):
+        self._source_path = None   # file path (load() path)
+        self._source_data = None   # raw SVG bytes (always stored)
+        self._element_ids = []
+        self._doc_size = (0.0, 0.0)
+
+    # ------------------------------------------------------------------
+    # Loading
+    # ------------------------------------------------------------------
+
+    def load(self, source):
+        '''Load an SVG from *source* (file path).
+
+        Reads the file bytes, caches them for :meth:`render`, and uses a
+        single ThorVG ``Picture`` (with accessible mode enabled) to retrieve
+        both the intrinsic document size and the addressable element IDs via
+        :func:`_extract_element_ids_accessible`.
+
+        :returns: ``True`` on success.
+        '''
+        try:
+            with open(source, 'rb') as fh:
+                data = fh.read()
+        except OSError as exc:
+            Logger.error(f'SvgThorvg: cannot read {source!r}: {exc}')
+            return False
+
+        self._source_path = source
+        self._source_data = data
+        self._doc_size, self._element_ids = self._probe_from_data(data)
+        Logger.debug(f'SvgThorvg: loaded {source!r}  size={self._doc_size}')
+        return True
+
+    def load_data(self, data, mimetype='svg'):
+        '''Load an SVG from raw *data* bytes.
+
+        :returns: ``True`` on success.
+        '''
+        if not data:
+            Logger.error('SvgThorvg: load_data() called with empty data')
+            return False
+
+        self._source_path = None
+        self._source_data = data
+        self._doc_size, self._element_ids = self._probe_from_data(data)
+        Logger.debug(
+            f'SvgThorvg: loaded in-memory SVG ({len(data)} bytes)'
+            f'  size={self._doc_size}'
+        )
+        return True
+
+    def _probe_from_data(self, data):
+        '''Create a temporary Picture to read the SVG size and element IDs.
+
+        Sets ``accessible=True`` before loading so that
+        :func:`_extract_element_ids_accessible` can retrieve the original SVG
+        ``id`` strings directly from ThorVG without XML parsing.
+
+        Falls back to XML dimension parsing when ThorVG returns non-finite
+        dimensions (e.g. an SVG with only a ``height`` attribute).
+
+        :returns: ``((w, h), element_ids)`` tuple.
+        '''
+        try:
+            from kivy.lib import thorvg as tvg
+            pic = tvg.Picture()
+            pic.set_accessible(True)
+
+            result = pic.load_data(data, 'svg', None, False)
+            if result != tvg.Result.SUCCESS:
+                Logger.warning(
+                    f'SvgThorvg: could not probe SVG (result={result})'
+                )
+                return (0.0, 0.0), []
+
+            # --- size ---
+            res, w, h = pic.get_size()
+            if math.isfinite(w) and math.isfinite(h) and w > 0 and h > 0:
+                size = (w, h)
+            else:
+                size = self._probe_size_from_xml(data)
+
+            # --- element IDs ---
+            element_ids = _extract_element_ids_accessible(pic)
+
+            return size, element_ids
+
+        except Exception as exc:
+            Logger.warning(f'SvgThorvg: probe failed: {exc}')
+            return (0.0, 0.0), []
+
+    def _probe_size_from_xml(self, data):
+        '''Parse width/height/viewBox directly from the SVG XML.'''
+        try:
+            root = ET.fromstring(data)
+
+            w = _svg_parse_dim(root.get('width'))
+            h = _svg_parse_dim(root.get('height'))
+
+            # Try viewBox as a fallback for missing/non-numeric w or h.
+            vb = root.get('viewBox') or ''
+            vb_parts = vb.replace(',', ' ').split()
+            if len(vb_parts) == 4:
+                w = w or _svg_parse_dim(vb_parts[2])
+                h = h or _svg_parse_dim(vb_parts[3])
+
+            if w and h:
+                return (w, h)
+            # If only one dimension is known, assume square.
+            if w:
+                return (w, w)
+            if h:
+                return (h, h)
+            Logger.warning(
+                'SvgThorvg: could not determine SVG dimensions from XML'
+            )
+            return (0.0, 0.0)
+        except ET.ParseError as exc:
+            Logger.warning(f'SvgThorvg: XML size fallback failed: {exc}')
+            return (0.0, 0.0)
+
+    # ------------------------------------------------------------------
+    # Introspection
+    # ------------------------------------------------------------------
+
+    def get_document_size(self):
+        return self._doc_size
+
+    def get_element_ids(self):
+        return list(self._element_ids)
+
+    # ------------------------------------------------------------------
+    # Rendering
+    # ------------------------------------------------------------------
+
+    def render(self, width, height, current_color=None, element_overrides=None):
+        '''Rasterize the SVG and return raw RGBA bytes.
+
+        A fresh ThorVG ``Picture`` and ``SwCanvas`` are created on each call
+        so that element override mutations do not persist across renders.
+
+        :param int width: Output width in pixels (must be > 0).
+        :param int height: Output height in pixels (must be > 0).
+        :param current_color: If set, every ``currentColor`` token in the SVG
+            source is replaced with this colour before loading into ThorVG.
+        :param element_overrides: Per-element visibility/opacity dict.
+        :returns: A :class:`kivy.lib.thorvg.SwCanvas` exposing ``width *
+            height * 4`` RGBA bytes via the Python buffer protocol, or
+            ``None`` on failure. Consumers should treat the return value as
+            a read-only buffer-protocol object - it can be passed directly
+            to :meth:`kivy.graphics.texture.Texture.blit_buffer` without a
+            :class:`bytes` copy, or converted to :class:`bytes` explicitly
+            via ``bytes(result)`` if an owned copy is needed.
+
+            ThorVG's default ABGR8888 colorspace names the *integer* bit
+            layout (A in the high byte, R in the low byte); on the
+            little-endian platforms Kivy targets (x86-64, Apple Silicon,
+            ARM64/iOS, ARM64/Android) those bytes land in memory as
+            ``[R, G, B, A]`` - exactly Kivy's ``'rgba'`` colorfmt.
+        '''
+        if not self._source_data:
+            Logger.error('SvgThorvg: render() called before load()')
+            return None
+        if width <= 0 or height <= 0:
+            Logger.warning(
+                f'SvgThorvg: render() called with invalid size'
+                f' ({width} x {height})'
+            )
+            return None
+
+        try:
+            from kivy.lib import thorvg as tvg
+        except ImportError:
+            Logger.error(
+                'SvgThorvg: kivy.lib.thorvg is not available. '
+                'This build of Kivy was compiled without ThorVG support.'
+            )
+            return None
+
+        # ---- set up canvas ----
+        # No explicit ``canvas.destroy()`` anywhere below: the SwCanvas owns
+        # its pixel buffer and frees it in ``__dealloc__``. Returning the
+        # canvas to the caller (instead of a ``bytes`` copy) keeps the
+        # buffer alive for as long as the caller holds the reference, which
+        # is the whole point of skipping the copy.
+        canvas = tvg.SwCanvas()
+        result = canvas.set_target(width, height)
+        if result != tvg.Result.SUCCESS:
+            Logger.error(
+                f'SvgThorvg: set_target({width}, {height}) failed: {result}'
+            )
+            return None
+
+        # ---- prepare SVG data (apply currentColor if needed) ----
+        svg_data = self._source_data
+        if current_color is not None:
+            svg_data = _apply_current_color(svg_data, current_color)
+
+        # ---- load picture ----
+        pic = tvg.Picture()
+        result = pic.load_data(svg_data, 'svg', None, True)
+        if result != tvg.Result.SUCCESS:
+            Logger.error(
+                f'SvgThorvg: Picture.load_data() failed: {result}'
+            )
+            return None
+
+        pic.set_size(float(width), float(height))
+
+        # ---- apply element overrides ----
+        if element_overrides:
+            for elem_id, overrides in element_overrides.items():
+                hash_id = _generate_id(elem_id)
+                paint = pic.get_paint(hash_id)
+                if paint is None:
+                    # Warning logged by widget layer; skip silently here.
+                    continue
+                visible = overrides.get('visible', True)
+                if not visible:
+                    paint.set_opacity(0)
+                else:
+                    opacity_f = overrides.get('opacity', 1.0)
+                    paint.set_opacity(max(0, min(255, int(opacity_f * 255))))
+
+        # ---- render ----
+        canvas.add(pic)
+        canvas.update()
+        canvas.draw(True)
+        canvas.sync()
+
+        # Return the canvas (a buffer-protocol object backing ``width *
+        # height * 4`` RGBA bytes) rather than a ``bytes`` copy. The caller
+        # is expected to be something like
+        # ``Texture.blit_buffer(canvas, colorfmt='rgba', bufferfmt='ubyte')``
+        # which honours the buffer protocol and uploads the pixels directly
+        # to the GPU without an intermediate Python-level copy.
+        return canvas
+
+
+# Self-register when this module is imported.
+SvgLoader.register(SvgProviderThorvg)

@@ -85,7 +85,7 @@ KV = '''
         title: root.title
     CheckBox:
         active: app.get_active_value(root.index, False)
-        on_active: app.handle_update(self.active, root.index)
+        on_activated: app.handle_update(self.activated, root.index)
 
 <RVSpinnerLine>:
     NumberedLabel:

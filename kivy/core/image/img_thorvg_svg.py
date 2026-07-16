@@ -1,0 +1,266 @@
+'''
+ThorVG SVG image loader
+=======================
+
+Loads and rasterizes SVG files to RGBA using Kivy's internal ThorVG binding
+(:mod:`kivy.lib.thorvg`), producing a :class:`~kivy.core.image.ImageData`
+object that Kivy converts to an OpenGL texture.
+
+Rasterization size
+------------------
+
+SVG is a vector format with no fixed pixel size.  The rasterization size is
+the SVG's native size when available, scaled up if the longest axis is
+shorter than the floor value.  The floor defaults to ``[svg] default_size``
+and can be overridden per image via the URI ``size`` parameter::
+
+    Image(source='@image_provider:thorvg_svg[size=256](icons/house.svg)')
+
+The minimum floor is read from the ``[svg]`` section of the Kivy configuration::
+
+    # ~/.kivy/config.ini
+    [svg]
+    default_size = 512
+
+It can also be set programmatically before any SVG is loaded::
+
+    from kivy.config import Config
+    Config.set('svg', 'default_size', '256')
+
+or via environment variable::
+
+    KCFG_SVG_DEFAULT_SIZE=256 python myapp.py
+
+Mipmap for canvas instructions
+--------------------------------
+
+The ``@image_provider:`` URI does not control mipmap generation (mipmap is a
+texture-creation concern, not a loader concern).  For canvas instructions such
+as ``Rectangle`` that need a mipmapped SVG texture, load the image explicitly
+via :class:`~kivy.core.image.Image` and pass its texture::
+
+    from kivy.core.image import Image as CoreImage
+    from kivy.graphics import Rectangle
+
+    tex = CoreImage('icons/house.svg', mipmap=True).texture
+
+    with widget.canvas:
+        Rectangle(texture=tex, pos=self.pos, size=self.size)
+
+The texture is cached keyed by filename and mipmap flag, so subsequent calls
+with the same arguments are cheap.
+
+For :class:`~kivy.uix.image.Image` widgets, use the standard ``mipmap``
+property directly::
+
+    Image(source='icons/house.svg', mipmap=True)
+
+Requirements
+------------
+
+The binding is built as an internal Kivy extension (``kivy.lib.thorvg``) and
+ships with the official Kivy wheels, so no extra ``pip install`` is required.
+If Kivy was built from source without ThorVG support (the ``_thorvg`` Cython
+extension failed to compile, e.g. because the ``thorvg_capi.h`` headers were
+not found by ``setup.py``), the loader is silently skipped and Kivy's other
+image providers remain unaffected.
+'''
+
+__all__ = ('ImageLoaderThorvgSvg', )
+
+
+try:
+    from kivy.lib import thorvg as tvg
+    from kivy.lib.thorvg import Result
+    _thorvg_available = True
+except ImportError:
+    _thorvg_available = False
+
+from kivy.logger import Logger
+from kivy.resources import resource_find
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
+from kivy.config import Config
+
+def _apply_min_raster_size(w, h, min_size=512):
+    """Return *(w', h')* with no dimension below *min_size*, aspect ratio preserved.
+
+    If both dimensions already meet *min_size* the values are returned
+    unchanged (cast to ``int``).  If either dimension is zero or negative,
+    ``(min_size, min_size)`` is returned.
+    """
+    if w <= 0 or h <= 0:
+        return min_size, min_size
+    if w >= min_size and h >= min_size:
+        return int(w), int(h)
+    scale = max(min_size / w, min_size / h)
+    return int(w * scale), int(h * scale)
+
+def _render_svg_to_rgba(canvas, picture, width, height, source=None):
+    """Rasterize the loaded *picture* to RGBA bytes at (*width*, *height*).
+
+    Returns ``(w, h, bytes)`` on success, or ``None`` if any ThorVG step
+    fails (after logging a warning).
+    """
+    label = f' <{source}>' if source else ''
+    result = canvas.set_target(width, height)
+    if result != Result.SUCCESS:
+        Logger.warning(
+            f'Image: ThorvgSvg SwCanvas.set_target failed{label}: {result}')
+        return None
+
+    result = picture.set_size(float(width), float(height))
+    if result != Result.SUCCESS:
+        Logger.warning(
+            f'Image: ThorvgSvg Picture.set_size failed{label}: {result}')
+        return None
+
+    canvas.add(picture)
+    for op, args, name in [
+        (canvas.update, (), 'update'),
+        (canvas.draw, (True,), 'draw'),   # clear=True: zero buffer before render
+        (canvas.sync, (), 'sync'),
+    ]:
+        result = op(*args)
+        if result != Result.SUCCESS:
+            Logger.warning(
+                f'Image: ThorvgSvg canvas.{name} failed{label}: {result}')
+            return None
+
+    # canvas.buffer_arr exposes the raw RGBA pixel buffer allocated by
+    # set_target as a buffer-protocol object.  ThorVG's default ABGR8888
+    # colorspace names the *integer* bit layout (A in the high byte, R in
+    # the low byte).  On a little-endian machine those bytes land in memory
+    # as R, G, B, A — exactly Kivy's 'rgba' format.  All of Kivy's supported
+    # platforms (x86-64, ARM64/iOS, ARM64/Android, Apple Silicon) run in
+    # little-endian mode, so no byte-swapping is needed.
+    return canvas.w, canvas.h, bytes(canvas.buffer_arr)
+
+
+if _thorvg_available:
+
+    class ImageLoaderThorvgSvg(ImageLoaderBase):
+        '''Image loader for SVG files using :mod:`kivy.lib.thorvg`.
+
+        Rasterizes SVG to RGBA once at the resolved base size (see module
+        docstring for the size resolution rules).  Mipmaps are generated by
+        Kivy when the texture is created, controlled by the caller (e.g.
+        ``Image(mipmap=True)``).
+
+        An explicit raster size can be requested via the provider URI::
+
+            Image(source='@image_provider:thorvg_svg[size=128](icon.svg)')
+
+        Requires Kivy to have been built with the internal ThorVG binding
+        (enabled by default in official Kivy wheels).
+        '''
+
+        _provider_name = 'thorvg_svg'
+
+        @staticmethod
+        def extensions():
+            return ('svg', )
+
+        @staticmethod
+        def can_load_memory():
+            return True
+
+        def __init__(self, filename, **kwargs):
+            self._render_size = kwargs.pop('render_size', None)
+            super().__init__(filename, **kwargs)
+
+        def load(self, filename):
+            if self._inline:
+                return self._load_from_memory(filename,
+                                              render_size=self._render_size)
+            return self._load_from_file(filename,
+                                        render_size=self._render_size)
+
+        def _load_from_file(self, path, render_size=None):
+            path = resource_find(path) or path
+            canvas = tvg.SwCanvas()
+            picture = tvg.Picture()
+            try:
+                try:
+                    result = picture.load(path)
+                except Exception as e:
+                    Logger.warning(
+                        f'Image: ThorvgSvg unable to load <{path}>: {e}')
+                    return []
+
+                if result != Result.SUCCESS:
+                    Logger.warning(
+                        f'Image: ThorvgSvg Picture.load failed <{path}>')
+                    return []
+
+                w, h = self._resolve_size(picture, render_size)
+
+                rendered = _render_svg_to_rgba(
+                    canvas, picture, w, h, source=path)
+                if rendered is None:
+                    return []
+                w, h, rgba = rendered
+            finally:
+                canvas.destroy()
+
+            im = ImageData(w, h, 'rgba', rgba, source=path, rowlength=0)
+            return [im]
+
+        def _load_from_memory(self, rawdata, render_size=None):
+            if hasattr(rawdata, 'read'):
+                data = rawdata.read()
+            else:
+                data = rawdata
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+
+            canvas = tvg.SwCanvas()
+            picture = tvg.Picture()
+            try:
+                try:
+                    result = picture.load_data(data, 'svg', None, True)
+                except Exception as e:
+                    Logger.warning(
+                        f'Image: ThorvgSvg unable to load from memory: {e}')
+                    return []
+
+                if result != Result.SUCCESS:
+                    Logger.warning('Image: ThorvgSvg Picture.load_data failed')
+                    return []
+
+                w, h = self._resolve_size(picture, render_size)
+
+                rendered = _render_svg_to_rgba(canvas, picture, w, h)
+                if rendered is None:
+                    return []
+                w, h, rgba = rendered
+            finally:
+                canvas.destroy()
+
+            im = ImageData(w, h, 'rgba', rgba, source=None, rowlength=0)
+            return [im]
+
+        @staticmethod
+        def _resolve_size(picture, render_size):
+            """Return the *(w, h)* pixel dimensions to rasterize at.
+
+            The *render_size* URI parameter (``[size=N]``) and the global
+            ``[svg] default_size`` config value both act as a **minimum floor**:
+            the SVG is scaled up if its longest axis is shorter than the
+            floor value, but a native size that already exceeds the floor is
+            left unchanged.  If no native size is available the floor value
+            is used as a square.
+
+            *render_size* (from the URI) overrides ``default_size`` as the
+            floor when provided.
+            """
+            if render_size is not None:
+                min_size = render_size
+            else:
+                min_size = Config.getdefaultint('svg', 'default_size', 512)
+
+            result, w, h = picture.get_size()
+            if result != Result.SUCCESS or w <= 0 or h <= 0:
+                return min_size, min_size
+            return _apply_min_raster_size(w, h, min_size)
+
+    ImageLoader.register(ImageLoaderThorvgSvg)

@@ -74,6 +74,26 @@ or before each run of the application change it manually in the console:
 After the change of ``KIVY_HOME``, the folder will behave exactly the same
 as the default ``.kivy/`` folder mentioned above.
 
+App-Specific Configuration
+---------------------------
+
+For desktop applications, use the ``KIVY_DESKTOP_PATH_ID`` environment variable
+to set a user-facing application title in directory paths. This helps end users
+easily identify your application's directories when browsing their filesystem.
+
+Set the variable **before** importing Kivy::
+
+    import os
+    os.environ['KIVY_DESKTOP_PATH_ID'] = 'My Photo Editor'
+
+    from kivy.app import App
+
+This creates clear, recognizable directories like ``%APPDATA%\\My_Photo_Editor``
+on Windows, making it immediately obvious which app the directory belongs to.
+
+See ``examples/desktop_path_id/`` for a complete example, and :ref:`environment`
+for full details on ``KIVY_DESKTOP_PATH_ID``.
+
 Understanding config tokens
 ---------------------------
 

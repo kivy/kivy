@@ -2,22 +2,19 @@
 set -e -x
 
 # manylinux SDL3
-MANYLINUX__SDL3__VERSION="3.2.22"
+MANYLINUX__SDL3__VERSION="3.4.0"
 MANYLINUX__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MANYLINUX__SDL3__VERSION/SDL3-$MANYLINUX__SDL3__VERSION.tar.gz"
 MANYLINUX__SDL3__FOLDER="SDL3-$MANYLINUX__SDL3__VERSION"
 
 # manylinux SDL3_image
-MANYLINUX__SDL3_IMAGE__VERSION="3.2.4"
+MANYLINUX__SDL3_IMAGE__VERSION="3.2.6"
 MANYLINUX__SDL3_IMAGE__URL="https://github.com/libsdl-org/SDL_image/releases/download/release-$MANYLINUX__SDL3_IMAGE__VERSION/SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION.tar.gz"
 MANYLINUX__SDL3_IMAGE__FOLDER="SDL3_image-$MANYLINUX__SDL3_IMAGE__VERSION"
 
 # manylinux SDL3_mixer
-# MANYLINUX__SDL2_MIXER__VERSION="2.6.3"
-# MANYLINUX__SDL2_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MANYLINUX__SDL2_MIXER__VERSION/SDL2_mixer-$MANYLINUX__SDL2_MIXER__VERSION.tar.gz"
-# MANYLINUX__SDL2_MIXER__FOLDER="SDL2_mixer-$MANYLINUX__SDL2_MIXER__VERSION"
-MANYLINUX__SDL3_MIXER__HASH="78a2035cf4cf95066d7d9e6208e99507376409a7"
-MANYLINUX__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/archive/$MANYLINUX__SDL3_MIXER__HASH.tar.gz"
-MANYLINUX__SDL3_MIXER__FOLDER="SDL_mixer-$MANYLINUX__SDL3_MIXER__HASH"
+MANYLINUX__SDL3_MIXER__VERSION="3.2.0"
+MANYLINUX__SDL3_MIXER__URL="https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MANYLINUX__SDL3_MIXER__VERSION/SDL3_mixer-$MANYLINUX__SDL3_MIXER__VERSION.tar.gz"
+MANYLINUX__SDL3_MIXER__FOLDER="SDL3_mixer-$MANYLINUX__SDL3_MIXER__VERSION"
 
 # manylinux SDL3_ttf
 MANYLINUX__SDL3_TTF__VERSION="3.2.2"
@@ -108,10 +105,9 @@ pushd $MANYLINUX__SDL3_MIXER__FOLDER
   sdl_mixer_builds_args=(
     -DCMAKE_POSITION_INDEPENDENT_CODE="ON"
     -DCMAKE_BUILD_TYPE="Release"
-    -DSDLMIXER_MOD_MODPLUG="ON"
-    -DSDLMIXER_MOD_MODPLUG_SHARED="OFF"
     -DCMAKE_INSTALL_PREFIX="../../dist"
     -DSDLMIXER_VENDORED="ON"
+    -DSDLMIXER_MP3_MPG123="OFF"
     -GNinja
   )
 
@@ -131,14 +127,9 @@ pushd $MANYLINUX__SDL3_IMAGE__FOLDER
   ./external/download.sh;
   cmake -B build -DBUILD_SHARED_LIBS=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DSDLIMAGE_TIF_VENDORED=ON \
-          -DSDLIMAGE_WEBP_VENDORED=ON \
-          -DSDLIMAGE_JPG_VENDORED=ON \
-          -DSDLIMAGE_PNG_VENDORED=ON \
-          -DSDLIMAGE_TIF_SHARED=OFF \
-          -DSDLIMAGE_WEBP_SHARED=OFF \
-          -DCMAKE_INSTALL_PREFIX=../../dist \
-          -DSDLIMAGE_VENDORED=OFF -GNinja
+          -DSDLIMAGE_VENDORED=ON \
+          -DSDLIMAGE_AVIF=OFF \
+          -DCMAKE_INSTALL_PREFIX=../../dist -GNinja
   cmake --build build/ --config Release --parallel --verbose
   cmake --install build/ --config Release
 popd
@@ -159,3 +150,16 @@ pushd $MANYLINUX__SDL3_TTF__FOLDER
 popd
 
 popd
+
+echo "-- Build ThorVG (shared)"
+# ThorVG is built as a shared library on Linux so that ``auditwheel
+# repair`` - invoked automatically by cibuildwheel in
+# ``.github/workflows/manylinux_wheels.yml`` - can bundle it into
+# ``kivy.libs/`` with a hash-mangled soname and rewrite the extension's
+# RPATH. ``tools/build_thorvg.sh`` is the single source of truth for
+# the pinned ThorVG version and Meson options; setting
+# ``THORVG_SHARED=1`` switches it from the default static-archive build
+# to ``--default-library=shared`` and installs ``libthorvg-1.so.*`` into
+# ``kivy-dependencies/dist/lib/`` where setup.py picks it up via
+# ``-lthorvg-1``.
+THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"

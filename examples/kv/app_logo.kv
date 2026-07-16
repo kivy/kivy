@@ -2,7 +2,7 @@ Widget:
     Video:
         id: myvideo
         source: '../widgets/cityCC0.mpg'
-        state: 'play' if mybutton.state == 'down' else 'stop'
+        state: 'play' if mybutton.pressed else 'stop'
         canvas:
             Color:
                 rgb: (1, 1, 1)

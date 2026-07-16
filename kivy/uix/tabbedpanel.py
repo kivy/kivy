@@ -162,7 +162,7 @@ class TabbedPanelHeader(ToggleButton):
 
     # only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
-        if self.state == 'down':
+        if self.activated:
             # dispatch to children, not to self
             for child in self.children:
                 child.dispatch('on_touch_down', touch)
@@ -172,8 +172,8 @@ class TabbedPanelHeader(ToggleButton):
 
     def on_touch_up(self, touch):
         if not self.collide_point(*touch.pos):
-            self.state = 'normal'
-            self.parent.tabbed_panel.current_tab.state = 'down'
+            self.activated = True
+            self.parent.tabbed_panel.current_tab.activated = True
         super(TabbedPanelHeader, self).on_touch_up(touch)
 
     def on_release(self, *largs):
@@ -465,7 +465,7 @@ class TabbedPanel(GridLayout):
         self.remove_widget(oltab)
         self._original_tab = None
         self.switch_to(new_tab)
-        new_tab.state = 'down'
+        new_tab.activated = True
 
     default_tab = AliasProperty(get_def_tab, set_def_tab,
                                 bind=('_default_tab', ))
@@ -535,8 +535,8 @@ class TabbedPanel(GridLayout):
         for full example.
         '''
         header_content = header.content
-        self._current_tab.state = 'normal'
-        header.state = 'down'
+        self._current_tab.activated = False
+        header.activated = True
         self._current_tab = header
         self.clear_widgets()
         if header_content is None:
@@ -591,7 +591,7 @@ class TabbedPanel(GridLayout):
                 self_tabs = self._tab_strip
                 self_tabs.width -= widget.width
                 self_tabs.remove_widget(widget)
-                if widget.state == 'down' and self.do_default_tab:
+                if widget.activated and self.do_default_tab:
                     self._default_tab.on_release()
                 self._reposition_tabs()
             else:
@@ -625,7 +625,7 @@ class TabbedPanel(GridLayout):
                 self._switch_to_first_tab()
                 self._default_tab = self._current_tab
         else:
-            self._current_tab.state = 'normal'
+            self._current_tab.activated = False
             self._setup_default_tab()
 
     def on_default_tab_text(self, *args):
@@ -670,7 +670,7 @@ class TabbedPanel(GridLayout):
 
         default_tab.height = self.tab_height
         default_tab.group = '__tab%r__' % _tabs.uid
-        default_tab.state = 'down'
+        default_tab.activated = True
         default_tab.width = self.tab_width if self.tab_width else 100
         default_tab.content = content
 

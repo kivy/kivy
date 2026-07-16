@@ -8,13 +8,15 @@ Introduction
 
 Kivy 3.x.x introduces several changes and improvements compared to Kivy 2.x.x. This guide will help you migrate your existing Kivy 2.x.x codebase to Kivy 3.x.x.
 
-Renamed modules
----------------
+Renamed modules and environment variables
+------------------------------------------
 
 *Migration from kivy.core.audio to kivy.core.audio_output*
 
 
 In Kivy 3.x.x, the `kivy.core.audio` module has been renamed as `kivy.core.audio_output`. 
+
+**Import Statement Changes**
 
 To migrate your code, you need to update the import statements in your codebase. For example, if you have the following import statement in your code:
 
@@ -27,6 +29,26 @@ You need to update it to:
 .. code-block:: python
 
     from kivy.core.audio_output import SoundLoader
+
+**Environment Variable Changes**
+
+The environment variable has also been renamed from `KIVY_AUDIO` to `KIVY_AUDIO_OUTPUT`.
+
+If you were using the `KIVY_AUDIO` environment variable to specify audio provider preferences, you need to update it to `KIVY_AUDIO_OUTPUT`. For example:
+
+in Python before importing Kivy:
+
+.. code-block:: python
+
+    import os
+    
+    # Kivy 2.x.x
+    os.environ['KIVY_AUDIO'] = 'sdl3,gstplayer'
+    import kivy
+    
+    # Kivy 3.x.x
+    os.environ['KIVY_AUDIO_OUTPUT'] = 'sdl3,gstplayer'
+    import kivy
 
 
 Removals
@@ -86,6 +108,114 @@ The `file_encodings` property was deprecated and it was kept for backward compat
 To migrate your code, you just need to remove any references to the `file_encodings` property in your codebase.
 
 
+*Removal of deprecated `on_dropfile` Window event name*
+
+In Kivy 3.x.x, the previously deprecated `on_dropfile` event name has been removed.
+Use `on_drop_file` instead.
+
+The event was renamed in Kivy 2.1.0, so any remaining compatibility code that still binds
+to `on_dropfile` now needs to be updated.
+
+.. code-block:: python
+
+    # Kivy 2.x.x (legacy/deprecated name)
+    from kivy.core.window import Window
+
+    def handle_drop(window, filename):
+        print(filename)
+
+    Window.bind(on_dropfile=handle_drop)
+
+    # Kivy 3.x.x
+    from kivy.core.window import Window
+
+    def handle_drop(window, filename, x, y, *args):
+        print(filename, x, y)
+
+    Window.bind(on_drop_file=handle_drop)
+
+If you dispatch or override the event directly, also rename any `on_dropfile`
+method implementations to `on_drop_file`.
+
+
+*Removal of the Kv-lang Templates feature*
+
+In Kivy 3.x.x, the deprecated Kivy language Templates feature (introduced in 1.0.5,
+deprecated in 1.7.0) has been removed. The following are gone:
+
+- The ``[Name@Base]:`` Kv-lang template syntax (any kv file that contains a
+  ``[...]:`` selector will now raise a ``ParserException`` at load time).
+- ``Builder.template(name, **ctx)`` and the ``Builder.templates`` dict.
+- ``Factory.is_template()`` and the ``is_template=`` keyword argument of
+  ``Factory.register()``.
+
+Migrate to *dynamic classes* (``<Name@Base>:``). Dynamic classes have largely
+superseded templates since Kivy 1.7.0 and support normal Kivy properties,
+binding and inheritance.
+
+**Migrating a template in `.kv`**
+
+.. code-block:: kv
+
+    # Kivy 2.x.x
+    [IconItem@BoxLayout]:
+        Image:
+            source: ctx.image
+        Label:
+            text: ctx.title
+
+    # Kivy 3.x.x
+    <IconItem@BoxLayout>:
+        image: ''
+        title: ''
+        Image:
+            source: root.image
+        Label:
+            text: root.title
+
+Note the two changes: ``[...]:`` becomes ``<...>:``, and ``ctx.foo`` references
+become ``root.foo`` references against properties declared on the rule itself.
+
+**Migrating `Builder.template(...)` instantiation**
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    from kivy.lang import Builder
+    icon = Builder.template('IconItem', title='Hello', image='myimage.png')
+
+    # Kivy 3.x.x
+    from kivy.factory import Factory
+    icon = Factory.IconItem()
+    icon.title = 'Hello'
+    icon.image = 'myimage.png'
+
+Because dynamic-class properties are added to the widget by the rule (rather
+than declared on the class), they are not yet present when ``__init__``
+processes its kwargs - so pass values via ``setattr`` (or property assignment)
+after construction rather than as constructor kwargs. If you need
+constructor-kwarg support, define the widget as a regular Python class with
+explicit :class:`~kivy.properties.Property` declarations instead.
+
+
+*AccordionItem: `title_template` and `title_args` replaced by `title_class`*
+
+The :class:`~kivy.uix.accordion.AccordionItem` widget previously used the Kv-lang
+templates feature to render its title bar via the ``title_template`` (string)
+and ``title_args`` (dict) properties. Both properties have been removed.
+
+The replacement is :attr:`~kivy.uix.accordion.AccordionItem.title_class`. It accepts
+either a class object or a Factory-resolvable string. The class is instantiated
+with two keyword arguments: ``title`` and ``item``.
+
+To customise the appearance of the title widget, subclass
+:class:`~kivy.uix.accordion.AccordionItemTitle` (or write any widget that
+accepts ``title`` and ``item`` kwargs) and pass it via ``title_class``.
+
+.. seealso::
+
+    :attr:`~kivy.uix.accordion.AccordionItem.title_class` documentation.
+
 ==============
 ButtonBehavior
 ==============
@@ -96,6 +226,83 @@ In Kivy 3.x.x, the `ButtonBehavior` class has been significantly simplified and 
 The `state` OptionProperty, `min_state_time` NumericProperty, and `last_touch` ObjectProperty
 have been **removed**, along with the `trigger_action()` method. A simpler, read-only `pressed`
 BooleanProperty is now used to indicate the button's state.
+
+**Event Signature Changes**
+
+The `on_press`, `on_release`, and `on_cancel` (new event) events now receive a `touch` argument containing
+the :class:`~kivy.input.motionevent.MotionEvent` that triggered the event:
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self):
+            print("Button pressed")
+        
+        def on_release(self):
+            print("Button released")
+    
+    # Kivy 3.x.x
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            print(f"Button pressed at {touch.pos}")
+        
+        def on_release(self, touch):
+            print(f"Button released at {touch.pos}")
+        
+        def on_cancel(self, touch):  # NEW event
+            print(f"Button cancelled at {touch.pos}")
+
+When binding to these events, the callback receives both the widget instance and the touch:
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    def on_press_callback(instance):
+        print(f"{instance} was pressed")
+    
+    button.bind(on_press=on_press_callback)
+    
+    # Kivy 3.x.x
+    def on_press_callback(instance, touch):
+        print(f"{instance} was pressed at {touch.pos}")
+    
+    button.bind(on_press=on_press_callback)
+
+
+.. code-block:: python
+
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            # Store press time for duration calculation
+            self.press_time = touch.time_start
+        
+        def on_release(self, touch):
+            # Calculate how long the button was pressed
+            duration = touch.time_end - self.press_time
+            print(f"Button pressed for {duration:.2f} seconds")
+            
+            # Access touch position
+            print(f"Released at ({touch.x}, {touch.y})")
+
+**Multi-Touch Touch Argument Behavior**
+
+In multi-touch scenarios:
+
+- **on_press**: Receives the **first touch** that triggered the press
+- **on_release**: Receives the **last touch** being released
+- **on_cancel**: Receives the **last touch** that moved outside bounds
+
+.. code-block:: python
+
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            # This is the first touch
+            print(f"First touch ID: {touch.id}")
+        
+        def on_release(self, touch):
+            # This is the last touch being released
+            print(f"Last touch ID: {touch.id}")
 
 **Migrating from `state` to `pressed`**
 
@@ -198,14 +405,25 @@ If you need to programmatically trigger button actions in Kivy 3.x.x, you have t
 
 **Option 1: Dispatch events directly (recommended for simple cases)**
 
-Simply dispatch the `on_press` and `on_release` events without simulating the full touch cycle:
+Simply dispatch the `on_press` and `on_release` events. You'll need to provide a touch-like object:
 
 .. code-block:: python
 
     # Kivy 3.x.x - Direct event dispatch
-    button.dispatch('on_press')
+    # Create a simple object with touch attributes
+    class TouchProxy:
+        def __init__(self, pos):
+            self.pos = pos
+            self.x, self.y = pos
+            self.id = 0
+            self.time_start = 0
+            self.time_end = 0
+            self.ud = {}
+    
+    touch = TouchProxy(button.center)
+    button.dispatch('on_press', touch)
     # ... your logic ...
-    button.dispatch('on_release')
+    button.dispatch('on_release', touch)
 
 Note that this approach does NOT update the `pressed` property or trigger internal state
 changes, as those are tied to actual touch events.
@@ -218,6 +436,7 @@ property), you must simulate actual touch events:
 .. code-block:: python
 
     from kivy.input.motionevent import MotionEvent
+    from kivy.clock import Clock
     
     class MyButton(ButtonBehavior, Label):
         def simulate_press(self, duration=0.1):
@@ -250,15 +469,28 @@ Or create a helper method in your custom button class:
     from kivy.uix.behaviors import ButtonBehavior
     from kivy.uix.label import Label
     
+    class TouchProxy:
+        """Simple object that mimics touch attributes."""
+        def __init__(self, pos):
+            self.pos = pos
+            self.x, self.y = pos
+            self.id = 0
+            self.time_start = 0
+            self.time_end = 0
+            self.ud = {}
+    
     class MyButton(ButtonBehavior, Label):
         def trigger_action(self, duration=0.1):
             """Simulate button press/release."""
-            self._do_press()
-            self.dispatch('on_press')
+            # Create touch proxy
+            touch = TouchProxy(self.center)
+            
+            self._do_press(touch)
+            self.dispatch('on_press', touch)
             
             def trigger_release(dt):
-                self._do_release()
-                self.dispatch('on_release')
+                self._do_release(touch)
+                self.dispatch('on_release', touch)
             
             if not duration:
                 trigger_release(0)
@@ -267,8 +499,8 @@ Or create a helper method in your custom button class:
 
 **Removal of `last_touch` Property**
 
-The `last_touch` ObjectProperty has been **removed**. If you need to track touches,
-implement your own tracking:
+The `last_touch` ObjectProperty has been **removed**. However, since events now receive
+the touch as an argument, you can easily track it if needed:
 
 .. code-block:: python
 
@@ -277,21 +509,20 @@ implement your own tracking:
         def on_press(self):
             print(f"Touch at: {self.last_touch.pos}")
     
-    # Kivy 3.x.x
+    # Kivy 3.x.x - Option 1: Use touch argument directly
+    class MyButton(ButtonBehavior, Label):
+        def on_press(self, touch):
+            print(f"Touch at: {touch.pos}")
+    
+    # Kivy 3.x.x - Option 2: Track manually if needed elsewhere
     class MyButton(ButtonBehavior, Label):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.last_touch = None
         
-        def on_touch_down(self, touch):
-            result = super().on_touch_down(touch)
-            if result and self in touch.ud:
-                self.last_touch = touch
-            return result
-        
-        def on_press(self):
-            if self.last_touch:
-                print(f"Touch at: {self.last_touch.pos}")
+        def on_press(self, touch):
+            self.last_touch = touch
+            print(f"Touch at: {touch.pos}")
 
 **Improved Multi-Touch Behavior**
 
@@ -304,8 +535,8 @@ The `on_release` event behavior has changed for multi-touch scenarios:
 
     # Example: Multi-touch behavior difference
     class MyButton(ButtonBehavior, Label):
-        def on_release(self):
-            print("Button released")
+        def on_release(self, touch):
+            print(f"Button released - last touch ID: {touch.id}")
     
     # Scenario: User presses button with 3 fingers, then lifts them one by one
     # Kivy 2.x.x: "Button released" prints when the FIRST finger is lifted
@@ -329,8 +560,8 @@ If you need the old behavior (release on first touch up), override `on_touch_up`
         def on_touch_up(self, touch):
             if touch.grab_current is self and not self._first_touch_released:
                 self._first_touch_released = True
-                self._do_release()
-                self.dispatch('on_release')
+                self._do_release(touch)
+                self.dispatch('on_release', touch)
             return super().on_touch_up(touch)
 
 **New `on_cancel` Event**
@@ -341,15 +572,18 @@ during a drag operation. This only occurs when `always_release=False` (the defau
 .. code-block:: python
 
     class MyButton(ButtonBehavior, Label):
-        def on_press(self):
+        def on_press(self, touch):
             self.color = (1, 0, 0, 1)  # Red when pressed
+            print(f"Pressed at {touch.pos}")
         
-        def on_release(self):
+        def on_release(self, touch):
             self.color = (0, 1, 0, 1)  # Green on successful release
+            print(f"Released at {touch.pos}")
             print("Button action executed")
         
-        def on_cancel(self):
+        def on_cancel(self, touch):
             self.color = (1, 1, 1, 1)  # White when cancelled
+            print(f"Cancelled at {touch.pos}")
             print("Button action cancelled")
 
 This event allows you to provide visual feedback when the user drags their finger/pointer
@@ -378,15 +612,15 @@ fire normally. This could cause unexpected side effects.
             super().__init__(**kwargs)
             self.always_release = False  # Default, but explicit here
         
-        def on_press(self):
+        def on_press(self, touch):
             print("Action started")
             self.text = "Release here to confirm"
         
-        def on_release(self):
+        def on_release(self, touch):
             print("Action confirmed!")
             self.text = "Confirmed"
         
-        def on_cancel(self):
+        def on_cancel(self, touch):
             print("Action cancelled")
             self.text = "Cancelled - press again"
 
@@ -401,14 +635,14 @@ and `on_cancel` never fires:
             super().__init__(**kwargs)
             self.always_release = True  # Release fires anywhere
         
-        def on_release(self):
-            print("Released - on_cancel never fires")
+        def on_release(self, touch):
+            print(f"Released at {touch.pos} - on_cancel never fires")
 
 **Internal Hooks for Subclassing**
 
 The methods `_do_press()`, `_do_release()`, and `_do_cancel()` are now documented as
 internal hooks for subclasses (like `ToggleButtonBehavior`). These are called before
-the corresponding public events are dispatched.
+the corresponding public events are dispatched and now also receive the `touch` argument.
 
 .. note::
     Avoid using these methods, they are for internal state management in subclasses. Application code
@@ -417,50 +651,55 @@ the corresponding public events are dispatched.
 .. code-block:: python
 
     class CustomButton(ButtonBehavior, Label):
-        def _do_press(self):
+        def _do_press(self, touch):
             # Internal state changes before event dispatch (for internal use only)
-            super()._do_press()
+            super()._do_press(touch)
             self._internal_state = "pressing"
+            self._press_position = touch.pos
         
-        def on_press(self):
+        def on_press(self, touch):
             # Public event handler for application logic
-            print("Button pressed - use this for your logic")
+            print(f"Button pressed at {touch.pos} - use this for your logic")
 
 **Summary of Breaking Changes**
 
-+-------------------------+---------------------------+----------------------------------------+
-| Removed/Changed         | Kivy 2.x.x                | Kivy 3.x.x                             |
-+=========================+===========================+========================================+
-| `state` property        | `'normal'` or `'down'`    | Removed - use `pressed` (read-only)    |
-+-------------------------+---------------------------+----------------------------------------+
-| `min_state_time`        | NumericProperty (0.035)   | Removed - implement manually           |
-+-------------------------+---------------------------+----------------------------------------+
-| `last_touch`            | ObjectProperty            | Removed - track manually               |
-+-------------------------+---------------------------+----------------------------------------+
-| `trigger_action()`      | Method available          | Removed - dispatch events manually     |
-+-------------------------+---------------------------+----------------------------------------+
-| `on_release` behavior   | Fires on first touch up   | Fires after all touches released       |
-+-------------------------+---------------------------+----------------------------------------+
-| `on_cancel` event       | Not available             | **New** - fires on drag outside bounds |
-+-------------------------+---------------------------+----------------------------------------+
-| `always_release=False`  | Silent non-release        | Explicit `on_cancel` event             |
-+-------------------------+---------------------------+----------------------------------------+
-| Internal hooks          | Undocumented              | Documented `_do_*()` methods           |
-+-------------------------+---------------------------+----------------------------------------+
++-------------------------+---------------------------+------------------------------------------+
+| Removed/Changed         | Kivy 2.x.x                | Kivy 3.x.x                               |
++=========================+===========================+==========================================+
+| `state` property        | `'normal'` or `'down'`    | Removed - use `pressed` (read-only)      |
++-------------------------+---------------------------+------------------------------------------+
+| `min_state_time`        | NumericProperty (0.035)   | Removed - implement manually             |
++-------------------------+---------------------------+------------------------------------------+
+| `last_touch`            | ObjectProperty            | Removed - events receive `touch` arg     |
++-------------------------+---------------------------+------------------------------------------+
+| `trigger_action()`      | Method available          | Removed - dispatch events with mock      |
++-------------------------+---------------------------+------------------------------------------+
+| Event signatures        | `on_press()`              | `on_press(touch)` - touch argument added |
+|                         | `on_release()`            | `on_release(touch)`                      |
++-------------------------+---------------------------+------------------------------------------+
+| `on_release` behavior   | Fires on first touch up   | Fires after all touches released         |
++-------------------------+---------------------------+------------------------------------------+
+| `on_cancel` event       | Not available             | **New** - `on_cancel(touch)` fires on    |
+|                         |                           | drag outside bounds                      |
++-------------------------+---------------------------+------------------------------------------+
+| `always_release=False`  | Silent non-release        | Explicit `on_cancel` event with touch    |
++-------------------------+---------------------------+------------------------------------------+
+| Internal hooks          | Undocumented              | Documented `_do_*(touch)` methods        |
++-------------------------+---------------------------+------------------------------------------+
 
 ====================
 ToggleButtonBehavior
 ====================
 
-*Replacement of `state` with `active` and Major API Improvements*
+*Replacement of `state` with `activated` and Major API Improvements*
 
 In Kivy 3.x.x, `ToggleButtonBehavior` has undergone significant improvements and changes.
-The most notable change is replacing the `state` OptionProperty with an `active` boolean property (`AliasProperty`),
+The most notable change is replacing the `state` OptionProperty with an `activated` boolean property (`AliasProperty`),
 along with new features like scoped groups and the `toggle_on` property.
 
-**Migrating from `state` to `active`**
+**Migrating from `state` to `activated`**
 
-The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `active` property:
+The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `activated` property:
 
 .. code-block:: python
 
@@ -470,9 +709,9 @@ The `state` property (`'normal'` or `'down'`) has been replaced with a boolean `
         toggle.state = 'normal'  # Deactivate
     
     # Kivy 3.x.x
-    if toggle.active:
+    if toggle.activated:
         print("Toggle is active")
-        toggle.active = False  # Deactivate
+        toggle.activated = False  # Deactivate
 
 In KV language:
 
@@ -485,12 +724,12 @@ In KV language:
     
     # Kivy 3.x.x
     ToggleButton:
-        text: "ON" if self.active else "OFF"
-        color: (0, 1, 0, 1) if self.active else (1, 1, 1, 1)
+        text: "ON" if self.activated else "OFF"
+        color: (0, 1, 0, 1) if self.activated else (1, 1, 1, 1)
 
-**New `on_active` Event**
+**New `on_activated` Event**
 
-Replace `on_state` bindings with `on_active`:
+Replace `on_state` bindings with `on_activated`:
 
 .. code-block:: python
 
@@ -506,7 +745,7 @@ Replace `on_state` bindings with `on_active`:
     
     # Kivy 3.x.x
     class MyToggle(ToggleButtonBehavior, Label):
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             if value:
                 print("Activated")
                 self.color = (0, 1, 0, 1)
@@ -524,7 +763,7 @@ In KV language, bind to property changes:
     
     # Kivy 3.x.x
     <MyToggle@ToggleButton>:
-        on_active: app.handle_toggle(self, self.active)
+        on_activated: app.handle_toggle(self, self.activated)
 
 **New `toggle_on` Property**
 
@@ -553,7 +792,7 @@ This is useful when you want instant visual feedback:
             super().__init__(**kwargs)
             self.toggle_on = 'press'  # Toggle immediately
         
-        def on_active(self, instance, value):
+        def on_activated(self, instance, value):
             self.text = "ON" if value else "OFF"
 
 **Scoped Groups (New Tuple Syntax)**
@@ -703,7 +942,7 @@ removed. Group management is now handled automatically through weak references.
     # Kivy 3.x.x - Automatic group management
     class MyToggle(ToggleButtonBehavior, Label):
         def custom_release(self):
-            self.active = False  # Automatically manages group
+            self.activated = False  # Automatically manages group
 
 **Improved Group Cleanup**
 
@@ -726,9 +965,9 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 | Removed/Changed           | Kivy 2.x.x                | Kivy 3.x.x                             |
 +===========================+===========================+========================================+
-| `state` property          | `'normal'` or `'down'`    | Replaced with `active` (bool)          |
+| `state` property          | `'normal'` or `'down'`    | Replaced with `activated` (bool)       |
 +---------------------------+---------------------------+----------------------------------------+
-| `on_state` event          | Fired on state change     | Replaced with `on_active`              |
+| `on_state` event          | Fired on state change     | Replaced with `on_activated`              |
 +---------------------------+---------------------------+----------------------------------------+
 | `toggle_on` property      | Not available             | **New** - 'press' or 'release'         |
 +---------------------------+---------------------------+----------------------------------------+
@@ -738,8 +977,240 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 | `_clear_groups()`         | Static method             | Removed - automatic cleanup            |
 +---------------------------+---------------------------+----------------------------------------+
-| `_release_group()`        | Instance method           | Removed - automatic via `active`       |
+| `_release_group()`        | Instance method           | Removed - automatic via `activated`    |
 +---------------------------+---------------------------+----------------------------------------+
 | Group management          | Manual weak references    | Automatic with `WeakSet`               |
 +---------------------------+---------------------------+----------------------------------------+
+
+
+=====
+Clock
+=====
+
+*Improved @triggered Decorator Behavior, Instance Isolation and Debouncing*
+
+In Kivy 3.x.x, the :func:`~kivy.clock.triggered` decorator has been significantly
+improved. Previously, when used as a method decorator, it shared a single trigger
+and state across all instances of a class. This meant that calling the method on
+one instance would throttle calls on all other instances, and arguments from
+different instances could overwrite each other.
+
+**Behavior Changes**
+
+* Improved **Instance Isolation**: Each instance now has its own isolated trigger and
+  argument storage. Calling a triggered method on ``widget_a`` no longer affects
+  ``widget_b``.
+* Improved **Lazy Initialization**: Triggers are now created only when the decorated
+  function is first called, improving initialization performance.
+* New **is_triggered Property**: A new ``is_triggered`` property was added to the decorated
+  function/method, allowing you to check if a call is currently pending.
+* New **debounce Parameter**: A new ``debounce=False`` (default) parameter was
+  added.
+
+  * **Throttling** (default): Subsequent calls while a trigger is active
+    update the arguments but do *not* reset the timer. The function fires once
+    after the initial timeout.
+  * **Debouncing** (``debounce=True``): Subsequent calls cancel any pending
+    execution and reschedule it. The function only fires after the caller
+    stops calling it for the duration of the ``timeout``.
+
+**Migration Impact**
+
+This is primarily a **bug fix** and a set of **new features**. It should not
+require code changes for most applications. However, if your codebase
+intentionally relied on the legacy shared throttling behavior across different
+instances, you can restore this behavior by using the **``@classmethod``** 
+decorator above ``@triggered``. 
+
+This ensures the trigger is bound to the class object rather than individual 
+instances, restoring the shared behavior in an idiomatic way.
+
+.. code-block:: python
+
+    class MyWidget(Widget):
+        # Default in 3.x.x: Isolated per instance
+        @triggered(0.1)
+        def sync_ui(self, *args):
+            pass
+
+        # Shared behavior (same as legacy 2.x.x): Shared by all instances
+        @classmethod
+        @triggered(0.1)
+        def sync_shared_data(cls, *args):
+            pass
+
+        # Optional: Debouncing (0.1s from the LAST call)
+        @triggered(0.1, debounce=True)
+        def search_input(self, text):
+            pass
+
+
+===
+SVG
+===
+
+*Removal of the experimental kivy.graphics.svg module*
+
+In Kivy 3.x.x, the experimental ``Svg`` canvas instruction in
+``kivy.graphics.svg`` has been removed, along with its example scripts under
+``examples/svg/`` (``benchmark.py``, ``main.py``, ``main-smaa.py``) and its
+Factory registration. The module had been marked experimental since its
+introduction and is superseded by the new SVG support added in Kivy 3.x.x.
+
+**Replacement: SvgWidget / AsyncSvgWidget**
+
+For most use cases, drop in :class:`~kivy.uix.svg.SvgWidget` (local sources)
+or :class:`~kivy.uix.svg.AsyncSvgWidget` (network sources):
+
+.. code-block:: python
+
+    # Kivy 2.x.x
+    from kivy.graphics.svg import Svg
+
+    with widget.canvas:
+        Svg('image.svg')
+
+    # Kivy 3.x.x
+    from kivy.uix.svg import SvgWidget
+
+    widget.add_widget(SvgWidget(source='image.svg'))
+
+In KV language:
+
+.. code-block:: kv
+
+    # Kivy 3.x.x
+    SvgWidget:
+        source: 'image.svg'
+
+**Replacement: kivy.core.svg image provider**
+
+For loading SVGs through the standard image pipeline (for example as a
+texture for :class:`~kivy.uix.image.Image`), the new ``kivy.core.svg``
+provider is selected automatically when an ``.svg`` source is loaded; no
+explicit import or Factory registration is required.
+
+**Factory registration**
+
+The ``Svg`` Factory entry that pointed at ``kivy.graphics.svg`` has been
+removed. ``SvgWidget`` and ``AsyncSvgWidget`` are registered in the Factory
+under their own names and can be used directly from KV.
+
+
+Application Storage Directories
+================================
+
+*Linux user_data_dir Path Change (XDG Compliance Fix)*
+
+In Kivy 3.x.x, the ``App.user_data_dir`` path on Linux has been corrected to follow
+the XDG Base Directory specification. Previously, it incorrectly used ``XDG_CONFIG_HOME``
+(for configuration files); it now correctly uses ``XDG_DATA_HOME`` (for application data).
+
+**Path Changes on Linux:**
+
++------------------------+------------------------------------------+----------------------------------------------+
+| Property               | Kivy 2.x.x                               | Kivy 3.x.x                                   |
++========================+==========================================+==============================================+
+| ``user_data_dir``      | ``~/.config/<app_name>`` (incorrect)     | ``~/.local/share/<app_name>`` (XDG-compliant)|
++------------------------+------------------------------------------+----------------------------------------------+
+
+**Impact:**
+
+If your Linux application uses ``App.user_data_dir`` to store user data, the data
+will now be stored in a different location after upgrading to Kivy 3.x.x. This is
+the correct XDG-compliant location, but existing apps may need to migrate their data.
+
+**Migration Options:**
+
+1. **Manual Migration** (Recommended for production apps)
+
+   Move existing data from the old location to the new location during app startup:
+
+**Note:** Windows, macOS, iOS, and Android paths are unchanged.
+
+
+*New App.user_cache_dir Property*
+
+Kivy 3.x.x introduces a new ``App.user_cache_dir`` property for temporary/cache data
+that the system may delete at any time.
+
+This is **not a breaking change** - it's a new optional property. Existing apps
+continue to work unchanged.
+
+**Platform Paths:**
+
+- Windows: ``%APPDATA%\<app_name>\Cache``
+- macOS: ``~/Library/Caches/<app_name>``
+- Linux: ``~/.cache/<app_name>`` (respects ``$XDG_CACHE_HOME``)
+- Android: ``Context.getCacheDir()``
+- iOS: ``~/Library/Caches/<app_name>``
+
+*New KIVY_DESKTOP_PATH_ID Environment Variable*
+
+Kivy 3.x.x introduces ``KIVY_DESKTOP_PATH_ID`` to set user-friendly application
+directory names on desktop platforms.
+
+This is **not a breaking change** - it's opt-in. Existing apps continue to work
+unchanged unless you explicitly set this environment variable.
+
+**Key Feature:**
+
+Setting ``KIVY_DESKTOP_PATH_ID`` creates an **application-specific** location for
+the ``.kivy`` directory containing the config and log files. Without
+``KIVY_DESKTOP_PATH_ID``, the config and logs are placed in a single global
+``.kivy`` directory (``~/.kivy``).
+
+This means multiple Kivy applications can now have their own isolated configuration
+and log directories, preventing conflicts between different applications.
+
+**When Set:**
+
+The variable provides a human-readable application title for directories, making it
+easier for end users to identify your app's directories when browsing their filesystem.
+
+**Example:**
+
+.. code-block:: python
+
+    import os
+    os.environ['KIVY_DESKTOP_PATH_ID'] = 'My Photo Editor'
+    
+    from kivy.app import App
+    
+    # On Windows, creates: %APPDATA%\My_Photo_Editor\.kivy
+    # Instead of: %APPDATA%\photoeditor\.kivy
+
+**Priority:**
+
+``KIVY_DESKTOP_PATH_ID`` takes highest priority and affects:
+
+- ``KIVY_HOME`` directory (overrides ``KIVY_HOME`` env var and venv detection)
+- ``App.user_data_dir`` directory
+- ``App.user_cache_dir`` directory
+
+**Platform Behavior:**
+
+- **Desktop platforms** (Windows, macOS, Linux): Uses normalized path_id for directory names
+- **Mobile platforms** (iOS, Android): Ignored - uses ``App.name`` as before
+
+**Desktop Path Examples with KIVY_DESKTOP_PATH_ID='My Photo Editor':**
+
++------------------+----------------------------------------------------+
+| Directory        | Path                                               |
++==================+====================================================+
+| KIVY_HOME        | ``~/Library/Application Support/My_Photo_Editor/`` |
+|                  | ``.kivy`` (macOS)                                  |
++------------------+----------------------------------------------------+
+| user_data_dir    | ``%APPDATA%\My_Photo_Editor`` (Windows)            |
++------------------+----------------------------------------------------+
+| user_cache_dir   | ``%LOCALAPPDATA%\My_Photo_Editor\Cache``           |
+|                  | (Windows)                                          |
++------------------+----------------------------------------------------+
+
+**Warning:**
+
+If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a new
+location. You may need to migrate existing data (see Linux migration example above).
+
+For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
 ```

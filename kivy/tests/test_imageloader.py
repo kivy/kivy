@@ -283,7 +283,7 @@ class ImageLoaderTestCase(unittest.TestCase):
                 result = loadercls(asset(ASSETDIR, filename), keep_data=True)
                 if not result:
                     raise Exception('invalid result')
-            except:
+            except Exception:
                 ctx.skip('Error loading file, result=None')
                 continue
             self._test_image(filedata, ctx, loadercls, result)

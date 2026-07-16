@@ -29,7 +29,7 @@ class AudioButton(Button):
     sound = ObjectProperty(None, allownone=True)
     volume = NumericProperty(1.0)
 
-    def on_press(self):
+    def on_press(self, touch):
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
         # stop the sound if it's currently playing

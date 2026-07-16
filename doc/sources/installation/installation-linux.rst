@@ -68,11 +68,12 @@ Using apt::
 
     # Install build tools, and dependencies to perform a full build (including SDL3 dependencies)
     sudo apt-get -y install python3-dev build-essential git make autoconf automake libtool \
-          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+          pkg-config cmake meson ninja-build libasound2-dev libpulse-dev libaudio-dev \
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
+          libayatana-appindicator3-dev
 
 
 Fedora
@@ -84,12 +85,13 @@ Using dnf::
 
     # Install build tools, and dependencies to perform a full build (including SDL3 dependencies)
     yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig \
-            ninja-build alsa-lib-devel pulseaudio-libs-devel \
+            meson ninja-build alsa-lib-devel pulseaudio-libs-devel \
             libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel \
             libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
-            libdrm-devel mesa-libgbm-devel libsamplerate-devel
+            libdrm-devel mesa-libgbm-devel libsamplerate-devel \
+            libayatana-appindicator-gtk3-devel
 
     # Install xclip in case you run a kivy app using your computer, and the app requires a CutBuffer provider:
     sudo dnf install -y xclip

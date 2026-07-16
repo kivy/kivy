@@ -54,8 +54,8 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.9 (Raspberry Pi OS Bullseye)
-and Python 3.11 (Raspberry Pi OS Bookworm) via the `PiWheels <https://www.piwheels.org/>`_ project.
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.11 (Raspberry Pi OS Bookworm)
+via the `PiWheels <https://www.piwheels.org/>`_ project.
 
 For other Python versions, on 32 bit OSes, you will need to install from source.
 
@@ -346,7 +346,7 @@ To facilitate easy installation, we provide ``extras_require``
 that will install selected backends to ensure a working Kivy installation. So one can install
 Kivy more simply with e.g.``pip install "kivy[base,media,tuio]"``. The full list of selectors and
 the packages they install is listed in
-`setup.py <https://github.com/kivy/kivy/blob/master/setup.cfg>`_. The exact packages in each selector
+`pyproject.toml <https://github.com/kivy/kivy/blob/master/pyproject.toml>`_. The exact packages in each selector
 may change in the future, but the overall goal of each selector will remain as described below.
 
 We offer the following selectors:

@@ -31,7 +31,7 @@ To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
 property to False (the 'enter' key will defocus the TextInput and emit an
 :meth:`TextInput.on_text_validate` event)::
 
-    def on_enter(instance, value):
+    def on_enter(instance):
         print('User pressed enter in', instance)
 
     textinput = TextInput(text='Hello world', multiline=False)
@@ -1773,13 +1773,13 @@ class TextInput(FocusBehavior, Widget):
         self._position_handles()
         return True
 
-    def _handle_pressed(self, instance):
+    def _handle_pressed(self, instance, touch):
         self._hide_cut_copy_paste()
         from_, to_ = self._selection_from, self.selection_to
         if from_ > to_:
             self._selection_from, self._selection_to = to_, from_
 
-    def _handle_released(self, instance):
+    def _handle_released(self, instance, touch):
         if self._selection_from == self.selection_to:
             return
 
@@ -2707,7 +2707,7 @@ class TextInput(FocusBehavior, Widget):
                     else:
                         break
 
-                except:
+                except Exception:
                     # exception happen when we tried to render the text
                     # reduce it...
                     if ld is None:

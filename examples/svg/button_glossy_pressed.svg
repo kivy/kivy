@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="48" viewBox="0 0 200 48">
+  <defs>
+    <!-- Pressed: gradient inverted (darker at top, lighter at bottom)
+         to suggest the button is pushed in. -->
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#236080"/>
+      <stop offset="100%" stop-color="#3d8db8"/>
+    </linearGradient>
+    <!-- Subtle inner-shadow at the top edge to reinforce the pressed feel -->
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#000000" stop-opacity="0.25"/>
+      <stop offset="40%"  stop-color="#000000" stop-opacity="0.00"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer border ring -->
+  <rect width="200" height="48" rx="8" fill="#1a4a65"/>
+  <!-- Base gradient fill -->
+  <rect x="2" y="2" width="196" height="44" rx="6" fill="url(#base)"/>
+  <!-- Inset shadow overlay at the top to simulate depth -->
+  <rect x="2" y="2" width="196" height="22" rx="6" fill="url(#shadow)"/>
+</svg>

@@ -37,8 +37,7 @@ function Update-version-metadata {
 function Generate-sdist {
     python -m pip install -U build
     python -m build --sdist .
-    $env:KIVY_BUILD_EXAMPLES = '1'
-    python -m build --wheel .
+    python -m build --wheel --outdir dist packaging/kivy_examples
 }
 
 function Generate-windows-wheels {

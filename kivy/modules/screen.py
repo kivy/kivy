@@ -129,7 +129,7 @@ def apply_device(device, scale, orientation):
                                          orientation))
     try:
         scale = float(scale)
-    except:
+    except Exception:
         scale = 1
     environ['KIVY_METRICS_DENSITY'] = str(density * scale)
     environ['KIVY_DPI'] = str(dpi * scale)

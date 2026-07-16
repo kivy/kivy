@@ -66,6 +66,43 @@ And in your kivy language file::
                 size: self.width + 20, self.height + 20
                 pos: self.x - 10, self.y - 10
 
+SVG Images
+----------
+
+.. versionadded:: 3.0.0
+
+SVG files are supported via the ThorVG image provider (``img_thorvg_svg``),
+which uses Kivy's internal :mod:`kivy.lib.thorvg` binding.  This binding is
+compiled into Kivy and ships with the official Kivy wheels, so ``.svg``
+files are loaded automatically with no extra install step::
+
+    Image(source='icons/house.svg')
+
+Because SVG is a vector format with no fixed pixel size, the provider
+rasterizes the file to a bitmap.  The rasterization size is determined by:
+
+1. An explicit ``size`` parameter in the ``@image_provider:`` URI (see below).
+2. The SVG's own declared width/height, subject to a configured minimum.
+3. The ``[svg] default_size`` config key (default ``512``), used when the SVG
+   has no declared size or when the declared size is smaller.
+
+To change the global minimum raster size::
+
+    from kivy.config import Config
+    Config.set('svg', 'default_size', '256')  # must be set before first load
+
+Explicit raster size via URI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To rasterize an SVG at a specific size (overriding the config default), use
+the ``@image_provider:`` URI with a ``size`` parameter::
+
+    # Rasterize at 128 pixels (aspect ratio preserved)
+    Image(source='@image_provider:thorvg_svg[size=128](icons/house.svg)')
+
+This is useful when you know the maximum display size and want to avoid
+rasterizing at the full 512-pixel default for small icons.
+
 '''
 __all__ = ('Image', 'AsyncImage')
 
@@ -266,6 +303,22 @@ class Image(Widget):
     to False.
     '''
 
+    image_provider = StringProperty(None, allownone=True)
+    '''Name of the image provider to use for loading (e.g., 'pil', 'sdl3').
+
+    If None, the default provider selection order is used.
+    Use :meth:`~kivy.core.image.Image.available_providers` to get a list
+    of valid provider names.
+
+    For more information on ``image_provider`` and provider selection strict mode
+    (``KIVY_PROVIDER_STRICT``), see :mod:`kivy.core.image`.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`image_provider` is a :class:`~kivy.properties.StringProperty` and
+    defaults to None.
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return list(self.size)
@@ -325,6 +378,7 @@ class Image(Widget):
         fbind = self.fbind
         fbind('source', update)
         fbind('mipmap', update)
+        fbind('image_provider', update)
 
         # NOTE: Compatibility code due to deprecated properties.
         fbind('keep_ratio', self._update_fit_mode)
@@ -351,11 +405,15 @@ class Image(Widget):
         if not resource:
             self._clear_core_image()
             return
-        source = resource_find(resource)
-        if not source:
-            Logger.error('Image: Not found <%s>' % resource)
-            self._clear_core_image()
-            return
+        # @image_provider: URIs are resolved inside ImageLoader; skip here.
+        if resource.startswith('@image_provider:'):
+            source = resource
+        else:
+            source = resource_find(resource)
+            if not source:
+                Logger.error('Image: Not found <%s>' % resource)
+                self._clear_core_image()
+                return
         if self._coreimage:
             self._coreimage.unbind(on_texture=self._on_tex_change)
         try:
@@ -364,7 +422,8 @@ class Image(Widget):
                 mipmap=self.mipmap,
                 anim_delay=self.anim_delay,
                 keep_data=self.keep_data,
-                nocache=self.nocache
+                nocache=self.nocache,
+                image_provider=self.image_provider
             )
         except Exception:
             Logger.error('Image: Error loading <%s>' % resource)
@@ -480,7 +539,8 @@ class AsyncImage(Image):
             source,
             nocache=self.nocache,
             mipmap=self.mipmap,
-            anim_delay=self.anim_delay
+            anim_delay=self.anim_delay,
+            image_provider=self.image_provider
         )
         image.bind(
             on_load=self._on_source_load,

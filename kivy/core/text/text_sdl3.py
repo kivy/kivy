@@ -24,6 +24,7 @@ except ImportError:
 
 
 class LabelSDL3(LabelBase):
+    _provider_name = 'sdl3'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,3 +58,7 @@ class LabelSDL3(LabelBase):
 
     def _render_end(self):
         return self._surface.get_data()
+
+
+# Register with the text provider system
+LabelBase.register_provider(LabelSDL3)

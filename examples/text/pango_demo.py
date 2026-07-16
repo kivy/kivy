@@ -23,7 +23,7 @@ runTouchApp(Builder.load_string('''
 <MyToggleButton@ToggleButton>:
     hacked_state: False
     allow_no_selection: False
-    on_state: self.hacked_state = self.state == 'down'
+    on_activated: self.hacked_state = self.activated
 <HalignButton@MyToggleButton>:
     text: 'auto'
     group: 'halign'
@@ -213,7 +213,7 @@ BoxLayout:
             text: 'set halign ='
         HalignButton:
             text: 'auto'
-            state: 'down'
+            activated: True
         HalignButton:
             text: 'left'
         HalignButton:
@@ -233,7 +233,7 @@ BoxLayout:
             text: 'set base_direction ='
         BaseDirButton:
             text: 'None'
-            state: 'down'
+            activated: True
         BaseDirButton:
             text: 'ltr'
         BaseDirButton:
@@ -250,7 +250,7 @@ BoxLayout:
             text: 'None'
         ContextButton:
             text: 'system://'
-            state: 'down'
+            activated: True
         ContextButton:
             text: 'system://user'
         ContextButton:
@@ -267,7 +267,7 @@ BoxLayout:
             text: '10'
         FontButton:
             text: '20'
-            state: 'down'
+            activated: True
         FontButton:
             text: '30'
         FontButton:
@@ -290,7 +290,7 @@ BoxLayout:
 #            text: 'Add font: system://user'
 #        ToggleButton:
 #            text: 'Enable markup'
-#            state: 'down'
-#            on_state:
-#                for c in boxes.children: c.markup = self.state == 'down'
+#            activated: True
+#            on_activated:
+#                for c in boxes.children: c.markup = self.activated
 '''))

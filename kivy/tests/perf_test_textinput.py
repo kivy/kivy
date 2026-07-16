@@ -173,14 +173,14 @@ class PerfApp(App, FloatLayout):
                 try:
                     but = self.tests[int(self.slider.value)]
                     self.slider.value += 1
-                    but.state = 'down'
+                    but.activated = True
                     print('=====================')
                     print('Test:', but.text)
                     print('=====================')
                     but.test(but)
                 except IndexError:
                     for but in self.tests:
-                        but.state = 'normal'
+                        but.activated = False
                     self.but.text = 'Start Test'
                     self.slider.value = 0
                     print('===================')
