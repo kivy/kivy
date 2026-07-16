@@ -3058,6 +3058,9 @@ class TextInput(FocusBehavior, Widget):
         Window.unbind(on_textedit=self.window_on_textedit)
 
     def window_on_textedit(self, window, ime_input):
+        if not self._lines:
+            self._refresh_text(self.text)
+
         if self._ime_composition:
             ci = self.cursor_index()
             len_ime = len(self._ime_composition)
