@@ -155,6 +155,7 @@ class _FakeActivity:
         self._resources = _FakeResources(font_scale)
         self.moved_to_back = None
         self.finished = False
+        self.presplash_removed = False
 
     def runOnUiThread(self, runnable):
         # Run synchronously so the backend's UI-thread marshaling completes
@@ -175,6 +176,9 @@ class _FakeActivity:
 
     def finishAndRemoveTask(self):
         self.finished = True
+
+    def removeLoadingScreen(self):
+        self.presplash_removed = True
 
 
 @contextmanager
@@ -298,7 +302,7 @@ class TestAndroidPlatform:
             "get_keyboard_height", "get_safe_area",
             "subscribe_keyboard_height",
             "get_display_cutout", "get_system_bar_insets",
-            "move_task_to_back", "finish_and_remove_task",
+            "move_task_to_back", "finish_and_remove_task", "remove_presplash",
         ):
             assert hasattr(android, fn), f"android missing: {fn}"
             assert callable(getattr(android, fn))
@@ -356,6 +360,12 @@ class TestAndroidPlatform:
         with _fake_jnius(_default_insets()) as android:
             android.finish_and_remove_task()
             assert android.PythonActivity.mActivity.finished is True
+
+    def test_remove_presplash_calls_activity(self):
+        # Dismisses the boot splash via the bootstrap removeLoadingScreen().
+        with _fake_jnius(_default_insets()) as android:
+            android.remove_presplash()
+            assert android.PythonActivity.mActivity.presplash_removed is True
 
     def test_safe_area_unions_system_bars_and_cutout(self):
         with _fake_jnius(_default_insets()) as android:

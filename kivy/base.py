@@ -238,11 +238,11 @@ class EventLoopBase(EventDispatcher):
     def remove_android_splash(self, *args):
         '''Remove android presplash in SDL3 bootstrap.'''
         try:
-            from android import remove_presplash
+            from kivy.mobile._platform.android import remove_presplash
             remove_presplash()
         except ImportError:
             Logger.warning(
-                'Base: Failed to import "android" module. '
+                'Base: Failed to import the android platform backend. '
                 'Could not remove android presplash.')
             return
 

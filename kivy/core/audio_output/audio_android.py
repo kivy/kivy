@@ -5,9 +5,9 @@ AudioAndroid: Kivy audio implementation for Android using native API
 __all__ = ("SoundAndroidPlayer", )
 
 from jnius import autoclass, java_method, PythonJavaClass
-from android import api_version
 from kivy.core.audio_output import Sound, SoundLoader
 
+api_version = autoclass("android.os.Build$VERSION").SDK_INT
 
 MediaPlayer = autoclass("android.media.MediaPlayer")
 AudioManager = autoclass("android.media.AudioManager")

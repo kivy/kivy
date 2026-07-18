@@ -27,7 +27,9 @@ runtime API matters):
   API 30+ (Android 11); use ``WindowInsets.getInsets(type)`` and the typed
   ``ime()`` / ``systemBars()`` / ``displayCutout()`` insets added in API 30.
 * ``move_task_to_back`` / ``finish_and_remove_task`` — all supported API levels
-  (stock ``android.app.Activity`` methods).  These are app/task lifecycle
+  (stock ``android.app.Activity`` methods).  ``remove_presplash`` similarly
+  needs no minimum API but depends on the bootstrap ``removeLoadingScreen``
+  method (see the bootstrap contract below).  These are app/task lifecycle
   actions rather than geometry reads; they are Android-only (no cross-platform
   analogue) so they are not surfaced through the neutral ``kivy.mobile`` API.
 
@@ -48,6 +50,11 @@ this in sync when adding bootstrap-coupled features:
   a static ``mActivity`` field holding the current ``android.app.Activity``.
   **Hard requirement** — the whole backend resolves geometry through it; if the
   bootstrap renames or omits it, the module degrades to safe defaults on import.
+* ``mActivity.removeLoadingScreen()`` — **soft requirement**, used only by
+  :func:`remove_presplash` to dismiss the boot splash.  This is a
+  bootstrap-provided method (not stock Android framework); a bootstrap that
+  omits it simply cannot remove the splash this way, and the caller in
+  ``kivy.base`` already tolerates that.
 
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'android'``.  Do not import it directly.
@@ -438,14 +445,15 @@ def get_system_bar_insets():
 # ---------------------------------------------------------------------------
 # App / task lifecycle
 #
-# Thin wrappers over stock ``android.app.Activity`` methods, kept here so Kivy's
-# cross-platform layers (App, Window) reach the Android bootstrap only through
-# ``kivy.mobile`` rather than importing the python-for-android ``android``
-# module directly.  These are Android-only actions with no cross-platform
-# analogue, so they live on this backend and are not exposed on the neutral
-# ``kivy.mobile`` surface.  Callers invoke them under a ``platform == 'android'``
-# guard.  Both run on the calling (Kivy) thread, matching Kivy's long-standing
-# behaviour for these calls.
+# Thin wrappers over stock ``android.app.Activity`` methods (plus the
+# bootstrap-provided splash call), kept here so Kivy's cross-platform layers
+# (App, Window, base) reach the Android bootstrap only through ``kivy.mobile``
+# rather than importing the python-for-android ``android`` module directly.
+# These are Android-only actions with no cross-platform analogue, so they live
+# on this backend and are not exposed on the neutral ``kivy.mobile`` surface.
+# Callers invoke them under a ``platform == 'android'`` guard.  They run on the
+# calling (Kivy) thread, matching Kivy's long-standing behaviour for these
+# calls.
 # ---------------------------------------------------------------------------
 
 
@@ -465,3 +473,14 @@ def finish_and_remove_task() -> None:
     Android task is torn down along with the Kivy app.
     """
     _activity().finishAndRemoveTask()
+
+
+def remove_presplash() -> None:
+    """Dismiss the Android boot splash / loading screen.
+
+    Wraps the bootstrap-provided ``mActivity.removeLoadingScreen()`` (see the
+    "Android bootstrap contract" above), mirroring python-for-android's
+    ``android.remove_presplash`` for the sdl2/sdl3 bootstraps so ``kivy.base``
+    can drop the splash without importing the p4a ``android`` module.
+    """
+    _activity().removeLoadingScreen()

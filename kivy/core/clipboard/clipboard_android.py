@@ -9,15 +9,48 @@ __all__ = ('ClipboardAndroid', )
 
 from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
-from jnius import autoclass, cast
-from android.runnable import run_on_ui_thread
-from android import python_act
+from jnius import autoclass, cast, PythonJavaClass, java_method
 
 AndroidString = autoclass('java.lang.String')
-PythonActivity = python_act
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
 Context = autoclass('android.content.Context')
 VER = autoclass('android.os.Build$VERSION')
 sdk = VER.SDK_INT
+
+
+class _Runnable(PythonJavaClass):
+    '''Schedule a Python call onto the Android UI thread (fire-and-forget).
+
+    A tiny local replacement for python-for-android's ``android.runnable`` so
+    this provider depends only on pyjnius, not the p4a ``android`` module.
+    '''
+
+    __javainterfaces__ = ['java/lang/Runnable']
+    __javacontext__ = 'app'
+    # Keep strong references until the JVM has run each proxy, otherwise the
+    # pyjnius object may be collected before ``run()`` fires.
+    _refs = []
+
+    def __init__(self, func, args, kwargs):
+        super().__init__()
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+        _Runnable._refs.append(self)
+
+    @java_method('()V')
+    def run(self):
+        try:
+            self._func(*self._args, **self._kwargs)
+        finally:
+            _Runnable._refs.remove(self)
+
+
+def run_on_ui_thread(f):
+    '''Decorator running *f* on the UI thread via ``Activity.runOnUiThread``.'''
+    def wrapper(*args, **kwargs):
+        PythonActivity.mActivity.runOnUiThread(_Runnable(f, args, kwargs))
+    return wrapper
 
 
 class ClipboardAndroid(ClipboardBase):
