@@ -28,16 +28,20 @@ Public API — Tier 1 (always available on all platforms)
     Physical screen DPI.
 
 ``get_scale()`` → float
-    Display scale factor (UIKit *nativeScale* on iOS, *scaledDensity* on Android).
+    Display scale factor: UIKit *nativeScale* on iOS, ``DisplayMetrics.density``
+    on Android.  This is the pure logical density; the user's font-scale
+    preference is exposed separately as :attr:`kivy.metrics.Metrics.fontscale`.
 
 ``get_density()`` → float
     Alias for ``get_scale()``.
 
 ``get_keyboard_height()`` → float
     Current software-keyboard height in layout points.  Returns 0 when hidden.
+    (Android: requires API 30+; returns 0 below.)
 
 ``get_safe_area()`` → dict
-    Safe-area insets in layout points::
+    Safe-area insets in layout points (Android: requires API 30+; returns
+    all-zero insets below)::
 
         {"top": float, "left": float, "bottom": float, "right": float}
 
@@ -52,11 +56,12 @@ Public API — Tier 2 (Android platform extras)
 ---------------------------------------------
 
 ``get_display_cutout()`` → list[dict] | None
-    Android physical display-cutout regions.  Always ``None`` on iOS / desktop.
+    Android physical display-cutout regions (requires API 28+; ``None`` below).
+    Always ``None`` on iOS / desktop.
 
 ``get_system_bar_insets()`` → dict | None
-    Android status-bar / navigation-bar insets separated.  Always ``None`` on
-    iOS / desktop.
+    Android status-bar / navigation-bar insets separated (requires API 30+;
+    ``None`` below).  Always ``None`` on iOS / desktop.
 
 .. versionadded:: 3.0.0
 """
