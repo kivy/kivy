@@ -727,6 +727,7 @@ cdef class _WindowSDL3Storage:
         cdef SDL_Rect *rect = <SDL_Rect *>PyMem_Malloc(sizeof(SDL_Rect))
         if not rect:
             raise MemoryError('Memory error in rect allocation')
+        cdef SDL_PropertiesID props
         try:
             if platform == 'android':
                 # This could probably be safely done on every platform
@@ -767,58 +768,59 @@ cdef class _WindowSDL3Storage:
                     rect.h = 1
                     SDL_SetTextInputArea(self.win, rect, 0)
 
-                """
-                Android input type selection.
-                Based on input_type and keyboard_suggestions arguments, set the
-                keyboard type to be shown. Note that text suggestions will only
-                work when input_type is "text" or a text variation.
-                """
+            # Configure the on-screen keyboard type via SDL3 text-input
+            # properties. SDL applies this to its own text-input view on both
+            # iOS and Android, so Kivy needs neither the p4a ``android`` module
+            # nor any per-platform keyboard hook.
+            props = SDL_CreateProperties()
+            try:
+                # Coarse, cross-platform type (drives the iOS keyboard; SDL
+                # falls back sensibly for unmapped values).
+                if input_type == 'number' or input_type == 'tel':
+                    sdl_type = SDL_TEXTINPUT_TYPE_NUMBER
+                elif input_type == 'mail':
+                    sdl_type = SDL_TEXTINPUT_TYPE_TEXT_EMAIL
+                else:
+                    sdl_type = SDL_TEXTINPUT_TYPE_TEXT
+                SDL_SetNumberProperty(
+                    props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, sdl_type)
 
-                from android import mActivity
+                if platform == 'android':
+                    # Full android.text.InputType gives finer control than the
+                    # coarse SDL type (url/tel/datetime + best-effort
+                    # no-suggestions) and overrides it on Android. See
+                    # developer.android.com/reference/android/text/InputType
+                    TYPE_CLASS_NULL = 0
+                    TYPE_CLASS_TEXT = 1
+                    TYPE_CLASS_NUMBER = 2
+                    TYPE_CLASS_PHONE = 3
+                    TYPE_CLASS_DATETIME = 4
+                    TYPE_TEXT_VARIATION_URI = 16
+                    TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
+                    TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
+                    TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
+                    android_type = {
+                        'null': TYPE_CLASS_NULL,
+                        'text': TYPE_CLASS_TEXT,
+                        'number': TYPE_CLASS_NUMBER,
+                        'url': TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_URI,
+                        'mail':
+                            TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                        'datetime': TYPE_CLASS_DATETIME,
+                        'tel': TYPE_CLASS_PHONE,
+                        'address':
+                            TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_POSTAL_ADDRESS,
+                    }.get(input_type, TYPE_CLASS_TEXT)
+                    if (not keyboard_suggestions
+                            and input_type in ('text', 'url', 'mail', 'address')):
+                        android_type |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                    SDL_SetNumberProperty(
+                        props, SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER,
+                        android_type)
 
-                # InputType definitions, from Android documentation
-
-                TYPE_CLASS_DATETIME = 4
-                TYPE_CLASS_NUMBER = 2
-                TYPE_CLASS_PHONE = 3
-                TYPE_CLASS_TEXT = 1
-                TYPE_CLASS_NULL = 0
-
-                TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
-                TYPE_TEXT_VARIATION_URI = 16
-                TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
-
-                TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
-
-                input_type_value = {
-                                "null": TYPE_CLASS_NULL,
-                                "text": TYPE_CLASS_TEXT,
-                                "number": TYPE_CLASS_NUMBER,
-                                "url":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_URI,
-                                "mail":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
-                                "datetime": TYPE_CLASS_DATETIME,
-                                "tel": TYPE_CLASS_PHONE,
-                                "address":
-                                TYPE_CLASS_TEXT |
-                                TYPE_TEXT_VARIATION_POSTAL_ADDRESS
-                              }.get(input_type, TYPE_CLASS_TEXT)
-
-                text_keyboards = {"text", "url", "mail", "address"}
-
-                if not keyboard_suggestions and input_type in text_keyboards:
-                    """
-                    Looks like some (major) device vendors and keyboards are de-facto ignoring this flag,
-                    so we can't really rely on this one to disable suggestions.
-                    """
-                    input_type_value |= TYPE_TEXT_FLAG_NO_SUGGESTIONS
-
-                mActivity.changeKeyboard(input_type_value)
-
-            SDL_StartTextInput(self.win)
+                SDL_StartTextInputWithProperties(self.win, props)
+            finally:
+                SDL_DestroyProperties(props)
         finally:
             PyMem_Free(<void *>rect)
 
