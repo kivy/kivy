@@ -168,6 +168,19 @@ def get_density() -> float:
     return get_scale()
 
 
+def get_fontscale() -> float:
+    """User font-scale preference.
+
+    iOS text scaling (Dynamic Type) is a per-text-style mapping driven by
+    ``UIApplication.preferredContentSizeCategory``/``UIFontMetrics`` rather than
+    a single global multiplier, so there is no direct analogue to Android's
+    ``Configuration.fontScale``.  Kivy therefore reports ``1.0`` here, matching
+    its historical behaviour; apps needing Dynamic Type must query UIKit
+    directly.
+    """
+    return 1.0
+
+
 def get_safe_area() -> dict[str, float]:
     """Safe-area insets in UIKit points (== Kivy layout coordinates).
 

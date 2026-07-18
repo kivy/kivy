@@ -136,9 +136,23 @@ class _FakeWindow:
         return _FakeDecorView(self._insets)
 
 
+class _FakeConfiguration:
+    def __init__(self, font_scale=1.0):
+        self.fontScale = font_scale
+
+
+class _FakeResources:
+    def __init__(self, font_scale=1.0):
+        self._config = _FakeConfiguration(font_scale)
+
+    def getConfiguration(self):
+        return self._config
+
+
 class _FakeActivity:
-    def __init__(self, insets):
+    def __init__(self, insets, font_scale=1.0):
         self._insets = insets
+        self._resources = _FakeResources(font_scale)
 
     def runOnUiThread(self, runnable):
         # Run synchronously so the backend's UI-thread marshaling completes
@@ -151,9 +165,12 @@ class _FakeActivity:
     def getWindowManager(self):
         return _FakeWindowManager()
 
+    def getResources(self):
+        return self._resources
+
 
 @contextmanager
-def _fake_jnius(insets, sdk_int=33, missing=()):
+def _fake_jnius(insets, sdk_int=33, missing=(), font_scale=1.0):
     """Install a fake ``jnius`` module and yield the freshly loaded backend.
 
     *missing* is a set of class names that ``autoclass`` should fail to
@@ -162,7 +179,7 @@ def _fake_jnius(insets, sdk_int=33, missing=()):
     """
 
     class _FakePythonActivity:
-        mActivity = _FakeActivity(insets)
+        mActivity = _FakeActivity(insets, font_scale)
 
     class _FakeVersion:
         SDK_INT = sdk_int
@@ -241,13 +258,18 @@ class TestIosPlatform:
     def test_all_functions_present(self):
         ios = _load("ios")
         for fn in (
-            "get_dpi", "get_scale", "get_density",
+            "get_dpi", "get_scale", "get_density", "get_fontscale",
             "get_keyboard_height", "get_safe_area",
             "subscribe_keyboard_height",
             "get_display_cutout", "get_system_bar_insets",
         ):
             assert hasattr(ios, fn), f"ios missing: {fn}"
             assert callable(getattr(ios, fn))
+
+    def test_get_fontscale_is_one(self):
+        # iOS Dynamic Type has no single-scalar analogue, so fontscale is 1.0.
+        ios = _load("ios")
+        assert ios.get_fontscale() == 1.0
 
     def test_get_display_cutout_is_none(self):
         ios = _load("ios")
@@ -264,7 +286,7 @@ class TestAndroidPlatform:
     def test_all_functions_present(self):
         android = _load("android")
         for fn in (
-            "get_dpi", "get_scale", "get_density",
+            "get_dpi", "get_scale", "get_density", "get_fontscale",
             "get_keyboard_height", "get_safe_area",
             "subscribe_keyboard_height",
             "get_display_cutout", "get_system_bar_insets",
@@ -285,6 +307,7 @@ class TestAndroidPlatform:
             assert android.get_dpi() == 96.0
             assert android.get_scale() == 1.0
             assert android.get_density() == 1.0
+            assert android.get_fontscale() == 1.0
             assert android.get_keyboard_height() == 0.0
             sa = android.get_safe_area()
             assert set(sa.keys()) == {"top", "left", "bottom", "right"}
@@ -299,6 +322,15 @@ class TestAndroidPlatform:
             # so the user's font scale is not double-counted in dp/layout.
             assert android.get_scale() == 2.625
             assert android.get_density() == 2.625
+
+    def test_fontscale_reads_configuration(self):
+        # get_fontscale reflects Configuration.fontScale, kept separate from
+        # get_scale so sp = density * fontscale without double-counting.
+        with _fake_jnius(_default_insets(), font_scale=1.15) as android:
+            assert android.get_fontscale() == 1.15
+        # Defaults to 1.0 when the user has not changed the preference.
+        with _fake_jnius(_default_insets()) as android:
+            assert android.get_fontscale() == 1.0
 
     def test_keyboard_height_reads_ime_inset(self):
         with _fake_jnius(_default_insets()) as android:

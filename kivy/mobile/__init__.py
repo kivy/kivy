@@ -19,6 +19,7 @@ Public API — Tier 1 (always available on all platforms)
         get_dpi,
         get_scale,
         get_density,
+        get_fontscale,
         get_keyboard_height,
         get_safe_area,
         subscribe_keyboard_height,
@@ -34,6 +35,11 @@ Public API — Tier 1 (always available on all platforms)
 
 ``get_density()`` → float
     Alias for ``get_scale()``.
+
+``get_fontscale()`` → float
+    User font-scale preference feeding :attr:`kivy.metrics.Metrics.fontscale`.
+    Android: ``Configuration.fontScale`` (typically 0.8-1.2).  iOS: always
+    ``1.0`` (Dynamic Type has no single-scalar analogue).
 
 ``get_keyboard_height()`` → float
     Current software-keyboard height in layout points.  Returns 0 when hidden.
@@ -75,6 +81,7 @@ if platform == 'ios':
         get_dpi,
         get_scale,
         get_density,
+        get_fontscale,
         get_keyboard_height,
         get_safe_area,
         subscribe_keyboard_height,
@@ -86,6 +93,7 @@ elif platform == 'android':
         get_dpi,
         get_scale,
         get_density,
+        get_fontscale,
         get_keyboard_height,
         get_safe_area,
         subscribe_keyboard_height,

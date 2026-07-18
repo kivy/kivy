@@ -197,6 +197,21 @@ def get_density() -> float:
     return get_scale()
 
 
+def get_fontscale() -> float:
+    """User font-scale preference (Android ``Configuration.fontScale``).
+
+    This is the accessibility text-size multiplier (typically 0.8-1.2) that
+    Kivy applies to ``sp`` sizing through :attr:`kivy.metrics.Metrics.fontscale`.
+    It is kept separate from :func:`get_scale` (which reports the pure logical
+    density) so it is not double-counted in ``dp``/layout sizing.
+    """
+    try:
+        config = _activity().getResources().getConfiguration()
+        return float(config.fontScale)
+    except Exception:
+        return 1.0
+
+
 def get_keyboard_height() -> float:
     """Current soft-keyboard (IME) height in pixels; 0 when hidden.
 
