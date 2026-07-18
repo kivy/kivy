@@ -33,6 +33,18 @@ warning.  A clean API-30 baseline is intentional: legacy pre-30 inset APIs are
 deprecated/heuristic, and Android 11+ covers the overwhelming majority of
 active devices.
 
+Android bootstrap contract
+--------------------------
+Everything else this backend touches is stock Android framework, but one symbol
+must be supplied by the *Android bootstrap* (python-for-android today, and any
+alternative such as a kivyforge bootstrap must provide an equivalent).  Keep
+this in sync when adding bootstrap-coupled features:
+
+* ``org.kivy.android.PythonActivity`` (class, see :data:`_ACTIVITY_CLASS`) with
+  a static ``mActivity`` field holding the current ``android.app.Activity``.
+  **Hard requirement** — the whole backend resolves geometry through it; if the
+  bootstrap renames or omits it, the module degrades to safe defaults on import.
+
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'android'``.  Do not import it directly.
 """
@@ -41,10 +53,16 @@ from __future__ import annotations
 
 import threading
 
+# The single bootstrap-provided activity class this backend depends on. Hoisted
+# to a named constant so the one hard coupling to the Android bootstrap is an
+# obvious, documented point rather than a bare string (see the module docstring,
+# "Android bootstrap contract").
+_ACTIVITY_CLASS = "org.kivy.android.PythonActivity"
+
 try:
     from jnius import autoclass, PythonJavaClass, java_method
 
-    PythonActivity = autoclass("org.kivy.android.PythonActivity")
+    PythonActivity = autoclass(_ACTIVITY_CLASS)
     DisplayMetrics = autoclass("android.util.DisplayMetrics")
     _Build_VERSION = autoclass("android.os.Build$VERSION")
 except Exception:  # noqa: BLE001
