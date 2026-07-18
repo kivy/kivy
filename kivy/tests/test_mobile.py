@@ -153,6 +153,8 @@ class _FakeActivity:
     def __init__(self, insets, font_scale=1.0):
         self._insets = insets
         self._resources = _FakeResources(font_scale)
+        self.moved_to_back = None
+        self.finished = False
 
     def runOnUiThread(self, runnable):
         # Run synchronously so the backend's UI-thread marshaling completes
@@ -167,6 +169,12 @@ class _FakeActivity:
 
     def getResources(self):
         return self._resources
+
+    def moveTaskToBack(self, non_root):
+        self.moved_to_back = non_root
+
+    def finishAndRemoveTask(self):
+        self.finished = True
 
 
 @contextmanager
@@ -290,6 +298,7 @@ class TestAndroidPlatform:
             "get_keyboard_height", "get_safe_area",
             "subscribe_keyboard_height",
             "get_display_cutout", "get_system_bar_insets",
+            "move_task_to_back", "finish_and_remove_task",
         ):
             assert hasattr(android, fn), f"android missing: {fn}"
             assert callable(getattr(android, fn))
@@ -335,6 +344,18 @@ class TestAndroidPlatform:
     def test_keyboard_height_reads_ime_inset(self):
         with _fake_jnius(_default_insets()) as android:
             assert android.get_keyboard_height() == 800.0
+
+    def test_move_task_to_back_calls_activity(self):
+        # Backgrounds the task via Activity.moveTaskToBack(true).
+        with _fake_jnius(_default_insets()) as android:
+            android.move_task_to_back()
+            assert android.PythonActivity.mActivity.moved_to_back is True
+
+    def test_finish_and_remove_task_calls_activity(self):
+        # Tears the task down via Activity.finishAndRemoveTask().
+        with _fake_jnius(_default_insets()) as android:
+            android.finish_and_remove_task()
+            assert android.PythonActivity.mActivity.finished is True
 
     def test_safe_area_unions_system_bars_and_cutout(self):
         with _fake_jnius(_default_insets()) as android:

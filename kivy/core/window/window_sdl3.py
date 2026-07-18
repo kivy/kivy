@@ -249,8 +249,10 @@ class WindowSDL(WindowBase):
                 if platform == 'android':
                     Logger.info(
                         'WindowSDL: App stopped, on_pause() returned False.')
-                    from android import mActivity
-                    mActivity.finishAndRemoveTask()
+                    from kivy.mobile._platform.android import (
+                        finish_and_remove_task,
+                    )
+                    finish_and_remove_task()
                 else:
                     Logger.info(
                         'WindowSDL: App doesn\'t support pause mode, stop.')

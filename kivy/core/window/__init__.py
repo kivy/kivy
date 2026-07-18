@@ -2087,8 +2087,8 @@ class WindowBase(EventDispatcher):
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
         if key == 27 and platform == 'android':
-            from android import mActivity
-            mActivity.moveTaskToBack(True)
+            from kivy.mobile._platform.android import move_task_to_back
+            move_task_to_back()
             return True
         elif WindowBase.on_keyboard.exit_on_escape:
             if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):

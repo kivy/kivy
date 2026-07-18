@@ -26,6 +26,10 @@ runtime API matters):
 * ``get_keyboard_height`` / ``get_safe_area`` / ``get_system_bar_insets`` —
   API 30+ (Android 11); use ``WindowInsets.getInsets(type)`` and the typed
   ``ime()`` / ``systemBars()`` / ``displayCutout()`` insets added in API 30.
+* ``move_task_to_back`` / ``finish_and_remove_task`` — all supported API levels
+  (stock ``android.app.Activity`` methods).  These are app/task lifecycle
+  actions rather than geometry reads; they are Android-only (no cross-platform
+  analogue) so they are not surfaced through the neutral ``kivy.mobile`` API.
 
 On older devices the module still imports and the lower-API getters keep
 working; the higher-API getters degrade to zeros/``None`` and emit a one-time
@@ -429,3 +433,35 @@ def get_system_bar_insets():
         return _on_ui_thread(work)
     except Exception:
         return None
+
+
+# ---------------------------------------------------------------------------
+# App / task lifecycle
+#
+# Thin wrappers over stock ``android.app.Activity`` methods, kept here so Kivy's
+# cross-platform layers (App, Window) reach the Android bootstrap only through
+# ``kivy.mobile`` rather than importing the python-for-android ``android``
+# module directly.  These are Android-only actions with no cross-platform
+# analogue, so they live on this backend and are not exposed on the neutral
+# ``kivy.mobile`` surface.  Callers invoke them under a ``platform == 'android'``
+# guard.  Both run on the calling (Kivy) thread, matching Kivy's long-standing
+# behaviour for these calls.
+# ---------------------------------------------------------------------------
+
+
+def move_task_to_back() -> None:
+    """Send the app's task to the background (Android "Home"-like behaviour).
+
+    Wraps ``Activity.moveTaskToBack(true)``; used for the pause / back-gesture
+    paths where the app should be backgrounded rather than destroyed.
+    """
+    _activity().moveTaskToBack(True)
+
+
+def finish_and_remove_task() -> None:
+    """Finish the app and remove it from the recents list.
+
+    Wraps ``Activity.finishAndRemoveTask()``; used for the stop path so the
+    Android task is torn down along with the Kivy app.
+    """
+    _activity().finishAndRemoveTask()
