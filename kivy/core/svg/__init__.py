@@ -24,6 +24,7 @@ from abc import ABC, abstractmethod
 
 from kivy.logger import Logger
 from kivy.core import core_register_libs, get_provider_modules, make_provider_tuple
+from kivy.utils import path_to_str
 
 
 class SvgProviderBase(ABC):
@@ -152,10 +153,15 @@ class SvgLoader:
         '''Try each registered provider in order and return the first that
         successfully loads *source*.
 
-        :param str source: File path to the SVG document.
+        :param source: File path (``str`` or :class:`os.PathLike`) to the SVG
+            document.
         :returns: A loaded :class:`SvgProviderBase` instance, or ``None`` if
             no provider could load the document.
+
+        .. versionchanged:: 3.0.0
+            `source` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`).
         '''
+        source = path_to_str(source)
         for provider_class in cls.providers:
             try:
                 provider = provider_class()

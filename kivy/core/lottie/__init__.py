@@ -66,6 +66,7 @@ import json
 from kivy.clock import Clock
 from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.event import EventDispatcher
+from kivy.utils import path_to_str
 
 
 class LottieBase(EventDispatcher):
@@ -161,6 +162,7 @@ class LottieBase(EventDispatcher):
         return self._filename
 
     def _set_filename(self, filename):
+        filename = path_to_str(filename)
         if filename == self._filename:
             return
         self.unload()

@@ -19,9 +19,9 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'deprecated', 'SafeList',
            'interpolate', 'QueryDict',
            'platform', 'escape_markup', 'reify', 'rgba', 'pi_version',
-           'format_bytes_to_human', 'normalize_path_id')
+           'format_bytes_to_human', 'normalize_path_id', 'path_to_str')
 
-from os import environ, path
+from os import environ, path, fspath, PathLike
 from sys import platform as _sys_platform
 from re import match, split, search, sub, MULTILINE, IGNORECASE
 from unicodedata import normalize, category
@@ -40,6 +40,22 @@ def intersection(set1, set2):
 def difference(set1, set2):
     '''Return the difference between 2 lists.'''
     return [s for s in set1 if s not in set2]
+
+
+def path_to_str(value):
+    '''Coerce an :class:`os.PathLike` object (such as :class:`pathlib.Path`)
+    to its string representation via :func:`os.fspath`.
+
+    Any value that is not path-like (``str``, ``bytes``, ``None``,
+    file-like objects, URIs, ...) is returned unchanged, so this is safe to
+    apply at the boundary of APIs that historically accepted only ``str``
+    paths.
+
+    .. versionadded:: 3.0.0
+    '''
+    if isinstance(value, PathLike):
+        return fspath(value)
+    return value
 
 
 def normalize_path_id(path_id):

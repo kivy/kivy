@@ -446,7 +446,7 @@ from weakref import ref
 
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import pi_version, platform
+from kivy.utils import pi_version, platform, path_to_str
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -533,7 +533,15 @@ class ConfigParser(PythonConfigParser, object):
         .. versionchanged:: 1.9.0
             :meth:`read` now calls the callbacks if read changed any values.
 
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``. Passing multiple filenames (a list) is
+            still rejected.
+
         '''
+        # Coerce os.PathLike -> str; still reject anything else (e.g. a list of
+        # filenames) to preserve the "one filename only" contract.
+        filename = path_to_str(filename)
         if not isinstance(filename, str):
             raise Exception('Only one filename is accepted (str)')
         self.filename = filename

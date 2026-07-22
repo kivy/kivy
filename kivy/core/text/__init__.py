@@ -133,7 +133,7 @@ from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
 from kivy.config import Config
-from kivy.utils import platform
+from kivy.utils import platform, path_to_str
 from kivy.graphics.texture import Texture
 from kivy.core import core_register_libs, get_provider_modules, make_provider_tuple
 from kivy.core.text.text_layout import layout_text, LayoutWord
@@ -432,6 +432,10 @@ class LabelBase(object):
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
+
+        .. versionchanged:: 3.0.0
+            The ``fn_*`` font paths may be :class:`os.PathLike` (e.g.
+            :class:`pathlib.Path`) in addition to ``str``.
         '''
 
         if fn_regular is None:
@@ -440,6 +444,7 @@ class LabelBase(object):
         fonts = []
 
         for font_type in fn_regular, fn_italic, fn_bold, fn_bolditalic:
+            font_type = path_to_str(font_type)
             if font_type is not None:
                 font = resource_find(font_type)
 
@@ -529,7 +534,10 @@ class LabelBase(object):
 
     def resolve_font_name(self):
         options = self.options
-        fontname = options['font_name']
+        # Coerce os.PathLike -> str and write back so downstream string ops
+        # (endswith/format) and the _fonts / _fonts_cache dict keys are
+        # consistent regardless of whether a Path or str was supplied.
+        fontname = options['font_name'] = path_to_str(options['font_name'])
         fonts = self._fonts
         fontscache = self._fonts_cache
 

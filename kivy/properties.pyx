@@ -274,6 +274,7 @@ include "include/config.pxi"
 
 
 from weakref import ref
+from os import fspath, PathLike
 from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
@@ -785,10 +786,21 @@ cdef class StringProperty(Property):
         `defaultvalue`: string, defaults to ''
             Specifies the default value of the property.
 
+    .. versionchanged:: 3.0.0
+        :class:`os.PathLike` values (such as :class:`pathlib.Path`) are now
+        accepted and coerced to their string representation via
+        :func:`os.fspath`. Any other value type is left unchanged, so a
+        non-string, non-path value still raises ``ValueError``.
+
     '''
 
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
+
+    cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage):
+        if isinstance(x, PathLike):
+            return fspath(x)
+        return x
 
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):

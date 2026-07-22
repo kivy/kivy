@@ -38,6 +38,7 @@ from kivy.clock import Clock
 from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
+from kivy.utils import path_to_str
 
 
 class VideoBase(EventDispatcher):
@@ -147,6 +148,7 @@ class VideoBase(EventDispatcher):
         return self._filename
 
     def _set_filename(self, filename):
+        filename = path_to_str(filename)
         if filename == self._filename:
             return
         self.unload()
@@ -250,7 +252,11 @@ class VideoBase(EventDispatcher):
         an informational message and returns ``None``.
 
         .. versionadded:: 3.0.0
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`).
         '''
+        filename = path_to_str(filename)
         Logger.info(
             'VideoBase: generate_thumbnail is not supported by '
             'provider {!r}'.format(cls.__name__))
