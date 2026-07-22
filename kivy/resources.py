@@ -51,6 +51,24 @@ resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
 Cache.register('kv.resourcefind', timeout=60)
 
 
+def _cache_key(filename):
+    # Build a normalized cache key for a resource lookup.
+
+    # Filesystem paths are normalized with :func:`os.path.normpath` (collapses
+    # ``.``/``..`` and unifies separators) and :func:`os.path.normcase` (lowers
+    # case on case-insensitive platforms such as Windows), so that different
+    # spellings of the same file -- ``'a/b.png'``, ``'a\\b.png'`` and
+    # ``pathlib.Path('a/b.png')`` -- share a single cache entry.
+
+    # URIs (``atlas://``, ``data:`` and the ``@image_provider:...`` scheme) are
+    # returned verbatim, because ``normpath`` would collapse their ``//`` and
+    # mangle the scheme separators.
+    if _provider_uri_re.match(filename) or filename[:8] == 'atlas://' \
+            or filename.startswith('data:'):
+        return filename
+    return os.path.normcase(os.path.normpath(filename))
+
+
 def _resolve_path(filename):
     # Resolve a filename to an absolute path by searching resource_paths.
 
@@ -82,15 +100,23 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
         `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
         in addition to a ``str``. It is coerced to ``str`` before resolution
         so cache keys stay consistent.
+
+    .. versionchanged:: 3.0.0
+        The result cache is keyed on a normalized form of `filename`, so
+        different spellings of the same path (``'a/b.png'`` vs ``'a\\b.png'``,
+        redundant ``.``/``..`` segments, case differences on case-insensitive
+        platforms, and :class:`pathlib.Path` inputs) now share a single cache
+        entry. URIs are keyed verbatim.
     '''
     # Coerce os.PathLike -> str up front so all downstream string parsing and
     # the resource cache keys operate on a single, consistent type.
     filename = path_to_str(filename)
     if not filename:
         return
+    cache_key = _cache_key(filename)
     found_filename = None
     if use_cache:
-        found_filename = Cache.get('kv.resourcefind', filename)
+        found_filename = Cache.get('kv.resourcefind', cache_key)
         if found_filename:
             return found_filename
 
@@ -112,7 +138,7 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
             found_filename = filename
 
     if use_cache and found_filename:
-        Cache.append('kv.resourcefind', filename, found_filename)
+        Cache.append('kv.resourcefind', cache_key, found_filename)
     return found_filename
 
 
