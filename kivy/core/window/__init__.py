@@ -685,7 +685,7 @@ class WindowBase(EventDispatcher):
 
     def _refresh_safe_area(self, *args):
         """Update Window.safe_area from kivy.mobile.get_safe_area()."""
-        if platform not in ('ios', 'android'):
+        if platform not in {'ios', 'android'}:
             return
         from kivy.mobile import get_safe_area
         self.safe_area = get_safe_area()
@@ -709,7 +709,7 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_kheight(self):
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_keyboard_height
             return get_keyboard_height()
         return self._get_kivy_vkheight()
@@ -1196,7 +1196,7 @@ class WindowBase(EventDispatcher):
         # next frame so the first value isn't stuck at all-zeros.
         Clock.schedule_once(self._refresh_safe_area, 0)
 
-        if platform in ('ios', 'android'):
+        if platform in {'ios', 'android'}:
             from kivy.mobile import subscribe_keyboard_height
             # subscribe_keyboard_height fires on every IME height change; route
             # it through trigger_keyboard_height for parity with iOS. That is a

@@ -188,7 +188,7 @@ class MetricsBase(EventDispatcher):
         if not force_recompute and self._dpi is not None:
             return self._dpi
 
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_dpi as _mobile_get_dpi
             value = _mobile_get_dpi()
         else:
@@ -243,10 +243,10 @@ class MetricsBase(EventDispatcher):
             return self._density
 
         value = 1.0
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_density as _mobile_get_density
             value = _mobile_get_density()
-        elif platform in ('macosx', 'win'):
+        elif platform in {'macosx', 'win'}:
             value = self.dpi / 96.
 
         sync_pixel_scale(density=value)
@@ -274,7 +274,7 @@ class MetricsBase(EventDispatcher):
             return self._fontscale
 
         value = 1.0
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_fontscale as _mobile_get_fontscale
             value = _mobile_get_fontscale()
 

@@ -7,7 +7,7 @@ dispatches to a platform-specific implementation in ``kivy.mobile._platform``.
 .. note::
     ``kivy.mobile`` is a **mobile-only module**.  Importing it on desktop
     platforms (macOS, Windows, Linux) raises ``ImportError``.  Guard imports
-    with ``if platform in ('ios', 'android'):`` when writing code that also
+    with ``if platform in {'ios', 'android'}:`` when writing code that also
     runs on desktop.
 
 Public API — Tier 1 (always available on all platforms)
@@ -104,5 +104,5 @@ else:
     raise ImportError(
         f"kivy.mobile is a mobile-only module (platform={platform!r}). "
         "It is not available on desktop platforms. "
-        "Guard your import with: if platform in ('ios', 'android'): ..."
+        "Guard your import with: if platform in {'ios', 'android'}: ..."
     )

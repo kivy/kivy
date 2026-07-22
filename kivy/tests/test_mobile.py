@@ -428,7 +428,7 @@ class TestMobileImportError:
     def test_raises_on_desktop(self):
         import sys
         from kivy.utils import platform
-        if platform in ('ios', 'android'):
+        if platform in {'ios', 'android'}:
             pytest.skip("running on mobile — ImportError not expected")
         sys.modules.pop("kivy.mobile", None)
         with pytest.raises(ImportError, match="mobile-only"):
