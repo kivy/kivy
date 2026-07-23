@@ -663,7 +663,23 @@ cdef extern from "SDL.h":
     cdef SDL_Scancode SDL_GetScancodeFromName(char *name)
     cdef char *SDL_GetKeyName(SDL_Keycode key)
     cdef SDL_Keycode SDL_GetKeyFromName(char *name)
+    ctypedef enum SDL_TextInputType:
+        SDL_TEXTINPUT_TYPE_TEXT
+        SDL_TEXTINPUT_TYPE_TEXT_NAME
+        SDL_TEXTINPUT_TYPE_TEXT_EMAIL
+        SDL_TEXTINPUT_TYPE_TEXT_USERNAME
+        SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_HIDDEN
+        SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_VISIBLE
+        SDL_TEXTINPUT_TYPE_NUMBER
+        SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_HIDDEN
+        SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_VISIBLE
+    cdef const char *SDL_PROP_TEXTINPUT_TYPE_NUMBER
+    cdef const char *SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER
+    cdef SDL_PropertiesID SDL_CreateProperties()
+    cdef bint SDL_SetNumberProperty(SDL_PropertiesID props, const char *name, Sint64 value)
+    cdef void SDL_DestroyProperties(SDL_PropertiesID props)
     cdef void SDL_StartTextInput(SDL_Window *window)
+    cdef bint SDL_StartTextInputWithProperties(SDL_Window *window, SDL_PropertiesID props)
     cdef bint SDL_TextInputActive(SDL_Window *window)
     cdef void SDL_StopTextInput(SDL_Window *window)
     cdef int SDL_SetTextInputArea(SDL_Window *window, const SDL_Rect *rect, int cursor)

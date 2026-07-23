@@ -225,7 +225,7 @@ class UrlRequestBase(Thread):
         self._requested_url = url
         self._auth = auth
 
-        if platform in ['android', 'ios']:
+        if platform in {'android', 'ios'}:
             import certifi
             self.ca_file = ca_file or certifi.where()
         else:

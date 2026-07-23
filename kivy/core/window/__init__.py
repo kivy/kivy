@@ -35,7 +35,6 @@ from kivy.core.image import ImageLoader
 
 # late import
 VKeyboard = None
-android = None
 Animation = None
 
 
@@ -684,37 +683,17 @@ class WindowBase(EventDispatcher):
         self._keyboard_changed = not self._keyboard_changed
         self._animate_content()
 
-    def _get_ios_kheight(self):
-        # TODO(kivy.mobile): once kivy.mobile Android is validated, collapse
-        # _get_ios_kheight and _get_android_kheight into a single
-        # kivy.mobile call in _get_kheight and remove both helpers.
-        from kivy.mobile import get_keyboard_height
-        return get_keyboard_height()
-
     def _refresh_safe_area(self, *args):
         """Update Window.safe_area from kivy.mobile.get_safe_area()."""
-        if platform not in ('ios', 'android'):
+        if platform not in {'ios', 'android'}:
             return
-        try:
-            from kivy.mobile import get_safe_area
-            self.safe_area = get_safe_area()
-        except Exception:
-            pass
-
-    def _get_android_kheight(self):
-        # TODO(kivy.mobile): replace with kivy.mobile.get_keyboard_height()
-        # once kivy/mobile/_platform/android.py is validated on a device.
-        if USE_SDL3:  # Placeholder until the SDL3 bootstrap supports this
-            return 0
-        global android
-        if not android:
-            import android
-        return android.get_keyboard_height()
+        from kivy.mobile import get_safe_area
+        self.safe_area = get_safe_area()
 
     def _get_kivy_vkheight(self):
         mode = Config.get('kivy', 'keyboard_mode')
         if (
-            mode in ['dock', 'systemanddock']
+            mode in {'dock', 'systemanddock'}
             and self._vkeyboard_cls is not None
         ):
             for w in self.children:
@@ -730,24 +709,23 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_kheight(self):
-        # TODO(kivy.mobile): once _get_android_kheight is replaced, simplify to:
-        #   if platform in ('android', 'ios'):
-        #       from kivy.mobile import get_keyboard_height
-        #       return get_keyboard_height()
-        if platform == 'android':
-            return self._get_android_kheight()
-        elif platform == 'ios':
-            return self._get_ios_kheight()
+        if platform in {'android', 'ios'}:
+            from kivy.mobile import get_keyboard_height
+            return get_keyboard_height()
         return self._get_kivy_vkheight()
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    .. note:: This property returns 0 with SDL3 on Android, but setting
-              Window.softinput_mode does work.
+    On iOS and Android the value is read from :mod:`kivy.mobile`
+    (``get_keyboard_height``), which reports the live IME inset height.
 
     .. versionadded:: 1.9.0
+
+    .. versionchanged:: 3.0.0
+        The Android/iOS height is now sourced from :mod:`kivy.mobile` instead of
+        the legacy ``android`` module.
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.properties.AliasProperty` and defaults to 0.
@@ -787,8 +765,9 @@ class WindowBase(EventDispatcher):
     ``"bottom"``, and ``"right"``.  All values are in the same coordinate
     system as Kivy layout (UIKit points on iOS).
 
-    The property is refreshed automatically on ``on_rotate``.  On desktop
-    platforms it remains ``{"top": 0, "left": 0, "bottom": 0, "right": 0}``.
+    The property is refreshed automatically whenever the window size or
+    rotation changes.  On desktop platforms it remains
+    ``{"top": 0, "left": 0, "bottom": 0, "right": 0}``.
 
     Usage example::
 
@@ -1207,16 +1186,26 @@ class WindowBase(EventDispatcher):
         self.bind(softinput_mode=lambda *dt: self.update_viewport(),
                   keyboard_height=lambda *dt: self.update_viewport())
 
-        self.bind(rotation=self._refresh_safe_area)
+        # Refresh on both size and rotation: on Android/SDL the OS orientation
+        # change arrives as a window resize (size), not a rotation property
+        # change, so binding rotation alone would leave safe_area stale.
+        self.bind(size=self._refresh_safe_area,
+                  rotation=self._refresh_safe_area)
         self._refresh_safe_area()  # populate on startup
+        # getRootWindowInsets() can still be null this early; re-read on the
+        # next frame so the first value isn't stuck at all-zeros.
+        Clock.schedule_once(self._refresh_safe_area, 0)
 
-        if platform == 'ios':
+        if platform in {'ios', 'android'}:
             from kivy.mobile import subscribe_keyboard_height
+            # subscribe_keyboard_height fires on every IME height change; route
+            # it through trigger_keyboard_height for parity with iOS. That is a
+            # 0.5s Clock trigger, so keyboard_height lags briefly but always
+            # re-reads the live value (a shorter/zero-delay trigger is a
+            # possible future refinement).
             subscribe_keyboard_height(
                 lambda h: self.trigger_keyboard_height()
             )
-        # TODO(kivy.mobile): subscribe Android keyboard height here once
-        # kivy/mobile/_platform/android.py implements subscribe_keyboard_height.
 
         self.bind(show_cursor=lambda *dt: self._set_cursor_state(dt[1]))
 
@@ -2102,7 +2091,7 @@ class WindowBase(EventDispatcher):
             mActivity.moveTaskToBack(True)
             return True
         elif WindowBase.on_keyboard.exit_on_escape:
-            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
+            if key == 27 or all([is_osx, key in {113, 119}, modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
                     self.close()

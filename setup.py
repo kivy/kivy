@@ -319,9 +319,9 @@ c_options['use_x11'] = False
 c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
 c_options['use_thorvg'] = None
-c_options['use_avfoundation'] = platform in ['darwin', 'ios']
+c_options['use_avfoundation'] = platform in {'darwin', 'ios'}
 c_options['use_osx_frameworks'] = platform == 'darwin'
-c_options['use_angle_gl_backend'] = platform in ['darwin', 'ios']
+c_options['use_angle_gl_backend'] = platform in {'darwin', 'ios'}
 c_options['debug_gl'] = False
 
 # now check if environ is changing the default values
@@ -624,7 +624,7 @@ if c_options['use_sdl3'] or can_autodetect_sdl3:
             sdl3_source = 'macos-frameworks'
             print('Activate SDL3 compilation')
 
-    if not sdl3_valid and platform not in ["android", "ios"]:
+    if not sdl3_valid and platform not in {"android", "ios"}:
         # use pkg-config approach instead
         sdl3_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
         if 'libraries' in sdl3_flags:
@@ -1119,7 +1119,7 @@ def determine_gl_flags():
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
-    elif platform in ['mali', 'vc']:
+    elif platform in {'mali', 'vc'}:
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
         flags['libraries'] = ['GLESv2']

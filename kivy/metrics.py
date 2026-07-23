@@ -101,7 +101,6 @@ from os import environ
 from kivy.utils import platform
 from kivy.properties import AliasProperty
 from kivy.event import EventDispatcher
-from kivy.setupconfig import USE_SDL3
 from kivy.context import register_context
 from kivy._metrics import dpi2px, NUMERIC_FORMATS, dispatch_pixel_scale, \
     sync_pixel_scale
@@ -189,7 +188,7 @@ class MetricsBase(EventDispatcher):
         if not force_recompute and self._dpi is not None:
             return self._dpi
 
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_dpi as _mobile_get_dpi
             value = _mobile_get_dpi()
         else:
@@ -244,10 +243,10 @@ class MetricsBase(EventDispatcher):
             return self._density
 
         value = 1.0
-        if platform in ('android', 'ios'):
+        if platform in {'android', 'ios'}:
             from kivy.mobile import get_density as _mobile_get_density
             value = _mobile_get_density()
-        elif platform in ('macosx', 'win'):
+        elif platform in {'macosx', 'win'}:
             value = self.dpi / 96.
 
         sync_pixel_scale(density=value)
@@ -275,14 +274,9 @@ class MetricsBase(EventDispatcher):
             return self._fontscale
 
         value = 1.0
-        if platform == 'android':
-            from jnius import autoclass
-            if USE_SDL3:
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            else:
-                PythonActivity = autoclass('org.renpy.android.PythonActivity')
-            config = PythonActivity.mActivity.getResources().getConfiguration()
-            value = config.fontScale
+        if platform in {'android', 'ios'}:
+            from kivy.mobile import get_fontscale as _mobile_get_fontscale
+            value = _mobile_get_fontscale()
 
         sync_pixel_scale(fontscale=value)
         return value

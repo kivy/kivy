@@ -138,7 +138,7 @@ class CameraBase(EventDispatcher):
 all_providers = get_provider_modules('camera')
 providers = []
 
-if platform in ['macosx', 'ios']:
+if platform in {'macosx', 'ios'}:
     providers.append(make_provider_tuple(
         'avfoundation', all_providers, 'CameraAVFoundation'
     ))
