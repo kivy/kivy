@@ -475,7 +475,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform, normalize_path_id
+from kivy.utils import platform, normalize_path_id, path_to_str
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.setupconfig import USE_SDL3
@@ -730,8 +730,13 @@ class App(EventDispatcher):
             :meth:`run` is called (e.g. in `__init__`), won't have its styling
             applied. Note that :meth:`build` is called after :attr:`load_kv`
             has been called.
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
         # Detect filename automatically if it was not specified.
+        filename = path_to_str(filename)
         if filename:
             filename = resource_find(filename)
         else:
@@ -818,8 +823,12 @@ class App(EventDispatcher):
             Changed the Android version to make use of the
             :attr:`~App.user_data_dir` and added a missing dot to the iOS
             config file name.
-        '''
 
+        .. versionchanged:: 3.0.0
+            `defaultpath` may be a :class:`os.PathLike` (e.g.
+            :class:`pathlib.Path`) in addition to a ``str``.
+        '''
+        defaultpath = path_to_str(defaultpath)
         if platform == 'android':
             return join(self.user_data_dir, '.{0}.ini'.format(self.name))
         elif platform == 'ios':

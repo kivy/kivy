@@ -503,7 +503,7 @@ try:
                 obj, ctypes.byref(delay), 0,
                 ctypes.c_void_p(), ctypes.c_void_p(), False)
             _kernel32.WaitForSingleObject(obj, 0xffffffff)
-    elif platform in ['android', 'ios']:
+    elif platform in {'android', 'ios'}:
         # on mobile platforms, just use time.sleep
         def _usleep(microseconds, obj=None):
             time.sleep(microseconds / 1000000.)

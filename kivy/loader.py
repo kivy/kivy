@@ -333,7 +333,7 @@ class LoaderBase(object):
                 # A custom context is only needed on Android and iOS
                 # as we need to use the certs provided via certifi.
                 ssl_ctx = None
-                if platform in ['android', 'ios']:
+                if platform in {'android', 'ios'}:
                     import certifi
                     import ssl
                     ssl_ctx = ssl.create_default_context(cafile=certifi.where())

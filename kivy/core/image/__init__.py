@@ -316,7 +316,7 @@ from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform, path_to_str
 from kivy.setupconfig import USE_SDL3
 import zipfile
 from io import BytesIO
@@ -760,6 +760,8 @@ class ImageLoader(object):
 
     @staticmethod
     def load(filename, **kwargs):
+        # Coerce os.PathLike -> str before any URI/extension string parsing.
+        filename = path_to_str(filename)
         # Handle atlas:// URIs
         result = ImageLoader._load_atlas(filename)
         if result is not None:
@@ -874,6 +876,11 @@ class Image(EventDispatcher):
         # indicator of images having been loded in cache
         self._iteration_done = False
         self._image_provider = kwargs.get('image_provider', None)
+
+        # Accept os.PathLike (e.g. pathlib.Path) as a filename argument by
+        # coercing to str; non-path args (Image, Texture, BytesIO, ...) are
+        # left untouched.
+        arg = path_to_str(arg)
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
@@ -1041,10 +1048,14 @@ class Image(EventDispatcher):
         '''Load an image
 
         :Parameters:
-            `filename`: str
+            `filename`: str or os.PathLike
                 Filename of the image.
             `keep_data`: bool, defaults to False
                 Keep the image data when the texture is created.
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
         kwargs.setdefault('keep_data', False)
         return Image(filename, **kwargs)
@@ -1084,6 +1095,7 @@ class Image(EventDispatcher):
         return self._filename
 
     def _set_filename(self, value):
+        value = path_to_str(value)
         if value is None or value == self._filename:
             return
         self._filename = value
@@ -1224,7 +1236,13 @@ class Image(EventDispatcher):
             Parameter `fmt` added to force the output format of the file
             Filename can now be a BytesIO object.
 
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str`` or a BytesIO-like object.
+
         '''
+        # Coerce os.PathLike -> str (BytesIO-like objects pass through).
+        filename = path_to_str(filename)
         is_bytesio_like = False
         if callable(getattr(filename, 'read', None)):
             # BytesIO like(RawIO, RawIOBase, BytesIO..)

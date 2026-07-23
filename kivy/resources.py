@@ -34,7 +34,7 @@ import re
 from os.path import join, dirname, exists, abspath
 from kivy import kivy_data_dir
 from kivy.cache import Cache
-from kivy.utils import platform
+from kivy.utils import platform, path_to_str
 from kivy.logger import Logger
 import sys
 import os
@@ -77,7 +77,15 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
 
     .. versionchanged:: 3.0.0
         Added support for @image_provider:providername(path) URI scheme.
+
+    .. versionchanged:: 3.0.0
+        `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+        in addition to a ``str``. It is coerced to ``str`` before resolution
+        so cache keys stay consistent.
     '''
+    # Coerce os.PathLike -> str up front so all downstream string parsing and
+    # the resource cache keys operate on a single, consistent type.
+    filename = path_to_str(filename)
     if not filename:
         return
     found_filename = None
@@ -110,7 +118,12 @@ def resource_find(filename, use_cache=("KIVY_DOC_INCLUDE" not in os.environ)):
 
 def resource_add_path(path):
     '''Add a custom path to search in.
+
+    .. versionchanged:: 3.0.0
+        `path` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`) in
+        addition to a ``str``.
     '''
+    path = path_to_str(path)
     if path in resource_paths:
         return
     Logger.debug('Resource: add <%s> in path list' % path)
@@ -121,7 +134,12 @@ def resource_remove_path(path):
     '''Remove a search path.
 
     .. versionadded:: 1.0.8
+
+    .. versionchanged:: 3.0.0
+        `path` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`) in
+        addition to a ``str``.
     '''
+    path = path_to_str(path)
     if path not in resource_paths:
         return
     Logger.debug('Resource: remove <%s> from path list' % path)

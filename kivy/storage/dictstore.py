@@ -15,11 +15,16 @@ except ImportError:
 import errno
 from os.path import exists, abspath, dirname
 from kivy.storage import AbstractStore
+from kivy.utils import path_to_str
 
 
 class DictStore(AbstractStore):
     '''Store implementation using a pickled `dict`.
     See the :mod:`kivy.storage` module documentation for more information.
+
+    .. versionchanged:: 3.0.0
+        `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+        in addition to a ``str`` (or the legacy ``dict`` first argument).
     '''
     def __init__(self, filename, data=None, **kwargs):
         if isinstance(filename, dict):
@@ -27,7 +32,7 @@ class DictStore(AbstractStore):
             self.filename = None
             self._data = filename
         else:
-            self.filename = filename
+            self.filename = path_to_str(filename)
             self._data = data or {}
         self._is_changed = True
         super(DictStore, self).__init__(**kwargs)

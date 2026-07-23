@@ -9,7 +9,6 @@ import os
 
 from kivy.utils import platform as core_platform
 from kivy.logger import Logger
-from kivy.setupconfig import USE_SDL3
 
 import kivy.input.providers.tuio
 import kivy.input.providers.mouse
@@ -51,14 +50,6 @@ if platform == 'linux' or 'KIVY_DOC' in os.environ:
         import kivy.input.providers.linuxwacom
     except Exception:
         err = 'Input: LinuxWacom is not supported by your version of linux'
-        Logger.exception(err)
-
-if (platform == 'android' and not USE_SDL3) or 'KIVY_DOC' in os.environ:
-    try:
-        import kivy.input.providers.androidjoystick
-    except Exception:
-        err = 'Input: AndroidJoystick is not supported by your version ' \
-              'of linux'
         Logger.exception(err)
 
 try:

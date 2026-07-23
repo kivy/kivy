@@ -22,6 +22,7 @@ from kivy.logger import Logger
 from kivy import kivy_data_dir
 from kivy.context import register_context
 from kivy.resources import resource_find
+from kivy.utils import path_to_str
 from kivy._event import Observable, EventDispatcher
 
 __all__ = ('Observable', 'Builder', 'BuilderBase', 'BuilderException')
@@ -308,8 +309,13 @@ class BuilderBase(object):
                 widget inside the definition.
 
             `encoding`: File character encoding. Defaults to utf-8,
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
 
+        filename = path_to_str(filename)
         filename = resource_find(filename) or filename
         if __debug__:
             trace('Lang: load file %s, using %s encoding', filename, encoding)
@@ -328,8 +334,13 @@ class BuilderBase(object):
 
             This will not remove rules already applied/used on current
             widgets. It will only effect the next widgets creation.
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
         # remove rules associated with this file
+        filename = path_to_str(filename)
         filename = resource_find(filename) or filename
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
         self._clear_matchcache()
@@ -368,7 +379,7 @@ class BuilderBase(object):
         '''
 
         kwargs.setdefault('rulesonly', False)
-        self._current_filename = fn = kwargs.get('filename', None)
+        self._current_filename = fn = path_to_str(kwargs.get('filename', None))
 
         # put a warning if a file is loaded multiple times
         if fn in self.files:

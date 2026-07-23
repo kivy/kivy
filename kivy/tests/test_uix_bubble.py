@@ -411,13 +411,13 @@ class BubbleTest(GraphicUnitTest):
                 self.render(bubble)
 
                 haw = bubble.arrow_width / 2  # half arrow_width
-                if arrow_side in ["l", "r"]:
+                if arrow_side in {"l", "r"}:
                     self.assertSequenceAlmostEqual(
                         bubble.arrow_center_pos_within_arrow_layout,
                         (haw, flex_arrow_pos[1]),
                         delta=haw,
                     )
-                elif arrow_side in ["b", "t"]:
+                elif arrow_side in {"b", "t"}:
                     self.assertSequenceAlmostEqual(
                         bubble.arrow_center_pos_within_arrow_layout,
                         (flex_arrow_pos[0], haw),

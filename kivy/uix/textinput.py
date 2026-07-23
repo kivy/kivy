@@ -1359,7 +1359,7 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     col, row = col + 1, row
 
-        dont_move_cursor = control and action in ['cursor_up', 'cursor_down']
+        dont_move_cursor = control and action in {'cursor_up', 'cursor_down'}
         if dont_move_cursor:
             self._trigger_update_graphics()
         else:

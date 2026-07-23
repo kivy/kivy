@@ -103,7 +103,7 @@ from kivy.core import core_register_libs, load_with_provider_selection, \
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
     AliasProperty, BooleanProperty, BoundedNumericProperty
-from kivy.utils import platform
+from kivy.utils import platform, path_to_str
 from kivy.setupconfig import USE_SDL3
 
 from sys import float_info
@@ -157,7 +157,14 @@ class SoundLoader:
         :returns: A Sound instance, or None if no loader could handle the file.
         :raises ValueError: If ``audio_output_provider`` is specified but not
             found or doesn't support the file format (when KIVY_PROVIDER_STRICT=1).
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
+        # Coerce os.PathLike -> str so extension parsing below is safe even
+        # when resource_find does not resolve the file.
+        filename = path_to_str(filename)
         rfn = resource_find(filename)
         if rfn is not None:
             filename = rfn

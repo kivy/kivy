@@ -693,7 +693,7 @@ class WindowBase(EventDispatcher):
     def _get_kivy_vkheight(self):
         mode = Config.get('kivy', 'keyboard_mode')
         if (
-            mode in ['dock', 'systemanddock']
+            mode in {'dock', 'systemanddock'}
             and self._vkeyboard_cls is not None
         ):
             for w in self.children:
@@ -2091,7 +2091,7 @@ class WindowBase(EventDispatcher):
             move_task_to_back()
             return True
         elif WindowBase.on_keyboard.exit_on_escape:
-            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
+            if key == 27 or all([is_osx, key in {113, 119}, modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
                     self.close()
