@@ -2,9 +2,10 @@
 
 Reads runtime window/display geometry from the running Android activity using
 ``jnius`` (https://github.com/kivy/pyjnius) — a standalone Kivy-org package
-present in every Kivy Android build.  No compiled extension and no
-python-for-android module changes are required: every value is obtained by
-reflection against ``PythonActivity.mActivity`` and the Android framework.
+present in every Kivy Android build.  No compiled extension is required: every
+value is obtained by reflection against the Android framework, starting from an
+Activity the *bootstrap* supplies (see "Android bootstrap contract" below).
+Kivy names no bootstrap class itself.
 
 All lengths are returned in **pixels**, which is Kivy's layout coordinate
 system on Android (``density`` is folded into :class:`kivy.metrics.Metrics`,
@@ -27,9 +28,9 @@ runtime API matters):
   API 30+ (Android 11); use ``WindowInsets.getInsets(type)`` and the typed
   ``ime()`` / ``systemBars()`` / ``displayCutout()`` insets added in API 30.
 * ``move_task_to_back`` / ``finish_and_remove_task`` — all supported API levels
-  (stock ``android.app.Activity`` methods).  ``remove_presplash`` similarly
-  needs no minimum API but depends on the bootstrap ``removeLoadingScreen``
-  method (see the bootstrap contract below).  These are app/task lifecycle
+  (stock ``android.app.Activity`` methods).  ``remove_presplash`` needs no
+  minimum API either, but is only as available as the bootstrap's own splash
+  handling (see the bootstrap contract below).  These are app/task lifecycle
   actions rather than geometry reads; they are Android-only (no cross-platform
   analogue) so they are not surfaced through the neutral ``kivy.mobile`` API.
 
@@ -41,20 +42,45 @@ active devices.
 
 Android bootstrap contract
 --------------------------
-Everything else this backend touches is stock Android framework, but one symbol
-must be supplied by the *Android bootstrap* (python-for-android today, and any
-alternative such as a kivyforge bootstrap must provide an equivalent).  Keep
-this in sync when adding bootstrap-coupled features:
+Everything else this backend touches is stock Android framework, but the
+Activity itself must come from the *Android bootstrap* — the component that
+builds the APK and owns the Java activity class (python-for-android today, and
+any alternative such as a kivyforge bootstrap).  Kivy defines the handshake and
+holds no bootstrap class name; the bootstrap keeps that knowledge, which is
+where it belongs, since it is the party that decides the class.  Keep this in
+sync when adding bootstrap-coupled features:
 
-* ``org.kivy.android.PythonActivity`` (class, see :data:`_ACTIVITY_CLASS`) with
-  a static ``mActivity`` field holding the current ``android.app.Activity``.
-  **Hard requirement** — the whole backend resolves geometry through it; if the
-  bootstrap renames or omits it, the module degrades to safe defaults on import.
-* ``mActivity.removeLoadingScreen()`` — **soft requirement**, used only by
-  :func:`remove_presplash` to dismiss the boot splash.  This is a
-  bootstrap-provided method (not stock Android framework); a bootstrap that
-  omits it simply cannot remove the splash this way, and the caller in
-  ``kivy.base`` already tolerates that.
+* ``get_activity()`` on a top-level ``_kivy_bootstrap`` module (see
+  :data:`_BOOTSTRAP_MODULE`), returning the current ``android.app.Activity``.
+  **Hard requirement** — the whole backend resolves geometry through it.  This
+  backend imports the module on first use; a build whose bootstrap ships no
+  such module raises :class:`ActivityProviderMissing` rather than silently
+  reporting default geometry.
+
+  Kivy pulls rather than asking the bootstrap to register at startup, because
+  registering would mean importing Kivy *before* the application runs, which
+  fixes Kivy's ``KIVY_*`` environment and config before the app can set them.
+  Pulling also means there is no ordering requirement to get wrong: the
+  bootstrap only has to make the module importable.
+* ``get_context()`` on the same module — **optional**, for a context that never
+  has an Activity, such as a background service.  When absent,
+  :func:`get_app_context` derives the Application context from the current
+  Activity.
+* ``remove_presplash()`` on the same module — **optional**, called once the
+  first frame has been drawn so the bootstrap can dismiss its boot splash.
+  Only Kivy knows when that moment is, which is why the call exists at all;
+  *how* a splash is dismissed is the bootstrap's business and differs
+  fundamentally between them (python-for-android removes a View it inserted;
+  a bootstrap using the Android 12 system splash releases a keep-on-screen
+  condition instead, which is not a method on the Activity).  A bootstrap with
+  no splash to dismiss simply omits it and :func:`remove_presplash` does
+  nothing.
+
+Note that the Activity is *pulled* on every access, never cached: Android
+recreates it on configuration changes and after process death, so a stored
+instance both goes stale and pins a JNI reference to a dead Activity.  Because
+nothing is registered or cached, this backend holds no mutable cross-thread
+state beyond the one-time module import.
 
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'android'``.  Do not import it directly.
@@ -63,17 +89,17 @@ This module is imported automatically by ``kivy.mobile`` when
 from __future__ import annotations
 
 import threading
+from importlib import import_module
 
-# The single bootstrap-provided activity class this backend depends on. Hoisted
-# to a named constant so the one hard coupling to the Android bootstrap is an
-# obvious, documented point rather than a bare string (see the module docstring,
-# "Android bootstrap contract").
-_ACTIVITY_CLASS = "org.kivy.android.PythonActivity"
+# The module an Android bootstrap ships to satisfy Kivy's contract (see the
+# module docstring, "Android bootstrap contract").  The name is Kivy-owned, so
+# depending on it couples Kivy to no particular bootstrap; any bootstrap —
+# python-for-android, kivyforge, or a custom one — may implement it.
+_BOOTSTRAP_MODULE = "_kivy_bootstrap"
 
 try:
-    from jnius import autoclass, PythonJavaClass, java_method
+    from jnius import autoclass, cast, PythonJavaClass, java_method
 
-    PythonActivity = autoclass(_ACTIVITY_CLASS)
     DisplayMetrics = autoclass("android.util.DisplayMetrics")
     _Build_VERSION = autoclass("android.os.Build$VERSION")
 except Exception:  # noqa: BLE001
@@ -81,13 +107,11 @@ except Exception:  # noqa: BLE001
     # an actual Android build.  Importing this module off-device must not hard
     # fail: Kivy's test-suite loads every ``kivy.mobile._platform`` backend
     # directly (bypassing the ``kivy.mobile`` desktop ImportError guard) to get
-    # coverage, and pip-installing pyjnius alone would not help because
-    # ``autoclass("org.kivy.android.PythonActivity")`` cannot resolve on a
-    # desktop JVM.  Every getter below already falls back to a documented safe
+    # coverage.  Every geometry getter below falls back to a documented safe
     # default, so we degrade the whole module the same way when the runtime is
     # absent.
     autoclass = None
-    PythonActivity = None
+    cast = None
     DisplayMetrics = None
     _Build_VERSION = None
 
@@ -135,8 +159,102 @@ def _window_insets_type():
 _runnable_refs: list = []
 
 
+class ActivityProviderMissing(RuntimeError):
+    """The Android bootstrap did not supply a way to reach the current Activity.
+
+    Raised only when there *is* an Android runtime, so it always means a real
+    build misconfiguration: the bootstrap that produced this APK does not
+    satisfy Kivy's contract.  Deliberately not caught by the geometry getters,
+    which would otherwise mask it as a plausible-looking default.
+    """
+
+
+class _AndroidRuntimeUnavailable(RuntimeError):
+    """There is no Android runtime at all, so nothing can be resolved.
+
+    Distinct from :class:`ActivityProviderMissing` because it is not an error
+    to report to anyone: it is what happens when this backend is imported off
+    device, which Kivy's own test-suite does deliberately.  The getters treat it
+    like any other resolution failure and fall back to their documented
+    defaults.
+    """
+
+
+_bootstrap = None
+_bootstrap_resolved = False
+
+
+def _bootstrap_module():
+    """Import the bootstrap's contract module, once.
+
+    Both outcomes are cached, including failure: a build whose bootstrap ships
+    no such module must not pay for a failed import on every geometry read.
+
+    Only ``ImportError`` is treated as "no bootstrap".  Anything else raised
+    while importing is a fault in the bootstrap's own module and propagates, so
+    it is not mistaken for an absent bootstrap.
+    """
+    global _bootstrap, _bootstrap_resolved
+    if not _bootstrap_resolved:
+        _bootstrap_resolved = True
+        try:
+            _bootstrap = import_module(_BOOTSTRAP_MODULE)
+        except ImportError:
+            _bootstrap = None
+    return _bootstrap
+
+
+def get_activity():
+    """The current ``android.app.Activity``, pulled live from the bootstrap.
+
+    Called afresh every time rather than cached: Android destroys and recreates
+    the Activity on configuration changes (rotation, dark mode, locale,
+    multi-window) and after process death, so a stored instance goes stale and
+    holding one alive in a Python global pins a JNI reference to a dead
+    Activity.  Pulling live self-heals for free.
+
+    May legitimately return ``None`` where no Activity exists, such as in a
+    background service.  Raises :class:`ActivityProviderMissing` when there is
+    an Android runtime but the bootstrap supplied nothing — a build
+    misconfiguration, so it is reported rather than papered over with a default.
+    """
+    module = _bootstrap_module()
+    provider = getattr(module, "get_activity", None)
+    if not callable(provider):
+        if autoclass is None:
+            raise _AndroidRuntimeUnavailable(
+                "no Android runtime: jnius is unavailable, so there is no "
+                "Activity to resolve"
+            )
+        raise ActivityProviderMissing(
+            "No Android activity source available: this build's bootstrap "
+            f"ships no {_BOOTSTRAP_MODULE!r} module exposing get_activity(). "
+            "Kivy 3 requires the bootstrap to supply the current Activity. "
+            "If you are using python-for-android, update it to a version that "
+            "supports Kivy 3."
+        )
+    return provider()
+
+
+def get_app_context():
+    """A usable ``android.content.Context``, or ``None`` without an Activity.
+
+    A bootstrap may optionally expose ``get_context()`` for contexts that never
+    have an Activity — a background service, say.  Otherwise the Application
+    context is derived from the current Activity, which is equivalent for
+    everything Kivy uses a Context for.
+    """
+    provider = getattr(_bootstrap_module(), "get_context", None)
+    if callable(provider):
+        context = provider()
+        if context is not None:
+            return context
+    activity = get_activity()
+    return activity.getApplicationContext() if activity is not None else None
+
+
 def _activity():
-    return PythonActivity.mActivity
+    return get_activity()
 
 
 class _Runnable(PythonJavaClass):
@@ -181,6 +299,30 @@ def _on_ui_thread(func, timeout: float = 2.0):
             pass
 
 
+def run_on_ui_thread(func, *args, **kwargs):
+    """Post *func* to the Android UI thread and return without waiting.
+
+    The counterpart to :func:`_on_ui_thread`, which blocks for a result: use
+    this where the caller only needs the call to land on the main thread, as
+    Android requires for most framework calls.  Provided here so that callers
+    elsewhere in Kivy need neither ``jnius`` boilerplate nor an Activity of
+    their own — the Activity comes from the bootstrap contract above.
+    """
+
+    def wrapper():
+        try:
+            func(*args, **kwargs)
+        finally:
+            try:
+                _runnable_refs.remove(runnable)
+            except ValueError:
+                pass
+
+    runnable = _Runnable(wrapper)
+    _runnable_refs.append(runnable)
+    _activity().runOnUiThread(runnable)
+
+
 def _metrics():
     metrics = DisplayMetrics()
     _activity().getWindowManager().getDefaultDisplay().getMetrics(metrics)
@@ -201,6 +343,8 @@ def get_dpi() -> float:
     """Physical screen DPI (Android ``densityDpi``; matches ``Metrics.dpi``)."""
     try:
         return float(_metrics().densityDpi)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return 96.0
 
@@ -217,6 +361,8 @@ def get_scale() -> float:
     """
     try:
         return float(_metrics().density)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return 1.0
 
@@ -237,6 +383,8 @@ def get_fontscale() -> float:
     try:
         config = _activity().getResources().getConfiguration()
         return float(config.fontScale)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return 1.0
 
@@ -256,6 +404,8 @@ def get_keyboard_height() -> float:
 
     try:
         return _on_ui_thread(work)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return 0.0
 
@@ -285,6 +435,8 @@ def get_safe_area() -> dict[str, float]:
 
     try:
         return _on_ui_thread(work)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
 
@@ -400,6 +552,8 @@ def get_display_cutout():
 
     try:
         return _on_ui_thread(work)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return None
 
@@ -438,6 +592,8 @@ def get_system_bar_insets():
 
     try:
         return _on_ui_thread(work)
+    except ActivityProviderMissing:
+        raise
     except Exception:
         return None
 
@@ -476,11 +632,57 @@ def finish_and_remove_task() -> None:
 
 
 def remove_presplash() -> None:
-    """Dismiss the Android boot splash / loading screen.
+    """Ask the bootstrap to dismiss its boot splash; a no-op if it has none.
 
-    Wraps the bootstrap-provided ``mActivity.removeLoadingScreen()`` (see the
-    "Android bootstrap contract" above), mirroring python-for-android's
-    ``android.remove_presplash`` for the sdl2/sdl3 bootstraps so ``kivy.base``
-    can drop the splash without importing the p4a ``android`` module.
+    Kivy calls this once the first frame is drawn — the one thing about a boot
+    splash that only Kivy knows.  The mechanism belongs to the bootstrap, so
+    this delegates to an optional ``remove_presplash()`` on the contract module
+    (see "Android bootstrap contract" above) rather than naming any bootstrap's
+    method.
+
+    Doing nothing is a correct outcome, not a swallowed error: a bootstrap may
+    have no splash, or one the system dismisses by itself.  Bootstraps that do
+    are expected to be idempotent — Kivy makes no promise about being called
+    exactly once.
     """
-    _activity().removeLoadingScreen()
+    hook = getattr(_bootstrap_module(), "remove_presplash", None)
+    if callable(hook):
+        hook()
+
+
+# ---------------------------------------------------------------------------
+# App-private storage paths
+#
+# Android hands these out through the Context rather than as fixed paths, so
+# they are resolved by reflection like everything else here.  Both are
+# app-scoped, so the Application context and an Activity context give the same
+# answer.  Unlike the geometry getters these have no safe default: a wrong path
+# would silently write the user's data somewhere it will not be found again, so
+# failures propagate.
+# ---------------------------------------------------------------------------
+
+
+def _context_path(getter: str):
+    context = get_app_context()
+    if context is None:
+        return None
+    return cast("java.io.File", getattr(context, getter)()).getAbsolutePath()
+
+
+def get_files_dir():
+    """Absolute path of the app's private files dir (``getFilesDir()``).
+
+    ``None`` where there is no Context to ask.  Backs
+    :attr:`kivy.app.App.user_data_dir` on Android.
+    """
+    return _context_path("getFilesDir")
+
+
+def get_cache_dir():
+    """Absolute path of the app's private cache dir (``getCacheDir()``).
+
+    ``None`` where there is no Context to ask.  Backs
+    :attr:`kivy.app.App.user_cache_dir` on Android.  Android may delete this
+    directory's contents under storage pressure.
+    """
+    return _context_path("getCacheDir")
