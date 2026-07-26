@@ -7,7 +7,7 @@ Android implementation of Clipboard provider, using Pyjnius.
 
 __all__ = ('ClipboardAndroid', )
 
-import time
+import threading
 
 from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
@@ -47,10 +47,11 @@ class ClipboardAndroid(ClipboardBase):
 
         The lookup has to happen on the UI thread, so the failure has to be
         carried back rather than raised in place: without that, a Context we
-        cannot reach would leave the wait below spinning forever instead of
+        cannot reach would leave the wait below hanging forever instead of
         reporting itself.
         '''
         failure = []
+        done = threading.Event()
 
         def work():
             global _clipboard
@@ -59,12 +60,16 @@ class ClipboardAndroid(ClipboardBase):
                     Context.CLIPBOARD_SERVICE)
             except Exception as exc:
                 failure.append(exc)
+            finally:
+                done.set()
 
         run_on_ui_thread(work)
-        while not _clipboard:
-            if failure:
-                raise failure[0]
-            time.sleep(.01)
+        if not done.wait(timeout=5.0):
+            raise TimeoutError(
+                'Clipboard: timed out waiting for the UI thread to '
+                'initialize the ClipboardManager')
+        if failure:
+            raise failure[0]
 
     def _get_clipboard(f):
         def called(*args, **kargs):
