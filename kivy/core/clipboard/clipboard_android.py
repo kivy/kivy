@@ -24,6 +24,11 @@ sdk = VER.SDK_INT
 # one Activity.
 _clipboard = None
 
+# How long to wait for the UI thread to deliver the ClipboardManager before
+# giving up. A module-level constant (rather than inline in the method) so
+# tests can shrink it instead of sleeping for the real duration.
+_INIT_TIMEOUT = 5.0
+
 
 class ClipboardAndroid(ClipboardBase):
 
@@ -64,7 +69,7 @@ class ClipboardAndroid(ClipboardBase):
                 done.set()
 
         run_on_ui_thread(work)
-        if not done.wait(timeout=5.0):
+        if not done.wait(timeout=_INIT_TIMEOUT):
             raise TimeoutError(
                 'Clipboard: timed out waiting for the UI thread to '
                 'initialize the ClipboardManager')
