@@ -69,6 +69,33 @@ Public API — Tier 2 (Android platform extras)
     Android status-bar / navigation-bar insets separated (requires API 30+;
     ``None`` below).  Always ``None`` on iOS / desktop.
 
+Public API — Tier 3 (Android bootstrap contract)
+------------------------------------------------
+
+Android-only, and unlike Tiers 1 it has no iOS counterpart: iOS has no
+bootstrap in this sense.  See ``kivy.mobile._platform.android``
+for the full contract.
+
+Kivy holds no Android bootstrap class name.  Instead the bootstrap — whoever
+*builds* the APK, be that python-for-android, kivyforge or a custom one — ships
+a top-level ``_kivy_bootstrap`` module, which Kivy imports on first use:
+
+``_kivy_bootstrap.get_activity()`` → Activity | None
+    **Required.**  The current ``android.app.Activity``, or ``None`` where none
+    exists (a background service).  Kivy calls it live on every access, so the
+    bootstrap need do nothing when Android recreates the Activity.
+
+``_kivy_bootstrap.get_context()`` → Context | None
+    **Optional.**  For a context that never has an Activity.  When absent, the
+    Application context is derived from the current Activity.
+
+Applications read these through:
+
+``get_activity()`` / ``get_app_context()``
+    The current Activity / a usable Context.  Both raise
+    ``ActivityProviderMissing`` when the bootstrap supplied no activity source,
+    rather than silently returning defaults.
+
 .. versionadded:: 3.0.0
 """
 
@@ -99,6 +126,11 @@ elif platform == 'android':
         subscribe_keyboard_height,
         get_display_cutout,
         get_system_bar_insets,
+        # Tier 3 — bootstrap contract. Android-only by nature, so these are
+        # deliberately absent from the iOS branch above.
+        ActivityProviderMissing,
+        get_activity,
+        get_app_context,
     )
 else:
     raise ImportError(

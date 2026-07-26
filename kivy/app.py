@@ -927,11 +927,8 @@ class App(EventDispatcher):
         if platform == 'ios':
             data_dir = join('~/Documents', self.name)
         elif platform == 'android':
-            from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getFilesDir())
-            data_dir = file_p.getAbsolutePath()
+            from kivy.mobile._platform.android import get_files_dir
+            data_dir = get_files_dir()
         elif platform == 'win':
             data_dir = join(os.environ['APPDATA'], app_id)
         elif platform == 'macosx':
@@ -956,11 +953,8 @@ class App(EventDispatcher):
         if platform == 'ios':
             cache_dir = join('~/Library/Caches', self.name)
         elif platform == 'android':
-            from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getCacheDir())
-            cache_dir = file_p.getAbsolutePath()
+            from kivy.mobile._platform.android import get_cache_dir
+            cache_dir = get_cache_dir()
         elif platform == 'win':
             cache_dir = join(os.environ['LOCALAPPDATA'], app_id, 'Cache')
         elif platform == 'macosx':

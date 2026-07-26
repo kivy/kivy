@@ -7,61 +7,31 @@ Android implementation of Clipboard provider, using Pyjnius.
 
 __all__ = ('ClipboardAndroid', )
 
+import time
+
 from kivy import Logger
 from kivy.core.clipboard import ClipboardBase
-from jnius import autoclass, cast, PythonJavaClass, java_method
+from kivy.mobile._platform.android import get_app_context, run_on_ui_thread
+from jnius import autoclass
 
 AndroidString = autoclass('java.lang.String')
-PythonActivity = autoclass('org.kivy.android.PythonActivity')
 Context = autoclass('android.content.Context')
 VER = autoclass('android.os.Build$VERSION')
 sdk = VER.SDK_INT
 
-
-class _Runnable(PythonJavaClass):
-    '''Schedule a Python call onto the Android UI thread (fire-and-forget).
-
-    A tiny local replacement for python-for-android's ``android.runnable`` so
-    this provider depends only on pyjnius, not the p4a ``android`` module.
-    '''
-
-    __javainterfaces__ = ['java/lang/Runnable']
-    __javacontext__ = 'app'
-    # Keep strong references until the JVM has run each proxy, otherwise the
-    # pyjnius object may be collected before ``run()`` fires.
-    _refs = []
-
-    def __init__(self, func, args, kwargs):
-        super().__init__()
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
-        _Runnable._refs.append(self)
-
-    @java_method('()V')
-    def run(self):
-        try:
-            self._func(*self._args, **self._kwargs)
-        finally:
-            _Runnable._refs.remove(self)
-
-
-def run_on_ui_thread(f):
-    '''Decorator running *f* on the UI thread via ``Activity.runOnUiThread``.'''
-    def wrapper(*args, **kwargs):
-        PythonActivity.mActivity.runOnUiThread(_Runnable(f, args, kwargs))
-    return wrapper
+# The ClipboardManager, fetched once on the UI thread.  Process-wide rather than
+# per-instance because it comes from the Application context, which outlives any
+# one Activity.
+_clipboard = None
 
 
 class ClipboardAndroid(ClipboardBase):
 
     def __init__(self):
         super(ClipboardAndroid, self).__init__()
-        self._clipboard = None
         self._data = dict()
         self._data['text/plain'] = None
         self._data['application/data'] = None
-        PythonActivity._clipboard = None
 
     def get(self, mimetype='text/plain'):
         return self._get(mimetype).encode('utf-8')
@@ -72,46 +42,55 @@ class ClipboardAndroid(ClipboardBase):
     def get_types(self):
         return list(self._data.keys())
 
-    @run_on_ui_thread
     def _initialize_clipboard(self):
-        PythonActivity._clipboard = cast(
-            'android.app.Activity',
-            PythonActivity.mActivity).getSystemService(
-                                        Context.CLIPBOARD_SERVICE)
+        '''Fetch the ClipboardManager, waiting for the UI thread to deliver it.
+
+        The lookup has to happen on the UI thread, so the failure has to be
+        carried back rather than raised in place: without that, a Context we
+        cannot reach would leave the wait below spinning forever instead of
+        reporting itself.
+        '''
+        failure = []
+
+        def work():
+            global _clipboard
+            try:
+                _clipboard = get_app_context().getSystemService(
+                    Context.CLIPBOARD_SERVICE)
+            except Exception as exc:
+                failure.append(exc)
+
+        run_on_ui_thread(work)
+        while not _clipboard:
+            if failure:
+                raise failure[0]
+            time.sleep(.01)
 
     def _get_clipboard(f):
         def called(*args, **kargs):
-            self = args[0]
-            if not PythonActivity._clipboard:
-                self._initialize_clipboard()
-                import time
-                while not PythonActivity._clipboard:
-                    time.sleep(.01)
+            if not _clipboard:
+                args[0]._initialize_clipboard()
             return f(*args, **kargs)
         return called
 
     @_get_clipboard
     def _get(self, mimetype='text/plain'):
-        clippy = PythonActivity._clipboard
+        clippy = _clipboard
         data = ''
         if sdk < 11:
             data = clippy.getText()
         else:
-            ClipDescription = autoclass('android.content.ClipDescription')
             primary_clip = clippy.getPrimaryClip()
             if primary_clip:
                 try:
-                    data = primary_clip.getItemAt(0)
-                    if data:
-                        data = data.coerceToText(
-                            PythonActivity.mActivity.getApplicationContext())
+                    data = primary_clip.getItemAt(0).coerceToText(get_app_context())
                 except Exception:
                     Logger.exception('Clipboard: failed to paste')
         return data
 
     @_get_clipboard
     def _set(self, data, mimetype):
-        clippy = PythonActivity._clipboard
+        clippy = _clipboard
 
         if sdk < 11:
             # versions previous to honeycomb

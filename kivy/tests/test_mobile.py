@@ -149,13 +149,35 @@ class _FakeResources:
         return self._config
 
 
+class _FakeFile:
+    def __init__(self, path):
+        self._path = path
+
+    def getAbsolutePath(self):
+        return self._path
+
+
+class _FakeContext:
+    """Stands in for the process-stable Application ``Context``."""
+
+    def getFilesDir(self):
+        return _FakeFile("/data/user/0/org.test.app/files")
+
+    def getCacheDir(self):
+        return _FakeFile("/data/user/0/org.test.app/cache")
+
+
 class _FakeActivity:
     def __init__(self, insets, font_scale=1.0):
         self._insets = insets
         self._resources = _FakeResources(font_scale)
+        self._app_context = _FakeContext()
         self.moved_to_back = None
         self.finished = False
         self.presplash_removed = False
+
+    def getApplicationContext(self):
+        return self._app_context
 
     def runOnUiThread(self, runnable):
         # Run synchronously so the backend's UI-thread marshaling completes
@@ -182,22 +204,52 @@ class _FakeActivity:
 
 
 @contextmanager
-def _fake_jnius(insets, sdk_int=33, missing=(), font_scale=1.0):
-    """Install a fake ``jnius`` module and yield the freshly loaded backend.
+def _fake_bootstrap(get_activity=None, get_context=None, remove_presplash=None):
+    """Publish a fake ``_kivy_bootstrap`` module, as a real bootstrap would.
+
+    Kivy resolves the Activity by importing this Kivy-named module from the
+    bootstrap (see the backend's "Android bootstrap contract"), so faking the
+    contract means publishing a module — there is nothing to register.  Passing
+    neither function simulates a bootstrap that does not satisfy the contract.
+    """
+    module = types.ModuleType("_kivy_bootstrap")
+    if get_activity is not None:
+        module.get_activity = get_activity
+    if get_context is not None:
+        module.get_context = get_context
+    if remove_presplash is not None:
+        module.remove_presplash = remove_presplash
+
+    saved = sys.modules.get("_kivy_bootstrap")
+    sys.modules["_kivy_bootstrap"] = module
+    try:
+        yield module
+    finally:
+        if saved is None:
+            sys.modules.pop("_kivy_bootstrap", None)
+        else:
+            sys.modules["_kivy_bootstrap"] = saved
+
+
+@contextmanager
+def _fake_jnius(insets, sdk_int=33, missing=(), font_scale=1.0, bootstrap=True):
+    """Install fake ``jnius`` + bootstrap modules, yield the loaded backend.
 
     *missing* is a set of class names that ``autoclass`` should fail to
     resolve, used to simulate older API levels (e.g. no ``WindowInsets$Type``
-    on API < 30).
-    """
+    on API < 30).  Pass ``bootstrap=False`` to simulate an Android runtime whose
+    bootstrap does not satisfy Kivy's contract; because discovery is lazy, a
+    test may then supply its own via :func:`_fake_bootstrap`.
 
-    class _FakePythonActivity:
-        mActivity = _FakeActivity(insets, font_scale)
+    Note there is no fake ``org.kivy.android.PythonActivity``: Kivy no longer
+    knows any bootstrap class name, so the Activity arrives via the bootstrap
+    module instead.  Tests reach it back through ``android.get_activity()``.
+    """
 
     class _FakeVersion:
         SDK_INT = sdk_int
 
     registry = {
-        "org.kivy.android.PythonActivity": _FakePythonActivity,
         "android.util.DisplayMetrics": _FakeDisplayMetrics,
         "android.os.Build$VERSION": _FakeVersion,
         "android.view.WindowInsets$Type": _FakeType,
@@ -221,11 +273,25 @@ def _fake_jnius(insets, sdk_int=33, missing=(), font_scale=1.0):
     module.autoclass = _autoclass
     module.java_method = _java_method
     module.PythonJavaClass = _PythonJavaClass
+    # Real jnius re-types a Java object; the fakes are already Python objects,
+    # so the signature is irrelevant here.
+    module.cast = lambda _signature, obj: obj
+
+    activity = _FakeActivity(insets, font_scale)
 
     saved = sys.modules.get("jnius")
     sys.modules["jnius"] = module
     try:
-        yield _load("android")
+        if bootstrap:
+            # Implements the splash hook the way python-for-android does, by
+            # removing a view of its own; a bootstrap need not offer it at all.
+            with _fake_bootstrap(
+                get_activity=lambda: activity,
+                remove_presplash=activity.removeLoadingScreen,
+            ):
+                yield _load("android")
+        else:
+            yield _load("android")
     finally:
         if saved is None:
             sys.modules.pop("jnius", None)
@@ -353,19 +419,36 @@ class TestAndroidPlatform:
         # Backgrounds the task via Activity.moveTaskToBack(true).
         with _fake_jnius(_default_insets()) as android:
             android.move_task_to_back()
-            assert android.PythonActivity.mActivity.moved_to_back is True
+            assert android.get_activity().moved_to_back is True
 
     def test_finish_and_remove_task_calls_activity(self):
         # Tears the task down via Activity.finishAndRemoveTask().
         with _fake_jnius(_default_insets()) as android:
             android.finish_and_remove_task()
-            assert android.PythonActivity.mActivity.finished is True
+            assert android.get_activity().finished is True
 
-    def test_remove_presplash_calls_activity(self):
-        # Dismisses the boot splash via the bootstrap removeLoadingScreen().
+    def test_remove_presplash_delegates_to_the_bootstrap(self):
+        # Kivy supplies the timing (first frame drawn); the bootstrap supplies
+        # the mechanism, here p4a-style view removal.
         with _fake_jnius(_default_insets()) as android:
             android.remove_presplash()
-            assert android.PythonActivity.mActivity.presplash_removed is True
+            assert android.get_activity().presplash_removed is True
+
+    def test_storage_paths_come_from_the_context(self):
+        # Backs App.user_data_dir / user_cache_dir, which used to reflect the
+        # bootstrap's activity class directly from kivy/app.py.
+        with _fake_jnius(_default_insets()) as android:
+            assert android.get_files_dir() == "/data/user/0/org.test.app/files"
+            assert android.get_cache_dir() == "/data/user/0/org.test.app/cache"
+
+    def test_run_on_ui_thread_posts_to_activity(self):
+        # Fire-and-forget marshaling, used by the clipboard provider.
+        with _fake_jnius(_default_insets()) as android:
+            seen = []
+            android.run_on_ui_thread(seen.append, "posted")
+            assert seen == ["posted"]
+            # The Runnable must not be retained once it has run.
+            assert android._runnable_refs == []
 
     def test_safe_area_unions_system_bars_and_cutout(self):
         with _fake_jnius(_default_insets()) as android:
@@ -451,6 +534,100 @@ class TestAndroidPlatform:
 
             android._poll_keyboard(0)
             assert seen == [800.0]
+
+
+class TestAndroidBootstrapContract:
+    """The handshake by which a bootstrap supplies the Activity.
+
+    Kivy names no bootstrap class: it imports a Kivy-named ``_kivy_bootstrap``
+    module and pulls from it, so python-for-android, kivyforge and custom
+    bootstraps are all interchangeable here.
+    """
+
+    def test_kivy_holds_no_bootstrap_class_name(self):
+        # A regression guard on the point of the whole contract: the backend
+        # must not name any bootstrap's activity class.  Read the source rather
+        # than importing it, for the same reason as the rest of this module.
+        source = (_PLATFORM_DIR / "android.py").read_text(encoding="utf-8")
+        assert "org.kivy.android" not in source
+        # Nor any bootstrap-invented method name: removeLoadingScreen is
+        # python-for-android's, and reaching for it here is what broke on
+        # bootstraps that dismiss their splash some other way.
+        assert "removeLoadingScreen" not in source
+
+    def test_missing_bootstrap_raises(self):
+        # A runtime is present but no bootstrap satisfies the contract: that is
+        # a build misconfiguration, so it must be reported.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with pytest.raises(android.ActivityProviderMissing,
+                               match="_kivy_bootstrap"):
+                android.get_activity()
+
+    def test_bootstrap_without_get_activity_raises(self):
+        # A module that exists but does not implement the contract is not
+        # mistaken for a conforming one.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap():
+                with pytest.raises(android.ActivityProviderMissing):
+                    android.get_activity()
+
+    def test_missing_bootstrap_is_not_masked_by_getter_defaults(self):
+        # The geometry getters swallow reflection failures to return safe
+        # defaults; that must not hide an unsatisfied contract, or the app runs
+        # silently mis-scaled.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with pytest.raises(android.ActivityProviderMissing):
+                android.get_fontscale()
+
+    def test_activity_is_pulled_live(self):
+        # Android recreates the Activity on rotation and after process death,
+        # so Kivy must re-ask every time rather than cache.
+        current = {"activity": _FakeActivity(_default_insets())}
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap(get_activity=lambda: current["activity"]):
+                first = android.get_activity()
+                current["activity"] = _FakeActivity(_default_insets())
+                assert android.get_activity() is not first
+                assert android.get_activity() is current["activity"]
+
+    def test_service_may_have_no_activity(self):
+        # A background service legitimately has no Activity; that is not an
+        # error, and no Context can be derived from it.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap(get_activity=lambda: None):
+                assert android.get_activity() is None
+                assert android.get_app_context() is None
+
+    def test_presplash_hook_is_optional(self):
+        # A bootstrap whose splash the system dismisses by itself (or which has
+        # none) implements nothing, and that must be silent rather than an
+        # AttributeError one frame into the app.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap(get_activity=lambda: object()):
+                android.remove_presplash()  # must not raise
+
+    def test_presplash_hook_needs_no_activity(self):
+        # The bootstrap owns the mechanism, so Kivy must not require an Activity
+        # to exist just to ask: a system splash is not attached to one.
+        called = []
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap(get_activity=lambda: None,
+                                 remove_presplash=lambda: called.append(True)):
+                android.remove_presplash()
+        assert called == [True]
+
+    def test_optional_get_context_is_preferred(self):
+        # Contexts with no Activity (a service) supply one directly.
+        with _fake_jnius(_default_insets(), bootstrap=False) as android:
+            with _fake_bootstrap(get_activity=lambda: None,
+                                 get_context=lambda: "SERVICE_CONTEXT"):
+                assert android.get_app_context() == "SERVICE_CONTEXT"
+
+    def test_context_derived_from_activity_when_not_supplied(self):
+        # The common case: a UI bootstrap implements only get_activity().
+        with _fake_jnius(_default_insets()) as android:
+            activity = android.get_activity()
+            assert android.get_app_context() is activity.getApplicationContext()
 
 
 class TestMobileImportError:
