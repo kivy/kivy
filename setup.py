@@ -295,7 +295,16 @@ if platform == 'android':
             'SDL3_ttf': {
                 'path': join(lib_path, 'libSDL3_ttf.so'),
                 'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
-            }
+            },
+            # Built by tools/build_thorvg.sh (THORVG_ANDROID=<abi>), not a
+            # python-for-android recipe - a static archive, unlike the .so
+            # siblings above, since Kivy's Android wheel pipeline has no
+            # wheel-repair step to bundle a separate libthorvg.so (see
+            # [tool.cibuildwheel.android] in pyproject.toml).
+            'ThorVG': {
+                'path': join(lib_path, 'libthorvg.a'),
+                'headers': join(root, 'dist', 'include', 'thorvg-1'),
+            },
         }
 
     android_data['abis'] = android_abis
@@ -903,8 +912,15 @@ def determine_thorvg_flags():
       ``tools/build_thorvg.sh``. Kivy's Windows wheel pipeline does not
       run a wheel-repair step, so dynamic linking would force a separate
       ``kivy_deps.thorvg`` package - out of scope for this PR.
-    * **iOS / Android** - handled by mobile recipes / cibuildwheel (not
-      this function's concern beyond ``KIVY_THORVG_*`` env var support).
+    * **Android** - static: ``libthorvg.a`` produced by
+      ``tools/build_thorvg.sh`` (``THORVG_ANDROID=<abi>``) directly - not
+      a python-for-android recipe. Same no-wheel-repair-step rationale as
+      Windows (see ``[tool.cibuildwheel.android]`` in ``pyproject.toml``);
+      resolved via ``plat_options['android']['libraries'][abi]['ThorVG']``,
+      matching the existing SDL3 ``dist/libs/<abi>/`` convention.
+    * **iOS** - handled by the xcframework built by
+      ``tools/build_thorvg.sh`` (see the framework branch above), not this
+      function's fallback path.
     """
     # macOS (desktop): look for ``KivyThorVG.framework`` first. This is
     # the path produced by ``tools/build_macos_dependencies.sh`` and
@@ -971,6 +987,38 @@ def determine_thorvg_flags():
                 'define_macros': [],
             }
 
+    if platform == 'android':
+        # Built by tools/build_thorvg.sh (THORVG_ANDROID=<abi>) into
+        # dist/libs/<abi>/libthorvg.a - a static archive, not a
+        # python-for-android recipe (mirrors the iOS xcframework approach:
+        # ThorVG is part of Kivy's own wheel build, not a separate mobile
+        # dependency). See the ``ThorVG`` entry added to
+        # ``plat_options['android']['libraries']`` above.
+        android_libs = plat_options['android']['libraries']
+        android_abis = plat_options['android']['abis']
+
+        host_triplet = environ.get('CIBW_HOST_TRIPLET', '')
+        if 'aarch64' in host_triplet:
+            current_abi = 'arm64-v8a'
+        elif 'x86_64' in host_triplet:
+            current_abi = 'x86_64'
+        else:
+            current_abi = android_abis[0]
+
+        thorvg = android_libs[current_abi]['ThorVG']
+        return {
+            'include_dirs': [thorvg['headers']],
+            'library_dirs': [dirname(thorvg['path'])],
+            'libraries': ['thorvg'],
+            'extra_compile_args': [],
+            'extra_link_args': [],
+            # Static archive linked directly into _thorvg.so - see the
+            # TVG_STATIC rationale below (Android now genuinely matches
+            # the "links statically" case, unlike before this archive
+            # existed).
+            'define_macros': [('TVG_STATIC', '1')],
+        }
+
     # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
     # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
     # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
@@ -996,13 +1044,15 @@ def determine_thorvg_flags():
     # library it must be omitted so the visibility attributes stay active
     # and dynamic symbol resolution works.
     #
-    # Windows stays static (Kivy has no wheel-repair step there).
+    # Windows stays static (Kivy has no wheel-repair step there). Android
+    # is also static, but returns early above with its own TVG_STATIC
+    # (same rationale, different lib layout) so it never reaches here.
     # macOS desktop is shared via the framework branch above - the
     # fallback dylib path reaches this branch only when the framework
     # is absent, in which case we treat it as shared too (no TVG_STATIC).
     # iOS returns early above via the framework path (shared dylib —
-    # no TVG_STATIC).  Windows and Android still link statically.
-    if platform in ('win32', 'android'):
+    # no TVG_STATIC).
+    if platform == 'win32':
         flags['define_macros'].append(('TVG_STATIC', '1'))
 
     explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
@@ -1031,12 +1081,13 @@ def determine_thorvg_flags():
     # still gets a working link. auditwheel / manylinux treats
     # ``libstdc++.so.6`` as a system-provided library (not vendored), so
     # the extra ``DT_NEEDED`` entry is free. Windows (MSVC) pulls the
-    # runtime in automatically. Mobile toolchains (Android NDK, iOS) use
-    # libc++ and arrange the runtime themselves in the recipe /
-    # cibuildwheel config, not here.
+    # runtime in automatically. Android returns early above (its own NDK
+    # clang++ link driver pulls in libc++ automatically via the
+    # ``language='cpp'`` Extension, same as this ``-lstdc++`` flag does on
+    # Linux). iOS also returns early above via the framework path.
     if platform == 'darwin':
         flags['extra_link_args'].append('-lc++')
-    elif platform not in ('win32', 'android', 'ios'):
+    elif platform not in ('win32', 'ios'):
         flags['extra_link_args'].append('-lstdc++')
 
     return flags
