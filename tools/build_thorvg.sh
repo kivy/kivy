@@ -67,12 +67,47 @@
 #                               THORVG_MACOS_UNIVERSAL is forced to 0 when
 #                               this is set. Default: "" (disabled; builds
 #                               for the host platform).
+#   THORVG_ANDROID              When set to "arm64-v8a" or "x86_64" (the
+#                               two ABIs Kivy's Android wheel already
+#                               targets - see the ``dist/libs/<abi>``
+#                               convention in ``setup.py``), cross-compile
+#                               ThorVG for that Android ABI using the NDK's
+#                               LLVM toolchain instead of building for the
+#                               host platform. Requires ``ANDROID_NDK_HOME``
+#                               (or ``ANDROID_NDK_ROOT``) to point at an
+#                               installed NDK (r23+, for the unified LLVM
+#                               binutils).
+#
+#                               Android builds always force THORVG_SHARED=0
+#                               (static): Kivy's Android wheel build has no
+#                               wheel-repair step (see
+#                               ``[tool.cibuildwheel.android]`` in
+#                               ``pyproject.toml``, same rationale as the
+#                               Windows static path above), so the archive
+#                               is linked directly into
+#                               ``kivy.lib.thorvg._thorvg.so`` with no
+#                               separate ``libthorvg.so`` to bundle.
+#
+#                               API level: 21, matching
+#                               ``ANDROID_API_LEVEL`` in ``pyproject.toml``.
+#
+#                               Installs the archive under
+#                               ``<prefix>/libs/<abi>/libthorvg.a`` (headers
+#                               under the ABI-independent
+#                               ``<prefix>/include/thorvg-1/``) rather than
+#                               the flat ``<prefix>/lib/`` used by every
+#                               other platform, so it drops straight into
+#                               the same ``dist/libs/<abi>/`` tree the
+#                               Android SDL3 libraries already use. Default:
+#                               "" (disabled; builds for the host platform).
 #
 # Requires ``meson``, ``ninja``, ``curl``, ``tar``, and a working C++14
 # toolchain on PATH. On Windows, the caller must have already sourced the
 # MSVC environment (e.g. via ``ilammy/msvc-dev-cmd``).
 # On iOS (THORVG_IOS set), full Xcode is also required (xcrun must resolve
 # the named SDK).
+# On Android (THORVG_ANDROID set), an installed NDK is also required
+# (ANDROID_NDK_HOME / ANDROID_NDK_ROOT).
 
 set -e -x
 
@@ -85,6 +120,7 @@ THORVG_BUILD_ROOT="${THORVG_BUILD_ROOT:-$(pwd)/kivy-dependencies/build/thorvg}"
 THORVG_INSTALL_PREFIX="${THORVG_INSTALL_PREFIX:-$(pwd)/kivy-dependencies/dist}"
 THORVG_SHARED="${THORVG_SHARED:-0}"
 THORVG_IOS="${THORVG_IOS:-}"
+THORVG_ANDROID="${THORVG_ANDROID:-}"
 
 # Detect Windows (git-bash / msys / cygwin) so we can keep the rest of the
 # script POSIX-style while still emitting .lib / handling link.exe.
@@ -130,6 +166,9 @@ fi
 if [ -n "$THORVG_IOS" ]; then
   THORVG_MACOS_UNIVERSAL=0
   THORVG_SHARED=1
+elif [ -n "$THORVG_ANDROID" ]; then
+  THORVG_MACOS_UNIVERSAL=0
+  THORVG_SHARED=0
 elif [ "$IS_MACOS" = "1" ]; then
   THORVG_MACOS_UNIVERSAL="${THORVG_MACOS_UNIVERSAL:-1}"
 else
@@ -239,6 +278,17 @@ _thorvg_configure_and_install() {
   local prefix="$2"
   shift 2
 
+  # ``libdir`` is relative to ``prefix`` (matches Meson's own semantics).
+  # Callers set _THORVG_LIBDIR before invoking this function to override
+  # the default "lib"; THORVG_ANDROID uses "libs/<abi>" instead so the
+  # archive lands directly under dist/libs/<abi>/, matching the flat
+  # layout setup.py's Android SDL3 wiring already expects (see this
+  # script's THORVG_ANDROID docs above). Headers always install to the
+  # ABI-independent <prefix>/include/thorvg-1/, regardless of libdir.
+  # (A plain positional arg would be ambiguous with the pass-through
+  # meson args below, e.g. THORVG_IOS's leading "--cross-file".)
+  local libdir="${_THORVG_LIBDIR:-lib}"
+
   pushd "$_THORVG_SRC_DIR"
 
   # Clean stale build dir from previous invocations (idempotent CI reruns).
@@ -248,7 +298,7 @@ _thorvg_configure_and_install() {
     --buildtype=release \
     --default-library="$_THORVG_DEFAULT_LIBRARY" \
     --prefix="$prefix" \
-    --libdir=lib \
+    --libdir="$libdir" \
     -Dlog=false \
     -Dstatic=true \
     -Dthreads=false \
@@ -325,6 +375,79 @@ if [ -n "$THORVG_IOS" ]; then
     otool -D "$_ios_dylib" || true
   fi
 
+elif [ -n "$THORVG_ANDROID" ]; then
+  # ---------------------------------------------------------------------------
+  # Android cross-compile path (THORVG_ANDROID=arm64-v8a | x86_64), matching
+  # the two ABIs Kivy's Android wheel build already targets.
+  #
+  # Uses the NDK's unified (r23+) LLVM toolchain directly rather than a
+  # separate python-for-android recipe: the plain "clang"/"clang++" driver
+  # is put on PATH from the NDK's host-tag toolchain bin dir, and the
+  # target triple + API level + sysroot are supplied via -Dc_args /
+  # -Dcpp_args / -D*_link_args, mirroring how the iOS branch above keeps
+  # the SDK sysroot out of the cross-file itself.
+  #
+  # Always static (THORVG_SHARED forced to 0 above): Kivy's Android wheel
+  # pipeline has no wheel-repair step (see pyproject.toml
+  # [tool.cibuildwheel.android]), so there is nowhere to bundle a separate
+  # libthorvg.so - the archive links directly into
+  # kivy.lib.thorvg._thorvg.so instead, same rationale as the Windows
+  # static path.
+  # ---------------------------------------------------------------------------
+  _ANDROID_NDK_ROOT="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
+  if [ -z "$_ANDROID_NDK_ROOT" ]; then
+    echo "FATAL: THORVG_ANDROID requires ANDROID_NDK_HOME (or ANDROID_NDK_ROOT) to point at an installed NDK" >&2
+    exit 1
+  fi
+
+  case "$(uname -s 2>/dev/null || echo)" in
+    Linux)  _ANDROID_NDK_HOST_TAG="linux-x86_64" ;;
+    Darwin) _ANDROID_NDK_HOST_TAG="darwin-x86_64" ;;
+    *)
+      echo "FATAL: THORVG_ANDROID is only supported when building on Linux or macOS hosts" >&2
+      exit 1
+      ;;
+  esac
+
+  # Matches ANDROID_API_LEVEL in pyproject.toml's [tool.cibuildwheel.android].
+  _ANDROID_API_LEVEL="${THORVG_ANDROID_API_LEVEL:-21}"
+  _ANDROID_TOOLCHAIN_BIN="$_ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/$_ANDROID_NDK_HOST_TAG/bin"
+  _ANDROID_SYSROOT="$_ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/$_ANDROID_NDK_HOST_TAG/sysroot"
+  if [ ! -d "$_ANDROID_TOOLCHAIN_BIN" ]; then
+    echo "FATAL: NDK LLVM toolchain not found at $_ANDROID_TOOLCHAIN_BIN (need NDK r23+)" >&2
+    exit 1
+  fi
+  # Prepend so the NDK's plain "clang"/"clang++"/"llvm-ar"/"llvm-strip"
+  # (referenced by tools/meson-cross-android-*.ini) resolve before any
+  # host toolchain of the same name.
+  export PATH="$_ANDROID_TOOLCHAIN_BIN:$PATH"
+
+  case "$THORVG_ANDROID" in
+    arm64-v8a) _ANDROID_TARGET="aarch64-linux-android${_ANDROID_API_LEVEL}" ;;
+    x86_64)    _ANDROID_TARGET="x86_64-linux-android${_ANDROID_API_LEVEL}" ;;
+    *)
+      echo "FATAL: THORVG_ANDROID must be 'arm64-v8a' or 'x86_64', got: '$THORVG_ANDROID'" >&2
+      exit 1
+      ;;
+  esac
+  _ANDROID_CROSS_FILE="$_SCRIPT_DIR/meson-cross-android-$THORVG_ANDROID.ini"
+
+  echo "-- Build ThorVG (Android $THORVG_ANDROID, API $_ANDROID_API_LEVEL)"
+  echo "   NDK        : $_ANDROID_NDK_ROOT"
+  echo "   Target     : $_ANDROID_TARGET"
+  echo "   Cross-file : $_ANDROID_CROSS_FILE"
+
+  # libdir="libs/<abi>" (relative to prefix) so the archive lands at
+  # <prefix>/libs/<abi>/libthorvg.a - see _thorvg_configure_and_install's
+  # _THORVG_LIBDIR docs above.
+  _THORVG_LIBDIR="libs/$THORVG_ANDROID" \
+  _thorvg_configure_and_install "build-android-$THORVG_ANDROID" "$THORVG_INSTALL_PREFIX" \
+    --cross-file "$_ANDROID_CROSS_FILE" \
+    -Dc_args="--target=$_ANDROID_TARGET --sysroot=$_ANDROID_SYSROOT" \
+    -Dcpp_args="--target=$_ANDROID_TARGET --sysroot=$_ANDROID_SYSROOT" \
+    -Dc_link_args="--target=$_ANDROID_TARGET --sysroot=$_ANDROID_SYSROOT" \
+    -Dcpp_link_args="--target=$_ANDROID_TARGET --sysroot=$_ANDROID_SYSROOT"
+
 elif [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
   # Single-invocation universal2 build (matches libpng's CMake
   # ``-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"`` path in
@@ -385,8 +508,16 @@ fi
 #   on macOS). ``auditwheel repair`` / ``delocate-wheel`` / the framework
 #   wrapper in ``build_macos_dependencies.sh`` take it from there. We still
 #   fail fast here if Meson silently produced only a static archive.
+#
+# Android builds installed under ``<prefix>/libs/<abi>/`` instead of the
+# flat ``<prefix>/lib/`` (see the THORVG_ANDROID branch above), so resolve
+# the libdir accordingly here too.
 # ---------------------------------------------------------------------------
-_libdir="$THORVG_INSTALL_PREFIX/lib"
+if [ -n "$THORVG_ANDROID" ]; then
+  _libdir="$THORVG_INSTALL_PREFIX/libs/$THORVG_ANDROID"
+else
+  _libdir="$THORVG_INSTALL_PREFIX/lib"
+fi
 echo "--- Contents of $_libdir ---"
 ls -lR "$_libdir" || true
 
