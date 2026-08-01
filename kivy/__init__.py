@@ -515,15 +515,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     from kivy.modules import Modules
     Modules.configure()
 
-    # android hooks: force fullscreen and add android touch input provider
-    if platform in ('android', 'ios'):
+    # mobile hooks: force fullscreen, and clear the input section. The
+    # providers configured there are desktop ones; on mobile SDL adds its own
+    # provider from the window instead (kivy/core/window/window_sdl3.py).
+    if platform in {'android', 'ios'}:
         from kivy.config import Config
         Config.set('graphics', 'fullscreen', 'auto')
         Config.remove_section('input')
         Config.add_section('input')
-
-    if platform == 'android':
-        Config.set('input', 'androidtouch', 'android')
 
 for msg in _logging_msgs:
     Logger.info(msg)
