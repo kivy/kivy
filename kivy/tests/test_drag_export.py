@@ -1,5 +1,6 @@
 '''Unit tests for Window drag-export helpers (pure + dispatch).'''
 
+import os
 import struct
 import sys
 from unittest.mock import patch
@@ -109,30 +110,21 @@ class TestMacOSProtocols:
         from kivy.core.window import drag_export_macos as mac
         assert mac.available() is True
 
-    def test_file_promise_delegate_registers(self):
-        from pyobjus import autoclass, objc_str
-        from pyobjus.dylib_manager import load_framework, INCLUDE
+    def test_stage_items_for_url_drag(self):
         from kivy.core.window import drag_export_macos as mac
+        from kivy.core.window.drag_export import DragFileItem
 
-        load_framework(INCLUDE.AppKit)
-        load_framework(INCLUDE.Foundation)
-        mac._ensure_protocols()
+        mac._STAGING_DIRS.clear()
 
-        def provide(path):
-            with open(path, 'w', encoding='utf-8') as fh:
+        def provide_file(dest):
+            with open(dest, 'w', encoding='utf-8') as fh:
                 fh.write('hi')
             return None
 
-        delegate = mac.FilePromiseDelegate('hello.txt', provide)
-        provider = autoclass(
-            'NSFilePromiseProvider'
-        ).alloc().initWithFileType_delegate_(
-            objc_str('public.data'), delegate)
-        assert provider is not None
-        name = delegate.filePromiseProvider_fileNameForType_(
-            provider, objc_str('public.data'))
-        # pyobjus may return NSString wrapper or str
-        text = name if isinstance(name, str) else name.cString()
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-        assert 'hello' in text
+        paths = mac._stage_items_for_url_drag([
+            DragFileItem('hello.txt', False, provide_file)])
+        assert len(paths) == 1
+        assert os.path.isfile(paths[0])
+        assert paths[0].endswith('hello.txt')
+        with open(paths[0], encoding='utf-8') as fh:
+            assert fh.read() == 'hi'
