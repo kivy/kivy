@@ -258,6 +258,69 @@ for key, value in replacements.items():
 
 rst_epilog = '\n'.join(epilog)
 
+
+def generate_carousel(app):
+    html_path = 'snippets_slides'
+    slides_dir = os.path.join(app.srcdir, html_path)
+
+    if not os.path.exists(slides_dir):
+        return
+
+    slides = []
+    code = (
+        '<div class="carousel-slide" data-src="{0}">\n'
+        '  <div class="rst-content">Loading..</div>\n'
+        '</div>\n'
+    )
+
+    for file in sorted(os.listdir(slides_dir)):
+        if file.endswith('.rst'):
+            name = os.path.splitext(file)[0]
+            html_src = os.path.join('..', html_path, f'{name}.html')
+            slides.append(code.format(html_src))
+
+        elif os.path.isdir(sfolder := os.path.join(slides_dir, file)):
+            for sfile in os.listdir(sfolder):
+                if sfile.endswith('.rst'):
+                    ssnippet = f'{os.path.splitext(sfile)[0]}.html'
+                    html_src = os.path.join(
+                        '..', html_path, file, ssnippet
+                    )
+                    slides.append(code.format(html_src))
+
+    carousel_html = (
+        '<div class="carousel-container">\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '  <div class="carousel-track">\n'
+        f'    {"".join(slides)}\n'
+        '  </div>\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '</div><br />\n'
+    )
+
+    with open(
+        os.path.join(app.srcdir, f'{html_path}.js'), encoding='utf-8'
+    ) as file:
+        js_code = file.read()
+
+    js_block = (
+        f'<script type="text/javascript">\n{js_code}\n</script>\n'
+    )
+
+    with open(
+        os.path.join(
+            app.srcdir, f'_code_{html_path}.html'
+        ), 'w', encoding='utf-8'
+    ) as file_out:
+        file_out.write(carousel_html + js_block)
+
+
 def setup(app):
-    # Register the custom theme scripts so Sphinx includes them via {{ js_tag() }}
+    app.connect('builder-inited', generate_carousel)
     app.add_js_file('kivy.js')
