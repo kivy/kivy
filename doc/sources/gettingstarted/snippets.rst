@@ -27,6 +27,30 @@ Snippets section
        max-width: 600px;
        width: auto;
      }
+    .carousel-container {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+    }
+    .carousel-btn {
+      min-width: 6rem;
+    }
+    .carousel-btn.next {
+      margin-left: .75rem;
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+      width: 100%;
+      padding: 0.75rem 0;
+    }
+    .carousel-slide {
+      min-width: 100%;
+      box-sizing: border-box;
+    }
+    .carousel-slide p:last-child {
+      margin-bottom: 0;
+    }
    </style>
 
 .. raw:: html

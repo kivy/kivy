@@ -1,20 +1,22 @@
 let currentSlide = 0;
 
-document.addEventListener("click", (e) => {
-  const link = e.target.closest("a");
-  if (!link) return;
+document
+  .querySelector('.carousel-container')
+  ?.addEventListener("click", (e) => {
+    const link = e.target.closest("a");
+    if (!link) return;
 
-  const href = link.getAttribute("href");
-  if (!href) return;
+    const href = link.getAttribute("href");
+    if (!href) return;
 
-  const isImage = /\.(png|jpeg|jpg|gif|svg|webp)(\?.*)?$/i.test(href);
-  const isExternal = href.startsWith("http://") || href.startsWith("https://");
+    const isImage = /\.(png|jpeg|jpg|gif|svg|webp)(\?.*)?$/i.test(href);
+    const isExternal = href.startsWith("http://") || href.startsWith("https://");
 
-  if (isImage || isExternal) {
-    e.preventDefault();
-    window.open(href, "_blank", "noopener,noreferrer");
-  }
-});
+    if (isImage || isExternal) {
+      e.preventDefault();
+      globalThis.open(href, "_blank", "noopener,noreferrer");
+    }
+  });
 
 async function loadSlideContent(slide) {
   if (!slide || slide.dataset.loaded === "true") return;
@@ -29,15 +31,28 @@ async function loadSlideContent(slide) {
     const htmlText = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
-    const content =
-      doc.querySelector('[role="main"]') ||
-      doc.querySelector(".document") ||
-      doc.body;
+    const content = doc.querySelector('[role="main"]');
+
+    content.querySelectorAll("[src]").forEach((element) => {
+      element.src = new URL(
+        element.getAttribute("src"),
+        response.url,
+      ).href;
+    });
+
+    content.querySelectorAll("[href]").forEach((element) => {
+      const href = element.getAttribute("href");
+
+      if (href && !href.startsWith("#")) {
+        element.href = new URL(href, response.url).href;
+      }
+    });
 
     container.innerHTML = content.innerHTML;
     slide.dataset.loaded = "true";
-  } catch (err) {
+  } catch (error) {
     container.innerHTML = `<p>Error loading content from ${src}</p>`;
+    console.error(error);
   }
 }
 
@@ -72,6 +87,7 @@ function showSlide(index) {
   loadSlideContent(slides[currentSlide]);
 }
 
+// deno-lint-ignore no-unused-vars
 function moveSlide(direction) {
   showSlide(currentSlide + direction);
 }
