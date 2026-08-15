@@ -14,6 +14,8 @@
 # serve to show the default value.
 
 from datetime import datetime
+from pathlib import Path
+from sphinx.errors import ExtensionError
 import os
 import sphinx
 import sys
@@ -258,6 +260,61 @@ for key, value in replacements.items():
 
 rst_epilog = '\n'.join(epilog)
 
+
+def generate_carousel(app):
+    slides_name = 'snippets_slides'
+    source_dir = Path(app.srcdir)
+    slides_dir = source_dir / slides_name
+
+    if not slides_dir.exists():
+        raise ExtensionError(
+            f'Carousel slides directory does not exist: {slides_dir}'
+        )
+
+    slide_template = (
+        '<div class="carousel-slide" data-src="{0}">\n'
+        '  <div class="rst-content">Loading..</div>\n'
+        '</div>\n'
+    )
+
+    slides = []
+
+    for slide_path in sorted(slides_dir.rglob('*.rst')):
+        relative_html_path = (
+            slide_path
+            .relative_to(slides_dir)
+            .with_suffix('.html')
+        )
+        html_src = f'../{slides_name}/{relative_html_path.as_posix()}'
+        slides.append(slide_template.format(html_src))
+
+    carousel_html = (
+        '<div class="carousel-container">\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '  <div class="carousel-track">\n'
+        f'    {"".join(slides)}\n'
+        '  </div>\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '</div><br />\n'
+    )
+
+    js_code = (source_dir / f'{slides_name}.js').read_text()
+    js_block = (
+        f'<script type="text/javascript">\n{js_code}\n</script>\n'
+    )
+
+    (source_dir / f'_code_{slides_name}.html').write_text(
+        carousel_html + js_block,
+        encoding='utf-8',
+    )
+
+
 def setup(app):
-    # Register the custom theme scripts so Sphinx includes them via {{ js_tag() }}
+    app.connect('builder-inited', generate_carousel)
     app.add_js_file('kivy.js')
