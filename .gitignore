@@ -13,6 +13,7 @@ Kivy-*.dist-info
 build/*
 doc/build
 doc/autobuild.py-done*
+doc/sources/_code_snippets_slides.html
 doc/sources/api-*.rst
 doc/sources/examples/gen__*.rst
 doc/sources/examples/gallery.rst

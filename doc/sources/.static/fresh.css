@@ -819,6 +819,8 @@ html.dark .vt-switch-icon .moon {
 .highlight .il  /* Literal.Number.Integer.Long */ {
     color: var(--highlight-m);
 }
+
+
 @media (min-width: 1024px) {
     #toplogo {
         width: 20%;
@@ -885,18 +887,4 @@ html.dark .vt-switch-icon .moon {
     .vt-switch-check {
         top: 1px;
     }
-}
-.carousel-container {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-.carousel-track {
-  display: flex;
-  transition: transform 0.3s ease-in-out;
-  width: 100%;
-}
-.carousel-slide {
-  min-width: 100%;
-  box-sizing: border-box;
 }
