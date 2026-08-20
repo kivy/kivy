@@ -102,7 +102,7 @@ media = [
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
 full = [
-    "pillow>=9.5.0,<12",
+    "pillow>=12.3,<13",
     'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
     # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
