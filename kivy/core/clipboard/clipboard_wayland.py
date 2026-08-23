@@ -2,14 +2,17 @@
 Clipboard Wayland: An implementation of the Clipboard using wl-clipboard.
 '''
 
-__all__ = ('ClipboardWayland', )
+__all__ = ('ClipboardWayland',)
 
 from kivy.utils import platform
+
 
 if platform != 'linux':
     raise SystemError('Unsupported platform for wayland-clipboard')
 
+
 from shutil import which
+
 
 wl_copy, wl_paste = which('wl-copy'), which('wl-paste')
 
