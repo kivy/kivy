@@ -238,7 +238,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: sdl3, dummy, android
+    Values: sdl3, dummy, wayland, android
 
 Metrics
 -------

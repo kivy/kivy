@@ -11,10 +11,14 @@ if platform != 'linux':
 
 from shutil import which
 
-if not which('wl-paste'):
-    raise SystemError('wl-clipboard cannot be found')
+wl_copy, wl_paste = which('wl-copy'), which('wl-paste')
+
+if not any((wl_copy, wl_paste)):
+    raise SystemError('wl-clipboard is not installed')
+
 
 from subprocess import check_output
+from re import search
 from kivy.core.clipboard import ClipboardBase
 from kivy.logger import Logger
 
@@ -27,10 +31,8 @@ def _io(cmd, encoding: str = None):
     )
 
 
-Logger.info(
-    'wl-clipboard: Version: %s',
-    _io(['wl-paste', '--version']).splitlines()[0][13:]
-)
+info = search(r"^([\w-]+)\s+([\d\.]+)", _io([wl_paste, '--version']))
+Logger.info(f'{info.group(1)}: v{info.group(2)}')
 
 
 class ClipboardWayland(ClipboardBase):
@@ -38,8 +40,8 @@ class ClipboardWayland(ClipboardBase):
         mimetype = mimetype or 'text/plain'
 
         return _io(
-            ['wl-paste', '--type', mimetype]
-        )[:-1]
+            [wl_paste, '--type', mimetype]
+        ).removesuffix('\n')
 
     def _ensure_clipboard(self, encoding: str = None):
         super(ClipboardWayland, self)._ensure_clipboard()
@@ -50,7 +52,7 @@ class ClipboardWayland(ClipboardBase):
         mtype = mimetype.split(';charset=')
 
         return _io(
-            ['wl-copy', data.decode(mtype[1]), '--type', mtype[0]],
+            [wl_copy, data.decode(mtype[1]), '--type', mtype[0]],
             encoding=mtype[1]
         )
 
