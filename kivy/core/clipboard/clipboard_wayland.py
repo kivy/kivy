@@ -1,69 +1,70 @@
 '''
-Clipboard Wayland: An implementation of the Clipboard using wl-clipboard.
+Clipboard Wayland: an implementation of the Clipboard using wl-clipboard.
 '''
 
-__all__ = ('ClipboardWayland',)
-
-from kivy.utils import platform
-
-
-if platform != 'linux':
-    raise SystemError('Unsupported platform for wayland-clipboard')
-
+__all__ = ('ClipboardWayland', )
 
 from shutil import which
+from kivy.utils import platform
+from kivy.core.clipboard import ClipboardBase
+
+if platform != 'linux':
+    raise SystemError('unsupported platform for wayland clipboard')
+
+
+def _wayland_session_available():
+    import os
+    # libwayland does not require WAYLAND_DISPLAY: it defaults to wayland-0,
+    # and WAYLAND_SOCKET is an already-connected fd from the compositor.
+    if os.environ.get('WAYLAND_SOCKET'):
+        return True
+    # WAYLAND_DISPLAY is a socket *name* (wayland-0), not a path, unless it
+    # starts with / (absolute socket path, libwayland >= 1.15).
+    display = os.environ.get('WAYLAND_DISPLAY') or 'wayland-0'
+    if display.startswith('/'):
+        socket_path = display
+    else:
+        runtime_dir = os.environ.get('XDG_RUNTIME_DIR')
+        if not runtime_dir:
+            return False
+        socket_path = os.path.join(runtime_dir, display)
+    return os.path.exists(socket_path)
+
+
+if not _wayland_session_available():
+    raise SystemError('not running under Wayland')
 
 
 wl_copy, wl_paste = which('wl-copy'), which('wl-paste')
 
-if not any((wl_copy, wl_paste)):
+if not (wl_copy and wl_paste):
     raise SystemError('wl-clipboard is not installed')
 
 
-from subprocess import check_output
-from re import search
-from kivy.core.clipboard import ClipboardBase
-from kivy.logger import Logger
-
-
-def _io(cmd, encoding: str = None):
-    encoding = encoding or 'utf-8'
-
-    return check_output(
-        cmd, encoding=encoding, timeout=1
-    )
-
-
-info = search(r"^([\w-]+)\s+([\d\.]+)", _io([wl_paste, '--version']))
-Logger.info(f'{info.group(1)}: v{info.group(2)}')
+def _io(cmd, data=None):
+    from subprocess import CalledProcessError, DEVNULL, check_output
+    try:
+        return check_output(cmd, input=data, stderr=DEVNULL)
+    except CalledProcessError:
+        return b''
 
 
 class ClipboardWayland(ClipboardBase):
-    def get(self, mimetype: str = None):
-        mimetype = mimetype or 'text/plain'
+    def get(self, mimetype='text/plain'):
+        return _io([wl_paste, '--no-newline'])
 
-        return _io(
-            [wl_paste, '--type', mimetype]
-        ).removesuffix('\n')
-
-    def _ensure_clipboard(self, encoding: str = None):
-        super(ClipboardWayland, self)._ensure_clipboard()
-        self._encoding = encoding or 'utf-8'
-
-    def put(self, data: bytes = b'', mimetype: str = None):
-        mimetype = mimetype or 'text/plain;charset=utf-8'
-        mtype = mimetype.split(';charset=')
-
-        return _io(
-            [wl_copy, data.decode(mtype[1]), '--type', mtype[0]],
-            encoding=mtype[1]
-        )
-
-    def get_types(self):
-        return [u'text/plain']
+    def put(self, data, mimetype='text/plain'):
+        _io([wl_copy], data)
 
     def get_cutbuffer(self):
-        pass
+        return _io([wl_paste, '--no-newline', '--primary']).decode('utf8')
 
-    def set_cutbuffer(self, data: bytes):
-        pass
+    def set_cutbuffer(self, data):
+        if not isinstance(data, bytes):
+            data = data.encode('utf8')
+        _io([wl_copy, '--primary'], data)
+
+    def get_types(self):
+        types = _io([wl_paste, '--list-types']).decode(
+            'utf-8', 'ignore').splitlines()
+        return [t for t in types if t] or [u'text/plain']
