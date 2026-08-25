@@ -103,6 +103,7 @@ PROVIDER_CONFIGS = {
     'clipboard': [
         ('android', 'clipboard_android'),
         ('winctypes', 'clipboard_winctypes'),
+        ('wayland', 'clipboard_wayland'),
         ('xsel', 'clipboard_xsel'),
         ('xclip', 'clipboard_xclip'),
         ('dbusklipper', 'clipboard_dbusklipper'),

@@ -125,23 +125,31 @@ elif platform == 'win':
         'winctypes', all_providers, 'ClipboardWindows'
     ))
 elif platform == 'linux':
-    _clipboards.append(make_provider_tuple('xclip', all_providers, 'ClipboardXclip'))
-    _clipboards.append(make_provider_tuple('xsel', all_providers, 'ClipboardXsel'))
-    _clipboards.append(make_provider_tuple(
-        'dbusklipper', all_providers, 'ClipboardDbusKlipper'
-    ))
-    _clipboards.append(make_provider_tuple('gtk3', all_providers, 'ClipboardGtk3'))
+    _clipboards.extend([
+        make_provider_tuple('wayland', all_providers, 'ClipboardWayland'),
+        make_provider_tuple('xclip', all_providers, 'ClipboardXclip'),
+        make_provider_tuple('xsel', all_providers, 'ClipboardXsel'),
+        make_provider_tuple(
+            'dbusklipper', all_providers, 'ClipboardDbusKlipper'
+        ),
+        make_provider_tuple('gtk3', all_providers, 'ClipboardGtk3')
+    ])
 
 if USE_SDL3:
-    _clipboards.append(make_provider_tuple('sdl3', all_providers, 'ClipboardSDL3'))
+    _clipboards.append(make_provider_tuple(
+        'sdl3', all_providers, 'ClipboardSDL3'
+    ))
 
-_clipboards.append(make_provider_tuple('dummy', all_providers, 'ClipboardDummy'))
+_clipboards.append(make_provider_tuple(
+    'dummy', all_providers, 'ClipboardDummy'
+))
 
 Clipboard: ClipboardBase = core_select_lib('clipboard', _clipboards, True)
 CutBuffer = None
 
 if platform == 'linux':
     _cutbuffers = [
+        make_provider_tuple('wayland', all_providers, 'ClipboardWayland'),
         make_provider_tuple('xclip', all_providers, 'ClipboardXclip'),
         make_provider_tuple('xsel', all_providers, 'ClipboardXsel'),
     ]

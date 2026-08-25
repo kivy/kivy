@@ -17,9 +17,102 @@ update_version_metadata() {
   fi
 }
 
+prepare_env_for_wayland_clipboard() {
+  # Headless Sway so wl-copy/wl-paste have a compositor *and* a wl_seat.
+  # Weston --no-config does not advertise a seat, which wl-clipboard requires.
+  # Do not export WAYLAND_DISPLAY: the main suite must stay on Xvfb (X11).
+  if ! command -v sway >/dev/null || ! command -v wl-copy >/dev/null; then
+    echo "Sway/wl-clipboard not installed; skipping Wayland clipboard env"
+    return 0
+  fi
+
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-runtime-kivy}"
+  mkdir -p "$XDG_RUNTIME_DIR"
+  chmod 700 "$XDG_RUNTIME_DIR"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}" >> "$GITHUB_ENV"
+  fi
+
+  local pidfile=/tmp/kivy_sway.pid
+  local log=/tmp/sway-headless.log
+  local conf=/tmp/kivy-sway.conf
+  rm -f "$pidfile" "$XDG_RUNTIME_DIR"/wayland-0 "$XDG_RUNTIME_DIR"/wayland-1
+
+  printf '%s\n' 'output * bg #000000 solid_color' > "$conf"
+
+  # Force the headless backend: DISPLAY=:99 is set for Xvfb, and wlroots
+  # would otherwise try the X11 backend. WLR_LIBINPUT_NO_DEVICES allows a
+  # seat with no real keyboards. Unset WAYLAND_DISPLAY so Sway is the server.
+  export WLR_BACKENDS=headless
+  export WLR_LIBINPUT_NO_DEVICES=1
+  export WLR_RENDERER=pixman
+  unset WAYLAND_DISPLAY
+
+  /sbin/start-stop-daemon --start --quiet --pidfile "$pidfile" --make-pidfile --background \
+    --exec /usr/bin/sway -- -c "$conf" || true
+
+  local socket_path=""
+  local i
+  for i in $(seq 1 50); do
+    if [ -S "$XDG_RUNTIME_DIR/wayland-0" ]; then
+      socket_path="$XDG_RUNTIME_DIR/wayland-0"
+      break
+    fi
+    if [ -S "$XDG_RUNTIME_DIR/wayland-1" ]; then
+      socket_path="$XDG_RUNTIME_DIR/wayland-1"
+      break
+    fi
+    sleep 0.1
+  done
+
+  if [ -z "$socket_path" ]; then
+    echo "Failed to start headless Sway"
+    return 1
+  fi
+
+  local socket_name
+  socket_name=$(basename "$socket_path")
+  local ok=0
+  for i in $(seq 1 25); do
+    if env WAYLAND_DISPLAY="$socket_name" wl-copy "wayland-ok" \
+      && [ "$(env WAYLAND_DISPLAY="$socket_name" wl-paste --no-newline)" = "wayland-ok" ]; then
+      ok=1
+      break
+    fi
+    sleep 0.2
+  done
+  if [ "$ok" -ne 1 ]; then
+    echo "wl-copy/wl-paste failed against headless Sway"
+    return 1
+  fi
+
+  export KIVY_WAYLAND_CLIPBOARD_SOCKET="$socket_path"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "KIVY_WAYLAND_CLIPBOARD_SOCKET=${KIVY_WAYLAND_CLIPBOARD_SOCKET}" >> "$GITHUB_ENV"
+  fi
+}
+
+test_kivy_wayland_clipboard() {
+  if [ -z "${KIVY_WAYLAND_CLIPBOARD_SOCKET:-}" ]; then
+    echo "Wayland clipboard compositor not prepared; skipping tests"
+    return 0
+  fi
+  if [ ! -S "$KIVY_WAYLAND_CLIPBOARD_SOCKET" ]; then
+    echo "Wayland compositor socket not found at $KIVY_WAYLAND_CLIPBOARD_SOCKET"
+    return 1
+  fi
+  # Isolated invocation so the X11 suite never sees WAYLAND_DISPLAY (toolkits
+  # prefer Wayland when it is set). KIVY_CLIPBOARD forces the new provider.
+  env KIVY_NO_ARGS=1 WAYLAND_DISPLAY="$(basename "$KIVY_WAYLAND_CLIPBOARD_SOCKET")" \
+    KIVY_CLIPBOARD=wayland \
+    python3 -m pytest --maxfail=10 --timeout=300 \
+    --pyargs kivy.tests.test_clipboard_wayland
+}
+
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
     --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
+  prepare_env_for_wayland_clipboard
 
   # Ubuntu source-install tests (test_ubuntu_python.yml::unit_test via
   # ``install_kivy`` = ``pip install -e .``, and manylinux_wheels.yml::sdist_test
@@ -80,6 +173,7 @@ test_kivy() {
   # Logging tests, with non-default log modes
   env KIVY_NO_ARGS=1 KIVY_LOG_MODE=PYTHON python3 -m pytest -m logmodepython --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
   env KIVY_NO_ARGS=1 KIVY_LOG_MODE=MIXED python3 -m pytest -m logmodemixed --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
+  test_kivy_wayland_clipboard
 }
 
 test_kivy_benchmark() {
@@ -98,6 +192,7 @@ test_kivy_install() {
 
 EOF
   KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --maxfail=10 --timeout=300 .
+  test_kivy_wayland_clipboard
 }
 
 generate_docs() {
@@ -161,7 +256,8 @@ install_ubuntu_build_deps() {
           libxtst-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
           libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev fcitx-libs-dev \
-          libayatana-appindicator3-dev
+          libayatana-appindicator3-dev \
+          sway wl-clipboard
 }
 
 generate_rpi_wheels() {
