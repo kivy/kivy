@@ -1113,11 +1113,10 @@ Context.html#getFilesDir()>`_ is returned.
             from kivy.mobile._platform.android import finish_and_remove_task
             finish_and_remove_task()
         else:
-            self._stop()
+            stopTouchApp()
 
     def _stop(self, *largs):
         self.dispatch('on_stop')
-        stopTouchApp()
 
         # Clear the window children
         if self._app_window:
