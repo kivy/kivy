@@ -30,7 +30,7 @@ __all__ = ('Camera', )
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ListProperty, \
-    BooleanProperty
+    BooleanProperty, StringProperty
 
 
 class Camera(Image):
@@ -78,6 +78,17 @@ class Camera(Image):
     :attr:`resolution` is a :class:`~kivy.properties.ListProperty` and defaults
     to [-1, -1].
     '''
+    
+    api_name = StringProperty("default")
+    '''Preferred video capture API to use when invoking the camera (currently 
+    only supported using OpenCV). If you are using "default", the API will be the
+    default one::
+    
+    .. versionadded:: 2.3.0
+
+    :attr:`apiID` is a :class:`~kivy.properties.StringProperty` and defaults
+    to "ANY".
+    '''
 
     def __init__(self, **kwargs):
         self._camera = None
@@ -100,10 +111,10 @@ class Camera(Image):
         if self.index < 0:
             return
         if self.resolution[0] < 0 or self.resolution[1] < 0:
-            self._camera = CoreCamera(index=self.index, stopped=True)
+            self._camera = CoreCamera(index=self.index, stopped=True, apiID=self.api_name)
         else:
             self._camera = CoreCamera(index=self.index,
-                                      resolution=self.resolution, stopped=True)
+                                      resolution=self.resolution, stopped=True, apiID=self.api_name)
         if self.play:
             self._camera.start()
 
