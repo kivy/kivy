@@ -15,7 +15,7 @@ else:
 import gc
 import weakref
 import time
-import os.path
+from kivy.graphics.cgl import cgl_get_backend_name
 
 __all__ = ('kivy_clock', 'kivy_clock_advance', 'kivy_metrics',
            'kivy_exception_manager', 'kivy_app',
@@ -32,6 +32,8 @@ def kivy_init():
     `trio` based apps need the `kivy_app` fixture.
 
     """
+    if cgl_get_backend_name() == "mock":
+        pytest.skip("Mock OpenGL backend does not support window operations")
     from kivy.core.window import EventLoop, Window, stopTouchApp
 
     def clear_window_and_event_loop():
