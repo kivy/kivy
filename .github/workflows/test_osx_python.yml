@@ -29,7 +29,7 @@ jobs:
       run: xcodebuild -downloadComponent MetalToolchain
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
         allow-prereleases: true
