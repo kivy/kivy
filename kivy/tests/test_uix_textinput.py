@@ -105,7 +105,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         self.assertTrue(ti.focus)
 
     def test_selection_enter_multiline(self):
-        text = 'multiline\ntext'
+        text = 'text multiline\ntext'
         ti = TextInput(multiline=True, text=text)
         ti.focus = True
 
@@ -123,7 +123,7 @@ class TextInputGraphicTest(GraphicUnitTest):
         )
 
         # move and check position
-        # mult$iline
+        # multiline
         # text
         ti._key_down(     # push selection
             (
