@@ -1,3 +1,17 @@
+About the AccessKit fork
+========================
+
+This fork of Kivy contains a proof-of-concept integration of AccessKit to show how Kivy could become accessible to people with disabilities.
+
+Status
+-----
+
+- Currently only Windows is "fully" supported, Unix-like desktop environments should mostly work, macOS will require further modifications of the SDL2 windowing provider.
+- The `accesskit` dependency must be manually installed inside your virtual environment: `pip install accesskit`
+- An example program can be found in `examples/widgets/accessibility.py`.
+- The accessibility provider lives in `kivy/core/accessibility/__init__.py` and its AccessKit implementation is in `kivy/core/accessibility/accessibility_accesskit.py`.
+- An `AccessibleBehavior` which allows widgets to describe themselves in terms of accessibility is in `kivy/uix/behaviors/accessibility.py`.
+
 Kivy
 ====
 

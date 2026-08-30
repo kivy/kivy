@@ -84,6 +84,7 @@ from kivy.properties import OptionProperty, ObjectProperty, BooleanProperty, \
     AliasProperty
 from kivy.config import Config
 from kivy.base import EventLoop
+from kivy.uix import widget
 
 # When we are generating documentation, Config doesn't exist
 _is_desktop = False
@@ -410,6 +411,9 @@ class FocusBehavior(object):
                 self._bind_keyboard()
             else:
                 self._unbind_keyboard()
+        if value:
+            widget.previous_focus = widget.focused_widget
+            widget.focused_widget = instance
 
     def _ensure_keyboard(self):
         if self._keyboard is None:

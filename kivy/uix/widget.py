@@ -236,6 +236,11 @@ at the parent's right at each layout update.
 
 __all__ = ('Widget', 'WidgetException')
 
+from enum import Enum
+
+from typing import Optional
+
+from kivy.core.accessibility import Role
 from kivy.event import EventDispatcher
 from kivy.eventmanager import (
     MODE_DONT_DISPATCH,
@@ -245,7 +250,7 @@ from kivy.eventmanager import (
 from kivy.factory import Factory
 from kivy.properties import (
     NumericProperty, StringProperty, AliasProperty, ReferenceListProperty,
-    ObjectProperty, ListProperty, DictProperty, BooleanProperty)
+    ObjectProperty, ListProperty, DictProperty, OptionProperty)
 from kivy.graphics import (
     Canvas, Translate, Fbo, ClearColor, ClearBuffers, Scale)
 from kivy.graphics.transformation import Matrix
@@ -289,7 +294,8 @@ class WidgetMetaclass(type):
 
 
 #: Base class used for Widget, that inherits from :class:`EventDispatcher`
-WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+class WidgetBase(EventDispatcher, metaclass=WidgetMetaclass):
+    pass
 
 
 class Widget(WidgetBase):
@@ -335,6 +341,25 @@ class Widget(WidgetBase):
         'on_kv_post'
     )
     _proxy_ref = None
+    accessible_role = OptionProperty(Role.UNKNOWN, options=list(Role))
+    """The role the widget fills in a UI automation context
+
+    Screen readers, for instance, use this to decide what widgets they should
+    read, and when.
+
+    :attr:`accessible_role` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to ``Role.UNKNOWN``. Its options are in :class:`~kivy.uix.widget.Role`.
+
+    """
+    accessible_name = StringProperty()
+    """The name to use for the widget in UI automation
+
+    Read by screen readers, for instance.
+
+    :attr:`accessible_name` is a :class:`~kivy.properties.StringProperty`
+    and defaults to the empty string.
+
+    """
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -374,6 +399,15 @@ class Widget(WidgetBase):
         # Bind all the events.
         if on_args:
             self.bind(**on_args)
+
+        from kivy.core import accessibility
+        if accessibility.provider:
+            binds = self._mark_widget_updated_binds = set()
+            for name in self.properties():
+                binds.add(self.fbind(
+                    name, partial(mark_widget_updated, self)
+                    )
+                )
 
     @property
     def proxy_ref(self):
@@ -1170,10 +1204,30 @@ class Widget(WidgetBase):
     :attr:`x` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
+    accessible_x = NumericProperty(None, allownone=True)
+    '''X position of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_x` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
+    '''
+
     y = NumericProperty(0)
     '''Y position of the widget.
 
     :attr:`y` is a :class:`~kivy.properties.NumericProperty` and defaults to 0.
+    '''
+
+    accessible_y = NumericProperty(None, allownone=True)
+    '''Y position of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_y` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
     '''
 
     width = NumericProperty(100)
@@ -1191,6 +1245,16 @@ class Widget(WidgetBase):
         A negative width is not supported.
     '''
 
+    accessible_width = NumericProperty(None, allownone=True)
+    '''Width of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_width` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
+    '''
+
     height = NumericProperty(100)
     '''Height of the widget.
 
@@ -1206,6 +1270,16 @@ class Widget(WidgetBase):
         A negative height is not supported.
     '''
 
+    accessible_height = NumericProperty(None, allownone=True)
+    '''Height of the widget for UI automation purposes, if this differs
+
+    Otherwise, and by default, this is ``None``.
+
+    :attr:`accessible_height` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to ``None``.
+
+    '''
+
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
@@ -1213,11 +1287,53 @@ class Widget(WidgetBase):
     (:attr:`x`, :attr:`y`) properties.
     '''
 
+    def _get_accessible_pos(self):
+        return self.accessible_x or self.x, self.accessible_y or self.y
+
+    def _set_accessible_pos(self, pos):
+        self.accessible_x, self.accessible_y = pos
+
+    accessible_pos = AliasProperty(_get_accessible_pos, _set_accessible_pos,
+        bind=('x', 'y', 'accessible_x', 'accessible_y'))
+    '''Position of the widget for UI automation purposes.
+
+    Defaults to the position of the widget for every other purpose, :attr:`pos`.
+
+    :attr:`accessible_pos` is a :class:`~kivy.properties.AliasProperty` of
+    (:attr:`accessible_x`, :attr:`accessible_y`) properties, defaulting to
+    :attr:`x` and :attr:`y`, respectively, when the accessible properties are
+    ``None``.
+
+    '''
+
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
     :attr:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:attr:`width`, :attr:`height`) properties.
+    '''
+
+    def _get_accessible_size(self):
+        width = self.width
+        height = self.height
+        accessible_width = self.accessible_width
+        accessible_height = self.accessible_height
+        return accessible_width or width, accessible_height or height
+
+    def _set_accessible_size(self, size):
+        self.accessible_width, self.accessible_height = size
+
+    accessible_size = AliasProperty(_get_accessible_size, _set_accessible_size,
+        bind=('width', 'height', 'accessible_width', 'accessible_height'))
+    '''Size of the widget for UI automation purposes.
+
+    Defaults to the size of the widget for every other purpose, :attr:`size`.
+
+    :attr:`accessible_size` is a :class:`~kivy.properties.AliasProperty` of
+    (:attr:`accessible_width`, :attr:`accessible_height`) properties, defaulting
+    to :attr:`width` and :attr:`height`, respectively, when the accessible
+    properties are ``None``.
+
     '''
 
     def get_right(self):
@@ -1622,3 +1738,31 @@ class Widget(WidgetBase):
     .. versionchanged:: 3.0.0
         Removed "Experimental" warning.
     '''
+
+
+focused_widget: Optional[Widget] = None
+"""The widget to be considered 'focused' for the purposes of UI automation
+
+For instance, screen readers will read the name of the focused widget on command.
+
+"""
+
+
+previous_focus: Optional[Widget] = None
+"""The previous focused widget, for UI automation purposes"""
+
+
+updated_widgets: dict[int, Widget] = {}
+"""Widgets that have been changed since the last update of the accessible UI tree"""
+
+
+def mark_widget_updated(widget: Widget, *_):
+    """Mark a widget as changed since the last update of the accessible UI tree
+
+    You could also set `kivy.uix.widget.updated_widgets` directly, but this function
+    can be bound to `kivy.property`s.
+
+    """
+    global updated_widgets
+
+    updated_widgets[widget.uid] = widget
