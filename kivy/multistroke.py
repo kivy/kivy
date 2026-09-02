@@ -1116,7 +1116,7 @@ class UnistrokeTemplate(object):
 
     # Used to lazily prepare the template
     def _get_db_key(self, key, numpoints=None):
-        n = numpoints and numpoints or self.numpoints
+        n = numpoints or self.numpoints
         if n not in self.db:
             self.prepare(n)
         return self.db[n][key]
@@ -1209,7 +1209,7 @@ class Candidate(object):
 
     # Used to lazily prepare the candidate
     def _get_db_key(self, key, numpoints, orientation_sens):
-        n = numpoints and numpoints or self.numpoints
+        n = numpoints or self.numpoints
         if n not in self.db:
             self.prepare(n)
 
@@ -1253,7 +1253,7 @@ class Candidate(object):
         unistroke (connected end-to-end), resampled to :attr:`numpoints`
         points, and then the vectors are calculated and stored in self.db (for
         use by `get_distance` and `get_angle_similarity`)'''
-        n = numpoints and numpoints or self.numpoints
+        n = numpoints or self.numpoints
 
         # Inlined combine_strokes() for performance
         points = [i for sub in self.strokes for i in sub]
