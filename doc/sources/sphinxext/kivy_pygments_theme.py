@@ -12,7 +12,10 @@ class KivyStyle(Style):
     styles = {
         # No corresponding class for the following:
         #Text:                     "", # class:  ''
-        Whitespace:                "underline #ffffff",      # class: 'w'
+        # Leave whitespace unstyled: recent Pygments emits Whitespace ('w')
+        # tokens for interior spaces too, so any decoration here (an underline
+        # used to) shows up under every space in a code block.
+        Whitespace:                "",                       # class: 'w'
         Error:                     "#FF0000 border:#FF0000", # class: 'err'
         Other:                     "#FF0000",                # class 'x'
 

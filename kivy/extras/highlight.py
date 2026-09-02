@@ -3,7 +3,7 @@
 from pygments.lexer import RegexLexer, bygroups, using
 from pygments.lexers.agile import PythonLexer
 from pygments import highlight
-from pygments.token import Comment, Text, Name, Punctuation, Operator
+from pygments.token import Comment, Text, Name, Punctuation, Operator, Keyword
 from pygments.formatters import get_formatter_by_name
 import sys
 
@@ -22,6 +22,19 @@ class KivyLexer(RegexLexer):
                 bygroups(Punctuation, Text, Name.Class, Text, Operator),
                 'classList'),
             (r'[A-Za-z][A-Za-z0-9]*$', Name.Attribute),
+            # control statements: keyword + a Python-highlighted header, e.g.
+            # "if self.x:", "for item in self.items:", "factory expr:".
+            # These must precede the widget-definition rule below, which would
+            # otherwise paint the whole header as a single Name.Class token.
+            (r'(if|elif|for|factory)(\s+)(.+?)(\s*)(:)(\s*)$',
+                bygroups(Keyword, Text, using(PythonLexer), Text,
+                         Punctuation, Text)),
+            (r'(else)(\s*)(:)(\s*)$',
+                bygroups(Keyword, Text, Punctuation, Text)),
+            (r'(slot)(\s+)([A-Za-z_][A-Za-z0-9_]*)(\s*)(:)(\s*)$',
+                bygroups(Keyword, Text, Name, Text, Punctuation, Text)),
+            (r'(slot)(\s*)(:)(\s*)$',
+                bygroups(Keyword, Text, Punctuation, Text)),
             (r'(.*?)(\s*)(:)(\s*)$',
                 bygroups(Name.Class, Text, Punctuation, Text)),
             (r'(.*?)(\s*)(:)(\s*)(.*?)$',
