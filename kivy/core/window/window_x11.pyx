@@ -210,6 +210,7 @@ class WindowX11(WindowBase):
                 <char *><bytes>title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
+        self.window_id = window_id
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()
