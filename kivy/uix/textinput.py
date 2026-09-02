@@ -517,8 +517,10 @@ class TextInput(FocusBehavior, Widget):
     def __init__(self, **kwargs):
         self._update_graphics_ev = Clock.create_trigger(
             self._update_graphics, -1)
+        self._trigger_adjust_viewport = triggered(timeout=-1)(
+            self._adjust_viewport)
         self.is_focusable = kwargs.get('is_focusable', True)
-        self._cursor = [0, 0]
+        self._cursor = 0, 0
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
@@ -2176,7 +2178,7 @@ class TextInput(FocusBehavior, Widget):
         if self._refresh_text_from_property_ev is not None:
             self._refresh_text_from_property_ev.cancel()
         self._refresh_text_from_property_ev = Clock.schedule_once(
-            lambda dt: self._refresh_text_from_property(*largs))
+            lambda dt: self._refresh_text_from_property(*largs), -1)
 
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
@@ -2586,7 +2588,6 @@ class TextInput(FocusBehavior, Widget):
     def on_size(self, instance, value):
         # if the size change, we might do invalid scrolling / text split
         # size the text maybe be put after size_hint have been resolved.
-        self._trigger_refresh_text()
         self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
@@ -2841,7 +2842,7 @@ class TextInput(FocusBehavior, Widget):
             # Move cursor one char to the right. If that was successful,
             # do a backspace (effectively deleting char right of cursor)
             cursor = self.cursor
-            self.do_cursor_movement('cursor_right')
+            self.cursor = self.get_cursor_from_index(self.cursor_index() + 1)
             if cursor != self.cursor:
                 self.do_backspace(mode='del')
 
@@ -3214,7 +3215,7 @@ class TextInput(FocusBehavior, Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
-        self._adjust_viewport(cc, cr)
+        self._trigger_adjust_viewport(cc, cr)
 
         if self._cursor == cursor:
             return
@@ -3222,7 +3223,6 @@ class TextInput(FocusBehavior, Widget):
         self._cursor = cursor
         return True
 
-    @triggered(timeout=-1)
     def _adjust_viewport(self, cc, cr):
         padding_left = self.padding[0]
         padding_right = self.padding[2]
