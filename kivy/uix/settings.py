@@ -595,17 +595,29 @@ class SettingNumeric(SettingString):
     '''
 
     def _validate(self, instance):
-        # we know the type just by checking if there is a '.' in the original
-        # value
-        is_float = '.' in str(self.value)
+        # Close the popup
         self._dismiss()
+
+        value_float = float(0)
+
+        # Check if input is a number
         try:
-            if is_float:
-                self.value = str(float(self.textinput.text))
-            else:
-                self.value = str(int(self.textinput.text))
+            value_float = float(self.textinput.text)
+
         except ValueError:
+            # The value is not a number
             return
+
+        # Check if should display text in integer style or floating point style
+        try:
+            value_int = int(self.textinput.text)
+            self.value = str(value_int)
+
+        except ValueError:
+            # We are here because we couldn't cast the value string to int, thus the value is a float
+            self.value = str(value_float)
+
+        return
 
 
 class SettingOptions(SettingItem):
