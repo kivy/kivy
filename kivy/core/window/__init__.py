@@ -1090,7 +1090,8 @@ class WindowBase(EventDispatcher):
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
         'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
-        'on_drop_text', 'on_drop_end', 'on_request_close',
+        'on_drop_text', 'on_drop_end', 'on_drag_begin', 'on_drag_end',
+        'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -2258,6 +2259,78 @@ class WindowBase(EventDispatcher):
             This event works with sdl3 window provider.
 
         .. versionadded:: 2.1.0
+        '''
+        pass
+
+    def begin_drag(self, mime_types, data_provider, action='copy',
+                   on_complete=None):
+        '''Start an OS drag-out session offering ``mime_types``.
+
+        ``data_provider(mime_type)`` is called lazily when the drop target
+        requests that type. Returns True if a session was armed/started.
+
+        Dispatches :meth:`on_drag_begin` before starting and
+        :meth:`on_drag_end` when the platform reports completion (if
+        supported).
+
+        .. note::
+            Requires a desktop drag-export backend (macOS/pyobjus,
+            Windows/pywin32, Linux/Xdnd). SDL has no drag-source API yet.
+
+        .. versionadded:: 3.1.0
+        '''
+        from kivy.core.window.drag_export import begin_drag as _begin_drag
+        self.dispatch('on_drag_begin')
+
+        def _done(accepted):
+            if on_complete is not None:
+                try:
+                    on_complete(accepted)
+                except Exception:
+                    pass
+            self.dispatch('on_drag_end', accepted)
+
+        return _begin_drag(
+            mime_types, data_provider, action=action, on_complete=_done)
+
+    def begin_drag_files(self, items, action='copy', on_complete=None):
+        '''Start an OS drag-out session of files/folders.
+
+        ``items`` is a sequence of :class:`~kivy.core.window.drag_export.DragFileItem`
+        (or ``(name, is_dir, provide)`` tuples). ``provide(dest_path)``
+        materializes the item only when a drop lands.
+
+        .. versionadded:: 3.1.0
+        '''
+        from kivy.core.window.drag_export import (
+            begin_drag_files as _begin_drag_files)
+        self.dispatch('on_drag_begin')
+
+        def _done(accepted):
+            if on_complete is not None:
+                try:
+                    on_complete(accepted)
+                except Exception:
+                    pass
+            self.dispatch('on_drag_end', accepted)
+
+        return _begin_drag_files(items, action=action, on_complete=_done)
+
+    def on_drag_begin(self, *args):
+        '''Event called when an OS drag-out session is about to start.
+
+        .. versionadded:: 3.1.0
+        '''
+        pass
+
+    def on_drag_end(self, accepted, *args):
+        '''Event called when an OS drag-out session ends.
+
+        :Parameters:
+            `accepted`: bool
+                True if a drop target accepted the drag.
+
+        .. versionadded:: 3.1.0
         '''
         pass
 
