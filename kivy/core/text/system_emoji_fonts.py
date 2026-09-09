@@ -1,3 +1,12 @@
+"""Best-effort discovery of emoji font files at known system locations.
+
+.. versionadded:: 3.0.0
+
+Discovery is opt-in and checks file availability, not glyph coverage or whether
+SDL_ttf can render a particular color font format. For reproducible rendering,
+bundle fallback fonts with the application and register their paths explicitly.
+"""
+
 import os
 from kivy.utils import platform
 
@@ -9,7 +18,7 @@ class SystemEmojiFontsFinder:
     Supported platforms: Windows, macOS, Linux, Android, and iOS.
     Features:
     - List available emoji fonts on the current system.
-    - Automatically select the best available font.
+    - Return the first available candidate in preference order.
     - Retrieve all potential emoji fonts per platform (for debugging).
     """
 
@@ -25,8 +34,6 @@ class SystemEmojiFontsFinder:
     MACOS_FONTS = [
         "/System/Library/Fonts/Apple Color Emoji.ttc",
         "/Library/Fonts/Apple Color Emoji.ttc",
-        "/System/Library/Fonts/Helvetica.ttc",  # Has some symbols
-        "/System/Library/Fonts/LastResort.otf",  # Fallback for missing chars
     ]
 
     # Known fonts on Linux
@@ -77,11 +84,15 @@ class SystemEmojiFontsFinder:
         }
 
         fonts = font_map.get(platform, [])
+        if platform == 'win':
+            windows_dir = os.environ.get('WINDIR', 'C:/Windows')
+            fonts = [os.path.join(windows_dir, 'Fonts', path.rsplit('/', 1)[-1])
+                     for path in fonts]
         available = []
 
         for font_path in fonts:
             expanded_path = os.path.expanduser(font_path)
-            if os.path.exists(expanded_path):
+            if os.path.isfile(expanded_path) and expanded_path not in available:
                 available.append(expanded_path)
 
         return available
@@ -89,7 +100,7 @@ class SystemEmojiFontsFinder:
     @staticmethod
     def get_best_emoji_font():
         """
-        Get the best available emoji font for the current platform.
+        Return the first available candidate for the current platform.
 
         The method returns the first valid font found in `get_available_fonts`.
         If none are available, it returns None.

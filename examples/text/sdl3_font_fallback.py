@@ -1,60 +1,36 @@
+"""Demonstrate opt-in SDL3 fallback using available system emoji fonts."""
 import os
 
 os.environ["KIVY_TEXT"] = "sdl3"
 
+from kivy import kivy_data_dir
 from kivy.app import App
 from kivy.core.text import LabelBase
 from kivy.core.text.system_emoji_fonts import SystemEmojiFontsFinder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
-fallback_options = [
-    r"C:\Windows\Fonts\seguiemj.ttf",
-    r"NotoColorEmoji.ttf",
-]
-LabelBase.register(
-    name="MyFont1",
-    fn_regular=r"C:\WINDOWS\FONTS\MTCORSVA.ttf",
-    fallback_fonts=fallback_options,
-)
 
-available_emoji_fonts = SystemEmojiFontsFinder.get_available_fonts()
-LabelBase.register(
-    name="MyFont2",
-    fn_regular=r"C:\WINDOWS\FONTS\ROCK.ttf",
-    fallback_fonts=available_emoji_fonts,
-)
-
-
-class TestApp(App):
+class FontFallbackApp(App):
     def build(self):
-        layout = BoxLayout(orientation="vertical", padding=20, spacing=10)
-
-        # using custom font
-        label1 = Label(
-            text="Code with ❤️ Build with 🔥 Ship with 🚀\nDreams → Reality 💫",
-            font_name="MyFont1",
-            bold=True,
-            font_size="24sp",
-            markup=True,
+        fallbacks = SystemEmojiFontsFinder.get_available_fonts()
+        LabelBase.register(
+            name="EmojiFallback",
+            fn_regular=os.path.join(kivy_data_dir, "fonts", "Roboto-Regular.ttf"),
+            fallback_fonts=fallbacks,
         )
-        label2 = Label(
-            text="Code with ❤️ Build with 🔥 Ship with 🚀\nDreams → Reality 💫",
-            font_name="MyFont2",
-            bold=True,
-            font_size="24sp",
-        )
-
-        # native emoji support
-        label3 = Label(
-            text="Code with ❤️ Build with 🔥 Ship with 🚀\nDreams → Reality 💫",
-            font_size="24sp",
-        )
-
-        layout.add_widget(label1)
-        layout.add_widget(label2)
-        layout.add_widget(label3)
+        layout = BoxLayout(orientation="vertical")
+        layout.add_widget(Label(
+            text="Code with ❤️ Build with 🔥 Ship with 🚀",
+            font_name="EmojiFallback", font_size="24sp",
+        ))
+        layout.add_widget(Label(
+            text="Fallback fonts: " + (", ".join(fallbacks) or
+                                      "none found; bundle a font to try this"),
+            font_size="14sp",
+        ))
         return layout
 
 
-TestApp().run()
+if __name__ == "__main__":
+    FontFallbackApp().run()

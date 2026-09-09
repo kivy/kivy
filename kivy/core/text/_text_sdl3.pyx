@@ -17,61 +17,33 @@ cdef list sdl3_cache_order = []
 cdef class _TTFContainer:
     cdef TTF_Font* font
     cdef list fallback_fonts
-    
+
     def __cinit__(self):
         self.font = NULL
         self.fallback_fonts = []
-    
+
     def __dealloc__(self):
-        # Clean up fallback fonts first
-        cdef _TTFContainer fallback_container
-        for fallback_container in self.fallback_fonts:
-            if fallback_container.font != NULL:
-                TTF_CloseFont(fallback_container.font)
-                fallback_container.font = NULL
-        self.fallback_fonts.clear()
-        
+        # Detach the chain while its fonts are still alive. Cython releases
+        # the owning list afterwards; each child closes its own handle once.
         if self.font != NULL:
+            TTF_ClearFallbackFonts(self.font)
             TTF_CloseFont(self.font)
             self.font = NULL
 
-    cpdef add_fallback_font(self, fallback_fontname, fallback_size=None):
-        """Add a fallback font to this font container"""
-        cdef TTF_Font *fallback_fontobject = NULL
-        cdef _TTFContainer fallback_ttfc
-        cdef bytes bytes_fallback_fontname
-        
-        if not TTF_WasInit():
-            TTF_Init()
-            
-        # Use same size as main font if not specified
-        font_size = fallback_size if fallback_size is not None else self.get_font_size()
-        
-        bytes_fallback_fontname = <bytes>fallback_fontname.encode('utf-8')
-        fallback_fontobject = TTF_OpenFont(bytes_fallback_fontname, font_size)
-        
-        if fallback_fontobject == NULL:
-            s_error = SDL_GetError()
-            raise ValueError('Failed to load fallback font {}: {}'.format(fallback_fontname, s_error))
-        
-        # Add fallback to main font
-        if not TTF_AddFallbackFont(self.font, fallback_fontobject):
-            TTF_CloseFont(fallback_fontobject)
-            s_error = SDL_GetError()
-            raise ValueError('Failed to add fallback font: {}'.format(s_error))
-        
-        # Store in container for cleanup
-        fallback_ttfc = _TTFContainer()
-        fallback_ttfc.font = fallback_fontobject
-        self.fallback_fonts.append(fallback_ttfc)
-        
-        return True
-    
-    cpdef get_font_size(self):
-        """Get the font size from the main font"""
-        if self.font != NULL:
-            return TTF_GetFontSize(self.font)
-        return 0
+    cdef add_fallback_font(self, str filename):
+        cdef _TTFContainer fallback = _TTFContainer()
+        cdef bytes encoded = filename.encode('utf-8')
+        fallback.font = TTF_OpenFont(encoded, TTF_GetFontSize(self.font))
+        if fallback.font == NULL:
+            raise ValueError('Failed to load fallback font {}: {}'.format(
+                filename, SDL_GetError()))
+        TTF_SetFontStyle(fallback.font, TTF_GetFontStyle(self.font))
+        # Own the handle before attaching it, including allocation failures.
+        self.fallback_fonts.append(fallback)
+        if not TTF_AddFallbackFont(self.font, fallback.font):
+            error = SDL_GetError()
+            self.fallback_fonts.pop()
+            raise ValueError('Failed to add fallback font: {}'.format(error))
 
 
 cdef class _SurfaceContainer:
@@ -250,19 +222,17 @@ cdef TTF_Font *_get_font(self) except *:
         style = style | TTF_STYLE_STRIKETHROUGH
     TTF_SetFontStyle(fontobject, style)
 
-    sdl3_cache[fontid] = ttfc = _TTFContainer()
+    ttfc = _TTFContainer()
     ttfc.font = fontobject
-    
-    # Add fallback fonts if specified in options
-    if 'fallback_fonts' in self.options and self.options['fallback_fonts']:
-        for fallback_font in self.options['fallback_fonts']:
-            try:
-                ttfc.add_fallback_font(fallback_font)
-                Logger.debug(f"Text: Fallback font '{fallback_font}' added to base font '{fontname}'")
-            except ValueError as e:
-                # Log warning but continue - fallback fonts are optional
-                Logger.error(f"Text: Could not load fallback font {fallback_font}: {e}")
-    
+
+    for fallback_font in self.options.get('fallback_fonts', ()):
+        try:
+            ttfc.add_fallback_font(fallback_font)
+        except ValueError as exc:
+            Logger.warning('Text: Could not load fallback font {}: {}'.format(
+                fallback_font, exc))
+
+    sdl3_cache[fontid] = ttfc
     sdl3_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
