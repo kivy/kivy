@@ -1592,6 +1592,27 @@ cdef class AliasProperty(Property):
             interacted with in any way because the ``getter`` won't be called
             early.
 
+    .. versionchanged:: 3.0.0
+        Fixed two related dispatch inconsistencies:
+
+        - Previously, whether the very first value of an :class:`AliasProperty`
+          was dispatched (e.g. when the bound properties changed before the
+          alias property was ever read) depended on unrelated implementation
+          details, such as whether the alias property had already been read
+          once, or whether an ``on_<name>`` handler existed (which caused it
+          to be read early during ``__init__``). Now, the first time an alias
+          property's value is established, it is always dispatched.
+        - Previously, once an alias property's tracked value had been
+          established, a bound property change that caused the getter to
+          legitimately return the same value it was already tracking as
+          `None` (its uninitialized placeholder) would silently fail to
+          dispatch, e.g. when the getter itself could return `None`, or when
+          ``cache`` is `False` (in which case the tracked value was never
+          updated at all, so most - or all - real changes could go
+          undetected). Now, the alias property's internal tracking is kept
+          up to date regardless of ``cache``, so changes are correctly
+          detected and dispatched even when the getter returns `None`.
+
     .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
@@ -1651,10 +1672,23 @@ cdef class AliasProperty(Property):
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef AliasPropertyStorage ps = self.get_property_storage(obj)
         dvalue = ps.getter(obj)
+        if ps.alias_initial:
+            # The value has never been established before (neither read nor
+            # set), regardless of whether caching is enabled. Always
+            # dispatch, so observers relying on the initial value (e.g.
+            # bound at app start) are notified, matching the behavior of a
+            # freshly constructed object whose bound property is set via
+            # kwargs.
+            ps.alias_initial = 0
+            ps.value = dvalue
+            self._dispatch(obj, ps)
+            return
         if ps.value != dvalue:
-            if self.use_cache:
-                ps.alias_initial = 0
-                ps.value = dvalue
+            # Track the last known value regardless of `use_cache`, so this
+            # comparison (and not a stale `None` placeholder) is always used
+            # to detect a real change, including when the getter legitimately
+            # returns `None`.
+            ps.value = dvalue
             self._dispatch(obj, ps)
 
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
@@ -1672,10 +1706,11 @@ cdef class AliasProperty(Property):
     cpdef set(self, EventDispatcher obj, value):
         cdef AliasPropertyStorage ps = self.get_property_storage(obj)
         if ps.setter(obj, value):
-            if self.use_cache:
-                if ps.alias_initial:
-                    ps.alias_initial = 0
-                ps.value = ps.getter(obj)
+            # Keep the tracked value (used by trigger_change's comparison)
+            # in sync regardless of `use_cache`, and mark the value as
+            # having been established.
+            ps.alias_initial = 0
+            ps.value = ps.getter(obj)
             self._dispatch(obj, ps)
         elif self.force_dispatch:
             self._dispatch(obj, ps)

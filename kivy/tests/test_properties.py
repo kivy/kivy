@@ -951,6 +951,135 @@ def test_alias_property_cache_true_force_dispatch_true(self, watch_before_use):
     self.assertEqual(wid.callback_called, 2)
 
 
+def test_alias_property_dispatches_on_initial_value_without_priming(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # Previously, if the alias property's value had never been read, a
+    # bound dependency changing to a value that doesn't cross any
+    # meaningful threshold (e.g. still False) would sometimes dispatch and
+    # sometimes not, depending on unrelated implementation details (such
+    # as whether an `on_<name>` handler existed, forcing an early read
+    # during `__init__`). Now, the first time the value is established, it
+    # should always dispatch, exactly once.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        age = NumericProperty(0)
+
+        def _get_is_adult(self):
+            return self.age >= 20
+
+        is_adult = AliasProperty(
+            _get_is_adult, None, bind=('age',), cache=True)
+
+    wid = CustomAlias()
+    values = []
+    wid.bind(is_adult=lambda _, v: values.append(v))
+
+    # age stays under the threshold (the getter's value doesn't really
+    # change, it's still False) - but since the value has never been
+    # established before, this should dispatch exactly once.
+    wid.age = 10
+    self.assertEqual(values, [False])
+
+    # age stays under the threshold again: the real value is unchanged,
+    # no further dispatch.
+    wid.age = 15
+    self.assertEqual(values, [False])
+
+    # age crosses the threshold: real change, dispatch.
+    wid.age = 25
+    self.assertEqual(values, [False, True])
+
+
+def test_alias_property_no_dispatch_when_value_primed_by_read(self):
+    # Reading a cached alias property before any dependency change
+    # "primes" its cache without dispatching, consistent with reading a
+    # property never causing a dispatch by itself. A subsequent
+    # dependency change that doesn't actually change the getter's result
+    # should therefore not dispatch either.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        age = NumericProperty(0)
+
+        def _get_is_adult(self):
+            return self.age >= 20
+
+        is_adult = AliasProperty(
+            _get_is_adult, None, bind=('age',), cache=True)
+
+    wid = CustomAlias()
+    wid.is_adult  # primes the cache to False
+    values = []
+    wid.bind(is_adult=lambda _, v: values.append(v))
+
+    wid.age = 10  # still False: no real change
+    self.assertEqual(values, [])
+
+    wid.age = 25  # crosses the threshold: real change
+    self.assertEqual(values, [True])
+
+
+def test_alias_property_dispatches_when_getter_returns_none(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # A non-cached AliasProperty whose getter can legitimately return
+    # `None` should still dispatch on every real change, including
+    # transitions to/from `None`.
+    from kivy.properties import ObjectProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        x = ObjectProperty([], allownone=True)
+
+        def _get_y(self):
+            return self.x
+
+        y = AliasProperty(_get_y, None, bind=('x',), cache=False)
+
+    wid = CustomAlias()
+    values = []
+    wid.bind(y=lambda _, v: values.append(v))
+
+    wid.x = 5
+    wid.x = None
+    wid.x = []
+    wid.x = None
+    wid.x = [1, 2, 3]
+    wid.x = None
+
+    self.assertEqual(values, [5, None, [], None, [1, 2, 3], None])
+
+
+def test_alias_property_dispatches_when_cached_value_becomes_none(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # A cached AliasProperty whose getter can legitimately return `None`
+    # should still dispatch when the value transitions to/from `None`.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        width = NumericProperty(0)
+        height = NumericProperty(0)
+
+        def _get_aspect_ratio(self):
+            return (self.width / self.height) if self.height else None
+
+        aspect_ratio = AliasProperty(
+            _get_aspect_ratio, None, bind=('width', 'height'), cache=True)
+
+    wid = CustomAlias(width=100)
+    values = []
+    wid.bind(aspect_ratio=lambda _, v: values.append(v))
+
+    wid.height = 1
+    wid.height = 0
+    wid.height = 1
+    wid.height = 0
+
+    self.assertEqual(values, [100.0, None, 100.0, None])
+
+
 def test_dictproperty_is_none():
     from kivy.properties import DictProperty
 
