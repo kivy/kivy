@@ -283,9 +283,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         return self.device + str(self.counter)
 
-    def create_touch(
-        self, win, nx, ny, is_double_tap, do_graphics, button, modifiers=None
-    ):
+    def create_touch(self, win, nx, ny, do_graphics, button, modifiers=None):
         event_id = self.create_event_id()
         args = [nx, ny, button]
         if do_graphics:
@@ -295,7 +293,6 @@ class MouseMotionEventProvider(MotionEventProvider):
             is_touch=True,
             type_id='touch'
         )
-        touch.is_double_tap = is_double_tap
         touch.modifiers = [] if modifiers is None else modifiers
         self.touches[event_id] = touch
         if do_graphics:
@@ -358,13 +355,12 @@ class MouseMotionEventProvider(MotionEventProvider):
         if found_touch:
             self.current_drag = found_touch
         else:
-            is_double_tap = 'shift' in modifiers
             do_graphics = (
                 not self.disable_multitouch
                 and (button != 'left' or 'ctrl' in modifiers)
             )
             self.create_touch(
-                win, nx, ny, is_double_tap, do_graphics, button, modifiers
+                win, nx, ny, do_graphics, button, modifiers
             )
 
     def on_mouse_release(self, win, x, y, button, modifiers):

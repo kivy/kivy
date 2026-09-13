@@ -809,6 +809,38 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
         mouse.stop()
         eventloop.remove_input_provider(mouse)
 
+    def test_shift_click_does_not_set_double_tap(self):
+        # Regression test: the mouse provider used to fake a double-tap by
+        # setting `is_double_tap = True` whenever the shift key was held
+        # during a click. That behavior was removed as obsolete (superseded
+        # by the multitouch_sim mechanism); mouse-generated touches should
+        # now just carry the base `MotionEvent` default of `False`,
+        # regardless of the shift modifier, and rely solely on the real
+        # time-based `DoubleTapPostprocessor` for double-tap detection.
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', ['shift']
+        )
+        event_id = next(iter(mouse.touches))
+        self.assertFalse(mouse.touches[event_id].is_double_tap)
+
+        win.dispatch(
+            'on_mouse_up',
+            10, self.correct_y(win, 10),
+            'left', ['shift']
+        )
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
     def test_middle_button_multitouch_disabled(self):
         # middle click with disable_multitouch creates a plain touch, no dot
         eventloop, win, mouse, wid = self.mouse_init(disabled=True)
