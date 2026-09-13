@@ -67,6 +67,17 @@ Provider dispatches hover events by listening to properties/events in
 It's also possible to enable/disable hover events at runtime with
 :attr:`MouseMotionEventProvider.disable_hover` property.
 
+.. versionchanged:: 3.0.0
+
+Multiple mouse buttons can now be held down and tracked simultaneously
+when multitouch simulation is disabled (`disable_multitouch`). Previously,
+only one button could be tracked at a time: pressing a second button while
+the first was still held would be ignored until the first was released.
+
+When multitouch simulation is enabled, only one simulated touch (the red
+dot) is active at a time, as before; this change only affects the case
+where `disable_multitouch` is set.
+
 Following is a list of the supported values for the
 :attr:`~kivy.input.motionevent.MotionEvent.profile` property list.
 
@@ -166,7 +177,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.waiting_event = deque()
         self.touches = {}
         self.counter = 0
-        self.current_drag = None
+        self.current_drag = {}
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
@@ -288,7 +299,13 @@ class MouseMotionEventProvider(MotionEventProvider):
         args = [nx, ny, button]
         if do_graphics:
             args += [not self.multitouch_on_demand]
-        self.current_drag = touch = MouseMotionEvent(
+        # When multitouch simulation is enabled, only one simulated drag
+        # (the red dot) can be active at a time, so all such touches share
+        # a single key. When multitouch is disabled, each button tracks its
+        # own independent drag, so multiple mouse buttons can be held down
+        # simultaneously (see #3597).
+        key = button if self.disable_multitouch else 'mt_simulation'
+        self.current_drag[key] = touch = MouseMotionEvent(
             self.device, event_id, args,
             is_touch=True,
             type_id='touch'
@@ -339,8 +356,7 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_motion(self, win, x, y, modifiers):
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        if self.current_drag:
-            touch = self.current_drag
+        for touch in self.current_drag.values():
             touch.move([nx, ny])
             touch.update_graphics(win)
             touch.modifiers = modifiers
@@ -351,9 +367,14 @@ class MouseMotionEventProvider(MotionEventProvider):
             return
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        found_touch = self.find_touch(win, nx, ny)
+        # picking up an existing "sticky" multitouch-sim dot by clicking
+        # near it is only meaningful when multitouch simulation is enabled
+        found_touch = (
+            None if self.disable_multitouch
+            else self.find_touch(win, nx, ny)
+        )
         if found_touch:
-            self.current_drag = found_touch
+            self.current_drag['mt_simulation'] = found_touch
         else:
             do_graphics = (
                 not self.disable_multitouch
@@ -369,8 +390,10 @@ class MouseMotionEventProvider(MotionEventProvider):
             # then remove all the current touches.
             for touch in list(self.touches.values()):
                 self.remove_touch(win, touch)
-            self.current_drag = None
-        touch = self.current_drag
+            self.current_drag.clear()
+            return
+        key = button if self.disable_multitouch else 'mt_simulation'
+        touch = self.current_drag.get(key)
         if touch:
             touch.modifiers = modifiers
             not_right = button in (
@@ -386,7 +409,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             )
             if (not_right and not_ctrl) or not_multi:
                 self.remove_touch(win, touch)
-                self.current_drag = None
+                del self.current_drag[key]
             else:
                 touch.update_graphics(win, True)
 
