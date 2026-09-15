@@ -778,7 +778,7 @@ cdef extern from "SDL_image.h":
 cdef extern from "SDL_ttf.h":
     ctypedef struct TTF_Font
     cdef int TTF_Init()
-    cdef TTF_Font *  TTF_OpenFont( char *file, int ptsize)
+    cdef TTF_Font *  TTF_OpenFont( char *file, float ptsize)
     cdef TTF_Font *  TTF_OpenFontIndex( char *file, int ptsize, long index)
     cdef TTF_Font *  TTF_OpenFontRW(SDL_IOStream *src, int freesrc, int ptsize)
     cdef TTF_Font *  TTF_OpenFontIndexRW(SDL_IOStream *src, int freesrc, int ptsize, long index)
@@ -936,6 +936,17 @@ cdef extern from "SDL_ttf.h":
 
     # Get the kerning size of two glyphs */
     cdef int TTF_GetFontKerningSize(TTF_Font *font, int prev_index, int index)
+
+    # Add a fallback font.
+    cdef bint TTF_AddFallbackFont(TTF_Font *font, TTF_Font *fallback)
+    # Remove a fallback font.
+    cdef void TTF_RemoveFallbackFont(TTF_Font *font, TTF_Font *fallback)
+    # Remove all fallback fonts.
+    cdef void TTF_ClearFallbackFonts(TTF_Font *font)
+
+    # Get the size of a font.
+    cdef float TTF_GetFontSize(TTF_Font *font)
+
 
 cdef extern from "SDL_audio.h":
     cdef int SDL_AUDIO_S16
