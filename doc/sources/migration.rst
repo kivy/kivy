@@ -1116,6 +1116,69 @@ genuine value transitions, guard against redundant no-op work as needed,
 for example by comparing against the previously known value inside the
 callback itself.
 
+====================
+Mouse Input Provider
+====================
+
+*Multiple Mouse Buttons Can Now Be Held Down Simultaneously*
+
+In Kivy 3.x.x, the mouse input provider
+(:class:`~kivy.input.providers.mouse.MouseMotionEventProvider`) has been
+fixed to correctly track multiple mouse buttons that are held down at the
+same time when multitouch simulation is disabled (``disable_multitouch``)
+(see `#3597 <https://github.com/kivy/kivy/issues/3597>`_).
+
+**Behavior Changes**
+
+* **Multiple simultaneous button-drags are now tracked independently.**
+  Previously, the provider only tracked a single "current drag" at a time.
+  If a second mouse button was pressed while a first button was still held
+  down, the second button's press was silently ignored (no
+  ``on_touch_down`` was dispatched for it) until the first button was
+  released. Now, each button gets its own independent touch when
+  ``disable_multitouch`` is set, so pressing a second (or third) button
+  while another is held correctly dispatches its own
+  ``on_touch_down``/``on_touch_move``/``on_touch_up`` sequence.
+* This change only affects behavior when ``disable_multitouch`` is active.
+  When multitouch simulation is enabled (the default), only one simulated
+  touch (the red dot) is tracked at a time, as before.
+
+.. code-block:: python
+
+    from kivy.app import App
+    from kivy.uix.widget import Widget
+
+
+    class MainWindow(Widget):
+        def on_touch_down(self, touch):
+            print(f'{touch.button} is being pressed')
+
+
+    class TestingApp(App):
+        def build(self):
+            return MainWindow()
+
+
+    if __name__ == '__main__':
+        TestingApp().run()
+
+    # config: [input] mouse = mouse,disable_multitouch
+
+    # Kivy 2.x.x
+    # press and hold left -> "left is being pressed"
+    # press right while left is still held -> (nothing printed)
+
+    # Kivy 3.x.x
+    # press and hold left -> "left is being pressed"
+    # press right while left is still held -> "right is being pressed"
+
+**Migration Impact**
+
+This is primarily a **bug fix**. It should not require code changes for
+most applications, and mainly benefits applications using
+``disable_multitouch`` that need to respond to more than one mouse button
+at a time (e.g. left + right held together).
+
 ===
 SVG
 ===

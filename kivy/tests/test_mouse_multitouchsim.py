@@ -660,7 +660,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             'all', {}
         )
         self.assertEqual(len(mouse.touches), 0)
-        self.assertIsNone(mouse.current_drag)
+        self.assertEqual(mouse.current_drag, {})
 
         self.render(wid)
 
@@ -694,7 +694,7 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             'all', {}
         )
         self.assertEqual(len(mouse.touches), 0)
-        self.assertIsNone(mouse.current_drag)
+        self.assertEqual(mouse.current_drag, {})
 
         self.render(wid)
 
@@ -835,6 +835,97 @@ class MultitouchSimulatorTestCase(GraphicUnitTest):
             10, self.correct_y(win, 10),
             'left', ['shift']
         )
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_multiple_buttons_tracked_simultaneously_when_disabled(self):
+        # Regression test for #3597: with disable_multitouch, holding down
+        # one button must not block a second button from generating its own
+        # touch. Previously only one drag (self.current_drag) could be
+        # tracked at a time, so pressing e.g. 'right' while 'left' was still
+        # held was silently ignored until 'left' was released.
+        eventloop, win, mouse, wid = self.mouse_init(disabled=True)
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        # press and hold left
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', {}
+        )
+        self.assertEqual(len(mouse.touches), 1)
+        left_id = next(iter(mouse.touches))
+
+        # while left is still held, press right too — this must create
+        # a second, independent touch rather than being ignored
+        win.dispatch(
+            'on_mouse_down',
+            50, self.correct_y(win, 50),
+            'right', {}
+        )
+        self.assertEqual(len(mouse.touches), 2)
+        right_id = [eid for eid in mouse.touches if eid != left_id][0]
+        self.assertNotEqual(left_id, right_id)
+
+        # moving the mouse should update both active touches
+        win.dispatch(
+            'on_mouse_move',
+            60, self.correct_y(win, 60),
+            {}
+        )
+        self.assertEqual(
+            mouse.touches[left_id].sx, mouse.touches[right_id].sx
+        )
+        self.assertEqual(
+            mouse.touches[left_id].sy, mouse.touches[right_id].sy
+        )
+
+        # releasing right must only remove the right touch, left stays
+        win.dispatch(
+            'on_mouse_up',
+            60, self.correct_y(win, 60),
+            'right', {}
+        )
+        self.assertIn(left_id, mouse.touches)
+        self.assertNotIn(right_id, mouse.touches)
+
+        # releasing left removes the last touch
+        win.dispatch(
+            'on_mouse_up',
+            60, self.correct_y(win, 60),
+            'left', {}
+        )
+        self.assertEqual(mouse.touches, {})
+        self.assertEqual(mouse.current_drag, {})
+
+        self.render(wid)
+
+        mouse.stop()
+        eventloop.remove_input_provider(mouse)
+
+    def test_multiple_buttons_share_single_drag_when_enabled(self):
+        # With multitouch simulation enabled (the default), only one
+        # simulated drag is active at a time, regardless of how many
+        # physical buttons are involved. Pressing a second button while
+        # one is already tracked replaces/extends the single shared
+        # 'mt_simulation' slot rather than creating an independent drag.
+        eventloop, win, mouse, wid = self.mouse_init()
+
+        mouse.start()
+        eventloop.add_input_provider(mouse)
+
+        win.dispatch(
+            'on_mouse_down',
+            10, self.correct_y(win, 10),
+            'left', {}
+        )
+        self.assertEqual(len(mouse.current_drag), 1)
+        self.assertIn('mt_simulation', mouse.current_drag)
 
         self.render(wid)
 
