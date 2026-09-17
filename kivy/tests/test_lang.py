@@ -408,6 +408,55 @@ class LangTestCase(unittest.TestCase):
         root.person.age = 30
         assert root.ids.person.text == 'Person age: 30'
 
+    def test_sync_keeps_bindings_queued_during_sync(self):
+        # Regression test for https://github.com/kivy/kivy/issues/9373
+        # A delayed (canvas) binding that gets queued while Builder.sync()
+        # is processing must not be dropped, and must keep updating.
+        from kivy.factory import Factory
+        from kivy.graphics import Rectangle
+        from kivy.lang import Builder
+        from kivy.properties import NumericProperty
+        from kivy.uix.widget import Widget
+
+        class SyncRequeueWidget(Widget):
+            a = NumericProperty(0)
+            b = NumericProperty(0)
+
+            def set_b(self, value):
+                self.b = value
+                return value
+
+        Factory.register('SyncRequeueWidget', cls=SyncRequeueWidget)
+        try:
+            root = Builder.load_string(dedent('''
+            SyncRequeueWidget:
+                canvas:
+                    Rectangle:
+                        pos: self.set_b(self.a), 0
+                    Rectangle:
+                        pos: self.b, 0
+            '''))
+            Builder.sync()
+            rect_a, rect_b = [
+                instr for instr in root.canvas.children
+                if isinstance(instr, Rectangle)]
+
+            # changing `a` queues the first rectangle; evaluating it during
+            # sync changes `b`, which queues the second rectangle mid-sync
+            root.a = 10
+            Builder.sync()
+            assert rect_a.pos == (10, 0)
+            # the binding queued during the previous pass runs on the next
+            Builder.sync()
+            assert rect_b.pos == (10, 0)
+
+            # and the binding on `b` must still be alive afterwards
+            root.b = 20
+            Builder.sync()
+            assert rect_b.pos == (20, 0)
+        finally:
+            Factory.unregister('SyncRequeueWidget')
+
 
 if __name__ == '__main__':
     unittest.main()

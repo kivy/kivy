@@ -725,6 +725,11 @@ class BuilderBase(object):
         next_args = _delayed_start
         if next_args is None:
             return
+        # Detach the queue before processing it. Callbacks may change
+        # properties and schedule new delayed calls; those must start a fresh
+        # queue (processed on the next sync) instead of being linked into
+        # the queue being traversed and then lost when it is reset.
+        _delayed_start = None
 
         while next_args is not StopIteration:
             # is this try/except still needed? yes, in case widget died in this
@@ -736,7 +741,6 @@ class BuilderBase(object):
             args = next_args
             next_args = args[-1]
             args[-1] = None
-        _delayed_start = None
 
     def unbind_widget(self, uid):
         '''Unbind all the handlers created by the KV rules of the
