@@ -720,6 +720,14 @@ class BuilderBase(object):
         expressions related to the canvas.
 
         .. versionadded:: 1.7.0
+
+        .. versionchanged:: 3.0.0
+            Operations scheduled while a sync pass is running (e.g. a canvas
+            expression that changes a property another canvas expression is
+            bound to) are no longer dropped. They are queued and executed on
+            the next call to :meth:`sync`, not within the current pass.
+            :meth:`kivy.base.EventLoopBase.idle` calls :meth:`sync` twice per
+            frame, so this is usually still within the same frame.
         '''
         global _delayed_start
         next_args = _delayed_start

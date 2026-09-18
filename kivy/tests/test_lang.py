@@ -446,6 +446,8 @@ class LangTestCase(unittest.TestCase):
             root.a = 10
             Builder.sync()
             assert rect_a.pos == (10, 0)
+            # the binding queued mid-sync is not run within the same pass
+            assert rect_b.pos == (0, 0)
             # the binding queued during the previous pass runs on the next
             Builder.sync()
             assert rect_b.pos == (10, 0)
