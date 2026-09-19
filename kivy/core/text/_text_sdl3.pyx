@@ -9,18 +9,41 @@ TODO:
 include '../../lib/sdl3.pxi'
 
 from kivy.core.image import ImageData
+from kivy.logger import Logger
 
 cdef dict sdl3_cache = {}
 cdef list sdl3_cache_order = []
 
 cdef class _TTFContainer:
     cdef TTF_Font* font
+    cdef list fallback_fonts
+
     def __cinit__(self):
         self.font = NULL
+        self.fallback_fonts = []
+
     def __dealloc__(self):
+        # Detach the chain while its fonts are still alive. Cython releases
+        # the owning list afterwards; each child closes its own handle once.
         if self.font != NULL:
+            TTF_ClearFallbackFonts(self.font)
             TTF_CloseFont(self.font)
             self.font = NULL
+
+    cdef add_fallback_font(self, str filename):
+        cdef _TTFContainer fallback = _TTFContainer()
+        cdef bytes encoded = filename.encode('utf-8')
+        fallback.font = TTF_OpenFont(encoded, TTF_GetFontSize(self.font))
+        if fallback.font == NULL:
+            raise ValueError('Failed to load fallback font {}: {}'.format(
+                filename, SDL_GetError()))
+        TTF_SetFontStyle(fallback.font, TTF_GetFontStyle(self.font))
+        # Own the handle before attaching it, including allocation failures.
+        self.fallback_fonts.append(fallback)
+        if not TTF_AddFallbackFont(self.font, fallback.font):
+            error = SDL_GetError()
+            self.fallback_fonts.pop()
+            raise ValueError('Failed to add fallback font: {}'.format(error))
 
 
 cdef class _SurfaceContainer:
@@ -199,19 +222,26 @@ cdef TTF_Font *_get_font(self) except *:
         style = style | TTF_STYLE_STRIKETHROUGH
     TTF_SetFontStyle(fontobject, style)
 
-    sdl3_cache[fontid] = ttfc = _TTFContainer()
+    ttfc = _TTFContainer()
     ttfc.font = fontobject
+
+    for fallback_font in self.options.get('fallback_fonts', ()):
+        try:
+            ttfc.add_fallback_font(fallback_font)
+        except ValueError as exc:
+            Logger.warning('Text: Could not load fallback font {}: {}'.format(
+                fallback_font, exc))
+
+    sdl3_cache[fontid] = ttfc
     sdl3_cache_order.append(fontid)
 
     # to prevent too much file open, limit the number of opened fonts to 64
-
     while len(sdl3_cache_order) > 64:
         popid = sdl3_cache_order.pop(0)
         ttfc = sdl3_cache[popid]
         del sdl3_cache[popid]
 
     ttfc = sdl3_cache[fontid]
-
     return ttfc.font
 
 cpdef _get_tight_extents(container, text):
@@ -275,8 +305,10 @@ def _get_extents(container, text):
         TTF_SetFontOutline(font, 0)
     return w, h
 
+
 def _get_fontdescent(container):
     return TTF_GetFontDescent(_get_font(container))
+
 
 def _get_fontascent(container):
     return TTF_GetFontAscent(_get_font(container))
