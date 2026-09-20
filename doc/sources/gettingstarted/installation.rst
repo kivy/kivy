@@ -60,17 +60,12 @@ via the `PiWheels <https://www.piwheels.org/>`_ project.
 For other Python versions, on 32 bit OSes, you will need to install from source.
 
 
-Setup terminal and pip
-^^^^^^^^^^^^^^^^^^^^^^
+Setup terminal and python
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before Kivy can be installed, Python and pip needs to be :ref:`pre-installed<install-python>`.
 Then, start a :ref:`new terminal<command-line>` that has
-:ref:`Python available<install-python>`. In the terminal, update ``pip`` and other installation
-dependencies so you have the latest version as follows (for linux users you may have to
-substitute ``python3`` instead of ``python`` and also add a ``--user`` flag in the
-subsequent commands outside the virtual environment)::
-
-     python -m pip install --upgrade pip setuptools virtualenv
+:ref:`Python available<install-python>`.
 
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
