@@ -19,7 +19,10 @@ Install the documentation dependencies (Sphinx requires Python 3.12+)::
 
   ``pip install -e ".[docs]"``
 
-Generate documentation using make: ``make html``.
+Generate documentation using make:
+
+- ``make html`` will make sure to generate updated API docs after code modifications
+- ``make -C doc/ html`` will be faster and sufficient after changes to `.rst` files
 
 Documentation will be accessible in ``build/html/``.
 
