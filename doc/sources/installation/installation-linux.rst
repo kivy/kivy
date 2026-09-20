@@ -56,10 +56,6 @@ Source dependencies installation
 If you did not reach this point from :ref:`installation guide<installation-canonical>`,
 start from there until you get directed here, and afterwards continue from there.
 
-Additionally, if you'd like to be able to use the x11 window backend do::
-
-    export USE_X11=1
-
 Ubuntu
 ~~~~~~
 

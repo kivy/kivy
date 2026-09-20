@@ -220,6 +220,11 @@ To install the latest cutting-edge Kivy from **master**, instead do::
 
     python -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
 
+A few environment variables can be used to tune the Kivy build for your use-case:
+
+``USE_X11=1`` will enable the X11 backend for platforms where it is supported but not enabled by
+default.  You will generally want to use SDL3 instead, though.
+
 If ``USE_LEGACY_OPENGL=1`` has been used to build SDL3 with Apple-provided OpenGL framework, you will need to
 build Kivy without ANGLE support. To do so, you can set the ``USE_ANGLE_GL_BACKEND`` environment variable to
 ``0`` before while installing Kivy. For example::
