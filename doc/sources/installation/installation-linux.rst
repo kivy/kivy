@@ -50,12 +50,13 @@ continue installing dependencies::
 
 .. _install-source-linux:
 
-Source installation Dependencies
+Source dependencies installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
-:ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
-before continuing. Additionally, if you'd like to be able to use the x11 window backend do::
+If you did not reach this point from :ref:`installation guide<installation-canonical>`,
+start from there until you get directed here, and afterwards continue from there.
+
+Additionally, if you'd like to be able to use the x11 window backend do::
 
     export USE_X11=1
 
