@@ -155,6 +155,11 @@ First install the additional system dependencies listed for each platform:
     our CI uses to build the wheels. The SDL dependencies are built from source and installed into a
     specific directory.
 
+.. _kivy-deps-build:
+
+Install SDL3
+++++++++++++
+
 With all the build tools installed, you can now install the SDL dependencies from source for SDL support
 (this is not needed on Windows as we provide pre-built SDL dependencies for Windows)
 
@@ -201,6 +206,9 @@ For example, if you are in the ``kivy-deps-build`` directory, you can set the en
 variable with::
 
     export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
+
+Kivy installation proper
+++++++++++++++++++++++++
 
 With the dependencies installed, and `KIVY_DEPS_ROOT` set you can now install Kivy into the virtual environment.
 
