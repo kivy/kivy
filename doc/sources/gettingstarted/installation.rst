@@ -303,6 +303,10 @@ or in bash or Linux::
 
     make test
 
+If you wish to run tests in a container, for example to check against the reference Ubuntu distro
+while working on a different distro, you need to make sure SDL3 can initialize graphics: you can do
+his for example by using a fake X11 display, by running under Xvfb with ``xvfb-run pytests ...``
+
 On *BSD Unix remember to use ``gmake`` (GNU) in place of ``make`` (BSD).
 
 Checking the demo
