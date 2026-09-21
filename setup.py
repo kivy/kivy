@@ -922,6 +922,16 @@ def determine_thorvg_flags():
       ``tools/build_thorvg.sh`` (see the framework branch above), not this
       function's fallback path.
     """
+
+    flags = {
+        'include_dirs': [],
+        'library_dirs': [],
+        'libraries': [],
+        'extra_compile_args': [],
+        'extra_link_args': [],
+        'define_macros': [],
+    }
+
     # macOS (desktop): look for ``KivyThorVG.framework`` first. This is
     # the path produced by ``tools/build_macos_dependencies.sh`` and
     # used by every standard macOS wheel build. We short-circuit to
@@ -961,7 +971,7 @@ def determine_thorvg_flags():
             'define_macros': [],
         }
 
-    if platform == 'darwin' and c_options['use_osx_frameworks']:
+    elif platform == 'darwin' and c_options['use_osx_frameworks']:
         if KIVY_DEPS_ROOT:
             thorvg_fw_root = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks')
         else:
@@ -987,7 +997,7 @@ def determine_thorvg_flags():
                 'define_macros': [],
             }
 
-    if platform == 'android':
+    elif platform == 'android':
         # Built by tools/build_thorvg.sh (THORVG_ANDROID=<abi>) into
         # dist/libs/<abi>/libthorvg.a - a static archive, not a
         # python-for-android recipe (mirrors the iOS xcframework approach:
@@ -1019,6 +1029,15 @@ def determine_thorvg_flags():
             'define_macros': [('TVG_STATIC', '1')],
         }
 
+    elif platform == 'win32':
+        pass
+
+    else: # Linux, BSD, etc.
+        if KIVY_DEPS_ROOT:
+            flags['extra_link_args'] = [
+                "-Wl,-rpath,{}".format(join(KIVY_DEPS_ROOT, 'dist', 'lib'))
+            ]
+
     # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
     # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
     # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
@@ -1029,14 +1048,7 @@ def determine_thorvg_flags():
     else:
         thorvg_lib = 'thorvg-1'
 
-    flags = {
-        'include_dirs': [],
-        'library_dirs': [],
-        'libraries': [thorvg_lib],
-        'extra_compile_args': [],
-        'extra_link_args': [],
-        'define_macros': [],
-    }
+    flags['libraries'] = [thorvg_lib]
 
     # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
     # __declspec(dllimport) annotations and the Unix visibility attributes.
