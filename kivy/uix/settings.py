@@ -1290,7 +1290,7 @@ class MenuSidebar(FloatLayout):
 
         '''
 
-        label = SettingSidebarLabel(text=name, uid=uid, menu=self)
+        label = SettingSidebarLabel(text=name, panel_uid=uid, menu=self)
         if len(self.buttons_layout.children) == 0:
             label.selected = True
         if self.buttons_layout is not None:
@@ -1302,21 +1302,23 @@ class MenuSidebar(FloatLayout):
 
         '''
         for button in self.buttons_layout.children:
-            if button.uid != self.selected_uid:
+            if button.panel_uid != self.selected_uid:
                 button.selected = False
 
 
 class SettingSidebarLabel(Label):
     # Internal class, not documented.
     selected = BooleanProperty(False)
-    uid = NumericProperty(0)
+    # Not named uid: that would shadow EventDispatcher.uid and make this
+    # label share the panel's widget-destructor slot.
+    panel_uid = NumericProperty(0)
     menu = ObjectProperty(None)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
         self.selected = True
-        self.menu.selected_uid = self.uid
+        self.menu.selected_uid = self.panel_uid
 
 
 if __name__ == '__main__':
