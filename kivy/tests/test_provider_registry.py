@@ -356,6 +356,7 @@ class TestRegistryDiscovery:
         skip_files = {
             '__init__.py',
             'markup.py',  # Text markup utility, not a provider
+            'system_emoji_fonts.py',  # Font discovery utility, not a provider
             '_clipboard_ext.py',  # Clipboard helper, not a provider
         }
 
