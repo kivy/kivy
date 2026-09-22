@@ -897,9 +897,13 @@ def determine_thorvg_flags():
 
     * **Linux** - dynamic: ``libthorvg-1.so.*`` produced by
       ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1`` and bundled into
-      ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. No
-      ``-lstdc++`` needed - the shared library's ``DT_NEEDED`` carries
-      the C++ runtime dependency itself.
+      ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. The
+      extension is linked with ``-Wl,-rpath`` set to the ThorVG library
+      directory so an in-tree build can load ``libthorvg-1.so`` without
+      ``LD_LIBRARY_PATH``. ``auditwheel repair`` replaces that RPATH when
+      it vendors the library into a wheel. No ``-lstdc++`` needed - the
+      shared library's ``DT_NEEDED`` carries the C++ runtime dependency
+      itself.
     * **macOS** - dynamic: links against
       ``KivyThorVG.framework`` (wrapped from ``libthorvg-1.dylib`` by
       ``tools/macos_framework_wrapper.sh``), embedded into the wheel
@@ -1089,6 +1093,16 @@ def determine_thorvg_flags():
         flags['extra_link_args'].append('-lc++')
     elif platform not in ('win32', 'ios'):
         flags['extra_link_args'].append('-lstdc++')
+
+    # -L is only a link-time search path. On Linux libthorvg-1.so lives in
+    # the kivy-dependencies tree, which the dynamic loader will not search.
+    # Embed those directories as RPATH so importing the extension does not
+    # depend on LD_LIBRARY_PATH. auditwheel repair replaces this RPATH when
+    # it vendors the library into a wheel.
+    if platform != 'win32':
+        for lib_dir in flags['library_dirs']:
+            flags['extra_link_args'].append(
+                '-Wl,-rpath,{}'.format(os.path.abspath(lib_dir)))
 
     return flags
 
