@@ -419,6 +419,144 @@ This class, created just by the declaration of this rule, inherits from the
 Button class and allows us to change default values and create bindings for all
 its instances without adding any new code on the Python side.
 
+Control statements
+------------------
+
+.. versionadded:: 3.0.0
+
+By default a rule builds a *fixed* tree of widgets. Control statements let that
+tree change at runtime -- widgets that appear and disappear, and lists that grow
+and shrink -- described directly in kv and kept up to date automatically. At any
+child position a rule may contain an ``if`` / ``elif`` / ``else``, ``for``,
+``slot`` or ``factory`` block. Each block is *reactive*: whenever a property
+used in its header changes, the block rebuilds the content it manages. There is
+nothing to wire up -- reassign the property and the tree follows.
+
+Conditional content
+~~~~~~~~~~~~~~~~~~~~
+
+Use ``if`` / ``elif`` / ``else`` to mount widgets only while a condition holds:
+
+.. code-block:: kv
+
+    <LoginBox@BoxLayout>:
+        logged_in: False
+        Label:
+            text: 'Account'
+        if self.logged_in:
+            Button:
+                text: 'Log out'
+        else:
+            Button:
+                text: 'Log in'
+
+Toggling ``logged_in`` swaps one button for the other. Unlike a widget hidden
+with ``opacity`` or ``disabled``, an inactive branch's widgets are not in the
+tree at all -- no ghost touch target and no leftover layout space. A branch may
+also set the host widget's own properties, declare a ``canvas`` or bind event
+handlers while it is active. Branch properties are ordinary one-way bindings
+added while the branch is active: leaving a branch never reverts a value, so
+give the chain an ``else`` when something must come back.
+
+Repeated content
+~~~~~~~~~~~~~~~~
+
+Use ``for`` to build one copy of the body per item, kept in sync as the iterable
+changes:
+
+.. code-block:: kv
+
+    <FruitList@BoxLayout>:
+        orientation: 'vertical'
+        fruits: ['apple', 'pear', 'plum']
+        for fruit in self.fruits:
+            Label:
+                text: fruit
+
+Reassigning ``fruits`` re-renders the list -- no ``add_widget`` loop and no
+manual bookkeeping. The header accepts Python's *comprehension* syntax (what is
+valid inside a list comprehension, not statement syntax), so tuple targets and
+a trailing ``if`` filter work, and the loop variables are available in the
+body's expressions:
+
+.. code-block:: kv
+
+    for i, fruit in enumerate(self.fruits) if fruit != 'pear':
+        Label:
+            text: f'{i}: {fruit}'
+
+There is no ``for`` / ``else``; the idiomatic empty state is a paired
+``if not self.fruits:`` block next to the loop.
+
+Add a ``key:`` line to give each item a stable identity: same key, same
+widgets. Existing widgets (and their live state, such as text being edited)
+are kept and moved rather than rebuilt when the list changes, and an item
+replaced under a stable key refreshes the kept widgets through their bindings:
+
+.. code-block:: kv
+
+    for fruit in self.fruits:
+        key: fruit
+        TextInput:
+            text: fruit
+
+Slots and factory
+~~~~~~~~~~~~~~~~~
+
+Two further blocks round out the set.
+
+``slot`` declares a named, fillable hole in a reusable container rule, with
+fallback content that the call site can override -- the same idea as Vue slots
+or the web-components ``<slot>``. Build the shell once and drop different
+content into it at each call site, without subclassing:
+
+.. code-block:: kv
+
+    # a reusable frame with a header slot and a default (body) slot
+    <Card@BoxLayout>:
+        orientation: 'vertical'
+        slot header:
+            Label:                       # fallback, shown if the caller fills nothing
+                text: 'Untitled'
+        slot:                            # default slot: plain children land here
+
+    # call site -- fill the header, drop the body content straight in
+    Card:
+        slot header:
+            Label:
+                text: 'Inbox'
+                bold: True
+        Label:                           # plain child, routed into the default slot
+            text: 'You have 3 new messages'
+
+A slot definition may also declare *slot-scoped locals* -- reactive values
+computed by the defining rule and read by fallback and fill content through
+the reserved ``slot`` name (``text: slot.title``) -- so a shell can hand data
+to whatever content the caller drops in.
+
+``factory <expr>`` builds a single child whose class is chosen by an expression
+(a class object, or a name resolved through the :class:`~kivy.factory.Factory`),
+rebuilt when the class changes. Because the expression is ordinary Python,
+picking a class at runtime needs no extra machinery:
+
+.. code-block:: kv
+
+    <MessageList@BoxLayout>:
+        orientation: 'vertical'
+        messages: []
+        for message in self.messages:
+            factory 'StrongLabel' if message.unread else 'Label':
+                text: message.text
+
+Learn more
+~~~~~~~~~~
+
+Control statements come with a handful of rules -- for example they cannot
+appear at the top level of a file, and inside a ``canvas`` block only ``if`` and
+``for`` are allowed. For the full description, including reactive ids,
+iteration-local values and graphics control flow inside ``canvas``, see the
+:ref:`control statements <kv_control_statements>` reference.
+
 Re-using styles in multiple widgets
 -----------------------------------
 

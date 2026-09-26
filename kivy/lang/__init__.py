@@ -474,6 +474,503 @@ In Python, you can create an instance of the dynamic class as follows:
     properties/methods override those of the child. Be careful if you choose
     to do this.
 
+.. _kv_control_statements:
+
+Control statements
+------------------
+
+.. versionadded:: 3.0.0
+
+Control statements let a rule's widget tree change at runtime: child widgets
+that appear and disappear, and lists that grow and shrink, all described in kv
+and kept in sync automatically.
+
+At any child-widget position a rule may contain an ``if`` / ``elif`` / ``else``,
+``for``, ``slot`` or ``factory`` block. Each block is **reactive**: when a
+property used in its header changes, the block rebuilds the content it manages.
+There is nothing to wire up -- reassign the property and the tree follows.
+
+Conditional content
+~~~~~~~~~~~~~~~~~~~~
+
+Mount widgets only while a condition holds:
+
+.. code-block:: kv
+
+    <LoginPanel@BoxLayout>:
+        logged_in: False
+        Label:
+            text: 'Account'
+        if self.logged_in:
+            Button:
+                text: 'Log out'
+        else:
+            TextInput:
+                hint_text: 'username'
+            Button:
+                text: 'Log in'
+
+Toggling ``logged_in`` swaps a single *Log out* button for a username field
+plus a *Log in* button, keeping their place after the *Account* label. An
+inactive branch's widgets are not in the tree at all: unlike a widget hidden
+with ``opacity`` / ``disabled``, they leave no ghost touch target and no
+leftover layout space.
+
+``elif`` and ``else`` are optional and chain as in Python. A bare ``if`` with no
+matching branch simply builds nothing while its condition is false:
+
+.. code-block:: kv
+
+    if self.error:
+        Label:
+            text: self.message
+
+Setting properties from a branch
+********************************
+
+An ``if`` / ``elif`` / ``else`` branch is a *full rule body* applied to the host
+widget while active. Besides children it may set the host's own properties, so a
+group of properties that all hinge on one condition can state it once instead of
+repeating it on every line:
+
+.. code-block:: kv
+
+    <StatusLabel@Label>:
+        error: False
+        if self.error:
+            color: 1, 0, 0, 1
+            bold: True
+            font_size: '18sp'
+        else:
+            color: 1, 1, 1, 1
+            bold: False
+            font_size: '14sp'
+
+A property that does not exist yet is created on demand, exactly as elsewhere in
+kv.
+
+A branch only *adds* the bindings it declares while active and drops them when
+it leaves; it never reverts a property to a previous value. So the ``else``
+branch is what brings a value back -- without one, the property simply keeps the
+active branch's last value after that branch leaves. (If an unconditional rule
+and a branch, or two branches, drive the same property at once, that is allowed:
+their bindings coexist and the last dependency to change wins, just as with
+overlapping plain kv rules. Prefer a single ``if`` / ``else`` where you can.)
+
+Canvas and event handlers in a branch
+*************************************
+
+A branch may also declare a ``canvas`` and bind event handlers, mounted when the
+branch becomes active and torn down when it leaves:
+
+.. code-block:: kv
+
+    <Badge@Widget>:
+        urgent: False
+        count: 0
+        if self.urgent:
+            on_touch_down: print('badge tapped')
+            canvas:
+                Color:
+                    rgba: 1, 0, 0, 1
+                Ellipse:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: f'{root.count}'
+
+The branch's ``canvas`` is added to the host's canvas while active and removed
+when the branch leaves; its instruction expressions update on the next
+:meth:`Builder.sync <BuilderBase.sync>`, like any kv canvas. Handlers are bound
+on activation and unbound on teardown. Host properties, ``canvas`` and handlers
+belong to ``if`` / ``elif`` / ``else`` blocks *outside* any ``for``: an ``if``
+nested inside a ``for`` follows the for-body rules instead (its property lines
+are iteration-locals, and handlers and ``canvas`` stay forbidden -- see
+`Iteration-local values`_).
+
+Repeated content
+~~~~~~~~~~~~~~~~
+
+Build one copy of the body per item, kept in sync as the iterable changes:
+
+.. code-block:: kv
+
+    <TodoList@BoxLayout>:
+        items: []
+        for item in self.items:
+            Label:
+                text: item.title
+
+A single iteration can build several widgets -- everything in the body is
+repeated together, so the loop variables are available to a whole cluster of
+children (and to their event handlers):
+
+.. code-block:: kv
+
+    for item in self.items:
+        Label:
+            text: item.title
+        Button:
+            text: 'delete'
+            on_press: root.items = [x for x in root.items if x is not item]
+
+The header uses Python's *comprehension* grammar -- exactly what is valid
+between the brackets of a list comprehension, which is not quite statement
+grammar -- so tuple (and starred) targets and a trailing ``if`` filter work:
+
+.. code-block:: kv
+
+    for i, item in enumerate(self.items) if item.visible:
+        Label:
+            text: f'{i}: {item.title}'
+
+The iterable is an ordinary kv expression, so the usual binding rules and
+gotchas apply: reassigning the property dispatches (and list/dict properties
+dispatch on in-place changes), but mutating a plain value nested inside one
+does not. Iterating something that is not iterable (``None``, say) fails
+exactly as it does in Python; the error simply carries the kv file and line.
+
+There is no ``for`` / ``else``. The idiomatic empty state is a paired ``if``
+on the same property -- the duplicated condition costs one line and reads
+plainly:
+
+.. code-block:: kv
+
+    if not self.items:
+        Label:
+            text: 'nothing here yet'
+    for item in self.items:
+        Label:
+            text: item.title
+
+``for`` builds a *real* widget per item, so it is not efficient for long lists
+or frequently mutated ones. :class:`~kivy.uix.recycleview.RecycleView` is
+the right tool for large, scrolling, virtualised lists. ``for`` targets the
+everyday handful-of-widgets case where RecycleView would be overkill.
+
+Keyed reconciliation
+********************
+
+By default an iteration's identity is its position in the iterable, so a change
+rebuilds the widgets from the first differing position on. That is fine for
+stateless content, but a widget holding live state -- text being edited, focus,
+selection or scroll position -- would lose it as soon as an item is inserted or
+the list is reordered.
+
+Add a ``key:`` line as the first entry in the body to give each iteration a
+stable identity instead:
+
+.. code-block:: kv
+
+    for item in self.items:
+        key: item.uid
+        TextInput:
+            text: item.title
+
+Now an iteration keeps its widgets for as long as its key is present: **same
+key, same widgets**. When the order changes the widgets are moved, not rebuilt;
+and when the item behind a kept key is *replaced*, the new loop values are
+re-dispatched through the existing bindings instead of rebuilding. So a
+``TextInput`` the user is editing survives another item being inserted above
+it, the whole list being reordered, or its own item being swapped for an
+updated copy: the same widget instance stays, and with it its text, cursor and
+focus. Only new keys build widgets, and only vanished keys destroy them.
+
+Keys behave like dict keys -- hashable, compared by equality -- and must be
+unique. Use *stable* values (an id, a uuid), not something that editing the
+item would change. Re-dispatch follows ordinary property semantics: a
+replacement that compares equal to the previous value does not dispatch.
+
+Iteration-local values
+**********************
+
+A property line in a ``for`` body is not a host property but an
+*iteration-local*: a named, reactive value computed once per iteration and
+shared by everything in that iteration's body (so a ``[]`` is a single list, not
+a fresh one at each use):
+
+.. code-block:: kv
+
+    <Cart@BoxLayout>:
+        items: []
+        for item in self.items:
+            total: item.qty * item.price      # iteration-local
+            Label:
+                text: f'{item.qty}'
+            Label:
+                text: f'= {total}'             # reads the same value
+
+The name is visible only inside the block (it is not a property of the host
+widget), shadows enclosing names, and re-evaluates reactively when its
+dependencies change. A local may reference the loop targets and earlier locals
+of the same block:
+
+.. code-block:: kv
+
+    for x in self.values:
+        squared: x * x
+        scaled: squared * self.factor
+        Label:
+            text: f'{scaled}'
+
+The general rule is that **a property line binds to the nearest enclosing
+scope**: the iteration scope when a ``for`` encloses it, the host widget
+otherwise. So a property line in an ``if`` nested inside a ``for`` is a
+*conditional* iteration-local: it starts as ``None``, is bound while the
+branch is active, and keeps its last value when the branch leaves -- one-way,
+like every kv binding; give the chain an ``else`` to set it back. Handlers
+and ``canvas`` follow the same nesting-context rule and stay forbidden
+anywhere under a ``for``.
+
+A local may not share its name with an ``id`` in the same block. Unlike
+Python shadowing, both writers would stay live (the id is written at mount,
+the local re-evaluates on every dependency change), so the collision is a
+parse-time error.
+
+Slots
+~~~~~
+
+A slot is a named hole a container rule leaves for its callers to fill, with
+fallback content for when they don't -- the same idea as Vue slots or the
+web-components ``<slot>``. It lets you build a reusable shell once and drop
+different content into it at each call site, without subclassing:
+
+.. code-block:: kv
+
+    <Card@BoxLayout>:
+        orientation: 'vertical'
+        slot header:
+            Label:                       # fallback, shown if nobody fills it
+                text: 'Untitled'
+        slot:                            # default slot: plain children land here
+        Label:
+            text: 'footer'
+
+    # usage:
+    Card:
+        slot header:
+            Image:
+                source: root.logo
+        Label:                           # plain child, routed to the default slot
+            text: 'body'
+
+The first rule declaring ``slot name:`` defines the insertion point and its
+fallback. Any later rule declaring the same name provides content instead, and
+the most derived provider wins: a subclass rule overrides the base fallback, and
+the widget instance overrides both. Fill content is evaluated in the context of
+the rule providing it, so ``root.logo`` above refers to the rule instantiating
+the ``Card``, not to the ``Card`` itself. A filled slot never builds its
+fallback.
+
+A slot may be defined inside an ``if`` block (the insertion point then comes and
+goes with the branch), and a fill may itself declare new slots under a fresh
+name, re-exposing customization through a wrapper class. Filling a name that no
+class rule ever declared degrades to defining a new insertion point at the fill's
+own position -- since nothing can ever fill an instance-level definition, this is
+almost always a typo, and a warning is logged.
+
+Slot-scoped locals (slot props)
+*******************************
+
+A property line in a slot *definition* declares a slot-scoped local: a
+reactive value computed in the defining rule's context and handed to whatever
+content ends up in the hole. Fallback and fill content read it through the
+reserved ``slot`` name:
+
+.. code-block:: kv
+
+    <UserCard@BoxLayout>:
+        user: None
+        slot badge:
+            display_name: self.user.name if self.user else ''
+            Label:
+                text: slot.display_name        # the fallback reads it
+
+    # call site -- the fill reads the same value, still computed by UserCard
+    UserCard:
+        user: some_user
+        slot badge:
+            Label:
+                text: '@' + slot.display_name
+                bold: True
+
+This is how a reusable shell passes data to caller-provided content (the same
+idea as Vue's scoped slots). When slots nest, the innermost ``slot`` wins.
+
+An ``id`` is allowed on content declared in an explicit ``slot`` block -- a
+definition's fallback or a fill. It becomes a reactive id on the rule
+*providing* that content (``None`` while the content is not built), reachable
+by that rule's other expressions like an ``if`` id. Implicitly routed plain
+children cannot carry an id: whether they are routed depends on the class
+rules, which the parser cannot see from the call site -- use an explicit
+``slot:`` fill block instead.
+
+Widgets chosen by class
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``factory <expr>`` builds a single child widget whose *class* is chosen by an
+expression -- a class object, or a name resolved through the
+:class:`~kivy.factory.Factory`. The block body is applied to the instance, and
+the widget is rebuilt when the class expression changes:
+
+.. code-block:: kv
+
+    <Form@BoxLayout>:
+        schema: []
+        for field in self.schema:
+            factory field['cls']:        # e.g. 'TextInput', 'CheckBox', ...
+                hint_text: field.get('label', '')
+
+The expression is ordinary Python, so a runtime choice between classes needs no
+extra machinery:
+
+.. code-block:: kv
+
+    for item in self.items:
+        factory 'StrongLabel' if item.highlighted else 'Label':
+            text: item.text
+
+A ``None`` class builds nothing, and a constant class name is built once with no
+binding. When the class does change, the widget is rebuilt and the body
+re-applied; while it stays the same the instance is kept and its body
+expressions stay reactive.
+
+In depth
+~~~~~~~~
+
+Reactive ids
+************
+
+A widget inside a control block may carry an ``id``. Because such a widget comes
+and goes, the id is *reactive* rather than a fixed entry in ``root.ids``.
+
+In an ``if`` / ``elif`` / ``else`` block the id is reachable across the whole
+rule and is ``None`` while its branch is inactive, so other expressions can
+react to the widget mounting and unmounting:
+
+.. code-block:: kv
+
+    <Editor@BoxLayout>:
+        editing: False
+        if self.editing:
+            TextInput:
+                id: field
+        Button:
+            disabled: field is None          # True until the TextInput exists
+
+Because the id really is ``None`` while its branch is inactive, guard
+attribute access accordingly: ``field.text if field else ''``. The usual kv
+binding rules apply through a reactive id exactly as through a static one --
+in particular the property you depend on must end the dotted chain
+(``(field.text or '').strip()`` re-evaluates on typing; a bare
+``field.text.strip()`` never does). Two branches of one chain may declare
+the same id, and so may two complementary chains (``if cond:`` /
+``if not cond:``): the id always points at the widget most recently mounted
+under that name, and a branch tearing down only clears the id if it still
+owns it.
+
+In a ``for`` block the id is iteration-local, like an iteration-local value:
+reachable only by that iteration's own content, never on ``root.ids``:
+
+.. code-block:: kv
+
+    for row in self.rows:
+        CheckBox:
+            id: box
+        Label:
+            text: 'on' if box.activated else 'off'
+
+Such ids never appear in ``root.ids`` -- an entry that blinked in and out would
+silently break anything bound to it.
+
+Control statements inside canvas
+********************************
+
+``if`` and ``for`` also work *inside* a ``canvas`` (or ``canvas.before`` /
+``canvas.after``) block, where they generate graphics instructions instead of
+widgets -- data-driven drawing that reacts to its inputs:
+
+.. code-block:: kv
+
+    <Chart@Widget>:
+        series: []
+        selected: False
+        canvas:
+            Color:
+                rgba: 1, 1, 1, 1
+            for line in self.series:
+                Line:
+                    points: line.points
+            if self.selected:
+                Color:
+                    rgba: 1, 0, 0, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+The instructions a block produces occupy the block's position among the
+surrounding instructions, and are rebuilt when the condition or iterable
+changes; instructions declared after the block stay after it. As with any kv
+canvas, instruction property expressions update on the next
+:meth:`Builder.sync <BuilderBase.sync>`. Blocks nest, so a ``for`` inside an
+``if`` composes as expected.
+
+A canvas ``for`` without a ``key:`` rebuilds its instructions wholesale on
+change -- fine for cheap, stateless drawing. With a ``key:`` it reconciles per
+iteration (keeping, moving or rebuilding instruction groups by key), so
+textured or stateful instructions and large series are not destroyed and
+re-uploaded on every change. Unlike the widget ``for``, a kept canvas
+iteration whose loop values changed is rebuilt rather than re-dispatched --
+instructions hold no user state worth preserving.
+
+Restrictions
+~~~~~~~~~~~~~
+
+- Control statements cannot appear at the top level of a kv file.
+- A property line binds to the nearest enclosing scope: host properties in an
+  ``if`` at rule level, iteration-locals anywhere under a ``for`` (including
+  inside an ``if`` nested in the ``for``), slot-scoped locals in a ``slot``
+  definition. Event handlers and ``canvas`` are accepted only in ``if`` /
+  ``elif`` / ``else`` blocks outside any ``for``; ``for`` bodies and ``slot``
+  blocks take neither.
+- Inside a ``canvas`` block only ``if`` and ``for`` are allowed (not ``slot`` or
+  ``factory``); their bodies hold graphics instructions only, and a control
+  statement may not be nested under an individual instruction.
+- A ``key:`` line is valid only inside a ``for`` and must come before the
+  block's child widgets; ``key`` is a reserved name there (an iteration-local
+  cannot be called ``key``). Keys behave like dict keys and must be unique.
+- ``id`` is allowed on widgets inside ``if`` / ``for`` blocks and inside
+  explicit ``slot`` blocks (reactive); it is rejected directly on a control
+  statement, on plain children implicitly routed into a slot, and inside
+  ``factory`` blocks. A local and an ``id`` cannot share a name.
+- Loop targets form their own scope and may shadow any name, including
+  ``self`` / ``root`` / ``app`` and the metric helpers: within the block the
+  loop variable wins over the global kv context. A child widget's own ``self``
+  (and a handler's ``args``) still take precedence inside that widget, so
+  shadowing ``self`` only affects the block's structure, not the children's
+  expressions. Assignment expressions (``:=``) and ``async for`` are not allowed
+  in headers, and a ``for`` header takes a single ``for ... in ...`` clause.
+- A slot cannot be defined inside a ``for`` block; slot fills must be direct
+  children of the widget instance (put an ``if`` *inside* the fill to make its
+  content conditional), and a default ``slot:`` fill block cannot be mixed with
+  plain children.
+- ``factory`` requires a class expression and cannot be declared inside a
+  ``canvas`` block.
+
+Nothing is reserved beyond this: names like ``while`` or ``match`` in control
+position are syntax errors today, so future statements can be added exactly as
+additively as these were.
+
+.. warning::
+
+    The children built by control statements are managed. Manually *adding*
+    children is safe -- appended widgets always land after the managed
+    content. But manually removing or reordering the children of a widget
+    that uses control statements (``clear_widgets()`` included) declares a
+    second, competing owner of the same list: nothing raises and nothing
+    leaks, but the insertion position of managed content becomes undefined
+    from then on. Drive such changes through the bound properties instead.
+
 .. _redefining-style:
 
 Redefining a widget's style
