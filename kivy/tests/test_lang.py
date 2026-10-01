@@ -385,6 +385,40 @@ class LangTestCase(unittest.TestCase):
         assert root.ids.target2.text == ''
         assert root.ids.target3.text == '400'
 
+    def test_fstring_boolop_names(self):
+        import ast
+        from kivy.lang.parser import ParserRuleProperty
+        cases = {
+            'f"{a or b}"': {'a', 'b'},
+            'f"{a and b}"': {'a', 'b'},
+            'f"{a or b or c}"': {'a', 'b', 'c'},
+            'f"{a or (b and c)}"': {'a', 'b', 'c'},
+        }
+        for src, expected in cases.items():
+            expr = ast.parse(src).body[0].value
+            names = set(ParserRuleProperty.get_names_from_expression(expr))
+            assert expected <= names
+
+    def test_bind_fstring_boolop(self):
+        from kivy.lang import Builder
+        root = Builder.load_string(dedent(\'\'\'
+        FloatLayout:
+            Label:
+                id: original
+                text: 'perfect'
+            Label:
+                id: target1
+                text: f"{original.text or 'fallback'}"
+            Label:
+                id: target2
+                text: f"{original.text and 'truthy'}"
+        \'\'\'))
+        assert root.ids.target1.text == 'perfect'
+        assert root.ids.target2.text == 'truthy'
+        root.ids.original.text = ''
+        assert root.ids.target1.text == 'fallback'
+        assert root.ids.target2.text == ''
+
     def test_fstring_nested_property_binding(self):
         from kivy.uix.boxlayout import BoxLayout
         from kivy.event import EventDispatcher
