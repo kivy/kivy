@@ -273,6 +273,7 @@ the zip, a ``ValueError`` will be raised immediately.
 import os
 import re
 from base64 import b64decode
+from urllib.parse import unquote_to_bytes
 from filetype import guess_extension
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
@@ -913,6 +914,8 @@ class Image(EventDispatcher):
                 if data:
                     if isb64:
                         data = b64decode(data)
+                    else:
+                        data = unquote_to_bytes(data)
                     self.load_memory(BytesIO(data), ext)
             else:
                 self.filename = arg
