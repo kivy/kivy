@@ -1,6 +1,6 @@
 import unittest
 import io
-from base64 import b64decode, b64encode
+from base64 import b64encode
 from urllib.parse import quote_from_bytes
 import os
 import tempfile
@@ -9,17 +9,24 @@ from kivy import setupconfig
 
 class DataURITestCase(unittest.TestCase):
 
-    gif = b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+    @staticmethod
+    def _png_bytes():
+        import kivy
+        png_path = os.path.join(kivy.kivy_data_dir, 'logo', 'kivy-icon-16.png')
+        with open(png_path, 'rb') as f:
+            return f.read()
 
     def test_data_uri_base64(self):
         from kivy.core.image import Image as CoreImage
-        img = CoreImage("data:image/gif;base64," + b64encode(self.gif).decode("ascii"))
-        self.assertEqual(tuple(img.size), (1, 1))
+        png = self._png_bytes()
+        img = CoreImage("data:image/png;base64," + b64encode(png).decode("ascii"))
+        self.assertEqual(tuple(img.size), (16, 16))
 
     def test_data_uri_percent_encoded(self):
         from kivy.core.image import Image as CoreImage
-        img = CoreImage("data:image/gif," + quote_from_bytes(self.gif))
-        self.assertEqual(tuple(img.size), (1, 1))
+        png = self._png_bytes()
+        img = CoreImage("data:image/png," + quote_from_bytes(png))
+        self.assertEqual(tuple(img.size), (16, 16))
 
 
 class ImageTestCase(unittest.TestCase):
