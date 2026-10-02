@@ -127,8 +127,11 @@ class UtilsTest(unittest.TestCase):
         # __getattr__
         toto = qd.toto
         self.assertEqual(toto, 1)
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(AttributeError) as cm:
             foo = qd.not_an_attribute
+        self.assertEqual(
+            str(cm.exception),
+            "'QueryDict' object has no attribute 'not_an_attribute'")
 
     def test_intersection(self):
         abcd = ['a', 'b', 'c', 'd']
