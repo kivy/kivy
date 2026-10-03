@@ -992,7 +992,9 @@ cdef class BorderImage(Rectangle):
         tb[3] = b3 / tw * tcw
 
         cdef float sb0, sb1, sb2, sb3
-
+        cdef list db = self._display_border
+        if db:
+            sb0, sb1, sb2, sb3 = db
         if self._auto_scale == 'off':
             sb0, sb1, sb2, sb3 = b0, b1, b2, b3
         elif self._auto_scale == 'both':
@@ -1031,9 +1033,6 @@ cdef class BorderImage(Rectangle):
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
-        cdef list db = self._display_border
-        if db:
-            sb0, sb1, sb2, sb3 = db
         hs[0] = x;            vs[0] = y
         hs[1] = x + sb3;       vs[1] = y + sb0
         hs[2] = x + w - sb1;   vs[2] = y + h - sb2
