@@ -201,13 +201,12 @@ class TestSmallFontSize:
         label = Label(text="x", font_size=font_size, text_provider="sdl3")
         label.texture_update()
 
-    def test_sdl3_fractional_font_size_is_not_truncated(
-            self, sdl3_label_class):
-        # 20.9 used to be truncated to 20 and rendered at the smaller size.
-        whole = sdl3_label_class(font_size=20)
-        fractional = sdl3_label_class(font_size=20.9)
+    def test_sdl3_fractional_font_size_is_truncated(self, sdl3_label_class):
+        # Sizes of 1 or more are truncated to a whole number, as in 2.3.1.
         text = "WWWWWWWW"
-        assert fractional.get_extents(text)[0] > whole.get_extents(text)[0]
+        whole = sdl3_label_class(font_size=22)
+        fractional = sdl3_label_class(font_size=22.9)
+        assert fractional.get_extents(text) == whole.get_extents(text)
 
     def test_sdl3_error_names_the_font_size(self, sdl3_label_class):
         label = sdl3_label_class(font_size=1000000)

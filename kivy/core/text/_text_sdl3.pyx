@@ -184,11 +184,12 @@ cdef TTF_Font *_get_font(self) except *:
     bytes_fontname = <bytes>fontname.encode('utf-8')
     ext = fontname.rsplit('.', 1)
     if len(ext) == 2:
-        # SDL3_ttf rejects a point size of 0 or less, and a size below 1
-        # cannot be rendered. A font_size that is not positive is a normal
-        # state, e.g. ``font_size: self.height`` on a widget that is not in
-        # the widget tree yet, so clamp it to 1 instead of raising.
-        ptsize = max(1.0, float(self.options['font_size']))
+        # SDL3_ttf rejects a point size of 0 or less. A font_size below 1 is
+        # a normal state, e.g. ``font_size: self.height`` on a widget that is
+        # not in the widget tree yet, so clamp it to 1 instead of raising.
+        # The size is truncated to a whole number, as it always has been, so
+        # that fractional sizes render the same as in Kivy 2.3.1.
+        ptsize = max(1, int(self.options['font_size']))
         # try to open the font if it has an extension
         fontobject = TTF_OpenFont(bytes_fontname, ptsize)
     # fallback to search a system font
