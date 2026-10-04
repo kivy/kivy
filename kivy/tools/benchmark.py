@@ -19,7 +19,7 @@ import sys
 import json
 import kivy
 import gc
-from time import clock, time, ctime
+from time import time, ctime, perf_counter as clock
 from random import randint
 
 from kivy.uix.label import Label
