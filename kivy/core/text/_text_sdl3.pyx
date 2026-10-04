@@ -1,10 +1,4 @@
 #cython: c_string_type=unicode, c_string_encoding=utf8
-'''
-TODO:
-    - ensure that we correctly check allocation
-    - remove compat sdl usage (like SDL_SetAlpha must be replaced with sdl 1.3
-      call, not 1.2)
-'''
 
 include '../../lib/sdl3.pxi'
 
@@ -33,6 +27,9 @@ cdef class _SurfaceContainer:
         self.h = h
 
     def __init__(self, w, h):
+        if w < 0 or h < 0:
+            raise ValueError(
+                'Invalid text surface size {}x{}'.format(w, h))
         # XXX check on OSX to see if little endian/big endian make a difference
         # here.
         self.surface = SDL_CreateSurface(
@@ -42,6 +39,10 @@ cdef class _SurfaceContainer:
                 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
             ),
         )
+        if self.surface == NULL:
+            raise MemoryError(
+                'Could not create a {}x{} text surface: {}'.format(
+                    w, h, SDL_GetError()))
 
     def __dealloc__(self):
         if self.surface != NULL:
@@ -155,7 +156,9 @@ cdef class _SurfaceContainer:
         SDL_DestroySurface(st)
 
     def get_data(self):
-        cdef int datalen = self.surface.w * self.surface.h * 4
+        # a C int overflows for surfaces larger than 2 GB
+        cdef Py_ssize_t datalen = (
+            <Py_ssize_t>self.surface.w * self.surface.h * 4)
         cdef bytes pixels = (<char *>self.surface.pixels)[:datalen]
         data = ImageData(self.w, self.h, 'rgba', pixels)
         return data
