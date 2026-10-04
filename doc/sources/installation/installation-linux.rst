@@ -50,14 +50,14 @@ continue installing dependencies::
 
 .. _install-source-linux:
 
-Source installation Dependencies
+Source dependencies installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install Kivy from source, please follow the :ref:`installation guide<kivy-wheel-install>` until you reach the
-:ref:`Kivy install step<kivy-source-install>` and then install the dependencies below
-before continuing. Additionally, if you'd like to be able to use the x11 window backend do::
+If you did not reach this point from :ref:`installation guide<installation-canonical>`,
+start from there until you get directed here, and afterwards continue from there.
 
-    export USE_X11=1
+This step explicitly does not install SDL3 packages from the distribution, this will be
+dealt with later, in :ref:`installation guide<kivy-deps-build>`.
 
 Ubuntu
 ~~~~~~
@@ -66,7 +66,7 @@ Using apt::
 
     sudo apt-get update
 
-    # Install build tools, and dependencies to perform a full build (including SDL3 dependencies)
+    # Install build tools, and dependencies to perform a full build
     sudo apt-get -y install python3-dev build-essential git make autoconf automake libtool \
           pkg-config cmake meson ninja-build libasound2-dev libpulse-dev libaudio-dev \
           libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
@@ -83,7 +83,7 @@ Using dnf::
 
     sudo dnf install epel-release
 
-    # Install build tools, and dependencies to perform a full build (including SDL3 dependencies)
+    # Install build tools, and dependencies to perform a full build
     yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig \
             meson ninja-build alsa-lib-devel pulseaudio-libs-devel \
             libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel \
