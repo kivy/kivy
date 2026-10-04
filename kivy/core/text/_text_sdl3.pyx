@@ -54,6 +54,7 @@ cdef class _SurfaceContainer:
         cdef SDL_Color oc
         cdef SDL_Surface *st
         cdef SDL_Surface *fgst
+        cdef SDL_Surface *cst
         cdef SDL_Rect r
         cdef SDL_Rect fgr
         cdef list color = list(container.options['color'])
@@ -109,7 +110,7 @@ cdef class _SurfaceContainer:
             st = (
                 TTF_RenderText_Blended(font, <char *>bytes_text, 0, oc)
                 if container.options['font_blended']
-                else TTF_RenderText_Blended(font, <char *>bytes_text, 0, oc)
+                else TTF_RenderText_Solid(font, <char *>bytes_text, 0, oc)
                 )
             TTF_SetFontOutline(font, 0)
         else:
@@ -129,6 +130,22 @@ cdef class _SurfaceContainer:
             if fgst == NULL:
                 SDL_DestroySurface(st)
                 return
+            if not container.options['font_blended']:
+                # Solid surfaces are 8-bit and share a single color palette.
+                # Drawing the text onto the outline would map its color to
+                # the palette of the outline and lose it, so use a 32-bit
+                # surface for the outline.
+                cst = SDL_ConvertSurface(
+                    st,
+                    SDL_GetPixelFormatForMasks(
+                        32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+                    ),
+                )
+                SDL_DestroySurface(st)
+                if cst == NULL:
+                    SDL_DestroySurface(fgst)
+                    return
+                st = cst
             fgr.x = outline_width
             fgr.y = outline_width
             fgr.w = fgst.w
