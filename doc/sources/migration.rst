@@ -1049,29 +1049,28 @@ instances, restoring the shared behavior in an idiomatic way.
 AliasProperty
 =============
 
-*Fixed Dispatch Inconsistencies for the Initial Value and* ``None`` *Getter Results*
+*Consistent Dispatch for the First Change and for* ``None`` *Getter Results*
 
-In Kivy 3.x.x, two related bugs in :class:`~kivy.properties.AliasProperty` dispatch
-have been fixed (see `#6901 <https://github.com/kivy/kivy/issues/6901>`_).
+In Kivy 3.x.x, :class:`~kivy.properties.AliasProperty` follows these rules when
+one of its ``bind`` properties changes (see
+`#6901 <https://github.com/kivy/kivy/issues/6901>`_ and
+`#9405 <https://github.com/kivy/kivy/issues/9405>`_):
+
+* With ``cache=True``, it dispatches when the getter returns a new value. The
+  first change to a ``bind`` property after the object is created always
+  dispatches, even if the getter returns the same value.
+* With ``cache=False``, it dispatches on every change to a ``bind`` property.
 
 **Behavior Changes**
 
-* **Initial value is now always dispatched.** Previously, whether the very
-  first value of an ``AliasProperty`` was dispatched (e.g. when one of its
-  ``bind``-ed dependencies changed before the alias property had ever been
-  read) depended on unrelated implementation details, such as whether the
-  alias property had already been read once, or whether an ``on_<name>``
-  handler existed on the class (which forced an early read during
-  ``__init__``). Now, the first time an alias property's value is
-  established, it is **always** dispatched exactly once.
-* **Fixed missed dispatches when the getter returns** ``None``. Previously,
-  the alias property's internally tracked value was only kept up to date
-  when ``cache=True``. This meant that with ``cache=False``, real changes
-  could be silently missed (or, if the getter's result happened to equal a
-  leftover default, dropped) whenever the getter legitimately returned
-  ``None``. The internal tracking is now always kept in sync, regardless of
-  ``cache``, so changes are correctly detected and dispatched even when the
-  getter returns ``None``.
+* **A read no longer suppresses the first dispatch** (``cache=True``). In
+  Kivy 2.x.x, reading the property before its first ``bind`` change primed
+  the cache, and that change was then dispatched only if the getter's value
+  differed. The first change now dispatches whether or not the property was
+  read.
+* **Fixed missed dispatches when the getter returns** ``None``
+  (``cache=False``). In Kivy 2.x.x, a ``bind`` change that made the getter
+  return ``None`` was not dispatched.
 
 .. code-block:: python
 
@@ -1086,35 +1085,29 @@ have been fixed (see `#6901 <https://github.com/kivy/kivy/issues/6901>`_).
             return (self.width / self.height) if self.height else None
 
         aspect_ratio = AliasProperty(
-            _get_aspect_ratio, None, bind=('width', 'height'), cache=True)
+            _get_aspect_ratio, None, bind=('width', 'height'), cache=False)
 
         def on_aspect_ratio(self, instance, value):
             print(f'aspect_ratio: {value}')
 
     # Kivy 2.x.x
-    r = Rect(width=100)
+    r = Rect(width=100)   # no dispatch
     r.height = 1   # prints "aspect_ratio: 100.0"
     r.height = 0   # missing dispatch - `on_aspect_ratio` is NOT called
 
     # Kivy 3.x.x
-    r = Rect(width=100)
+    r = Rect(width=100)   # prints "aspect_ratio: None"
     r.height = 1   # prints "aspect_ratio: 100.0"
     r.height = 0   # prints "aspect_ratio: None"
 
 **Migration Impact**
 
-This is primarily a **bug fix**. It should not require code changes for most
-applications, and in most cases will surface events (dispatches) that your
-application was previously and incorrectly *not* receiving.
-
-The one behavior to be aware of: code that binds to an ``AliasProperty``
-(directly, via ``bind()``/``fbind()``, or implicitly via an ``on_<name>``
-handler) and relies on its dependencies changing during ``__init__`` may now
-observe an extra initial dispatch call that previously did not fire in some
-constructions. If your callback assumed it would only ever be called for
-genuine value transitions, guard against redundant no-op work as needed,
-for example by comparing against the previously known value inside the
-callback itself.
+These are bug fixes, and most applications need no changes. A callback on a
+cached ``AliasProperty`` that reads the property before its first ``bind``
+change may now be called once for that change even though the value did not
+change. A callback on a non-cached ``AliasProperty`` is now also called when
+the getter returns ``None``. If the callback should only run when the value
+changes, compare against the previous value inside the callback.
 
 ====================
 Mouse Input Provider

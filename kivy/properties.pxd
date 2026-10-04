@@ -108,6 +108,7 @@ cdef class AliasPropertyStorage(PropertyStorage):
     cdef object getter
     cdef object setter
     cdef int alias_initial
+    cdef int alias_dispatched
 
 
 cdef class AliasProperty(Property):
