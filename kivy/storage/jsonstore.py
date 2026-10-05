@@ -10,7 +10,10 @@ __all__ = ('JsonStore', )
 
 
 import errno
-from os.path import exists, abspath, dirname
+from os import O_WRONLY, close, open as os_open, replace, unlink
+from os.path import exists, abspath, dirname, join, realpath
+from shutil import copymode
+from uuid import uuid4
 from kivy.storage import AbstractStore
 from kivy.utils import path_to_str
 from json import loads, dump
@@ -52,12 +55,25 @@ class JsonStore(AbstractStore):
     def store_sync(self):
         if not self._is_changed:
             return
-        with open(self.filename, 'w') as fd:
-            dump(
-                self._data, fd,
-                indent=self.indent,
-                sort_keys=self.sort_keys
-            )
+        filename = realpath(self.filename)
+        if exists(filename):
+            # Renaming over a read-only file must not bypass its write access.
+            close(os_open(filename, O_WRONLY))
+        temporary = join(dirname(filename), '.kivy-json-' + uuid4().hex)
+        fd = open(temporary, 'x')
+        try:
+            with fd:
+                dump(
+                    self._data, fd,
+                    indent=self.indent,
+                    sort_keys=self.sort_keys
+                )
+            if exists(filename):
+                copymode(filename, temporary)
+            replace(temporary, filename)
+        finally:
+            if exists(temporary):
+                unlink(temporary)
         self._is_changed = False
 
     def store_exists(self, key):
