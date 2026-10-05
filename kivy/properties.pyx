@@ -850,11 +850,13 @@ class ObservableList(list):
         list.__iadd__(self, *largs)
         self.last_op = '__iadd__', None
         observable_list_dispatch(self)
+        return self
 
     def __imul__(self, b):
         list.__imul__(self, b)
-        self.last_op = '__imul__'. b
+        self.last_op = '__imul__', b
         observable_list_dispatch(self)
+        return self
 
     def append(self, *largs):
         list.append(self, *largs)
@@ -864,6 +866,11 @@ class ObservableList(list):
     def remove(self, *largs):
         list.remove(self, *largs)
         self.last_op = 'remove', None
+        observable_list_dispatch(self)
+
+    def clear(self):
+        list.clear(self)
+        self.last_op = 'clear', None
         observable_list_dispatch(self)
 
     def insert(self, i, x):
