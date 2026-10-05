@@ -356,3 +356,33 @@ class ScrollViewTestCase(GraphicUnitTest):
 if __name__ == '__main__':
     import unittest
     unittest.main()
+
+
+def test_scroll_to_in_recycleview():
+    # RecycleLayout replaces `_trigger_layout` with a plain method, so
+    # scroll_to() must not expect a Clock trigger on it.
+    from kivy.core.window import Window
+    from kivy.lang import Builder
+
+    # RecycleView is built from kv, as in the other recycleview tests
+    rv = Builder.load_string('''
+RecycleView:
+    viewclass: 'Widget'
+    size: 100, 100
+    data: ({} for __ in range(30))
+    RecycleBoxLayout:
+        orientation: 'vertical'
+        default_size_hint: 1, None
+        default_size: 100, 100
+        size_hint: None, None
+        size: self.minimum_size
+''')
+    Window.add_widget(rv)
+    try:
+        Clock.tick()
+        layout = rv.layout_manager
+        assert layout.children
+
+        rv.scroll_to(layout.children[-1], animate=False)
+    finally:
+        Window.remove_widget(rv)
