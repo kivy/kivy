@@ -1612,3 +1612,62 @@ def test_object_init_error():  # the above 3 test rely on this
     with pytest.raises(TypeError) as cm:
         TestCls(name='foo')
     assert str(cm.value).startswith("object.__init__() takes")
+
+
+def _bool_config_widget(config_name, default):
+    from kivy.config import ConfigParser
+    from kivy.properties import ConfigParserProperty
+
+    config = ConfigParser(name=config_name)
+    config.adddefaultsection('section')
+    config.setdefaults('section', {'flag': default})
+
+    class BoolWidget(EventDispatcher):
+        flag = ConfigParserProperty(
+            True, 'section', 'flag', config_name, val_type=bool)
+
+    return config, BoolWidget()
+
+
+def test_configparserproperty_bool_reads_false_string():
+    # bool('False') is True, so the stored string used to turn into True
+    # (#2643).
+    config, widget = _bool_config_widget('bool_false_test', 'False')
+    assert widget.flag is False
+
+    config.set('section', 'flag', 'true')
+    assert widget.flag is True
+
+    config.set('section', 'flag', '0')
+    assert widget.flag is False
+
+    config.set('section', 'flag', 'on')
+    assert widget.flag is True
+
+    config.set('section', 'flag', '')
+    assert widget.flag is False
+
+
+def test_configparserproperty_bool_round_trip():
+    config, widget = _bool_config_widget('bool_round_trip_test', 'True')
+    assert widget.flag is True
+
+    widget.flag = False
+    assert config.get('section', 'flag') == 'False'
+    assert widget.flag is False
+
+
+def test_configparserproperty_bool_invalid_string_uses_errorvalue():
+    from kivy.config import ConfigParser
+    from kivy.properties import ConfigParserProperty
+
+    config = ConfigParser(name='bool_invalid_test')
+    config.adddefaultsection('section')
+    config.setdefaults('section', {'flag': 'maybe'})
+
+    class BoolWidget(EventDispatcher):
+        flag = ConfigParserProperty(
+            True, 'section', 'flag', 'bool_invalid_test',
+            val_type=bool, errorvalue=False)
+
+    assert BoolWidget().flag is False
