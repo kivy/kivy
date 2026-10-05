@@ -992,12 +992,12 @@ def test_alias_property_dispatches_on_initial_value_without_priming(self):
     self.assertEqual(values, [False, True])
 
 
-def test_alias_property_no_dispatch_when_value_primed_by_read(self):
-    # Reading a cached alias property before any dependency change
-    # "primes" its cache without dispatching, consistent with reading a
-    # property never causing a dispatch by itself. A subsequent
-    # dependency change that doesn't actually change the getter's result
-    # should therefore not dispatch either.
+def test_alias_property_dispatches_first_change_after_read(self):
+    # Regression test for https://github.com/kivy/kivy/issues/9405
+    #
+    # Reading a cached alias property primes its cache without
+    # dispatching. It must not suppress the first dispatch: the first
+    # dependency change still dispatches, as it does without the read.
     from kivy.properties import NumericProperty, AliasProperty
 
     class CustomAlias(EventDispatcher):
@@ -1014,11 +1014,157 @@ def test_alias_property_no_dispatch_when_value_primed_by_read(self):
     values = []
     wid.bind(is_adult=lambda _, v: values.append(v))
 
-    wid.age = 10  # still False: no real change
-    self.assertEqual(values, [])
+    wid.age = 10  # still False, but the first change dispatches
+    self.assertEqual(values, [False])
 
-    wid.age = 25  # crosses the threshold: real change
-    self.assertEqual(values, [True])
+    wid.age = 15  # still False: no dispatch
+    self.assertEqual(values, [False])
+
+    wid.age = 25  # crosses the threshold: dispatch
+    self.assertEqual(values, [False, True])
+
+
+def _alias_person_class(cache, handler=True):
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Person(EventDispatcher):
+        age = NumericProperty(0)
+        is_adult = AliasProperty(
+            lambda self: self.age >= 20, None, bind=('age',), cache=cache)
+
+        def __init__(self, **kwargs):
+            self.values = []
+            super().__init__(**kwargs)
+
+    if handler:
+        def on_is_adult(self, _instance, value):
+            self.values.append(value)
+        Person.on_is_adult = on_is_adult
+    return Person
+
+
+# Rows of the table in https://github.com/kivy/kivy/issues/9405.
+# Each case returns the values dispatched to `on_is_adult`.
+def _first_construct_10(Person):
+    return Person(age=10).values
+
+
+def _first_construct_25(Person):
+    return Person(age=25).values
+
+
+def _first_change_no_read_stays(Person):
+    p = Person(age=0)
+    p.age = 10
+    return p.values
+
+
+def _first_change_read_stays(Person):
+    p = Person(age=0)
+    p.is_adult
+    p.age = 10
+    return p.values
+
+
+def _first_change_no_read_crosses(Person):
+    p = Person(age=0)
+    p.age = 25
+    return p.values
+
+
+def _first_change_read_crosses(Person):
+    p = Person(age=0)
+    p.is_adult
+    p.age = 25
+    return p.values
+
+
+def _steady_state(Person, start, end):
+    p = Person(age=0)
+    p.age = start
+    p.values.clear()
+    p.age = end
+    return p.values
+
+
+@pytest.mark.parametrize('cache', [True, False])
+@pytest.mark.parametrize('case, expected', [
+    (_first_construct_10, [False]),
+    (_first_construct_25, [True]),
+    (_first_change_no_read_stays, [False]),
+    (_first_change_read_stays, [False]),
+    (_first_change_no_read_crosses, [True]),
+    (_first_change_read_crosses, [True]),
+])
+def test_alias_property_initial_dispatch(cache, case, expected):
+    assert case(_alias_person_class(cache)) == expected
+
+
+@pytest.mark.parametrize('cache', [True, False])
+def test_alias_property_initial_dispatch_bind_after_construction(cache):
+    p = _alias_person_class(cache, handler=False)(age=0)
+    values = []
+    p.bind(is_adult=lambda _instance, value: values.append(value))
+    p.age = 10
+    assert values == [False]
+
+
+@pytest.mark.parametrize('cache, start, end, expected', [
+    (True, 18, 19, []),
+    (True, 19, 20, [True]),
+    (True, 20, 21, []),
+    (False, 18, 19, [False]),
+    (False, 19, 20, [True]),
+    (False, 20, 21, [True]),
+])
+def test_alias_property_steady_state_dispatch(cache, start, end, expected):
+    assert _steady_state(_alias_person_class(cache), start, end) == expected
+
+
+@pytest.mark.parametrize('cache', [True, False])
+def test_alias_property_steady_state_dispatch_none(cache):
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Thing(EventDispatcher):
+        x = NumericProperty(1)
+        v = AliasProperty(
+            lambda self: None if self.x == 0 else self.x, None,
+            bind=('x',), cache=cache)
+
+    t = Thing()
+    t.x = 3
+    values = []
+    t.bind(v=lambda _instance, value: values.append(value))
+    t.x = 0
+    t.x = 4
+    assert values == [None, 4]
+
+
+def test_alias_property_no_cache_dispatches_same_mutated_object():
+    # Without a cache, a getter that returns the same object after it was
+    # mutated compares equal to the last value; it must still dispatch.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Box(EventDispatcher):
+        count = NumericProperty(0)
+        contents = AliasProperty(
+            lambda self: self.items, None, bind=('count',), cache=False)
+
+        def __init__(self, **kwargs):
+            self.items = []
+            super().__init__(**kwargs)
+
+        def add(self, item):
+            self.items.append(item)
+            self.count = len(self.items)
+
+    box = Box()
+    box.add('a')
+    values = []
+    box.bind(contents=lambda _instance, value: values.append(list(value)))
+    box.add('b')
+    box.add('c')
+    assert values == [['a', 'b'], ['a', 'b', 'c']]
 
 
 def test_alias_property_dispatches_when_getter_returns_none(self):
