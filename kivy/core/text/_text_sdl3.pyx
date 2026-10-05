@@ -167,6 +167,7 @@ cdef TTF_Font *_get_font(self) except *:
     cdef char *error
     cdef str s_error
     cdef bytes bytes_fontname
+    cdef float ptsize
 
     # fast path
     fontid = self._get_font_id()
@@ -183,13 +184,19 @@ cdef TTF_Font *_get_font(self) except *:
     bytes_fontname = <bytes>fontname.encode('utf-8')
     ext = fontname.rsplit('.', 1)
     if len(ext) == 2:
+        # SDL3_ttf rejects a point size of 0 or less. A font_size below 1 is
+        # a normal state, e.g. ``font_size: self.height`` on a widget that is
+        # not in the widget tree yet, so clamp it to 1 instead of raising.
+        # The size is truncated to a whole number, as it always has been, so
+        # that fractional sizes render the same as in Kivy 2.3.1.
+        ptsize = max(1, int(self.options['font_size']))
         # try to open the font if it has an extension
-        fontobject = TTF_OpenFont(bytes_fontname,
-                                  int(self.options['font_size']))
+        fontobject = TTF_OpenFont(bytes_fontname, ptsize)
     # fallback to search a system font
     if fontobject == NULL:
         s_error = SDL_GetError()
-        raise ValueError('{}: for font {}'.format(s_error, fontname))
+        raise ValueError('{}: for font {} at font_size {}'.format(
+            s_error, fontname, self.options['font_size']))
 
     # set underline and strikethrough style
     style = TTF_STYLE_NORMAL

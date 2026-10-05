@@ -168,6 +168,52 @@ class TestCoreLabelProviderSelection:
             )
 
 
+class TestSmallFontSize:
+    """A font_size below 1 must not make a label fail to render.
+
+    ``font_size: self.height`` is a common pattern, and a widget that is
+    detached from its parent has a height of 0. The SDL3 provider used to
+    raise ``ValueError: Couldn't set font size`` for such labels, because
+    SDL3_ttf rejects a point size of 0 or less.
+    """
+
+    @pytest.fixture
+    def sdl3_label_class(self, kivy_window):
+        from kivy.core.text import LabelBase
+
+        cls = LabelBase.get_provider_class("sdl3")
+        if cls is None:
+            pytest.skip("sdl3 text provider is not available")
+        return cls
+
+    @pytest.mark.parametrize("font_size", [0, 0.5, 0.9, -1])
+    def test_sdl3_label_renders_with_font_size_below_one(
+            self, sdl3_label_class, font_size):
+        label = sdl3_label_class(text="x", font_size=font_size)
+        label.refresh()
+        assert label.get_extents(" ")[0] >= 0
+
+    @pytest.mark.parametrize("font_size", [0, 0.5])
+    def test_label_widget_renders_with_font_size_below_one(
+            self, kivy_window, font_size):
+        from kivy.uix.label import Label
+
+        label = Label(text="x", font_size=font_size, text_provider="sdl3")
+        label.texture_update()
+
+    def test_sdl3_fractional_font_size_is_truncated(self, sdl3_label_class):
+        # Sizes of 1 or more are truncated to a whole number, as in 2.3.1.
+        text = "WWWWWWWW"
+        whole = sdl3_label_class(font_size=22)
+        fractional = sdl3_label_class(font_size=22.9)
+        assert fractional.get_extents(text) == whole.get_extents(text)
+
+    def test_sdl3_error_names_the_font_size(self, sdl3_label_class):
+        label = sdl3_label_class(font_size=1000000)
+        with pytest.raises(ValueError, match="font_size 1000000"):
+            label.get_extents("x")
+
+
 class TestLabelWidgetProvider:
     """Tests for text_provider property on kivy.uix.label.Label widget."""
 
