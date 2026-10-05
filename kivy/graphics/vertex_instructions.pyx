@@ -658,7 +658,7 @@ cdef class Point(VertexInstruction):
         cdef list _points = list(points)
         if len(_points) > 2**15-2:
             raise GraphicException('Too many elements (limit is 2^15-2)')
-        self._points = list(points)
+        self._points = _points
         self.flag_data_update()
 
     @property
