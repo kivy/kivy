@@ -31,9 +31,9 @@ class LabelSDL3(LabelBase):
         self._baseline_offset = 0
 
     def _get_font_id(self):
-        return '|'.join([str(self.options[x]) for x
-            in ('font_size', 'font_name_r', 'bold',
-                'italic', 'underline', 'strikethrough')])
+        return tuple(self.options[x] for x in (
+            'font_size', 'font_name_r', 'bold', 'italic', 'underline',
+            'strikethrough')) + (tuple(self.options.get('fallback_fonts', ())),)
 
     def get_extents(self, text):
         if self.options['limit_render_to_text_bbox']:

@@ -299,6 +299,8 @@ class LabelBase(object):
 
     _fonts = {}
 
+    _font_fallbacks = {}
+
     _fonts_cache = {}
 
     _fonts_dirs = []
@@ -418,7 +420,7 @@ class LabelBase(object):
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
-                 fn_bolditalic=None):
+                 fn_bolditalic=None, fallback_fonts=None):
         '''Register an alias for a Font.
 
         .. versionadded:: 1.1.0
@@ -436,6 +438,30 @@ class LabelBase(object):
         .. versionchanged:: 3.0.0
             The ``fn_*`` font paths may be :class:`os.PathLike` (e.g.
             :class:`pathlib.Path`) in addition to ``str``.
+
+        :Parameters:
+            `name`: str
+                Alias name for the font
+            `fn_regular`: str
+                Path to regular font file
+            `fn_italic`: str, optional
+                Path to italic font file
+            `fn_bold`: str, optional
+                Path to bold font file
+            `fn_bolditalic`: str, optional
+                Path to bold+italic font file
+            `fallback_fonts`: list, optional
+                Ordered fallback font file paths (str or os.PathLike), used
+                by the SDL3 text provider. Missing files raise IOError, as
+                for the primary font. An empty list disables fallback.
+                Other providers retain their existing font selection.
+
+        .. versionchanged:: 3.0.0
+            Added ``fallback_fonts``. Fallback files are opened at the primary
+            font's size. Pass the appropriate font files for the desired style.
+            Register an alias for each style-specific fallback chain if needed.
+            System font discovery is opt-in; see
+            :class:`~kivy.core.text.system_emoji_fonts.SystemEmojiFontsFinder`.
         '''
 
         if fn_regular is None:
@@ -455,7 +481,21 @@ class LabelBase(object):
             else:
                 fonts.append(fonts[0])  # add regular font to list again
 
+        if isinstance(fallback_fonts, (str, bytes, os.PathLike)):
+            raise TypeError('fallback_fonts must be a sequence of font paths')
+        validated_fallbacks = []
+        for fallback in fallback_fonts or ():
+            fallback = path_to_str(fallback)
+            fallback_path = resource_find(fallback) if fallback else None
+            if fallback_path is None or not os.path.isfile(fallback_path):
+                raise IOError('Fallback font file {!r} not found'.format(fallback))
+            if fallback_path not in validated_fallbacks:
+                validated_fallbacks.append(fallback_path)
+
+        # Keep the existing four-face registry format for all text providers.
+        # Publish only after validating the complete registration.
         LabelBase._fonts[name] = tuple(fonts)
+        LabelBase._font_fallbacks[name] = tuple(validated_fallbacks)
 
     @staticmethod
     def register_provider(cls):
@@ -540,6 +580,7 @@ class LabelBase(object):
         fontname = options['font_name'] = path_to_str(options['font_name'])
         fonts = self._fonts
         fontscache = self._fonts_cache
+        options['fallback_fonts'] = ()
 
         if self._font_family_support and options['font_family']:
             options['font_name_r'] = None
@@ -547,6 +588,8 @@ class LabelBase(object):
 
         # is the font registered?
         if fontname in fonts:
+            options['fallback_fonts'] = self._font_fallbacks.get(fontname, ())
+
             # return the preferred font for the current bold/italic combination
             italic = int(options['italic'])
             if options['bold']:
