@@ -1,0 +1,137 @@
+#:import uuid uuid
+
+# A tiny todo app written entirely in kv, showcasing the control statements:
+# slot (with a slot-scoped local and ids in fills), if/else, for (with key:
+# and an iteration-local) and factory.
+# Run it with:  python3 kvrun.py app_todo.kv
+#
+# State is a {uid: task} dict. A kv dict literal is a DictProperty, which
+# dispatches on in-place key ops -- so one task can be updated/added/removed
+# with `tasks[uid] = ...` / `del tasks[uid]`, no whole-container copy.
+# Note the dict.items(x) / dict.values(x) form: passing the property as a bare
+# argument lets kv bind it (x.items() would hide `x` behind the call and the
+# binding would never fire) -- the usual kv binding gotchas apply to control
+# headers too.
+
+# the two presentations the factory switches between per task
+<TodoLabel@Label>:
+    task: None
+    halign: 'left'
+    valign: 'middle'
+    text_size: self.size
+    text: root.task['text'] if root.task else ''
+
+<DoneLabel@TodoLabel>:
+    markup: True
+    color: .5, .5, .5, 1
+    text: ('[s]' + root.task['text'] + '[/s]') if root.task else ''   # struck through
+
+# --- a reusable framed panel with a customizable header (slot) ---
+<Panel@BoxLayout>:
+    # declared here (not just on the instance) so kv infers a DictProperty,
+    # which dispatches on in-place key ops; an instance-only `tasks:` would be
+    # a plain ObjectProperty and setitem would not re-render
+    tasks: {}
+    orientation: 'vertical'
+    padding: dp(12)
+    spacing: dp(8)
+    canvas.before:
+        Color:
+            rgba: .12, .12, .14, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    slot header:
+        # slot-scoped local: computed by Panel, readable by any header fill
+        # (and the fallback below) as `slot.summary`
+        summary: f'{len(root.tasks)} task(s)'
+        Label:                                  # fallback, overridden below
+            text: slot.summary
+            size_hint_y: None
+            height: dp(32)
+    slot:                                        # default slot: body lands here
+
+
+# --- the app ---
+Panel:
+    tasks: {uuid.uuid4(): {'text': 'Buy milk', 'done': False}, uuid.uuid4(): {'text': 'Write a kv example', 'done': False}, uuid.uuid4(): {'text': 'Tick me off', 'done': False}}
+    # reactive aggregate; dict.values(self.tasks) keeps `self.tasks` bindable
+    done: len([t for t in dict.values(self.tasks) if t['done']])
+
+    slot header:                                 # fill the panel's header slot
+        Label:
+            # the fill reads the slot-scoped local computed by Panel
+            text: f'My tasks - {slot.summary}, {root.done} done'
+            font_size: '20sp'
+            size_hint_y: None
+            height: dp(32)
+
+    slot:                                        # explicit default fill: ids are
+        BoxLayout:                               # allowed on explicit slot content
+            orientation: 'vertical'
+            spacing: dp(6)
+
+            BoxLayout:                           # input row
+                size_hint_y: None
+                height: dp(40)
+                spacing: dp(8)
+                TextInput:
+                    id: field                    # reactive id on this rule's scope
+                    hint_text: 'Add a task and press Enter'
+                    multiline: False
+                    focus: True
+                    on_text_validate:
+                        if field.text.strip(): root.tasks[uuid.uuid4()] = {'text': field.text, 'done': False}
+                        field.text = ''
+                        field.focus = True
+                Button:
+                    text: 'Add'
+                    size_hint_x: None
+                    width: dp(70)
+                    # `field` is a reactive id (None until the TextInput
+                    # exists), hence the trailing guard. And as everywhere in
+                    # kv, `field.text` must end the dotted chain for kv to
+                    # bind it -- a bare `field.text.strip()` would never
+                    # re-evaluate (see the kv gotchas), so keep the parens.
+                    disabled: not (field.text or '').strip() if field else True
+                    on_release: field.dispatch('on_text_validate')
+
+            if not root.tasks:                   # empty state / hint (if / else)
+                Label:
+                    text: 'No tasks yet. Add one above.'
+                    size_hint_y: None
+                    height: dp(28)
+            else:
+                Label:
+                    text: 'Tick to complete, press x to delete.'
+                    size_hint_y: None
+                    height: dp(28)
+
+            for uid, task in dict.items(root.tasks):     # one row per task
+                key: uid                         # same key => same widgets; a
+                                                 # replaced task re-dispatches
+                                                 # through the kept row's bindings
+                kind: 'DoneLabel' if task['done'] else 'TodoLabel'   # iteration-local
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(36)
+                    spacing: dp(8)
+                    CheckBox:
+                        size_hint_x: None
+                        width: dp(40)
+                        activated: task['done']          # note: 'activated', not 'active'
+                        on_activated:
+                            # in-place update of one task -- the DictProperty
+                            # dispatches, the row is kept (stable key) and its
+                            # bindings receive the new task value
+                            root.tasks[uid] = dict(task, done=self.activated)
+                    factory kind:                # done vs todo presentation
+                        task: task
+                    Button:
+                        text: 'x'
+                        size_hint_x: None
+                        width: dp(36)
+                        on_release:
+                            del root.tasks[uid]
+
+            Widget:                              # spacer: keep content at the top
