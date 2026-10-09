@@ -525,7 +525,7 @@ def format_bytes_to_human(size, precision=2):
     size = int(size)
     fmt = '%%1.%df %%s' % precision
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size < 1024.0:
+        if size < 1024.0 or unit == 'TB':
             return fmt % (size, unit)
         size /= 1024.0
 
