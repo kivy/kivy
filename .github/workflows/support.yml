@@ -1,4 +1,4 @@
-name: 'Support Requests'
+name: 'Support Requests and denied AI contributions'
 
 on:
   issues:
@@ -11,7 +11,8 @@ jobs:
   action:
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/support-requests@v5
+      - name: Handle support requests
+        uses: dessant/support-requests@v5
         with:
           github-token: ${{ github.token }}
           support-label: 'support'
@@ -20,14 +21,37 @@ jobs:
             However, this issue appears to be a support request. Please use our
             [support channels](https://github.com/kivy/kivy/blob/master/CONTACT.md)
             to get help with the project.
-                        
+
             If you're having trouble installing Kivy,
             make sure to check out the installation docs for
             [Windows](https://kivy.org/docs/installation/installation-windows.html),
             [Linux](https://kivy.org/docs/installation/installation-linux.html) and
             [macOS](https://kivy.org/docs/installation/installation-osx.html).
-                        
+
             Let us know if this comment was made in error, and we'll be happy
             to reopen the issue.
           close-issue: true
           lock-issue: false
+
+      - name: Handle AI-assisted nonsense
+        uses: dessant/support-requests@v5
+        with:
+          github-token: ${{ github.token }}
+          support-label: 'ai-nonsense'
+          issue-comment: >
+            ❌ Thanks for taking the time to open this issue. However, it appears
+            to be low-effort or unverified AI-generated content (for example, a
+            bug report that can't be reproduced or a description that doesn't
+            match the actual behavior of the project).
+
+            Please review our contribution guidelines before resubmitting. If you
+            used AI tools, make sure you have verified the problem yourself and
+            can provide a minimal reproducible example and relevant version
+            details.
+
+            You can ask us on [Discord](https://chat.kivy.org) to reopen this
+            Issue ticket or Pull Request if you think we made a misstake by
+            closing this ticket/PR.
+          close-issue: true
+          lock-issue: true
+          issue-lock-reason: 'spam'
