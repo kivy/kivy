@@ -27,6 +27,11 @@ until it is confirmed as very likely to be a bug in Kivy. (New feature requests
 are welcome.) Please ask us for help at one of the above forums about what
 to check and what information to include before submitting an issue.
 
+If you used an LLM (AI) to write or help with your issue ticket, please include
+real logs from where the code is crashing. We can't do much without them. If
+the same author keeps posting new tickets without providing the details we ask
+for, we will have to ban them from the organization.
+
 There are also independent communities on 
 [StackOverflow](https://stackoverflow.com/questions/tagged/kivy) and 
 [Reddit](https://www.reddit.com/r/kivy/) that accept Kivy-related support
