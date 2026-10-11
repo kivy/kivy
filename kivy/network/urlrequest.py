@@ -518,8 +518,8 @@ class UrlRequestBase(Thread):
         return self._chunk_size
 
     def wait(self, delay=0.5):
-        '''Wait for the request to finish (until :attr:`resp_status` is not
-        None)
+        '''Wait for a response or an error (until :attr:`resp_status` is not
+        None or :attr:`is_finished` is True).
 
         .. note::
             This method is intended to be used in the main thread, and the
@@ -528,7 +528,7 @@ class UrlRequestBase(Thread):
 
         .. versionadded:: 1.1.0
         '''
-        while self.resp_status is None:
+        while self.resp_status is None and not self.is_finished:
             self._dispatch_result(delay)
             sleep(delay)
 
