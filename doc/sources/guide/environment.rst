@@ -53,7 +53,7 @@ KIVY_DESKTOP_PATH_ID
     Kivy applications to have isolated configuration and log directories.
 
     When set, the identifier is normalized for filesystem safety (invalid
-    characters like /\\:*?"<>| are replaced with underscores) and used to
+    characters like /\\:\*?"<>| are replaced with underscores) and used to
     construct KIVY_HOME, user_data_dir, and user_cache_dir paths.
 
     Use this to display a clear, recognizable name like "My Photo Editor" or
