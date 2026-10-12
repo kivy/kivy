@@ -42,6 +42,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Artistic Software",
     "Topic :: Games/Entertainment",
     "Topic :: Multimedia :: Graphics :: 3D Rendering",
@@ -125,7 +126,7 @@ namespaces = false
 cython_min = "0.29.1"
 cython_max = "3.2.0"
 cython_exclude = ""
-python_versions = "3.11 - 3.14"
+python_versions = "3.11 - 3.15"
 
 [tool.cibuildwheel.android]
 # Use cp to skip the default repair (which requires API 24+ for libc++_shared.so)
