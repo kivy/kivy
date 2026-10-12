@@ -1,0 +1,232 @@
+from collections import defaultdict
+
+import kivy
+import kivy.core.accessibility
+from kivy.uix import widget
+from sys import platform
+from . import AccessibilityBase, Action as KivyAction, Role as KivyRole
+
+
+Node = Tree = Role = TreeUpdate = Action = Rect = Toggled = None
+
+
+class AccessKit(AccessibilityBase):
+    def __init__(self, root_window):
+        global Node, Tree, Role, TreeUpdate, Action, Rect, Toggled
+        import accesskit
+        Node = accesskit.Node
+        Tree = accesskit.Tree
+        Role = kivy.core.accessibility.Role
+        TreeUpdate = accesskit.TreeUpdate
+        Action = accesskit.Action
+        Rect = accesskit.Rect
+        Toggled = accesskit.Toggled
+        super().__init__()
+        self.node_classes = []
+        self.adapter = None
+        self.root_window = root_window
+        self.root_window_size = None
+        root_window.bind(size=lambda w, v: self._update_root_window_size(v))
+        self.action_request_callback = None
+        self.initialized = False
+
+    def _update_root_window_focus(self, is_focused):
+        if self.adapter is None:
+            return
+        if platform == "darwin":
+            events = self.adapter.update_view_focus_state(is_focused)
+            if events is not None:
+                events.raise_events()
+        elif "linux" in platform or "freebsd" in platform or "openbsd" in platform:
+            self.adapter.update_window_focus_state(is_focused)
+
+    def _update_root_window_size(self, size):
+        self.root_window_size = size
+
+    def _build_tree_info(self):
+        tree = Tree(self.root_window.uid)
+        tree.toolkit_name = "Kivy"
+        tree.toolkit_version = kivy.__version__
+        return tree
+
+    def _build_dummy_tree(self):
+        # If there is no assistive technology running, then this might never
+        # be called. We don't really know when the first accessibility tree
+        # will be requested: if it's early in the app initialization then we
+        # might not have everything ready. It's OK to first push an empty
+        # tree update and replace it later.
+        root = Node(Role.WINDOW)
+        update = TreeUpdate(self.root_window.uid)
+        update.nodes.append((self.root_window.uid, root))
+        update.tree = self._build_tree_info()
+        self.initialized = True
+        return update
+
+    def _on_action_request(self, request):
+        # An assistive technology wants to perform an action on behalf of
+        # the user.
+        if request.action == Action.FOCUS:
+            action = KivyAction.FOCUS
+        elif request.action == Action.DEFAULT:
+            action = KivyAction.DEFAULT
+        else:
+            return
+        if self.action_request_callback:
+            # If we are properly initialized, forward the action to
+            # the accessibility manager.
+            self.action_request_callback(request.target, action)
+
+    @staticmethod
+    def _handle_deactivation(*args, **kwargs): ...
+
+    def install(self, window_info, width, height):
+        self.root_window_size = (width, height)
+        if platform == "darwin":
+            # The following function will need to be called.
+            # Since it's SDL2 specific, should it really belong here?
+            # macos.add_focus_forwarder_to_window_class("SDLWindow")
+            from accesskit import macos
+
+            self.adapter = macos.SubclassingAdapter(
+                window_info.window, self._build_dummy_tree, self._on_action_request
+            )
+        elif "linux" in platform or "freebsd" in platform or "openbsd" in platform:
+            from accesskit import unix
+
+            self.adapter = unix.Adapter(
+                self._build_dummy_tree,
+                self._on_action_request,
+                self._handle_deactivation,
+            )
+        elif platform in ("win32", "cygwin"):
+            from accesskit import windows
+
+            self.adapter = windows.SubclassingAdapter(
+                window_info.window, self._build_dummy_tree, self._on_action_request
+            )
+
+    def _build_node(self, accessible: widget.Widget):
+        role = to_accesskit_role(accessible.accessible_role)
+        node = Node(role)
+        (x, y) = accessible.to_window(*accessible.accessible_pos)
+        # Kivy figures y from the bottom of the window, but AccessKit figures
+        # y from the top of the window
+        y = self.root_window.height - y
+        (width, height) = accessible.accessible_size
+        bounds = Rect(x, y, x + width, y - height)
+        node.set_bounds(bounds)
+
+        if role == Role.BUTTON:
+            node.add_action(Action.CLICK)
+            node.add_action(Action.FOCUS)
+        elif role == Role.GENERIC_CONTAINER:
+            node.set_touch_transparent()
+        elif role == Role.CHECK_BOX:
+            node.add_action(Action.CLICK)
+            node.add_action(Action.FOCUS)
+            if hasattr(accessible, "active"):
+                node.set_toggled(Toggled.TRUE if accessible.active else Toggled.FALSE)
+            elif hasattr(accessible, "state"):
+                node.set_toggled(
+                    Toggled.TRUE if accessible.state == "down" else Toggled.FALSE
+                )
+        if acc_childs := getattr(accessible, "accessible_children", None):
+            node.set_children(acc_childs)
+        elif node.children:
+            node.set_children([child.uid for child in node.children])
+        if acc_name := getattr(accessible, "accessible_name", None):
+            node.set_label(acc_name)
+        if acc_txt := getattr(accessible, "text", None):
+            node.set_value(acc_txt)
+            node.set_description(acc_txt)
+            if not node.label:
+                node.set_label(acc_txt)
+        if hint_txt := getattr(accessible, "hint_text", None):
+            node.set_placeholder(hint_txt)
+        if "focus" in accessible.properties():
+            node.set_custom_actions([Action.FOCUS])
+        elif accessible.is_clickable:
+            node.set_default_action_verb(Action.CLICK)
+        return node
+
+    def _build_tree_update(self, root_window_changed=True):
+        # If no widget has the focus, then we must put it on the root window.
+        focus = (
+            widget.focused_widget.uid if widget.focused_widget else self.root_window.uid
+        )
+        update = TreeUpdate(focus)
+        update.tree = self._build_tree_info()
+        if root_window_changed:
+            node = Node(Role.WINDOW)
+            node.set_label(self.root_window.title)
+            update.tree.root = self.root_window.uid
+            update.nodes = [(self.root_window.uid, node)]
+            childs = defaultdict(set)
+            nodes = {self.root_window.uid: node}
+            for id_, accessible in widget.updated_widgets.items():
+                if accessible.parent == self.root_window:
+                    childs[self.root_window.uid].add(id_)
+                    node = self._build_node(accessible)
+                    update.nodes.append((id_, node))
+                    nodes[id_] = node
+                else:
+                    ancestry = [accessible]
+                    here = accessible
+                    while here.parent is not here:
+                        here = here.parent
+                        ancestry.append(here)
+                    if self.root_window != ancestry.pop():
+                        raise RuntimeError("Not in the right window")
+                    prev = ancestry.pop()
+                    if prev.uid in nodes:
+                        prev_node = nodes[prev.uid]
+                    else:
+                        prev_node = self._build_node(prev)
+                        nodes[prev.uid] = prev_node
+                    childs[self.root_window.uid].add(prev.uid)
+                    if prev.uid not in childs[self.root_window.uid]:
+                        update.nodes.append((prev.uid, prev_node))
+                    while ancestry:
+                        accessible = ancestry.pop()
+                        if accessible.uid in nodes:
+                            accessible_node = nodes[accessible.uid]
+                        else:
+                            accessible_node = self._build_node(accessible)
+                            nodes[accessible.uid] = accessible_node
+                        if accessible.uid not in childs[prev.uid]:
+                            update.nodes.append((accessible.uid, accessible_node))
+                            childs[prev.uid].add(accessible.uid)
+                        (prev, prev_node) = (accessible, accessible_node)
+            if self.node_classes:
+                node.class_name = self.node_classes[0]
+            for id_, node in nodes.items():
+                if id_ in childs:
+                    node.set_children(list(childs[id_]))
+        else:
+            for id, accessible in widget.updated_widgets.items():
+                update.nodes.append((id, self._build_node(accessible)))
+        return update
+
+    def update(self, root_window_changed=False):
+        if not self.adapter:
+            return False
+        if not self.initialized:
+            self._build_dummy_tree()
+        events = self.adapter.update_if_active(
+            lambda: self._build_tree_update(root_window_changed)
+        )
+        if events:
+            events.raise_events()
+        return True
+
+
+def to_accesskit_role(role):
+    if role == KivyRole.LABEL:
+        return Role.LABEL
+    elif role == KivyRole.GENERIC_CONTAINER:
+        return Role.GENERIC_CONTAINER
+    elif role == KivyRole.TOGGLE:
+        return Role.CHECK_BOX
+    elif role == KivyRole.BUTTON:
+        return Role.BUTTON
+    return Role.UNKNOWN
