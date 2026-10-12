@@ -28,6 +28,17 @@ class UtilsTest(unittest.TestCase):
         c = format_bytes_to_human(646368746541)
         self.assertEqual(c, '601.98 GB')
 
+    def test_format_bytes_to_human_largest_unit(self):
+        for size, expected in [(2 ** 50, '1024.00 TB'),
+                               (5 * 2 ** 50, '5120.00 TB'),
+                               (2 ** 80, '1099511627776.00 TB')]:
+            with self.subTest(size=size):
+                self.assertEqual(format_bytes_to_human(size), expected)
+
+    def test_format_bytes_to_human_largest_unit_precision(self):
+        self.assertEqual(format_bytes_to_human(2 ** 50 + 2 ** 39, 4),
+                         '1024.5000 TB')
+
     def test_boundary(self):
         x = boundary(-1000, 0, 100)
         self.assertEqual(x, 0)
