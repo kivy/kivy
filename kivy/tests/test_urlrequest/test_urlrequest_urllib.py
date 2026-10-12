@@ -421,7 +421,7 @@ def test_decode_json(kivy_clock, httpserver):
 
 @pytest.mark.timeout(30)
 def test_decode_disabled(kivy_clock, httpserver):
-    """``decode=False`` bypasses the application/json auto-parser."""
+    """``decode=False`` preserves the raw application/json response bytes."""
     body = {'a': 1, 'b': [2, 3]}
     httpserver.expect_request('/data').respond_with_json(body)
     obj = UrlRequestQueue()
@@ -438,8 +438,7 @@ def test_decode_disabled(kivy_clock, httpserver):
     ensure_called_from_thread(obj.queue)
     assert obj.queue[-1][1] == 'success'
     (result,) = obj.queue[-1][2]
-    # Still a string (utf-8 decoded), but never passed through json.loads.
-    assert isinstance(result, str)
+    assert isinstance(result, bytes)
     assert json.loads(result) == body
 
 
