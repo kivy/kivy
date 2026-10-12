@@ -25,11 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [ '3.13', '3.14' ]
+        python: [ '3.13', '3.14', '3.15' ]
     env:
       DISPLAY: ':99.0'
-      # TODO: Only run tests on 3.14 once "ffpyplayer" works with Python 3.14
-      KIVY_TEST_AUDIO: ${{ matrix.python == '3.14' && '0' || '1' }}
+      # TODO: Only run tests on 3.14 and 3.15 once "ffpyplayer" works with Python 3.14 and 3.15
+      KIVY_TEST_AUDIO: ${{ (matrix.python == '3.14' || matrix.python == '3.15') && '0' || '1' }}
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python 3
