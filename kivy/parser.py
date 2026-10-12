@@ -60,7 +60,7 @@ def parse_color(text):
                 # default r/g/b values to 1 if greater than 255 else x/255
                 value = [1 if int(x) > 255. else (int(x) / 255.)
                          for x in re.split(', ?', res.groups()[0])]
-                if len(value) < 3:
+                if len(value) < 3 or len(value) > 4:
                     # in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
             except ValueError:
