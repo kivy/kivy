@@ -341,6 +341,7 @@ class Gesture:
             return 0
         p = dstpts.strokes[0].points[0]
         target = Vector([p.x, p.y])
+        p = self.strokes[0].points[0]
         source = Vector([p.x, p.y])
         return source.angle(target)
 
