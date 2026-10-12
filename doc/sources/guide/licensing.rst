@@ -32,7 +32,7 @@ code.
 .. _dcutil: https://docutils.sourceforge.io/COPYING.html
 
 * |dcutil|_
-* `pygments https://github.com/pygments/pygments/blob/master/LICENSE`_
+* `pygments <https://github.com/pygments/pygments/blob/master/LICENSE>`_
 * `sdl3 <https://www.libsdl.org/license.php>`_
 * `glew <https://glew.sourceforge.net/glew.txt>`_
 * `gstreamer <https://github.com/GStreamer/gstreamer/blob/master/COPYING>`_

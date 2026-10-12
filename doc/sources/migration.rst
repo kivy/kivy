@@ -1019,7 +1019,7 @@ different instances could overwrite each other.
 This is primarily a **bug fix** and a set of **new features**. It should not
 require code changes for most applications. However, if your codebase
 intentionally relied on the legacy shared throttling behavior across different
-instances, you can restore this behavior by using the **``@classmethod``** 
+instances, you can restore this behavior by using the ``@classmethod`` 
 decorator above ``@triggered``. 
 
 This ensures the trigger is bound to the class object rather than individual 
@@ -1340,4 +1340,3 @@ If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a
 location. You may need to migrate existing data (see Linux migration example above).
 
 For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
-```

@@ -147,7 +147,7 @@ The table below shows the supported combinations of window provider and GL backe
 | egl_rpi                            | gl                                | y*    | y*    | y*    | n     |
 +------------------------------------+-----------------------------------+-------+-------+-------+-------+
 
-*The ``egl_rpi`` (deprecated) window provider is only available on Raspberry Pi OS Buster (32 bit).
+\*The ``egl_rpi`` (deprecated) window provider is only available on Raspberry Pi OS Buster (32 bit).
 
 .. _KIVY_WINDOW: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
 .. _KIVY_GL_BACKEND: https://kivy.org/doc/stable/guide/environment.html#restrict-core-to-specific-implementation
