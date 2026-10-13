@@ -6,29 +6,29 @@
     padding: 5
     ToggleButton:
         group: 'mainmenu'
-        state: 'down'
+        activated: True
         text: 'Gesture Surface'
         on_press:
             app.manager.current = 'surface'
-            if self.state == 'normal': self.state = 'down'
+            if not self.activated: self.activated = True
     ToggleButton:
         group: 'mainmenu'
         text: 'History'
         on_press:
             app.manager.current = 'history'
-            if self.state == 'normal': self.state = 'down'
+            if not self.activated: self.activated = True
     ToggleButton:
         group: 'mainmenu'
         text: 'Database'
         on_press:
             app.goto_database_screen()
-            if self.state == 'normal': self.state = 'down'
+            if not self.activated: self.activated = True
     ToggleButton:
         group: 'mainmenu'
         text: 'Settings'
         on_press:
             app.manager.current = 'settings'
-            if self.state == 'normal': self.state = 'down'
+            if not self.activated: self.activated = True
 
 <MultistrokeAppSettings>:
     pos_hint: {'top': 1}

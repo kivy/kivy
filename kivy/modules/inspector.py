@@ -111,10 +111,10 @@ Builder.load_string('''
 
             ToggleButton:
                 text: 'Inspect'
-                on_state: root.inspect_enabled = args[1] == 'down'
                 size_hint_x: None
-                state: 'down' if root.inspect_enabled else 'normal'
+                activated: True if root.inspect_enabled else False
                 width: 80
+                on_activated: root.inspect_enabled = args[1] == True
 
             Button:
                 text: 'Parent'
@@ -530,7 +530,7 @@ class Inspector(Factory.FloatLayout):
             try:
                 widget.bind(**{key: partial(
                     self.update_node_content, weakref.ref(node))})
-            except:
+            except Exception:
                 pass
             treeview.add_node(node)
 
@@ -621,7 +621,7 @@ class Inspector(Factory.FloatLayout):
             for option in prop.options:
                 button = Factory.ToggleButton(
                     text=option,
-                    state='down' if option == value else 'normal',
+                    activated=True if option == value else False,
                     group=repr(content.uid), size_hint_y=None,
                     height=44)
                 button.bind(on_press=partial(
@@ -637,8 +637,8 @@ class Inspector(Factory.FloatLayout):
                 content = Factory.Label(text=repr(value))
 
         elif isinstance(prop, BooleanProperty):
-            state = 'down' if value else 'normal'
-            content = Factory.ToggleButton(text=key, state=state)
+            state = True if value else False
+            content = Factory.ToggleButton(text=key, activated=state)
             content.bind(on_release=partial(self.save_property_boolean, widget,
                                             key, index))
 
@@ -652,7 +652,7 @@ class Inspector(Factory.FloatLayout):
                 getattr(widget, key)[index] = float(instance.text)
             else:
                 setattr(widget, key, float(instance.text))
-        except:
+        except Exception:
             pass
 
     def save_property_text(self, widget, key, index, instance, value):
@@ -661,23 +661,23 @@ class Inspector(Factory.FloatLayout):
                 getattr(widget, key)[index] = instance.text
             else:
                 setattr(widget, key, instance.text)
-        except:
+        except Exception:
             pass
 
-    def save_property_boolean(self, widget, key, index, instance, ):
+    def save_property_boolean(self, widget, key, index, instance, *args):
         try:
-            value = instance.state == 'down'
+            value = instance.activated
             if index >= 0:
                 getattr(widget, key)[index] = value
             else:
                 setattr(widget, key, value)
-        except:
+        except Exception:
             pass
 
     def save_property_option(self, widget, key, instance, *largs):
         try:
             setattr(widget, key, instance.text)
-        except:
+        except Exception:
             pass
 
     def _update_widget_tree_node(self, node, widget, is_open=False):

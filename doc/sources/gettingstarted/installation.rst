@@ -54,9 +54,10 @@ If no wheels are available ``pip`` will build the package from sources (i.e. on 
 Alternatively, installing :ref:`from source<kivy-source-install>` is required for newer Python versions not listed
 above or if the wheels do not work or fail to run properly.
 
-On RPi, when using a 32 bit OS, wheels are provided for Python 3.7 (Raspberry Pi OS Buster) and Python 3.9 (Raspberry Pi OS Bullseye),
-via the `PiWheels <https://www.piwheels.org/>`_ project. For other Python versions, on 32 bit OSes, you will need to
-install from source.
+On RPi, when using a 32 bit OS, wheels are provided for Python 3.11 (Raspberry Pi OS Bookworm)
+via the `PiWheels <https://www.piwheels.org/>`_ project.
+
+For other Python versions, on 32 bit OSes, you will need to install from source.
 
 
 Setup terminal and pip
@@ -74,13 +75,13 @@ subsequent commands outside the virtual environment)::
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a new `virtual environment <https://virtualenv.pypa.io/en/latest/>`_
+Create a new `virtual environment <https://docs.python.org/3/library/venv.html>`_
 for your Kivy project. A virtual environment will prevent possible installation conflicts
 with other Python versions and packages. It's optional **but strongly recommended**:
 
 #. Create the virtual environment named ``kivy_venv`` in your current directory::
 
-       python -m virtualenv kivy_venv
+       python -m venv kivy_venv
 
 #. Activate the virtual environment. You will have to do this step from the current directory
    **every time** you start a new terminal. This sets up the environment so the new ``kivy_venv``
@@ -121,6 +122,15 @@ This also installs the minimum dependencies of Kivy. To additionally install Kiv
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
+.. note::
+
+    When using Raspberry Pi OS Lite or similar Linux-based headless systems, it may be necessary to install additional
+    dependencies to ensure Kivy functions properly.
+
+    For instance, on Raspberry Pi OS Lite, you will be required to install the following dependencies::
+
+        apt-get install libgl1-mesa-glx libgles2-mesa libegl1-mesa libmtdev1
+
 .. _kivy-source-install:
 
 From source
@@ -140,12 +150,14 @@ First install the additional system dependencies listed for each platform:
     managers (e.g. ``apt`` or ``brew``). However, this is no longer officially supported as the version
     of SDL provided by the package managers is often outdated and may not work with Kivy as we
     try to keep up with the latest SDL versions in order to support the latest features and bugfixes.
+    Additionally, on macOS, we now build SDL without OpenGL support by default, as is deprecated by Apple and
+    we now use ANGLE via Metal backend for OpenGL support.
 
     **You can still install the SDL dependencies from package managers if you wish, but we no longer
     offer support for this.**
 
     Instead, we recommend installing the SDL dependencies from source. This is the same process
-    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a 
+    our CI uses to build the wheels. The SDL dependencies are built from source and installed into a
     specific directory.
 
 With all the build tools installed, you can now install the SDL dependencies from source for SDL support
@@ -166,7 +178,7 @@ On **macOS**::
 
 On **Linux**::
 
-    curl -O https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
+    curl https://raw.githubusercontent.com/kivy/kivy/master/tools/build_linux_dependencies.sh -o build_kivy_deps.sh
 
 Make the script executable::
 
@@ -179,6 +191,14 @@ Finally, run the script::
 The script will download and build the SDL dependencies from source. It will also install
 the dependencies into a directory named `kivy-dependencies`. This directory will be used
 by Kivy to build and install Kivy from source with SDL support.
+
+On macOS it is still possible to build SDL3 with the Apple-provided OpenGL framework, but it is
+deprecated by Apple and we recommend using (default) ANGLE via Metal backend for OpenGL support.
+
+To build SDL3 with Apple-provided OpenGL framework, you can run the script with the 
+``USE_LEGACY_OPENGL`` environment variable set to ``1``::
+
+    USE_LEGACY_OPENGL=1 ./build_kivy_deps.sh
 
 Kivy will need to know where the SDL dependencies are installed. To do so, you must set
 the ``KIVY_DEPS_ROOT`` environment variable to the path of the ``kivy-dependencies`` directory.
@@ -197,6 +217,12 @@ To install the latest cutting-edge Kivy from **master**, instead do::
 
     python -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
 
+If ``USE_LEGACY_OPENGL=1`` has been used to build SDL3 with Apple-provided OpenGL framework, you will need to
+build Kivy without ANGLE support. To do so, you can set the ``USE_ANGLE_GL_BACKEND`` environment variable to
+``0`` before while installing Kivy. For example::
+
+    USE_ANGLE_GL_BACKEND=0 python -m pip install "kivy[base]" kivy_examples --no-binary kivy
+
 If you want to install Kivy from a different branch, from your forked repository, or
 from a specific commit (e.g. to test a fix from a user's PR) replace the corresponding
 components of the url.
@@ -204,6 +230,7 @@ components of the url.
 For example to install from the ``stable`` branch, the url becomes
 ``https://github.com/kivy/kivy/archive/stable.zip``. Or to try a specific commit hash, use e.g.
 ``https://github.com/kivy/kivy/archive/3d3e45dda146fef3f4758aea548da199e10eb382.zip``
+
 
 .. _kivy-nightly-install:
 
@@ -311,7 +338,7 @@ Installing Kivy's dependencies
 ------------------------------
 
 Kivy supports one or more backends for its core providers. E.g. it supports glew, angle,
-and sdl2 for the graphics backend on Windows. For each category (window, graphics, video,
+and sdl3 for the graphics backend on Windows. For each category (window, graphics, video,
 audio, etc.), at least one backend must be installed to be able to use the category.
 
 To facilitate easy installation, we provide ``extras_require``
@@ -319,7 +346,7 @@ To facilitate easy installation, we provide ``extras_require``
 that will install selected backends to ensure a working Kivy installation. So one can install
 Kivy more simply with e.g.``pip install "kivy[base,media,tuio]"``. The full list of selectors and
 the packages they install is listed in
-`setup.py <https://github.com/kivy/kivy/blob/master/setup.cfg>`_. The exact packages in each selector
+`pyproject.toml <https://github.com/kivy/kivy/blob/master/pyproject.toml>`_. The exact packages in each selector
 may change in the future, but the overall goal of each selector will remain as described below.
 
 We offer the following selectors:
@@ -337,15 +364,15 @@ We offer the following selectors:
 
 The following selectors install backends packaged as wheels by kivy under the ``Kivy_deps`` namespace.
 They are typically released and versioned to match specific Kivy versions, so we provide selectors
-to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl2==x.y.z``,
-you can now do ``pip install "kivy[sdl2]"`` to automatically install the correct sdl2 for the Kivy
+to facilitate installation (i.e. instead of having to do ``pip install kivy kivy_deps.sdl3==x.y.z``,
+you can now do ``pip install "kivy[sdl3]"`` to automatically install the correct sdl3 for the Kivy
 version).
 
     `gstreamer`: The gstreamer video/audio backend, if it's available
         (currently only on Windows)
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
-    `sdl2`: The window/image/audio backend, if it's available (currently only on Windows,
+    `sdl3`: The window/image/audio backend, if it's available (currently only on Windows,
         on macOS, Linux and *BSD Unix is already included in the main Kivy wheel).
     `glew`: A alternate OpenGL backend, if it's available (currently only on Windows)
 
@@ -357,7 +384,7 @@ Following are the ``kivy_deps`` dependency wheels:
   We only provide it on Windows, for other platforms it must be installed independently.
   Alternatively, use `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_  instead.
 
-* `glew <http://glew.sourceforge.net/>`_ and/or
+* `glew <https://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_
 
   ``kivy_deps.glew`` and ``kivy_deps.angle`` are for `OpenGL <https://en.wikipedia.org/wiki/OpenGL>`_.
@@ -366,12 +393,12 @@ Following are the ``kivy_deps`` dependency wheels:
 
   One can select which of these to use for OpenGL using the
   ``KIVY_GL_BACKEND`` environment variable: By setting it to ``glew``
-  (the default), ``angle_sdl2``, or ``sdl2``. Here, ``angle_sdl2`` is a substitute for
-  ``glew`` but requires ``kivy_deps.sdl2`` be installed as well.
+  (the default), ``angle_sdl3``, or ``sdl3``. Here, ``angle_sdl3`` is a substitute for
+  ``glew`` but requires ``kivy_deps.sdl3`` to be installed as well.
 
-* `sdl2 <https://libsdl.org>`_
+* `sdl3 <https://libsdl.org>`_
 
-  ``kivy_deps.sdl2`` is for window/images/audio and optionally OpenGL. It is only available on Windows
+  ``kivy_deps.sdl3`` is for window/images/audio and optionally OpenGL. It is only available on Windows
   and is included in the main Kivy wheel for other platforms.
 
 Python glossary
@@ -407,7 +434,7 @@ How to use the command line
 To execute any of the ``pip`` or ``wheel`` commands given here, you need a *command line* (here also called *console*, *terminal*, `shell <https://en.wikipedia.org/wiki/Unix_shell>`_ or `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_, where the last two refer to Linux / *BSD Unix style command lines) and Python must be on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_.
 
 The default command line on Windows is the
-`command prompt <http://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
+`command prompt <https://www.computerhope.com/issues/chusedos.htm>`_, short *cmd*. The
 quickest way to open it is to press `Win+R` on your keyboard.
 In the window that opens, type ``cmd`` and then press enter.
 
@@ -422,8 +449,8 @@ If you have installed Python using the default options, then the path to Python 
 
 If however Python is not on your PATH, follow the these instructions to add it:
 
-* Instructions for `the windows command line <http://www.computerhope.com/issues/ch000549.htm>`_
-* Instructions for `bash command lines <http://stackoverflow.com/q/14637979>`_
+* Instructions for `the windows command line <https://www.computerhope.com/issues/ch000549.htm>`_
+* Instructions for `bash command lines <https://stackoverflow.com/q/14637979>`_
 
 .. _pip-wheel:
 

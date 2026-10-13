@@ -11,7 +11,7 @@ ShowcaseScreen:
             id: tbh
             text: 'Horizontal'
             group: 'accordion'
-            state: 'down'
+            activated: True
 
         ToggleButton:
             text: 'Vertical'
@@ -19,7 +19,7 @@ ShowcaseScreen:
 
     Accordion:
 
-        orientation: 'horizontal' if tbh.state == 'down' else 'vertical'
+        orientation: 'horizontal' if tbh.activated else 'vertical'
 
         AccordionItem:
             title: 'Panel 1'

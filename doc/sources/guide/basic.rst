@@ -6,7 +6,7 @@ Kivy Basics
 Installation of the Kivy environment
 ------------------------------------
 
-Kivy depends on many libraries, such as SDL2, gstreamer, PIL,
+Kivy depends on many libraries, such as SDL3, gstreamer, PIL,
 Cairo, and more. They are not all required, but depending on the
 platform you're working on, they can be a pain to install. To ease your
 development process, we provide pre-packaged binaries for Windows, macOS and Linux.
@@ -97,7 +97,7 @@ Further on to line 10::
 
     def build(self):
 
-As highlighted by the image above, show casing the `Kivy App Life Cycle`, this
+As highlighted by the image above, showcasing the `Kivy App Life Cycle`, this
 is the function where you should initialize and return your `Root Widget`. This
 is what we do on line 11::
 

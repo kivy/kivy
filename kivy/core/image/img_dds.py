@@ -10,6 +10,7 @@ from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderDDS(ImageLoaderBase):
+    _provider_name = 'dds'
 
     @staticmethod
     def extensions():
@@ -18,7 +19,7 @@ class ImageLoaderDDS(ImageLoaderBase):
     def load(self, filename):
         try:
             dds = DDSFile(filename=filename)
-        except:
+        except Exception:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 

@@ -87,7 +87,6 @@ from math import sqrt, cos, sin, pi
 from collections import ChainMap
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
-from kivy.compat import string_types, iterkeys
 from kivy.weakproxy import WeakProxy
 
 
@@ -135,7 +134,7 @@ class Animation(EventDispatcher):
         self._duration = kw.pop('d', kw.pop('duration', 1.))
         self._transition = kw.pop('t', kw.pop('transition', 'linear'))
         self._step = kw.pop('s', kw.pop('step', 0))
-        if isinstance(self._transition, string_types):
+        if isinstance(self._transition, str):
             self._transition = getattr(AnimationTransition, self._transition)
         self._animated_properties = kw
         self._widgets = {}
@@ -379,7 +378,7 @@ class Animation(EventDispatcher):
             return tp([_calculate(a[x], b[x], t) for x in range(len(a))])
         elif isinstance(a, dict):
             d = {}
-            for x in iterkeys(a):
+            for x in a.keys():
                 if x not in b:
                     # User requested to animate only part of the dict.
                     # Copy the rest

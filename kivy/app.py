@@ -406,6 +406,61 @@ to both case.
 
 .. versionadded:: 2.0.0
 
+Application Storage Directories
+--------------------------------
+
+Kivy provides the following application storage directories:
+
+:attr:`App.user_data_dir`
+    Internal, persistent, private application storage.
+    Guaranteed to exist and be writable without additional permissions.
+
+:attr:`App.user_cache_dir`
+    Internal, temporary application storage.
+    The system may delete this data at any time.
+
+On desktop platforms, applications may choose to use the `platformdirs
+<https://github.com/tox-dev/platformdirs>`_ package to access additional
+OS-specific directories such as downloads, music, video, etc. These
+directories are not exposed by Kivy because they are not consistently
+available across mobile and sandboxed platforms.
+
+.. versionadded:: 3.0.0
+    Added :attr:`App.user_cache_dir` property.
+
+KIVY_DESKTOP_PATH_ID Environment Variable
+------------------------------------------
+
+Set a user-facing application title for your directories by using the
+``KIVY_DESKTOP_PATH_ID`` environment variable before starting your application.
+This makes it easy for end users to identify your app's directories when browsing
+their filesystem::
+
+    import os
+    os.environ['KIVY_DESKTOP_PATH_ID'] = 'My Photo Editor'
+
+    from kivy.app import App
+    # Creates: %APPDATA%/My_Photo_Editor/ (Windows)
+    # Instead of: %APPDATA%/photoeditorapp/
+
+This replaces ``App.name`` with a human-readable title in KIVY_HOME, user_data_dir,
+and user_cache_dir paths. The value is normalized for filesystem safety.
+
+**Benefits:**
+
+- End users see clear, recognizable directory names
+- Easier for users to locate and manage app data
+- Consistent branding across directory names
+- Helps users identify your app when troubleshooting
+
+**Note for mobile developers**: If you are developing a mobile app on a desktop
+platform, you can set KIVY_DESKTOP_PATH_ID to any value to suppress the warning.
+The variable will have no effect on your mobile app.
+
+See ``examples/desktop_path_id/`` for a complete example.
+
+.. versionadded:: 3.0.0
+
 '''
 
 __all__ = ('App', 'runTouchApp', 'async_runTouchApp', 'stopTouchApp')
@@ -415,16 +470,15 @@ from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser, isfile
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, async_runTouchApp, stopTouchApp
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform, normalize_path_id, path_to_str
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 
 
 class App(EventDispatcher):
@@ -434,6 +488,10 @@ class App(EventDispatcher):
         `on_start`:
             Fired when the application is being started (before the
             :func:`~kivy.base.runTouchApp` call.
+        `on_ready`:
+            Fired once when the application UI becomes visible after the
+            first frame has been rendered. This occurs after `on_start`
+            and indicates the UI is ready for user interaction.
         `on_stop`:
             Fired when the application stops.
         `on_pause`:
@@ -558,11 +616,12 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
-    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume',
+    __events__ = ('on_start', 'on_ready', 'on_stop', 'on_pause', 'on_resume',
                   'on_config_change', )
 
     # Stored so that we only need to determine this once
     _user_data_dir = ""
+    _user_cache_dir = ""
 
     def __init__(self, **kwargs):
         App._running_app = self
@@ -584,6 +643,9 @@ class App(EventDispatcher):
         #: The *root* widget returned by the :meth:`build` method or by the
         #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
+
+        # Flag to indicate if the app is ready, i.e., the UI is visible
+        self._ready_fired = False
 
     def build(self):
         '''Initializes the application; it will be called only once.
@@ -668,8 +730,13 @@ class App(EventDispatcher):
             :meth:`run` is called (e.g. in `__init__`), won't have its styling
             applied. Note that :meth:`build` is called after :attr:`load_kv`
             has been called.
+
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``.
         '''
         # Detect filename automatically if it was not specified.
+        filename = path_to_str(filename)
         if filename:
             filename = resource_find(filename)
         else:
@@ -756,8 +823,12 @@ class App(EventDispatcher):
             Changed the Android version to make use of the
             :attr:`~App.user_data_dir` and added a missing dot to the iOS
             config file name.
-        '''
 
+        .. versionchanged:: 3.0.0
+            `defaultpath` may be a :class:`os.PathLike` (e.g.
+            :class:`pathlib.Path`) in addition to a ``str``.
+        '''
+        defaultpath = path_to_str(defaultpath)
         if platform == 'android':
             return join(self.user_data_dir, '.{0}.ini'.format(self.name))
         elif platform == 'ios':
@@ -809,7 +880,7 @@ class App(EventDispatcher):
         if exists(filename):
             try:
                 config.read(filename)
-            except:
+            except Exception:
                 Logger.error('App: Corrupted config file, ignored.')
                 config.name = ''
                 try:
@@ -846,26 +917,55 @@ class App(EventDispatcher):
 
     def _get_user_data_dir(self):
         # Determine and return the user_data_dir.
-        data_dir = ""
+        # Check for KIVY_DESKTOP_PATH_ID on desktop platforms
+        desktop_path_id = os.environ.get('KIVY_DESKTOP_PATH_ID')
+        if platform in {'win', 'macosx', 'linux'} and desktop_path_id:
+            app_id = normalize_path_id(desktop_path_id)
+        else:
+            app_id = self.name
+
         if platform == 'ios':
-            data_dir = expanduser(join('~/Documents', self.name))
+            data_dir = join('~/Documents', self.name)
         elif platform == 'android':
-            from jnius import autoclass, cast
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = cast('android.content.Context', PythonActivity.mActivity)
-            file_p = cast('java.io.File', context.getFilesDir())
-            data_dir = file_p.getAbsolutePath()
+            from kivy.mobile._platform.android import get_files_dir
+            data_dir = get_files_dir()
         elif platform == 'win':
-            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+            data_dir = join(os.environ['APPDATA'], app_id)
         elif platform == 'macosx':
-            data_dir = '~/Library/Application Support/{}'.format(self.name)
-            data_dir = expanduser(data_dir)
+            data_dir = f'~/Library/Application Support/{app_id}'
         else:  # _platform == 'linux' or anything else...:
-            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            data_dir = expanduser(join(data_dir, self.name))
-        if not exists(data_dir):
-            os.mkdir(data_dir)
+            data_dir = join(os.environ.get('XDG_DATA_HOME', '~/.local/share'),
+                           app_id)
+
+        data_dir = expanduser(data_dir)
+        os.makedirs(data_dir, exist_ok=True)
         return data_dir
+
+    def _get_user_cache_dir(self):
+        # Determine and return the user_cache_dir.
+        # Check for KIVY_DESKTOP_PATH_ID on desktop platforms
+        desktop_path_id = os.environ.get('KIVY_DESKTOP_PATH_ID')
+        if platform in {'win', 'macosx', 'linux'} and desktop_path_id:
+            app_id = normalize_path_id(desktop_path_id)
+        else:
+            app_id = self.name
+
+        if platform == 'ios':
+            cache_dir = join('~/Library/Caches', self.name)
+        elif platform == 'android':
+            from kivy.mobile._platform.android import get_cache_dir
+            cache_dir = get_cache_dir()
+        elif platform == 'win':
+            cache_dir = join(os.environ['LOCALAPPDATA'], app_id, 'Cache')
+        elif platform == 'macosx':
+            cache_dir = f'~/Library/Caches/{app_id}'
+        else:  # _platform == 'linux' or anything else...:
+            cache_dir = join(os.environ.get('XDG_CACHE_HOME', '~/.cache'),
+                            app_id)
+
+        cache_dir = expanduser(cache_dir)
+        os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
 
     @property
     def user_data_dir(self):
@@ -887,7 +987,8 @@ class App(EventDispatcher):
 
         On OS X, `~/Library/Application Support/<app_name>` is returned.
 
-        On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+        On Linux, `$XDG_DATA_HOME/<app_name>` is returned (defaults to
+        `~/.local/share/<app_name>`).
 
         On Android, `Context.GetFilesDir
         <https://developer.android.com/reference/android/content/\
@@ -904,6 +1005,39 @@ Context.html#getFilesDir()>`_ is returned.
         if self._user_data_dir == "":
             self._user_data_dir = self._get_user_data_dir()
         return self._user_data_dir
+
+    @property
+    def user_cache_dir(self):
+        '''
+        .. versionadded:: 3.0.0
+
+        Returns the path to the directory in the users file system which the
+        application can use to store cached data.
+
+        Different platforms have different conventions with regards to where
+        the application can store temporary cache data. This property
+        implements these conventions. The <app_name> directory is created
+        when the property is called, unless it already exists.
+
+        The cache directory is intended for temporary data that can be
+        recreated if needed. The system may delete this data at any time
+        (e.g., when storage is low).
+
+        On iOS, `~/Library/Caches/<app_name>` is returned.
+
+        On Windows, `%LOCALAPPDATA%/<app_name>/Cache` is returned.
+
+        On OS X, `~/Library/Caches/<app_name>` is returned.
+
+        On Linux, `$XDG_CACHE_HOME/<app_name>` is returned (defaults to
+        `~/.cache/<app_name>`).
+
+        On Android, `Context.getCacheDir()` is returned.
+
+        '''
+        if self._user_cache_dir == "":
+            self._user_cache_dir = self._get_user_cache_dir()
+        return self._user_cache_dir
 
     @property
     def name(self):
@@ -976,8 +1110,8 @@ Context.html#getFilesDir()>`_ is returned.
         Except on Android, set Android state to stop, Kivy state then follows.
         '''
         if platform == 'android':
-            from android import mActivity
-            mActivity.finishAndRemoveTask()
+            from kivy.mobile._platform.android import finish_and_remove_task
+            finish_and_remove_task()
         else:
             self._stop()
 
@@ -999,8 +1133,8 @@ Context.html#getFilesDir()>`_ is returned.
         .. versionadded:: 2.2.0
         '''
         if platform == 'android':
-            from android import mActivity
-            mActivity.moveTaskToBack(True)
+            from kivy.mobile._platform.android import move_task_to_back
+            move_task_to_back()
         else:
             Logger.info('App.pause() is not available on this OS.')
 
@@ -1008,6 +1142,21 @@ Context.html#getFilesDir()>`_ is returned.
         '''Event handler for the `on_start` event which is fired after
         initialization (after build() has been called) but before the
         application has started running.
+        '''
+        pass
+
+    def on_ready(self):
+        '''Event handler for the `on_ready` event which is fired once
+        when the application UI becomes visible after the first frame
+        has been rendered.
+
+        This is the ideal place for:
+        - UI measurements that require rendered content
+        - Screenshots of the initial UI state
+        - Performance benchmarks
+        - Analytics or logging of app readiness
+
+        This event will not fire again during the application's lifetime.
         '''
         pass
 
@@ -1147,7 +1296,7 @@ Context.html#getFilesDir()>`_ is returned.
         if self.settings_cls is None:
             from kivy.uix.settings import SettingsWithSpinner
             self.settings_cls = SettingsWithSpinner
-        elif isinstance(self.settings_cls, string_types):
+        elif isinstance(self.settings_cls, str):
             self.settings_cls = Factory.get(self.settings_cls)
         s = self.settings_cls()
         self.build_settings(s)
@@ -1191,11 +1340,6 @@ Context.html#getFilesDir()>`_ is returned.
         key = largs[0]
         setting_key = 282  # F1
 
-        # android hack, if settings key is pygame K_MENU
-        if platform == 'android' and not USE_SDL2:
-            import pygame
-            setting_key = pygame.K_MENU
-
         if key == setting_key:
             # toggle settings panel
             if not self.open_settings():
@@ -1203,6 +1347,12 @@ Context.html#getFilesDir()>`_ is returned.
             return True
         if key == 27:
             return self.close_settings()
+
+    def _trigger_ready_once(self):
+        '''Internal method called by the window backend after first swap.'''
+        if not self._ready_fired:
+            self._ready_fired = True
+            self.dispatch('on_ready')
 
     def on_title(self, instance, title):
         if self._app_window:

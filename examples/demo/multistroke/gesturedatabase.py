@@ -41,7 +41,7 @@ class GestureDatabaseItem(FloatLayout):
 
     def toggle_selected(self, *l):
         self._draw_rect(clear=True)
-        if self.ids.select.state == 'down':
+        if self.ids.select.activated:
             self.dispatch('on_select')
             self.ids.select.text = 'Deselect'
         else:
@@ -63,7 +63,7 @@ class GestureDatabaseItem(FloatLayout):
         self._draw_rect()
 
     def _draw_rect(self, clear=False, *l):
-        col = self.ids.select.state == 'down' and 1 or .2
+        col = self.ids.select.activated and 1 or .2
         with self.canvas:
             Color(col, 0, 0, .15)
             if self.rect or clear:
@@ -114,13 +114,13 @@ class GestureDatabase(GridLayout):
     def mass_select(self, *l):
         if self.selected_count:
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'down':
-                    i.ids.select.state = 'normal'
+                if i.ids.select.activated:
+                    i.ids.select.activated = False
                     i.draw_item()
         else:
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'normal':
-                    i.ids.select.state = 'down'
+                if not i.ids.select.activated:
+                    i.ids.select.activated = True
                     i.draw_item()
 
     def unload_gestures(self, *l):
@@ -131,10 +131,9 @@ class GestureDatabase(GridLayout):
             return
 
         for i in self.ids.gesture_list.children[:]:
-            if i.ids.select.state == 'down':
+            if i.ids.select.activated:
                 self.selected_count -= 1
                 for g in i.gesture_list:
-                    # if g in self.recognizer.db:  # not needed, for testing
                     self.recognizer.db.remove(g)
                     self.ids.gesture_list.remove_widget(i)
 
@@ -170,7 +169,7 @@ class GestureDatabase(GridLayout):
         else:
             tmpgdb = Recognizer()
             for i in self.ids.gesture_list.children:
-                if i.ids.select.state == 'down':
+                if i.ids.select.activated:
                     for g in i.gesture_list:
                         tmpgdb.db.append(g)
             tmpgdb.export_gesture(filename=filename)

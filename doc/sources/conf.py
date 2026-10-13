@@ -13,10 +13,17 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
+from datetime import datetime
+from pathlib import Path
+from sphinx.errors import ExtensionError
 import os
-import sys
-import configparser
 import sphinx
+import sys
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -32,8 +39,7 @@ sys.path.insert(0, os.path.dirname(base_dir))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks',
-    'sphinxcontrib.jquery']
+    'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.extlinks']
 
 if sphinx.version_info[0] >= 4:
     # In 4.0 and above has been added the support to substitute by ‘%s’ in the caption.
@@ -66,7 +72,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2010, The Kivy Authors'
+copyright = f'2010-{datetime.now().year}, Kivy Team and other contributors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -197,7 +203,7 @@ htmlhelp_basename = 'Kivydoc'
 # (source start file, target name, title, author, document class [manual]).
 latex_documents = [
   ('index', 'Kivy.tex', 'Kivy Documentation',
-   'The Kivy Developers', 'manual'),
+   'Kivy Team and other contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -228,14 +234,16 @@ latex_toplevel_sectioning = 'part'
 # If false, no module index is generated.
 # latex_use_modindex = True
 
-config_parser = configparser.ConfigParser()
-config_parser.read(os.path.join(base_dir, '..', '..', 'setup.cfg'))
+with open(
+    os.path.join(base_dir, '..', '..', 'pyproject.toml'), 'rb'
+) as fileh:
+    kivy_config = tomllib.load(fileh)['tool']['kivy']
 
 # if used in a code-block, the block has to be marked with
 # .. parse-literal::, otherwise it won't be replaced
 # !!! doesn't work for "::", ".. code::" or ".. code-block::"
-python_versions = config_parser['kivy']['python_versions'].strip()
-cython_max_version = config_parser['kivy']['cython_max'].strip()
+python_versions = kivy_config['python_versions'].strip()
+cython_max_version = kivy_config['cython_max'].strip()
 replacements = {
     'python_versions': python_versions,
     'kivy_version': kivy.__version__,
@@ -251,3 +259,62 @@ for key, value in replacements.items():
     epilog.append(rep)
 
 rst_epilog = '\n'.join(epilog)
+
+
+def generate_carousel(app):
+    slides_name = 'snippets_slides'
+    source_dir = Path(app.srcdir)
+    slides_dir = source_dir / slides_name
+
+    if not slides_dir.exists():
+        raise ExtensionError(
+            f'Carousel slides directory does not exist: {slides_dir}'
+        )
+
+    slide_template = (
+        '<div class="carousel-slide" data-src="{0}">\n'
+        '  <div class="rst-content">Loading..</div>\n'
+        '</div>\n'
+    )
+
+    slides = []
+
+    for slide_path in sorted(slides_dir.rglob('*.rst')):
+        relative_html_path = (
+            slide_path
+            .relative_to(slides_dir)
+            .with_suffix('.html')
+        )
+        html_src = f'../{slides_name}/{relative_html_path.as_posix()}'
+        slides.append(slide_template.format(html_src))
+
+    carousel_html = (
+        '<div class="carousel-container">\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '  <div class="carousel-track">\n'
+        f'    {"".join(slides)}\n'
+        '  </div>\n'
+        '  <button class="carousel-btn prev" '
+        'onclick="moveSlide(-1)">&#10094; Previous</button>\n'
+        '  <button class="carousel-btn next" '
+        'onclick="moveSlide(1)">Next &#10095;</button>\n'
+        '</div><br />\n'
+    )
+
+    js_code = (source_dir / f'{slides_name}.js').read_text()
+    js_block = (
+        f'<script type="text/javascript">\n{js_code}\n</script>\n'
+    )
+
+    (source_dir / f'_code_{slides_name}.html').write_text(
+        carousel_html + js_block,
+        encoding='utf-8',
+    )
+
+
+def setup(app):
+    app.connect('builder-inited', generate_carousel)
+    app.add_js_file('kivy.js')

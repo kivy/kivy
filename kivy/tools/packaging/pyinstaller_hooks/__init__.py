@@ -78,7 +78,12 @@ try:
 except ImportError:
     kivy_deps = None
 from kivy.factory import Factory
-from PyInstaller.depend import bindepend
+try:
+    # Pyinstaller >= 6
+    from PyInstaller.depend.bindepend import get_imports
+except ImportError:
+    # Pyinstaller < 6
+    from PyInstaller.depend.bindepend import selectImports as get_imports
 
 from os import environ
 if 'KIVY_DOC' not in environ:
@@ -338,7 +343,7 @@ def _find_gst_plugin_path():
         p = subprocess.Popen(
             ['gst-inspect-1.0', 'coreelements'],
             stdout=subprocess.PIPE, universal_newlines=True)
-    except:
+    except Exception:
         return []
     (stdoutdata, stderrdata) = p.communicate()
 
@@ -367,7 +372,7 @@ def _find_gst_binaries():
 
     lib_filepaths = set()
     for plugin_filepath in plugin_filepaths:
-        plugin_deps = bindepend.selectImports(plugin_filepath)
+        plugin_deps = get_imports(plugin_filepath)
         lib_filepaths.update([path for _, path in plugin_deps])
 
     plugin_binaries = [(f, 'gst-plugins') for f in plugin_filepaths]

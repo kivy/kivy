@@ -136,8 +136,9 @@ For example::
 
 __path__ = 'kivy.garden'
 
+import importlib.util
+from importlib.abc import MetaPathFinder
 import sys
-import imp
 from os.path import dirname, join, realpath, exists, abspath
 from kivy import kivy_home_dir
 from kivy.utils import platform
@@ -160,29 +161,25 @@ if platform == "ios":
     garden_app_dir = join(dirname(main_py_file), 'libs', 'garden')
 
 
-class GardenImporter(object):
+class GardenImporter(MetaPathFinder):
 
-    def find_module(self, fullname, path):
-        if path == 'kivy.garden':
-            return self
+    def find_spec(self, fullname, path, target=None):
+        if path != "kivy.garden":
+            return None
 
-    def load_module(self, fullname):
-        assert fullname.startswith('kivy.garden')
-
-        moddir = join(garden_kivy_dir, fullname.split('.', 2)[-1])
+        moddir = join(
+            garden_kivy_dir, fullname.split(".", 2)[-1], "__init__.py"
+        )
         if exists(moddir):
-            return self._load_module(fullname, moddir)
+            return importlib.util.spec_from_file_location(fullname, moddir)
 
-        modname = fullname.split('.', 1)[-1]
+        modname = fullname.split(".", 1)[-1]
         for directory in (garden_app_dir, garden_system_dir):
-            moddir = join(directory, modname)
+            moddir = join(directory, modname, "__init__.py")
             if exists(moddir):
-                return self._load_module(fullname, moddir)
+                return importlib.util.spec_from_file_location(fullname, moddir)
 
-    def _load_module(self, fullname, moddir):
-        mod = imp.load_module(fullname, None, moddir,
-                              ('', '', imp.PKG_DIRECTORY))
-        return mod
+        return None
 
 
 # insert the garden importer as ultimate importer

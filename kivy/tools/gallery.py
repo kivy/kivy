@@ -246,7 +246,7 @@ def make_detail_page(info):
         if '\\' in full_name:
             full_name = full_name.replace(sep, sep * 2)
 
-        if ext in ['.png', '.jpg', '.jpeg']:
+        if ext in {'.png', '.jpg', '.jpeg'}:
             title = 'Image **' + full_name + '**'
             a('\n' + title)
             a('~' * len(title))

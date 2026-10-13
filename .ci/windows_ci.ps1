@@ -12,9 +12,20 @@ function raise-only-error{
     }
 }
 
+function Handle-NonZero-ExitCode {
+    param (
+        [int]$ExitCode
+    )
+
+    Write-Host "Exit code is: $ExitCode"
+    if ($ExitCode -ne 0) {
+        throw "Exiting due to non-zero exit code"
+    }
+}
+
 function Update-version-metadata {
     $current_time = python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))"
-    $date = python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))"
+    $date = python -c "from datetime import datetime, timezone; print(datetime.fromtimestamp($current_time, timezone.utc).strftime('%Y%m%d'))"
     echo "Version date is: $date"
     $git_tag = git rev-parse HEAD
     echo "Git tag is: $git_tag"
@@ -24,10 +35,9 @@ function Update-version-metadata {
 }
 
 function Generate-sdist {
-    python -m pip install cython packaging
-    python setup.py sdist --formats=gztar
-    python setup.py bdist_wheel --build_examples --universal
-    python -m pip uninstall cython -y
+    python -m pip install -U build
+    python -m build --sdist .
+    python -m build --wheel --outdir dist packaging/kivy_examples
 }
 
 function Generate-windows-wheels {
@@ -66,14 +76,6 @@ function Upload-windows-wheels-to-server($ip) {
     C:\tools\msys64\usr\bin\bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
 }
 
-function Install-kivy-test-run-win-deps {
-
-}
-
-function Install-kivy-test-run-pip-deps {
-    python -m pip install pip wheel setuptools --upgrade
-}
-
 function Install-kivy {
     python -m pip install -e .[dev,full]
 }
@@ -83,8 +85,6 @@ function Install-kivy-wheel {
     ls $root
     ls $root/dist
     cd "$HOME"
-
-    python -m pip install pip wheel setuptools --upgrade
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $bitness=python -c "import sys; print('win_amd64' if sys.maxsize > 2**32 else 'win32')"
@@ -98,16 +98,23 @@ function Install-kivy-sdist {
     $root=(pwd).Path
     cd "$HOME"
 
-    python -m pip install pip wheel setuptools --upgrade
-
-    $kivy_fname=(ls $root/dist/Kivy-*.tar.gz).name
+    $kivy_fname=(ls $root/dist/kivy-*.tar.gz).name
     python -m pip install "$root/dist/$kivy_fname[full,dev]"
 }
 
 function Test-kivy {
     # Tests with default environment variables.
     python -m pytest --timeout=400 --cov=kivy --cov-branch --cov-report= "$(pwd)/kivy/tests"
-    # Logging tests, with KIVY_LOG_MODE=TEST.
+
+    # Check the exit code.
+    # For some reason, if we get a Windows Fatal Error during the tests, pytest
+    # stops the tests, but does not fail.
+    # Since we do not have an option like -e for bash, we need to check the exit
+    # code manually, so the CI job fails if something goes wrong.
+    # See issue https://github.com/kivy/kivy/issues/8484 for more details.
+    Handle-NonZero-ExitCode -ExitCode $LastExitCode
+
+    # Logging tests, with non-default log modes
     $env:KIVY_LOG_MODE = 'PYTHON'
     python -m pytest -m logmodepython --timeout=400 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
     $env:KIVY_LOG_MODE = 'MIXED'
@@ -126,9 +133,4 @@ function Test-kivy-installed {
 
     echo "[run]`nplugins = kivy.tools.coverage`n" > .coveragerc
     raise-only-error -Func {python -m pytest --timeout=400 .}
-}
-
-function Upload-artifacts-to-pypi {
-  python -m pip install twine
-  twine upload dist/*
 }

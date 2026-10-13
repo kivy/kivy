@@ -22,7 +22,7 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy = self._clippy
         try:
             clippy.paste()
-        except:
+        except Exception:
             self.fail(
                 'Can not get data from clipboard')
 
@@ -30,9 +30,9 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy = self._clippy
         try:
             clippy.copy(u"Hello World")
-        except:
+        except Exception:
             self.fail(
-                'Can not get put data to clipboard')
+                'Can not put data to clipboard')
 
     def test_clipboard_copy_paste(self):
         clippy = self._clippy
@@ -40,3 +40,9 @@ class ClipboardTestCase(GraphicUnitTest):
         clippy.copy(txt1)
         ret = clippy.paste()
         self.assertEqual(txt1, ret)
+
+    def test_clipboard_copy_paste_with_emoji(self):
+        clippy = self._clippy
+        test_emoji_str = 'kivy 😀 😁 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗'
+        clippy.copy(test_emoji_str)
+        self.assertEqual(test_emoji_str, clippy.paste())

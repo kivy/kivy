@@ -35,18 +35,111 @@ Usage::
 
 __all__ = ('ColorPicker', 'ColorWheel')
 
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.widget import Widget
+from math import cos, sin, pi, sqrt, atan
+from colorsys import rgb_to_hsv, hsv_to_rgb
+from string import hexdigits
+
+from kivy.clock import Clock
+from kivy.graphics import Mesh, InstructionGroup, Color
+from kivy.logger import Logger
 from kivy.properties import (NumericProperty, BoundedNumericProperty,
                              ListProperty, ObjectProperty,
                              ReferenceListProperty, StringProperty,
                              AliasProperty)
-from kivy.clock import Clock
-from kivy.graphics import Mesh, InstructionGroup, Color
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex, get_hex_from_color
-from kivy.logger import Logger
-from math import cos, sin, pi, sqrt, atan
-from colorsys import rgb_to_hsv, hsv_to_rgb
+
+
+class ColorHexInput(TextInput):
+    # TextInput specialized for hex color codes (#RRGGBBAA).
+    # Automatically prepends '#' and limits input to 8 hexadecimal characters.
+
+    color_picker = ObjectProperty(None)  # Reference to parent ColorPicker
+
+    def _filter_hex(self, substring, undo):
+        """Filter input to allow only '#' + up to 8 hex digits."""
+        # Allow undo operations to proceed without filtering
+        if undo:
+            return substring
+
+        current_text = self.text
+        # Already at max length (9 = '#' + 8 hex chars)
+        if len(current_text) >= 9:
+            return ''
+
+        result = ''
+        for char in substring:
+            if char == '#':
+                # Only allow '#' at the beginning
+                if not current_text and not result:
+                    result = char
+            elif char in hexdigits:
+                # Auto-add '#' if first character is a hex digit
+                if not current_text and not result:
+                    result = '#'
+                result += char
+                # Stop if we've reached max length
+                if len(current_text) + len(result) >= 9:
+                    break
+            else:
+                # Stop on invalid character
+                break
+        return result
+
+    def on_focus(self, instance, focus):
+        # When focus is lost, restore valid hex color if text is incomplete.
+        if not focus and len(self.text) < 9:
+            # Restore text to valid hex color from ColorPicker
+            if self.color_picker:
+                self.text = self.color_picker.hex_color
+                # Trigger color update in ColorPicker (in case text didn't change)
+                self.color_picker._trigger_update_hex(self.color_picker.hex_color)
+
+
+class ColorNumericInput(TextInput):
+    # TextInput specialized for numeric color values (0-255).
+    #
+    # Limits input to integers from 0 to 255.
+    # Leading zeros are rejected.
+
+    def _filter_numeric(self, substring, undo):
+        """Filter input to allow only integers 0-255."""
+        # Allow undo operations to proceed without filtering
+        if undo:
+            return substring
+
+        current_text = self.text
+        result = substring if substring.isdecimal() else ''
+
+        # 1) Check for leading zeros in the pasted content
+        # '01', '001', etc. should be rejected
+        # 2) Check if current text is '0' and we're trying to add more digits
+        # This would create a leading zero: '0' + '5' = '05'
+        # 3) Check if we're trying to insert a zero at the start of text
+        # 4) Check if there's no text to add
+        if any((len(result) > 1 and result[0] == '0', #1 ) no pasted leading zeros
+               current_text == '0' and result and self.cursor_col != 0, # 2)
+               result == '0' and current_text and self.cursor_col == 0, # 3)
+               not result)): # 4) nothing to add
+            return ''
+
+        # Validate the individual value
+        value = int(result)
+        if value > 255:
+            return ''
+
+        # Calculate what the final text will be after inserting at cursor position
+        final_text = (current_text[:self.cursor_col] +
+                      result +
+                      current_text[self.cursor_col:])
+
+        # Validate the final value wouldn't exceed 255
+        if final_text:
+            if int(final_text) > 255:
+                return ''
+        return result
 
 
 def distance(pt1, pt2):
@@ -60,11 +153,11 @@ def polar_to_rect(origin, r, theta):
 def rect_to_polar(origin, x, y):
     if x == origin[0]:
         if y == origin[1]:
-            return (0, 0)
+            return 0, 0
         elif y > origin[1]:
-            return (y - origin[1], pi / 2.)
+            return y - origin[1], pi / 2
         else:
-            return (origin[1] - y, 3 * pi / 2.)
+            return origin[1] - y, 3 * pi / 2
     t = atan(float((y - origin[1])) / (x - origin[0]))
     if x - origin[0] < 0:
         t += pi
@@ -72,7 +165,7 @@ def rect_to_polar(origin, x, y):
     if t < 0:
         t += 2 * pi
 
-    return (distance((x, y), origin), t)
+    return distance((x, y), origin), t
 
 
 class ColorWheel(Widget):
@@ -96,28 +189,28 @@ class ColorWheel(Widget):
     '''The Green value of the color currently selected.
 
     :attr:`g` is a :class:`~kivy.properties.BoundedNumericProperty`
-    and can be a value from 0 to 1.
+    and can be a value from 0 to 1. It defaults to 0.
     '''
 
     b = BoundedNumericProperty(0, min=0, max=1)
     '''The Blue value of the color currently selected.
 
     :attr:`b` is a :class:`~kivy.properties.BoundedNumericProperty` and
-    can be a value from 0 to 1.
+    can be a value from 0 to 1. It defaults to 0.
     '''
 
     a = BoundedNumericProperty(0, min=0, max=1)
     '''The Alpha value of the color currently selected.
 
     :attr:`a` is a :class:`~kivy.properties.BoundedNumericProperty` and
-    can be a value from 0 to 1.
+    can be a value from 0 to 1. It defaults to 0.
     '''
 
     color = ReferenceListProperty(r, g, b, a)
     '''The holds the color currently selected.
 
     :attr:`color` is a :class:`~kivy.properties.ReferenceListProperty` and
-    contains a list of `r`, `g`, `b`, `a` values.
+    contains a list of `r`, `g`, `b`, `a` values. It defaults to `[0, 0, 0, 0]`.
     '''
 
     _origin = ListProperty((100, 100))
@@ -132,22 +225,23 @@ class ColorWheel(Widget):
     _num_touches = 0
     _pinch_flag = False
 
-    _hsv = ListProperty([1, 1, 1, 0])
-
     def __init__(self, **kwargs):
-        super(ColorWheel, self).__init__(**kwargs)
+        self.arcs = []
+        self.sv_idx = 0
 
         pdv = self._piece_divisions
         self.sv_s = [(float(x) / pdv, 1) for x in range(pdv)] + [
             (1, float(y) / pdv) for y in reversed(range(pdv))]
 
-    def on__origin(self, instance, value):
-        self.init_wheel(None)
+        super(ColorWheel, self).__init__(**kwargs)
 
-    def on__radius(self, instance, value):
-        self.init_wheel(None)
+    def on__origin(self, _instance, _value):
+        self._reset_canvas()
 
-    def init_wheel(self, dt):
+    def on__radius(self, _instance, _value):
+        self._reset_canvas()
+
+    def _reset_canvas(self):
         # initialize list to hold all meshes
         self.canvas.clear()
         self.arcs = []
@@ -233,9 +327,8 @@ class ColorWheel(Widget):
                             (float(self._radius) / self._piece_divisions)))
 
         if (
-            goal_sv_idx != self.sv_idx and
-            goal_sv_idx >= 0 and
-            goal_sv_idx <= len(self.sv_s) - self._piece_divisions
+                goal_sv_idx != self.sv_idx and
+                0 <= goal_sv_idx <= len(self.sv_s) - self._piece_divisions
         ):
             # this is a pinch to zoom
             self._pinch_flag = True
@@ -417,10 +510,15 @@ class ColorPicker(RelativeLayout):
     foreground_color = ListProperty((1, 1, 1, 1))
 
     def _trigger_update_clr(self, mode, clr_idx, text):
+        # Always update the pending value (handle rapid on_text events during paste)
+        # Normalize: slider sends float, TextInput sends string
+        self._upd_clr_list = mode, clr_idx, str(text)
+
         if self._updating_clr:
+            # Update already scheduled, just updated the value
             return
+
         self._updating_clr = True
-        self._upd_clr_list = mode, clr_idx, text
         ev = self._update_clr_ev
         if ev is None:
             ev = self._update_clr_ev = Clock.create_trigger(self._update_clr)
@@ -430,15 +528,26 @@ class ColorPicker(RelativeLayout):
         # to prevent interaction between hsv/rgba, we work internally using rgba
         mode, clr_idx, text = self._upd_clr_list
         try:
-            text = min(255, max(0, float(text)))
+            # Treat empty string as 0
+            if not text:
+                text = 0.0
+            else:
+                text = min(255.0, max(0.0, float(text)))
+
             if mode == 'rgb':
-                self.color[clr_idx] = float(text) / 255.
+                self.color[clr_idx] = text / 255
             else:
                 hsv = list(self.hsv[:])
-                hsv[clr_idx] = float(text) / 255.
+                hsv[clr_idx] = text / 255
                 self.color[:3] = hsv_to_rgb(*hsv)
         except ValueError:
-            Logger.warning('ColorPicker: invalid value : {}'.format(text))
+            # Invalid value - default to 0
+            if mode == 'rgb':
+                self.color[clr_idx] = 0.0
+            else:
+                hsv = list(self.hsv[:])
+                hsv[clr_idx] = 0.0
+                self.color[:3] = hsv_to_rgb(*hsv)
         finally:
             self._updating_clr = False
 
@@ -452,10 +561,14 @@ class ColorPicker(RelativeLayout):
             self._updating_clr = False
 
     def _trigger_update_hex(self, text):
-        if self._updating_clr:
-            return
-        self._updating_clr = True
+        # Always update the pending value (handle rapid on_text events during paste)
         self._upd_hex_list = text
+
+        if self._updating_clr:
+            # Update already scheduled, just updated the value
+            return
+
+        self._updating_clr = True
         ev = self._update_hex_ev
         if ev is None:
             ev = self._update_hex_ev = Clock.create_trigger(self._update_hex)

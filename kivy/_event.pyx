@@ -21,7 +21,6 @@ from functools import partial
 from collections import defaultdict
 from kivy.weakmethod import WeakMethod
 from kivy.weakproxy import WeakProxy
-from kivy.compat import string_types
 from kivy.properties cimport (Property, PropertyStorage, ObjectProperty,
     NumericProperty, StringProperty, ListProperty, DictProperty,
     BooleanProperty)
@@ -440,7 +439,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             assert callable(value), '{!r} is not callable'.format(value)
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
@@ -469,7 +468,7 @@ cdef class EventDispatcher(ObjectWithUid):
         cdef EventObservers observers
         cdef Property prop
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key[:3] == 'on_':
                 observers = self.__event_stack.get(key)
                 if observers is None:
@@ -730,11 +729,15 @@ cdef class EventDispatcher(ObjectWithUid):
         handler = getattr(self, event_type)
         return handler(*largs, **kwargs)
 
+    @deprecated(msg='Deprecated in 3.0.0,'
+                    'Will be removed after two releases')
     def dispatch_generic(self, event_type, *largs, **kwargs):
         if event_type in self.__event_stack:
             return self.dispatch(event_type, *largs, **kwargs)
         return self.dispatch_children(event_type, *largs, **kwargs)
 
+    @deprecated(msg='Deprecated in 3.0.0,'
+                    'Will be removed after two releases')
     def dispatch_children(self, event_type, *largs, **kwargs):
         for child in self.children[:]:
             if child.dispatch_generic(event_type, *largs, **kwargs):
@@ -854,7 +857,7 @@ cdef class EventDispatcher(ObjectWithUid):
                 more appropriate property types. Defaults to None.
             `default_value`: bool, True by default
                 If True, `value` will be the default for the property. Otherwise,
-                the property will be initialized with the the property type's
+                the property will be initialized with the property type's
                 normal default value, and subsequently set to ``value``.
 
         ::
@@ -872,7 +875,7 @@ cdef class EventDispatcher(ObjectWithUid):
             cls = BooleanProperty
         elif isinstance(value, (int, float)):
             cls = NumericProperty
-        elif isinstance(value, string_types):
+        elif isinstance(value, str):
             cls = StringProperty
         elif isinstance(value, (list, tuple)):
             cls = ListProperty
@@ -1156,7 +1159,7 @@ cdef class EventObservers:
     cdef inline object _dispatch(
         self, object f, tuple slargs, dict skwargs, object obj, object value,
         tuple largs, dict kwargs):
-        '''Dispatches the the callback with the args. f is the (derefed)
+        '''Dispatches the callback with the args. f is the (derefed)
         callback. slargs, skwargs are the bound-time provided args. largs, kwargs
         are the dispatched args. The order of args is slargs, obj, value,
         skwargs updated with kwargs. If dispatch_value is False, value is skipped.

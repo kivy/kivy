@@ -11,17 +11,21 @@ __all__ = ('JsonStore', )
 
 import errno
 from os.path import exists, abspath, dirname
-from kivy.compat import iteritems
 from kivy.storage import AbstractStore
+from kivy.utils import path_to_str
 from json import loads, dump
 
 
 class JsonStore(AbstractStore):
     '''Store implementation using a json file for storing the key-value pairs.
     See the :mod:`kivy.storage` module documentation for more information.
+
+    .. versionchanged:: 3.0.0
+        `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+        in addition to a ``str``.
     '''
     def __init__(self, filename, indent=None, sort_keys=False, **kwargs):
-        self.filename = filename
+        self.filename = path_to_str(filename)
         self.indent = indent
         self.sort_keys = sort_keys
         self._data = {}
@@ -73,9 +77,9 @@ class JsonStore(AbstractStore):
         return True
 
     def store_find(self, filters):
-        for key, values in iteritems(self._data):
+        for key, values in self._data.items():
             found = True
-            for fkey, fvalue in iteritems(filters):
+            for fkey, fvalue in filters.items():
                 if fkey not in values:
                     found = False
                     break

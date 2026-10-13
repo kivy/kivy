@@ -59,13 +59,13 @@ black window which you won't be able to interact with. Instead, you need to
 Scheduling a repetitive event
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can call a function or a method every X times per second using
+You can call a function or a method at specified intervals using
 :meth:`~kivy.clock.Clock.schedule_interval`. Here is an example of calling a
-function named my_callback 30 times per second::
+function named my_callback every 1/30th of a second (i.e. 30 times per second)::
 
     def my_callback(dt):
         print('My callback is called', dt)
-    event = Clock.schedule_interval(my_callback, 1 / 30.)
+    event = Clock.schedule_interval(my_callback, 1 / 30)
 
 You have multiple ways of unscheduling a previously scheduled event. One, is
 to use :meth:`~kivy.clock.ClockEvent.cancel` or :meth:`~kivy.clock.Clock.unschedule`::
@@ -87,7 +87,7 @@ unscheduled::
             print('Last call of my callback, bye bye !')
             return False
         print('My callback is called')
-    Clock.schedule_interval(my_callback, 1 / 30.)
+    Clock.schedule_interval(my_callback, 1 / 30)
 
 
 Scheduling a one-time event

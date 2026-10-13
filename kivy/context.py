@@ -59,10 +59,8 @@ class Context(dict):
         if not init:
             return
 
-        for name in _contexts:
-            context = _contexts[name]
-            instance = context['cls'](*context['args'], **context['kwargs'])
-            self[name] = instance
+        for name, context in _contexts.items():
+            self[name] = context['cls'](*context['args'], **context['kwargs'])
 
     def push(self):
         _context_stack.append(self)

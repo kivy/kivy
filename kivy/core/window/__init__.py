@@ -14,7 +14,7 @@ from os.path import join, exists
 from os import getcwd
 from collections import defaultdict
 
-from kivy.core import core_select_lib
+from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
@@ -23,17 +23,18 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, OptionProperty, StringProperty, BooleanProperty, \
-    ColorProperty
-from kivy.utils import platform, reify, deprecated, pi_version
+    ColorProperty, DictProperty
+from kivy.utils import platform, pi_version
 from kivy.context import get_current_context
 from kivy.uix.behaviors import FocusBehavior
-from kivy.setupconfig import USE_SDL2
+from kivy.setupconfig import USE_SDL3
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.cgl import cgl_get_backend_name
+from kivy.graphics.context_instructions import BindTexture
+from kivy.core.image import ImageLoader
 
 # late import
 VKeyboard = None
-android = None
 Animation = None
 
 
@@ -218,16 +219,16 @@ class WindowBase(EventDispatcher):
         `height`: int
             Height of the window.
         `minimum_width`: int
-            Minimum width of the window (only works for sdl2 window provider).
+            Minimum width of the window (only works for sdl3 window provider).
         `minimum_height`: int
-            Minimum height of the window (only works for sdl2 window provider).
+            Minimum height of the window (only works for sdl3 window provider).
         `always_on_top`: bool
             When enabled, the window will be brought to the front and will keep
             the window above the rest. If disabled, it will restore the default
-            behavior. Only works for the sdl2 window provider.
+            behavior. Only works for the sdl3 window provider.
         `allow_screensaver`: bool
             Allow the device to show a screen saver, or to go to sleep
-            on mobile devices. Defaults to True. Only works for sdl2 window
+            on mobile devices. Defaults to True. Only works for sdl3 window
             provider.
 
     :Events:
@@ -252,7 +253,7 @@ class WindowBase(EventDispatcher):
             Fired when the event loop wants to close the window, or if the
             escape key is pressed and `exit_on_escape` is `True`. If a function
             bound to this event returns `True`, the window will not be closed.
-            If the the event is triggered because of the keyboard escape key,
+            If the event is triggered because of the keyboard escape key,
             the keyword argument `source` is dispatched along with a value of
             `keyboard` to the bound functions.
 
@@ -289,7 +290,7 @@ class WindowBase(EventDispatcher):
             .. versionadded:: 1.10.0
 
         `on_show`:
-            Fired when when the window is shown.
+            Fired when the window is shown.
 
             .. versionadded:: 1.10.0
 
@@ -417,26 +418,6 @@ class WindowBase(EventDispatcher):
     :attr:`modifiers` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    def _get_size(self):
-        r = self._rotation
-        w, h = self._size
-        if platform == 'win' or self._density != 1:
-            w, h = self._win._get_gl_size()
-        if self.softinput_mode == 'resize':
-            h -= self.keyboard_height
-        if r in (0, 180):
-            return w, h
-        return h, w
-
-    def _set_size(self, size):
-        if self._size != size:
-            r = self._rotation
-            if r in (0, 180):
-                self._size = size
-            else:
-                self._size = size[1], size[0]
-            self.dispatch('on_pre_resize', *size)
-
     minimum_width = NumericProperty(0)
     '''The minimum width to restrict the window to.
 
@@ -462,7 +443,7 @@ class WindowBase(EventDispatcher):
 
     This option can be toggled freely during the window's lifecycle.
 
-    Only works for the sdl2 window provider. Check the :mod:`~kivy.config`
+    Only works for the sdl3 window provider. Check the :mod:`~kivy.config`
     documentation for a more detailed explanation on the values.
 
     .. versionadded:: 2.2.0
@@ -481,9 +462,76 @@ class WindowBase(EventDispatcher):
     and defaults to True.
     '''
 
+    def _get_unrotated_size(self):
+        w, h = self._size
+
+        w *= self._density
+        h *= self._density
+
+        return w, h
+
+    unrotated_size = AliasProperty(
+        _get_unrotated_size, None, bind=("_size", "_density")
+    )
+    '''The unrotated size of the window in drawable pixels. This is the actual
+    pixel size of the drawable area of the window, and takes into account the
+    window's pixel density.
+
+    The pixel density is the ratio of the physical pixels to the size of the
+    window in window coordinates. For example, on a Retina HiDPI display, the
+    pixel density is typically 2.0, meaning that the window's drawable size in
+    pixels is twice the size in window coordinates.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`unrotated_size` is a
+    read-only :class:`~kivy.properties.AliasProperty`.
+
+    '''
+
+    def _get_size(self):
+        w, h = self._get_unrotated_size()
+
+        r = self._rotation
+
+        if r not in (0, 180):
+            h, w = w, h
+
+        return w, h
+
+    def _set_size(self, size):
+        r = self._rotation
+        new_w, new_h = size
+
+        if r not in (0, 180):
+            new_h, new_w = new_w, new_h
+
+        if (
+            new_w / self._density == self._size[0]
+            and new_h / self._density == self._size[1]
+        ):
+            # The size is the same, no need to resize anything
+            return
+
+        self._size = (new_w / self._density, new_h / self._density)
+        self.dispatch('on_pre_resize', *self._size)
+
     size = AliasProperty(_get_size, _set_size, bind=('_size', '_rotation'))
-    '''Get the rotated size of the window. If :attr:`rotation` is set, then the
-    size will change to reflect the rotation.
+    '''The rotated size of the window in drawable pixels. This is the actual
+    pixel size of the drawable area of the window, and takes into account the
+    window's :attr:`rotation` and pixel density.
+
+    The pixel density is the ratio of the physical pixels to the size of the
+    window in window coordinates. For example, on a Retina HiDPI display, the
+    pixel density is typically 2.0, meaning that the window's drawable size in
+    pixels is twice the size in window coordinates.
+
+    Consider using :attr:`system_size` if you want to programmatically set the
+    window size, as is more portable, and will give a nicer UX across different
+    OSes and displays.
+
+    This property differs from :attr:`unrotated_size` as it also accounts for
+    the window's rotation.
 
     .. versionadded:: 1.0.9
 
@@ -518,13 +566,7 @@ class WindowBase(EventDispatcher):
 
     # make some property read-only
     def _get_width(self):
-        _size = self._size
-        if platform == 'win' or self._density != 1:
-            _size = self._win._get_gl_size()
-        r = self._rotation
-        if r == 0 or r == 180:
-            return _size[0]
-        return _size[1]
+        return self._get_size()[0]
 
     width = AliasProperty(_get_width, bind=('_rotation', '_size', '_density'))
     '''Rotated window width.
@@ -534,14 +576,7 @@ class WindowBase(EventDispatcher):
 
     def _get_height(self):
         '''Rotated window height'''
-        r = self._rotation
-        _size = self._size
-        if platform == 'win' or self._density != 1:
-            _size = self._win._get_gl_size()
-        kb = self.keyboard_height if self.softinput_mode == 'resize' else 0
-        if r == 0 or r == 180:
-            return _size[1] - kb
-        return _size[0] - kb
+        return self._get_size()[1]
 
     height = AliasProperty(_get_height,
                            bind=('_rotation', '_size', '_density'))
@@ -614,7 +649,7 @@ class WindowBase(EventDispatcher):
     :attr:`softinput_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to ''.
 
-    .. note:: The `resize` option does not currently work with SDL2 on Android.
+    .. note:: The `resize` option does not currently work with SDL3 on Android.
 
     .. versionadded:: 1.9.0
 
@@ -648,22 +683,17 @@ class WindowBase(EventDispatcher):
         self._keyboard_changed = not self._keyboard_changed
         self._animate_content()
 
-    def _get_ios_kheight(self):
-        import ios
-        return ios.get_kheight()
-
-    def _get_android_kheight(self):
-        if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
-            return 0
-        global android
-        if not android:
-            import android
-        return android.get_keyboard_height()
+    def _refresh_safe_area(self, *args):
+        """Update Window.safe_area from kivy.mobile.get_safe_area()."""
+        if platform not in {'ios', 'android'}:
+            return
+        from kivy.mobile import get_safe_area
+        self.safe_area = get_safe_area()
 
     def _get_kivy_vkheight(self):
         mode = Config.get('kivy', 'keyboard_mode')
         if (
-            mode in ['dock', 'systemanddock']
+            mode in {'dock', 'systemanddock'}
             and self._vkeyboard_cls is not None
         ):
             for w in self.children:
@@ -679,20 +709,23 @@ class WindowBase(EventDispatcher):
         return 0
 
     def _get_kheight(self):
-        if platform == 'android':
-            return self._get_android_kheight()
-        elif platform == 'ios':
-            return self._get_ios_kheight()
+        if platform in {'android', 'ios'}:
+            from kivy.mobile import get_keyboard_height
+            return get_keyboard_height()
         return self._get_kivy_vkheight()
 
     keyboard_height = AliasProperty(_get_kheight, bind=('_keyboard_changed',))
     '''Returns the height of the softkeyboard/IME on mobile platforms.
     Will return 0 if not on mobile platform or if IME is not active.
 
-    .. note:: This property returns 0 with SDL2 on Android, but setting
-              Window.softinput_mode does work.
+    On iOS and Android the value is read from :mod:`kivy.mobile`
+    (``get_keyboard_height``), which reports the live IME inset height.
 
     .. versionadded:: 1.9.0
+
+    .. versionchanged:: 3.0.0
+        The Android/iOS height is now sourced from :mod:`kivy.mobile` instead of
+        the legacy ``android`` module.
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.properties.AliasProperty` and defaults to 0.
@@ -719,6 +752,37 @@ class WindowBase(EventDispatcher):
     :class:`~kivy.properties.NumericProperty` and defaults to 0.
     '''
 
+    safe_area = DictProperty(
+        {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
+    )
+    '''Safe-area insets in layout points for the current device and orientation.
+
+    Covers areas of the screen that should not be obscured by app content:
+    the status bar / Dynamic Island (top), the home indicator (bottom), and
+    the notch / rounded-corner overhang (left / right in landscape).
+
+    The dictionary always contains the keys ``"top"``, ``"left"``,
+    ``"bottom"``, and ``"right"``.  All values are in the same coordinate
+    system as Kivy layout (UIKit points on iOS).
+
+    The property is refreshed automatically whenever the window size or
+    rotation changes.  On desktop platforms it remains
+    ``{"top": 0, "left": 0, "bottom": 0, "right": 0}``.
+
+    Usage example::
+
+        from kivy.core.window import Window
+
+        def on_safe_area(window, insets):
+            print("top inset:", insets["top"])
+
+        Window.bind(safe_area=on_safe_area)
+
+    .. versionadded:: 3.0.0
+
+    :attr:`safe_area` is a :class:`~kivy.properties.DictProperty`.
+    '''
+
     def _set_system_size(self, size):
         self._size = size
 
@@ -729,26 +793,22 @@ class WindowBase(EventDispatcher):
 
     system_size = AliasProperty(_get_system_size, _set_system_size,
                                 bind=('_size',))
-    '''Real size of the window ignoring rotation. If the density is
-    not 1, the :attr:`system_size` is the :attr:`size` divided by
-    density.
+    '''Size in window coordinates of the window.
+
+    This property is used to set and retrieve the window size in window
+    coordinates (which is different from the drawable size).
+    The actual :attr:`size` of the window will be adjusted to account
+    for the window's rotation and pixel density.
+
+    Setting the window size in window coordinates is more portable and will
+    give a nicer UX across different OSes and displays, therefore it is
+    recommended to use this property to set the window size instead of
+    :attr:`size`.
 
     .. versionadded:: 1.0.9
 
     :attr:`system_size` is an :class:`~kivy.properties.AliasProperty`.
     '''
-
-    def _get_effective_size(self):
-        '''On density=1 and non-ios / non-Windows displays,
-        return :attr:`system_size`, else return scaled / rotated :attr:`size`.
-
-        Used by MouseMotionEvent.update_graphics() and WindowBase.on_motion().
-        '''
-        w, h = self.system_size
-        if platform in ('ios', 'win') or self._density != 1:
-            w, h = self.size
-
-        return w, h
 
     borderless = BooleanProperty(False)
     '''When set to True, this property removes the window border/decoration.
@@ -876,7 +936,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         pass
@@ -908,7 +968,7 @@ class WindowBase(EventDispatcher):
     top = AliasProperty(_get_top, _set_top)
     '''Top position of the window.
 
-    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+    .. note:: It's an SDL3 property with `[0, 0]` in the top-left corner.
 
     .. versionchanged:: 1.10.0
         :attr:`top` is now an :class:`~kivy.properties.AliasProperty`
@@ -922,7 +982,7 @@ class WindowBase(EventDispatcher):
     left = AliasProperty(_get_left, _set_left)
     '''Left position of the window.
 
-    .. note:: It's an SDL2 property with `[0, 0]` in the top-left corner.
+    .. note:: It's an SDL3 property with `[0, 0]` in the top-left corner.
 
     .. versionchanged:: 1.10.0
         :attr:`left` is now an :class:`~kivy.properties.AliasProperty`
@@ -931,6 +991,53 @@ class WindowBase(EventDispatcher):
 
     :attr:`left` is an :class:`~kivy.properties.AliasProperty` and defaults to
     the position set in :class:`~kivy.config.Config`.
+    '''
+
+    def _get_opacity(self):
+        return self._get_window_opacity()
+
+    def _set_opacity(self, opacity):
+        return self._set_window_opacity(opacity)
+
+    def _get_window_opacity(self):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    def _set_window_opacity(self, opacity):
+        Logger.warning('Window: Opacity is not implemented in the current '
+                       'window provider')
+
+    opacity = AliasProperty(_get_opacity, _set_opacity, cache=True)
+    '''Opacity of the window. Accepts a value between 0.0 (transparent) and
+    1.0 (opaque).
+
+    .. note::
+        This feature requires the SDL3 window provider.
+
+    .. versionadded:: 2.3.0
+
+    :attr:`opacity` is an :class:`~kivy.properties.AliasProperty` and defaults
+    to `1.0`.
+    '''
+
+    def _get_native_handle(self):
+        return self._get_window_native_handle()
+
+    def _get_window_native_handle(self):
+        Logger.warning('Window: Native handle is not implemented in the '
+                       'current window provider')
+
+    native_handle = AliasProperty(_get_native_handle, None)
+    '''Read only property to get the native handle of the window.
+
+    .. note::
+        The value is platform-specific and is mostly meant to be passed to
+        other libraries. This feature is currently only supported on Windows
+        and Linux platforms.
+
+    .. versionadded:: 3.0.0
+
+    :attr:`native_handle` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
     @property
@@ -954,9 +1061,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''
 
     event_managers_dict = None
@@ -971,9 +1077,8 @@ class WindowBase(EventDispatcher):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''
 
     trigger_create_window = None
@@ -985,7 +1090,7 @@ class WindowBase(EventDispatcher):
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
         'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
         'on_key_up', 'on_textinput', 'on_drop_begin', 'on_drop_file',
-        'on_dropfile', 'on_drop_text', 'on_drop_end', 'on_request_close',
+        'on_drop_text', 'on_drop_end', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
         'on_joy_button_up', 'on_memorywarning', 'on_textedit',
@@ -1071,10 +1176,6 @@ class WindowBase(EventDispatcher):
         if 'shape_image' not in kwargs:
             kwargs['shape_image'] = Config.get('kivy', 'window_shape')
 
-        self.fbind(
-            'on_drop_file',
-            lambda win, filename, *args: win.dispatch('on_dropfile', filename)
-        )
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
@@ -1085,12 +1186,35 @@ class WindowBase(EventDispatcher):
         self.bind(softinput_mode=lambda *dt: self.update_viewport(),
                   keyboard_height=lambda *dt: self.update_viewport())
 
+        # Refresh on both size and rotation: on Android/SDL the OS orientation
+        # change arrives as a window resize (size), not a rotation property
+        # change, so binding rotation alone would leave safe_area stale.
+        self.bind(size=self._refresh_safe_area,
+                  rotation=self._refresh_safe_area)
+        self._refresh_safe_area()  # populate on startup
+        # getRootWindowInsets() can still be null this early; re-read on the
+        # next frame so the first value isn't stuck at all-zeros.
+        Clock.schedule_once(self._refresh_safe_area, 0)
+
+        if platform in {'ios', 'android'}:
+            from kivy.mobile import subscribe_keyboard_height
+            # subscribe_keyboard_height fires on every IME height change; route
+            # it through trigger_keyboard_height for parity with iOS. That is a
+            # 0.5s Clock trigger, so keyboard_height lags briefly but always
+            # re-reads the live value (a shorter/zero-delay trigger is a
+            # possible future refinement).
+            subscribe_keyboard_height(
+                lambda h: self.trigger_keyboard_height()
+            )
+
         self.bind(show_cursor=lambda *dt: self._set_cursor_state(dt[1]))
 
         # init privates
         self._system_keyboard = Keyboard(window=self)
         self._keyboards = {'system': self._system_keyboard}
         self._vkeyboard_cls = None
+        self._shape_image = None
+        self.SHAPE_TEXTURE_INDEX = 1
 
         self.children = []
         self.parent = self
@@ -1116,6 +1240,9 @@ class WindowBase(EventDispatcher):
 
         # mark as initialized
         self.initialized = True
+
+        if self.shapable:
+            self._load_shape_image()
 
     def _reset_metrics_dpi(self, *args):
         from kivy.metrics import Metrics
@@ -1147,10 +1274,8 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so until this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         self.event_managers.insert(0, manager)
         for type_id in manager.type_ids:
@@ -1164,10 +1289,8 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so until this warning
-            is present as it can be changed or removed in the next versions of
-            Kivy.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         self.event_managers.remove(manager)
         for type_id in manager.type_ids:
@@ -1180,15 +1303,6 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    @deprecated
-    def toggle_fullscreen(self):
-        '''Toggle between fullscreen and windowed mode.
-
-        .. deprecated:: 1.9.0
-            Use :attr:`fullscreen` instead.
-        '''
-        pass
-
     def maximize(self):
         '''Maximizes the window. This method should be used on desktop
         platforms only.
@@ -1196,7 +1310,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: maximize() is not implemented in the current '
@@ -1209,7 +1323,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: minimize() is not implemented in the current '
@@ -1222,7 +1336,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: restore() is not implemented in the current '
@@ -1235,7 +1349,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: hide() is not implemented in the current '
@@ -1248,7 +1362,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.0
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: show() is not implemented in the current '
@@ -1261,7 +1375,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
         '''
         Logger.warning('Window: raise_window is not implemented in the current'
@@ -1285,14 +1399,30 @@ class WindowBase(EventDispatcher):
         get_context().flush()
 
     shape_image = StringProperty('')
-    '''An image for the window shape (only works for sdl2 window provider).
+    '''An image used to define the window shape
+    (works only with the SDL3 window provider).
 
-    .. warning:: The image size has to be the same like the window's size!
+    .. warning::
+        This option only works if :attr:`Window.shapeable` is `True`.
+
+    .. warning::
+        The image size must match the window size.
+
+    .. warning::
+        The image must be a 32-bit RGBA PNG. The alpha channel determines
+        the transparency of window pixels.
+
+    .. warning::
+        To ensure shaping works consistently across platforms,
+        set :attr:`Window.clearcolor` to `(0, 0, 0, 0)`.
 
     .. versionadded:: 1.10.1
 
+    .. versionchanged:: 3.0.0
+        :attr:`shape_image` now defaults to an empty string (no shape image).
+
     :attr:`shape_image` is a :class:`~kivy.properties.StringProperty` and
-    defaults to 'data/images/defaultshape.png'. This value is taken from
+    defaults to an empty string (`''`). This value is retrieved from
     :class:`~kivy.config.Config`.
     '''
     def set_custom_titlebar(self, widget):
@@ -1311,7 +1441,7 @@ class WindowBase(EventDispatcher):
         ::
 
             1. first set Window.custom_titlebar to True
-            2. then call Window.set_custom_titlebar with the widget/layout you want to set as titlebar as the argument # noqa: E501
+            2. then call Window.set_custom_titlebar with the widget/layout you want to set as titlebar as the argument
 
         If you want a child of the widget to receive touch events, in
         that child define a property `draggable` and set it to False
@@ -1333,14 +1463,14 @@ class WindowBase(EventDispatcher):
             will not be checked
 
         .. note::
-            This feature requires the SDL2 window provider and is currently
+            This feature requires the SDL3 window provider and is currently
             only supported on desktop platforms.
 
         .. warning::
             :mod:`~kivy.core.window.WindowBase.custom_titlebar` must be set to True
             for the widget to be successfully set as a titlebar
 
-        """
+        """  # noqa: E501
 
         Logger.warning('Window: set_custom_titlebar '
                        'is not implemented in the current'
@@ -1348,91 +1478,22 @@ class WindowBase(EventDispatcher):
 
     def on_shape_image(self, instance, value):
         if self.initialized:
-            self._set_shape(
-                shape_image=value, mode=self.shape_mode,
-                cutoff=self.shape_cutoff, color_key=self.shape_color_key
-            )
+            self._load_shape_image()
 
-    shape_cutoff = BooleanProperty(True)
-    '''The window :attr:`shape_image` cutoff property (only works for sdl2
-    window provider).
+    def _is_shapable(self):
+        return False
 
-    .. versionadded:: 1.10.1
+    def _get_shapable(self):
+        return self._is_shapable()
 
-    :attr:`shape_cutoff` is a :class:`~kivy.properties.BooleanProperty` and
-    defaults to True.
-    '''
-
-    def on_shape_cutoff(self, instance, value):
-        self._set_shape(
-            shape_image=self.shape_image, mode=self.shape_mode,
-            cutoff=value, color_key=self.shape_color_key
-        )
-
-    def _get_shaped(self):
-        return self._is_shaped()
-
-    shaped = AliasProperty(_get_shaped, None)
+    shapable = AliasProperty(_get_shapable, None)
     '''Read only property to check if the window is shapable or not (only works
-    for sdl2 window provider).
+    for sdl3 window provider).
 
     .. versionadded:: 1.10.1
 
-    :attr:`shaped` is an :class:`~kivy.properties.AliasProperty`.
+    :attr:`shapable` is an :class:`~kivy.properties.AliasProperty`.
     '''
-
-    def _get_shape_mode(self):
-        if not self.shaped:
-            return ''
-
-        i = self._get_shaped_mode()['mode']
-        modes = ('default', 'binalpha', 'reversebinalpha', 'colorkey')
-        return modes[i]
-
-    def _set_shape_mode(self, value):
-        self._set_shaped_mode(value)
-
-    shape_mode = AliasProperty(_get_shape_mode, _set_shape_mode)
-    '''Window mode for shaping (only works for sdl2 window provider).
-
-    - can be RGB only
-       - `default` - does nothing special
-       - `colorkey` - hides a color of the :attr:`shape_color_key`
-    - has to contain alpha channel
-       - `binalpha` - hides an alpha channel of the :attr:`shape_image`
-       - `reversebinalpha` - shows only the alpha of the :attr:`shape_image`
-
-    .. note::
-        Before actually setting the mode make sure the Window has the same
-        size like the :attr:`shape_image`, preferably via Config before
-        the Window is actually created.
-
-        If the :attr:`shape_image` isn't set, the default one will be used
-        and the mode might not take the desired visual effect.
-
-    .. versionadded:: 1.10.1
-
-    :attr:`shape_mode` is an :class:`~kivy.properties.AliasProperty`.
-    '''
-
-    shape_color_key = ColorProperty([1, 1, 1, 1])
-    '''Color key of the shaped window - sets which color will be hidden from
-    the window :attr:`shape_image` (only works for sdl2 window provider).
-
-    .. versionadded:: 1.10.1
-
-    :attr:`shape_color_key` is a :class:`~kivy.properties.ColorProperty`
-    instance and defaults to [1, 1, 1, 1].
-
-    .. versionchanged:: 2.0.0
-        Changed from :class:`~kivy.properties.ListProperty` to
-        :class:`~kivy.properties.ColorProperty`.
-    '''
-    def on_shape_color_key(self, instance, value):
-        self._set_shape(
-            shape_image=self.shape_image, mode=self.shape_mode,
-            cutoff=self.shape_cutoff, color_key=value
-        )
 
     def get_gl_backend_name(self):
         """
@@ -1470,7 +1531,7 @@ class WindowBase(EventDispatcher):
         self.trigger_create_window.cancel()
 
         # ensure the window creation will not be called twice
-        if platform in ('android'):
+        if platform in {'android'}:
             self._unbind_create_window()
 
         if not self.initialized:
@@ -1481,6 +1542,9 @@ class WindowBase(EventDispatcher):
             self.render_context = RenderContext()
             self.canvas = Canvas()
             self.render_context.add(self.canvas)
+
+            if self.shapable:
+                self._set_fsshader_for_shape()
 
         else:
             # if we get initialized more than once, then reload opengl state
@@ -1614,7 +1678,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 2.1.0
         '''
-        width, height = self._get_effective_size()
+        width, height = self.unrotated_size
         me.scale_for_screen(
             width, height,
             rotation=self.rotation,
@@ -1743,6 +1807,9 @@ class WindowBase(EventDispatcher):
         '''Event called when the window is resized.'''
         self.update_viewport()
 
+        if self.shapable:
+            self._set_fsshader_for_shape()
+
     def on_move(self):
         self.property('top').dispatch(self)
         self.property('left').dispatch(self)
@@ -1752,7 +1819,7 @@ class WindowBase(EventDispatcher):
         from kivy.graphics.transformation import Matrix
         from math import radians
 
-        w, h = self._get_effective_size()
+        w, h = self.unrotated_size
 
         smode = self.softinput_mode
         target = self._system_keyboard.target
@@ -1882,7 +1949,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1892,7 +1959,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1902,7 +1969,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1912,7 +1979,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1922,13 +1989,13 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
     def on_request_close(self, *largs, **kwargs):
         '''Event called before we close the window. If a bound function returns
-        `True`, the window will not be closed. If the the event is triggered
+        `True`, the window will not be closed. If the event is triggered
         because of the keyboard escape key, the keyword argument `source` is
         dispatched along with a value of `keyboard` to the bound functions.
 
@@ -1945,7 +2012,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -1955,7 +2022,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.9.1
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2020,11 +2087,11 @@ class WindowBase(EventDispatcher):
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform == 'darwin'
         if key == 27 and platform == 'android':
-            from android import mActivity
-            mActivity.moveTaskToBack(True)
+            from kivy.mobile._platform.android import move_task_to_back
+            move_task_to_back()
             return True
         elif WindowBase.on_keyboard.exit_on_escape:
-            if key == 27 or all([is_osx, key in [113, 119], modifier == 1024]):
+            if key == 27 or all([is_osx, key in {113, 119}, modifier == 1024]):
                 if not self.dispatch('on_request_close', source='keyboard'):
                     stopTouchApp()
                     self.close()
@@ -2090,7 +2157,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider.
+            This event works with sdl3 window provider.
 
         .. versionadded:: 2.1.0
         '''
@@ -2116,8 +2183,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. warning::
-            This event currently works with sdl2 window provider, on pygame
-            window provider and OS X with a patched version of pygame.
+            This event currently works with sdl3 window provider.
             This event is left in place for further evolution
             (ios, android etc.)
 
@@ -2137,12 +2203,6 @@ class WindowBase(EventDispatcher):
         .. versionchanged:: 2.1.0
             Renamed from `on_dropfile` to `on_drop_file`.
         '''
-        pass
-
-    @deprecated(msg='Deprecated in 2.1.0, use on_drop_file event instead. '
-                    'Event on_dropfile will be removed in the next two '
-                    'releases.')
-    def on_dropfile(self, filename):
         pass
 
     def on_drop_text(self, text, x, y, *args):
@@ -2165,7 +2225,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider on x11 window.
+            This event works with sdl3 window provider on x11 window.
 
         .. note::
             On Windows it is possible to drop a text on the window title bar
@@ -2195,7 +2255,7 @@ class WindowBase(EventDispatcher):
                 Additional arguments.
 
         .. note::
-            This event works with sdl2 window provider.
+            This event works with sdl3 window provider.
 
         .. versionadded:: 2.1.0
         '''
@@ -2206,7 +2266,7 @@ class WindowBase(EventDispatcher):
         Your goal is to clear the cache in your app as much as you can,
         release unused widgets, do garbage collection etc.
 
-        Currently, this event is fired only from the SDL2 provider, for
+        Currently, this event is fired only from the SDL3 provider, for
         iOS and Android.
 
         .. versionadded:: 1.9.0
@@ -2468,7 +2528,7 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
         pass
 
@@ -2478,20 +2538,101 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 1.10.0
 
         .. note::
-            This feature requires the SDL2 window provider.
+            This feature requires the SDL3 window provider.
         '''
+        pass
+
+    def _load_shape_image(self):
+        if not self.shape_image:
+            return
+
+        self._shape_image = ImageLoader.load(self.shape_image)
+
+        with self.render_context:
+            BindTexture(
+                texture=self._shape_image.texture,
+                index=self.SHAPE_TEXTURE_INDEX,
+            )
+
+        self.canvas.ask_update()
+
+        self._set_shape(self._shape_image)
+
+    def _set_fsshader_for_shape(self):
+        self.render_context['texture1'] = self.SHAPE_TEXTURE_INDEX
+        fs_shader = f"""
+            $HEADER$
+            uniform sampler2D texture1;
+            void main(void) {{
+                vec2 uv = gl_FragCoord.xy / vec2({self.size[0]}, {self.size[1]});
+                // Reverse the y coord
+                uv.y = 1.0 - uv.y;
+                vec4 texColor0 = texture2D(texture0, tex_coord0);
+                vec4 texColor1 = texture2D(texture1, uv);
+                gl_FragColor = frag_color * vec4(texColor0.rgb, texColor1.a * texColor0.a);
+            }}
+        """  # noqa
+        self.render_context.shader.fs = fs_shader
+
+    def get_system_theme(self):
+        """
+        Returns the current system theme as a string.
+
+        Returns:
+            str: The current system theme, which can be ``"light"``, ``"dark"`` or ``"unknown"``.
+
+        The example below demonstrates how to create a Python thread-based theme
+        monitor that detects system theme changes and updates the interface in a
+        thread-safe manner. It uses `Clock.schedule_once` to ensure that UI
+        updates occur on the main application thread:
+
+        .. code-block:: python
+            def start_system_theme_monitor(self, interval=1.0):
+                '''
+                Starts a background monitor that checks for system theme changes.
+
+                Args:
+                    interval (float): Time interval in seconds between theme checks.
+                '''
+                def monitor():
+                    last_theme = Window.get_system_theme()
+                    while True:
+                        time.sleep(interval)
+                        current_theme = Window.get_system_theme()
+                        if current_theme != last_theme:
+                            last_theme = current_theme
+                            Clock.schedule_once(lambda dt: self.on_system_theme_change(current_theme))
+
+                threading.Thread(target=monitor, daemon=True).start()
+
+            def on_system_theme_change(self, new_theme):
+                '''
+                Callback executed when the system theme changes.
+
+                Args:
+                    new_theme (str): The new system theme.
+                '''
+                print(f"Current system theme is: {new_theme}")
+
+
+        .. note::
+            This feature requires the SDL3 window provider.
+
+        .. versionadded:: 3.0.0
+        """  # noqa: E501
         pass
 
 
 #: Instance of a :class:`WindowBase` implementation
+# Build platform-specific list from registry
+all_providers = get_provider_modules('window')
 window_impl = []
+
 if platform == 'linux' and (pi_version or 4) < 4:
-    window_impl += [('egl_rpi', 'window_egl_rpi', 'WindowEglRpi')]
-if USE_SDL2:
-    window_impl += [('sdl2', 'window_sdl2', 'WindowSDL')]
-else:
-    window_impl += [
-        ('pygame', 'window_pygame', 'WindowPygame')]
+    window_impl.append(make_provider_tuple('egl_rpi', all_providers, 'WindowEglRpi'))
+if USE_SDL3:
+    window_impl.append(make_provider_tuple('sdl3', all_providers, 'WindowSDL'))
 if platform == 'linux':
-    window_impl += [('x11', 'window_x11', 'WindowX11')]
-Window = core_select_lib('window', window_impl, True)
+    window_impl.append(make_provider_tuple('x11', all_providers, 'WindowX11'))
+
+Window: WindowBase = core_select_lib('window', window_impl, True)

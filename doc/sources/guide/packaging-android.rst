@@ -39,7 +39,7 @@ automatically pushed to the device.
 Buildozer currently works only in Linux and macOS (You can still use
 it on Windows via WSL), and can significantly simplify the apk build.
 
-Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation.html>`__
+Please find the installation instructions `here <https://buildozer.readthedocs.io/en/latest/installation/>`__
 
 Including the "Targeting Android" section.
 
@@ -61,7 +61,7 @@ to build, push and automatically run the apk on your device.
 Buildozer has many available options and tools to help you, the steps
 above are just the simplest way to build and run your
 APK. The full documentation is available `here
-<http://buildozer.readthedocs.org/en/latest/>`_. You can also check
+<https://buildozer.readthedocs.org/en/latest/>`_. You can also check
 the Buildozer README at `<https://github.com/kivy/buildozer>`_.
 
 .. _Packaging your application into APK:
@@ -74,7 +74,7 @@ you more control but requires you to manually download parts of the
 Android toolchain.
 
 See the `python-for-android documentation
-<https://python-for-android.readthedocs.io/en/latest/quickstart/>`__
+<https://python-for-android.readthedocs.io/en/latest/>`__
 for full details.
 
 
@@ -126,7 +126,7 @@ trying the Kivy launcher. You can run them as below::
 
 #. Download the `Kivy demos for Android <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/kivy/kivydemo-for-android.zip>`_
 #. Unzip the contents and go to the folder `kivydemo-for-android`
-#. Copy all the the subfolders here to
+#. Copy all the subfolders here to
 
     /sdcard/kivy
 

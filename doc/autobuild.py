@@ -30,12 +30,13 @@ import kivy.app
 import kivy.metrics
 import kivy.atlas
 import kivy.context
-import kivy.core.audio
+import kivy.core.audio_output
 import kivy.core.camera
 import kivy.core.clipboard
 import kivy.core.gl
 import kivy.core.image
 import kivy.core.spelling
+import kivy.core.system_tray
 import kivy.core.text
 import kivy.core.text.markup
 import kivy.core.video

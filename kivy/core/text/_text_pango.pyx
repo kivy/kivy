@@ -722,7 +722,7 @@ def kpango_font_context_create(font_context, fontfile=None):
 
 def kpango_font_context_add_font(font_context, fontfile):
     global kivy_font_context_cache
-    global kiby_fontfamily_cache
+    global kivy_fontfamily_cache
     cdef bytes fctx = _byte_option(font_context)
     cdef bytes font_name_r = _byte_option(fontfile)
     if not fctx:

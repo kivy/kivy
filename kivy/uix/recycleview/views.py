@@ -166,7 +166,7 @@ class RecycleDataAdapter(EventDispatcher):
           are typically added to the internal cache.
 
     Typically what happens is that the layout manager lays out the data
-    and then asks for views, using :meth:`set_visible_views,` for some specific
+    and then asks for views, using :meth:`set_visible_views`, for some specific
     data items that it displays.
 
     These views are gotten from the current views, dirty or global cache. Then
@@ -236,6 +236,7 @@ class RecycleDataAdapter(EventDispatcher):
         If found in the cache it's removed from the source
         before returning. It doesn't check the current views.
         '''
+        global _cache_count
         # is it in the dirtied views?
         dirty_views = self.dirty_views
         if viewclass is None:
@@ -251,12 +252,14 @@ class RecycleDataAdapter(EventDispatcher):
             elif _cached_views[viewclass]:
                 # global cache has this class, update data
                 view, stale = _cached_views[viewclass].pop(), True
+                _cache_count -= 1
             elif dirty_class:
                 # random any dirty view element - update data
                 view, stale = dirty_class.popitem()[1], True
         elif _cached_views[viewclass]:  # otherwise go directly to cache
             # global cache has this class, update data
             view, stale = _cached_views[viewclass].pop(), True
+            _cache_count -= 1
 
         if view is None:
             view = self.create_view(index, data_item, viewclass)

@@ -45,7 +45,7 @@ to the examples as ``examples-path``. The touchtracer example is in
    ``python`` works).
 #. Create a folder into which the packaged app will be created. For example
    create a ``TouchApp`` folder and `change to that directory
-   <http://www.computerhope.com/cdhlp.htm>`_ with e.g. ``cd TouchApp``.
+   <https://www.computerhope.com/cdhlp.htm>`_ with e.g. ``cd TouchApp``.
    Then type::
 
     python -m PyInstaller --name touchtracer examples-path\demo\touchtracer\main.py
@@ -53,7 +53,7 @@ to the examples as ``examples-path``. The touchtracer example is in
    You can also add an `icon.ico` file to the application folder in order to
    create an icon for the executable. If you don't have a .ico file available,
    you can convert your `icon.png` file to ico using the web app
-   `ConvertICO <http://www.convertico.com>`_. Save the `icon.ico` in the
+   `ConvertICO <https://www.convertico.com>`_. Save the `icon.ico` in the
    touchtracer directory and type::
 
     python -m PyInstaller --name touchtracer --icon examples-path\demo\touchtracer\icon.ico examples-path\demo\touchtracer\main.py
@@ -64,9 +64,9 @@ to the examples as ``examples-path``. The touchtracer example is in
 #. The spec file will be ``touchtracer.spec`` located in ``TouchApp``. Now we
    need to edit the spec file to add the dependencies hooks to correctly build
    the exe. Open the spec file with your favorite editor and add these lines
-   at the beginning of the spec (assuming sdl2 is used, the default now)::
+   at the beginning of the spec (assuming sdl3 is used, the default now)::
 
-    from kivy_deps import sdl2, glew
+    from kivy_deps import sdl3, glew
 
    Then, find ``COLLECT()`` and add the data for touchtracer
    (`touchtracer.kv`, `particle.png`, ...): Change the line to add a ``Tree()``
@@ -76,14 +76,14 @@ to the examples as ``examples-path``. The touchtracer example is in
 
    To add the dependencies, before the first keyword argument in COLLECT add a
    Tree object for every path of the dependencies. E.g.
-   ``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]`` so it'll look
+   ``*[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins)]`` so it'll look
    something like::
 
     coll = COLLECT(exe, Tree('examples-path\\demo\\touchtracer\\'),
                    a.binaries,
                    a.zipfiles,
                    a.datas,
-                   *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+                   *[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins)],
                    strip=False,
                    upx=True,
                    name='touchtracer')
@@ -108,7 +108,7 @@ Next, we will modify the example above to package the **touchtracer** example pr
           a.binaries,
           a.zipfiles,
           a.datas,
-          *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+          *[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins)],
           upx=True,
           name='touchtracer')
 
@@ -153,7 +153,7 @@ folder and do::
 to create the ``gstvideo.spec`` file. Edit as above and this time include the
 gstreamer dependency as well::
 
-    from kivy_deps import sdl2, glew, gstreamer
+    from kivy_deps import sdl3, glew, gstreamer
 
 and add the ``Tree()`` to include the video files, e.g.
 ``Tree('examples-path\\widgets')`` as well as the gstreamer dependencies so it
@@ -163,7 +163,7 @@ should look something like::
                    a.binaries,
                    a.zipfiles,
                    a.datas,
-                   *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],
+                   *[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins + gstreamer.dep_bins)],
                    strip=False,
                    upx=True,
                    name='gstvideo')
@@ -174,21 +174,6 @@ Then build the spec file in ``VideoPlayer`` with::
 
 and you should find gstvideo.exe in ``VideoPlayer\dist\gstvideo``,
 which when run will play a video.
-
-.. note::
-
-    If you're using Pygame and need PyGame in your packaging app, you'll have
-    to add the following code to your spec file due to kivy issue #1638. After
-    the imports add the following::
-
-        def getResource(identifier, *args, **kwargs):
-            if identifier == 'pygame_icon.tiff':
-                raise IOError()
-            return _original_getResource(identifier, *args, **kwargs)
-
-        import pygame.pkgdata
-        _original_getResource = pygame.pkgdata.getResource
-        pygame.pkgdata.getResource = getResource
 
 .. _overwrite-win-hook:
 
@@ -229,7 +214,7 @@ One can also generate a alternate hook which literally lists every kivy
 provider module and those not required can be commented out. See
 :mod:`~kivy.tools.packaging.pyinstaller_hooks`.
 
-To use the the alternate hooks with the examples above modify as following to
+To use the alternate hooks with the examples above modify as following to
 add the hooks with ``hookspath()`` and ``runtime_hooks`` (if required)
 and ``**get_deps_minimal()`` or ``**get_deps_all()`` to specify the providers.
 
@@ -269,9 +254,9 @@ Alternate installations
 -----------------------
 
 The previous examples used e.g.
-``*[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
+``*[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
 to make PyInstaller add all the dlls used by these dependencies. If kivy
 was not installed using the wheels method these commands will not work and e.g.
-``kivy_deps.sdl2`` will fail to import. Instead, one must find the location
+``kivy_deps.sdl3`` will fail to import. Instead, one must find the location
 of these dlls and manually pass them to the ``Tree`` class in a similar fashion
 as the example.

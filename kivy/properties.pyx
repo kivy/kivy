@@ -274,6 +274,7 @@ include "include/config.pxi"
 
 
 from weakref import ref
+from os import fspath, PathLike
 from kivy.config import ConfigParser
 from functools import partial
 from kivy.clock import Clock
@@ -748,7 +749,7 @@ cdef class NumericProperty(Property):
             return self.parse_list(obj, x[0], x[1], ps)
         else:
             raise ValueError(
-                '%s.%s has an invalid format (got %r). Consider using ObjectProperty'
+                '%s.%s has an invalid format (got %r). Consider using ObjectProperty '
                 'or use errorhandler to convert to a number' % (
                 obj.__class__.__name__,
                 self.name, x))
@@ -785,10 +786,21 @@ cdef class StringProperty(Property):
         `defaultvalue`: string, defaults to ''
             Specifies the default value of the property.
 
+    .. versionchanged:: 3.0.0
+        :class:`os.PathLike` values (such as :class:`pathlib.Path`) are now
+        accepted and coerced to their string representation via
+        :func:`os.fspath`. Any other value type is left unchanged, so a
+        non-string, non-path value still raises ``ValueError``.
+
     '''
 
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
+
+    cdef convert(self, EventDispatcher obj, x, PropertyStorage property_storage):
+        if isinstance(x, PathLike):
+            return fspath(x)
+        return x
 
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
         if Property.check(self, obj, value, property_storage):
@@ -1580,6 +1592,20 @@ cdef class AliasProperty(Property):
             interacted with in any way because the ``getter`` won't be called
             early.
 
+    .. versionchanged:: 3.0.0
+        Dispatch on changes to the ``bind`` properties follows these rules:
+
+        - With ``cache=True``, the alias property dispatches when the getter
+          returns a new value. The first change to a ``bind`` property after
+          the object is created always dispatches, even if the getter returns
+          the same value, and whether or not the alias property was read
+          before. Previously a read before that change suppressed the
+          dispatch.
+        - With ``cache=False``, the alias property dispatches on every change
+          to a ``bind`` property, including when the getter returns `None`.
+          Previously a change that made the getter return `None` was not
+          dispatched.
+
     .. versionchanged:: 1.9.0
         `rebind` has been introduced.
 
@@ -1619,6 +1645,7 @@ cdef class AliasProperty(Property):
         s.getter = self.getter
         s.setter = self.setter
         s.alias_initial = 1
+        s.alias_dispatched = 0
 
     cdef PropertyStorage create_property_storage(self):
         return AliasPropertyStorage.__new__(AliasPropertyStorage)
@@ -1639,10 +1666,15 @@ cdef class AliasProperty(Property):
     cpdef trigger_change(self, EventDispatcher obj, value):
         cdef AliasPropertyStorage ps = self.get_property_storage(obj)
         dvalue = ps.getter(obj)
-        if ps.value != dvalue:
-            if self.use_cache:
-                ps.alias_initial = 0
-                ps.value = dvalue
+        # Without a cache the getter may depend on state the alias property
+        # cannot see, so the last value is not a reliable baseline. A read
+        # primes the cache (alias_initial) but must not use up the first
+        # dispatch (alias_dispatched).
+        if (not self.use_cache or not ps.alias_dispatched
+                or ps.value != dvalue):
+            ps.alias_initial = 0
+            ps.alias_dispatched = 1
+            ps.value = dvalue
             self._dispatch(obj, ps)
 
     cdef check(self, EventDispatcher obj, value, PropertyStorage property_storage):
@@ -1660,12 +1692,12 @@ cdef class AliasProperty(Property):
     cpdef set(self, EventDispatcher obj, value):
         cdef AliasPropertyStorage ps = self.get_property_storage(obj)
         if ps.setter(obj, value):
-            if self.use_cache:
-                if ps.alias_initial:
-                    ps.alias_initial = 0
-                ps.value = ps.getter(obj)
+            ps.alias_initial = 0
+            ps.alias_dispatched = 1
+            ps.value = ps.getter(obj)
             self._dispatch(obj, ps)
         elif self.force_dispatch:
+            ps.alias_dispatched = 1
             self._dispatch(obj, ps)
 
     cdef _dispatch(self, EventDispatcher obj, PropertyStorage ps):

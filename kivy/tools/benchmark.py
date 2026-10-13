@@ -29,10 +29,7 @@ from kivy.graphics import RenderContext
 from kivy.input.motionevent import MotionEvent
 from kivy.cache import Cache
 from kivy.clock import Clock
-from kivy.compat import PY2
 
-if not PY2:
-    xrange = range
 
 clockfn = time
 if sys.platform == 'win32':
@@ -115,9 +112,9 @@ class bench_button_creation:
 
     def __init__(self):
         labels = []
-        for x in xrange(10000):
+        for x in range(10000):
             button = map(lambda x: chr(randint(ord('a'), ord('z'))),
-                         xrange(10))
+                         range(10))
             labels.append(''.join(button))
         self.labels = labels
 
@@ -150,9 +147,9 @@ class bench_button_creation_with_tick:
 
     def __init__(self):
         labels = []
-        for x in xrange(10000):
+        for x in range(10000):
             button = map(lambda x: chr(randint(ord('a'), ord('z'))),
-                         xrange(10))
+                         range(10))
             labels.append(''.join(button))
         self.labels = labels
 

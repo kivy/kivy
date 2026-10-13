@@ -57,7 +57,7 @@ __all__ = ('Layout', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.compat import isclose
+from math import isclose
 
 
 class Layout(Widget):

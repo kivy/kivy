@@ -5,15 +5,12 @@ utils tests
 
 import os
 import unittest
-try:
-    from unittest.mock import patch   # python 3.x
-except:
-    from mock import patch   # python 2.x
+from unittest.mock import patch
 
 from kivy.utils import (boundary, escape_markup, format_bytes_to_human,
         is_color_transparent, SafeList, get_random_color, get_hex_from_color,
         get_color_from_hex, strtotuple, QueryDict, intersection, difference,
-        interpolate, _get_platform, deprecated, reify)
+        interpolate, _get_platform, deprecated, reify, normalize_path_id)
 from kivy import utils
 
 
@@ -130,8 +127,11 @@ class UtilsTest(unittest.TestCase):
         # __getattr__
         toto = qd.toto
         self.assertEqual(toto, 1)
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(AttributeError) as cm:
             foo = qd.not_an_attribute
+        self.assertEqual(
+            str(cm.exception),
+            "'QueryDict' object has no attribute 'not_an_attribute'")
 
     def test_intersection(self):
         abcd = ['a', 'b', 'c', 'd']
@@ -196,7 +196,7 @@ class UtilsTest(unittest.TestCase):
         self.assertNotIn('KIVY_BUILD', os.environ)
 
     def test_Platform_android_with_p4a(self):
-        with patch.dict('os.environ', {'P4A_BOOTSTRAP': 'sdl2'}):
+        with patch.dict('os.environ', {'P4A_BOOTSTRAP': 'sdl3'}):
             self.assertEqual(_get_platform(), 'android')
         self.assertNotIn('P4A_BOOTSTRAP', os.environ)
 
@@ -228,6 +228,136 @@ class UtilsTest(unittest.TestCase):
 
     def test_Platform_unknown(self):
         self._test_platforms('randomdata', 'unknown')
+
+    def test_normalize_path_id_spaces(self):
+        # Spaces should be replaced with underscores
+        result = normalize_path_id("My Photo Editor")
+        self.assertEqual(result, "My_Photo_Editor")
+
+    def test_normalize_path_id_invalid_chars(self):
+        # Invalid filesystem characters should be replaced
+        result = normalize_path_id("Name:With*Invalid?Chars")
+        self.assertEqual(result, "Name_With_Invalid_Chars")
+
+        result = normalize_path_id('Path/With\\Slashes')
+        self.assertEqual(result, "Path_With_Slashes")
+
+    def test_normalize_path_id_unicode(self):
+        # Unicode letters should be preserved
+        result = normalize_path_id("Café Editor")
+        self.assertEqual(result, "Café_Editor")
+
+        result = normalize_path_id("日本語アプリ")
+        self.assertEqual(result, "日本語アプリ")
+
+    def test_normalize_path_id_control_chars(self):
+        # Control characters should be removed
+        result = normalize_path_id("Name\x00\x1F\x7FTest")
+        self.assertEqual(result, "NameTest")
+
+    def test_normalize_path_id_reserved_names(self):
+        # Windows reserved names should be prefixed
+        result = normalize_path_id("COM1")
+        self.assertEqual(result, "_COM1")
+
+        result = normalize_path_id("PRN")
+        self.assertEqual(result, "_PRN")
+
+        # Reserved name with suffix is safe
+        result = normalize_path_id("COM1 Tool")
+        self.assertEqual(result, "COM1_Tool")
+
+    def test_normalize_path_id_strip(self):
+        # Leading/trailing underscores, dots, spaces should be stripped
+        result = normalize_path_id("  App Name  ")
+        self.assertEqual(result, "App_Name")
+
+        result = normalize_path_id("...App...")
+        self.assertEqual(result, "App")
+
+    def test_normalize_path_id_empty(self):
+        # Empty or whitespace-only should raise ValueError
+        with self.assertRaises(ValueError):
+            normalize_path_id("")
+
+        with self.assertRaises(ValueError):
+            normalize_path_id("   ")
+
+        # Only special chars that get removed
+        with self.assertRaises(ValueError):
+            normalize_path_id("///")
+
+    def test_normalize_path_id_unicode_normalization(self):
+        # Test NFC normalization - decomposed form should match composed
+        # "é" as single character (NFC)
+        nfc = normalize_path_id("Café")
+        # "é" as e + combining acute accent (NFD)
+        nfd = normalize_path_id("Cafe\u0301")
+        self.assertEqual(nfc, nfd, "NFC normalization should make both equal")
+        self.assertEqual(nfc, "Café")
+
+    def test_normalize_path_id_zero_width_chars(self):
+        # Zero-width space (U+200B) and other format chars should be removed
+        result = normalize_path_id("My\u200BApp")  # zero-width space
+        self.assertEqual(result, "MyApp")
+
+        result = normalize_path_id("App\u200CName")  # zero-width non-joiner
+        self.assertEqual(result, "AppName")
+
+        result = normalize_path_id("Test\u200EApp")  # left-to-right mark
+        self.assertEqual(result, "TestApp")
+
+    def test_normalize_path_id_length_limit(self):
+        # Long strings should be limited to 120 characters
+        long_name = "A" * 150
+        result = normalize_path_id(long_name)
+        self.assertEqual(len(result), 120)
+        self.assertEqual(result, "A" * 120)
+
+        # Test with trailing underscores after truncation
+        long_with_underscore = "A" * 119 + "___"
+        result = normalize_path_id(long_with_underscore)
+        self.assertLessEqual(len(result), 120)
+        self.assertFalse(result.endswith("_"))
+
+        # Unicode string length test
+        long_unicode = "日" * 150
+        result = normalize_path_id(long_unicode)
+        self.assertEqual(len(result), 120)
+
+    def test_normalize_path_id_emoji_removed(self):
+        # Emoji should be replaced with underscores (not in \w)
+        result = normalize_path_id("My App 🎨")
+        self.assertEqual(result, "My_App")
+
+        result = normalize_path_id("Photo📸Editor")
+        self.assertEqual(result, "Photo_Editor")
+
+    def test_normalize_path_id_various_emoji(self):
+        # Test various types of emoji are properly handled
+        # Simple emoji
+        result = normalize_path_id("Music 🎵 Player")
+        self.assertEqual(result, "Music_Player")
+
+        # Emoji with skin tone modifier
+        result = normalize_path_id("Developer 👨‍💻 Tools")
+        self.assertEqual(result, "Developer_Tools")
+
+        # Multiple emoji
+        result = normalize_path_id("Fun 🎉🎊🎈 Party App")
+        self.assertEqual(result, "Fun_Party_App")
+
+        # Emoji at start and end
+        result = normalize_path_id("🚀 Space Explorer 🌟")
+        self.assertEqual(result, "Space_Explorer")
+
+        # Flag emoji
+        result = normalize_path_id("World 🇺🇸 Travel")
+        self.assertEqual(result, "World_Travel")
+
+        # Symbol emoji
+        result = normalize_path_id("Check ✅ List ❌")
+        self.assertEqual(result, "Check_List")
 
     def _test_platforms(self, input, testval):
         utils._sys_platform = input

@@ -69,6 +69,58 @@ Usage example::
     # You could also refer to a system font by family, since this is a
     # system:// font context
     lbl3 = Label(font_context='system://myapp', family_name='Arial')
+
+
+Text Provider Selection
+=======================
+
+.. versionadded:: 3.0.0
+
+Kivy supports multiple text rendering backends (providers) such as PIL, SDL3,
+and Pango. You can query available providers and select a specific provider
+for text rendering.
+
+Selecting a Provider via Widget
+-------------------------------
+
+The recommended way to select a text provider is through the
+:class:`~kivy.uix.label.Label` widget's ``text_provider`` property::
+
+    from kivy.uix.label import Label
+
+    # Use PIL for this specific label
+    label = Label(text='Hello World', text_provider='pil')
+
+Querying Available Providers
+----------------------------
+
+Use :meth:`LabelBase.available_providers` to get a list of available text
+providers on the current system::
+
+    from kivy.core.text import Label as CoreLabel
+
+    providers = CoreLabel.available_providers()
+    print(providers)  # e.g., ['sdl3', 'pil']
+
+Strict Mode
+-----------
+
+By default, if a requested provider is not available, ``get_provider_class()``
+returns ``None``. Enable strict mode to raise a ``ValueError`` for unknown
+providers by setting the ``KIVY_PROVIDER_STRICT`` environment variable::
+
+    import os
+    os.environ['KIVY_PROVIDER_STRICT'] = '1'
+
+Environment Variable Control
+----------------------------
+
+The ``KIVY_TEXT`` environment variable controls which providers are available
+and their priority order. It must be set before importing Kivy::
+
+    import os
+    os.environ['KIVY_TEXT'] = 'pil,sdl3'  # Try PIL first, then SDL3
+    import kivy
 '''
 
 __all__ = ('LabelBase', 'Label',
@@ -81,13 +133,12 @@ from functools import partial
 from copy import copy
 from kivy import kivy_data_dir
 from kivy.config import Config
-from kivy.utils import platform
+from kivy.utils import platform, path_to_str
 from kivy.graphics.texture import Texture
-from kivy.core import core_select_lib
+from kivy.core import core_register_libs, get_provider_modules, make_provider_tuple
 from kivy.core.text.text_layout import layout_text, LayoutWord
 from kivy.resources import resource_find, resource_add_path
-from kivy.compat import PY2
-from kivy.setupconfig import USE_SDL2, USE_PANGOFT2
+from kivy.setupconfig import USE_SDL3, USE_PANGOFT2
 from kivy.logger import Logger
 
 
@@ -96,6 +147,11 @@ if 'KIVY_DOC' not in os.environ:
     DEFAULT_FONT = _default_font_paths.pop(0)
 else:
     DEFAULT_FONT = None
+
+
+def _is_strict_mode():
+    """Check if strict provider mode is enabled via environment variable."""
+    return os.environ.get('KIVY_PROVIDER_STRICT', '').lower() in ('1', 'true', 'yes')
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -185,6 +241,21 @@ class LabelBase(object):
             or `'weak_rtl'` (Pango only)
         `text_language`: str, defaults to None (user locale)
             RFC-3066 format language tag as a string (Pango only)
+        `limit_render_to_text_bbox`: bool, defaults to False. Available for SDL3
+            and PIL text providers.
+            If set to ``True``, this parameter indicates that rendering should
+            be limited to the bounding box of the text, excluding any
+            additional white spaces designated for ascent and descent.
+            By limiting the rendering to the bounding box of the text, it
+            ensures a more precise alignment with surrounding elements when
+            utilizing properties such as `valign`, `y`, `pos`, `pos_hint`, etc.
+
+    .. versionadded:: 3.0.0
+        `limit_render_to_text_bbox` was implemented for SDL3 text provider.
+
+    .. versionadded:: 2.3.0
+        `limit_render_to_text_bbox` was added to allow to limit text rendering
+        to the text bounding box (PIL only).
 
     .. deprecated:: 2.2.0
         `padding_x` and `padding_y` have been deprecated. Please use `padding`
@@ -238,18 +309,28 @@ class LabelBase(object):
 
     _font_family_support = False
 
+    _provider_name = None
+    # Internal provider name used for registration.
+    # This must be set by provider implementations. Use
+    # LabelBase.available_providers() to query available provider names.
+
+    # Provider registry
+    _providers = []  # List of provider classes in priority order
+    _providers_by_name = {}  # O(1) lookup by lowercase name
+
     def __init__(
-        self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
-        italic=False, underline=False, strikethrough=False, font_family=None,
-        halign='left', valign='bottom', shorten=False,
-        text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
-        strip_reflow=True, shorten_from='center', split_str=' ',
-        unicode_errors='replace',
-        font_hinting='normal', font_kerning=True, font_blended=True,
-        outline_width=None, outline_color=None, font_context=None,
-        font_features=None, base_direction=None, font_direction='ltr',
-        font_script_name='Latin', text_language=None,
-        **kwargs):
+            self, text='', font_size=12, font_name=DEFAULT_FONT, bold=False,
+            italic=False, underline=False, strikethrough=False, font_family=None,
+            halign='left', valign='bottom', shorten=False,
+            text_size=None, mipmap=False, color=None, line_height=1.0, strip=False,
+            strip_reflow=True, shorten_from='center', split_str=' ',
+            unicode_errors='replace',
+            font_hinting='normal', font_kerning=True, font_blended=True,
+            outline_width=None, outline_color=None, font_context=None,
+            font_features=None, base_direction=None, font_direction='ltr',
+            font_script_name='Latin', text_language=None,
+            limit_render_to_text_bbox=False,
+            **kwargs):
 
         # Include system fonts_dir in resource paths.
         # This allows us to specify a font from those dirs.
@@ -273,7 +354,8 @@ class LabelBase(object):
                    'base_direction': base_direction,
                    'font_direction': font_direction,
                    'font_script_name': font_script_name,
-                   'text_language': text_language}
+                   'text_language': text_language,
+                   'limit_render_to_text_bbox': limit_render_to_text_bbox}
 
         kwargs_get = kwargs.get
         options['color'] = color or (1, 1, 1, 1)
@@ -283,8 +365,8 @@ class LabelBase(object):
         if isinstance(options['padding'], (int, float)):
             options['padding'] = [options['padding']] * 4
         elif (
-            isinstance(options['padding'], (list, tuple))
-            and len(options['padding']) != 4
+                isinstance(options['padding'], (list, tuple))
+                and len(options['padding']) != 4
         ):
             if len(options['padding']) == 1:
                 options['padding'] = options['padding'] * 4
@@ -350,6 +432,10 @@ class LabelBase(object):
         All the fn_regular/fn_italic/fn_bold parameters are resolved with
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
+
+        .. versionchanged:: 3.0.0
+            The ``fn_*`` font paths may be :class:`os.PathLike` (e.g.
+            :class:`pathlib.Path`) in addition to ``str``.
         '''
 
         if fn_regular is None:
@@ -358,6 +444,7 @@ class LabelBase(object):
         fonts = []
 
         for font_type in fn_regular, fn_italic, fn_bold, fn_bolditalic:
+            font_type = path_to_str(font_type)
             if font_type is not None:
                 font = resource_find(font_type)
 
@@ -370,9 +457,87 @@ class LabelBase(object):
 
         LabelBase._fonts[name] = tuple(fonts)
 
+    @staticmethod
+    def register_provider(cls):
+        '''Register a text provider class.
+
+        This is called by each text provider module (text_pil, text_sdl3, etc.)
+        to register itself with the text system.
+
+        :Parameters:
+            `cls`: class
+                The provider class (subclass of LabelBase) to register.
+
+        .. versionadded:: 3.0.0
+        '''
+        # Require explicit _provider_name attribute (validate BEFORE adding to list)
+        name = getattr(cls, '_provider_name', None)
+        if name is None:
+            raise ValueError(
+                f'{cls.__name__} must define a _provider_name class attribute'
+            )
+
+        LabelBase._providers.append(cls)
+        LabelBase._providers_by_name[name.lower()] = cls
+
+    @staticmethod
+    def available_providers():
+        '''Return a list of available text provider names.
+
+        This reflects which providers are importable on the current system
+        AND allowed by the KIVY_TEXT environment variable (if set).
+
+        :Returns:
+            list of str: Available provider names (e.g., ['sdl3', 'pil'])
+
+        Example::
+
+            from kivy.core.text import Label as CoreLabel
+            providers = CoreLabel.available_providers()
+            print(providers)  # ['sdl3', 'pil']
+
+        .. versionadded:: 3.0.0
+        '''
+        return list(LabelBase._providers_by_name.keys())
+
+    @staticmethod
+    def get_provider_class(provider):
+        '''Get a text provider class by name.
+
+        :Parameters:
+            `provider`: str
+                The provider name (e.g., 'pil', 'sdl3').
+
+        :Returns:
+            The provider class, or None if not found (unless strict mode).
+
+        :Raises:
+            ValueError: If provider is None or empty, or if provider name
+                is not found and KIVY_PROVIDER_STRICT is enabled.
+
+        .. versionadded:: 3.0.0
+        '''
+        if not provider:
+            raise ValueError("provider argument is required")
+
+        provider_lower = provider.lower()
+        cls = LabelBase._providers_by_name.get(provider_lower)
+
+        if cls is None and _is_strict_mode():
+            available = list(LabelBase._providers_by_name.keys())
+            raise ValueError(
+                f"Unknown text provider: '{provider}'. "
+                f"Available providers: {available}"
+            )
+
+        return cls
+
     def resolve_font_name(self):
         options = self.options
-        fontname = options['font_name']
+        # Coerce os.PathLike -> str and write back so downstream string ops
+        # (endswith/format) and the _fonts / _fonts_cache dict keys are
+        # consistent regardless of whether a Path or str was supplied.
+        fontname = options['font_name'] = path_to_str(options['font_name'])
         fonts = self._fonts
         fontscache = self._fonts_cache
 
@@ -458,7 +623,7 @@ class LabelBase(object):
 
             >>> func = self._get_cached_extents()
             >>> func
-            <built-in method size of pygame.font.Font object at 0x01E45650>
+            <built-in method size of PROVIDER.font.Font object at 0x01E45650>
             >>> func('a line')
             (36, 18)
 
@@ -486,7 +651,7 @@ class LabelBase(object):
     def shorten(self, text, margin=2):
         ''' Shortens the text to fit into a single line by the width specified
         by :attr:`text_size` [0]. If :attr:`text_size` [0] is None, it returns
-        text text unchanged.
+        text unchanged.
 
         :attr:`split_str` and :attr:`shorten_from` determines how the text is
         shortened.
@@ -681,7 +846,7 @@ class LabelBase(object):
             # divide left over space between `spaces`
             # TODO implement a better method of stretching glyphs?
             if (uw is not None and halign == 'justify' and line and not
-                    layout_line.is_last_line):
+            layout_line.is_last_line):
                 # number spaces needed to fill, and remainder
                 n, rem = divmod(max(uww - lw, 0), sw)
                 n = int(n)
@@ -1046,18 +1211,25 @@ class FontContextManagerBase(object):
         raise NotImplementedError("No font_context support in text provider")
 
 
-# Load the appropriate provider
+# Load all available text providers
+# Build platform-specific list from registry
+all_providers = get_provider_modules('text')
 label_libs = []
-if USE_PANGOFT2:
-    label_libs += [('pango', 'text_pango', 'LabelPango')]
 
-if USE_SDL2:
-    label_libs += [('sdl2', 'text_sdl2', 'LabelSDL2')]
-else:
-    label_libs += [('pygame', 'text_pygame', 'LabelPygame')]
-label_libs += [
-    ('pil', 'text_pil', 'LabelPIL')]
-Text = Label = core_select_lib('text', label_libs)
+if USE_PANGOFT2:
+    label_libs.append(make_provider_tuple('pango', all_providers))
+
+if USE_SDL3:
+    label_libs.append(make_provider_tuple('sdl3', all_providers))
+
+label_libs.append(make_provider_tuple('pil', all_providers))
+
+# This imports all available provider modules, which self-register via
+# LabelBase.register_provider()
+libs_loaded = core_register_libs('text', label_libs)
+
+# Label is the first (highest priority) registered provider for backward compat
+Label: LabelBase = LabelBase._providers[0] if LabelBase._providers else None
 
 if 'KIVY_DOC' not in os.environ:
     if not Label:
@@ -1072,6 +1244,5 @@ if 'KIVY_DOC' not in os.environ:
     else:
         FontContextManager = FontContextManagerBase()
 
-
-# For the first initialization, register the default font
+    # For the first initialization, register the default font
     Label.register(DEFAULT_FONT, *_default_font_paths)

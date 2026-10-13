@@ -6,7 +6,7 @@ import trio
 from kivy.app import App
 from kivy.lang.builder import Builder
 
-kv = '''
+kv = """
 BoxLayout:
     orientation: 'vertical'
     BoxLayout:
@@ -15,25 +15,25 @@ BoxLayout:
             group: 'a'
             text: 'Sleeping'
             allow_no_selection: False
-            on_state: if self.state == 'down': label.status = self.text
+            on_activated: if self.activated: label.status = self.text
         ToggleButton:
             id: btn2
             group: 'a'
             text: 'Swimming'
             allow_no_selection: False
-            on_state: if self.state == 'down': label.status = self.text
+            on_activated: if self.activated: label.status = self.text
         ToggleButton:
             id: btn3
             group: 'a'
             text: 'Reading'
             allow_no_selection: False
-            state: 'down'
-            on_state: if self.state == 'down': label.status = self.text
+            activated: True
+            on_activated: if self.activated: label.status = self.text
     Label:
         id: label
         status: 'Reading'
         text: 'Beach status is "{}"'.format(self.status)
-'''
+"""
 
 
 class AsyncApp(App):
@@ -75,10 +75,10 @@ class AsyncApp(App):
                     print('{} on the beach'.format(status))
 
                     # get some sleep
-                    if self.root.ids.btn1.state != 'down' and i >= 2:
+                    if not self.root.ids.btn1.activated and i >= 2:
                         i = 0
                         print('Yawn, getting tired. Going to sleep')
-                        self.root.ids.btn1.trigger_action()
+                        self.root.ids.btn1.activated = True
 
                 i += 1
                 await trio.sleep(2)

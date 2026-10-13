@@ -8,7 +8,7 @@ import os
 from unittest.mock import patch
 from kivy.cache import Cache
 from kivy.clock import Clock
-from kivy.resources import resource_find, resource_add_path
+from kivy.resources import resource_find, resource_add_path, _cache_key
 
 
 @pytest.fixture
@@ -23,7 +23,8 @@ def test_load_resource_cached(test_file):
     Cache.remove(RESOURCE_CACHE)
     found_file = resource_find(test_file)
     assert found_file is not None
-    cached_filename = Cache.get(RESOURCE_CACHE, test_file)
+    # the cache is keyed on the normalized form of the requested filename
+    cached_filename = Cache.get(RESOURCE_CACHE, _cache_key(test_file))
     assert found_file == cached_filename
 
 
@@ -31,7 +32,7 @@ def test_load_resource_not_cached(test_file):
     Cache.remove(RESOURCE_CACHE)
     found_file = resource_find(test_file, use_cache=False)
     assert found_file is not None
-    cached_filename = Cache.get(RESOURCE_CACHE, test_file)
+    cached_filename = Cache.get(RESOURCE_CACHE, _cache_key(test_file))
     assert cached_filename is None
 
 
@@ -51,14 +52,16 @@ def test_load_resource_not_found():
         find_missing_file_again = resource_find(missing_file_name)
         assert find_missing_file_again is None
 
-        cached_filename = Cache.get(RESOURCE_CACHE, missing_file_name)
+        cached_filename = Cache.get(RESOURCE_CACHE, _cache_key(
+            missing_file_name))
         assert cached_filename is None
 
         resource_add_path(temp_dir)
 
         found_file = resource_find(missing_file_name)
         assert missing_file_path == found_file
-        assert missing_file_path == Cache.get(RESOURCE_CACHE, missing_file_name)
+        assert missing_file_path == Cache.get(RESOURCE_CACHE, _cache_key(
+            missing_file_name))
 
 
 def test_timestamp_and_lastaccess(test_file):
@@ -66,8 +69,8 @@ def test_timestamp_and_lastaccess(test_file):
     start = Clock.get_time()
 
     resource_find(test_file)
-    ts = Cache.get_timestamp(RESOURCE_CACHE, test_file)
-    last_access = Cache.get_lastaccess(RESOURCE_CACHE, test_file)
+    ts = Cache.get_timestamp(RESOURCE_CACHE, _cache_key(test_file))
+    last_access = Cache.get_lastaccess(RESOURCE_CACHE, _cache_key(test_file))
 
     assert ts >= start, 'Last timestamp not accurate.'
     assert last_access >= start, 'Last access time is not accurate.'

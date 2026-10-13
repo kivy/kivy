@@ -205,17 +205,22 @@ class MotionEvent(MotionEventBase):
         #: True if the MotionEvent is a touch.
         self.is_touch = is_touch
 
-        #: (Experimental) String to identify event type.
+        #: String to identify event type.
         #:
         #: .. versionadded:: 2.1.0
+        #:
+        #: .. versionchanged:: 3.0.0
+        #:    Removed "Experimental" warning.
         self.type_id = type_id
 
-        #: (Experimental) Used by a event manager or a widget to assign
-        #: the dispatching mode. Defaults to
-        #: :const:`~kivy.eventmanager.MODE_DEFAULT_DISPATCH`. See
+        #: Used by an event manager or a widget to assign the dispatching mode.
+        #: Defaults to :const:`~kivy.eventmanager.MODE_DEFAULT_DISPATCH`. See
         #: :mod:`~kivy.eventmanager` for available modes.
         #:
         #: .. versionadded:: 2.1.0
+        #:
+        #: .. versionchanged:: 3.0.0
+        #:    Removed "Experimental" warning.
         self.dispatch_mode = MODE_DEFAULT_DISPATCH
 
         #: Attributes to push by default, when we use :meth:`push` : x, y, z,

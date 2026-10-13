@@ -167,7 +167,7 @@ class TuioMotionEventProvider(MotionEventProvider):
         oscpath, command, args = value
 
         # verify commands
-        if command not in [b'alive', b'set']:
+        if command not in {b'alive', b'set'}:
             return
 
         # move or create a new touch

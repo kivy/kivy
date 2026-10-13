@@ -11,12 +11,9 @@ from kivy.core.clipboard._clipboard_ext import ClipboardExternalBase
 if platform != 'linux':
     raise SystemError('unsupported platform for xsel clipboard')
 
-try:
-    import subprocess
-    p = subprocess.Popen(['xsel'], stdout=subprocess.PIPE)
-    p.communicate()
-except:
-    raise
+import subprocess
+p = subprocess.Popen(['xsel', '--version'], stdout=subprocess.PIPE)
+p.communicate(timeout=1)
 
 
 class ClipboardXsel(ClipboardExternalBase):

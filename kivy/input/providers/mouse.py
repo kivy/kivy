@@ -21,8 +21,16 @@ Using multitouch interaction with the mouse
 
 By default, the middle and right mouse buttons, as well as a combination of
 ctrl + left mouse button are used for multitouch emulation.
-If you want to use them for other purposes, you can disable this behavior by
-activating the "disable_multitouch" token::
+
+When multitouch simulation is enabled, pressing the right or middle button (or
+ctrl + left button) places a red dot on screen representing a held touch. The
+dot follows the cursor while the button is held, then stays fixed at its last
+position until it is picked up again (by clicking near it) or removed (by
+clicking on it with the left button). Pressing ctrl + left click behaves
+identically to a right-click for multitouch emulation purposes.
+
+If you want to use these mouse buttons for other purposes, you can disable
+this behavior by activating the "disable_multitouch" token::
 
    [input]
    mouse = mouse,disable_multitouch
@@ -59,6 +67,17 @@ Provider dispatches hover events by listening to properties/events in
 It's also possible to enable/disable hover events at runtime with
 :attr:`MouseMotionEventProvider.disable_hover` property.
 
+.. versionchanged:: 3.0.0
+
+Multiple mouse buttons can now be held down and tracked simultaneously
+when multitouch simulation is disabled (`disable_multitouch`). Previously,
+only one button could be tracked at a time: pressing a second button while
+the first was still held would be ignored until the first was released.
+
+When multitouch simulation is enabled, only one simulated touch (the red
+dot) is active at a time, as before; this change only affects the case
+where `disable_multitouch` is set.
+
 Following is a list of the supported values for the
 :attr:`~kivy.input.motionevent.MotionEvent.profile` property list.
 
@@ -74,6 +93,9 @@ pos              2D position. Also reflected in the
                  properties.
 multitouch_sim   Specifies whether multitouch is simulated or not. Accessed
                  via the 'multitouch_sim' property.
+
+modifiers        Active keyboard modifiers (list of strings: 'ctrl', 'alt',
+                 'shift', etc.). Accessed via the 'modifiers' property.
 ================ ==========================================================
 
 '''
@@ -95,6 +117,7 @@ class MouseMotionEvent(MotionEvent):
 
     def __init__(self, *args, **kwargs):
         self.multitouch_sim = False
+        self.modifiers = []
         super().__init__(*args, **kwargs)
 
     def depack(self, args):
@@ -103,10 +126,10 @@ class MouseMotionEvent(MotionEvent):
         if self.is_touch:
             # don't overwrite previous profile
             if not profile:
-                profile.extend(('pos', 'button'))
+                profile.extend(('pos', 'button', 'modifiers'))
             if len(args) >= 3:
                 self.button = args[2]
-            if len(args) == 4:
+            if len(args) >= 4:
                 self.multitouch_sim = args[3]
                 profile.append('multitouch_sim')
         else:
@@ -134,7 +157,7 @@ class MouseMotionEvent(MotionEvent):
 
             # use same logic as WindowBase.on_motion() so we get correct
             # coordinates when _density != 1
-            w, h = win._get_effective_size()
+            w, h = win.unrotated_size
 
             self.scale_for_screen(w, h, rotation=win.rotation)
 
@@ -149,15 +172,12 @@ class MouseMotionEvent(MotionEvent):
 
 
 class MouseMotionEventProvider(MotionEventProvider):
-    __handlers__ = {}
-
     def __init__(self, device, args):
         super(MouseMotionEventProvider, self).__init__(device, args)
         self.waiting_event = deque()
         self.touches = {}
         self.counter = 0
-        self.current_drag = None
-        self.alt_touch = None
+        self.current_drag = {}
         self.disable_on_activity = False
         self.disable_multitouch = False
         self.multitouch_on_demand = False
@@ -274,17 +294,23 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.counter += 1
         return self.device + str(self.counter)
 
-    def create_touch(self, win, nx, ny, is_double_tap, do_graphics, button):
+    def create_touch(self, win, nx, ny, do_graphics, button, modifiers=None):
         event_id = self.create_event_id()
         args = [nx, ny, button]
         if do_graphics:
             args += [not self.multitouch_on_demand]
-        self.current_drag = touch = MouseMotionEvent(
+        # When multitouch simulation is enabled, only one simulated drag
+        # (the red dot) can be active at a time, so all such touches share
+        # a single key. When multitouch is disabled, each button tracks its
+        # own independent drag, so multiple mouse buttons can be held down
+        # simultaneously (see #3597).
+        key = button if self.disable_multitouch else 'mt_simulation'
+        self.current_drag[key] = touch = MouseMotionEvent(
             self.device, event_id, args,
             is_touch=True,
             type_id='touch'
         )
-        touch.is_double_tap = is_double_tap
+        touch.modifiers = [] if modifiers is None else modifiers
         self.touches[event_id] = touch
         if do_graphics:
             # only draw red circle if multitouch is not disabled, and
@@ -330,36 +356,33 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_motion(self, win, x, y, modifiers):
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        if self.current_drag:
-            touch = self.current_drag
+        for touch in self.current_drag.values():
             touch.move([nx, ny])
             touch.update_graphics(win)
+            touch.modifiers = modifiers
             self.waiting_event.append(('update', touch))
-        elif self.alt_touch is not None and 'alt' not in modifiers:
-            # alt just released ?
-            is_double_tap = 'shift' in modifiers
-            self.create_touch(win, nx, ny, is_double_tap, True, [])
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
             return
         nx, ny = win.to_normalized_pos(x, y)
         ny = 1.0 - ny
-        found_touch = self.find_touch(win, nx, ny)
+        # picking up an existing "sticky" multitouch-sim dot by clicking
+        # near it is only meaningful when multitouch simulation is enabled
+        found_touch = (
+            None if self.disable_multitouch
+            else self.find_touch(win, nx, ny)
+        )
         if found_touch:
-            self.current_drag = found_touch
+            self.current_drag['mt_simulation'] = found_touch
         else:
-            is_double_tap = 'shift' in modifiers
             do_graphics = (
                 not self.disable_multitouch
                 and (button != 'left' or 'ctrl' in modifiers)
             )
-            touch = self.create_touch(
-                win, nx, ny, is_double_tap, do_graphics, button
+            self.create_touch(
+                win, nx, ny, do_graphics, button, modifiers
             )
-            if 'alt' in modifiers:
-                self.alt_touch = touch
-                self.current_drag = None
 
     def on_mouse_release(self, win, x, y, button, modifiers):
         if button == 'all':
@@ -367,9 +390,12 @@ class MouseMotionEventProvider(MotionEventProvider):
             # then remove all the current touches.
             for touch in list(self.touches.values()):
                 self.remove_touch(win, touch)
-            self.current_drag = None
-        touch = self.current_drag
+            self.current_drag.clear()
+            return
+        key = button if self.disable_multitouch else 'mt_simulation'
+        touch = self.current_drag.get(key)
         if touch:
+            touch.modifiers = modifiers
             not_right = button in (
                 'left',
                 'scrollup', 'scrolldown',
@@ -381,14 +407,11 @@ class MouseMotionEventProvider(MotionEventProvider):
                 or 'multitouch_sim' not in touch.profile
                 or not touch.multitouch_sim
             )
-            if not_right and not_ctrl or not_multi:
+            if (not_right and not_ctrl) or not_multi:
                 self.remove_touch(win, touch)
-                self.current_drag = None
+                del self.current_drag[key]
             else:
                 touch.update_graphics(win, True)
-        if self.alt_touch:
-            self.remove_touch(win, self.alt_touch)
-            self.alt_touch = None
 
     def update_touch_graphics(self, win, *args):
         for touch in self.touches.values():

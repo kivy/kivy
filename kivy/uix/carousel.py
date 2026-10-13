@@ -23,7 +23,7 @@ Example::
         def build(self):
             carousel = Carousel(direction='right')
             for i in range(10):
-                src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
+                src = "https://placeholder.photo/480x270.png?text=slide-%d" % i
                 image = AsyncImage(source=src, fit_mode="contain")
                 carousel.add_widget(image)
             return carousel
@@ -37,13 +37,13 @@ Kv Example::
     Carousel:
         direction: 'right'
         AsyncImage:
-            source: 'http://placehold.it/480x270.png&text=slide-1.png'
+            source: 'https://placeholder.photo/480x270.png?text=slide-1'
         AsyncImage:
-            source: 'http://placehold.it/480x270.png&text=slide-2.png'
+            source: 'https://placeholder.photo/480x270.png?text=slide-2'
         AsyncImage:
-            source: 'http://placehold.it/480x270.png&text=slide-3.png'
+            source: 'https://placeholder.photo/480x270.png?text=slide-3'
         AsyncImage:
-            source: 'http://placehold.it/480x270.png&text=slide-4.png'
+            source: 'https://placeholder.photo/480x270.png?text=slide-4'
 
 
 .. versionchanged:: 1.5.0
@@ -687,7 +687,7 @@ if __name__ == '__main__':
             carousel = Carousel(direction='left',
                                 loop=True)
             for i in range(4):
-                src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
+                src = "https://placeholder.photo/480x270.png?text=slide-%d" % i
                 image = Factory.AsyncImage(source=src, fit_mode="contain")
                 carousel.add_widget(image)
             return carousel

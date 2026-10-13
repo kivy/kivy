@@ -40,8 +40,10 @@ The current implementation divides the :class:`AccordionItem` into two parts:
 #. One container for the title bar
 #. One container for the content
 
-The title bar is made from a Kv template. We'll see how to create a new
-template to customize the design of the title bar.
+The title bar is rendered by the :class:`AccordionItemTitle` widget. To
+customize the design of the title bar, subclass :class:`AccordionItemTitle`
+(or any other widget that exposes ``title`` and ``item`` properties) and
+assign your class to :attr:`AccordionItem.title_class`.
 
 .. warning::
 
@@ -81,15 +83,17 @@ background when the item is collapsed or opened::
 
 '''
 
-__all__ = ('Accordion', 'AccordionItem', 'AccordionException')
+__all__ = ('Accordion', 'AccordionItem', 'AccordionItemTitle',
+           'AccordionException')
 
 from kivy.animation import Animation
+from kivy.factory import Factory
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
 from kivy.clock import Clock
-from kivy.lang import Builder
 from kivy.properties import (ObjectProperty, StringProperty,
                              BooleanProperty, NumericProperty,
-                             ListProperty, OptionProperty, DictProperty)
+                             ListProperty, OptionProperty)
 from kivy.uix.widget import Widget
 from kivy.logger import Logger
 
@@ -100,6 +104,36 @@ class AccordionException(Exception):
     pass
 
 
+class AccordionItemTitle(Label):
+    '''Default title widget used by :class:`AccordionItem`. Renders the
+    ``title`` text and clickable background derived from the owning
+    ``item``.
+
+    To use a custom title widget, set :attr:`AccordionItem.title_class` to
+    your own class. Your class should expose ``title`` (a string) and
+    ``item`` (a reference to the owning :class:`AccordionItem`) properties.
+
+    .. versionadded:: 3.0.0
+        Promoted to a regular Python class. Previously this was a deprecated
+        Kivy lang template (``[AccordionItemTitle@Label]:``).
+    '''
+
+    title = StringProperty('')
+    '''Text rendered by this title widget. Populated by the owning
+    :class:`AccordionItem` from its :attr:`~AccordionItem.title` property
+    each time the title widget is (re)built. Set this when constructing a
+    custom title widget; do not set it directly on an existing instance,
+    as it will be overwritten on the next rebuild.
+
+    :attr:`title` is a :class:`~kivy.properties.StringProperty` and
+    defaults to ''.
+    '''
+
+    item = ObjectProperty(None, allownone=True)
+    '''Reference to the owning :class:`AccordionItem`. Used by the
+    default KV rule to derive backgrounds and rotation.'''
+
+
 class AccordionItem(FloatLayout):
     '''AccordionItem class that must be used in conjunction with the
     :class:`Accordion` class. See the module documentation for more
@@ -107,63 +141,66 @@ class AccordionItem(FloatLayout):
     '''
 
     title = StringProperty('')
-    '''Title string of the item. The title might be used in conjunction with the
-    `AccordionItemTitle` template. If you are using a custom template, you can
-    use that property as a text entry, or not. By default, it's used for the
-    title text. See title_template and the example below.
+    '''Title string of the item. By default, it's used as the text of the
+    title widget (see :attr:`title_class`).
 
     :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults
     to ''.
     '''
 
-    title_template = StringProperty('AccordionItemTitle')
-    '''Template to use for creating the title part of the accordion item. The
-    default template is a simple Label, not customizable (except the text) that
-    supports vertical and horizontal orientation and different backgrounds for
-    collapse and selected mode.
+    title_class = ObjectProperty(AccordionItemTitle)
+    '''Class used to instantiate the title widget for this accordion item.
+    The class is instantiated with two keyword arguments: ``title`` (the
+    text from :attr:`title`) and ``item`` (a reference to this
+    :class:`AccordionItem`).
 
-    It's better to create and use your own template if the default template
-    does not suffice.
+    A string may be supplied; it will be resolved via the
+    :class:`~kivy.factory.Factory` to a class. The default is
+    :class:`AccordionItemTitle`.
 
-    :attr:`title` is a :class:`~kivy.properties.StringProperty` and defaults to
-    'AccordionItemTitle'. The current default template lives in the
-    `kivy/data/style.kv` file.
+    To use a custom title widget, define a subclass of
+    :class:`AccordionItemTitle` (or any widget that accepts ``title``
+    and ``item`` kwargs), provide a matching Kv rule, and pass the
+    class via this property::
 
-    Here is the code if you want to build your own template::
+        item = AccordionItem(title='Hello', title_class=MyTitle)
 
-        [AccordionItemTitle@Label]:
-            text: ctx.title
+    The default :class:`AccordionItemTitle` is styled by the following
+    Kv rule, shipped in ``kivy/data/style.kv``. It can be used as a
+    starting point when building your own ``title_class`` rule:
+
+    .. code-block:: kv
+
+        <AccordionItemTitle>:
+            text: root.title
+            normal_background: (root.item.background_normal if root.item.collapse else root.item.background_selected) if root.item else ''
+            disabled_background: (root.item.background_disabled_normal if root.item.collapse else root.item.background_disabled_selected) if root.item else ''
             canvas.before:
                 Color:
-                    rgb: 1, 1, 1
+                    rgba: self.disabled_color if self.disabled else self.color
                 BorderImage:
-                    source:
-                        ctx.item.background_normal \
-                        if ctx.item.collapse \
-                        else ctx.item.background_selected
+                    source: self.disabled_background if self.disabled else self.normal_background
                     pos: self.pos
                     size: self.size
                 PushMatrix
                 Translate:
                     xy: self.center_x, self.center_y
                 Rotate:
-                    angle: 90 if ctx.item.orientation == 'horizontal' else 0
+                    angle: 90 if root.item and root.item.orientation == 'horizontal' else 0
                     axis: 0, 0, 1
                 Translate:
                     xy: -self.center_x, -self.center_y
             canvas.after:
                 PopMatrix
 
+    :attr:`title_class` is an :class:`~kivy.properties.ObjectProperty`
+    and defaults to :class:`AccordionItemTitle`.
 
-    '''
-
-    title_args = DictProperty({})
-    '''Default arguments that will be passed to the
-    :meth:`kivy.lang.Builder.template` method.
-
-    :attr:`title_args` is a :class:`~kivy.properties.DictProperty` and defaults
-    to {}.
-    '''
+    .. versionadded:: 3.0.0
+        Replaces the deprecated ``title_template`` (string) and
+        ``title_args`` (dict) properties, which relied on the now-removed
+        Kivy lang templates feature.
+    '''  # noqa: E501
 
     collapse = BooleanProperty(True)
     '''Boolean to indicate if the current item is collapsed or not.
@@ -260,9 +297,14 @@ class AccordionItem(FloatLayout):
         trigger_title = self._trigger_title
         fbind = self.fbind
         fbind('title', trigger_title)
-        fbind('title_template', trigger_title)
-        fbind('title_args', trigger_title)
+        fbind('title_class', trigger_title)
         trigger_title()
+
+    def on_title_class(self, instance, value):
+        # mirror RecycleView.viewclass: auto-resolve string names through
+        # the Factory so users can pass either a string or a class.
+        if isinstance(value, str):
+            self.title_class = Factory.get(value)
 
     def add_widget(self, *args, **kwargs):
         if self.container is None:
@@ -313,11 +355,10 @@ class AccordionItem(FloatLayout):
             return
         c = self.container_title
         c.clear_widgets()
-        instance = Builder.template(self.title_template,
-                                    title=self.title,
-                                    item=self,
-                                    **self.title_args)
-        c.add_widget(instance)
+        cls = self.title_class
+        if isinstance(cls, str):
+            cls = Factory.get(cls)
+        c.add_widget(cls(title=self.title, item=self))
 
 
 class Accordion(Widget):

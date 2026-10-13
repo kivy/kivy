@@ -8,49 +8,49 @@ env:
   CC: clang
   CXX: clang
   FFLAGS: '-ff2c'
-  USE_SDL2: 1
+  USE_SDL3: 1
 
 jobs:
   unit_test:
     name: "unit_test (${{ matrix.runs_on }}, ${{ matrix.python }})"
     runs-on: ${{ matrix.runs_on }}
     strategy:
+      fail-fast: false
       matrix:
+        # macos-15-intel runs on Intel x64
+        # macos-latest and macos-26 run on Apple Silicon ARM
+        runs_on: ['macos-15-intel', 'macos-26', 'macos-latest']
+        python: ['3.x']
         include:
-          - runs_on: macos-latest
-            python: '3.x'
-          - runs_on: apple-silicon-m1
-            python: '3.11'
+          - runs_on: 'macos-latest'
+            python: '3.14'
     steps:
-    - uses: actions/checkout@v3
+    - if: matrix.runs_on == 'macos-26'
+      run: xcodebuild -downloadComponent MetalToolchain
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python }}
-      # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-      if: ${{ matrix.runs_on  != 'apple-silicon-m1' }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
-    - name: Cache macOS deps downloads
-      uses: actions/cache@v3
-      with:
-        path: osx-cache
-        key: ${{ runner.OS }}-build-${{ hashFiles('.ci/osx_ci.sh') }}
+        allow-prereleases: true
+    - name: Install build dependencies
+      run: |
+        # we had cmake installed from installed a different Homebrew tap (local/pinned) in the past
+        brew uninstall cmake || true
+        # ``meson`` is required by ``tools/build_thorvg.sh`` (static ThorVG
+        # build for the kivy.lib.thorvg Cython wrapper). The rest are the
+        # existing SDL3 / libpng dependencies.
+        brew install pkg-config cmake ninja meson
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         ./tools/build_macos_dependencies.sh
-        install_kivy_test_run_pip_deps
     - name: Install Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         install_kivy
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
-        source .ci/osx_ci.sh
-        arm64_set_path_and_python_version ${{ matrix.python }}
         test_kivy

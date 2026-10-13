@@ -15,4 +15,4 @@ Getting Started
     drawing
     packaging
     diving
-
+    snippets

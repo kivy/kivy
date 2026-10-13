@@ -12,7 +12,6 @@ Implementation spelling backend based on enchant.
 import enchant
 
 from kivy.core.spelling import SpellingBase, NoSuchLangError
-from kivy.compat import PY2
 
 
 class SpellingEnchant(SpellingBase):
@@ -45,6 +44,4 @@ class SpellingEnchant(SpellingBase):
         suggestions = self._language.suggest(fragment)
         # Don't show suggestions that are invalid
         suggestions = [s for s in suggestions if self.check(s)]
-        if PY2:
-            suggestions = [s.decode('utf-8') for s in suggestions]
         return suggestions

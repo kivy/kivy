@@ -72,6 +72,32 @@ class LangTestCase(unittest.TestCase):
         Factory.register('TLangClass3', cls=TLangClass3)
         return Builder
 
+    def test_invalid_indentation(self):
+        Builder = self.import_builder()
+        from kivy.lang import ParserException
+        kv_code = dedent('''\
+            BoxLayout:
+                orientation: 'vertical'
+                    Button:
+        ''')
+
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Invalid indentation.')
+        except ParserException:
+            pass
+
+    def test_invalid_indentation2(self):
+        Builder = self.import_builder()
+        from kivy.lang import ParserException
+        kv_code = '''   BoxLayout:'''
+
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Invalid indentation.')
+        except ParserException as e:
+            pass
+
     def test_loading_failed_1(self):
         # invalid indent
         Builder = self.import_builder()
@@ -112,61 +138,20 @@ class LangTestCase(unittest.TestCase):
         self.assertTrue(hasattr(wid, 'textinput'))
         self.assertTrue(getattr(wid, 'textinput') is not None)
 
-    def test_references_with_template(self):
+    def test_template_syntax_removed(self):
+        # The deprecated [Name@Base]: template syntax was removed in
+        # Kivy 3.0.0. Any kv string using it must raise a ParserException.
         Builder = self.import_builder()
-        Builder.load_string(dedent('''
+        from kivy.lang import ParserException
+        kv_code = dedent('''
         [Item@TLangClass3]:
             title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            Item:
-                title: 'bleh'
-            TLangClass2:
-                id: textinput
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
-
-    def test_references_with_template_case_2(self):
-        Builder = self.import_builder()
-        Builder.load_string(dedent('''
-        [Item@TLangClass3]:
-            title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            TLangClass2:
-                id: textinput
-                Item:
-                    title: 'bleh'
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
-
-    def test_references_with_template_case_3(self):
-        Builder = self.import_builder()
-        Builder.load_string(dedent('''
-        [Item@TLangClass3]:
-            title: ctx.title
-        <TLangClass>:
-            textinput: textinput
-            TLangClass2:
-                Item:
-                    title: 'bleh'
-                TLangClass2:
-                    TLangClass2:
-                        id: textinput
-        '''))
-        wid = TLangClass()
-        Builder.apply(wid)
-
-        self.assertTrue(hasattr(wid, 'textinput'))
-        self.assertTrue(getattr(wid, 'textinput') is not None)
+        ''')
+        try:
+            Builder.load_string(kv_code)
+            self.fail('Templates should raise ParserException.')
+        except ParserException as e:
+            self.assertIn('template', str(e).lower())
 
     def test_with_multiline(self):
         Builder = self.import_builder()
@@ -399,6 +384,131 @@ class LangTestCase(unittest.TestCase):
         assert root.ids.target1.text == ' '
         assert root.ids.target2.text == ''
         assert root.ids.target3.text == '400'
+
+    def test_fstring_boolop_names(self):
+        import ast
+        from kivy.lang.parser import ParserRuleProperty
+        cases = {
+            'f"{a or b}"': {'a', 'b'},
+            'f"{a and b}"': {'a', 'b'},
+            'f"{a or b or c}"': {'a', 'b', 'c'},
+            'f"{a or (b and c)}"': {'a', 'b', 'c'},
+            'f"{original.text or other.text}"': {'original.text', 'other.text'},
+        }
+        for src, expected in cases.items():
+            expr = ast.parse(src).body[0].value
+            names = set(ParserRuleProperty.get_names_from_expression(expr))
+            assert names == expected
+
+    def test_bind_fstring_boolop(self):
+        from kivy.lang import Builder
+        root = Builder.load_string(dedent('''
+        FloatLayout:
+            Label:
+                id: original
+                text: 'perfect'
+            Label:
+                id: target1
+                text: f"{original.text or 'fallback'}"
+            Label:
+                id: target2
+                text: f"{original.text and 'truthy'}"
+            Label:
+                id: other
+                text: 'backup'
+            Label:
+                id: target3
+                text: f"{original.text or other.text}"
+        '''))
+        assert root.ids.target1.text == 'perfect'
+        assert root.ids.target2.text == 'truthy'
+        assert root.ids.target3.text == 'perfect'
+
+        root.ids.original.text = 'changed'
+        assert root.ids.target1.text == 'changed'
+        assert root.ids.target3.text == 'changed'
+
+        root.ids.original.text = ''
+        assert root.ids.target1.text == 'fallback'
+        assert root.ids.target2.text == ''
+        assert root.ids.target3.text == 'backup'
+
+        root.ids.other.text = 'new backup'
+        assert root.ids.target3.text == 'new backup'
+
+    def test_fstring_nested_property_binding(self):
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.event import EventDispatcher
+        from kivy.properties import NumericProperty, ObjectProperty
+        from kivy.lang import Builder
+
+        class Person(EventDispatcher):
+            age = NumericProperty()
+
+        class TestContainer(BoxLayout):
+            person = ObjectProperty(Person(age=25))
+
+        root = Builder.load_string(dedent('''
+        TestContainer:
+            Label:
+                id: person
+                text: f"Person age: {root.person.age}"
+        '''))
+
+        assert root.ids.person.text == 'Person age: 25'
+        root.person.age = 30
+        assert root.ids.person.text == 'Person age: 30'
+
+    def test_sync_keeps_bindings_queued_during_sync(self):
+        # Regression test for https://github.com/kivy/kivy/issues/9373
+        # A delayed (canvas) binding that gets queued while Builder.sync()
+        # is processing must not be dropped, and must keep updating.
+        from kivy.factory import Factory
+        from kivy.graphics import Rectangle
+        from kivy.lang import Builder
+        from kivy.properties import NumericProperty
+        from kivy.uix.widget import Widget
+
+        class SyncRequeueWidget(Widget):
+            a = NumericProperty(0)
+            b = NumericProperty(0)
+
+            def set_b(self, value):
+                self.b = value
+                return value
+
+        Factory.register('SyncRequeueWidget', cls=SyncRequeueWidget)
+        try:
+            root = Builder.load_string(dedent('''
+            SyncRequeueWidget:
+                canvas:
+                    Rectangle:
+                        pos: self.set_b(self.a), 0
+                    Rectangle:
+                        pos: self.b, 0
+            '''))
+            Builder.sync()
+            rect_a, rect_b = [
+                instr for instr in root.canvas.children
+                if isinstance(instr, Rectangle)]
+
+            # changing `a` queues the first rectangle; evaluating it during
+            # sync changes `b`, which queues the second rectangle mid-sync
+            root.a = 10
+            Builder.sync()
+            assert rect_a.pos == (10, 0)
+            # the binding queued mid-sync is not run within the same pass
+            assert rect_b.pos == (0, 0)
+            # the binding queued during the previous pass runs on the next
+            Builder.sync()
+            assert rect_b.pos == (10, 0)
+
+            # and the binding on `b` must still be alive afterwards
+            root.b = 20
+            Builder.sync()
+            assert rect_b.pos == (20, 0)
+        finally:
+            Factory.unregister('SyncRequeueWidget')
 
 
 if __name__ == '__main__':

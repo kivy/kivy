@@ -6,25 +6,27 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
-    -   id: no-commit-to-branch
-    -   id: check-executables-have-shebangs
-    -   id: check-ast
-    -   id: check-merge-conflict
-    -   id: check-toml
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
     -   id: check-added-large-files
+    -   id: check-ast
     -   id: check-case-conflict
+    -   id: check-executables-have-shebangs
     -   id: check-json
+    -   id: check-merge-conflict
     -   id: check-symlinks
+    -   id: check-toml
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: no-commit-to-branch
     -   id: pretty-format-json
         args:
         - --autofix
--   repo: https://github.com/pycqa/flake8
-    rev: 3.8.4
+    -   id: trailing-whitespace
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.2
     hooks:
-    -   id: flake8
+    -   id: ruff
+    #   args: [ --fix ]
+    # - id: ruff-format
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.1.7
     hooks:

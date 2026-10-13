@@ -170,7 +170,7 @@ if __name__ == '__main__':
 <TestButton>:
     canvas:
         Color:
-            rgb: (.3, .2, 0) if self.state == 'normal' else (.7, .7, 0)
+            rgb: (.3, .2, 0) if self.pressed else (.7, .7, 0)
         Rectangle:
             pos: self.pos
             size: self.size

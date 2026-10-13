@@ -175,7 +175,7 @@ def safeWait(dt):
 
 
 def unwrap(ob):
-    while type(ob) == SafeMembrane:
+    while isinstance(ob, SafeMembrane):
         ob = ob._ref
     return ob
 

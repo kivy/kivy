@@ -62,7 +62,7 @@ BoxLayout:
             Label:
                 size_hint: 1, 1
                 text_size: self.size
-                shorten: shorten.state == 'down'
+                shorten: shorten.activated
                 max_lines: max_lines.value
                 valign: 'middle'
                 halign: 'center'

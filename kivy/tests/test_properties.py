@@ -481,21 +481,26 @@ def test_property_rebind(self):
 
     Builder.load_string('''
 <ObjWidget>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.activated) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <ObjWidgetRebindFalse>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.activated) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <AliasWidget>:
-    text: self.button.state if self.button is not None else 'Unset'
+    text: 'Active' if (self.button is not None and self.button.activated) \
+          else ('Inactive' if self.button is not None else 'Unset')
 
 <DictWidget>:
-    text: self.button.button.state if self.button.button is not None\
- else 'Unset'
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.activated) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 
 <DictWidgetFalse>:
-    text: self.button.button.state if self.button.button is not None\
- else 'Unset'
+    text: 'Active' if (self.button.button is not None and \
+          self.button.button.activated) else ('Inactive' if \
+          self.button.button is not None else 'Unset')
 ''')
 
     obj = ObjWidget()
@@ -503,7 +508,7 @@ def test_property_rebind(self):
     dict_rebind = DictWidget()
     dict_false = DictWidgetFalse()
     alias_rebind = AliasWidget()
-    button = ToggleButton()
+    button = ToggleButton(activated=False)  # Explicit initial state
     Clock.tick()
     self.assertEqual(obj.text, 'Unset')
     self.assertEqual(obj_false.text, 'Unset')
@@ -517,27 +522,29 @@ def test_property_rebind(self):
     dict_false.button.button = button
     alias_rebind.button = button
     Clock.tick()
-    self.assertEqual(obj.text, 'normal')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'normal')
+    self.assertEqual(obj.text, 'Inactive')
+    self.assertEqual(obj_false.text, 'Inactive')
+    self.assertEqual(dict_rebind.text, 'Inactive')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'normal')
+    self.assertEqual(alias_rebind.text, 'Inactive')
 
-    button.state = 'down'
+    button.activated = True
     Clock.tick()
-    self.assertEqual(obj.text, 'down')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'down')
+    self.assertEqual(obj.text, 'Active')
+    self.assertEqual(
+        obj_false.text, "Inactive"
+    )  # Should NOT update (rebind=False)
+    self.assertEqual(dict_rebind.text, 'Active')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'down')
+    self.assertEqual(alias_rebind.text, 'Active')
 
-    button.state = 'normal'
+    button.activated = False
     Clock.tick()
-    self.assertEqual(obj.text, 'normal')
-    self.assertEqual(obj_false.text, 'normal')
-    self.assertEqual(dict_rebind.text, 'normal')
+    self.assertEqual(obj.text, 'Inactive')
+    self.assertEqual(obj_false.text, 'Inactive')  # Still old value
+    self.assertEqual(dict_rebind.text, 'Inactive')
     self.assertEqual(dict_false.text, 'Unset')
-    self.assertEqual(alias_rebind.text, 'normal')
+    self.assertEqual(alias_rebind.text, 'Inactive')
 
     obj.button = None
     obj_false.button = None
@@ -942,6 +949,281 @@ def test_alias_property_cache_true_force_dispatch_true(self, watch_before_use):
     self.assertEqual(wid.getter_called, 2)
     self.assertEqual(wid.setter_called, 2)
     self.assertEqual(wid.callback_called, 2)
+
+
+def test_alias_property_dispatches_on_initial_value_without_priming(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # Previously, if the alias property's value had never been read, a
+    # bound dependency changing to a value that doesn't cross any
+    # meaningful threshold (e.g. still False) would sometimes dispatch and
+    # sometimes not, depending on unrelated implementation details (such
+    # as whether an `on_<name>` handler existed, forcing an early read
+    # during `__init__`). Now, the first time the value is established, it
+    # should always dispatch, exactly once.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        age = NumericProperty(0)
+
+        def _get_is_adult(self):
+            return self.age >= 20
+
+        is_adult = AliasProperty(
+            _get_is_adult, None, bind=('age',), cache=True)
+
+    wid = CustomAlias()
+    values = []
+    wid.bind(is_adult=lambda _, v: values.append(v))
+
+    # age stays under the threshold (the getter's value doesn't really
+    # change, it's still False) - but since the value has never been
+    # established before, this should dispatch exactly once.
+    wid.age = 10
+    self.assertEqual(values, [False])
+
+    # age stays under the threshold again: the real value is unchanged,
+    # no further dispatch.
+    wid.age = 15
+    self.assertEqual(values, [False])
+
+    # age crosses the threshold: real change, dispatch.
+    wid.age = 25
+    self.assertEqual(values, [False, True])
+
+
+def test_alias_property_dispatches_first_change_after_read(self):
+    # Regression test for https://github.com/kivy/kivy/issues/9405
+    #
+    # Reading a cached alias property primes its cache without
+    # dispatching. It must not suppress the first dispatch: the first
+    # dependency change still dispatches, as it does without the read.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        age = NumericProperty(0)
+
+        def _get_is_adult(self):
+            return self.age >= 20
+
+        is_adult = AliasProperty(
+            _get_is_adult, None, bind=('age',), cache=True)
+
+    wid = CustomAlias()
+    wid.is_adult  # primes the cache to False
+    values = []
+    wid.bind(is_adult=lambda _, v: values.append(v))
+
+    wid.age = 10  # still False, but the first change dispatches
+    self.assertEqual(values, [False])
+
+    wid.age = 15  # still False: no dispatch
+    self.assertEqual(values, [False])
+
+    wid.age = 25  # crosses the threshold: dispatch
+    self.assertEqual(values, [False, True])
+
+
+def _alias_person_class(cache, handler=True):
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Person(EventDispatcher):
+        age = NumericProperty(0)
+        is_adult = AliasProperty(
+            lambda self: self.age >= 20, None, bind=('age',), cache=cache)
+
+        def __init__(self, **kwargs):
+            self.values = []
+            super().__init__(**kwargs)
+
+    if handler:
+        def on_is_adult(self, _instance, value):
+            self.values.append(value)
+        Person.on_is_adult = on_is_adult
+    return Person
+
+
+# Rows of the table in https://github.com/kivy/kivy/issues/9405.
+# Each case returns the values dispatched to `on_is_adult`.
+def _first_construct_10(Person):
+    return Person(age=10).values
+
+
+def _first_construct_25(Person):
+    return Person(age=25).values
+
+
+def _first_change_no_read_stays(Person):
+    p = Person(age=0)
+    p.age = 10
+    return p.values
+
+
+def _first_change_read_stays(Person):
+    p = Person(age=0)
+    p.is_adult
+    p.age = 10
+    return p.values
+
+
+def _first_change_no_read_crosses(Person):
+    p = Person(age=0)
+    p.age = 25
+    return p.values
+
+
+def _first_change_read_crosses(Person):
+    p = Person(age=0)
+    p.is_adult
+    p.age = 25
+    return p.values
+
+
+def _steady_state(Person, start, end):
+    p = Person(age=0)
+    p.age = start
+    p.values.clear()
+    p.age = end
+    return p.values
+
+
+@pytest.mark.parametrize('cache', [True, False])
+@pytest.mark.parametrize('case, expected', [
+    (_first_construct_10, [False]),
+    (_first_construct_25, [True]),
+    (_first_change_no_read_stays, [False]),
+    (_first_change_read_stays, [False]),
+    (_first_change_no_read_crosses, [True]),
+    (_first_change_read_crosses, [True]),
+])
+def test_alias_property_initial_dispatch(cache, case, expected):
+    assert case(_alias_person_class(cache)) == expected
+
+
+@pytest.mark.parametrize('cache', [True, False])
+def test_alias_property_initial_dispatch_bind_after_construction(cache):
+    p = _alias_person_class(cache, handler=False)(age=0)
+    values = []
+    p.bind(is_adult=lambda _instance, value: values.append(value))
+    p.age = 10
+    assert values == [False]
+
+
+@pytest.mark.parametrize('cache, start, end, expected', [
+    (True, 18, 19, []),
+    (True, 19, 20, [True]),
+    (True, 20, 21, []),
+    (False, 18, 19, [False]),
+    (False, 19, 20, [True]),
+    (False, 20, 21, [True]),
+])
+def test_alias_property_steady_state_dispatch(cache, start, end, expected):
+    assert _steady_state(_alias_person_class(cache), start, end) == expected
+
+
+@pytest.mark.parametrize('cache', [True, False])
+def test_alias_property_steady_state_dispatch_none(cache):
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Thing(EventDispatcher):
+        x = NumericProperty(1)
+        v = AliasProperty(
+            lambda self: None if self.x == 0 else self.x, None,
+            bind=('x',), cache=cache)
+
+    t = Thing()
+    t.x = 3
+    values = []
+    t.bind(v=lambda _instance, value: values.append(value))
+    t.x = 0
+    t.x = 4
+    assert values == [None, 4]
+
+
+def test_alias_property_no_cache_dispatches_same_mutated_object():
+    # Without a cache, a getter that returns the same object after it was
+    # mutated compares equal to the last value; it must still dispatch.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class Box(EventDispatcher):
+        count = NumericProperty(0)
+        contents = AliasProperty(
+            lambda self: self.items, None, bind=('count',), cache=False)
+
+        def __init__(self, **kwargs):
+            self.items = []
+            super().__init__(**kwargs)
+
+        def add(self, item):
+            self.items.append(item)
+            self.count = len(self.items)
+
+    box = Box()
+    box.add('a')
+    values = []
+    box.bind(contents=lambda _instance, value: values.append(list(value)))
+    box.add('b')
+    box.add('c')
+    assert values == [['a', 'b'], ['a', 'b', 'c']]
+
+
+def test_alias_property_dispatches_when_getter_returns_none(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # A non-cached AliasProperty whose getter can legitimately return
+    # `None` should still dispatch on every real change, including
+    # transitions to/from `None`.
+    from kivy.properties import ObjectProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        x = ObjectProperty([], allownone=True)
+
+        def _get_y(self):
+            return self.x
+
+        y = AliasProperty(_get_y, None, bind=('x',), cache=False)
+
+    wid = CustomAlias()
+    values = []
+    wid.bind(y=lambda _, v: values.append(v))
+
+    wid.x = 5
+    wid.x = None
+    wid.x = []
+    wid.x = None
+    wid.x = [1, 2, 3]
+    wid.x = None
+
+    self.assertEqual(values, [5, None, [], None, [1, 2, 3], None])
+
+
+def test_alias_property_dispatches_when_cached_value_becomes_none(self):
+    # Regression test for https://github.com/kivy/kivy/issues/6901
+    #
+    # A cached AliasProperty whose getter can legitimately return `None`
+    # should still dispatch when the value transitions to/from `None`.
+    from kivy.properties import NumericProperty, AliasProperty
+
+    class CustomAlias(EventDispatcher):
+        width = NumericProperty(0)
+        height = NumericProperty(0)
+
+        def _get_aspect_ratio(self):
+            return (self.width / self.height) if self.height else None
+
+        aspect_ratio = AliasProperty(
+            _get_aspect_ratio, None, bind=('width', 'height'), cache=True)
+
+    wid = CustomAlias(width=100)
+    values = []
+    wid.bind(aspect_ratio=lambda _, v: values.append(v))
+
+    wid.height = 1
+    wid.height = 0
+    wid.height = 1
+    wid.height = 0
+
+    self.assertEqual(values, [100.0, None, 100.0, None])
 
 
 def test_dictproperty_is_none():

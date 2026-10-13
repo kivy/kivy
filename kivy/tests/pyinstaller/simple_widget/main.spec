@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 
 block_cipher = None
-from kivy_deps import sdl2, glew
+from kivy_deps import sdl3, glew
 from kivy.tools.packaging.pyinstaller_hooks import runtime_hooks, hookspath
 import os
 
@@ -31,7 +31,7 @@ coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
-               *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+               *[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins)],
                strip=False,
                upx=True,
                name='main')

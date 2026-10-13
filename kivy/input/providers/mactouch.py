@@ -151,7 +151,7 @@ class MacMotionEventProvider(MotionEventProvider):
             while True:
                 event_type, touch = self.queue.popleft()
                 dispatch_fn(event_type, touch)
-        except:
+        except Exception:
             pass
 
     def stop(self):

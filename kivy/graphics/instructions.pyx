@@ -16,7 +16,6 @@ include "../include/config.pxi"
 include "opcodes.pxi"
 
 from kivy.graphics.cgl cimport *
-from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
 from weakref import proxy
@@ -38,6 +37,17 @@ cdef void reset_gl_context():
     cgl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
     cgl.glActiveTexture(GL_TEXTURE0)
     cgl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+
+_FLAG_UPDATE_DOC = """Indicate that the instruction needs to be redrawn on the next frame.
+
+Normally, you should use :meth:`kivy.graphics.canvas.Canvas.ask_update` instead, but ``flag_update`` is necessary
+if this ``Instruction`` is in a :class:`kivy.graphics.fbo.Fbo`.
+
+:param do_parent: Whether to flag the parent instruction (such as a :class:`kivy.graphics.instructions.InstructionGroup`)
+           for update as well. True by default.
+
+"""
 
 
 cdef class Instruction(ObjectWithUid):
@@ -69,6 +79,7 @@ cdef class Instruction(ObjectWithUid):
 
     IF DEBUG:
         cpdef flag_update(self, int do_parent=1, list _instrs=None):
+            __doc__ = _FLAG_UPDATE_DOC
             cdef list instrs = _instrs if _instrs else []
             if _instrs and self in _instrs:
                 raise RuntimeError('Encountered instruction group render loop: %r in %r' % (self, _instrs,))
@@ -78,6 +89,7 @@ cdef class Instruction(ObjectWithUid):
             self.flags |= GI_NEEDS_UPDATE
     ELSE:
         cpdef flag_update(self, int do_parent=1):
+            __doc__ = _FLAG_UPDATE_DOC
             if do_parent == 1 and self.parent is not None:
                 self.parent.flag_update()
             self.flags |= GI_NEEDS_UPDATE
@@ -289,6 +301,9 @@ cdef class VertexInstruction(Instruction):
     Triangles, Lines, Ellipse and so on.
     '''
     def __init__(self, **kwargs):
+        # avoid multiple values for 'noadd' in BindTexture below
+        noadd_value = kwargs.pop('noadd', False)
+
         # Set a BindTexture instruction to bind the texture used for
         # this instruction before the actual vertex instruction
         self.texture_binding = BindTexture(noadd=True, **kwargs)
@@ -297,7 +312,7 @@ cdef class VertexInstruction(Instruction):
         if tex_coords:
             self.tex_coords = tex_coords
 
-        Instruction.__init__(self, **kwargs)
+        Instruction.__init__(self, noadd=noadd_value, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
 
@@ -533,7 +548,7 @@ cdef class Callback(Instruction):
             rcx = getActiveContext()
             shader = rcx._shader
             rcx.enter()
-            for index, texture in rcx.bind_texture.iteritems():
+            for index, texture in rcx.bind_texture.items():
                 rcx.set_texture(index, texture)
 
             reset_gl_context()
@@ -814,7 +829,7 @@ cdef class RenderContext(Canvas):
 
         cdef str key
         self._shader.use()
-        for key, stack in self.state_stacks.iteritems():
+        for key, stack in self.state_stacks.items():
             self.set_state(key, stack[0])
 
         if 'use_parent_projection' in kwargs:
@@ -842,7 +857,7 @@ cdef class RenderContext(Canvas):
 
     cdef int set_states(self, dict states) except -1:
         cdef str name
-        for name, value in states.iteritems():
+        for name, value in states.items():
             self.set_state(name, value)
 
     cdef int push_state(self, str name) except -1:
@@ -867,7 +882,7 @@ cdef class RenderContext(Canvas):
         for name in names:
             self.pop_state(name)
 
-    cdef void set_texture(self, int index, Texture texture):
+    cpdef void set_texture(self, int index, Texture texture):
         # TODO this code is actually broken,
         # the binded texture can be already set, but we may changed if we came
         # from another render context.
@@ -892,10 +907,7 @@ cdef class RenderContext(Canvas):
 
     cdef int apply(self) except -1:
         cdef list keys
-        if PY2:
-            keys = self.state_stacks.keys()
-        else:
-            keys = list(self.state_stacks.keys())
+        keys = list(self.state_stacks.keys())
 
         cdef RenderContext active_context = getActiveContext()
         if self._use_parent_projection:

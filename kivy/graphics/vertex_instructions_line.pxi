@@ -1504,19 +1504,38 @@ cdef class SmoothLine(Line):
         return 0
 
     # FIXME: Some artifacts can be observed, depending on the line width,
-    # overdraw_width and radius.
+    # overdraw_width and radius. This occurs due to the way the vertices are
+    # built. It is not noticeable when the alpha value of the color of the
+    # active context is equal to 1. One solution would be to avoid overlapping
+    # vertices.
     cdef void build_smooth(self):
         cdef:
             list p = self.points
+            int must_close_line = self._close
             double width = max(0, (self._width - 1.))
             double owidth = width + self._owidth
             vertex_t *vertices = NULL
             unsigned short *indices = NULL
             unsigned short *tindices = NULL
-            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle
+            float min_distance_threshold = 0.1
+            double min_angle_threshold = 0.017453292519943295  # 1 degree in radians, determined empirically.
+            double ax, ay, bx = 0., by = 0., rx = 0., ry = 0., last_angle = 0., angle, av_angle, ad_angle, angle_diff
             double cos1, sin1, cos2, sin2, ocos1, ocos2, osin1, osin2
             long index, icount, iv, ii, max_vindex, count
             unsigned short i0, i1, i2, i3, i4, i5, i6, i7, vindex, vcount
+
+
+        # Points that are very close (with a distance less than 0.1) will
+        # be discarded. This increases the reliability of line rendering.
+        p = self._remove_too_nearby_points(p, min_distance_threshold)
+
+        # If it is just a line segment, there will be no support to close the line.
+        if len(p) <= 4:
+            must_close_line = False
+
+        # A new point needs to meet a minimum distance threshold before being added.
+        if must_close_line and not (abs(p[-2] - p[0]) < min_distance_threshold and abs(p[-1] - p[1]) < min_distance_threshold):
+            p = p + p[:2]
 
         iv = vindex = 0
         count = <long>int(len(p) / 2.)
@@ -1526,8 +1545,6 @@ cdef class SmoothLine(Line):
 
         vcount = <unsigned short>(count * 4)
         icount = (count - 1) * 18
-        if self._close and self._close_mode == 'straight-line':
-            icount += 18
 
         vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
         if vertices == NULL:
@@ -1538,9 +1555,9 @@ cdef class SmoothLine(Line):
             free(vertices)
             raise MemoryError("indices")
 
-        if self._close and self._close_mode == 'straight-line':
-            ax = p[-2]
-            ay = p[-1]
+        if must_close_line and self._close_mode == 'straight-line':
+            ax = p[-4]
+            ay = p[-3]
             bx = p[0]
             by = p[1]
             rx = bx - ax
@@ -1551,16 +1568,27 @@ cdef class SmoothLine(Line):
         for index in range(0, max_index, 2):
             ax = p[index]
             ay = p[index + 1]
+
             if index < max_index - 2:
                 bx = p[index + 2]
                 by = p[index + 3]
                 rx = bx - ax
                 ry = by - ay
                 angle = atan2(ry, rx)
+
+            elif must_close_line and index == max_index - 2:
+                ax = p[0]
+                ay = p[1]
+                bx = p[2]
+                by = p[3]
+                rx = bx - ax
+                ry = by - ay
+                angle = atan2(ry, rx)
+
             else:
                 angle = last_angle
 
-            if index == 0 and (not self._close or self._close_mode != 'straight-line'):
+            if index == 0 and (not must_close_line or self._close_mode != 'straight-line'):
                 av_angle = angle
                 ad_angle = pi
             else:
@@ -1572,46 +1600,26 @@ cdef class SmoothLine(Line):
 
             a1 = av_angle - PI2
             a2 = av_angle + PI2
-            '''
-            cos1 = cos(a1) * width
-            sin1 = sin(a1) * width
-            cos2 = cos(a2) * width
-            sin2 = sin(a2) * width
-            ocos1 = cos(a1) * owidth
-            osin1 = sin(a1) * owidth
-            ocos2 = cos(a2) * owidth
-            osin2 = sin(a2) * owidth
-            print('angle diff', ad_angle)
-            '''
-            #l = width
-            #ol = owidth
 
-            if index == 0 or index >= max_index - 2:
+
+            if (index == 0 or index >= max_index - 2) and (not must_close_line or self._close_mode != 'straight-line'):
                 l = width
                 ol = owidth
             else:
+                if index == 0:
+                    ox = p[- 4]
+                    oy = p[- 3]
+                else:
+                    ox = p[index - 2]
+                    oy = p[index - 1]
+
                 la1 = last_angle - PI2
                 la2 = angle - PI2
                 ra1 = last_angle + PI2
                 ra2 = angle + PI2
-                ox = p[index - 2]
-                oy = p[index - 1]
-                if line_intersection(
-                    ox + cos(la1) * width,
-                    oy + sin(la1) * width,
-                    ax + cos(la1) * width,
-                    ay + sin(la1) * width,
-                    ax + cos(la2) * width,
-                    ay + sin(la2) * width,
-                    bx + cos(la2) * width,
-                    by + sin(la2) * width,
-                    &rx, &ry) == 0:
-                    # print('ERROR LINE INTERSECTION 1')
-                    pass
 
-                l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
 
-                if line_intersection(
+                angle_diff = self._get_angle_diff(
                     ox + cos(ra1) * owidth,
                     oy + sin(ra1) * owidth,
                     ax + cos(ra1) * owidth,
@@ -1620,31 +1628,54 @@ cdef class SmoothLine(Line):
                     ay + sin(ra2) * owidth,
                     bx + cos(ra2) * owidth,
                     by + sin(ra2) * owidth,
-                    &rx, &ry) == 0:
-                    # print('ERROR LINE INTERSECTION 2')
-                    pass
+                )
 
-                ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+                # If the angle difference is too small it is not safe to use
+                # the calculated values of l or l. Otherwise, l and ol will
+                # have extremely high values, causing the line to become
+                # excessively thick at some intersections (in specific cases).
+                if angle_diff < min_angle_threshold or ad_angle < min_angle_threshold:
+                    l = width
+                    ol = owidth
+                else:
+                    if line_intersection(
+                        ox + cos(la1) * width,
+                        oy + sin(la1) * width,
+                        ax + cos(la1) * width,
+                        ay + sin(la1) * width,
+                        ax + cos(la2) * width,
+                        ay + sin(la2) * width,
+                        bx + cos(la2) * width,
+                        by + sin(la2) * width,
+                        &rx, &ry) == 0:
+                        # print('ERROR LINE INTERSECTION 1')
+                        pass
+
+                    l = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
+                    if line_intersection(
+                        ox + cos(ra1) * owidth,
+                        oy + sin(ra1) * owidth,
+                        ax + cos(ra1) * owidth,
+                        ay + sin(ra1) * owidth,
+                        ax + cos(ra2) * owidth,
+                        ay + sin(ra2) * owidth,
+                        bx + cos(ra2) * owidth,
+                        by + sin(ra2) * owidth,
+                        &rx, &ry) == 0:
+                        # print('ERROR LINE INTERSECTION 2')
+                        pass
+
+                    ol = <float>sqrt((ax - rx) ** 2 + (ay - ry) ** 2)
+
 
             last_angle = angle
 
-            #l = sqrt(width ** 2 * (1. / sin(av_angle)) ** 2)
-            #l = width / tan(av_angle / 2.)
-            #l = width * sqrt(1 + 1 / (av_angle / 2.))
-            #l = 2 * (width * width * sin(av_angle))
-            #l = 2 * (cos(av_angle / 2.) * width)
-            #l = width / abs(cos(PI2 - 1.5 * ad_angle))
             cos1 = cos(a1) * l
             sin1 = sin(a1) * l
             cos2 = cos(a2) * l
             sin2 = sin(a2) * l
 
-            #ol = sqrt(owidth ** 2 * (1. / sin(av_angle)) ** 2)
-            #ol = owidth / tan(av_angle / 2.)
-            #ol = owidth * sqrt(1 + 1 / (av_angle / 2.))
-            #ol = 2 * (owidth * owidth * sin(av_angle))
-            #ol = 2 * (cos(av_angle / 2.) * owidth)
-            #ol = owidth / abs(cos(PI2 - 1.5 * ad_angle))
             ocos1 = cos(a1) * ol
             osin1 = sin(a1) * ol
             ocos2 = cos(a2) * ol
@@ -1703,43 +1734,41 @@ cdef class SmoothLine(Line):
             tindices[17] = vindex + 7
             tindices = tindices + 18
 
-        if self._close and self._close_mode == 'straight-line':
-            vindex = vcount - 4
-            i0 = vindex
-            i1 = vindex + 1
-            i2 = vindex + 2
-            i3 = vindex + 3
-            i4 = 0
-            i5 = 1
-            i6 = 2
-            i7 = 3
-            tindices[0] = i0
-            tindices[1] = i2
-            tindices[2] = i6
-            tindices[3] = i0
-            tindices[4] = i6
-            tindices[5] = i4
-            tindices[6] = i1
-            tindices[7] = i0
-            tindices[8] = i4
-            tindices[9] = i1
-            tindices[10] = i4
-            tindices[11] = i5
-            tindices[12] = i3
-            tindices[13] = i1
-            tindices[14] = i5
-            tindices[15] = i3
-            tindices[16] = i5
-            tindices[17] = i7
-            tindices = tindices + 18
-
         # print('tindices', <long>tindices, <long>indices, (<long>tindices - <long>indices) / sizeof(unsigned short))
-
 
         self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
 
         free(vertices)
         free(indices)
+    
+    cdef list _remove_too_nearby_points(self, list p, float min_distance_threshold):
+        cdef int index = 0
+        cdef double x1, y1, x2, y2
+
+        while index < len(p) - 2:
+            x1, y1 = p[index], p[index + 1]
+            x2, y2 = p[index + 2], p[index + 3]
+            if abs(x2 - x1) < min_distance_threshold and abs(y2 - y1) < min_distance_threshold:
+                del p[index + 2: index + 4]
+            else:
+                index += 2
+        return p
+
+    cdef double _get_angle_diff(self, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4):
+        cdef list vector_1, vector_2
+
+        vector_1 = [x2 - x1, y2 - y1]
+        vector_2 = [x4 - x3, y4 - y3]
+
+        angle_1 = atan2(vector_1[1], vector_1[0])
+        angle_2 = atan2(vector_2[1], vector_2[0])
+
+        angle_diff = abs(angle_1 - angle_2)
+
+        if angle_diff > pi:
+            angle_diff = 2 * pi - angle_diff
+
+        return angle_diff
 
 
     property overdraw_width:

@@ -36,7 +36,6 @@ __all__ = ('start', 'stop')
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
 from kivy import kivy_data_dir
-from kivy.compat import string_types
 from os.path import join
 from functools import partial
 
@@ -57,13 +56,13 @@ def start(win, ctx):
         ctx.config.get('texture', join(kivy_data_dir, 'images', 'cursor.png'))
     ).texture
     cursor_size = ctx.config.get('size')
-    if isinstance(cursor_size, string_types):
+    if isinstance(cursor_size, str):
         cursor_size = [int(x) for x in cursor_size.split('x')]
     elif not cursor_size:
         cursor_size = cursor_texture.size
 
     cursor_offset = ctx.config.get('offset', (0, 0))
-    if isinstance(cursor_offset, string_types):
+    if isinstance(cursor_offset, str):
         cursor_offset = [int(x) for x in cursor_offset.split('x')]
 
     win.bind(

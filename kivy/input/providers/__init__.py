@@ -9,7 +9,6 @@ import os
 
 from kivy.utils import platform as core_platform
 from kivy.logger import Logger
-from kivy.setupconfig import USE_SDL2
 
 import kivy.input.providers.tuio
 import kivy.input.providers.mouse
@@ -20,49 +19,41 @@ if platform == 'win' or 'KIVY_DOC' in os.environ:
     try:
         import kivy.input.providers.wm_touch
         import kivy.input.providers.wm_pen
-    except:
+    except Exception:
         err = 'Input: WM_Touch/WM_Pen not supported by your version of Windows'
         Logger.warning(err)
 
 if platform == 'macosx' or 'KIVY_DOC' in os.environ:
     try:
         import kivy.input.providers.mactouch
-    except:
+    except Exception:
         err = 'Input: MacMultitouchSupport is not supported by your system'
         Logger.exception(err)
 
 if platform == 'linux' or 'KIVY_DOC' in os.environ:
     try:
         import kivy.input.providers.probesysfs
-    except:
+    except Exception:
         err = 'Input: ProbeSysfs is not supported by your version of linux'
         Logger.exception(err)
     try:
         import kivy.input.providers.mtdev
-    except:
+    except Exception:
         err = 'Input: MTDev is not supported by your version of linux'
         Logger.exception(err)
     try:
         import kivy.input.providers.hidinput
-    except:
+    except Exception:
         err = 'Input: HIDInput is not supported by your version of linux'
         Logger.exception(err)
     try:
         import kivy.input.providers.linuxwacom
-    except:
+    except Exception:
         err = 'Input: LinuxWacom is not supported by your version of linux'
-        Logger.exception(err)
-
-if (platform == 'android' and not USE_SDL2) or 'KIVY_DOC' in os.environ:
-    try:
-        import kivy.input.providers.androidjoystick
-    except:
-        err = 'Input: AndroidJoystick is not supported by your version ' \
-              'of linux'
         Logger.exception(err)
 
 try:
     import kivy.input.providers.leapfinger  # NOQA
-except:
+except Exception:
     err = 'Input: LeapFinger is not available on your system'
     Logger.exception(err)

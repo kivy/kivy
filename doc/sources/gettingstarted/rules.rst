@@ -5,7 +5,7 @@ Kivy provides a design language specifically geared towards easy and scalable
 GUI Design. The language makes it simple to separate the interface design from
 the application logic, adhering to the
 `separation of concerns principle
-<http://en.wikipedia.org/wiki/Separation_of_concerns>`_. For example:
+<https://en.wikipedia.org/wiki/Separation_of_concerns>`_. For example:
 
 .. image:: ../images/gs-lang.png
     :align: center

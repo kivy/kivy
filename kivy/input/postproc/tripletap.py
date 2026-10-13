@@ -37,7 +37,7 @@ class InputPostprocTripleTap(object):
     def find_triple_tap(self, ref):
         '''Find a triple tap touch within *self.touches*.
         The touch must be not be a previous triple tap and the distance
-        must be be within the bounds specified. Additionally, the touch profile
+        must be within the bounds specified. Additionally, the touch profile
         must be the same kind of touch.
         '''
         ref_button = None

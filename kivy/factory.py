@@ -68,31 +68,23 @@ class FactoryBase(object):
         obj.classes = copy.copy(factory.classes)
         return obj
 
-    def is_template(self, classname):
-        '''Return True if the classname is a template from the
-        :class:`~kivy.lang.Builder`.
-
-        .. versionadded:: 1.0.5
-        '''
-        if classname in self.classes:
-            return self.classes[classname]['is_template']
-        else:
-            return False
-
-    def register(self, classname, cls=None, module=None, is_template=False,
+    def register(self, classname, cls=None, module=None,
                  baseclasses=None, filename=None, warn=False):
         '''Register a new classname referring to a real class or
         class definition in a module. Warn, if True will emit a warning message
         when a class is re-declared.
+
+        .. versionchanged:: 3.0.0
+            The ``is_template`` parameter and the :meth:`is_template`
+            method have been removed along with the deprecated Kivy lang
+            templates feature. Use dynamic classes
+            (``<Name@Base>:``) instead.
 
         .. versionchanged:: 1.9.0
             `warn` was added.
 
         .. versionchanged:: 1.7.0
             :attr:`baseclasses` and :attr:`filename` added
-
-        .. versionchanged:: 1.0.5
-            :attr:`is_template` has been added in 1.0.5.
         '''
         if cls is None and module is None and baseclasses is None:
             raise ValueError(
@@ -110,7 +102,6 @@ class FactoryBase(object):
         self.classes[classname] = {
             'module': module,
             'cls': cls,
-            'is_template': is_template,
             'baseclasses': baseclasses,
             'filename': filename}
 

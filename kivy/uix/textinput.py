@@ -31,7 +31,7 @@ To create a singleline :class:`TextInput`, set the :class:`TextInput.multiline`
 property to False (the 'enter' key will defocus the TextInput and emit an
 :meth:`TextInput.on_text_validate` event)::
 
-    def on_enter(instance, value):
+    def on_enter(instance):
         print('User pressed enter in', instance)
 
     textinput = TextInput(text='Hello world', multiline=False)
@@ -75,6 +75,27 @@ Selection
 The selection is automatically updated when the cursor position changes.
 You can get the currently selected text from the
 :attr:`TextInput.selection_text` property.
+
+Handles
+-------
+
+One can enable :attr:`TextInput.use_handles` property to enable or disable
+the usage of selection handles. This property is True by default on mobiles.
+
+Selection Handles uses the class :class:`Selector` as the base class for
+the selection handles. You can customize the color for selection handles
+like so ::
+
+    <Selector>
+        color: 0, 1, 0, 1
+        # or <Textinput_instance>.selection_color or app.selection_color
+
+TextInput instantiates the selection handles and stores it in the following
+properties. :attr:`TextInput._handle_middle`,
+:attr:`TextInput._handle_left`, :attr:`TextInput._handle_right`.
+
+You should set the selection template before the Instantiating TextInput,
+so as to get the selection handles to take the changes you set to apply.
 
 Filtering
 ---------
@@ -238,7 +259,14 @@ if 'KIVY_DOC' not in environ:
 
 
 class Selector(ButtonBehavior, Image):
-    # Internal class for managing the selection Handles.
+    '''Default template for the selection Handles
+
+    In order to customize the look of the Selection Handles,
+    you should adjust its template like so ::
+
+        <Selector>
+            color: 1, 0, 1, 1
+    '''
 
     window = ObjectProperty()
     target = ObjectProperty()
@@ -908,6 +936,7 @@ class TextInput(FocusBehavior, Widget):
                 substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
             self._redo.append(x_item)
+            self.scroll_x = self.get_max_scroll_x()
         except IndexError:
             # reached at top of undo list
             pass
@@ -967,6 +996,7 @@ class TextInput(FocusBehavior, Widget):
             cursor_index,
             cursor_index - 1,
             substring, from_undo, mode)
+        self.scroll_x = self.get_max_scroll_x()
 
     def _set_unredo_bkspc(self, ol_index, new_index, substring, from_undo,
                           mode):
@@ -1329,7 +1359,7 @@ class TextInput(FocusBehavior, Widget):
                 else:
                     col, row = col + 1, row
 
-        dont_move_cursor = control and action in ['cursor_up', 'cursor_down']
+        dont_move_cursor = control and action in {'cursor_up', 'cursor_down'}
         if dont_move_cursor:
             self._trigger_update_graphics()
         else:
@@ -1392,6 +1422,17 @@ class TextInput(FocusBehavior, Widget):
 
         return cursor_x, cursor_y
 
+    def get_max_scroll_x(self):
+        '''
+        Return how many pixels it needs to scroll to the right
+        to reveal the remaining content of a text that extends
+        beyond the visible width of a TextInput
+        '''
+        minimum_width = self._get_row_width(0) + self.padding[0] + \
+            self.padding[2]
+        max_scroll_x = max(0, minimum_width - self.width)
+        return max_scroll_x
+
     #
     # Selection control
     #
@@ -1440,7 +1481,8 @@ class TextInput(FocusBehavior, Widget):
         self.scroll_x = scroll_x
         self.scroll_y = scroll_y
         # handle undo and redo for delete selection
-        self._set_unredo_delsel(a, b, text[a:b], from_undo)
+        if text[a:b]:
+            self._set_unredo_delsel(a, b, text[a:b], from_undo)
         self.cancel_selection()
         self.cursor = self.get_cursor_from_index(a)
 
@@ -1485,7 +1527,7 @@ class TextInput(FocusBehavior, Widget):
     def long_touch(self, dt):
         self._long_touch_ev = None
         if self._selection_to == self._selection_from:
-            pos = self.to_local(*self._touch_down.pos, relative=False)
+            pos = self.to_widget(*self._touch_down.pos, relative=False)
             self._show_cut_copy_paste(
                 pos, EventLoop.window, mode='paste')
 
@@ -1572,9 +1614,7 @@ class TextInput(FocusBehavior, Widget):
                                             self.lines_to_scroll)
                         self._trigger_update_graphics()
                 else:
-                    minimum_width = (self._get_row_width(0) + self.padding[0] +
-                                     self.padding[2])
-                    max_scroll_x = max(0, minimum_width - self.width)
+                    max_scroll_x = self.get_max_scroll_x()
                     if self.scroll_x < max_scroll_x:
                         self.scroll_x = min(max_scroll_x, self.scroll_x +
                                             self.line_height)
@@ -1724,11 +1764,7 @@ class TextInput(FocusBehavior, Widget):
                 max_scroll_y
             )
         else:
-            minimum_width = (
-                self._get_row_width(0)
-                + self.padding[0] + self.padding[2]
-            )
-            max_scroll_x = max(0, minimum_width - self.width)
+            max_scroll_x = self.get_max_scroll_x()
             self.scroll_x = min(
                 max(0, self.scroll_x - touch.dx),
                 max_scroll_x
@@ -1737,13 +1773,13 @@ class TextInput(FocusBehavior, Widget):
         self._position_handles()
         return True
 
-    def _handle_pressed(self, instance):
+    def _handle_pressed(self, instance, touch):
         self._hide_cut_copy_paste()
         from_, to_ = self._selection_from, self.selection_to
         if from_ > to_:
             self._selection_from, self._selection_to = to_, from_
 
-    def _handle_released(self, instance):
+    def _handle_released(self, instance, touch):
         if self._selection_from == self.selection_to:
             return
 
@@ -2045,6 +2081,8 @@ class TextInput(FocusBehavior, Widget):
         self._ensure_clipboard()
         data = Clipboard.paste()
         self.delete_selection()
+        if not self.multiline:
+            data = data.replace('\n', ' ')
         self.insert_text(data)
 
     def _update_cutbuffer(self, *args):
@@ -2669,7 +2707,7 @@ class TextInput(FocusBehavior, Widget):
                     else:
                         break
 
-                except:
+                except Exception:
                     # exception happen when we tried to render the text
                     # reduce it...
                     if ld is None:
@@ -3320,38 +3358,6 @@ class TextInput(FocusBehavior, Widget):
     :attr:`tab_width` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 4.
     '''
-
-    padding_x = VariableListProperty([0, 0], length=2, deprecated=True)
-    '''Horizontal padding of the text: [padding_left, padding_right].
-
-    padding_x also accepts a one argument form [padding_horizontal].
-
-    :attr:`padding_x` is a :class:`~kivy.properties.VariableListProperty` and
-    defaults to [0, 0]. This might be changed by the current theme.
-
-    .. deprecated:: 1.7.0
-        Use :attr:`padding` instead.
-    '''
-
-    def on_padding_x(self, instance, value):
-        self.padding[0] = value[0]
-        self.padding[2] = value[1]
-
-    padding_y = VariableListProperty([0, 0], length=2, deprecated=True)
-    '''Vertical padding of the text: [padding_top, padding_bottom].
-
-    padding_y also accepts a one argument form [padding_vertical].
-
-    :attr:`padding_y` is a :class:`~kivy.properties.VariableListProperty` and
-    defaults to [0, 0]. This might be changed by the current theme.
-
-    .. deprecated:: 1.7.0
-        Use :attr:`padding` instead.
-    '''
-
-    def on_padding_y(self, instance, value):
-        self.padding[1] = value[0]
-        self.padding[3] = value[1]
 
     padding = VariableListProperty([6, 6, 6, 6])
     '''Padding of the text: [padding_left, padding_top, padding_right,

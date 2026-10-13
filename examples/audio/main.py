@@ -17,7 +17,7 @@ kivy.require('1.0.8')
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
-from kivy.core.audio import SoundLoader
+from kivy.core.audio_output import SoundLoader
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from glob import glob
 from os.path import dirname, join, basename
@@ -29,7 +29,7 @@ class AudioButton(Button):
     sound = ObjectProperty(None, allownone=True)
     volume = NumericProperty(1.0)
 
-    def on_press(self):
+    def on_press(self, touch):
         if self.sound is None:
             self.sound = SoundLoader.load(self.filename)
         # stop the sound if it's currently playing

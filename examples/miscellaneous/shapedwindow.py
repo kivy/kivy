@@ -1,98 +1,58 @@
 from kivy.config import Config
-Config.set('graphics', 'shaped', 1)
 
-from kivy.resources import resource_find
-default_shape = Config.get('kivy', 'window_shape')
-alpha_shape = resource_find('data/logo/kivy-icon-512.png')
+# Enable shaped window
+Config.set("graphics", "shaped", 1)
+Config.set("kivy", "window_shape", "./shaped_window_images/shape1.png")
 
 from kivy.app import App
-from kivy.lang import Builder
 from kivy.core.window import Window
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (
-    BooleanProperty,
-    StringProperty,
-    ListProperty,
-)
+from kivy.lang import Builder
+from kivy.properties import StringProperty
+
+# Set the window background color to transparent
+Window.clearcolor = (0, 0, 0, 0)
+
+# Define the KV layout
+kv_layout = '''
+FloatLayout:
+    size_hint: 1, 1
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    ScatterLayout:
+        BoxLayout:
+            size_hint: 0.5, 0.5
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            Button:
+                text: "Next Shape"
+                on_press: app.next_shape()
+'''
 
 
-Builder.load_string('''
-#:import win kivy.core.window.Window
-
-<Root>:
-    orientation: 'vertical'
-    BoxLayout:
-        Button:
-            text: 'default_shape'
-            on_release: app.shape_image = app.default_shape
-        Button:
-            text: 'alpha_shape'
-            on_release: app.shape_image = app.alpha_shape
-
-    BoxLayout:
-        ToggleButton:
-            group: 'mode'
-            text: 'default'
-            state: 'down'
-            on_release: win.shape_mode = 'default'
-        ToggleButton:
-            group: 'mode'
-            text: 'binalpha'
-            on_release: win.shape_mode = 'binalpha'
-        ToggleButton:
-            group: 'mode'
-            text: 'reversebinalpha'
-            on_release: win.shape_mode = 'reversebinalpha'
-        ToggleButton:
-            group: 'mode'
-            text: 'colorkey'
-            on_release: win.shape_mode = 'colorkey'
-
-    BoxLayout:
-        ToggleButton:
-            group: 'cutoff'
-            text: 'cutoff True'
-            state: 'down'
-            on_release: win.shape_cutoff = True
-        ToggleButton:
-            group: 'cutoff'
-            text: 'cutoff False'
-            on_release: win.shape_cutoff = False
-
-    BoxLayout:
-        ToggleButton:
-            group: 'colorkey'
-            text: '1, 1, 1, 1'
-            state: 'down'
-            on_release: win.shape_color_key = [1, 1, 1, 1]
-        ToggleButton:
-            group: 'colorkey'
-            text: '0, 0, 0, 1'
-            on_release: win.shape_color_key = [0, 0, 0, 1]
-''')
-
-
-class Root(BoxLayout):
-    pass
-
-
-class ShapedWindow(App):
-    shape_image = StringProperty('', force_dispatch=True)
-
-    def on_shape_image(self, instance, value):
-        if 'kivy-icon' in value:
-            Window.size = (512, 512)
-            Window.shape_image = self.alpha_shape
-        else:
-            Window.size = (800, 600)
-            Window.shape_image = self.default_shape
+class ShapedWindowApp(App):
+    shaped_image_src = StringProperty("")
 
     def build(self):
-        self.default_shape = default_shape
-        self.alpha_shape = alpha_shape
+        # List of image paths to cycle through
+        self.image_paths = [
+            "./shaped_window_images/shape1.png",
+            "./shaped_window_images/shape2.png",
+            "./shaped_window_images/shape3.png",
+            "./shaped_window_images/shape4.png",
+            "./shaped_window_images/shape5.png",
+        ]
+        self.current_index = 0
 
-        return Root()
+        return Builder.load_string(kv_layout)
+
+    def next_shape(self):
+        # Move to the next image in the list
+        self.current_index = (self.current_index + 1) % len(self.image_paths)
+        Window.shape_image = self.image_paths[self.current_index]
 
 
-if __name__ == '__main__':
-    ShapedWindow().run()
+if __name__ == "__main__":
+    ShapedWindowApp().run()

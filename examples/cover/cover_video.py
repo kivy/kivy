@@ -24,7 +24,7 @@ class CoverVideo(CoverBehavior, Video):
 class MainApp(App):
 
     def build(self):
-        return CoverVideo(source='../widgets/cityCC0.mpg', play=True)
+        return CoverVideo(source='../widgets/cityCC0.mpg', state='play')
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ are used as for the :class:`~kivy.uix.label.Label` class::
 To attach a callback when the button is pressed (clicked/touched), use
 :class:`~kivy.uix.widget.Widget.bind`::
 
-    def callback(instance):
+    def callback(instance, touch):
         print('The button <%s> is being pressed' % instance.text)
 
     btn1 = Button(text='Hello world 1')
@@ -25,22 +25,24 @@ To attach a callback when the button is pressed (clicked/touched), use
     btn2 = Button(text='Hello world 2')
     btn2.bind(on_press=callback)
 
-If you want to be notified every time the button state changes, you can bind
-to the :attr:`Button.state` property::
+If you want to be notified every time the button pressed state changes, you can bind
+to the :attr:`Button.pressed` property::
 
     def callback(instance, value):
-        print('My button <%s> state is <%s>' % (instance, value))
+        print('My button <%s> pressed state is <%s>' % (instance, value))
     btn1 = Button(text='Hello world 1')
-    btn1.bind(state=callback)
+    btn1.bind(pressed=callback)
 
 Kv Example::
 
     Button:
         text: 'press me'
-        on_press: print("ouch! More gently please")
-        on_release: print("ahhh")
-        on_state:
-            print("my current state is {}".format(self.state))
+        on_press:
+            print("ouch! More gently please", args[1].pos)
+        on_release:
+            print("ahhh", args[1].pos)
+        on_pressed:
+            print("my current pressed state is {}".format(self.pressed))
 
 '''
 

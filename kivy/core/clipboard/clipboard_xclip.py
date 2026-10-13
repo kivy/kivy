@@ -17,7 +17,7 @@ try:
     p = subprocess.Popen(['xclip', '-version'], stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL)
     p.communicate()
-except:
+except Exception:
     raise
 
 

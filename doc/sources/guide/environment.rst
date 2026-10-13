@@ -41,27 +41,65 @@ KIVY_HOME
 
     .. versionadded:: 1.9.0
 
-KIVY_SDL2_PATH
-    If set, the SDL2 libraries and headers from this path are used when
+KIVY_DESKTOP_PATH_ID
+    Sets a user-facing, human-readable application title for desktop platform
+    directories. This makes it easy for end users to identify which application
+    owns which directories when browsing their filesystem.
+
+    **Important:** Setting this creates an **application-specific** location for
+    the ``.kivy`` directory containing the config and log files. Without
+    ``KIVY_DESKTOP_PATH_ID``, the config and logs are placed in a single global
+    ``.kivy`` directory shared by all Kivy applications. This allows multiple
+    Kivy applications to have isolated configuration and log directories.
+
+    When set, the identifier is normalized for filesystem safety (invalid
+    characters like /\\:*?"<>| are replaced with underscores) and used to
+    construct KIVY_HOME, user_data_dir, and user_cache_dir paths.
+
+    Use this to display a clear, recognizable name like "My Photo Editor" or
+    "Company App Name" instead of technical identifiers.
+
+    If not set on desktop platforms, the path construction falls back to using
+    App.name (a string derived from your App class name). A warning is logged
+    recommending you set KIVY_DESKTOP_PATH_ID for better end-user clarity.
+
+    Takes priority over KIVY_HOME environment variable and virtual environment
+    detection. Ignored on mobile platforms (iOS, Android) where file systems
+    are not user-browsable.
+
+    **Note for mobile developers**: If you are developing a mobile app on a
+    desktop platform, you can set KIVY_DESKTOP_PATH_ID to any value to suppress
+    the warning. The variable will have no effect on your mobile app, but setting
+    it prevents the warning during development.
+
+    Example paths when set to "My Photo Editor":
+     - Windows: ``%APPDATA%\\My_Photo_Editor\\.kivy``
+     - macOS: ``~/Library/Application Support/My_Photo_Editor/.kivy``
+     - Linux: ``~/.local/share/My_Photo_Editor/.kivy``
+
+    .. versionadded:: 3.0.0
+
+KIVY_SDL3_PATH
+    If set, the SDL3 libraries and headers from this path are used when
     compiling kivy instead of the ones installed system-wide.
     To use the same libraries while running a kivy app, this path must be
     added at the start of the PATH environment variable.
 
-    .. versionadded:: 1.9.0
+    .. versionadded:: 3.0.0
 
     .. warning::
 
         This path is required for the compilation of Kivy. It is not
         required for program execution.
 
-KIVY_SDL2_FRAMEWORKS_SEARCH_PATH
-    If set, the SDL2 frameworks from this path are used when compiling kivy
+KIVY_SDL3_FRAMEWORKS_SEARCH_PATH
+    If set, the SDL3 frameworks from this path are used when compiling kivy
     instead of the ones installed system-wide.
 
-    That path is used only on macOS, and must contain the SDL2.framework,
+    That path is used only on macOS, and must contain the SDL3.framework,
     SDL_image.framework, SDL_mixer.framework and SDL_ttf.framework.
 
-    .. versionadded:: 2.1.0
+    .. versionadded:: 3.0.0
 
     .. warning::
 
@@ -70,8 +108,8 @@ KIVY_SDL2_FRAMEWORKS_SEARCH_PATH
 
 KIVY_DEPS_ROOT
     If set, during build, Kivy will use this directory as the root one to
-    search for (only SDL ATM) dependencies. Please note that if `KIVY_SDL2_PATH` or
-    `KIVY_SDL2_FRAMEWORKS_SEARCH_PATH` are set, they will be used instead.
+    search for (only SDL ATM) dependencies. Please note that if `KIVY_SDL3_PATH` or
+    `KIVY_SDL3_FRAMEWORKS_SEARCH_PATH` are set, they will be used instead.
 
     .. versionadded:: 2.2.0
 
@@ -136,30 +174,53 @@ Restrict core to specific implementation
 platform. For testing or custom installation, you might want to restrict the
 selector to a specific implementation.
 
+You can specify multiple providers as a comma-separated list to set the priority
+order. Kivy will try each provider in the order listed, using the first one that
+successfully initializes. For example::
+
+    $ KIVY_IMAGE=sdl3,pil python main.py
+
+Or in Python::
+
+    import os
+    os.environ['KIVY_IMAGE'] = 'sdl3,pil'
+    import kivy
+
+This will try the sdl3 image provider first, and fall back to pil if sdl3 is
+unavailable or the file format is not supported by sdl3.
+
+Some core modules also support selecting providers on a per-instance basis,
+allowing different objects to use different provider implementations within the
+same application. See the following modules for details:
+
+- :mod:`kivy.core.audio_output` - Per-instance audio provider selection
+- :mod:`kivy.core.image` - Per-instance image provider selection
+- :mod:`kivy.core.text` - Per-instance text provider selection
+
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: sdl2, pygame, x11, egl_rpi
+    Values: sdl3, x11, egl_rpi
 
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: sdl2, pil, pygame, sdlttf
+    Values: sdl3, pil, sdlttf
 
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstplayer, ffpyplayer, ffmpeg, null
+    Values: gstplayer, ffpyplayer, ffmpeg, android , null
 
-KIVY_AUDIO
+KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio
 
-    Values: sdl2, gstplayer, ffpyplayer, pygame, avplayer
+    Values: sdl3, gstplayer, ffpyplayer, avplayer
 
 KIVY_IMAGE
     Implementation to use for reading image
 
-    Values: sdl2, pil, pygame, imageio, tex, dds
+    Values: sdl3, pil, imageio, tex, dds
 
     .. versionchanged:: 2.0.0
     Removed GPL `gif` implementation
@@ -177,7 +238,7 @@ KIVY_SPELLING
 KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
-    Values: sdl2, pygame, dummy, android
+    Values: sdl3, dummy, wayland, android
 
 Metrics
 -------

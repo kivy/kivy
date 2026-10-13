@@ -74,10 +74,6 @@ cdef class WeakProxy(object):
     def __nonzero__(self):
         return bool(self.__ref__())
 
-    if not PY3:
-        def __bool__(self):
-            return bool(self.__ref__())
-
     def __add__(self, other):
         return self.__ref__() + other
 
@@ -252,9 +248,6 @@ cdef class WeakProxy(object):
 
     def __int__(self):
         return int(self.__ref__())
-
-    def __long__(self):
-        return long(self.__ref__())
 
     def __float__(self):
         return float(self.__ref__())

@@ -798,6 +798,7 @@ cdef class Rectangle(VertexInstruction):
             Size of the rectangle, in the format (width, height).
     '''
     cdef float x,y,w,h
+    cdef list _points
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -812,8 +813,12 @@ cdef class Rectangle(VertexInstruction):
         cdef vertex_t vertices[4]
         cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
+        # reset points
+        self._points = []
+
         x, y = self.x, self.y
         w, h = self.w, self.h
+
 
         vertices[0].x = x
         vertices[0].y = y
@@ -831,6 +836,8 @@ cdef class Rectangle(VertexInstruction):
         vertices[3].y = y + h
         vertices[3].s0 = tc[6]
         vertices[3].t0 = tc[7]
+
+        self._points = [x, y, x + w, y, x + w, y + h, x, y + h]
 
         self.batch.set_data(vertices, 4, indices, 6)
 
@@ -865,6 +872,15 @@ cdef class Rectangle(VertexInstruction):
         self.w = w
         self.h = h
         self.flag_data_update()
+
+    @property
+    def points(self):
+        '''Property for getting the points used to draw the vertices.
+
+        .. versionadded:: 2.3.0
+
+        '''
+        return self._points
 
 
 
@@ -1140,7 +1156,6 @@ cdef class Ellipse(Rectangle):
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
-        self.batch.set_mode('triangle_fan')
         self._segments = kwargs.get('segments') or 0
         self._angle_start = kwargs.get('angle_start') or 0.0
         self._angle_end = kwargs.get('angle_end') or 360.0
@@ -1154,9 +1169,15 @@ cdef class Ellipse(Rectangle):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef int segments = self._segments
+        cdef int vertices_count
+        cdef bint use_first_vertex_as_last = False
+
+        # reset points
+        self._points = []
 
         if self.w == 0 or self.h == 0:
             return
+
 
         if segments == 0 or segments < 3:
             if segments != 0:
@@ -1171,11 +1192,22 @@ cdef class Ellipse(Rectangle):
         rx = 0.5 * self.w
         ry = 0.5 * self.h
 
-        vertices = <vertex_t *>malloc((segments + 2) * sizeof(vertex_t))
+        if (
+            abs(self._angle_start - self._angle_end) == 360
+            or self._angle_start == self._angle_end
+        ):
+            use_first_vertex_as_last = True
+
+        if use_first_vertex_as_last:
+            vertices_count = segments + 1
+        else:
+            vertices_count = segments + 2
+
+        vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc((segments + 2) * sizeof(unsigned short))
+        indices = <unsigned short *>malloc((segments * 3) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -1196,11 +1228,11 @@ cdef class Ellipse(Rectangle):
         y = self.y + ry
         ttx = ((x - self.x) / self.w) * tw + tx
         tty = ((y - self.y) / self.h) * th + ty
-        vertices[0].x = <float>(self.x + rx)
-        vertices[0].y = <float>(self.y + ry)
-        vertices[0].s0 = <float>ttx
-        vertices[0].t0 = <float>tty
-        indices[0] = 0
+
+        vertices[vertices_count - 1].x = <float>x
+        vertices[vertices_count - 1].y = <float>y
+        vertices[vertices_count - 1].s0 = <float>ttx
+        vertices[vertices_count - 1].t0 = <float>tty
 
         # super fast ellipse drawing
         # credit goes to: http://slabode.exofire.net/circle_draw.shtml
@@ -1215,7 +1247,7 @@ cdef class Ellipse(Rectangle):
         x = r * sin(angle_start)
         y = r * cos(angle_start)
 
-        for i in range(1, segments + 2):
+        for i in range(0, vertices_count - 1):
             ttx = (cx + x) * tw + tx
             tty = (cy + y) * th + ty
             real_x = self.x + (cx + x) * self.w
@@ -1224,7 +1256,6 @@ cdef class Ellipse(Rectangle):
             vertices[i].y = <float>real_y
             vertices[i].s0 = <float>ttx
             vertices[i].t0 = <float>tty
-            indices[i] = i
 
             fx = -y
             fy = x
@@ -1233,7 +1264,18 @@ cdef class Ellipse(Rectangle):
             x *= radial_factor
             y *= radial_factor
 
-        self.batch.set_data(vertices, segments + 2, indices, segments + 2)
+            self._points.extend([real_x, real_y])
+
+        for i in range(0, segments * 3, 3):
+            indices[i] = vertices_count - 1
+            indices[i + 1] = i // 3
+            indices[i + 2] = i // 3 + 1
+
+        if use_first_vertex_as_last:
+            indices[(segments * 3) - 1] = 0
+            self._points.extend([vertices[0].x, vertices[0].y])
+
+        self.batch.set_data(vertices, vertices_count, indices, segments * 3)
 
         free(vertices)
         free(indices)
@@ -1313,6 +1355,7 @@ cdef class RoundedRectangle(Rectangle):
 
         radius = kwargs.get('radius') or [10.0]
         self._radius = self._check_radius(radius)
+        self._points = []
 
     cdef object _check_segments(self, object segments):
         """
@@ -1387,9 +1430,13 @@ cdef class RoundedRectangle(Rectangle):
             double rx, ry, half_w, half_h, angle
             double tx, ty, tw, th, px, py, x, y
 
+        # reset points
+        self._points = []
+
         # zero size of the figure
         if self.w == 0 or self.h == 0:
             return
+
 
         # 1 vertex for sharp corner (if segments or radius is zero)
         # `segments+1` vertices for round corner
@@ -1469,6 +1516,9 @@ cdef class RoundedRectangle(Rectangle):
                 vertices[index].y = self.y + self.h * dh
                 vertices[index].s0 = <float>(tx + tw * dw)
                 vertices[index].t0 = <float>(ty + th * dh)
+
+                self._points.append((self.x + self.w * dw, self.y + self.h * dh))
+
             else:
                 # round corner
                 points = self.draw_arc(px, py, rx, ry, angle, angle - 90, segments)
@@ -1488,6 +1538,9 @@ cdef class RoundedRectangle(Rectangle):
                 vertices[index].y = <float>y
                 vertices[index].s0 = <float>((x - self.x) / self.w)
                 vertices[index].t0 = <float>(1 - (y - self.y) / self.h)  # flip vertically
+
+                self._points.extend(points)
+                self._points.append((x, y))
 
                 '''
                 We have defined these coefficients for arcs:
@@ -1592,3 +1645,656 @@ cdef class RoundedRectangle(Rectangle):
     def radius(self, value):
         self._radius = self._check_radius(value)
         self.flag_data_update()
+
+
+
+
+"""
+Graphics section with antialiasing that uses a combination of AntiAliasingLine
+and the target graphics Instruction, such as Rectangle, Ellipse,
+RoundedRectangle, Triangle and Quad.
+
+NOTE: Texture antialiasing is currently not supported. If a texture is defined
+for any of the graphics with antialiasing, then antialiasing will be disabled.
+
+The antialiasing is also disabled for graphics with "fixed" shapes, such as
+Rectangle, RoundedRectangle and Ellipse through verification in
+``too_small_for_antialiasing`` function. Reasons for it:
+
+    - Drawing an antialiasing line on figures with very small dimensions does
+    not bring great visual improvements. 
+
+    - This reduces the code complexity in the `adjust_params` functions,
+    which are used to adjust the size of these figures, and keep them
+    proportional to the figures without antialiasing.
+
+TODO: Use AntiAliasingLine as a sort of "alpha test" to enable texture
+antialiasing. This will likely involve utilizing glBlendFunc in conjunction
+with other functions. It would also involve creating custom instructions,
+similar to the custom stencil instructions bellow, to ensure efficiency.
+"""
+
+
+
+
+"""
+The functions below are extended versions of the radd, rinsert and rremove from
+VertexInstruction, with the ability to add/remove more than one instruction set
+(BindTexture + VertexInstruction) to/from a instruction group.
+"""
+
+cdef void radd_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
+    ig.children.append(target_graphic.texture_binding)
+    ig.children.append(target_graphic)
+    ig.children.append(aa_line.texture_binding)
+    ig.children.append(aa_line)
+    aa_instr.set_parent(ig)
+    aa_line.set_parent(ig)
+    instr.set_parent(ig)
+    target_graphic.set_parent(ig)
+
+
+cdef void rinsert_instructions(InstructionGroup ig, int index, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
+    cdef int index_adjust = 0 if index < 0 else 1
+    ig.children.insert(index, target_graphic.texture_binding)
+    ig.children.insert(index + 1 * index_adjust, target_graphic)
+    ig.children.insert(index + 2 * index_adjust, aa_line.texture_binding)
+    ig.children.insert(index + 3 * index_adjust, aa_line)
+    aa_instr.set_parent(ig)
+    aa_line.set_parent(ig)
+    instr.set_parent(ig)
+    target_graphic.set_parent(ig)
+
+
+cdef void rremove_instructions(InstructionGroup ig, VertexInstruction target_graphic, AntiAliasingLine aa_line):
+    cdef Instruction instr = target_graphic.texture_binding, aa_instr = target_graphic.texture_binding
+    ig.children.remove(target_graphic.texture_binding)
+    ig.children.remove(target_graphic)
+    ig.children.remove(aa_line.texture_binding)
+    ig.children.remove(aa_line)
+    aa_instr.set_parent(None)
+    aa_line.set_parent(None)
+    instr.set_parent(None)
+    target_graphic.set_parent(None)
+
+
+cdef class AntiAliasingLine(VertexInstruction):
+    """(internal) An instruction similar to SmoothLine, adjusted for antialiasing purposes.
+
+    NOTE: AntiAliasingLine is not intended for public use, it was created and
+    adjusted only for antialiasing purposes.
+
+    Overview of behavior:
+
+    - Its main purpose is to be drawn around other graphic instructions (such
+    as RoundedRectangle, Ellipse, etc.) that do not have antialiasing.
+
+    - When the alpha channel value of the active context is less than 1.0,
+    stencil operations will be performed to prevent overlapping of alpha
+    channel values (by default, drawing two overlapping graphics with an alpha
+    channel of 0.5 would produce an alpha channel of 1.0 at their intersection).
+
+    - The stencil instructions are based on the mask provided through the
+    "stencil_mask" argument.
+
+    - Points are filtered before being used to create vertices. If the number
+    of valid points is less than 3, the list of points will be emptied and
+    AntiAliasingLine will not be drawn. There is no reason to allow a value
+    lower than 3 points here.
+
+    - As it was designed to wrap around a graphic Instruction, it is closed by default.
+
+    - The texture used, as well as the line width, have been defined through
+    experimentation. Do not modify without extensive experimentation.
+
+    """
+
+    cdef list _points
+    cdef float _width
+    cdef int _close
+    cdef int _use_stencil
+    cdef Instruction _stencil_mask
+    cdef Instruction _stencil_push
+    cdef Instruction _stencil_use
+    cdef Instruction _stencil_unuse
+    cdef Instruction _stencil_pop
+
+    def __init__(self, stencil_mask, **kwargs):
+        super().__init__(**kwargs)
+        self.batch.set_mode("triangles")
+        self.close = int(bool(kwargs.get('close', 1)))  # closed by default
+        self.points = kwargs.get('points', [])
+        self.texture = self.premultiplied_texture()
+        self._width = 2.5  # width defined through tests with the premultiplied texture
+        self._stencil_push = None
+        self._stencil_use = None
+        self._stencil_unuse = None
+        self._stencil_pop = None
+        self._use_stencil = 0
+        if isinstance(stencil_mask, Instruction):
+            self._stencil_mask = stencil_mask  # the stencil mask
+        else:
+            raise TypeError(f"'stencil_mask' needs to be a graphics Instruction, got {type(stencil_mask)}")
+
+    def premultiplied_texture(self):
+        texture = Cache.get('kv.graphics.texture', 'antialiasing_line')
+        if not texture:
+            texture = Texture.create(size=(3, 1), colorfmt="rgba")
+            texture.add_reload_observer(self._texture_reload_observer)
+            self._texture_reload_observer(texture)
+            Cache.append('kv.graphics.texture', 'antialiasing_line', texture)
+        return texture
+
+    cpdef _texture_reload_observer(self, texture):
+        cdef bytes GRADIENT_DATA = (
+            b"\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\x00")
+        texture.blit_buffer(GRADIENT_DATA, colorfmt="rgba")
+
+    cdef void radd(self, InstructionGroup ig):
+        """Disabled because logic management is done on the radd of the target graphic (stencil_mask)"""
+        pass
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        """Disabled because logic management is done on the rinsert of the target graphic (stencil_mask)"""
+        pass
+
+    cdef void rremove(self, InstructionGroup ig):
+        """Disabled because logic management is done on the rremove of the target graphic (stencil_mask)"""
+        pass
+
+    cdef void ensure_stencil(self):
+        if self._stencil_push == None:
+            self._stencil_push = StencilPush(clear_stencil=False)
+            self._stencil_pop = StencilPop()
+            self._stencil_use = StencilUse(op="greater")
+            self._stencil_unuse = StencilUnUse()
+
+    cdef int apply(self) except -1:
+        cdef double alpha = getActiveContext()['color'][-1]
+        self._use_stencil = alpha < 1
+        if self._use_stencil:
+            self.ensure_stencil()
+            self._stencil_push.apply()
+            self._stencil_mask.apply()
+            self._stencil_use.apply()
+            VertexInstruction.apply(self)
+            self._stencil_unuse.apply()
+            self._stencil_mask.apply()
+            self._stencil_pop.apply()
+        else:
+            VertexInstruction.apply(self)
+        return 0
+
+    cdef void build(self):
+        cdef:
+            list p = self.points
+            float width = self._width
+            vertex_t *vertices = NULL
+            unsigned short *indices = NULL
+            double ax, ay, bx = 0., by = 0., cx = 0., cy = 0., last_angle = 0., angle, angle_diff
+            double offset_x, offset_y, joint_offset_x, joint_offset_y
+            int i, iv = 0, max_index, direction
+            unsigned short vcount, icount, discarded_vcount = 3
+
+        # AntiAliasingLine drawn will not be performed if the list of points
+        # filtered by filtered_points is empty or has less than 3 points.
+        if not p:
+            self.batch.clear_data()
+            return
+
+        if self._close:
+            discarded_vcount = 0
+
+        icount = vcount = <unsigned short>int(9 * ((len(p) - 2) / 2) - discarded_vcount)
+
+        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError("vertices")
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError("indices")
+
+        if self._close:
+            ax = p[-4]
+            ay = p[-3]
+            bx = p[0]
+            by = p[1]
+            cx = bx - ax
+            cy = by - ay
+            last_angle = atan2(cy, cx)
+
+        max_index = len(p) - 2
+        for i in range(0, max_index, 2):
+            ax = p[i]
+            ay = p[i + 1]
+            bx = p[i + 2]
+            by = p[i + 3]
+            cx = bx - ax
+            cy = by - ay
+            angle = atan2(cy, cx)
+
+            offset_x = width * sin(angle)
+            offset_y = width * cos(angle)
+
+            # fisrt triangle
+            vertices[iv].x = <float>ax - offset_x
+            vertices[iv].y = <float>ay + offset_y
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = <float>bx + offset_x
+            vertices[iv].y = <float>by - offset_y
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = <float>ax + offset_x
+            vertices[iv].y = <float>ay - offset_y
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 0
+            iv += 1
+
+            # second triangle
+            vertices[iv].x = <float>ax - offset_x
+            vertices[iv].y = <float>ay + offset_y
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = <float>bx + offset_x
+            vertices[iv].y = <float>by - offset_y
+            vertices[iv].s0 = 1
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = <float>bx - offset_x
+            vertices[iv].y = <float>by + offset_y
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+
+            # miter joint code
+            if i > 0 or self._close:
+                joint_offset_x = width * sin(last_angle)
+                joint_offset_y = width * cos(last_angle)
+
+                angle_diff = (angle - last_angle)
+                direction = -1 if - pi < angle_diff < 0 or angle_diff > pi else 1
+
+                # miter joint triangle
+                vertices[iv].x = <float>ax
+                vertices[iv].y = <float>ay
+                vertices[iv].s0 = 0.5
+                vertices[iv].t0 = 0
+                iv += 1
+                vertices[iv].x = <float>ax + offset_x * direction
+                vertices[iv].y = <float>ay - offset_y * direction
+                vertices[iv].s0 = 1
+                vertices[iv].t0 = 0
+                iv += 1
+                vertices[iv].x = <float>ax + joint_offset_x * direction
+                vertices[iv].y = <float>ay - joint_offset_y * direction
+                vertices[iv].s0 = 1
+                vertices[iv].t0 = 0
+                iv += 1
+
+            last_angle = angle
+
+        for i in range(icount):
+            indices[i] = i
+
+        self.batch.set_data(vertices, <int>vcount, indices, <int>icount)
+
+        free(vertices)
+        free(indices)
+
+    cdef filtered_points(self, points):
+        """Removes points where the x and y distances are less than 1px.
+
+        If the points are too close, we must remove them for a few reasons:
+        
+        - Equal points generate an inconsistency in the generation of the
+        miter joint. And dealing with them internally increases code
+        complexity (unnecessarily).
+
+        - Very close points (with distance less than 1px) have little
+        relevance for antialiasing line drawing purposes. Furthermore,
+        calculation inaccuracies can lead to the production of incorrect
+        miter joints.
+
+        - Fewer vertices to compute. By discarding the insignificant points
+        we will also be saving computational resources and increasing the
+        performance of building the antialiasing line.
+        """
+        cdef int index = 0
+        cdef list p = points
+        cdef double x1, x2, y1, y2
+
+        # At least 3 points are required, otherwise we will return an empty
+        # list, which means there are no valid points,
+        # disabling AntiAliasingLine rendering.
+        if len(p) < 6:
+            return []
+
+        while index < len(p) - 2:
+            x1, y1 = p[index], p[index + 1]
+            x2, y2 = p[index + 2], p[index + 3]
+            if abs(x2 - x1) < 1.0 and abs(y2 - y1) < 1.0:
+                del p[index + 2: index + 4]
+            else:
+                index += 2
+        if abs(p[0] - p[-2]) < 1.0 and abs(p[1] - p[-1]) < 1.0:
+            del p[:2]
+        
+        # If the amount of valid points is less than 3, then we will
+        # return an empty list, to disable AntiAliasingLine rendering.
+        return [] if len(p) < 6 else p
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def points(self):
+        return self._points
+    
+    @points.setter
+    def points(self, points):
+        if points and isinstance(points[0], (list, tuple)):
+            points = list(itertools.chain(*points))
+        else:
+            points = list(points)
+        points = self.filtered_points(points)
+        if points and self.close:
+            points += points[:2]
+        self._points = points
+        self.flag_data_update()
+    
+    @property
+    def close(self):
+        return self._close
+    
+    @close.setter
+    def close(self, value):
+        self._close = int(bool(value))
+        self.flag_data_update()
+
+
+
+
+cdef int has_texture_set(VertexInstruction instruction):
+    if (instruction.texture and instruction.texture != instruction.default_texture) or instruction.source:
+        return 1
+    return 0
+
+
+cdef int too_small_for_antialiasing(VertexInstruction instruction):
+    if not isinstance(instruction, (SmoothRectangle, SmoothRoundedRectangle, SmoothEllipse)):
+        raise NotImplementedError()
+
+    return (-4 < instruction.size[0] < 4 or -4 < instruction.size[1] < 4)
+
+
+cdef void adjust_params(VertexInstruction instruction, int delta):
+        """Adjust the parameters that define the size of the drawing.
+        This adjustment needs to be made before building the points, in order
+        to compensate for the antialiasing line drawn around the contour of
+        the figure.
+        """
+        if not isinstance(instruction, (SmoothRectangle, SmoothRoundedRectangle, SmoothEllipse)):
+            raise NotImplementedError()
+
+        cdef int sign_x, sign_y
+
+        x, y = instruction.pos
+        w, h = instruction.size
+
+        sign_x = 1 if w < 0 else -1
+        sign_y = 1 if h < 0 else -1
+
+        x += delta * sign_x
+        y += delta * sign_y
+        w += delta * 2 * sign_x * -1
+        h += delta * 2 * sign_y * -1
+
+        instruction.pos = [x, y]
+        instruction.size = [w, h]
+
+        if isinstance(instruction, SmoothRoundedRectangle):
+            instruction.radius = [(max(0, rx + delta), max(0, ry + delta)) for rx, ry in instruction.radius]
+
+
+
+
+cdef class SmoothRoundedRectangle(RoundedRectangle):
+    """RoundedRectangle with antialiasing.
+
+    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.RoundedRectangle`
+
+    .. note::
+        There is still no support for texture antialiasing. Therefore, if a
+        texture is defined using either ``texture`` or ``source``,
+        antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
+
+    """
+
+    cdef AntiAliasingLine _antialiasing_line
+    cdef public Texture default_texture
+
+    def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+        RoundedRectangle.__init__(self, **kwargs)
+        self.default_texture = self.texture
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
+    cdef void build(self):
+        if has_texture_set(self) or too_small_for_antialiasing(self):
+            self._antialiasing_line.points = []
+            RoundedRectangle.build(self)
+        else:
+            adjust_params(self, -1)
+            RoundedRectangle.build(self)
+            self._antialiasing_line.points = self._points
+            adjust_params(self, 1)
+    
+    @property
+    def antialiasing_line_points(self):
+        return self._antialiasing_line.points
+
+
+cdef class SmoothRectangle(Rectangle):
+    """Rectangle with antialiasing.
+
+    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Rectangle`
+
+    .. note::
+        There is still no support for texture antialiasing. Therefore, if a
+        texture is defined using either ``texture`` or ``source``,
+        antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
+
+    """
+
+    cdef AntiAliasingLine _antialiasing_line
+    cdef public Texture default_texture
+
+    def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+        Rectangle.__init__(self, **kwargs)
+        self.default_texture = self.texture
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
+    cdef void build(self):
+        if has_texture_set(self) or too_small_for_antialiasing(self):
+            self._antialiasing_line.points = []
+            Rectangle.build(self)
+        else:
+            adjust_params(self, -1)
+            Rectangle.build(self)
+            self._antialiasing_line.points = self._points
+            adjust_params(self, 1)
+    
+    @property
+    def antialiasing_line_points(self):
+        return self._antialiasing_line.points
+
+
+cdef class SmoothEllipse(Ellipse):
+    """Ellipse with antialiasing.
+
+    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Ellipse`
+
+    .. note::
+        There is still no support for texture antialiasing. Therefore, if a
+        texture is defined using either ``texture`` or ``source``,
+        antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
+
+    """
+
+    cdef AntiAliasingLine _antialiasing_line
+    cdef public Texture default_texture
+
+    def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+        Ellipse.__init__(self, **kwargs)
+        self.default_texture = self.texture
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
+    cdef void build(self):
+        cdef list ellipse_center = []
+
+        if has_texture_set(self) or too_small_for_antialiasing(self):
+            self._antialiasing_line.points = []
+            Ellipse.build(self)
+        else:
+            adjust_params(self, -1)
+            Ellipse.build(self)
+            ellipse_center = [self.x + self.w / 2, self.y + self.h / 2]
+            self._antialiasing_line.points = self._points + ellipse_center
+            adjust_params(self, 1)
+
+    @property
+    def antialiasing_line_points(self):
+        return self._antialiasing_line.points
+
+
+cdef class SmoothQuad(Quad):
+    """Quad with antialiasing.
+
+    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Quad`
+
+    .. note::
+        There is still no support for texture antialiasing. Therefore, if a
+        texture is defined using either ``texture`` or ``source``,
+        antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
+
+    """
+
+    cdef AntiAliasingLine _antialiasing_line
+    cdef public Texture default_texture
+
+    def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+        Quad.__init__(self, **kwargs)
+        self.default_texture = self.texture
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
+    cdef void build(self):
+        if has_texture_set(self):
+            self._antialiasing_line.points = []
+            Quad.build(self)
+        else:
+            # adjust_params(self, -1)
+            Quad.build(self)
+            self._antialiasing_line.points = self._points
+            # adjust_params(self, 1)
+    
+    @property
+    def antialiasing_line_points(self):
+        return self._antialiasing_line.points
+
+
+cdef class SmoothTriangle(Triangle):
+    """Triangle with antialiasing.
+
+    Its usage is the same as :class:`~kivy.graphics.vertex_instructions.Triangle`
+
+    .. note::
+        There is still no support for texture antialiasing. Therefore, if a
+        texture is defined using either ``texture`` or ``source``,
+        antialiasing will be disabled.
+
+    .. versionadded:: 2.3.0
+
+    """
+
+    cdef AntiAliasingLine _antialiasing_line
+    cdef public Texture default_texture
+
+    def __init__(self, **kwargs):
+        self._antialiasing_line = AntiAliasingLine(stencil_mask=self, close=1)
+        Triangle.__init__(self, **kwargs)
+        self.default_texture = self.texture
+
+    cdef void radd(self, InstructionGroup ig):
+        radd_instructions(ig, self, self._antialiasing_line)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        rinsert_instructions(ig, index, self, self._antialiasing_line)
+    
+    cdef void rremove(self, InstructionGroup ig):
+        rremove_instructions(ig, self, self._antialiasing_line)
+
+    cdef void build(self):
+        if has_texture_set(self):
+            self._antialiasing_line.points = []
+            Triangle.build(self)
+        else:
+            # adjust_params(self, -1)
+            Triangle.build(self)
+            self._antialiasing_line.points = self._points[:6]
+            # adjust_params(self, 1)
+        
+    @property
+    def antialiasing_line_points(self):
+        return self._antialiasing_line.points

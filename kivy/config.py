@@ -141,7 +141,19 @@ Available configuration tokens
 
     `window_icon`: string
         Path of the window icon. Use this if you want to replace the default
-        pygame icon.
+        icon.
+    `window_shape`: str (default: '')
+        Specifies the default path to an image file that defines the window shape.
+        To change the window shape after initialization, use the
+        :attr:`~kivy.core.window.WindowBase.shape_image` attribute.
+
+        .. warning::
+            This option takes effect only if the `shaped` setting in the `[graphics]`
+            configuration section is set to `1`.
+
+        .. warning::
+            The image file must meet the requirements outlined in
+            :attr:`~kivy.core.window.WindowBase.shape_image`.
 
 :postproc:
 
@@ -190,7 +202,7 @@ Available configuration tokens
                     or 'minimized'
 
         Sets the window state, defaults to 'visible'. This option is available
-        only for the SDL2 window provider and it should be used on desktop
+        only for the SDL3 window provider and it should be used on desktop
         OSes.
     `fbo`: string, one of 'hardware', 'software' or 'force-hardware'
         Selects the FBO backend to use.
@@ -239,9 +251,9 @@ Available configuration tokens
         Width of the :class:`~kivy.core.window.Window`, not used if
         `fullscreen` is set to `auto`.
     `minimum_width`: int
-        Minimum width to restrict the window to. (sdl2 only)
+        Minimum width to restrict the window to. (sdl3 only)
     `minimum_height`: int
-        Minimum height to restrict the window to. (sdl2 only)
+        Minimum height to restrict the window to. (sdl3 only)
     `min_state_time`: float, defaults to .035
         Minimum time for widgets to display a given visual state.
         This attrib is currently used by widgets like
@@ -251,18 +263,18 @@ Available configuration tokens
         time.
     `always_on_top`: int, one of ``0`` or ``1``, defaults to ``0``
         When enabled, the window will be brought to the front and will keep
-        the window above the rest. Only works for the sdl2 window provider.
+        the window above the rest. Only works for the sdl3 window provider.
         ``0`` is disabled, ``1`` is enabled.
     `show_taskbar_icon`: int, one of ``0`` or ``1``, defaults to ``1``
         Determines whether the app's icon will be added to the taskbar. Only
-        applicable for the SDL2 window provider.
+        applicable for the SDL3 window provider.
         ``0`` means the icon will not be shown in the taskbar and ``1`` means
         it will.
     `allow_screensaver`: int, one of 0 or 1, defaults to 1
         Allow the device to show a screen saver, or to go to sleep
-        on mobile devices. Only works for the sdl2 window provider.
+        on mobile devices. Only works for the sdl3 window provider.
     `vsync`: `none`, empty value, or integers
-        Whether vsync is enabled, currently only used with sdl2 window.
+        Whether vsync is enabled, currently only used with sdl3 window.
         Possible values are `none` or empty value -- leaves it unchanged,
         ``0`` -- disables vsync, ``1`` or larger -- sets vsync interval,
         ``-1`` sets adaptive vsync. It falls back to 1 if setting to ``2+``
@@ -270,6 +282,19 @@ Available configuration tokens
     `verify_gl_main_thread`: int, 1 or 0, defaults to 1
         Whether to check if code that changes any gl instructions is
         running outside the main thread and then raise an error.
+    `shaped`: int, 0 or 1 (default: 0)
+        If set to `1`, the system will attempt to initialize the window as shapable.
+        However, whether the window is actually shapable depends on the
+        platform and implementation. To check if shaping is supported, inspect
+        the window object's `shapable` property.
+
+        .. warning::
+            For shaping to work reliably across platforms, set
+            `Window.clearcolor` to `(0, 0, 0, 0)`.
+    `alpha_size: int (default: 0 on the Raspberry Pi and 8 on all other platforms)
+        Specifies the minimum number of bits for the alpha channel of the color buffer.
+        Set this to 0, so SDL3 works without X11.
+        Only applicable for the SDL3 window provider.
 
 :input:
 
@@ -331,6 +356,24 @@ Available configuration tokens
             Please use
             :class:`~kivy.uix.scrollview.ScrollView.effect_cls` instead.
 
+:svg:
+
+    `default_size`: int, defaults to 512
+        The minimum rasterization size (in pixels) used when loading SVG files
+        via the ThorVG image provider (``img_thorvg_svg``).
+
+        When an SVG file has no intrinsic width/height, it is rasterized at
+        this size. When the native size is smaller than this value, the image
+        is scaled up proportionally so that no dimension falls below
+        ``default_size``. This prevents blurry upscaling when an SVG icon is
+        displayed larger than its declared size.
+
+        To override for a specific image, use the URI syntax::
+
+            Image(source='@image_provider:thorvg_svg[size=256](icon.svg)')
+
+        .. versionadded:: 3.0.0
+
 :modules:
 
     You can activate modules with this syntax::
@@ -340,6 +383,10 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted
     arguments.
+
+.. versionadded:: 3.0.0
+    `alpha_size` have been added to the `graphics` section.
+    The `svg` section has been added with the ``default_size`` option.
 
 .. versionadded:: 2.2.0
     `always_on_top` have been added to the `graphics` section.
@@ -398,14 +445,13 @@ from os.path import exists
 from weakref import ref
 
 from kivy import kivy_config_fn
-from kivy.compat import PY2, string_types
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import platform
+from kivy.utils import pi_version, platform, path_to_str
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 27
+KIVY_CONFIG_VERSION = 29
 
 Config = None
 '''The default Kivy configuration object. This is a :class:`ConfigParser`
@@ -487,10 +533,17 @@ class ConfigParser(PythonConfigParser, object):
         .. versionchanged:: 1.9.0
             :meth:`read` now calls the callbacks if read changed any values.
 
+        .. versionchanged:: 3.0.0
+            `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
+            in addition to a ``str``. Passing multiple filenames (a list) is
+            still rejected.
+
         '''
-        if not isinstance(filename, string_types):
-            raise Exception('Only one filename is accepted ({})'.format(
-                string_types.__name__))
+        # Coerce os.PathLike -> str; still reject anything else (e.g. a list of
+        # filenames) to preserve the "one filename only" contract.
+        filename = path_to_str(filename)
+        if not isinstance(filename, str):
+            raise Exception('Only one filename is accepted (str)')
         self.filename = filename
         # If we try to open directly the configuration file in utf-8,
         # we correctly get the unicode value by default.
@@ -523,7 +576,7 @@ class ConfigParser(PythonConfigParser, object):
         the value is implicitly converted to a string.
         '''
         e_value = value
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             # might be boolean, int, etc.
             e_value = str(value)
         ret = PythonConfigParser.set(self, section, option, e_value)
@@ -539,9 +592,6 @@ class ConfigParser(PythonConfigParser, object):
 
     def get(self, section, option, **kwargs):
         value = PythonConfigParser.get(self, section, option, **kwargs)
-        if PY2:
-            if type(value) is str:
-                return value.decode('utf-8')
         return value
 
     def setdefaults(self, section, keyvalues):
@@ -759,6 +809,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
     Config.adddefaultsection('network')
+    Config.adddefaultsection('svg')
 
     # Upgrade default configuration until we have the current version
     need_save = False
@@ -941,6 +992,16 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 26:
             Config.setdefault("graphics", "show_taskbar_icon", "1")
+
+        elif version == 27:
+            if Config.get("kivy", "window_shape") == "data/images/defaultshape.png":
+                Config.set("kivy", "window_shape", "")
+
+        elif version == 28:
+            Config.setdefault(
+                "graphics", "alpha_size", "8" if pi_version is None else "0"
+            )
+            Config.setdefault('svg', 'default_size', '512')
 
         # WARNING: When adding a new version migration here,
         # don't forget to increment KIVY_CONFIG_VERSION !

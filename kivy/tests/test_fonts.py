@@ -38,5 +38,5 @@ class FontTestCase(unittest.TestCase):
         if exists(self.temp_dir):
             try:
                 shutil.rmtree(self.temp_dir)
-            except:
+            except Exception:
                 pass

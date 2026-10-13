@@ -3,7 +3,7 @@ set -e -x
 
 update_version_metadata() {
   current_time=$(python -c "from time import time; from os import environ; print(int(environ.get('SOURCE_DATE_EPOCH', time())))")
-  date=$(python -c "from datetime import datetime; print(datetime.utcfromtimestamp($current_time).strftime('%Y%m%d'))")
+  date=$(python -c "from datetime import datetime, timezone; print(datetime.fromtimestamp($current_time, timezone.utc).strftime('%Y%m%d'))")
   echo "Version date is: $date"
   git_tag=$(git rev-parse HEAD)
   echo "Git tag is: $git_tag"
@@ -17,43 +17,127 @@ update_version_metadata() {
   fi
 }
 
-generate_sdist() {
-  python3 -m pip install cython packaging
-  python3 setup.py sdist --formats=gztar
-  python3 -m pip uninstall cython -y
+prepare_env_for_wayland_clipboard() {
+  # Headless Sway so wl-copy/wl-paste have a compositor *and* a wl_seat.
+  # Weston --no-config does not advertise a seat, which wl-clipboard requires.
+  # Do not export WAYLAND_DISPLAY: the main suite must stay on Xvfb (X11).
+  if ! command -v sway >/dev/null || ! command -v wl-copy >/dev/null; then
+    echo "Sway/wl-clipboard not installed; skipping Wayland clipboard env"
+    return 0
+  fi
+
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-runtime-kivy}"
+  mkdir -p "$XDG_RUNTIME_DIR"
+  chmod 700 "$XDG_RUNTIME_DIR"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}" >> "$GITHUB_ENV"
+  fi
+
+  local pidfile=/tmp/kivy_sway.pid
+  local log=/tmp/sway-headless.log
+  local conf=/tmp/kivy-sway.conf
+  rm -f "$pidfile" "$XDG_RUNTIME_DIR"/wayland-0 "$XDG_RUNTIME_DIR"/wayland-1
+
+  printf '%s\n' 'output * bg #000000 solid_color' > "$conf"
+
+  # Force the headless backend: DISPLAY=:99 is set for Xvfb, and wlroots
+  # would otherwise try the X11 backend. WLR_LIBINPUT_NO_DEVICES allows a
+  # seat with no real keyboards. Unset WAYLAND_DISPLAY so Sway is the server.
+  export WLR_BACKENDS=headless
+  export WLR_LIBINPUT_NO_DEVICES=1
+  export WLR_RENDERER=pixman
+  unset WAYLAND_DISPLAY
+
+  /sbin/start-stop-daemon --start --quiet --pidfile "$pidfile" --make-pidfile --background \
+    --exec /usr/bin/sway -- -c "$conf" || true
+
+  local socket_path=""
+  local i
+  for i in $(seq 1 50); do
+    if [ -S "$XDG_RUNTIME_DIR/wayland-0" ]; then
+      socket_path="$XDG_RUNTIME_DIR/wayland-0"
+      break
+    fi
+    if [ -S "$XDG_RUNTIME_DIR/wayland-1" ]; then
+      socket_path="$XDG_RUNTIME_DIR/wayland-1"
+      break
+    fi
+    sleep 0.1
+  done
+
+  if [ -z "$socket_path" ]; then
+    echo "Failed to start headless Sway"
+    return 1
+  fi
+
+  local socket_name
+  socket_name=$(basename "$socket_path")
+  local ok=0
+  for i in $(seq 1 25); do
+    if env WAYLAND_DISPLAY="$socket_name" wl-copy "wayland-ok" \
+      && [ "$(env WAYLAND_DISPLAY="$socket_name" wl-paste --no-newline)" = "wayland-ok" ]; then
+      ok=1
+      break
+    fi
+    sleep 0.2
+  done
+  if [ "$ok" -ne 1 ]; then
+    echo "wl-copy/wl-paste failed against headless Sway"
+    return 1
+  fi
+
+  export KIVY_WAYLAND_CLIPBOARD_SOCKET="$socket_path"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "KIVY_WAYLAND_CLIPBOARD_SOCKET=${KIVY_WAYLAND_CLIPBOARD_SOCKET}" >> "$GITHUB_ENV"
+  fi
 }
 
-
-install_kivy_test_run_pip_deps() {
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  python3 get-pip.py --user
-
-  python3 -m pip install --upgrade pip setuptools wheel
-  CYTHON_INSTALL=$(
-    KIVY_NO_CONSOLELOG=1 python3 -c \
-      "from kivy.tools.packaging.cython_cfg import get_cython_versions; print(get_cython_versions()[0])" \
-      --config "kivy:log_level:error"
-  )
-  python3 -m pip install -I "$CYTHON_INSTALL" coveralls
-}
-
-install_kivy_test_wheel_run_pip_deps() {
-  python3 -m pip install --upgrade pip setuptools wheel
+test_kivy_wayland_clipboard() {
+  if [ -z "${KIVY_WAYLAND_CLIPBOARD_SOCKET:-}" ]; then
+    echo "Wayland clipboard compositor not prepared; skipping tests"
+    return 0
+  fi
+  if [ ! -S "$KIVY_WAYLAND_CLIPBOARD_SOCKET" ]; then
+    echo "Wayland compositor socket not found at $KIVY_WAYLAND_CLIPBOARD_SOCKET"
+    return 1
+  fi
+  # Isolated invocation so the X11 suite never sees WAYLAND_DISPLAY (toolkits
+  # prefer Wayland when it is set). KIVY_CLIPBOARD forces the new provider.
+  env KIVY_NO_ARGS=1 WAYLAND_DISPLAY="$(basename "$KIVY_WAYLAND_CLIPBOARD_SOCKET")" \
+    KIVY_CLIPBOARD=wayland \
+    python3 -m pytest --maxfail=10 --timeout=300 \
+    --pyargs kivy.tests.test_clipboard_wayland
 }
 
 prepare_env_for_unittest() {
   /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background \
     --exec /usr/bin/Xvfb -- :99 -screen 0 1280x720x24 -ac +extension GLX
+  prepare_env_for_wayland_clipboard
+
+  # Ubuntu source-install tests (test_ubuntu_python.yml::unit_test via
+  # ``install_kivy`` = ``pip install -e .``, and manylinux_wheels.yml::sdist_test
+  # via ``install_kivy_sdist``) link the ``kivy.lib.thorvg._thorvg``
+  # extension against the shared ``libthorvg-1.so`` produced by
+  # ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1``. Those paths do
+  # not run ``auditwheel repair``, so the freshly built extension still
+  # carries a ``DT_NEEDED: libthorvg-1.so.0`` that the dynamic linker
+  # must resolve at import time. Export LD_LIBRARY_PATH to include our
+  # kivy-dependencies dist/lib; propagate to subsequent GHA steps via
+  # GITHUB_ENV so ``Install Kivy`` / ``Test Kivy`` pick it up. No-op if
+  # kivy-dependencies/ has not been built (e.g. wheel-install test
+  # paths, which use auditwheel-repaired wheels).
+  local _thorvg_lib_dir="$(pwd)/kivy-dependencies/dist/lib"
+  if [ -d "$_thorvg_lib_dir" ]; then
+    export LD_LIBRARY_PATH="${_thorvg_lib_dir}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    if [ -n "${GITHUB_ENV:-}" ]; then
+      echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+    fi
+  fi
 }
 
 install_kivy() {
   options=${1:-full,dev}
   python3 -m pip install -e "$(pwd)[$options]"
-}
-
-
-create_kivy_examples_wheel() {
-  KIVY_BUILD_EXAMPLES=1 python3 -m pip wheel . -w dist/
 }
 
 install_kivy_examples_wheel() {
@@ -69,7 +153,7 @@ install_kivy_wheel() {
   root="$(pwd)"
   cd ~
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
-  kivy_fname=$(ls "$root"/dist/Kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
+  kivy_fname=$(ls "$root"/dist/*ivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
   python3 -m pip install "${kivy_fname}[$options]"
 }
 
@@ -78,7 +162,7 @@ install_kivy_sdist() {
   root="$(pwd)"
   cd ~
 
-  kivy_fname=$(ls $root/dist/Kivy-*.tar.gz)
+  kivy_fname=$(ls $root/dist/kivy-*.tar.gz)
   python3 -m pip install "$kivy_fname[$options]"
 }
 
@@ -89,6 +173,7 @@ test_kivy() {
   # Logging tests, with non-default log modes
   env KIVY_NO_ARGS=1 KIVY_LOG_MODE=PYTHON python3 -m pytest -m logmodepython --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report= --cov-branch "$(pwd)/kivy/tests"
   env KIVY_NO_ARGS=1 KIVY_LOG_MODE=MIXED python3 -m pytest -m logmodemixed --maxfail=10 --timeout=300 --cov=kivy --cov-append --cov-report=term --cov-branch "$(pwd)/kivy/tests"
+  test_kivy_wayland_clipboard
 }
 
 test_kivy_benchmark() {
@@ -107,15 +192,7 @@ test_kivy_install() {
 
 EOF
   KIVY_TEST_AUDIO=0 KIVY_NO_ARGS=1 python3 -m pytest --maxfail=10 --timeout=300 .
-}
-
-upload_coveralls() {
-  python3 -m coveralls
-}
-
-validate_pep8() {
-  python3 -m pip install flake8
-  make style
+  test_kivy_wayland_clipboard
 }
 
 generate_docs() {
@@ -152,28 +229,35 @@ upload_docs_to_server() {
 install_manylinux_build_deps() {
   # These are basically copy-pasted from the SDL dependencies
   # (it contains both build tools and libraries development packages)
-  # See: https://wiki.libsdl.org/SDL2/README/linux
+  # See: https://wiki.libsdl.org/SDL3/README/linux
   yum install -y epel-release;
   yum -y install autoconf automake cmake gcc gcc-c++ git make pkgconfig \
             ninja-build alsa-lib-devel pulseaudio-libs-devel \
-            libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel \
-            libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
+            libX11-devel libXext-devel libXtst-devel libXrandr-devel libXcursor-devel \
+            libXfixes-devel libXi-devel libXScrnSaver-devel dbus-devel ibus-devel fcitx-devel \
             systemd-devel mesa-libGL-devel libxkbcommon-devel mesa-libGLES-devel \
             mesa-libEGL-devel wayland-devel wayland-protocols-devel \
             libdrm-devel mesa-libgbm-devel libsamplerate-devel
+  # ThorVG (kivy.lib.thorvg wrapper) builds via meson; the yum-shipped
+  # meson on manylinux2014 is too old for ThorVG 1.0.x, so pin a recent
+  # version through pipx.
+  pipx install "meson==1.11.1"
 }
 
 install_ubuntu_build_deps() {
   # These are basically copy-pasted from the SDL dependencies
   # (it contains both build tools and libraries development packages)
-  # See: https://wiki.libsdl.org/SDL2/README/linux
+  # See: https://wiki.libsdl.org/SDL3/README/linux
   sudo apt-get update
   sudo apt-get -y install build-essential git make autoconf automake libtool \
-          pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
-          libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
-          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+          libpipewire-0.3-dev libdecor-0-dev liburing-dev \
+          pkg-config cmake ninja-build meson gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libsamplerate0-dev libx11-dev \
+          libxtst-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
+          libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev fcitx-libs-dev \
+          libayatana-appindicator3-dev \
+          sway wl-clipboard
 }
 
 generate_rpi_wheels() {
@@ -182,7 +266,7 @@ generate_rpi_wheels() {
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
-  cp kivy-delocated-wheel/Kivy-* dist/
+  cp kivy-delocated-wheel/*ivy-* dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
@@ -228,9 +312,4 @@ upload_file_to_server() {
 
   echo -e "Host $ip\n\tStrictHostKeyChecking no\n" >>~/.ssh/config
   rsync -avh -e "ssh -p 2458" --include="*/" --include="$file_pat" --exclude="*" "$file_path/" "root@$ip:/web/downloads/ci/$server_path"
-}
-
-upload_artifacts_to_pypi() {
-  python3 -m pip install twine
-  twine upload dist/*
 }

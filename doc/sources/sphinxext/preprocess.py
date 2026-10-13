@@ -10,9 +10,9 @@ import sphinx
 from sphinx.ext.autodoc import MethodDocumenter
 
 class CythonMethodDocumenter(MethodDocumenter):
-    # XXX i don't understand the impact of having a priority more than the
-    # attribute or instance method but the things is, if it's a cython module,
-    # the attribute will be prefer over method.
+    # XXX I don't understand the impact of having a priority more than the
+    # attribute or instance method but the thing is, if it's a cython module,
+    # the attribute will be preferred over method.
     priority = 12
 
 def is_cython_extension(what, obj):
@@ -25,21 +25,27 @@ def is_cython_extension(what, obj):
         return False
     doc = doc[0]
 
+    # an identifier starts with a letter or underscore
+    # followed by optional numbers or letters or underscores
+    identifier_pattern = r"([a-zA-Z_][a-zA-Z0-9_]*)"
+    params_pattern = r"\((.*)\)"
+
     # test for cython cpdef
     if what in ('attribute', 'method') and hasattr(obj, '__objclass__'):
-        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
-            return False
-        return True
+        # match identifier.identifier(anything).
+        return re.match(
+                r"^" + identifier_pattern
+                + r"\." + identifier_pattern + params_pattern,
+                doc)
     # test for cython class
     if what == 'class' and hasattr(obj, '__pyx_vtable__'):
-        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
-            return False
-        return True
+        # match identifier(anything)
+        return re.match(r"^" + identifier_pattern + params_pattern, doc)
+
     # test for python method in cython class
     if what in ('method', 'function') and obj.__class__ == types.BuiltinFunctionType:
-        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
-            return False
-        return True
+        # match identifier(anything) where
+        return re.match(r"^" + identifier_pattern + params_pattern, doc)
 
 def callback_docstring(app, what, name, obj, options, lines):
     if what == 'module':
@@ -99,7 +105,7 @@ def callback_signature(app, what, name, obj, options, signature,
             doc = '(%s' % doc.split('(')[1]
             doc = doc.replace('(self, ', '(')
             doc = doc.replace('(self)', '( )')
-            return (doc, None)
+            return doc, None
         except AttributeError:
             pass
         except IndexError:

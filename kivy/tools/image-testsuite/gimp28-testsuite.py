@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# flake8: noqa
+# ruff: noqa
 import os
 import re
 import random

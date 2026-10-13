@@ -3,27 +3,25 @@
 # https://kivy.org/
 #
 
-import sys
-build_examples = False
-if "--build_examples" in sys.argv:
-    build_examples = True
-    sys.argv.remove("--build_examples")
-
-from kivy.utils import pi_version
-from copy import deepcopy
-import os
-from os.path import join, dirname, exists, basename, isdir
-from os import walk, environ, makedirs
-from collections import OrderedDict
-from time import sleep
-from pathlib import Path
-import logging
-import sysconfig
-import textwrap
-import tempfile
-
-from setuptools import Distribution, Extension, find_packages, setup
+from kivy.tools.packaging.factory import FactoryBuild
+from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
+import kivy
 from setuptools.command.build_ext import build_ext
+from setuptools import Distribution, Extension, find_packages, setup
+import tempfile
+import textwrap
+import sysconfig
+import logging
+from pathlib import Path
+from time import sleep
+from collections import OrderedDict
+from os import walk, environ, makedirs
+from os.path import join, dirname, exists, basename, isdir, relpath
+import os
+from copy import deepcopy
+from kivy.utils import pi_version
+import sys
+
 
 if sys.version_info[0] == 2:
     logging.critical(
@@ -34,11 +32,6 @@ if sys.version_info[0] == 2:
 
 def ver_equal(self, other):
     return self.version == other
-
-
-def get_description():
-    with open(join(dirname(__file__), 'README.md'), 'rb') as fileh:
-        return fileh.read().decode("utf8").replace('\r\n', '\n')
 
 
 def getoutput(cmd, env=None):
@@ -92,14 +85,14 @@ def pkgconfig(*packages, **kw):
 
 def get_isolated_env_paths():
     try:
-        # sdl2_dev is installed before setup.py is run, when installing from
+        # sdl3_dev is installed before setup.py is run, when installing from
         # source due to pyproject.toml. However, it is installed to a
         # pip isolated env, which we need to add to compiler
-        import kivy_deps.sdl2_dev as sdl2_dev
+        import kivy_deps.sdl3_dev as sdl3_dev
     except ImportError:
         return [], []
 
-    root = os.path.abspath(join(sdl2_dev.__path__[0], '../../../..'))
+    root = os.path.abspath(join(sdl3_dev.__path__[0], '../../../..'))
     includes = [join(root, 'Include')] if isdir(join(root, 'Include')) else []
     libs = [join(root, 'libs')] if isdir(join(root, 'libs')) else []
     return includes, libs
@@ -130,11 +123,15 @@ def check_c_source_compiles(code, include_dirs=None):
     # Create a temporary file which contains the code
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_file = os.path.join(tmpdir, "test.c")
+        build_dir = os.path.join(tmpdir, "build")
         with open(temp_file, "w", encoding="utf-8") as tf:
             tf.write(code)
         try:
             get_compiler().compile(
-                [temp_file], extra_postargs=[], include_dirs=include_dirs
+                [temp_file],
+                extra_postargs=[],
+                include_dirs=include_dirs,
+                output_dir=build_dir,
             )
         except Exception as ex:
             print(ex)
@@ -146,18 +143,8 @@ def check_c_source_compiles(code, include_dirs=None):
 
 # Determine on which platform we are
 
-build_examples = build_examples or \
-    os.environ.get('KIVY_BUILD_EXAMPLES', '0') == '1'
-
 platform = sys.platform
 
-# Detect Python for android project (http://github.com/kivy/python-for-android)
-ndkplatform = environ.get('NDKPLATFORM')
-if ndkplatform is not None and environ.get('LIBLINK'):
-    platform = 'android'
-kivy_ios_root = environ.get('KIVYIOSROOT', None)
-if kivy_ios_root is not None:
-    platform = 'ios'
 # proprietary broadcom video core drivers
 if exists('/opt/vc/include/bcm_host.h'):
     used_pi_version = pi_version
@@ -187,7 +174,7 @@ if environ.get('KIVY_CROSS_PLATFORM'):
 KIVY_DEPS_ROOT = os.environ.get('KIVY_DEPS_ROOT', None)
 
 # if KIVY_DEPS_ROOT is None and platform is linux or darwin show a warning
-# message, because using a system provided SDL2 is not recommended.
+# message, because using a system provided SDL3 is not recommended.
 # (will be shown only in verbose mode)
 if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
     print("###############################################")
@@ -197,6 +184,132 @@ if KIVY_DEPS_ROOT is None and platform in ('linux', 'darwin'):
     print("and set KIVY_DEPS_ROOT to the root of the dependencies directory.")
     print("###############################################")
 
+plat_options = OrderedDict()
+
+if platform == 'ios':
+
+    from platform import ios_ver
+    ios_info = ios_ver()
+    plat_arch = (
+        "ios-arm64_x86_64-simulator" if ios_info.is_simulator else "ios-arm64"
+    )
+
+    ios_data = OrderedDict()
+
+    sdl3_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3.xcframework')
+    sdl3_image_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_image.xcframework')
+    sdl3_mixer_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_mixer.xcframework')
+    sdl3_ttf_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'SDL3_ttf.xcframework')
+
+    sdl3_fw = join(sdl3_xc, plat_arch, 'SDL3.framework')
+    sdl3_image_fw = join(sdl3_image_xc, plat_arch, 'SDL3_image.framework')
+    sdl3_mixer_fw = join(sdl3_mixer_xc, plat_arch, 'SDL3_mixer.framework')
+    sdl3_ttf_fw = join(sdl3_ttf_xc, plat_arch, 'SDL3_ttf.framework')
+
+    sdl3_headers = join(sdl3_fw, 'Headers')
+    sdl3_image_headers = join(sdl3_image_fw, 'Headers')
+    sdl3_mixer_headers = join(sdl3_mixer_fw, 'Headers')
+    sdl3_ttf_headers = join(sdl3_ttf_fw, 'Headers')
+
+    egl_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'libEGL.xcframework')
+    gles_xc = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'libGLESv2.xcframework')
+
+    egl_fw = join(egl_xc, plat_arch, 'libEGL.framework')
+    gles_fw = join(gles_xc, plat_arch, 'libGLESv2.framework')
+
+    egl_headers = join(KIVY_DEPS_ROOT, 'dist', 'include')
+
+    ios_data['frameworks'] = {
+        'SDL3': {
+            'path': sdl3_fw,
+            'headers': sdl3_headers,
+            'xc': sdl3_xc,
+        },
+        'SDL3_image': {
+            'path': sdl3_image_fw,
+            'headers': sdl3_image_headers,
+            'xc': sdl3_image_xc,
+        },
+        'SDL3_mixer': {
+            'path': sdl3_mixer_fw,
+            'headers': sdl3_mixer_headers,
+            'xc': sdl3_mixer_xc,
+        },
+        'SDL3_ttf': {
+            'path': sdl3_ttf_fw,
+            'headers': sdl3_ttf_headers,
+            'xc': sdl3_ttf_xc,
+        },
+        'EGL': {
+            'path': egl_fw,
+            'headers': egl_headers,
+            'xc': egl_xc,
+        },
+        'GLESv2': {
+            'path': gles_fw,
+            'headers': "",
+            'xc': gles_xc,
+        }
+    }
+
+    thorvg_xc = join(
+        KIVY_DEPS_ROOT, 'dist', 'Frameworks', 'KivyThorVG.xcframework')
+    thorvg_fw = join(thorvg_xc, plat_arch, 'KivyThorVG.framework')
+    thorvg_headers = join(thorvg_fw, 'Headers')
+    ios_data['frameworks']['KivyThorVG'] = {
+        'path': thorvg_fw,
+        'headers': thorvg_headers,
+        'xc': thorvg_xc,
+    }
+
+    ios_data['platform_arch'] = plat_arch
+
+    plat_options['ios'] = ios_data
+
+if platform == 'android':
+    android_data = OrderedDict()
+    root = os.getcwd()
+
+    # Android uses .so files instead of frameworks
+    # Assuming SDL3 libraries are in dist/libs/{ABI}/ structure
+    android_abis = ['arm64-v8a', 'x86_64']
+
+    android_data['libraries'] = {}
+
+    for abi in android_abis:
+        lib_path = join(root, 'dist', 'libs', abi)
+
+        android_data['libraries'][abi] = {
+            'SDL3': {
+                'path': join(lib_path, 'libSDL3.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3'),
+            },
+            'SDL3_image': {
+                'path': join(lib_path, 'libSDL3_image.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_image'),
+            },
+            'SDL3_mixer': {
+                'path': join(lib_path, 'libSDL3_mixer.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_mixer'),
+            },
+            'SDL3_ttf': {
+                'path': join(lib_path, 'libSDL3_ttf.so'),
+                'headers': join(root, 'dist', 'include', 'SDL3_ttf'),
+            },
+            # Built by tools/build_thorvg.sh (THORVG_ANDROID=<abi>), not a
+            # python-for-android recipe - a static archive, unlike the .so
+            # siblings above, since Kivy's Android wheel pipeline has no
+            # wheel-repair step to bundle a separate libthorvg.so (see
+            # [tool.cibuildwheel.android] in pyproject.toml).
+            'ThorVG': {
+                'path': join(lib_path, 'libthorvg.a'),
+                'headers': join(root, 'dist', 'include', 'thorvg-1'),
+            },
+        }
+
+    android_data['abis'] = android_abis
+
+    plat_options['android'] = android_data
 
 # -----------------------------------------------------------------------------
 # Detect options
@@ -206,52 +319,31 @@ c_options['use_rpi_vidcore_lite'] = platform == 'rpi'
 c_options['use_egl'] = False
 c_options['use_opengl_es2'] = None
 c_options['use_opengl_mock'] = environ.get('READTHEDOCS', None) == 'True'
-c_options['use_sdl2'] = None
+c_options['use_sdl3'] = None
 c_options['use_pangoft2'] = None
 c_options['use_ios'] = False
 c_options['use_android'] = False
 c_options['use_mesagl'] = False
 c_options['use_x11'] = False
-c_options['use_wayland'] = False
+c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
-c_options['use_avfoundation'] = platform in ['darwin', 'ios']
+c_options['use_thorvg'] = None
+c_options['use_avfoundation'] = platform in {'darwin', 'ios'}
 c_options['use_osx_frameworks'] = platform == 'darwin'
+c_options['use_angle_gl_backend'] = platform in {'darwin', 'ios'}
 c_options['debug_gl'] = False
-
-# Set the alpha size, this will be 0 on the Raspberry Pi and 8 on all other
-# platforms, so SDL2 works without X11
-c_options['kivy_sdl_gl_alpha_size'] = 8 if pi_version is None else 0
 
 # now check if environ is changing the default values
 for key in list(c_options.keys()):
     ukey = key.upper()
     if ukey in environ:
-        # kivy_sdl_gl_alpha_size should be an integer, the rest are booleans
-        value = int(environ[ukey])
-        if key != 'kivy_sdl_gl_alpha_size':
-            value = bool(value)
+        value = bool(int(environ[ukey]))
         print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
 use_embed_signature = environ.get('USE_EMBEDSIGNATURE', '0') == '1'
 use_embed_signature = use_embed_signature or bool(
     platform not in ('ios', 'android'))
-
-# -----------------------------------------------------------------------------
-# We want to be able to install kivy as a wheel without a dependency
-# on cython, but we also want to use cython where possible as a setup
-# time dependency through `pyproject.toml` if building from source.
-
-# There are issues with using cython at all on some platforms;
-# exclude them from using or declaring cython.
-
-# This determines whether Cython specific functionality may be used.
-can_use_cython = True
-
-if platform in ('ios', 'android'):
-    # NEVER use or declare cython on these platforms
-    print('Not using cython on %s' % platform)
-    can_use_cython = False
 
 
 # -----------------------------------------------------------------------------
@@ -296,11 +388,8 @@ class KivyBuildExt(build_ext, object):
 
         # generate headers
         config_h = '// Autogenerated file for Kivy C configuration\n'
-        config_h += '#define __PY3 1\n'
         config_pxi = '# Autogenerated file for Kivy Cython configuration\n'
-        config_pxi += 'DEF PY3 = 1\n'
         config_py = '# Autogenerated file for Kivy configuration\n'
-        config_py += 'PY3 = 1\n'
         config_py += 'CYTHON_MIN = {0}\nCYTHON_MAX = {1}\n'.format(
             repr(MIN_CYTHON_STRING), repr(MAX_CYTHON_STRING))
         config_py += 'CYTHON_BAD = {0}\n'.format(repr(', '.join(map(
@@ -309,9 +398,7 @@ class KivyBuildExt(build_ext, object):
         # generate content
         print('Build configuration is:')
         for opt, value in c_options.items():
-            # kivy_sdl_gl_alpha_size is already an integer
-            if opt != 'kivy_sdl_gl_alpha_size':
-                value = int(bool(value))
+            value = int(bool(value))
             print(' * {0} = {1}'.format(opt, value))
             opt = opt.upper()
             config_h += '#define __{0} {1}\n'.format(opt, value)
@@ -356,75 +443,38 @@ class KivyBuildExt(build_ext, object):
         return need_update
 
 
-def _check_and_fix_sdl2_mixer(f_path):
-    # Between SDL_mixer 2.0.1 and 2.0.4, the included frameworks changed
-    # smpeg2 have been replaced with mpg123, but there is no need to fix.
-    smpeg2_path = ("{}/Versions/A/Frameworks/smpeg2.framework"
-                   "/Versions/A/smpeg2").format(f_path)
-    if not exists(smpeg2_path):
-        return
-
-    print("Check if SDL2_mixer smpeg2 have an @executable_path")
-    rpath_from = ("@executable_path/../Frameworks/SDL2.framework"
-                  "/Versions/A/SDL2")
-    rpath_to = "@rpath/../../../../SDL2.framework/Versions/A/SDL2"
-    output = getoutput(("otool -L '{}'").format(smpeg2_path)).decode('utf-8')
-    if "@executable_path" not in output:
-        return
-
-    print("WARNING: Your SDL2_mixer version is invalid")
-    print("WARNING: The smpeg2 framework embedded in SDL2_mixer contains a")
-    print("WARNING: reference to @executable_path that will fail the")
-    print("WARNING: execution of your application.")
-    print("WARNING: We are going to change:")
-    print("WARNING: from: {}".format(rpath_from))
-    print("WARNING: to: {}".format(rpath_to))
-    getoutput("install_name_tool -change {} {} {}".format(
-        rpath_from, rpath_to, smpeg2_path))
-
-    output = getoutput(("otool -L '{}'").format(smpeg2_path))
-    if b"@executable_path" not in output:
-        print("WARNING: Change successfully applied!")
-        print("WARNING: You'll never see this message again.")
-    else:
-        print("WARNING: Unable to apply the changes, sorry.")
-
-
 # -----------------------------------------------------------------------------
 print("Python path is:\n{}\n".format('\n'.join(sys.path)))
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
-import kivy
 
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
-from kivy.tools.packaging.cython_cfg import get_cython_versions, get_cython_msg
 CYTHON_REQUIRES_STRING, MIN_CYTHON_STRING, MAX_CYTHON_STRING, \
     CYTHON_UNSUPPORTED = get_cython_versions()
 cython_min_msg, cython_max_msg, cython_unsupported_msg = get_cython_msg()
 
-if can_use_cython:
-    import Cython
-    from packaging import version
-    print('\nFound Cython at', Cython.__file__)
 
-    cy_version_str = Cython.__version__
-    cy_ver = version.parse(cy_version_str)
-    print('Detected supported Cython version {}'.format(cy_version_str))
+import Cython
+from packaging import version
+print('\nFound Cython at', Cython.__file__)
 
-    if cy_ver < version.Version(MIN_CYTHON_STRING):
-        print(cython_min_msg)
-    elif cy_ver in CYTHON_UNSUPPORTED:
-        print(cython_unsupported_msg)
-    elif cy_ver > version.Version(MAX_CYTHON_STRING):
-        print(cython_max_msg)
-    sleep(1)
+cy_version_str = Cython.__version__
+cy_ver = version.parse(cy_version_str)
+print('Detected supported Cython version {}'.format(cy_version_str))
+
+if cy_ver < version.Version(MIN_CYTHON_STRING):
+    print(cython_min_msg)
+elif cy_ver in CYTHON_UNSUPPORTED:
+    print(cython_unsupported_msg)
+elif cy_ver > version.Version(MAX_CYTHON_STRING):
+    print(cython_max_msg)
+sleep(1)
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
 # see tools.packaging.{platform}.build.py for custom build commands for
 # portable packages. Also e.g. we use build_ext command from cython if its
 # installed for c extensions.
-from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {
     'build_factory': FactoryBuild,
     'build_ext': KivyBuildExt}
@@ -452,13 +502,23 @@ print('Using this graphics system: {}'.format(
 
 # check if we are in a kivy-ios build
 if platform == 'ios':
-    print('Kivy-IOS project environment detect, use it.')
-    print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
+    print('IOS environment detect, use it.')
     c_options['use_ios'] = True
-    c_options['use_sdl2'] = True
+    c_options['use_sdl3'] = True
 
 elif platform == 'android':
+    print('Android environment detect, use it.')
     c_options['use_android'] = True
+    c_options['use_sdl3'] = True
+
+# If KIVY_SDL3_PATH is explicitly provided by the caller (e.g. a kivy-ios
+# cross-build running on a macOS host), treat it as an unconditional request
+# to use SDL3 via that path rather than system frameworks.
+# Regression: https://github.com/kivy/kivy/issues/9316
+if c_options['use_sdl3'] is None and environ.get('KIVY_SDL3_PATH'):
+    print('KIVY_SDL3_PATH set, enabling SDL3 and bypassing framework probe.')
+    c_options['use_sdl3'] = True
+    c_options['use_osx_frameworks'] = False
 
 # detect gstreamer, only on desktop
 # works if we forced the options or in autodetection
@@ -512,75 +572,172 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
             c_options['use_gstreamer'] = True
 
 
-# detect SDL2, only on desktop and iOS, or android if explicitly enabled
+# detect SDL3, only on desktop and iOS, or android if explicitly enabled
 # works if we forced the options or in autodetection
-sdl2_flags = {}
-sdl2_source = None
-if platform == 'win32' and c_options['use_sdl2'] is None:
-    c_options['use_sdl2'] = True
+sdl3_flags = {}
+sdl3_source = None
+if platform == 'win32' and c_options['use_sdl3'] is None:
+    c_options['use_sdl3'] = True
 
-can_autodetect_sdl2 = (
-    platform not in ("android",) and c_options["use_sdl2"] is None
+can_autodetect_sdl3 = (
+    c_options["use_sdl3"] is None
 )
-if c_options['use_sdl2'] or can_autodetect_sdl2:
-
-    sdl2_valid = False
-    if c_options['use_osx_frameworks'] and platform == 'darwin':
+if c_options['use_sdl3'] or can_autodetect_sdl3:
+    print('Detecting SDL3...')
+    sdl3_valid = False
+    if c_options['use_osx_frameworks'] and platform == 'darwin' \
+            and not environ.get('KIVY_SDL3_PATH'):
         # check the existence of frameworks
+        # Guard: skipped when KIVY_SDL3_PATH is set — path-based config takes
+        # precedence over the system/vendored framework probe.
+        # Regression: https://github.com/kivy/kivy/issues/9316
         if KIVY_DEPS_ROOT:
-            default_sdl2_frameworks_search_path = join(
+            default_sdl3_frameworks_search_path = join(
                 KIVY_DEPS_ROOT, "dist", "Frameworks"
             )
         else:
-            default_sdl2_frameworks_search_path = "/Library/Frameworks"
-        sdl2_frameworks_search_path = environ.get(
-            "KIVY_SDL2_FRAMEWORKS_SEARCH_PATH",
-            default_sdl2_frameworks_search_path
+            default_sdl3_frameworks_search_path = "/Library/Frameworks"
+        sdl3_frameworks_search_path = environ.get(
+            "KIVY_SDL3_FRAMEWORKS_SEARCH_PATH",
+            default_sdl3_frameworks_search_path
         )
-        sdl2_valid = True
+        sdl3_valid = True
 
-        sdl2_flags = {
+        sdl3_flags = {
             'extra_link_args': [
-                '-F{}'.format(sdl2_frameworks_search_path),
+                '-F{}'.format(sdl3_frameworks_search_path),
                 '-Xlinker', '-rpath',
-                '-Xlinker', sdl2_frameworks_search_path,
+                '-Xlinker', sdl3_frameworks_search_path,
                 '-Xlinker', '-headerpad',
                 '-Xlinker', '190'],
             'include_dirs': [],
-            'extra_compile_args': ['-F{}'.format(sdl2_frameworks_search_path)]
+            'extra_compile_args': ['-F{}'.format(sdl3_frameworks_search_path)]
         }
 
-        for name in ('SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer'):
-            f_path = '{}/{}.framework'.format(sdl2_frameworks_search_path, name)
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            f_path = '{}/{}.framework'.format(
+                sdl3_frameworks_search_path, name)
             if not exists(f_path):
                 print('Missing framework {}'.format(f_path))
-                sdl2_valid = False
+                sdl3_valid = False
                 continue
-            sdl2_flags['extra_link_args'] += ['-framework', name]
-            sdl2_flags['include_dirs'] += [join(f_path, 'Headers')]
-            print('Found sdl2 frameworks: {}'.format(f_path))
-            if name == 'SDL2_mixer':
-                _check_and_fix_sdl2_mixer(f_path)
+            sdl3_flags['extra_link_args'] += ['-framework', name]
+            sdl3_flags['include_dirs'] += [join(f_path, 'Headers')]
+            print('Found sdl3 frameworks: {}'.format(f_path))
 
-        if not sdl2_valid:
-            c_options['use_sdl2'] = False
-            print('SDL2 frameworks not found, fallback on pkg-config')
+        if not sdl3_valid:
+            c_options['use_sdl3'] = False
+            print('SDL3 frameworks not found, fallback on pkg-config')
         else:
-            c_options['use_sdl2'] = True
-            sdl2_source = 'macos-frameworks'
-            print('Activate SDL2 compilation')
+            c_options['use_sdl3'] = True
+            sdl3_source = 'macos-frameworks'
+            print('Activate SDL3 compilation')
 
-    if not sdl2_valid and platform != "ios":
+    if not sdl3_valid and platform not in {"android", "ios"}:
         # use pkg-config approach instead
-        sdl2_flags = pkgconfig('sdl2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer')
-        if 'libraries' in sdl2_flags:
-            print('SDL2 found via pkg-config')
-            c_options['use_sdl2'] = True
-            sdl2_source = 'pkg-config'
+        sdl3_flags = pkgconfig('sdl3', 'sdl3-ttf', 'sdl3-image', 'sdl3-mixer')
+        if 'libraries' in sdl3_flags:
+            print('SDL3 found via pkg-config')
+            c_options['use_sdl3'] = True
+            sdl3_source = 'pkg-config'
 
+    if platform == 'ios':
+        ios_data = plat_options['ios']
+        ios_frameworks = ios_data['frameworks']
+
+        default_sdl3_frameworks_search_path = join(
+            KIVY_DEPS_ROOT, "dist", "Frameworks"
+        )
+        sdl3_flags = {
+            'extra_link_args': [],
+            'include_dirs': [],
+        }
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            fw_info = ios_frameworks[name]
+            f_path = fw_info['path']
+            if not exists(f_path):
+                print('Missing framework {}'.format(f_path))
+                sdl3_valid = False
+                continue
+            sdl3_flags['extra_link_args'] += ['-framework',
+                                              name, '-F', dirname(f_path)]
+            sdl3_flags["include_dirs"] += [
+                join(f_path, "Headers"),
+                join(KIVY_DEPS_ROOT, "dist", "include"),
+            ]
+            print('Found sdl3 frameworks: {}'.format(f_path))
+
+        sdl3_source = 'ios-frameworks'
+
+    # if android link against the prebuilt libs in dist/libs
+    if platform == 'android':
+        root = os.getcwd()
+        android_data = plat_options['android']
+        android_libs = android_data['libraries']
+
+        # Determine current ABI from CIBW_HOST_TRIPLET
+        host_triplet = environ.get('CIBW_HOST_TRIPLET', '')
+        if 'aarch64' in host_triplet:
+            current_abi = 'arm64-v8a'
+        elif 'x86_64' in host_triplet:
+            current_abi = 'x86_64'
+        else:
+            current_abi = 'arm64-v8a'  # default
+
+        sdl3_flags = {
+            'extra_link_args': [],
+            'include_dirs': [],
+            'library_dirs': [],
+        }
+
+        # Add base include dir for internal SDL3 includes like <SDL3/SDL_stdinc.h>
+        include_base = join(root, 'dist', 'include')
+        if exists(include_base):
+            sdl3_flags['include_dirs'].append(include_base)
+
+        # Add each library's headers directory for header detection
+        for name in ('SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer'):
+            headers_path = join(root, 'dist', 'include', name)
+            if not exists(headers_path):
+                print('Missing headers {}'.format(headers_path))
+                continue
+            sdl3_flags['include_dirs'].append(headers_path)
+            print('Found SDL3 headers: {}'.format(headers_path))
+
+        # Add library directory for current ABI only
+        lib_dir = join(root, 'dist', 'libs', current_abi)
+        if exists(lib_dir):
+            sdl3_flags['library_dirs'].append(lib_dir)
+            print('Found SDL3 libraries for {}: {}'.format(current_abi, lib_dir))
+
+        sdl3_source = 'android-prebuilt'
+
+
+can_autodetect_wayland = (
+    platform == "linux" and c_options["use_wayland"] is None
+)
+
+if c_options["use_wayland"] or can_autodetect_wayland:
+    c_options["use_wayland"] = check_c_source_compiles(
+        textwrap.dedent(
+            """
+        #include <wayland-client.h>
+        int main() {
+            struct wl_display *display = wl_display_connect(NULL);
+            if (display == NULL) {
+                return 1;
+            }
+            wl_display_disconnect(display);
+            return 0;
+        }
+        """
+        ),
+        include_dirs=[],
+    )
 
 # -----------------------------------------------------------------------------
 # declare flags
+
 
 def expand(root, *args):
     return join(root, 'kivy', *args)
@@ -597,10 +754,6 @@ class CythonExtension(Extension):
             'language_level': 3,
             'unraisable_tracebacks': True,
         }
-        # XXX with pip, setuptools is imported before distutils, and change
-        # our pyx to c, then, cythonize doesn't happen. So force again our
-        # sources
-        self.sources = args[1]
 
 
 def merge(d1, *args):
@@ -624,14 +777,7 @@ def determine_base_flags():
         'library_dirs': [] + libs,
         'extra_link_args': [],
         'extra_compile_args': []}
-    if c_options['use_ios']:
-        sysroot = environ.get('IOSSDKROOT', environ.get('SDKROOT'))
-        if not sysroot:
-            raise Exception('IOSSDKROOT is not set')
-        flags['include_dirs'] += [sysroot]
-        flags['extra_compile_args'] += ['-isysroot', sysroot]
-        flags['extra_link_args'] += ['-isysroot', sysroot]
-    elif platform.startswith('freebsd'):
+    if platform.startswith('freebsd'):
         flags['include_dirs'] += [join(
             environ.get('LOCALBASE', '/usr/local'), 'include')]
         flags['library_dirs'] += [join(
@@ -665,6 +811,302 @@ def determine_base_flags():
     return flags
 
 
+def determine_angle_flags():
+    flags = {'include_dirs': [], 'libraries': []}
+
+    default_include_dir = ""
+    default_lib_dir = ""
+
+    if KIVY_DEPS_ROOT:
+
+        default_include_dir = os.path.join(KIVY_DEPS_ROOT, "dist", "include")
+        default_lib_dir = os.path.join(KIVY_DEPS_ROOT, "dist", "lib")
+
+    kivy_angle_include_dir = environ.get(
+        "KIVY_ANGLE_INCLUDE_DIR", default_include_dir
+    )
+    kivy_angle_lib_dir = environ.get(
+        "KIVY_ANGLE_LIB_DIR", default_lib_dir
+    )
+
+    if platform == "darwin":
+        flags['libraries'] = ['EGL', 'GLESv2']
+        flags['library_dirs'] = [kivy_angle_lib_dir]
+        flags['include_dirs'] = [kivy_angle_include_dir]
+        flags['extra_link_args'] = [
+            "-Wl,-rpath,{}".format(kivy_angle_lib_dir)
+        ]
+    elif platform == "ios":
+        ios_frameworks = plat_options['ios']['frameworks']
+        egl = ios_frameworks.get('EGL')
+        gles = ios_frameworks.get('GLESv2')
+        sdl3 = ios_frameworks.get('SDL3')
+        if not egl or not gles:
+            raise Exception("ANGLE frameworks not defined for iOS")
+
+        flags['include_dirs'] = [egl['headers'], sdl3['headers']]
+        flags['extra_link_args'] = [
+            '-framework', 'Foundation',
+            '-framework', 'CoreFoundation',
+            '-framework', 'libEGL',
+            '-framework', 'libGLESv2',
+            '-F', dirname(egl['path']),
+            '-F', dirname(gles['path']),
+        ]
+    elif platform == "android":
+        android_libs = plat_options['android']['libraries']
+        android_abis = plat_options['android']['abis']
+
+        # Use the first ABI for build configuration
+        primary_abi = android_abis[0]
+        abi_libs = android_libs[primary_abi]
+
+        sdl3 = abi_libs.get('SDL3')
+        if not sdl3:
+            raise Exception("SDL3 libraries not defined for Android")
+
+        flags['include_dirs'] = [sdl3['headers']]
+        flags['libraries'] = ['EGL', 'GLESv2']
+
+        # Add library paths for all ABIs
+        flags["library_dirs"] = [
+            dirname(android_libs[abi]["SDL3"]["path"]) for abi in android_abis
+        ]
+    else:
+        raise Exception("ANGLE is not supported on this platform")
+
+    return flags
+
+
+def determine_thorvg_flags():
+    """Compiler / linker flags for the internal ``kivy.lib.thorvg`` Cython
+    wrapper. The ThorVG version itself is pinned in
+    ``tools/build_thorvg.sh``; this function is version-agnostic and just
+    resolves headers + library search paths for whatever was installed
+    there.
+
+    Header + library lookup order:
+
+    1. ``KIVY_THORVG_INCLUDE_DIR`` / ``KIVY_THORVG_LIB_DIR`` environment
+       variables (set by mobile recipes - p4a, kivy-ios - and by users with
+       custom ThorVG installations).
+    2. ``$KIVY_DEPS_ROOT/dist/{include,lib,lib64}`` (the standard location
+       produced by the desktop CI build scripts and kivy-dependencies).
+
+    Linkage per platform:
+
+    * **Linux** - dynamic: ``libthorvg-1.so.*`` produced by
+      ``tools/build_thorvg.sh`` with ``THORVG_SHARED=1`` and bundled into
+      ``kivy.libs/`` by ``auditwheel repair`` during cibuildwheel. The
+      extension is linked with ``-Wl,-rpath`` set to the ThorVG library
+      directory so an in-tree build can load ``libthorvg-1.so`` without
+      ``LD_LIBRARY_PATH``. ``auditwheel repair`` replaces that RPATH when
+      it vendors the library into a wheel. No ``-lstdc++`` needed - the
+      shared library's ``DT_NEEDED`` carries the C++ runtime dependency
+      itself.
+    * **macOS** - dynamic: links against
+      ``KivyThorVG.framework`` (wrapped from ``libthorvg-1.dylib`` by
+      ``tools/macos_framework_wrapper.sh``), embedded into the wheel
+      by ``delocate-wheel`` at cibuildwheel-repair time. The framework
+      branch mirrors SDL3's ``macos-frameworks`` path: ``-F`` +
+      ``-framework KivyThorVG`` + an ``@rpath`` entry so delocate can
+      rewrite paths to ``@loader_path/../.dylibs/`` in the repaired
+      wheel.
+    * **Windows** - static: ``thorvg.lib`` normalised by
+      ``tools/build_thorvg.sh``. Kivy's Windows wheel pipeline does not
+      run a wheel-repair step, so dynamic linking would force a separate
+      ``kivy_deps.thorvg`` package - out of scope for this PR.
+    * **Android** - static: ``libthorvg.a`` produced by
+      ``tools/build_thorvg.sh`` (``THORVG_ANDROID=<abi>``) directly - not
+      a python-for-android recipe. Same no-wheel-repair-step rationale as
+      Windows (see ``[tool.cibuildwheel.android]`` in ``pyproject.toml``);
+      resolved via ``plat_options['android']['libraries'][abi]['ThorVG']``,
+      matching the existing SDL3 ``dist/libs/<abi>/`` convention.
+    * **iOS** - handled by the xcframework built by
+      ``tools/build_thorvg.sh`` (see the framework branch above), not this
+      function's fallback path.
+    """
+    # macOS (desktop): look for ``KivyThorVG.framework`` first. This is
+    # the path produced by ``tools/build_macos_dependencies.sh`` and
+    # used by every standard macOS wheel build. We short-circuit to
+    # framework-style flags here (same shape as SDL3's
+    # ``macos-frameworks`` branch above) instead of threading an
+    # ``is_framework`` boolean through the rest of this function, so
+    # the downstream ``library_dirs`` / ``-l`` logic stays exclusively
+    # for dylib + static-archive consumers (Linux / Windows / dev
+    # override).
+    #
+    # If the framework is absent - e.g. a developer pointed
+    # ``KIVY_THORVG_LIB_DIR`` at a raw Meson ``dist/lib/``, or
+    # ``c_options['use_osx_frameworks']`` was explicitly disabled - we
+    # fall through to the generic dylib path, which still produces a
+    # working build (just without delocate-wheel's framework-embedding
+    # magic).
+    if platform == 'ios':
+        # iOS: link against the per-slice KivyThorVG.framework from inside
+        # KivyThorVG.xcframework.  plat_options['ios']['frameworks'] already
+        # resolved the correct slice path (ios-arm64 for device,
+        # ios-arm64_x86_64-simulator for simulator) via plat_arch.
+        # No TVG_STATIC — the xcframework slice is a shared dylib, not a
+        # static archive.  The @executable_path/Frameworks rpath matches
+        # Kivy's iOS app bundle layout (same as SDL3 on iOS).
+        ios_thorvg = plat_options['ios']['frameworks']['KivyThorVG']
+        thorvg_fw_dir = dirname(ios_thorvg['path'])
+        return {
+            'include_dirs': [ios_thorvg['headers']],
+            'library_dirs': [],
+            'libraries': [],
+            'extra_compile_args': [],
+            'extra_link_args': [
+                '-F', thorvg_fw_dir,
+                '-framework', 'KivyThorVG',
+                '-Wl,-rpath,@executable_path/Frameworks',
+            ],
+            'define_macros': [],
+        }
+
+    if platform == 'darwin' and c_options['use_osx_frameworks']:
+        if KIVY_DEPS_ROOT:
+            thorvg_fw_root = join(KIVY_DEPS_ROOT, 'dist', 'Frameworks')
+        else:
+            thorvg_fw_root = environ.get(
+                'KIVY_THORVG_FRAMEWORKS_SEARCH_PATH',
+                '/Library/Frameworks',
+            )
+        thorvg_fw = join(thorvg_fw_root, 'KivyThorVG.framework')
+        if exists(thorvg_fw):
+            return {
+                'include_dirs': [join(thorvg_fw, 'Headers')],
+                'library_dirs': [],
+                'libraries': [],
+                'extra_compile_args': ['-F{}'.format(thorvg_fw_root)],
+                'extra_link_args': [
+                    '-F{}'.format(thorvg_fw_root),
+                    '-Xlinker', '-rpath',
+                    '-Xlinker', thorvg_fw_root,
+                    '-Xlinker', '-headerpad',
+                    '-Xlinker', '190',
+                    '-framework', 'KivyThorVG',
+                ],
+                'define_macros': [],
+            }
+
+    if platform == 'android':
+        # Built by tools/build_thorvg.sh (THORVG_ANDROID=<abi>) into
+        # dist/libs/<abi>/libthorvg.a - a static archive, not a
+        # python-for-android recipe (mirrors the iOS xcframework approach:
+        # ThorVG is part of Kivy's own wheel build, not a separate mobile
+        # dependency). See the ``ThorVG`` entry added to
+        # ``plat_options['android']['libraries']`` above.
+        android_libs = plat_options['android']['libraries']
+        android_abis = plat_options['android']['abis']
+
+        host_triplet = environ.get('CIBW_HOST_TRIPLET', '')
+        if 'aarch64' in host_triplet:
+            current_abi = 'arm64-v8a'
+        elif 'x86_64' in host_triplet:
+            current_abi = 'x86_64'
+        else:
+            current_abi = android_abis[0]
+
+        thorvg = android_libs[current_abi]['ThorVG']
+        return {
+            'include_dirs': [thorvg['headers']],
+            'library_dirs': [dirname(thorvg['path'])],
+            'libraries': ['thorvg'],
+            'extra_compile_args': [],
+            'extra_link_args': [],
+            # Static archive linked directly into _thorvg.so - see the
+            # TVG_STATIC rationale below (Android now genuinely matches
+            # the "links statically" case, unlike before this archive
+            # existed).
+            'define_macros': [('TVG_STATIC', '1')],
+        }
+
+    # ThorVG's Meson build declares the library as ``thorvg-<MAJOR>``,
+    # which produces ``libthorvg-1.so.*`` (Linux), ``libthorvg-1.a``
+    # (static), and ``libthorvg-1.dylib`` (macOS). On Windows the static
+    # archive is normalised to ``thorvg.lib`` by ``build_thorvg.sh`` so
+    # the bare name ``thorvg`` resolves.
+    if platform == 'win32':
+        thorvg_lib = 'thorvg'
+    else:
+        thorvg_lib = 'thorvg-1'
+
+    flags = {
+        'include_dirs': [],
+        'library_dirs': [],
+        'libraries': [thorvg_lib],
+        'extra_compile_args': [],
+        'extra_link_args': [],
+        'define_macros': [],
+    }
+
+    # ``TVG_STATIC`` makes ``thorvg_capi.h`` drop the Windows
+    # __declspec(dllimport) annotations and the Unix visibility attributes.
+    # It is required when linking a static archive; when linking a shared
+    # library it must be omitted so the visibility attributes stay active
+    # and dynamic symbol resolution works.
+    #
+    # Windows stays static (Kivy has no wheel-repair step there). Android
+    # is also static, but returns early above with its own TVG_STATIC
+    # (same rationale, different lib layout) so it never reaches here.
+    # macOS desktop is shared via the framework branch above - the
+    # fallback dylib path reaches this branch only when the framework
+    # is absent, in which case we treat it as shared too (no TVG_STATIC).
+    # iOS returns early above via the framework path (shared dylib —
+    # no TVG_STATIC).
+    if platform == 'win32':
+        flags['define_macros'].append(('TVG_STATIC', '1'))
+
+    explicit_include = environ.get('KIVY_THORVG_INCLUDE_DIR')
+    explicit_lib = environ.get('KIVY_THORVG_LIB_DIR')
+    if explicit_include:
+        flags['include_dirs'].append(explicit_include)
+    if explicit_lib:
+        flags['library_dirs'].append(explicit_lib)
+
+    if KIVY_DEPS_ROOT:
+        dist = join(KIVY_DEPS_ROOT, 'dist')
+        # ThorVG's meson install places headers under
+        # ``include/thorvg-1/thorvg_capi.h`` (versioned subdir). Add both
+        # that and the parent ``include`` so a user who flattens the
+        # install, or a custom prefix layout, still resolves the header.
+        flags['include_dirs'].append(join(dist, 'include', 'thorvg-1'))
+        flags['include_dirs'].append(join(dist, 'include'))
+        flags['library_dirs'].append(join(dist, 'lib'))
+        flags['library_dirs'].append(join(dist, 'lib64'))
+
+    # ThorVG is C++. A static archive needs the C++ runtime linked
+    # explicitly on Unix-like systems. On Linux a shared libthorvg-1.so
+    # already carries ``libstdc++.so.6`` in its own ``DT_NEEDED``, so the
+    # flag is redundant for the default shared path - but we keep it so
+    # a user who supplies a static ThorVG via ``KIVY_THORVG_LIB_DIR``
+    # still gets a working link. auditwheel / manylinux treats
+    # ``libstdc++.so.6`` as a system-provided library (not vendored), so
+    # the extra ``DT_NEEDED`` entry is free. Windows (MSVC) pulls the
+    # runtime in automatically. Android returns early above (its own NDK
+    # clang++ link driver pulls in libc++ automatically via the
+    # ``language='cpp'`` Extension, same as this ``-lstdc++`` flag does on
+    # Linux). iOS also returns early above via the framework path.
+    if platform == 'darwin':
+        flags['extra_link_args'].append('-lc++')
+    elif platform not in ('win32', 'ios'):
+        flags['extra_link_args'].append('-lstdc++')
+
+    # -L is only a link-time search path. On Linux libthorvg-1.so lives in
+    # the kivy-dependencies tree, which the dynamic loader will not search.
+    # Embed those directories as RPATH so importing the extension does not
+    # depend on LD_LIBRARY_PATH. auditwheel repair replaces this RPATH when
+    # it vendors the library into a wheel.
+    if platform != 'win32':
+        for lib_dir in flags['library_dirs']:
+            flags['extra_link_args'].append(
+                '-Wl,-rpath,{}'.format(os.path.abspath(lib_dir)))
+
+    return flags
+
+
 def determine_gl_flags():
     kivy_graphics_include = join(src_path, 'kivy', 'include')
     flags = {'include_dirs': [kivy_graphics_include], 'libraries': []}
@@ -673,11 +1115,29 @@ def determine_gl_flags():
 
     if c_options['use_opengl_mock']:
         return flags, base_flags
+
+    if c_options['use_angle_gl_backend']:
+        return determine_angle_flags(), base_flags
+
     if platform == 'win32':
         flags['libraries'] = ['opengl32', 'glew32']
     elif platform == 'ios':
-        flags['libraries'] = ['GLESv2']
-        flags['extra_link_args'] = ['-framework', 'OpenGLES']
+        ios_data = plat_options['ios']
+        ios_frameworks = ios_data['frameworks']
+        egl = ios_frameworks.get('EGL')
+        gles = ios_frameworks.get('GLESv2')
+        if not egl or not gles:
+            raise Exception("EGL and GLESv2 frameworks not defined for iOS")
+
+        # flags['libraries'] = ['GLESv2']
+
+        flags['extra_link_args'] = [
+            '-framework', 'libGLESv2',
+            '-framework', 'libEGL',
+            '-F', dirname(egl['path']),
+            '-F', dirname(gles['path']),
+        ]
+
     elif platform == 'darwin':
         flags['extra_link_args'] = ['-framework', 'OpenGL']
     elif platform.startswith('freebsd'):
@@ -687,9 +1147,10 @@ def determine_gl_flags():
         flags['library_dirs'] = ['/usr/X11R6/lib']
         flags['libraries'] = ['GL']
     elif platform == 'android':
-        flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
-        flags['library_dirs'] = [join(ndkplatform, 'usr', 'lib')]
-        flags['libraries'] = ['GLESv2']
+        # For modern cibuildwheel Android builds, OpenGL ES libraries
+        # are provided by the NDK toolchain automatically
+        flags['libraries'] = ['GLESv2', 'EGL']
+        # NDK headers are automatically included by the toolchain
     elif platform == 'rpi':
 
         if not cross_sysroot:
@@ -723,7 +1184,7 @@ def determine_gl_flags():
                 'for rpi platform, falling back to EGL and GLESv2.')
             gl_libs = ['EGL', 'GLESv2']
         flags['libraries'] = ['bcm_host'] + gl_libs
-    elif platform in ['mali', 'vc']:
+    elif platform in {'mali', 'vc'}:
         flags['include_dirs'] = ['/usr/include/']
         flags['library_dirs'] = ['/usr/lib/arm-linux-gnueabihf']
         flags['libraries'] = ['GLESv2']
@@ -734,69 +1195,78 @@ def determine_gl_flags():
     return flags, base_flags
 
 
-def determine_sdl2():
+def determine_sdl3():
     flags = {}
-    if not c_options['use_sdl2']:
+    if not c_options['use_sdl3']:
         return flags
 
     # If darwin has already been configured with frameworks, don't
-    # configure sdl2 via libs.
+    # configure sdl3 via libs.
     # TODO: Move framework configuration here.
-    if sdl2_source == "macos-frameworks":
-        return sdl2_flags
+    if sdl3_source == "macos-frameworks":
+        return sdl3_flags
 
-    default_sdl2_path = None
+    if platform == "ios":
+        return sdl3_flags
+
+    default_sdl3_path = None
 
     if KIVY_DEPS_ROOT:
 
-        default_sdl2_path = os.pathsep.join(
+        default_sdl3_path = os.pathsep.join(
             [
                 join(KIVY_DEPS_ROOT, "dist", "lib"),
                 join(KIVY_DEPS_ROOT, "dist", "lib64"),
-                join(KIVY_DEPS_ROOT, "dist", "include", "SDL2"),
+                join(KIVY_DEPS_ROOT, "dist", "include"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_image"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_mixer"),
+                join(KIVY_DEPS_ROOT, "dist", "include", "SDL3_ttf"),
             ]
         )
 
-    kivy_sdl2_path = environ.get('KIVY_SDL2_PATH', default_sdl2_path)
+    kivy_sdl3_path = environ.get('KIVY_SDL3_PATH', default_sdl3_path)
 
     includes, _ = get_isolated_env_paths()
 
-    # no pkgconfig info, or we want to use a specific sdl2 path, so perform
+    # no pkgconfig info, or we want to use a specific sdl3 path, so perform
     # manual configuration
-    flags['libraries'] = ['SDL2', 'SDL2_ttf', 'SDL2_image', 'SDL2_mixer']
+    flags['libraries'] = ['SDL3', 'SDL3_ttf', 'SDL3_image', 'SDL3_mixer']
 
-    sdl2_paths = kivy_sdl2_path.split(os.pathsep) if kivy_sdl2_path else []
+    sdl3_paths = kivy_sdl3_path.split(os.pathsep) if kivy_sdl3_path else []
 
-    if not sdl2_paths:
-        # Try to find sdl2 in default locations if we don't have a custom path
-        sdl2_paths = []
+    if not sdl3_paths:
+        # Try to find sdl3 in default locations if we don't have a custom path
+        sdl3_paths = []
         for include in includes + [join(sys.prefix, 'include')]:
-            sdl_inc = join(include, 'SDL2')
-            if isdir(sdl_inc):
-                sdl2_paths.append(sdl_inc)
-        sdl2_paths.extend(['/usr/local/include/SDL2', '/usr/include/SDL2'])
+            for _sdl_sub in ['SDL3', 'SDL3_image', 'SDL3_mixer', 'SDL3_ttf']:
+                sdl_inc = join(include, _sdl_sub)
+                if isdir(sdl_inc):
+                    sdl3_paths.append(sdl_inc)
 
-    flags['include_dirs'] = sdl2_paths
+        sdl3_paths.extend(['/usr/local/include/SDL3', '/usr/include/SDL3'])
+
+    flags['include_dirs'] = sdl3_paths
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
     flags['library_dirs'] = (
-        sdl2_paths if sdl2_paths else
+        sdl3_paths if sdl3_paths else
         ['/usr/local/lib/'])
 
-    if kivy_sdl2_path:
+    if kivy_sdl3_path:
         # If we have a custom path, we need to add the rpath to the linker
         # so that the libraries can be found and loaded without having to
         # set LD_LIBRARY_PATH every time.
         flags["extra_link_args"] = [
             f"-Wl,-rpath,{l_path}"
-            for l_path in sdl2_paths
+            for l_path in sdl3_paths
             if l_path.endswith("lib")
         ]
 
-    if sdl2_flags:
-        flags = merge(flags, sdl2_flags)
+    if sdl3_flags:
+        flags = merge(flags, sdl3_flags)
 
-    # ensure headers for all the SDL2 and sub libraries are available
+    # ensure headers for all the SDL3 and sub libraries are available
     libs_to_check = ['SDL', 'SDL_mixer', 'SDL_ttf', 'SDL_image']
     can_compile = True
     for lib in libs_to_check:
@@ -805,15 +1275,15 @@ def determine_sdl2():
             fn = join(d, '{}.h'.format(lib))
             if exists(fn):
                 found = True
-                print('SDL2: found {} header at {}'.format(lib, fn))
+                print('SDL3: found {} header at {}'.format(lib, fn))
                 break
 
         if not found:
-            print('SDL2: missing sub library {}'.format(lib))
+            print('SDL3: missing sub library {}'.format(lib))
             can_compile = False
 
     if not can_compile:
-        c_options['use_sdl2'] = False
+        c_options['use_sdl3'] = False
         return {}
 
     return flags
@@ -828,8 +1298,9 @@ gl_flags, gl_flags_base = determine_gl_flags()
 # grep -inr -E '(cimport|include)' kivy/graphics/context_instructions.{pxd,pyx}
 graphics_dependencies = {
     'boxshadow.pxd': ['fbo.pxd', 'context_instructions.pxd',
-                      'vertex_instructions.pxd'],
-    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd'],
+                      'vertex_instructions.pxd', 'instructions.pxd'],
+    'boxshadow.pyx': ['fbo.pxd', 'context_instructions.pxd',
+                      'instructions.pyx'],
     'buffer.pyx': ['common.pxi'],
     'context.pxd': ['instructions.pxd', 'texture.pxd', 'vbo.pxd', 'cgl.pxd'],
     'cgl.pxd': ['common.pxi', 'config.pxi', 'gl_redirect.h'],
@@ -837,7 +1308,7 @@ graphics_dependencies = {
     'compiler.pyx': ['context_instructions.pxd'],
     'cgl.pyx': ['cgl.pxd'],
     'cgl_mock.pyx': ['cgl.pxd'],
-    'cgl_sdl2.pyx': ['cgl.pxd'],
+    'cgl_sdl3.pyx': ['cgl.pxd'],
     'cgl_gl.pyx': ['cgl.pxd'],
     'cgl_glew.pyx': ['cgl.pxd'],
     'context_instructions.pxd': [
@@ -868,8 +1339,6 @@ graphics_dependencies = {
         'gl_debug_logger.pxi'],
     'scissor_instructions.pyx': [
         'config.pxi', 'opcodes.pxi', 'cgl.pxd'],
-    'svg.pyx': ['config.pxi', 'common.pxi', 'texture.pxd', 'instructions.pxd',
-                'vertex_instructions.pxd', 'tesselator.pxd'],
     'texture.pxd': ['cgl.pxd'],
     'texture.pyx': [
         'config.pxi', 'common.pxi', 'opengl_utils_def.pxi', 'context.pxd',
@@ -915,8 +1384,10 @@ sources = {
     'graphics/cgl_backend/cgl_mock.pyx': merge(base_flags, gl_flags_base),
     'graphics/cgl_backend/cgl_gl.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_glew.pyx': merge(base_flags, gl_flags),
-    'graphics/cgl_backend/cgl_sdl2.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_sdl3.pyx': merge(base_flags, gl_flags_base),
+    'graphics/cgl_backend/cgl_angle.pyx': merge(base_flags, gl_flags),
     'graphics/cgl_backend/cgl_debug.pyx': merge(base_flags, gl_flags_base),
+    'graphics/egl_backend/egl_angle.pyx': merge(base_flags, gl_flags),
     'core/text/text_layout.pyx': base_flags,
     'core/window/window_info.pyx': base_flags,
     'graphics/tesselator.pyx': merge(base_flags, {
@@ -931,27 +1402,42 @@ sources = {
             'lib/libtess2/Source/tess.c'
         ]
     }),
-    'graphics/svg.pyx': merge(base_flags, gl_flags_base),
     'graphics/boxshadow.pyx': merge(base_flags, gl_flags_base)
 }
 
-if c_options["use_sdl2"]:
-    sdl2_flags = determine_sdl2()
+if c_options["use_sdl3"]:
+    sdl3_flags = determine_sdl3()
 
-if c_options['use_sdl2'] and sdl2_flags:
-    sources['graphics/cgl_backend/cgl_sdl2.pyx'] = merge(
-        sources['graphics/cgl_backend/cgl_sdl2.pyx'], sdl2_flags)
-    sdl2_depends = {'depends': ['lib/sdl2.pxi']}
-    for source_file in ('core/window/_window_sdl2.pyx',
-                        'core/image/_img_sdl2.pyx',
-                        'core/text/_text_sdl2.pyx',
-                        'core/audio/audio_sdl2.pyx',
-                        'core/clipboard/_clipboard_sdl2.pyx'):
+if c_options['use_sdl3'] and sdl3_flags:
+    sources['graphics/cgl_backend/cgl_sdl3.pyx'] = merge(
+        sources['graphics/cgl_backend/cgl_sdl3.pyx'], sdl3_flags)
+    sdl3_depends = {'depends': ['lib/sdl3.pxi']}
+    if platform in ('ios', 'darwin'):
+        _extra_args_c = {
+            'extra_compile_args': ['-ObjC'],
+        }
+        _extra_args_cpp = {
+            'extra_compile_args': ['-ObjC++'],
+        }
+    else:
+        _extra_args_c = {}
+        _extra_args_cpp = {}
+    for source_file in ('core/window/_window_sdl3.pyx',
+                        'core/text/_text_sdl3.pyx',
+                        'core/system_tray/_system_tray_sdl3.pyx',
+                        'core/audio_output/audio_sdl3.pyx',
+                        'core/clipboard/_clipboard_sdl3.pyx'):
+
         sources[source_file] = merge(
-            base_flags, sdl2_flags, sdl2_depends)
+            base_flags, sdl3_flags, sdl3_depends, _extra_args_c
+        )
+
+    sources["core/image/_img_sdl3.pyx"] = merge(
+        base_flags, sdl3_flags, sdl3_depends, _extra_args_cpp
+    )
 
 if c_options['use_pangoft2'] in (None, True) and platform not in (
-                                      'android', 'ios', 'win32'):
+        'android', 'ios', 'win32'):
     pango_flags = pkgconfig('pangoft2')
     if pango_flags and 'libraries' in pango_flags:
         print('Pango: pangoft2 found via pkg-config')
@@ -960,38 +1446,132 @@ if c_options['use_pangoft2'] in (None, True) and platform not in (
             'lib/pango/pangoft2.pxi',
             'lib/pango/pangoft2.h']}
         sources['core/text/_text_pango.pyx'] = merge(
-                base_flags, pango_flags, pango_depends)
+            base_flags, pango_flags, pango_depends)
         print(sources['core/text/_text_pango.pyx'])
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
     if platform == 'ios':
+
         osx_flags = {'extra_link_args': [
             '-framework', 'Foundation',
-            '-framework', 'UIKit',
-            '-framework', 'AudioToolbox',
+            '-framework', 'CoreFoundation',
             '-framework', 'CoreGraphics',
-            '-framework', 'QuartzCore',
             '-framework', 'ImageIO',
-            '-framework', 'Accelerate']}
+            '-framework', 'Accelerate',
+            '-framework', 'UniformTypeIdentifiers',
+            '-framework', 'CoreServices'
+        ]}
     else:
         osx_flags = {'extra_link_args': [
             '-framework', 'ApplicationServices']}
+    osx_flags['extra_compile_args'] = ['-ObjC++']
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
 
+    sources['core/window/window_info.pyx'] = merge(
+        sources['core/window/window_info.pyx'], osx_flags)
+
 if c_options['use_avfoundation']:
-    import platform as _platform
-    mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
-    if mac_ver >= [10, 7] or platform == 'ios':
-        osx_flags = {
-            'extra_link_args': ['-framework', 'AVFoundation'],
-            'extra_compile_args': ['-ObjC++'],
-            'depends': ['core/camera/camera_avfoundation_implem.m']}
-        sources['core/camera/camera_avfoundation.pyx'] = merge(
-            base_flags, osx_flags)
-    else:
+    # ios app we need xcode >=16.0 for app store support which requires macos >=14.5
+    mac_ver_ok = True
+    if platform == 'darwin':
+        import platform as _platform
+        mac_ver = [int(x) for x in _platform.mac_ver()[0].split('.')[:2]]
+        mac_ver_ok = mac_ver >= [10, 7]
+
+    if not mac_ver_ok:
         print('AVFoundation cannot be used, OSX >= 10.7 is required')
+    else:
+        extra_link_args = [
+            '-framework', 'AVFoundation'
+        ]
+        include_dirs = []
+
+        if platform == 'ios':
+            extra_link_args += [
+                '-framework', 'Foundation',
+                '-framework', 'UIKit',
+                '-framework', 'CoreGraphics',
+                '-framework', 'CoreMedia',
+                '-framework', 'CoreVideo'
+            ]
+            ios_data = plat_options['ios']
+            ios_frameworks = ios_data['frameworks']
+            egl_headers = ios_frameworks['EGL']['headers']
+            include_dirs += [
+                egl_headers
+            ]
+
+        avf_flags = {
+            'include_dirs': include_dirs,
+            'extra_link_args': extra_link_args,
+            'extra_compile_args': ['-ObjC++']
+        }
+        sources['core/camera/camera_avfoundation.pyx'] = merge(
+            base_flags, avf_flags)
+
+        # Video provider needs the same Apple media frameworks on all
+        # platforms (CoreMedia / CoreVideo / CoreGraphics / Foundation are
+        # already added for the iOS camera build above, but on macOS the
+        # camera only links -framework AVFoundation; the video pipeline
+        # uses CMTime, CVPixelBufferRef, CGImage and NSAutoreleasePool so
+        # we add them explicitly here so the same flag block works for
+        # both macOS and iOS).
+        video_extra_link_args = list(extra_link_args)
+        if platform == 'darwin':
+            for fw in ('Foundation', 'CoreFoundation', 'CoreGraphics',
+                       'CoreMedia', 'CoreVideo'):
+                if fw not in video_extra_link_args:
+                    video_extra_link_args += ['-framework', fw]
+
+        video_compile_args = ['-ObjC++']
+
+        # The video pipeline uses the ANGLE EGL extension
+        # EGL_ANGLE_iosurface_client_buffer to deliver zero-copy
+        # IOSurface -> GL_TEXTURE_2D frames. The same ANGLE EGL headers
+        # are already a hard build-time dependency for the rest of the
+        # Kivy 3.0 Apple-platform build (kivy.graphics.egl_backend.*
+        # and kivy.graphics.cgl_backend.cgl_angle), so we just merge in
+        # gl_flags unconditionally here. If ANGLE deps are missing the
+        # AVFoundation provider build fails with the same "EGL/egl.h
+        # not found" error as the rest of the GL stack, which is the
+        # honest signal to point the user at KIVY_DEPS_ROOT.
+        video_avf_flags = merge({
+            'include_dirs': list(include_dirs),
+            'extra_link_args': video_extra_link_args,
+            'extra_compile_args': video_compile_args,
+            'depends': [
+                'core/video/video_avfoundation_implem.h',
+                'core/video/video_avfoundation_implem.mm',
+            ],
+        }, gl_flags)
+        sources['core/video/video_avfoundation.pyx'] = merge(
+            base_flags, video_avf_flags)
+
+
+if c_options["use_angle_gl_backend"]:
+
+    # kivy.graphics.egl_backend.egl_angle is always compiled,
+    # but it only acts as a proxy to the real implementation.
+
+    if platform in ("darwin", "ios"):
+
+        sources["graphics/egl_backend/egl_angle_metal.pyx"] = merge(
+            base_flags,
+            merge(
+                gl_flags,
+                {
+                    "extra_compile_args": ["-ObjC++"],
+                }
+            )
+        )
+        sources["graphics/egl_backend/egl_angle.pyx"] = merge(
+            sources["graphics/egl_backend/egl_angle.pyx"],
+            {
+                "extra_compile_args": ["-ObjC++"],
+            }
+        )
 
 if c_options['use_rpi_vidcore_lite']:
 
@@ -1039,6 +1619,50 @@ if c_options['use_gstreamer']:
         base_flags, gst_flags, {
             'depends': ['lib/gstplayer/_gstplayer.h']})
 
+# ThorVG wrapper (kivy.lib.thorvg._thorvg). Version is pinned in
+# tools/build_thorvg.sh.
+#
+# Matches the auto-detection pattern used by ``use_gstreamer`` /
+# ``use_sdl3``: if ``use_thorvg`` is left at ``None`` we probe for
+# ``thorvg_capi.h`` under the search paths returned by
+# ``determine_thorvg_flags()`` and only enable the wrapper when found.
+# This keeps tree-ish dev builds and the existing Kivy CI workflows
+# (which do not yet build ThorVG as a dep) working: the wrapper simply
+# doesn't get compiled if ThorVG isn't installed.
+#
+# Users / mobile recipes / the lightweight wrapper gate opt in explicitly
+# by setting ``USE_THORVG=1`` / ``KIVY_THORVG_INCLUDE_DIR`` /
+# ``KIVY_THORVG_LIB_DIR`` so the detect succeeds.
+thorvg_flags = determine_thorvg_flags()
+if c_options['use_thorvg'] is None:
+    header_found = any(
+        exists(join(inc, 'thorvg_capi.h'))
+        for inc in thorvg_flags['include_dirs']
+    )
+    if header_found:
+        print('ThorVG headers detected - building kivy.lib.thorvg wrapper')
+        c_options['use_thorvg'] = True
+    else:
+        print(
+            'ThorVG headers not found; skipping kivy.lib.thorvg wrapper. '
+            'Set KIVY_THORVG_INCLUDE_DIR / KIVY_THORVG_LIB_DIR (direct '
+            'paths), KIVY_DEPS_ROOT (expects '
+            '$KIVY_DEPS_ROOT/dist/include/thorvg-1/thorvg_capi.h), or '
+            'USE_THORVG=1 to force a build attempt.'
+        )
+        c_options['use_thorvg'] = False
+
+if c_options['use_thorvg']:
+    sources['lib/thorvg/_thorvg.pyx'] = merge(
+        base_flags, thorvg_flags, {
+            'depends': ['lib/thorvg/thorvg.pxd'],
+            # Compile as C++ so the ThorVG C API header's `bool` return
+            # types (`#include <stdbool.h>` vs C++ `bool`) have a
+            # consistent ABI with the ThorVG library, which is itself
+            # compiled as C++.
+            'language': 'c++',
+        })
+
 # -----------------------------------------------------------------------------
 # extension modules
 
@@ -1078,6 +1702,7 @@ def resolve_dependencies(fn, depends):
 
 
 def get_extensions_from_sources(sources):
+
     ext_modules = []
     if environ.get('KIVY_FAKE_BUILDEXT'):
         print('Fake build_ext asked, will generate only .h/.c')
@@ -1087,20 +1712,25 @@ def get_extensions_from_sources(sources):
         pyx_path = expand(src_path, pyx)
         depends = [expand(src_path, x) for x in flags.pop('depends', [])]
         c_depends = [expand(src_path, x) for x in flags.pop('c_depends', [])]
-        if not can_use_cython:
-            # can't use cython, so use the .c files instead.
-            pyx_path = '%s.c' % pyx_path[:-4]
         if is_graphics:
             depends = resolve_dependencies(pyx_path, depends)
         f_depends = [x for x in depends if x.rsplit('.', 1)[-1] in (
             'c', 'cpp', 'm')]
         module_name = '.'.join(['kivy'] + pyx[:-4].split('/'))
-        flags_clean = {'depends': depends}
+        # setuptools' wheel/editable-wheel builders require ext_modules source
+        # and depends paths to be relative to the project root (the setup.py
+        # directory). Under PEP 517/660 builds __file__ is absolute, which would
+        # otherwise make these paths absolute and abort the build.
+        flags_clean = {'depends': [relpath(x, src_path) for x in depends]}
         for key, value in flags.items():
             if len(value):
                 flags_clean[key] = value
+        sources_list = [
+            relpath(x, src_path)
+            for x in [pyx_path] + f_depends + c_depends
+        ]
         ext_modules.append(CythonExtension(
-            module_name, [pyx_path] + f_depends + c_depends, **flags_clean))
+            module_name, sources_list, **flags_clean))
     return ext_modules
 
 
@@ -1149,82 +1779,27 @@ def glob_paths(*patterns, excludes=('.pyc', )):
 
 # -----------------------------------------------------------------------------
 # setup !
-if not build_examples:
-    setup(
-        name='Kivy',
-        version=__version__,
-        author='Kivy Team and other contributors',
-        author_email='kivy-dev@googlegroups.com',
-        url='http://kivy.org',
-        project_urls={
-            'Source': 'https://github.com/kivy/kivy',
-        },
-        license='MIT',
-        description=(
-            'A software library for rapid development of '
-            'hardware-accelerated multitouch applications.'),
-        long_description=get_description(),
-        long_description_content_type='text/markdown',
-        ext_modules=ext_modules,
-        cmdclass=cmdclass,
-        packages=find_packages(include=['kivy*']),
-        package_dir={'kivy': 'kivy'},
-        package_data={
-            'kivy':
-                glob_paths('*.pxd', '*.pxi') +
-                glob_paths('**/*.pxd', '**/*.pxi') +
-                glob_paths('data/**/*.*') +
-                glob_paths('include/**/*.*') +
-                glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
-                glob_paths('graphics/**/*.h') +
-                glob_paths('tests/**/*.*') +
-                [
-                    'setupconfig.py',
-                ] + binary_deps
-        },
-        data_files=[] if split_examples else list(examples.items()),
-        classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: MacOS X',
-            'Environment :: Win32 (MS Windows)',
-            'Environment :: X11 Applications',
-            'Intended Audience :: Developers',
-            'Intended Audience :: End Users/Desktop',
-            'Intended Audience :: Information Technology',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: MIT License',
-            'Natural Language :: English',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows',
-            'Operating System :: POSIX :: BSD :: FreeBSD',
-            'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
-            'Programming Language :: Python :: 3.9',
-            'Programming Language :: Python :: 3.10',
-            'Programming Language :: Python :: 3.11',
-            'Topic :: Artistic Software',
-            'Topic :: Games/Entertainment',
-            'Topic :: Multimedia :: Graphics :: 3D Rendering',
-            'Topic :: Multimedia :: Graphics :: Capture :: Digital Camera',
-            'Topic :: Multimedia :: Graphics :: Presentation',
-            'Topic :: Multimedia :: Graphics :: Viewers',
-            'Topic :: Multimedia :: Sound/Audio :: Players :: MP3',
-            'Topic :: Multimedia :: Video :: Display',
-            'Topic :: Scientific/Engineering :: Human Machine Interfaces',
-            'Topic :: Scientific/Engineering :: Visualization',
-            ('Topic :: Software Development :: Libraries :: '
-             'Application Frameworks'),
-            'Topic :: Software Development :: User Interfaces'])
-else:
-    setup(
-        name='Kivy-examples',
-        version=__version__,
-        author='Kivy Team and other contributors',
-        author_email='kivy-dev@googlegroups.com',
-        url='http://kivy.org',
-        license='MIT',
-        description=('Kivy examples.'),
-        long_description_content_type='text/markdown',
-        long_description=get_description(),
-        data_files=list(examples.items()))
+# Project metadata (name, version, description, license, classifiers, urls and
+# runtime dependencies) lives in pyproject.toml. Only the dynamic build pieces
+# that setuptools cannot express statically are configured here.
+setup(
+    version=__version__,
+    ext_modules=ext_modules,
+    cmdclass=cmdclass,
+    packages=find_packages(include=['kivy*']),
+    package_dir={'kivy': 'kivy'},
+    package_data={
+        'kivy':
+            glob_paths('*.pxd', '*.pxi') +
+            glob_paths('**/*.pxd', '**/*.pxi') +
+            glob_paths('data/**/*.*') +
+            glob_paths('include/**/*.*') +
+            glob_paths('tools/**/*.*', excludes=('.pyc', '.enc')) +
+            glob_paths('graphics/**/*.h') +
+            glob_paths('tests/**/*.*') +
+            [
+                'setupconfig.py',
+            ] + binary_deps
+    },
+    data_files=[] if split_examples else list(examples.items()),
+)

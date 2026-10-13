@@ -1,7 +1,7 @@
 # This file is imported from __init__.py and exec'd from setup.py
 
-MAJOR = 2
-MINOR = 3
+MAJOR = 3
+MINOR = 0
 MICRO = 0
 RELEASE = False
 

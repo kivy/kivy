@@ -73,9 +73,15 @@ editor.kv
 
 .. versionchanged:: 1.2.0
 
-    In the chooser template, the `controller` is no longer a direct reference
-    but a weak-reference. If you are upgrading, you should change the notation
-    `root.controller.xxx` to `root.controller().xxx`.
+    In the chooser entry widget, the `controller` is no longer a direct
+    reference but a weak-reference. If you are upgrading, you should change
+    the notation ``root.controller.xxx`` to ``root.controller().xxx``.
+
+.. versionchanged:: 3.0.0
+
+    The entry widgets (:class:`FileListEntry` and :class:`FileIconEntry`) are
+    now regular Python classes (previously they were deprecated Kivy lang
+    templates).
 
 '''
 
@@ -83,13 +89,12 @@ __all__ = ('FileChooserListView', 'FileChooserIconView',
            'FileChooserListLayout', 'FileChooserIconLayout',
            'FileChooser', 'FileChooserController',
            'FileChooserProgressBase', 'FileSystemAbstract',
-           'FileSystemLocal')
+           'FileSystemLocal', 'FileListEntry', 'FileIconEntry')
 
 from weakref import ref
 from time import time
 
 from kivy.core.text import DEFAULT_FONT
-from kivy.compat import string_types
 from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -98,6 +103,8 @@ from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.treeview import TreeViewNode
+from kivy.uix.widget import Widget
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty, AliasProperty)
@@ -276,7 +283,7 @@ class FileChooserListLayout(FileChooserLayout):
     .. versionadded:: 1.9.0
     '''
     VIEWNAME = 'list'
-    _ENTRY_TEMPLATE = 'FileListEntry'
+    _ENTRY_CLASS = 'FileListEntry'
 
     def __init__(self, **kwargs):
         super(FileChooserListLayout, self).__init__(**kwargs)
@@ -293,7 +300,7 @@ class FileChooserIconLayout(FileChooserLayout):
     '''
 
     VIEWNAME = 'icon'
-    _ENTRY_TEMPLATE = 'FileIconEntry'
+    _ENTRY_CLASS = 'FileIconEntry'
 
     def __init__(self, **kwargs):
         super(FileChooserIconLayout, self).__init__(**kwargs)
@@ -301,6 +308,49 @@ class FileChooserIconLayout(FileChooserLayout):
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
+
+
+class FileListEntry(FloatLayout, TreeViewNode):
+    '''Default entry widget used by :class:`FileChooserListView` to display
+    a single file or directory row.
+
+    .. versionadded:: 3.0.0
+        Promoted to a regular Python class. Previously this was a deprecated
+        Kivy lang template (``[FileListEntry@FloatLayout+TreeViewNode]:``).
+    '''
+
+    locked = BooleanProperty(False)
+    path = StringProperty('')
+    name = StringProperty('')
+    sep = StringProperty('/')
+    isdir = BooleanProperty(False)
+    #: Child entries discovered when this directory entry is expanded. Used
+    #: by :class:`FileChooserController` to cache the sub-tree under a
+    #: previously expanded folder.
+    entries = ListProperty([])
+    #: Weak reference (callable) to the owning :class:`FileChooserController`.
+    controller = ObjectProperty(None, allownone=True)
+    #: Callable returning a pretty-printed file size for this entry.
+    get_nice_size = ObjectProperty()
+
+
+class FileIconEntry(Widget):
+    '''Default entry widget used by :class:`FileChooserIconView` to display
+    a single file or directory icon.
+
+    .. versionadded:: 3.0.0
+        Promoted to a regular Python class. Previously this was a deprecated
+        Kivy lang template (``[FileIconEntry@Widget]:``).
+    '''
+
+    locked = BooleanProperty(False)
+    path = StringProperty('')
+    name = StringProperty('')
+    sep = StringProperty('/')
+    isdir = BooleanProperty(False)
+    selected = BooleanProperty(False)
+    controller = ObjectProperty(None, allownone=True)
+    get_nice_size = ObjectProperty()
 
 
 class FileChooserController(RelativeLayout):
@@ -313,7 +363,7 @@ class FileChooserController(RelativeLayout):
             Fired when a root-level entry is added to the file list. If you
             return True from this event, the entry is not added to FileChooser.
         `on_entries_cleared`
-            Fired when the the entries list is cleared, usually when the
+            Fired when the entries list is cleared, usually when the
             root is refreshed.
         `on_subentry_to_entry`: entry, parent
             Fired when a sub-entry is added to an existing entry or
@@ -322,7 +372,7 @@ class FileChooserController(RelativeLayout):
         `on_submit`: selection, touch
             Fired when a file has been selected with a double-tap.
     '''
-    _ENTRY_TEMPLATE = None
+    _ENTRY_CLASS = None
 
     layout = ObjectProperty(baseclass=FileChooserLayout)
     '''
@@ -483,26 +533,6 @@ class FileChooserController(RelativeLayout):
 
     '''
 
-    file_encodings = ListProperty(
-        ['utf-8', 'latin1', 'cp1252'], deprecated=True)
-    '''Possible encodings for decoding a filename to unicode. In the case that
-    the user has a non-ascii filename, undecodable without knowing its
-    initial encoding, we have no other choice than to guess it.
-
-    Please note that if you encounter an issue because of a missing encoding
-    here, we'll be glad to add it to this list.
-
-    file_encodings is a :class:`~kivy.properties.ListProperty` and defaults to
-    ['utf-8', 'latin1', 'cp1252'].
-
-    .. versionadded:: 1.3.0
-
-    .. deprecated:: 1.8.0
-       This property is no longer used as the filechooser no longer decodes
-       the file names.
-
-    '''
-
     file_system = ObjectProperty(FileSystemLocal(),
                                  baseclass=FileSystemAbstract)
     '''The file system object used to access the file system. This should be a
@@ -598,8 +628,8 @@ class FileChooserController(RelativeLayout):
             self.layout.dispatch('on_submit', selected, touch)
 
     def entry_touched(self, entry, touch):
-        '''(internal) This method must be called by the template when an entry
-        is touched by the user.
+        '''(internal) This method must be called by the entry widget when an
+        entry is touched by the user.
         '''
         if (
             'button' in touch.profile and touch.button in (
@@ -627,8 +657,8 @@ class FileChooserController(RelativeLayout):
             self.selection = [abspath(join(self.path, entry.path)), ]
 
     def entry_released(self, entry, touch):
-        '''(internal) This method must be called by the template when an entry
-        is touched by the user.
+        '''(internal) This method must be called by the entry widget when an
+        entry is touched by the user.
 
         .. versionadded:: 1.1.0
         '''
@@ -793,7 +823,7 @@ class FileChooserController(RelativeLayout):
         if self._progress:
             return
         cls = self.progress_cls
-        if isinstance(cls, string_types):
+        if isinstance(cls, str):
             cls = Factory.get(cls)
         self._progress = cls(path=self.path)
         self._progress.value = 0
@@ -837,13 +867,13 @@ class FileChooserController(RelativeLayout):
                 if sep not in new_path:
                     new_path += sep
                 pardir = self._create_entry_widget(dict(
-                    name=back, size='', path=new_path, controller=ref(self),
-                    isdir=True, parent=None, sep=sep,
+                    name=back, path=new_path, controller=ref(self),
+                    isdir=True, sep=sep,
                     get_nice_size=lambda: ''))
             else:
                 pardir = self._create_entry_widget(dict(
-                    name=back, size='', path=back, controller=ref(self),
-                    isdir=True, parent=None, sep=sep,
+                    name=back, path=back, controller=ref(self),
+                    isdir=True, sep=sep,
                     get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
@@ -855,10 +885,10 @@ class FileChooserController(RelativeLayout):
             Logger.exception('Unable to open directory <%s>' % self.path)
             self.files[:] = []
 
-    def _create_entry_widget(self, ctx):
-        template = self.layout._ENTRY_TEMPLATE\
-            if self.layout else self._ENTRY_TEMPLATE
-        return Builder.template(template, **ctx)
+    def _create_entry_widget(self, entry_kwargs):
+        entry_class = self.layout._ENTRY_CLASS\
+            if self.layout else self._ENTRY_CLASS
+        return Factory.get(entry_class)(**entry_kwargs)
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
@@ -891,14 +921,13 @@ class FileChooserController(RelativeLayout):
                 # Use a closure for lazy-loading here
                 return self.get_nice_size(fn)
 
-            ctx = {'name': basename(fn),
-                   'get_nice_size': get_nice_size,
-                   'path': fn,
-                   'controller': wself,
-                   'isdir': self.file_system.is_dir(fn),
-                   'parent': parent,
-                   'sep': sep}
-            entry = self._create_entry_widget(ctx)
+            entry_kwargs = {'name': basename(fn),
+                            'get_nice_size': get_nice_size,
+                            'path': fn,
+                            'controller': wself,
+                            'isdir': self.file_system.is_dir(fn),
+                            'sep': sep}
+            entry = self._create_entry_widget(entry_kwargs)
             yield index, total, entry
 
     def entry_subselect(self, entry):
@@ -916,7 +945,7 @@ class FileChooserListView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    _ENTRY_TEMPLATE = 'FileListEntry'
+    _ENTRY_CLASS = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
@@ -924,7 +953,7 @@ class FileChooserIconView(FileChooserController):
 
     .. versionadded:: 1.9.0
     '''
-    _ENTRY_TEMPLATE = 'FileIconEntry'
+    _ENTRY_CLASS = 'FileIconEntry'
 
 
 class FileChooser(FileChooserController):
@@ -1050,8 +1079,8 @@ class FileChooser(FileChooserController):
         sm.transition.direction = direction
         sm.current = view + 'view'
 
-    def _create_entry_widget(self, ctx):
-        return [Builder.template(view._ENTRY_TEMPLATE, **ctx)
+    def _create_entry_widget(self, entry_kwargs):
+        return [Factory.get(view._ENTRY_CLASS)(**entry_kwargs)
                 for view in self._views]
 
     def _get_file_paths(self, items):

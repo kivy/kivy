@@ -17,7 +17,7 @@ about the requirements.
 
 try:
     import ffmpeg
-except:
+except Exception:
     raise
 
 from kivy.core.video import VideoBase

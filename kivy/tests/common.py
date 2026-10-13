@@ -10,6 +10,8 @@ The screenshots live in the 'kivy/tests/results' folder and are in PNG format,
 320x240 pixels.
 '''
 
+from __future__ import annotations
+
 __all__ = (
     'GraphicUnitTest', 'UnitTestTouch', 'UTMotionEvent', 'async_run',
     'requires_graphics', 'ensure_web_server')
@@ -21,6 +23,7 @@ import sys
 from functools import partial
 import os
 import threading
+from typing import Callable, Optional
 from kivy.graphics.cgl import cgl_get_backend_name
 from kivy.input.motionevent import MotionEvent
 log = logging.getLogger('unittest')
@@ -36,6 +39,54 @@ make_screenshots = os.environ.get('KIVY_UNITTEST_SCREENSHOTS')
 http_server = None
 http_server_ready = threading.Event()
 kivy_eventloop = os.environ.get('KIVY_EVENTLOOP', 'asyncio')
+
+
+def advance_frames(frames: int) -> None:
+    """Let Kivy draw a specific number of frames.
+
+    Generally more useful than ``time.sleep``, since the duration of a frame
+    can vary widely based on things not in your app's control.
+
+    """
+    from kivy.base import EventLoop
+
+    for _ in range(frames):
+        EventLoop.idle()
+
+
+def idle_until(
+        condition: Optional[Callable[[], bool]] = None,
+        timeout: Optional[int] = None,
+        message: Optional[str] = None
+) -> partial | None:
+    """Advance frames until ``condition()`` is ``True``
+
+    With integer ``timeout``, give up after that many frames,
+    raising ``TimeoutError``. You can customize its ``message``.
+
+    May be used as a decorator upon the condition function.
+
+    """
+    from kivy.base import EventLoop
+
+    if not (timeout or condition):
+        raise ValueError("Need timeout or condition")
+    if condition is None:
+        return partial(idle_until, timeout=timeout, message=message)
+    if timeout is None:
+        while not condition():
+            EventLoop.idle()
+        return
+    for _ in range(timeout):
+        if condition():
+            return
+        EventLoop.idle()
+    if message is None:
+        if hasattr(condition, "__name__"):
+            message = f"{condition.__name__} timed out"
+        else:
+            message = "Timed out"
+    raise TimeoutError(message)
 
 
 def requires_graphics(func):
@@ -74,7 +125,7 @@ def ensure_web_server(root=None):
             http_server.server_activate()
             http_server_ready.set()
             http_server.serve_forever()
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
         finally:
@@ -304,7 +355,7 @@ class GraphicUnitTest(_base):
             try:
                 if reffn != tmpfn:
                     unlink(tmpfn)
-            except:
+            except Exception:
                 pass
             EventLoop.stop()
 
@@ -498,7 +549,10 @@ def async_run(func=None, app_cls_func=None):
         if kivy_eventloop == 'asyncio':
             try:
                 import pytest_asyncio
-                return pytest.mark.asyncio(pytest_asyncio.fixture(func))
+                # In pytest 9, marks on fixtures have no effect.
+                # We only need to mark the async test function,
+                # not turn it into a fixture.
+                return pytest.mark.asyncio(func)
             except ImportError:
                 return pytest.mark.skip(
                     reason='KIVY_EVENTLOOP == "asyncio" but '

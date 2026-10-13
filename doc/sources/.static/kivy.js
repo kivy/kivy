@@ -1,244 +1,365 @@
-$(function() {
+document.addEventListener("DOMContentLoaded", function() {
 
-	var bodyshortcut = false;
-	function ensure_bodyshortcut() {
-		if ( bodyshortcut == true )
-			return;
-		var bsc = $('<div class="bodyshortcut">&nbsp;</div>');
-		bsc.insertAfter($('div.body h1:first'));
-		bodyshortcut = true;
-	};
+    // Simple native cookie helper functions to replace $.cookie
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return null;
+    }
 
-	// if it's an API page, show the module name.
-	var pagename = location.pathname.split('/');
-	var is_api = false;
-	pagename = pagename[pagename.length - 1];
-	if (pagename.search('api-') == 0) {
-		pagename = pagename.substr(4, pagename.length - 9);
+    function setCookie(name, value) {
+        document.cookie = name + "=" + value + "; path=/; max-age=31536000";
+    }
 
-		ensure_bodyshortcut();
-		var modulename = $('<div class="left">Module: <a href="#">' + pagename + '</a></div>')
-		modulename.appendTo($('div.bodyshortcut'));
-		is_api = true;
-	}
+    var bodyshortcut = false;
+    function ensure_bodyshortcut() {
+        if (bodyshortcut === true) return;
+        
+        var firstH1 = document.querySelector('div.body h1');
+        if (firstH1) {
+            firstH1.insertAdjacentHTML('afterend', '<div class="bodyshortcut">&nbsp;</div>');
+            bodyshortcut = true;
+        }
+    }
 
-	// insert breaker only for the first data/class/function found.
-	var apibreaker = false;
-	$('div.body dl[class]').each(function (i1, elem) {
-		// these are first level class: attribute and method are inside class.
-		if (!$(elem).hasClass('data') &&
-			!$(elem).hasClass('class') &&
-			!$(elem).hasClass('exception') &&
-			!$(elem).hasClass('function'))
-			return;
-		// dont accept dl inside dl
-		if ($(elem).parents().filter('dl').length > 0)
-			return;
+    // If it's an API page, show the module name
+    var pagename = location.pathname.split('/');
+    var is_api = false;
+    pagename = pagename[pagename.length - 1];
+    
+    if (pagename.search('api-') === 0) {
+        pagename = pagename.substring(4, pagename.length - 5); // Refactored calculation matching standard .html stripping
 
-		$(elem).addClass('api-level');
+        ensure_bodyshortcut();
+        var shortcutDiv = document.querySelector('div.bodyshortcut');
+        if (shortcutDiv) {
+            shortcutDiv.insertAdjacentHTML('beforeend', '<div class="left">Module: <a href="#">' + pagename + '</a></div>');
+        }
+        is_api = true;
+    }
 
-		if ( apibreaker == true )
-			return;
-		$('<div id="api"></div>')
-			.attr('id', 'api')
-			.html(
-				$('<h2>API ' +
-				  '<a id="api-toggle-desc" class="showed">Hide Description &uArr;</a>' +
-				  '</h2>')
-				)
-			.insertBefore(elem);
-		apibreaker = true;
-	});
+    // Insert breaker only for the first data/class/function found
+    var apibreaker = false;
+    var apiElements = document.querySelectorAll('div.body dl[class]');
+    
+    apiElements.forEach(function(elem) {
+        var hasValidClass = elem.classList.contains('data') || 
+                            elem.classList.contains('class') || 
+                            elem.classList.contains('exception') || 
+                            elem.classList.contains('function');
+                            
+        if (!hasValidClass) return;
+        
+        // Don't accept dl inside dl
+        if (elem.closest('dl') && elem.parentElement.closest('dl')) return;
 
+        elem.classList.add('api-level');
 
-	$('div.body dl[class] dt')
-	.on("mouseenter", function() { $(this).addClass('hover'); })
-	.on("mouseleave", function() { $(this).removeClass('hover'); });
+        if (apibreaker === true) return;
+        
+        elem.insertAdjacentHTML('beforebegin', 
+            '<div id="api"><h2>API <a id="api-toggle-desc" class="showed">Hide Description &uArr;</a></h2></div>'
+        );
+        apibreaker = true;
+    });
 
-	if ( apibreaker == true ) {
-		ensure_bodyshortcut();
-		var apilink = $('<div class="navlink right"><a id="api-link" href="#api">Jump to API</a> &dArr;</div>');
-		apilink.insertBefore($('div.bodyshortcut'));
-	}
+    // Hover styling on dt elements
+    document.querySelectorAll('div.body dl[class] dt').forEach(function(dt) {
+        dt.addEventListener('mouseenter', function() { this.classList.add('hover'); });
+        dt.addEventListener('mouseleave', function() { this.classList.remove('hover'); });
+    });
 
-	$('#api-toggle-desc').on("click", function() {
-		if ($(this).hasClass('showed')) {
-			$('div.body dl.api-level > dd p').hide();
-			$('div.body dl.api-level > dd pre').hide();
-			$('div.body dl.api-level > dd blockquote').hide();
-			$('div.body dl.api-level > dd ul').hide();
-			$(this).removeClass('showed');
-			$(this).html('Show Descriptions &dArr;');
-			$.cookie('kivy.toggledesc', 'true');
-		} else {
-			$('div.body dl.api-level > dd p').show();
-			$('div.body dl.api-level > dd pre').show();
-			$('div.body dl.api-level > dd blockquote').show();
-			$('div.body dl.api-level > dd ul').show();
-			$(this).addClass('showed');
-			$(this).html('Hide Descriptions &uArr;');
-			$.cookie('kivy.toggledesc', 'false');
-		}
-	});
+    if (apibreaker === true) {
+        ensure_bodyshortcut();
+        var shortcutDiv = document.querySelector('div.bodyshortcut');
+        if (shortcutDiv) {
+            shortcutDiv.insertAdjacentHTML('beforebegin', '<div class="navlink right"><a id="api-link" href="#api">Jump to API</a> &dArr;</div>');
+        }
+    }
 
-	$('div.body dl.api-level dt').on("click", function() {
-		$(this).next().children().toggle();
-	});
+    // Event listener logic for Description toggle
+    var toggleDescBtn = document.getElementById('api-toggle-desc');
+    if (toggleDescBtn) {
+        toggleDescBtn.addEventListener('click', function() {
+            var targetElements = document.querySelectorAll('div.body dl.api-level > dd p, div.body dl.api-level > dd pre, div.body dl.api-level > dd blockquote, div.body dl.api-level > dd ul');
+            
+            if (this.classList.contains('showed')) {
+                targetElements.forEach(el => el.style.display = 'none');
+                this.classList.remove('showed');
+                this.innerHTML = 'Show Descriptions &dArr;';
+                setCookie('kivy.toggledesc', 'true');
+            } else {
+                targetElements.forEach(el => el.style.display = '');
+                this.classList.add('showed');
+                this.innerHTML = 'Hide Descriptions &uArr;';
+                setCookie('kivy.toggledesc', 'false');
+            }
+        });
+    }
 
-	if ( $.cookie('kivy.toggledesc') == 'true' ) {
-		$('div.body dl.api-level > dd > dl > dd').hide();
-		$('#api-toggle-desc').removeClass('showed');
-		$('#api-toggle-desc').html('Show Descriptions &dArr;');
-	}
+    // Accordion toggle on specific definitions click
+    document.querySelectorAll('div.body dl.api-level dt').forEach(function(dt) {
+        dt.addEventListener('click', function() {
+            var nextSibling = this.nextElementSibling;
+            if (nextSibling) {
+                Array.from(nextSibling.children).forEach(function(child) {
+                    child.style.display = (child.style.display === 'none') ? '' : 'none';
+                });
+            }
+        });
+    });
 
-	if ( $.cookie('kivy.toggleall') == 'true' ) {
-		$('div.body dl.api-level > dd').hide();
-		$('#api-toggle').removeClass('showed');
-		$('#api-toggle').html('Expand All &dArr;');
-	}
+    // Check saved cookie states
+    if (getCookie('kivy.toggledesc') === 'true') {
+        document.querySelectorAll('div.body dl.api-level > dd > dl > dd').forEach(el => el.style.display = 'none');
+        if (toggleDescBtn) {
+            toggleDescBtn.classList.remove('showed');
+            toggleDescBtn.innerHTML = 'Show Descriptions &dArr;';
+        }
+    }
 
-	//----------------------------------------------------------------------------
-	// Reduce the TOC page
-	//----------------------------------------------------------------------------
+    if (getCookie('kivy.toggleall') === 'true') {
+        document.querySelectorAll('div.body dl.api-level > dd').forEach(el => el.style.display = 'none');
+        var apiToggle = document.getElementById('api-toggle');
+        if (apiToggle) {
+            apiToggle.classList.remove('showed');
+            apiToggle.innerHTML = 'Expand All &dArr;';
+        }
+    }
 
-	var ul = $('div.sphinxsidebarwrapper h3:eq(1) + ul > li > ul');
-	$('div.sphinxsidebarwrapper h3:eq(1) + ul').detach();
-	ul.insertAfter($('div.sphinxsidebarwrapper h3:eq(1)'));
-	$("div.sphinxsidebarwrapper ul").each(function() {
-		if ($(this).children().length < 1)
-			$(this).remove()
-	});
+    //----------------------------------------------------------------------------
+    // Reduce the TOC page
+    //----------------------------------------------------------------------------
+    var headers = document.querySelectorAll('div.sphinxsidebarwrapper h3');
+    if (headers.length >= 2) {
+        var targetH3 = headers[1];
+        var nextUl = targetH3.nextElementSibling;
+        if (nextUl && nextUl.tagName === 'UL') {
+            var nestedUl = nextUl.querySelector('li > ul');
+            if (nestedUl) {
+                nextUl.remove();
+                targetH3.after(nestedUl);
+            }
+        }
+    }
 
-	//----------------------------------------------------------------------------
-	// Menu navigation
-	//----------------------------------------------------------------------------
-	$('div.sphinxsidebarwrapper > ul > li > a').each(function(index, item) {
-		$(item)
-			.attr('href', '#')
-			.addClass('mainlevel');
-		if ( !is_api ) {
-			$(item)
-				.bind('mousedown', function() {
-				$('div.sphinxsidebar ul li ul').filter(function (index, child) {
-					if (child != $(item).parent().children('ul').get(0)) return child;
-				}).slideUp();
-				$(item).parent().children('ul').slideToggle();
-			});
-		}
-	})
+    document.querySelectorAll("div.sphinxsidebarwrapper ul").forEach(function(ul) {
+        if (ul.children.length < 1) ul.remove();
+    });
 
-	$('div.sphinxsidebarwrapper li.current').parent().show();
+    //----------------------------------------------------------------------------
+    // Menu navigation
+    //----------------------------------------------------------------------------
+    var mainLinks = document.querySelectorAll('div.sphinxsidebarwrapper > ul > li > a');
+    mainLinks.forEach(function(item) {
+        item.setAttribute('href', '#');
+        item.classList.add('mainlevel');
+        
+        if (!is_api) {
+            item.addEventListener('mousedown', function() {
+                var parentLi = this.parentElement;
+                var currentChildUl = parentLi ? parentLi.querySelector('ul') : null;
+                
+                document.querySelectorAll('div.sphinxsidebar ul li ul').forEach(function(child) {
+                    if (child !== currentChildUl) child.style.display = 'none';
+                });
+                
+                if (currentChildUl) {
+                    currentChildUl.style.display = (currentChildUl.style.display === 'none' || currentChildUl.style.display === '') ? 'block' : 'none';
+                }
+            });
+        }
+    });
 
-	if ( !is_api ) {
-		$('div.sphinxsidebarwrapper ul li').each(function(index, item) {
-			if ($(item).children('ul').length > 0) {
-				$(item).children('a').addClass('togglable');
-			}
-		});
-	}
+    var currentLi = document.querySelector('div.sphinxsidebarwrapper li.current');
+    if (currentLi && currentLi.parentElement) {
+        currentLi.parentElement.style.display = 'block';
+    }
 
-	// FIXME
-	$('div.sphinxsidebar a[href$="api-kivy.html"]').parent().parent().addClass('api-index');
-	$('div.sphinxsidebar a[href$="api-kivy.utils.html"]').parent().parent().addClass('api-index');
-	$('li.current.toctree-l2').slice(0, -1).removeClass('current');
+    if (!is_api) {
+        document.querySelectorAll('div.sphinxsidebarwrapper ul li').forEach(function(item) {
+            if (item.querySelectorAll('ul').length > 0) {
+                var childA = item.querySelector('a');
+                if (childA) childA.classList.add('togglable');
+            }
+        });
+    }
 
-	$('ul.api-index a').each(function(index, item) {
-		var url = $(item).attr('href').slice(0, -5);
-		if (url == '') {
-			$(item).attr('href', location.pathname);
-			url = location.pathname.slice(0, -5);
-		}
-		url = url.substr(url.search('api-') + 4);
-		$(item).empty().append(url);
-	});
+    // Apply tracking labels
+    document.querySelectorAll('div.sphinxsidebar a[href$="api-kivy.html"], div.sphinxsidebar a[href$="api-kivy.utils.html"]').forEach(function(el) {
+        if (el.parentElement && el.parentElement.parentElement) {
+            el.parentElement.parentElement.classList.add('api-index');
+        }
+    });
 
-	// Hide API section if we are not in the API.
-	// or hide all the others sections if we are in the API
-	if ( is_api ) {
-		$('div.sphinxsidebarwrapper > ul > li > ul').filter(
-				function(index, item) {
-					if (! $(item).hasClass('api-index'))
-						return item;
-				}).parent().hide();
-		$('.nav-api').addClass('current');
-		$('body').addClass('is-api');
-	} else {
-		$('div.sphinxsidebarwrapper > ul > li > ul').filter(
-				function(index, item) {
-					if ($(item).hasClass('api-index'))
-						return item;
-				}).parent().hide();
-		$('.nav-guides').addClass('current');
-	}
+    var currentL2 = document.querySelectorAll('li.current.toctree-l2');
+    if (currentL2.length > 1) {
+        for (var i = 0; i < currentL2.length - 1; i++) {
+            currentL2[i].classList.remove('current');
+        }
+    }
 
+    document.querySelectorAll('ul.api-index a').forEach(function(item) {
+        var href = item.getAttribute('href') || '';
+        var url = href.slice(0, -5);
+        if (url === '') {
+            item.setAttribute('href', location.pathname);
+            url = location.pathname.slice(0, -5);
+        }
+        var searchIndex = url.search('api-');
+        url = url.substring(searchIndex !== -1 ? searchIndex + 4 : 0);
+        item.innerHTML = '';
+        item.textContent = url;
+    });
 
-	if ( is_api ) {
-		$('.toc').hide();
+    // Hide sections based on page classification routing context
+    if (is_api) {
+        document.querySelectorAll('div.sphinxsidebarwrapper > ul > li > ul').forEach(function(item) {
+            if (!item.classList.contains('api-index') && item.parentElement) {
+                item.parentElement.style.display = 'none';
+            }
+        });
+        var navApi = document.querySelector('.nav-api');
+        if (navApi) navApi.classList.add('current');
+        document.body.classList.add('is-api');
+    } else {
+        document.querySelectorAll('div.sphinxsidebarwrapper > ul > li > ul').forEach(function(item) {
+            if (item.classList.contains('api-index') && item.parentElement) {
+                item.parentElement.style.display = 'none';
+            }
+        });
+        var navGuides = document.querySelector('.nav-guides');
+        if (navGuides) navGuides.classList.add('current');
+    }
 
+    if (is_api) {
+        var tocDiv = document.querySelector('.toc');
+        if (tocDiv) tocDiv.style.display = 'none';
 
-		// Resolve API version
-		function read_version(item, default_version) {
-			if ( item === undefined )
-				return default_version;
-			var version = item.find('p').text();
-			if ( version == "" )
-				return default_version;
-			item.detach();
-			version = version.replace('New in version ', '');
-			if ( version.substr(-1) == '.' )
-				version = version.substr(0, version.length - 1);
-			return version;
-		}
+        function read_version(item, default_version) {
+            if (!item) return default_version;
+            var pTag = item.querySelector('p');
+            var version = pTag ? pTag.textContent.trim() : "";
+            if (version === "") return default_version;
+            
+            item.remove();
+            version = version.replace('New in version ', '');
+            if (version.endsWith('.')) {
+                version = version.slice(0, -1);
+            }
+            return version;
+        }
 
-		//function read_version(item, version) { return version; }
+        var module_version = read_version(document.querySelector('div.body > div.section > div.versionadded'), '1.0.0');
+        var html_version = '<span class="versionadded">Added in <span>' + module_version + '</span></span>';
+        
+        var shortcutDiv = document.querySelector('div.bodyshortcut');
+        if (shortcutDiv) shortcutDiv.insertAdjacentHTML('beforeend', html_version);
 
-		// get module version
-		var module_version = read_version($('div.body > div.section > div.versionadded'), '1.0.0');
-		var html_version = '<span class="versionadded">Added in <span>' + module_version + '</span></span>';
-		$('div.bodyshortcut').append(html_version);
+        document.querySelectorAll('div.section > dl[class]').forEach(function(el_class) {
+            var class_version = read_version(el_class.querySelector('> dd > div.versionadded'), module_version);
+            var html_class_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';
+            
+            var classDt = el_class.querySelector('> dt');
+            if (classDt) classDt.insertAdjacentHTML('beforeend', html_class_version);
 
-		// resolve class version, default to module if nothing has been found
-		$('div.section > dl[class]').each(function (i1, el_class) {
-			var rel_class = $(el_class);
-			var class_version = read_version(
-				rel_class.find('> dd > div.versionadded'), module_version);
+            el_class.querySelectorAll('> dd > dl[class]').forEach(function(el_methattr) {
+                var methattr_version = read_version(el_methattr.querySelector('> dd > div.versionadded'), class_version);
+                var html_methattr_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';
+                
+                var methattrDt = el_methattr.querySelector('> dt');
+                if (methattrDt) methattrDt.insertAdjacentHTML('beforeend', html_methattr_version);
+            });
+        });
 
-			var html_version = '<span class="versionadded">Added in <span>' + class_version + '</span></span>';
-			rel_class.find('> dt').append(html_version);
+    } else {
+        var tocUls = document.querySelectorAll('.toc > ul > li > ul');
+        var tocDiv = document.querySelector('.toc');
+        if (tocUls.length < 1 && tocDiv) {
+            tocDiv.style.display = 'none';
+        }
 
-			// resolve method / attr version
-			rel_class.find('> dd > dl[class]').each(function (i2, el_methattr) {
-				var rel_methattr = $(el_methattr);
-				var methattr_version = read_version(
-					rel_methattr.find('> dd > div.versionadded'), class_version);
-				var html_version = '<span class="versionadded">Added in <span>' + methattr_version + '</span></span>';
-				rel_methattr.find('> dt').append(html_version);
-			});
-		});
+        var currentLiA = document.querySelector('li.toctree-l1.current > a');
+        var section_title = currentLiA ? currentLiA.textContent : '';
+        var firstH1 = document.querySelector('div.body h1');
+        if (firstH1 && section_title) {
+            firstH1.insertAdjacentHTML('afterbegin', section_title + ' &raquo; ');
+        }
+    }
 
-	} else {
+    // Code snippet lineno stripping patch
+    document.querySelectorAll(".linenos, .gp").forEach(function(elem) {
+        elem.setAttribute("unselectable-data", elem.textContent.trim());
+        
+        Array.from(elem.childNodes).forEach(function(child) {
+            if (child.nodeType === 3) { // Text node check
+                child.remove();
+            }
+        });
+    });
 
-		if ($('.toc > ul > li> ul').length < 1)
-			$('.toc').hide();
+    // Modern light/dark style wrapper configuration toggle
+    var themeToggle = document.getElementById("themeToggleSwitch");
+    if (themeToggle) {
+        themeToggle.addEventListener("click", function() {
+            let currTheme = document.documentElement.className,
+                newTheme = currTheme === "light" ? "dark" : "light";
+            document.documentElement.className = newTheme;
+            localStorage.setItem('theme', newTheme);
+        });
+    }
 
-		var section_title = $('li.toctree-l1.current > a').text();
-		$('div.body h1:eq(0)').prepend(section_title + ' &raquo; ');
-	}
-	// Hack to add an attrib to all linenos,
-	// this is needed in order to avoid certain browsers (Ex: Safari) that treat the line-number as a copyable item.
-    $(".linenos, .gp").each(function(){
-        let $this = $(this);
-        $this.attr("unselectable-data", $this.text());
-		$this.contents().filter(function(){
-    			return this.nodeType === 3; //https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
-		}).remove();
-  });
+    var selector = document.getElementById("version_selector");
 
+    if (selector) {
+        // Docs are served under "/doc/<version>/...", so the version is the
+        // path segment right after "doc". Keep the raw split (with its leading
+        // empty segment) so the rest of the path is preserved exactly and no
+        // spurious trailing slash is introduced when switching versions.
+        function version_index(segments) {
+            var doc_index = segments.indexOf('doc');
+            return doc_index === -1 ? -1 : doc_index + 1;
+        }
 
-	$("#themeToggleSwitch").click(function () {
-		let currTheme = document.documentElement.className,
-			newTheme = currTheme === "light" ? "dark" : "light"
-		document.documentElement.className = newTheme
-		localStorage.setItem('theme', newTheme);
-	});
+        selector.addEventListener('change', function() {
+            var segments = window.location.pathname.split('/');
+            var index = version_index(segments);
+
+            if (index !== -1 && index < segments.length) {
+                segments[index] = this.value;
+                document.location.pathname = segments.join('/');
+            }
+        });
+
+        var url = "/doc/versions.json";
+
+        fetch(url)
+            .then(function(response) {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(function(versions) {
+                var segments = window.location.pathname.split('/');
+                var index = version_index(segments);
+                var current = index === -1 ? undefined : segments[index];
+
+                selector.innerHTML = '';
+
+                versions.forEach(function(version) {
+                    var option = document.createElement("option");
+                    option.value = version;
+                    option.textContent = version;
+
+                    if (version === current) {
+                        option.selected = true;
+                    }
+
+                    selector.appendChild(option);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error loading version configuration list:", error);
+            });
+    }
 });

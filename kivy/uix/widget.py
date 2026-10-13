@@ -489,7 +489,7 @@ class Widget(WidgetBase):
             A bool. True if the point is inside the bounding box, False
             otherwise.
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
             True
@@ -509,7 +509,7 @@ class Widget(WidgetBase):
             bool. True if the other widget collides with this widget, False
             otherwise.
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> wid = Widget(size=(50, 50))
             >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
@@ -542,9 +542,8 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
         '''
         if self.disabled or me.dispatch_mode == MODE_DONT_DISPATCH:
             return
@@ -637,7 +636,7 @@ class Widget(WidgetBase):
 
                 .. versionadded:: 1.9.0
 
-    .. code-block:: python
+    .. code-block:: python-console
 
         >>> from kivy.uix.button import Button
         >>> from kivy.uix.slider import Slider
@@ -701,7 +700,7 @@ class Widget(WidgetBase):
             `widget`: :class:`Widget`
                 Widget to remove from our children list.
 
-    .. code-block:: python
+    .. code-block:: python-console
 
         >>> from kivy.uix.button import Button
         >>> root = Widget()
@@ -786,12 +785,11 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -812,12 +810,11 @@ class Widget(WidgetBase):
 
         .. versionadded:: 2.1.0
 
+        .. versionchanged:: 3.0.0
+            Removed "Experimental" warning.
+
         .. note::
             Method can be called multiple times with the same arguments.
-
-        .. warning::
-            This is an experimental method and it remains so while this warning
-            is present.
         '''
         a_widget = widget or self
         motion_filter = self.motion_filter
@@ -977,7 +974,7 @@ class Widget(WidgetBase):
 
         walking this tree:
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> # Call walk on box with loopback True, and restrict False
             >>> [type(widget) for widget in box.walk(loopback=True)]
@@ -1066,7 +1063,7 @@ class Widget(WidgetBase):
 
         walking this tree:
 
-        .. code-block:: python
+        .. code-block:: python-console
 
             >>> # Call walk on box with loopback True
             >>> [type(widget) for widget in box.walk_reverse(loopback=True)]
@@ -1500,7 +1497,7 @@ class Widget(WidgetBase):
 
     Then, in python:
 
-    .. code-block:: python
+    .. code-block:: python-console
 
         >>> widget = MyWidget()
         >>> print(widget.ids)
@@ -1573,7 +1570,6 @@ class Widget(WidgetBase):
                 self.inc_disabled()
             else:
                 self.dec_disabled()
-            return True
 
     def inc_disabled(self, count=1):
         self._disabled_count += count
@@ -1623,7 +1619,6 @@ class Widget(WidgetBase):
 
     .. versionadded:: 2.1.0
 
-    .. warning::
-        This is an experimental property and it remains so while this warning
-        is present.
+    .. versionchanged:: 3.0.0
+        Removed "Experimental" warning.
     '''

@@ -124,7 +124,7 @@ class ModeScreen(Screen):
         self.mode_spinner.text = "'{0}'".format(self.keyboard_mode)
 
         p1 = "Current keyboard mode: '{0}'\n\n".format(self.keyboard_mode)
-        if self.keyboard_mode in ['dock', 'system', 'systemanddock']:
+        if self.keyboard_mode in {'dock', 'system', 'systemanddock'}:
             p2 = "You have the right setting to use this demo.\n\n"
         else:
             p2 = "You need the keyboard mode to 'dock', 'system' or '"\
@@ -175,7 +175,7 @@ class KeyboardScreen(Screen):
                     text=key,
                     on_release=partial(self.set_layout, key)))
 
-    def set_layout(self, layout, button):
+    def set_layout(self, layout, button, touch):
         """ Change the keyboard layout to the one specified by *layout*. """
         kb = Window.request_keyboard(
             self._keyboard_close, self)
