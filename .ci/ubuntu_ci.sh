@@ -257,7 +257,7 @@ install_ubuntu_build_deps() {
           libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev fcitx-libs-dev \
           libayatana-appindicator3-dev \
-          sway wl-clipboard
+          sway wl-clipboard xclip
 }
 
 generate_rpi_wheels() {

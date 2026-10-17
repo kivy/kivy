@@ -37,7 +37,10 @@ print('clipboard round trip completed', flush=True)
     try:
         process.wait(timeout=10)
         assert process.returncode == 0
-        output, _ = process.communicate(timeout=1)
+        try:
+            output, _ = process.communicate(timeout=1)
+        except subprocess.TimeoutExpired:
+            pytest.fail('xclip is still holding the output pipe')
         assert b'clipboard round trip completed' in output
     finally:
         if process.poll() is None:
