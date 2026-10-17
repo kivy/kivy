@@ -96,3 +96,43 @@ class ImageTestCase(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fd:
             self.assertTrue(img.save(fd.name))
+
+
+class PILAnimatedGifTestCase(unittest.TestCase):
+
+    def _load_gif(self, frames):
+        from kivy.core.image.img_pil import ImageLoaderPIL
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = os.path.join(tmpdir, 'frames.gif')
+            frames[0].save(
+                filename, save_all=True, append_images=frames[1:],
+                duration=100, loop=0)
+            return ImageLoaderPIL(filename)._data
+
+    def test_gif_frames_without_transparency(self):
+        from PIL import Image as PILImage
+
+        colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+        frames = [PILImage.new('RGB', (4, 4), c) for c in colors]
+        data = self._load_gif(frames)
+
+        self.assertEqual(len(data), len(colors))
+        for frame, color in zip(data, colors):
+            self.assertEqual(frame.fmt, 'rgba')
+            self.assertEqual(tuple(frame.data[:4]), color + (255, ))
+
+    def test_gif_frames_with_transparency(self):
+        from PIL import Image as PILImage
+
+        frames = []
+        for color in [(255, 0, 0, 255), (0, 0, 255, 255)]:
+            frame = PILImage.new('RGBA', (4, 4), color)
+            frame.putpixel((0, 0), (0, 0, 0, 0))
+            frames.append(frame)
+        data = self._load_gif(frames)
+
+        self.assertEqual(len(data), len(frames))
+        for frame, color in zip(data, [(255, 0, 0, 255), (0, 0, 255, 255)]):
+            self.assertEqual(tuple(frame.data[:4]), (0, 0, 0, 0))
+            self.assertEqual(tuple(frame.data[4:8]), color)

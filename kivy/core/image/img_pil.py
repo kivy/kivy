@@ -88,8 +88,10 @@ class ImageLoaderPIL(ImageLoaderBase):
                 img_tmp = self._img_correct(img_tmp)
                 if img_ol and (hasattr(im, 'dispose') and not im.dispose):
                     # paste new frame over old so as to handle
-                    # transparency properly
-                    img_ol.paste(img_tmp, (0, 0), img_tmp)
+                    # transparency properly. An RGB frame has no alpha
+                    # channel to use as a mask
+                    mask = img_tmp if img_tmp.mode == 'RGBA' else None
+                    img_ol.paste(img_tmp, (0, 0), mask)
                     img_tmp = img_ol
                 img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
