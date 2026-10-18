@@ -14,7 +14,7 @@ env:
 jobs:
   ios_wheels_create:
     name: Build iOS wheels
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]')
+    if: (github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]')
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -58,7 +58,7 @@ jobs:
   ios_wheel_upload:
     runs-on: macos-26
     needs: ios_wheels_create
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python
