@@ -1,6 +1,10 @@
 import gc
+import os
+import tempfile
 import unittest
 import weakref
+
+from types import SimpleNamespace
 
 from kivy.event import EventDispatcher
 from kivy.input.recorder import Recorder
@@ -77,6 +81,36 @@ class RecorderReleaseTest(unittest.TestCase):
         del recorder
         gc.collect()
         self.assertIsNone(reference())
+
+class ModuleStartStopTest(unittest.TestCase):
+
+    def test_stop_unbinds_module_key_handler(self):
+        from kivy.modules import recorder as recorder_module
+        window = RecorderWindow()
+        with tempfile.TemporaryDirectory() as tmp:
+            filename = os.path.join(tmp, 'recorder.kvi')
+            ctx = SimpleNamespace(config={'filename': filename})
+            recorder_module.start(window, ctx)
+            self.assertEqual(
+                len(window.get_property_observers('on_key_down')), 1)
+            # F8 through the module binding starts recording and creates the file
+            window.dispatch('on_key_down', window, 289)
+            self.assertTrue(ctx.recorder.record)
+            self.assertTrue(os.path.exists(filename))
+            ctx.recorder.record = False
+
+            recorder_module.stop(window, ctx)
+            self.assertEqual(window.get_property_observers('on_key_down'), [])
+            # F8 after stop must not restart recording or recreate the file
+            os.unlink(filename)
+            window.dispatch('on_key_down', window, 289)
+            self.assertFalse(ctx.recorder.record)
+            self.assertFalse(os.path.exists(filename))
+            # and the recorder is no longer retained by the window
+            reference = weakref.ref(ctx.recorder)
+            del ctx.recorder
+            gc.collect()
+            self.assertIsNone(reference())
 
 
 if __name__ == '__main__':
