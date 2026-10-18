@@ -1341,3 +1341,12 @@ location. You may need to migrate existing data (see Linux migration example abo
 
 For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
 ```
+*Gesture matching is now rotation-invariant by default*
+
+``GestureDatabase.find()`` and gesture equality (``==``) default to
+``rotation_invariant=True``, and that flag now works as documented. Gestures
+that differ only by rotation, such as a swipe right and a swipe left, now
+match at the default ``minscore`` of 0.9 where they previously did not.
+
+Apps that relied on the old, uncompensated behavior should pass
+``rotation_invariant=False`` to keep it.
