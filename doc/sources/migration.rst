@@ -1224,6 +1224,7 @@ removed. ``SvgWidget`` and ``AsyncSvgWidget`` are registered in the Factory
 under their own names and can be used directly from KV.
 
 
+================================
 Application Storage Directories
 ================================
 
@@ -1340,4 +1341,21 @@ If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a
 location. You may need to migrate existing data (see Linux migration example above).
 
 For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
-```
+
+========
+Gestures
+========
+
+*Gesture matching is now rotation-invariant by default*
+
+**Behavior Changes**
+
+``GestureDatabase.find()`` and gesture equality (``==``) default to
+``rotation_invariant=True``, and that flag now works as documented. Gestures
+that differ only by rotation, such as a swipe right and a swipe left, now
+match at the default ``minscore`` of 0.9 where they previously did not.
+
+**Migration Impact**
+
+Apps that relied on the old, uncompensated behavior should pass
+``rotation_invariant=False`` to keep it.
