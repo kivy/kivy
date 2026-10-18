@@ -233,7 +233,9 @@ class Cache(object):
                 objtimeout = Cache._objects[category][key]['timeout']
 
                 # take the object timeout if available, else the category's
-                timeout = objtimeout if objtimeout is not None else Cache._categories[category]['timeout']
+                timeout = (
+                    objtimeout if objtimeout is not None
+                    else Cache._categories[category]['timeout'])
 
                 # no timeout, cancel
                 if timeout is None:
