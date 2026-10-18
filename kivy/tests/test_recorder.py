@@ -92,9 +92,9 @@ class ModuleStartStopTest(unittest.TestCase):
             ctx = SimpleNamespace(config={'filename': filename})
             recorder_module.start(window, ctx)
             self.assertEqual(
-                len(window.get_property_observers('on_key_down')), 1)
+                len(window.get_property_observers('on_key_down')), 2)
             # F8 through the module binding starts recording and creates the file
-            window.dispatch('on_key_down', window, 289)
+            window.dispatch('on_key_down', 289)
             self.assertTrue(ctx.recorder.record)
             self.assertTrue(os.path.exists(filename))
             ctx.recorder.record = False
@@ -103,12 +103,13 @@ class ModuleStartStopTest(unittest.TestCase):
             self.assertEqual(window.get_property_observers('on_key_down'), [])
             # F8 after stop must not restart recording or recreate the file
             os.unlink(filename)
-            window.dispatch('on_key_down', window, 289)
+            window.dispatch('on_key_down', 289)
             self.assertFalse(ctx.recorder.record)
             self.assertFalse(os.path.exists(filename))
             # and the recorder is no longer retained by the window
             reference = weakref.ref(ctx.recorder)
             del ctx.recorder
+            del ctx.key_handler
             gc.collect()
             self.assertIsNone(reference())
 
