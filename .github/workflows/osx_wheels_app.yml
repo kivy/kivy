@@ -38,7 +38,7 @@ jobs:
         path: dist
 
   osx_wheels_create:
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
+    if: (github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
       CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15"
       CIBW_BUILD: "cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2 cp314-macosx_universal2"
@@ -182,7 +182,7 @@ jobs:
 
   osx_app_create:
     runs-on: macos-latest
-    if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
+    if: github.event_name != 'pull_request' && ((github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
