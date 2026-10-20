@@ -719,7 +719,8 @@ class WindowBase(EventDispatcher):
     Will return 0 if not on mobile platform or if IME is not active.
 
     On iOS and Android the value is read from :mod:`kivy.mobile`
-    (``get_keyboard_height``), which reports the live IME inset height.
+    (``get_keyboard_height``), which reports the live IME inset height in
+    the units of :attr:`size`.
 
     .. versionadded:: 1.9.0
 
@@ -755,7 +756,7 @@ class WindowBase(EventDispatcher):
     safe_area = DictProperty(
         {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
     )
-    '''Safe-area insets in layout points for the current device and orientation.
+    '''Safe-area insets for the current device and orientation.
 
     Covers areas of the screen that should not be obscured by app content:
     the status bar / Dynamic Island (top), the home indicator (bottom), and
@@ -763,7 +764,8 @@ class WindowBase(EventDispatcher):
 
     The dictionary always contains the keys ``"top"``, ``"left"``,
     ``"bottom"``, and ``"right"``.  All values are in the same coordinate
-    system as Kivy layout (UIKit points on iOS).
+    system as Kivy layout (the units of :attr:`size`: pixels on iOS and
+    Android).
 
     The property is refreshed automatically whenever the window size or
     rotation changes.  On desktop platforms it remains
