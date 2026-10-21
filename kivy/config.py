@@ -291,7 +291,7 @@ Available configuration tokens
         .. warning::
             For shaping to work reliably across platforms, set
             `Window.clearcolor` to `(0, 0, 0, 0)`.
-    `alpha_size: int (default: 0 on the Raspberry Pi and 8 on all other platforms)
+    `alpha_size`: int (default: 0 on the Raspberry Pi and 8 on all other platforms)
         Specifies the minimum number of bits for the alpha channel of the color buffer.
         Set this to 0, so SDL3 works without X11.
         Only applicable for the SDL3 window provider.
