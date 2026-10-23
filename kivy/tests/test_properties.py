@@ -1612,3 +1612,69 @@ def test_object_init_error():  # the above 3 test rely on this
     with pytest.raises(TypeError) as cm:
         TestCls(name='foo')
     assert str(cm.value).startswith("object.__init__() takes")
+
+
+def _list_widget():
+    from kivy.properties import ListProperty
+
+    class ListWidget(EventDispatcher):
+        items = ListProperty([1, 2])
+
+    widget = ListWidget()
+    dispatched = []
+    widget.fbind('items', lambda *args: dispatched.append(1))
+    return widget, dispatched
+
+
+def test_observable_list_inplace_add():
+    # `widget.items += [3]` assigns the return value of __iadd__ back to the
+    # property, so it has to return the list itself.
+    widget, dispatched = _list_widget()
+    widget.items += [3]
+    assert widget.items == [1, 2, 3]
+    assert len(dispatched) == 1
+
+
+def test_observable_list_inplace_mul():
+    widget, dispatched = _list_widget()
+    widget.items *= 2
+    assert widget.items == [1, 2, 1, 2]
+    assert len(dispatched) == 1
+
+
+def test_observable_list_clear_dispatches():
+    widget, dispatched = _list_widget()
+    widget.items.clear()
+    assert widget.items == []
+    assert len(dispatched) == 1
+
+
+def test_recycleview_data_clear_then_append():
+    from kivy.core.window import Window
+    from kivy.clock import Clock
+    from kivy.lang import Builder
+
+    rv = Builder.load_string("""
+RecycleView:
+    viewclass: 'Widget'
+    size: 100, 100
+    data: ({} for __ in range(10))
+    RecycleBoxLayout:
+        orientation: 'vertical'
+        default_size_hint: 1, None
+        default_size: 100, 40
+        size_hint: None, None
+        size: self.minimum_size
+""")
+    Window.add_widget(rv)
+    try:
+        Clock.tick()
+        rv.data.clear()
+        Clock.tick()
+        assert rv.layout_manager.children == []
+
+        rv.data.append({})
+        Clock.tick()
+        assert len(rv.layout_manager.children) == 1
+    finally:
+        Window.remove_widget(rv)
