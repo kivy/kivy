@@ -60,17 +60,12 @@ via the `PiWheels <https://www.piwheels.org/>`_ project.
 For other Python versions, on 32 bit OSes, you will need to install from source.
 
 
-Setup terminal and pip
-^^^^^^^^^^^^^^^^^^^^^^
+Setup terminal and python
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before Kivy can be installed, Python and pip needs to be :ref:`pre-installed<install-python>`.
 Then, start a :ref:`new terminal<command-line>` that has
-:ref:`Python available<install-python>`. In the terminal, update ``pip`` and other installation
-dependencies so you have the latest version as follows (for linux users you may have to
-substitute ``python3`` instead of ``python`` and also add a ``--user`` flag in the
-subsequent commands outside the virtual environment)::
-
-     python -m pip install --upgrade pip setuptools virtualenv
+:ref:`Python available<install-python>`.
 
 Create virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -160,6 +155,11 @@ First install the additional system dependencies listed for each platform:
     our CI uses to build the wheels. The SDL dependencies are built from source and installed into a
     specific directory.
 
+.. _kivy-deps-build:
+
+Install SDL3
+++++++++++++
+
 With all the build tools installed, you can now install the SDL dependencies from source for SDL support
 (this is not needed on Windows as we provide pre-built SDL dependencies for Windows)
 
@@ -207,6 +207,9 @@ variable with::
 
     export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
 
+Kivy installation proper
+++++++++++++++++++++++++
+
 With the dependencies installed, and `KIVY_DEPS_ROOT` set you can now install Kivy into the virtual environment.
 
 To install the stable version of Kivy, from the terminal do::
@@ -216,6 +219,11 @@ To install the stable version of Kivy, from the terminal do::
 To install the latest cutting-edge Kivy from **master**, instead do::
 
     python -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
+
+A few environment variables can be used to tune the Kivy build for your use-case:
+
+``USE_X11=1`` will enable the X11 backend for platforms where it is supported but not enabled by
+default.  You will generally want to use SDL3 instead, though.
 
 If ``USE_LEGACY_OPENGL=1`` has been used to build SDL3 with Apple-provided OpenGL framework, you will need to
 build Kivy without ANGLE support. To do so, you can set the ``USE_ANGLE_GL_BACKEND`` environment variable to
@@ -294,6 +302,10 @@ To run the test suite, simply run::
 or in bash or Linux::
 
     make test
+
+If you wish to run tests in a container, for example to check against the reference Ubuntu distro
+while working on a different distro, you need to make sure SDL3 can initialize graphics: you can do
+his for example by using a fake X11 display, by running under Xvfb with ``xvfb-run pytests ...``
 
 On *BSD Unix remember to use ``gmake`` (GNU) in place of ``make`` (BSD).
 
