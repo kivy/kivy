@@ -336,14 +336,6 @@ class Animation(EventDispatcher):
             anim = widgets[uid]
             widget = anim['widget']
 
-            if isinstance(widget, WeakProxy) and not len(dir(widget)):
-                # empty proxy, widget is gone. ref: #2458
-                self._widgets.pop(uid, None)
-                self._clock_uninstall()
-                if not self._widgets:
-                    self._unregister()
-                continue
-
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
@@ -356,11 +348,23 @@ class Animation(EventDispatcher):
                 progress = 1
             t = transition(progress)
 
-            # apply progression on widget
-            for key, values in anim['properties'].items():
-                a, b = values
-                value = calculate(a, b, t)
-                setattr(widget, key, value)
+            try:
+                # apply progression on widget
+                for key, values in anim['properties'].items():
+                    a, b = values
+                    value = calculate(a, b, t)
+                    setattr(widget, key, value)
+            except ReferenceError:
+                if not isinstance(widget, WeakProxy) or len(dir(widget)):
+                    # Widget is not a weakref or it is still valid
+                    raise
+
+                # Widget is gone. ref: #2458 and #8954
+                self._widgets.pop(uid, None)
+                self._clock_uninstall()
+                if not self._widgets:
+                    self._unregister()
+                continue
 
             self.dispatch('on_progress', widget, progress)
 
