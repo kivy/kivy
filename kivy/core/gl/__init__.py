@@ -88,3 +88,11 @@ if 'KIVY_DOC' not in environ:
     # To be able to use our GL provider, we must have a window
     # Automatically import window auto to ensure the default window creation
     import kivy.core.window  # NOQA
+
+
+def initialize_opengl():
+    from kivy.logger import Logger
+    Logger.critical('GL: Test failure')
+    msgbox('Test OpenGL failure')  # Force msgbox call
+
+initialize_opengl()
