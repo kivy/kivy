@@ -1661,6 +1661,12 @@ cdef class AliasProperty(Property):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
+            if oprop is None:
+                raise TypeError(
+                    f'AliasProperty {name!r} cannot bind to '
+                    f'{obj.__class__.__name__}.{prop}: expected a Property, '
+                    'got None'
+                )
             oprop.fbind(obj, self.trigger_change, 0)
 
     cpdef trigger_change(self, EventDispatcher obj, value):
