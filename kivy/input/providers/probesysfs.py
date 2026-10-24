@@ -129,7 +129,7 @@ else:
                         break
                     if prop.startswith(b'Device Node'):
                         try:
-                            evpath = prop.split('"')[1]
+                            evpath = prop.split(b'"')[1]
                         except Exception:
                             evpath = None
                 if evpath:
