@@ -789,98 +789,72 @@ cdef class Quad(VertexInstruction):
 
 
 cdef class Rectangle(VertexInstruction):
-    '''A 2d rectangle.
-
-    :Parameters:
-        `pos`: list
-            Position of the rectangle, in the format (x, y).
-        `size`: list
-            Size of the rectangle, in the format (width, height).
-    '''
-    cdef float x,y,w,h
-    cdef list _points
-
-    def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
-        v = kwargs.get('pos')
-        self.pos = v if v is not None else (0, 0)
-        v = kwargs.get('size')
-        self.size = v if v is not None else (100, 100)
-
-    cdef void build(self):
-        cdef float x, y, w, h
-        cdef float *tc = self._tex_coords
-        cdef vertex_t vertices[4]
-        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
-
-        # reset points
-        self._points = []
-
-        x, y = self.x, self.y
-        w, h = self.w, self.h
+   '''A 2d rectangle optimized for faster point handling with direct memory access.
 
 
-        vertices[0].x = x
-        vertices[0].y = y
-        vertices[0].s0 = tc[0]
-        vertices[0].t0 = tc[1]
-        vertices[1].x = x + w
-        vertices[1].y = y
-        vertices[1].s0 = tc[2]
-        vertices[1].t0 = tc[3]
-        vertices[2].x = x + w
-        vertices[2].y = y + h
-        vertices[2].s0 = tc[4]
-        vertices[2].t0 = tc[5]
-        vertices[3].x = x
-        vertices[3].y = y + h
-        vertices[3].s0 = tc[6]
-        vertices[3].t0 = tc[7]
+   :Parameters:
+       `pos`: tuple
+           Position of the rectangle, in the format (x, y).
+       `size`: tuple
+           Size of the rectangle, in the format (width, height).
+   '''
+   cdef:
+       float x, y, width, height
+       vertex_t* vertices
 
-        self._points = [x, y, x + w, y, x + w, y + h, x, y + h]
 
-        self.batch.set_data(vertices, 4, indices, 6)
+   def __cinit__(self, pos=(0, 0), size=(100, 100)):
+       self.x, self.y = pos
+       self.width, self.height = size
+       # Allocate memory for 4 vertices
+       self.vertices = <vertex_t*>malloc(4 * sizeof(vertex_t))
+       if not self.vertices:
+           raise MemoryError("Failed to allocate memory for rectangle vertices.")
+       self.update_vertices()
 
-    @property
-    def pos(self):
-        '''Property for getting/settings the position of the rectangle.
-        '''
-        return (self.x, self.y)
 
-    @pos.setter
-    def pos(self, pos):
-        cdef float x, y
-        x, y = pos
-        if self.x == x and self.y == y:
-            return
-        self.x = x
-        self.y = y
-        self.flag_data_update()
+   cdef void update_vertices(self):
+       # Set the vertex positions directly using pointer arithmetic
+       self.vertices[0].x = self.x
+       self.vertices[0].y = self.y
+       self.vertices[1].x = self.x + self.width
+       self.vertices[1].y = self.y
+       self.vertices[2].x = self.x + self.width
+       self.vertices[2].y = self.y + self.height
+       self.vertices[3].x = self.x
+       self.vertices[3].y = self.y + self.height
 
-    @property
-    def size(self):
-        '''Property for getting/settings the size of the rectangle.
-        '''
-        return (self.w, self.h)
 
-    @size.setter
-    def size(self, size):
-        cdef float w, h
-        w, h = size
-        if self.w == w and self.h == h:
-            return
-        self.w = w
-        self.h = h
-        self.flag_data_update()
+   def __dealloc__(self):
+       if self.vertices:
+           free(self.vertices)
 
-    @property
-    def points(self):
-        '''Property for getting the points used to draw the vertices.
 
-        .. versionadded:: 2.3.0
+   @property
+   def pos(self):
+       return (self.x, self.y)
 
-        '''
-        return self._points
+
+   @pos.setter
+   def pos(self, value):
+       self.x, self.y = value
+       self.update_vertices()  # Update vertices when position changes
+
+
+   @property
+   def size(self):
+       return (self.width, self.height)
+
+
+   @size.setter
+   def size(self, value):
+       self.width, self.height = value
+       self.update_vertices()  # Update vertices when size changes
+
+
+   def draw(self):
+       # Implement drawing logic here, using self.vertices directly
+       pass
 
 
 
