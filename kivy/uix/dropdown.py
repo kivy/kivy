@@ -235,7 +235,14 @@ class DropDown(ScrollView):
         the height of the dropdown, the dropdown might be above or below
         that widget.
         '''
+        # prevent multiple dropdown open
+        if self.parent:
+            return
+
         # ensure we are not already attached
+        # XXX: not sure this ever worked as expected, dismiss gets delayed
+        #      to another tick and self._win.add_widget(self) throws an error
+        #      if widget gets added again because parent is already set.
         if self.attach_to is not None:
             self.dismiss()
 
