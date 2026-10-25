@@ -357,6 +357,74 @@ class TestIosPlatform:
         ios = _load("ios")
         assert ios.get_system_bar_insets() is None
 
+    def test_keyboard_height_in_layout_pixels(self, monkeypatch):
+        # UIKit reports the keyboard frame in points; Kivy lays out in pixels.
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        seen = []
+        ios.subscribe_keyboard_height(seen.append)
+
+        ios._on_keyboard_frame(347.0, is_hide=False)
+        assert ios.get_keyboard_height() == 1041.0
+        assert seen == [1041.0]
+
+        # The hide notification still carries the old frame; it must read 0.
+        ios._on_keyboard_frame(347.0, is_hide=True)
+        assert ios.get_keyboard_height() == 0.0
+        assert seen == [1041.0, 0.0]
+
+    def test_keyboard_subscribers_isolated(self, monkeypatch):
+        # A subscriber raising must not stop later subscribers.
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        seen = []
+
+        def boom(_h):
+            raise RuntimeError("subscriber error")
+
+        ios.subscribe_keyboard_height(boom)
+        ios.subscribe_keyboard_height(seen.append)
+        ios._on_keyboard_frame(347.0, is_hide=False)
+        assert seen == [1041.0]
+
+    def test_safe_area_in_layout_pixels(self, monkeypatch):
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        monkeypatch.setattr(ios, "_safe_area_points", lambda: {
+            "top": 68.0, "left": 44.0, "bottom": 34.0, "right": 21.0,
+        })
+        assert ios.get_safe_area() == {
+            "top": 204.0, "left": 132.0, "bottom": 102.0, "right": 63.0,
+        }
+
+    def test_safe_area_degrades_without_uikit(self, monkeypatch):
+        ios = _load("ios")
+
+        def no_uikit():
+            raise OSError("no UIKit")
+
+        monkeypatch.setattr(ios, "_safe_area_points", no_uikit)
+        assert ios.get_safe_area() == {
+            "top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0,
+        }
+
+    def test_layout_scale_is_the_window_pixel_density(self, monkeypatch):
+        # The factor must be SDL's pixel density as used by Kivy's Window, not
+        # the screen scale, which differs on some devices (iPhone 8 Plus).
+        from kivy.base import EventLoop
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "get_scale", lambda: 3.0)
+        monkeypatch.setattr(
+            EventLoop, "window", types.SimpleNamespace(_density=2.608))
+        assert ios._layout_scale() == 2.608
+
+    def test_layout_scale_before_window_uses_native_scale(self, monkeypatch):
+        from kivy.base import EventLoop
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "get_scale", lambda: 3.0)
+        monkeypatch.setattr(EventLoop, "window", None)
+        assert ios._layout_scale() == 3.0
+
 
 class TestAndroidPlatform:
     """Validate the Android implementation module in isolation."""

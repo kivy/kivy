@@ -42,12 +42,14 @@ Public API — Tier 1 (always available on all platforms)
     ``1.0`` (Dynamic Type has no single-scalar analogue).
 
 ``get_keyboard_height()`` → float
-    Current software-keyboard height in layout points.  Returns 0 when hidden.
+    Current software-keyboard height in Kivy layout coordinates (the units of
+    ``Window.size``: pixels on both iOS and Android).  Returns 0 when hidden.
     (Android: requires API 30+; returns 0 below.)
 
 ``get_safe_area()`` → dict
-    Safe-area insets in layout points (Android: requires API 30+; returns
-    all-zero insets below)::
+    Safe-area insets in Kivy layout coordinates, like
+    ``get_keyboard_height()`` (Android: requires API 30+; returns all-zero
+    insets below)::
 
         {"top": float, "left": float, "bottom": float, "right": float}
 
@@ -56,7 +58,8 @@ Public API — Tier 1 (always available on all platforms)
 
 ``subscribe_keyboard_height(callback)``
     Register *callback(height: float)* to be called whenever the keyboard
-    frame changes.  Called with 0.0 when the keyboard hides.
+    frame changes, with the height in the same units as
+    ``get_keyboard_height()``.  Called with 0.0 when the keyboard hides.
 
 Public API — Tier 2 (Android platform extras)
 ---------------------------------------------
