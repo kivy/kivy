@@ -587,6 +587,7 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
+        return False
 
     def on_touch_move(self, touch):
         '''Receive a touch move event. The touch is in parent coordinates.
@@ -598,6 +599,7 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
+        return False
 
     def on_touch_up(self, touch):
         '''Receive a touch up event. The touch is in parent coordinates.
@@ -605,10 +607,11 @@ class Widget(WidgetBase):
         See :meth:`on_touch_down` for more information.
         '''
         if self.disabled:
-            return
+            return False
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+        return False
 
     def on_kv_post(self, base_widget):
         pass
