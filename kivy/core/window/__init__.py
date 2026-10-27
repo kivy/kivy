@@ -651,6 +651,9 @@ class WindowBase(EventDispatcher):
 
     .. note:: The `resize` option does not currently work with SDL3 on Android.
 
+    .. note:: On iPad a floating or undocked keyboard does not move the
+        window: :attr:`keyboard_height` is 0 while the keyboard floats.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
@@ -722,11 +725,22 @@ class WindowBase(EventDispatcher):
     (``get_keyboard_height``), which reports the live IME inset height in
     the units of :attr:`size`.
 
+    .. note::
+        On iOS the value is how far the keyboard covers the window from its
+        bottom edge, not the keyboard's own height. On iPad a floating or
+        undocked keyboard does not reach the bottom edge, so
+        :attr:`keyboard_height` is 0 while it is floating and
+        :attr:`softinput_mode` leaves the window as is. A floating keyboard
+        can therefore cover the focused widget; the user can drag it out of
+        the way. This matches the default behavior of UIKit's
+        ``UIKeyboardLayoutGuide`` (``followsUndockedKeyboard`` is ``NO``).
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 3.0.0
         The Android/iOS height is now sourced from :mod:`kivy.mobile` instead of
-        the legacy ``android`` module.
+        the legacy ``android`` module. On iPad a floating or undocked keyboard
+        reports 0.
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.properties.AliasProperty` and defaults to 0.
