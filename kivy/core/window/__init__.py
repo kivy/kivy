@@ -315,13 +315,13 @@ class WindowBase(EventDispatcher):
                 The *unicode* parameter has be deprecated in favor of
                 codepoint, and will be removed completely in future versions.
 
-        `on_drop_begin`: x, y, *args
+        `on_drop_begin`: x, y, ``*args``
             Fired when text(s) or file(s) drop on the application is about to
             begin.
 
             .. versionadded:: 2.1.0
 
-        `on_drop_file`: filename (bytes), x, y, *args
+        `on_drop_file`: filename (bytes), x, y, ``*args``
             Fired when a file is dropped on the application.
 
             .. versionadded:: 1.2.0
@@ -329,12 +329,12 @@ class WindowBase(EventDispatcher):
             .. versionchanged:: 2.1.0
                 Renamed from `on_dropfile` to `on_drop_file`.
 
-        `on_drop_text`: text (bytes), x, y, *args
+        `on_drop_text`: text (bytes), x, y, ``*args``
             Fired when a text is dropped on the application.
 
             .. versionadded:: 2.1.0
 
-        `on_drop_end`: x, y, *args
+        `on_drop_end`: x, y, ``*args``
             Fired when text(s) or file(s) drop on the application has ended.
 
             .. versionadded:: 2.1.0
@@ -2589,6 +2589,7 @@ class WindowBase(EventDispatcher):
         updates occur on the main application thread:
 
         .. code-block:: python
+
             def start_system_theme_monitor(self, interval=1.0):
                 '''
                 Starts a background monitor that checks for system theme changes.
