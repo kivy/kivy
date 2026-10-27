@@ -265,6 +265,13 @@ def _keyboard_overlap(keyboard, window) -> float:
     a floating or undocked keyboard.  The frame's height is wrong for all of
     these, so only a keyboard that reaches the window's bottom edge counts,
     and only the part of it inside the window.
+
+    This follows Apple's guidance for a floating keyboard: UIKit's own
+    ``UIKeyboardLayoutGuide`` by default (``followsUndockedKeyboard`` is
+    ``NO``) tracks the keyboard only while it is docked, and drops to the
+    bottom of the safe area when the keyboard is off screen, undocked or
+    floating.  See
+    https://developer.apple.com/documentation/uikit/uikeyboardlayoutguide/followsundockedkeyboard
     """
     kx, ky, kw, kh = keyboard
     wx, wy, ww, wh = window
