@@ -318,6 +318,53 @@ def _without_jnius():
             sys.modules["jnius"] = saved
 
 
+class _FakeObjcRuntime:
+    """Mimics the typed objc_msgSend wrappers returned by ``_objc_runtime``.
+
+    Like Objective-C itself, any message the fake has no answer for returns
+    ``nil`` (``None``) or ``0.0`` instead of raising, which is exactly how an
+    unanswered UIKit query looks from ctypes.  *replies* maps
+    ``(receiver, selector)`` to the value that message returns.
+    """
+
+    def __init__(self, replies):
+        self.replies = replies
+
+    def get_class(self, name):
+        return f"class:{name.decode()}"
+
+    def sel(self, name):
+        return name.decode()
+
+    def send_id(self, receiver, selector):
+        if receiver is None:
+            return None
+        return self.replies.get((receiver, selector))
+
+    def send_f64(self, receiver, selector):
+        if receiver is None:
+            return 0.0
+        return self.replies.get((receiver, selector), 0.0)
+
+
+def _uikit_replies(key_window_scale=None, main_screen_scale=None):
+    """Replies for a UIKit with the given screens; ``None`` means absent."""
+    replies = {("class:UIApplication", "sharedApplication"): "app"}
+    if key_window_scale is not None:
+        replies.update({
+            ("app", "keyWindow"): "window",
+            ("window", "windowScene"): "scene",
+            ("scene", "screen"): "window-screen",
+            ("window-screen", "nativeScale"): key_window_scale,
+        })
+    if main_screen_scale is not None:
+        replies.update({
+            ("class:UIScreen", "mainScreen"): "main-screen",
+            ("main-screen", "nativeScale"): main_screen_scale,
+        })
+    return replies
+
+
 def _default_insets():
     cutout = _FakeCutout([_FakeRect(0, 0, 100, 120)])
     mapping = {
@@ -348,6 +395,34 @@ class TestIosPlatform:
         # iOS Dynamic Type has no single-scalar analogue, so fontscale is 1.0.
         ios = _load("ios")
         assert ios.get_fontscale() == 1.0
+
+    def test_get_scale_from_the_key_window_screen(self, monkeypatch):
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(
+            _uikit_replies(key_window_scale=2.608, main_screen_scale=3.0))
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 2.608
+
+    def test_get_scale_before_any_window(self, monkeypatch):
+        # dp()/sp() evaluated at import time (KivyMD does this) reach
+        # get_scale() before SDL has created a UIWindow.  Every message on the
+        # key-window path then goes to nil and returns 0 instead of raising;
+        # Metrics caches that first density, so a 0 here leaves every dp/sp
+        # size at 0 for the life of the app.
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(_uikit_replies(main_screen_scale=3.0))
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 3.0
+        assert ios.get_density() == 3.0
+        assert ios.get_dpi() == 163.0 * 3.0
+
+    def test_get_scale_never_returns_zero(self, monkeypatch):
+        # With no screen to ask at all, fall back rather than report 0.
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(_uikit_replies())
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 2.0
+        assert ios.get_dpi() > 0
 
     def test_get_display_cutout_is_none(self):
         ios = _load("ios")

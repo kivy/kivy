@@ -131,15 +131,40 @@ def _key_window(rt) -> ctypes.c_void_p:
 
 
 def get_scale() -> float:
-    """UIKit nativeScale of the main screen (e.g. 3.0 on iPhone Pro)."""
+    """UIKit nativeScale of the app's screen (e.g. 3.0 on iPhone Pro).
+
+    Read from the key window's screen.  Before SDL has created a window --
+    ``dp()``/``sp()`` evaluated at import time, as KivyMD does -- there is no
+    key window, and Objective-C messages to ``nil`` return 0 rather than
+    raising.  :attr:`kivy.metrics.Metrics.density` caches the first value it
+    sees, so a 0 here would leave every ``dp``/``sp`` size at 0 for the life
+    of the app.  Fall back to ``UIScreen.mainScreen`` (deprecated since iOS 16
+    but still available, and what Kivy used before ``kivy.mobile``), and
+    never return a non-positive scale.
+    """
     try:
         rt = _objc_runtime()
         win = _key_window(rt)
+        if win:
+            screen = rt.send_id(
+                rt.send_id(win, rt.sel(b"windowScene")), rt.sel(b"screen"))
+            scale = _native_scale(rt, screen)
+            if scale > 0:
+                return scale
         screen = rt.send_id(
-            rt.send_id(win, rt.sel(b"windowScene")), rt.sel(b"screen"))
-        return float(rt.send_f64(screen, rt.sel(b"nativeScale")))
+            rt.get_class(b"UIScreen"), rt.sel(b"mainScreen"))
+        scale = _native_scale(rt, screen)
+        if scale > 0:
+            return scale
     except Exception:
-        return 2.0
+        pass
+    return 2.0
+
+
+def _native_scale(rt, screen) -> float:
+    if not screen:
+        return 0.0
+    return float(rt.send_f64(screen, rt.sel(b"nativeScale")))
 
 
 def get_dpi() -> float:
