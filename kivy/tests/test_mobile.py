@@ -387,6 +387,31 @@ class TestIosPlatform:
         ios._on_keyboard_frame(347.0, is_hide=False)
         assert seen == [1041.0]
 
+    # Rects in points; the window is an iPhone 18 Pro Max's unless noted.
+    @pytest.mark.parametrize("keyboard, window, expected", [
+        # Docked text keyboard and number pad: the whole frame is on screen.
+        ((0, 609, 440, 347), (0, 0, 440, 956), 347.0),
+        ((0, 635, 440, 321), (0, 0, 440, 956), 321.0),
+        # Connecting a hardware keyboard moves the frame below the window.
+        ((0, 956, 440, 289), (0, 0, 440, 956), 0.0),
+        # Only the part inside the window counts.
+        ((0, 900, 440, 347), (0, 0, 440, 956), 56.0),
+        # iPad shortcut bar with a hardware keyboard: docked, so it counts.
+        ((0, 1141.5, 834, 68.5), (0, 0, 834, 1210), 68.5),
+        # iPad floating keyboard: moving it sends this frame with no
+        # WillHide after it, and 333.5pt used to stick.
+        ((253, 713, 334, 333.5), (0, 0, 834, 1210), 0.0),
+        # iPad window smaller than the screen: the docked keyboard, converted
+        # to window coordinates, overhangs it at the bottom and sides.
+        ((-200, 700, 1032, 400), (0, 0, 700, 800), 100.0),
+        # Beside the window, and the empty frame.
+        ((700, 600, 300, 400), (0, 0, 700, 800), 0.0),
+        ((0, 0, 0, 0), (0, 0, 440, 956), 0.0),
+    ])
+    def test_keyboard_overlap(self, keyboard, window, expected):
+        ios = _load("ios")
+        assert ios._keyboard_overlap(keyboard, window) == expected
+
     def test_safe_area_in_layout_pixels(self, monkeypatch):
         ios = _load("ios")
         monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)

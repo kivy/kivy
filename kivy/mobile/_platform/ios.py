@@ -88,6 +88,11 @@ def _objc_runtime():
         ctypes.c_double, ctypes.c_void_p, ctypes.c_void_p)(addr)
     send_insets = ctypes.CFUNCTYPE(
         _UIEdgeInsets, ctypes.c_void_p, ctypes.c_void_p)(addr)
+    send_rect = ctypes.CFUNCTYPE(
+        _CGRect, ctypes.c_void_p, ctypes.c_void_p)(addr)
+    send_rect_rect_id = ctypes.CFUNCTYPE(
+        _CGRect, ctypes.c_void_p, ctypes.c_void_p, _CGRect,
+        ctypes.c_void_p)(addr)
 
     class _RT:
         pass
@@ -103,6 +108,8 @@ def _objc_runtime():
     rt.send_id2 = send_id2
     rt.send_f64 = send_f64
     rt.send_insets = send_insets
+    rt.send_rect = send_rect
+    rt.send_rect_rect_id = send_rect_rect_id
     return rt
 
 
@@ -248,6 +255,31 @@ _kb_imp_ref = None
 _kb_observer_ref = None
 
 
+def _keyboard_overlap(keyboard, window) -> float:
+    """How far the keyboard covers the window from its bottom edge, in points.
+
+    *keyboard* and *window* are ``(x, y, width, height)`` rects in the
+    window's coordinate space.  ``UIKeyboardWillChangeFrameNotification``
+    also reports frames that do not cover the window from the bottom: the
+    keyboard moving off screen when a hardware keyboard connects, and on iPad
+    a floating or undocked keyboard.  The frame's height is wrong for all of
+    these, so only a keyboard that reaches the window's bottom edge counts,
+    and only the part of it inside the window.
+    """
+    kx, ky, kw, kh = keyboard
+    wx, wy, ww, wh = window
+    if kw <= 0 or kh <= 0 or kx >= wx + ww or kx + kw <= wx:
+        return 0.0
+    # 1pt of slack for rounding in the coordinate-space conversion.
+    if ky + kh < wy + wh - 1.0:
+        return 0.0
+    return max(0.0, min(wh, wy + wh - ky))
+
+
+def _rect_tuple(rect) -> tuple[float, float, float, float]:
+    return (rect.origin.x, rect.origin.y, rect.size.width, rect.size.height)
+
+
 def _on_keyboard_frame(height_pt: float, is_hide: bool) -> None:
     """Record a keyboard frame change and notify subscribers."""
     global _keyboard_height_pt
@@ -292,12 +324,19 @@ def _install_keyboard_observer() -> None:
                     user_info, rt.sel(b"objectForKey:"), key)
 
                 if ns_value:
-                    rect_fn = ctypes.CFUNCTYPE(
-                        _CGRect, ctypes.c_void_p, ctypes.c_void_p,
-                    )(ctypes.cast(rt.lib.objc_msgSend,
-                                  ctypes.c_void_p).value)
-                    rect = rect_fn(ns_value, rt.sel(b"CGRectValue"))
-                    height = float(rect.size.height)
+                    # The end frame is in screen coordinates; measure it
+                    # against the window, which on iPad need not fill the
+                    # screen.
+                    rect = rt.send_rect(ns_value, rt.sel(b"CGRectValue"))
+                    win = _key_window(rt)
+                    screen = rt.send_id(win, rt.sel(b"screen"))
+                    space = rt.send_id(screen, rt.sel(b"coordinateSpace"))
+                    rect = rt.send_rect_rect_id(
+                        win, rt.sel(b"convertRect:fromCoordinateSpace:"),
+                        rect, space)
+                    bounds = rt.send_rect(win, rt.sel(b"bounds"))
+                    height = _keyboard_overlap(
+                        _rect_tuple(rect), _rect_tuple(bounds))
                 else:
                     height = 0.0
 
@@ -365,7 +404,11 @@ def _install_keyboard_observer() -> None:
 
 
 def get_keyboard_height() -> float:
-    """Current software keyboard height in layout pixels (0 when hidden)."""
+    """Height of the window the software keyboard covers, in layout pixels.
+
+    0 when the keyboard is hidden, off screen (a hardware keyboard is
+    connected), or floating or undocked on iPad.
+    """
     return _keyboard_height_pt * _layout_scale()
 
 
