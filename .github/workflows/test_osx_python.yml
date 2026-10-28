@@ -16,9 +16,9 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
         python: ['3.13']
     steps:
     - uses: actions/checkout@v4
