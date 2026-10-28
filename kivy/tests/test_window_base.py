@@ -108,6 +108,36 @@ class WindowSoftinputTest(GraphicUnitTest):
             assert self.drawn_offset() == 60
             assert self.touch_y(170) == pytest.approx(110)
 
+    def test_system_pan_leaves_content_in_place(self):
+        win = self.Window
+        self.target.y = 20
+        with mock.patch.object(win, '_system_pans_softinput', True):
+            for mode in ('pan', 'below_target'):
+                win.softinput_mode = mode
+                self.show_keyboard(100, target=self.target)
+                assert self.drawn_offset() == 0, mode
+                assert self.touch_y(30) == pytest.approx(30), mode
+
+    def test_system_pan_viewport_before_keyboards_configured(self):
+        # create_window() calls update_viewport() before
+        # configure_keyboards() sets allow_vkeyboard
+        win = self.Window
+        win.softinput_mode = ''
+        allow_vkeyboard = win.allow_vkeyboard
+        del win.allow_vkeyboard
+        try:
+            with mock.patch.object(win, '_system_pans_softinput', True):
+                win.update_viewport()
+        finally:
+            win.allow_vkeyboard = allow_vkeyboard
+
+    def test_system_pan_keeps_vkeyboard_offset(self):
+        win = self.Window
+        with mock.patch.object(win, '_system_pans_softinput', True), \
+                mock.patch.object(win, 'allow_vkeyboard', True):
+            self.show_keyboard(60, target=None)
+            assert self.drawn_offset() == 60
+
 
 class WindowScreenshotTest(GraphicUnitTest):
 
