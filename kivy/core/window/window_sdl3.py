@@ -153,6 +153,10 @@ class WindowSDL(WindowBase):
 
     managed_textinput = True
 
+    # show_keyboard() gives SDL the text input area, and Android pans the
+    # window (adjustPan) to keep it above the keyboard
+    _system_pans_softinput = platform == 'android'
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._cursor_entered = False
