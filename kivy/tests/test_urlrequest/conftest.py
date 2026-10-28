@@ -92,7 +92,8 @@ def _httpsserver_session(_https_ssl_context):
     pytest.importorskip("pytest_httpserver")
     from pytest_httpserver import HTTPServer
 
-    server = HTTPServer(host="127.0.0.1", port=0, ssl_context=_https_ssl_context)
+    server = HTTPServer(
+        host="127.0.0.1", port=0, ssl_context=_https_ssl_context)
     server.start()
     try:
         yield server

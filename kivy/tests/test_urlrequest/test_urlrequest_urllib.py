@@ -58,7 +58,8 @@ def ensure_called_from_thread(queue):
     """Ensures every callback was dispatched from this (main) thread."""
     tid = threading.get_ident()
     for item in queue:
-        assert item[0] == tid, f"Callback dispatched from wrong thread: {item!r}"
+        assert item[0] == tid, (
+            f"Callback dispatched from wrong thread: {item!r}")
 
 
 def check_progress_then_terminal(queue, expected=('success', 'redirect')):
@@ -377,7 +378,7 @@ def test_on_error(kivy_clock):
 
 @pytest.mark.timeout(30)
 def test_post(kivy_clock, httpserver):
-    """Setting ``req_body`` switches the method to POST and forwards the body."""
+    """Setting ``req_body`` switches to POST and forwards the body."""
     payload = b'name=value&other=thing'
     httpserver.expect_request(
         '/submit', method='POST', data=payload,
