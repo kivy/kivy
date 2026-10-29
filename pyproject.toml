@@ -76,7 +76,8 @@ Documentation = "https://kivy.org/doc/stable/"
 [project.optional-dependencies]
 tuio = ["oscpy"]
 dev = [
-    "pytest>=3.6",
+    # Temporary cap until https://github.com/ionelmc/pytest-benchmark/issues/321
+    "pytest>=3.6,<9.2",
     "pytest-cov",
     "pytest_asyncio!=0.11.0",
     "pytest-timeout",
