@@ -39,6 +39,8 @@ jobs:
       CIBW_BUILD_VERBOSITY_LINUX: 3
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
+      CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+      CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
         install_manylinux_build_deps

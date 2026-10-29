@@ -139,10 +139,12 @@ popd
 
 echo "-- Build SDL2_ttf"
 pushd $MANYLINUX__SDL2_TTF__FOLDER
+  # Allow the vendored FreeType's older policy version with CMake 4.
   cmake -B build-cmake \
           -DBUILD_SHARED_LIBS=ON \
           -DSDL2TTF_HARFBUZZ=ON \
           -DFT_DISABLE_PNG=OFF \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=../../dist \
