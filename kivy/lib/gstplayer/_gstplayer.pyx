@@ -32,6 +32,7 @@ cdef extern from 'gst/gst.h':
     ctypedef enum GstSeekFlags:
         GST_SEEK_FLAG_KEY_UNIT
         GST_SEEK_FLAG_FLUSH
+        GST_SEEK_FLAG_ACCURATE
 
     ctypedef enum GstStateChangeReturn:
         pass
@@ -347,9 +348,9 @@ cdef class GstPlayer:
             return -1
         return position / float(GST_SECOND)
 
-    def seek(self, float percent):
+    def seek(self, float percent, bint precise):
         with nogil:
-            self._seek(percent)
+            self._seek(percent, precise)
 
     #
     # C-like API, that doesn't require the GIL
@@ -387,7 +388,7 @@ cdef class GstPlayer:
             return 0
         return position
 
-    cdef void _seek(self, float percent) nogil:
+    cdef void _seek(self, float percent, bint precise) nogil:
         cdef GstState current_state, pending_state
         cdef gboolean ret
         cdef gint64 seek_t, duration
@@ -399,7 +400,10 @@ cdef class GstPlayer:
             seek_t = 0
         else:
             seek_t = <gint64>(percent * duration)
-        seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
+        if precise:
+            seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE
+        else:
+            seek_flags = GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
         gst_element_get_state(self.pipeline, &current_state,
                 &pending_state, <GstClockTime>GST_SECOND)
         if current_state == GST_STATE_READY:
