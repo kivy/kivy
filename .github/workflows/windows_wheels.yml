@@ -143,10 +143,11 @@ jobs:
     needs: windows_wheels_create
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          # Last Python version with wheels for the pinned dependencies.
+          python-version: '3.13'
       - uses: actions/download-artifact@v4
         with:
           # Only one windows_wheels-*-* artifact contains the sdist
