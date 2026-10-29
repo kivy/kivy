@@ -43,7 +43,7 @@ class AsyncApp(App):
     def build(self):
         return Builder.load_string(kv)
 
-    def app_func(self):
+    async def app_func(self):
         '''This will run both methods asynchronously and then block until they
         are finished
         '''
@@ -56,7 +56,7 @@ class AsyncApp(App):
             print('App done')
             self.other_task.cancel()
 
-        return asyncio.gather(run_wrapper(), self.other_task)
+        await asyncio.gather(run_wrapper(), self.other_task)
 
     async def waste_time_freely(self):
         '''This method is also run by the asyncio loop and periodically prints
@@ -85,6 +85,4 @@ class AsyncApp(App):
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(AsyncApp().app_func())
-    loop.close()
+    asyncio.run(AsyncApp().app_func())
