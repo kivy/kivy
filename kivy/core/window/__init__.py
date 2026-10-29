@@ -658,11 +658,18 @@ class WindowBase(EventDispatcher):
 
     .. versionchanged:: 1.9.1
         The 'below_target' option was added.
+
+    .. versionchanged:: 3.0.0
+        On Android, 'pan' and 'below_target' are applied by the system, which
+        pans the whole window; Kivy does not move the content as well, and
+        :attr:`keyboard_padding` has no effect for these modes.
     '''
 
     _keyboard_changed = BooleanProperty(False)
     _kheight = NumericProperty(0)
     _kanimation = None
+    _softinput_offset = 0
+    _system_pans_softinput = False
 
     def _free_kanimation(self, *largs):
         WindowBase._kanimation = None
@@ -1695,11 +1702,17 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 2.1.0
         '''
         width, height = self.unrotated_size
+        smode = self.softinput_mode
+        if smode in {'pan', 'below_target'}:
+            # touches must follow the content as update_viewport drew it
+            kheight = self._softinput_offset
+        else:
+            kheight = self.keyboard_height
         me.scale_for_screen(
             width, height,
             rotation=self.rotation,
-            smode=self.softinput_mode,
-            kheight=self.keyboard_height
+            smode=smode,
+            kheight=kheight
         )
         if widget is not None:
             parent = widget.parent
@@ -1847,12 +1860,22 @@ class WindowBase(EventDispatcher):
 
         y = 0
         _h = h
-        if smode == 'pan':
+        system_pan = (
+            smode in {'pan', 'below_target'}
+            and self._system_pans_softinput
+            and not self.allow_vkeyboard
+        )
+        if smode == 'pan' and not system_pan:
             y = kheight
-        elif smode == 'below_target':
-            y = 0 if kheight < targettop else (kheight - targettop)
+        elif smode == 'below_target' and not system_pan:
+            if self.allow_vkeyboard:
+                # _get_kivy_vkheight already measures from the target
+                y = kheight
+            elif target:
+                y = max(0, kheight - targettop)
         if smode == 'scale':
             _h -= kheight
+        self._softinput_offset = y
 
         # prepare the viewport
         glViewport(0, 0, w, _h)

@@ -1,12 +1,15 @@
 import os
+import sys
 import tempfile
+import types
 from itertools import product
+from unittest import mock
 
 import pytest
 
 from kivy import setupconfig
 from kivy.tests import GraphicUnitTest
-from kivy.tests.common import requires_graphics
+from kivy.tests.common import requires_graphics, UTMotionEvent
 from kivy.logger import LoggerHistory
 
 
@@ -25,6 +28,115 @@ class WindowBaseTest(GraphicUnitTest):
                 assert result_sy == expected_sy
         finally:
             win.system_size = old_system_size
+
+
+class WindowSoftinputTest(GraphicUnitTest):
+    """softinput_mode with a mobile system keyboard (kivy/kivy#9363)."""
+
+    def setUp(self):
+        super().setUp()
+        from kivy.uix.widget import Widget
+
+        win = self.Window
+        self._kb = {'height': 0.0}
+        mobile = types.ModuleType('kivy.mobile')
+        mobile.get_keyboard_height = lambda: self._kb['height']
+        self._patches = [
+            mock.patch.dict(sys.modules, {'kivy.mobile': mobile}),
+            mock.patch('kivy.core.window.platform', 'android'),
+        ]
+        for p in self._patches:
+            p.start()
+        self.target = Widget(size_hint=(None, None), size=(100, 40))
+        win.add_widget(self.target)
+        win.softinput_mode = 'below_target'
+
+    def tearDown(self):
+        win = self.Window
+        self.show_keyboard(0, target=None)
+        win.softinput_mode = ''
+        win.remove_widget(self.target)
+        for p in reversed(self._patches):
+            p.stop()
+        win._keyboard_changed = not win._keyboard_changed
+        super().tearDown()
+
+    def show_keyboard(self, height, target):
+        """Settle the IME at *height* without waiting for the animation."""
+        win = self.Window
+        win._system_keyboard.target = target
+        self._kb['height'] = height
+        win._kheight = height
+        win._keyboard_changed = not win._keyboard_changed
+        win.update_viewport()
+
+    def drawn_offset(self):
+        return self.Window.render_context['modelview_mat'].get()[13]
+
+    def touch_y(self, y):
+        win = self.Window
+        w, h = win.unrotated_size
+        me = UTMotionEvent('unittest', 1, {'x': 0.5, 'y': y / (h - 1.0)})
+        win.transform_motion_event_2d(me)
+        return me.y
+
+    def test_target_above_keyboard_is_not_offset(self):
+        self.target.y = 150
+        self.show_keyboard(100, target=self.target)
+        assert self.Window.keyboard_height == 100
+        assert self.drawn_offset() == 0
+        assert self.touch_y(170) == pytest.approx(170)
+
+    def test_target_behind_keyboard_touch_follows_content(self):
+        self.target.y = 20
+        self.show_keyboard(100, target=self.target)
+        assert self.drawn_offset() == 80
+        # a tap on the drawn target lands on the widget
+        assert self.target.collide_point(0, self.touch_y(20 + 80 + 10))
+
+    def test_no_target_is_not_offset(self):
+        # focus was lost but keyboard_height has not caught up yet
+        self.target.y = 150
+        self.show_keyboard(100, target=None)
+        assert self.drawn_offset() == 0
+        assert self.touch_y(170) == pytest.approx(170)
+
+    def test_vkeyboard_height_is_already_target_relative(self):
+        win = self.Window
+        with mock.patch.object(win, 'allow_vkeyboard', True):
+            self.show_keyboard(60, target=None)
+            assert self.drawn_offset() == 60
+            assert self.touch_y(170) == pytest.approx(110)
+
+    def test_system_pan_leaves_content_in_place(self):
+        win = self.Window
+        self.target.y = 20
+        with mock.patch.object(win, '_system_pans_softinput', True):
+            for mode in ('pan', 'below_target'):
+                win.softinput_mode = mode
+                self.show_keyboard(100, target=self.target)
+                assert self.drawn_offset() == 0, mode
+                assert self.touch_y(30) == pytest.approx(30), mode
+
+    def test_system_pan_viewport_before_keyboards_configured(self):
+        # create_window() calls update_viewport() before
+        # configure_keyboards() sets allow_vkeyboard
+        win = self.Window
+        win.softinput_mode = ''
+        allow_vkeyboard = win.allow_vkeyboard
+        del win.allow_vkeyboard
+        try:
+            with mock.patch.object(win, '_system_pans_softinput', True):
+                win.update_viewport()
+        finally:
+            win.allow_vkeyboard = allow_vkeyboard
+
+    def test_system_pan_keeps_vkeyboard_offset(self):
+        win = self.Window
+        with mock.patch.object(win, '_system_pans_softinput', True), \
+                mock.patch.object(win, 'allow_vkeyboard', True):
+            self.show_keyboard(60, target=None)
+            assert self.drawn_offset() == 60
 
 
 class WindowScreenshotTest(GraphicUnitTest):
