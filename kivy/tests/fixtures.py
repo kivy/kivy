@@ -4,6 +4,13 @@ import weakref
 import time
 import os.path
 
+_ASYNC_FIXTURE_DECORATOR = pytest.fixture
+if os.environ.get('KIVY_EVENTLOOP', 'asyncio') == 'asyncio':
+    try:
+        from pytest_asyncio import fixture as _ASYNC_FIXTURE_DECORATOR
+    except ImportError:
+        pass
+
 __all__ = ('kivy_clock', 'kivy_metrics', 'kivy_exception_manager', 'kivy_app')
 
 
@@ -66,7 +73,7 @@ def kivy_exception_manager():
 apps = []
 
 
-@pytest.fixture()
+@_ASYNC_FIXTURE_DECORATOR()
 async def kivy_app(request, nursery):
     gc.collect()
     if apps:

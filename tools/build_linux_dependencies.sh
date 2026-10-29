@@ -22,7 +22,7 @@ MANYLINUX__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/downloa
 MANYLINUX__SDL2_TTF__FOLDER="SDL2_ttf-$MANYLINUX__SDL2_TTF__VERSION"
 
 # manylinux libpng
-MANYLINUX__LIBPNG__VERSION="1.6.40"
+MANYLINUX__LIBPNG__VERSION="1.6.41"
 MANYLINUX__LIBPNG__URL="https://downloads.sourceforge.net/project/libpng/libpng16/$MANYLINUX__LIBPNG__VERSION/libpng-$MANYLINUX__LIBPNG__VERSION.tar.gz"
 MANYLINUX__LIBPNG__FOLDER="libpng-$MANYLINUX__LIBPNG__VERSION"
 
@@ -85,7 +85,7 @@ pushd $MANYLINUX__LIBPNG__FOLDER
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DCMAKE_BUILD_TYPE=Release \
           -DPNG_TESTS=OFF \
-          -DPNG_EXECUTABLES=OFF \
+          -DPNG_TOOLS=OFF \
           -GNinja
   cmake --build build/ --config Release --verbose --parallel
   cmake --install build/ --config Release
