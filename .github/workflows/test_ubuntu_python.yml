@@ -49,6 +49,9 @@ jobs:
         source .ci/ubuntu_ci.sh
         prepare_env_for_unittest
     - name: Install Kivy
+      env:
+        # ffpyplayer releases can precede Linux wheels; use the latest wheel.
+        PIP_ONLY_BINARY: ffpyplayer
       run: |
         source .ci/ubuntu_ci.sh
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
