@@ -146,8 +146,8 @@ class Vector(list):
             self.x += val
             self.y += val
         else:
-            self.x += val.x
-            self.y += val.y
+            self.x += val[0]
+            self.y += val[1]
         return self
 
     def __neg__(self):
@@ -161,8 +161,8 @@ class Vector(list):
             self.x -= val
             self.y -= val
         else:
-            self.x -= val.x
-            self.y -= val.y
+            self.x -= val[0]
+            self.y -= val[1]
         return self
 
     def __mul__(self, val):
@@ -176,8 +176,8 @@ class Vector(list):
             self.x *= val
             self.y *= val
         else:
-            self.x *= val.x
-            self.y *= val.y
+            self.x *= val[0]
+            self.y *= val[1]
         return self
 
     def __rmul__(self, val):
@@ -212,8 +212,8 @@ class Vector(list):
             self.x /= val
             self.y /= val
         else:
-            self.x /= val.x
-            self.y /= val.y
+            self.x /= val[0]
+            self.y /= val[1]
         return self
 
     def length(self):

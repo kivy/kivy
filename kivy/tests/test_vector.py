@@ -39,6 +39,15 @@ class VectorTestCase(unittest.TestCase):
         self.assertEqual(finalVector.x, 2)
         self.assertEqual(finalVector.y, 2)
 
+    def test_inplace_with_sequence(self):
+        finalVector = Vector(1, 1)
+        finalVector += (1, 2)
+        self.assertEqual(finalVector, [2, 3])
+        finalVector -= [1, 1]
+        self.assertEqual(finalVector, [1, 2])
+        finalVector *= (3, 2)
+        self.assertEqual(finalVector, [3, 4])
+
     def test_sum_inplace_scalar(self):
         finalVector = Vector(1, 1)
         finalVector += 1
