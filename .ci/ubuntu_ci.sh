@@ -141,11 +141,13 @@ install_kivy() {
 }
 
 install_kivy_examples_wheel() {
-  options=${1:-full,dev}
+  options=${1-full,dev}
   root="$(pwd)"
   cd ~
   python3 -m pip install --pre --no-index --no-deps -f "$root/dist" "kivy_examples"
-  python3 -m pip install --pre -f "$root/dist" "kivy_examples[$options]"
+  if [ -n "$options" ]; then
+    python3 -m pip install --pre -f "$root/dist" "kivy_examples[$options]"
+  fi
 }
 
 install_kivy_wheel() {
@@ -183,7 +185,10 @@ test_kivy_benchmark() {
 test_kivy_install() {
   cd ~
   python3 -c 'import kivy'
-  test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])' --config "kivy:log_level:error")
+  # Preserve discovery tracebacks without changing the test suite's log mode.
+  test_path=$(KIVY_NO_CONSOLELOG=1 KIVY_LOG_MODE=PYTHON python3 -c \
+    'import kivy.tests as tests; print(tests.__path__[0])' \
+    --config "kivy:log_level:error")
   cd "$test_path"
 
   cat >.coveragerc <<'EOF'
