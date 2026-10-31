@@ -181,6 +181,8 @@ jobs:
           test_kivy_install
 
   osx_app_create:
+    outputs:
+      packager_sha: ${{ steps.build_app.outputs.packager_sha }}
     runs-on: macos-latest
     if: github.event_name != 'pull_request' && ((github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
@@ -209,6 +211,7 @@ jobs:
           source .ci/osx_ci.sh
           install_platypus
       - name: Make app bundle
+        id: build_app
         run: |
           source .ci/osx_ci.sh
           generate_osx_app_bundle
@@ -263,15 +266,70 @@ jobs:
         with:
           name: osx_examples_wheel
           path: dist
+      - name: Diagnose installed-app test discovery
+        run: |
+          source .ci/osx_ci.sh
+          activate_osx_app_venv
+          cd "$HOME"
+
+          if KIVY_LOG_MODE=PYTHON KIVY_NO_CONSOLELOG=1 python3 - <<'PY'
+          import importlib.util
+          import sys
+          import kivy
+
+          print("Python:", sys.executable, sys.version, flush=True)
+          print("Kivy:", kivy.__file__, kivy.__version__, flush=True)
+          print("pytest:", importlib.util.find_spec("pytest"), flush=True)
+          import kivy.tests as tests
+          print("Installed tests:", tests.__path__[0], flush=True)
+          PY
+          then
+            printf '%s\n' 'Installed tests are importable before bootstrap.'
+          else
+            printf '%s\n' 'Pre-bootstrap test import failed; see traceback above.'
+          fi
+      - name: Require app-build packager revision
+        env:
+          PACKAGER_SHA: ${{ needs.osx_app_create.outputs.packager_sha }}
+        run: |
+          if [ -z "$PACKAGER_SHA" ]; then
+            printf '%s\n' 'The app build did not report its packager revision.' >&2
+            exit 1
+          fi
+      - name: Check out matching packager preparation tools
+        uses: actions/checkout@v7
+        with:
+          repository: kivy/kivy-sdk-packager
+          ref: ${{ needs.osx_app_create.outputs.packager_sha }}
+          path: .ci/packager-test-tools
       - name: Install test dependencies
+        env:
+          PACKAGER_SHA: ${{ needs.osx_app_create.outputs.packager_sha }}
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
-          install_kivy_examples_wheel dev
+          install_osx_app_test_dependencies \
+            "$GITHUB_WORKSPACE/.ci/packager-test-tools/osx" "$PACKAGER_SHA"
+          install_kivy_examples_wheel ""
       - name: Test Kivy app
         run: |
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
           test_kivy_install
+      - name: Upload app-test bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: osx_app_test_bootstrap_evidence
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/kivy-app-test-deps.*/dev.in
+            ${{ runner.temp }}/kivy-app-test-deps.*/constraints.txt
+            ${{ runner.temp }}/kivy-app-test-deps.*/dev.txt
+            ${{ runner.temp }}/kivy-app-test-deps.*/selected-wheels.json
+            ${{ runner.temp }}/kivy-app-test-deps.*/installed-dev.json
+            ${{ runner.temp }}/kivy-app-test-deps.*/native-dev-binaries.json
+            ${{ runner.temp }}/kivy-app-test-deps.*/kivy-before.json
+            ${{ runner.temp }}/kivy-app-test-deps.*/kivy-after.json
