@@ -185,7 +185,10 @@ echo "-- Build ThorVG (Universal, dynamic -> KivyThorVG.framework)"
 # ``tools/build_thorvg.sh`` pins the ThorVG version and the meson
 # options (loaders, engines, static-vs-shared) in a single place
 # shared by Linux, macOS and Windows CI.
-THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
+# CIBW_ENVIRONMENT does not set the target for this earlier native build.
+# Default to the wheel baseline while preserving the app builder's 11.0 override.
+MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}" \
+  THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
 
 bash "$(dirname "$0")/macos_framework_wrapper.sh" \
   "$(pwd)/kivy-dependencies/dist/lib/libthorvg-1.dylib" \
