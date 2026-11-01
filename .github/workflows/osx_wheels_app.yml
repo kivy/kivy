@@ -233,6 +233,7 @@ jobs:
           source .ci/osx_ci.sh
           rename_osx_app "$py_version"
       - name: Upload app to server
+        if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         run: |
