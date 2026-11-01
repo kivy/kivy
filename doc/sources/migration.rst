@@ -1359,3 +1359,30 @@ match at the default ``minscore`` of 0.9 where they previously did not.
 
 Apps that relied on the old, uncompensated behavior should pass
 ``rotation_invariant=False`` to keep it.
+
+=================
+Software Keyboard
+=================
+
+*New: iPad floating keyboard support*
+
+Kivy 3.x.x supports the iPad's floating and undocked keyboard. On iOS,
+:attr:`Window.keyboard_height <kivy.core.window.WindowBase.keyboard_height>`
+is how far the software keyboard covers the window from its bottom edge:
+
+- A docked keyboard reports its height, as before.
+- A floating or undocked keyboard covers none of the bottom edge, so
+  ``keyboard_height`` is 0 and
+  :attr:`~kivy.core.window.WindowBase.softinput_mode` leaves the window in
+  place. Moving the floating keyboard around the screen does not move the
+  window.
+
+This matches the default behavior of UIKit's ``UIKeyboardLayoutGuide``, which
+follows the keyboard only while it is docked (``followsUndockedKeyboard`` is
+``NO``).
+
+**Migration Impact**
+
+This is **not a breaking change**, and no code changes are needed: apps that
+use ``softinput_mode`` handle the floating keyboard automatically. A floating
+keyboard can cover the focused widget; the user can drag it out of the way.

@@ -44,7 +44,9 @@ Public API — Tier 1 (always available on all platforms)
 ``get_keyboard_height()`` → float
     Current software-keyboard height in Kivy layout coordinates (the units of
     ``Window.size``: pixels on both iOS and Android).  Returns 0 when hidden.
-    (Android: requires API 30+; returns 0 below.)
+    (Android: requires API 30+; returns 0 below.)  On iOS this is how far the
+    keyboard covers the window from its bottom edge, so it is also 0 while an
+    iPad keyboard is floating or undocked.
 
 ``get_safe_area()`` → dict
     Safe-area insets in Kivy layout coordinates, like

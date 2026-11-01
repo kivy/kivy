@@ -202,7 +202,7 @@ jobs:
           update_version_metadata
       - name: Install build dependencies
         run: |
-          brew install pkg-config cmake ninja
+          brew install pkg-config cmake ninja meson
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
