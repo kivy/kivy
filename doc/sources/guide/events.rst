@@ -173,8 +173,10 @@ to the :ref:`Widget touch event bubbling <widget-event-bubbling>` section.
 Creating custom events
 ----------------------
 
-To create an event dispatcher with custom events, you need to register the name
-of the event in the class and then create a method of the same name.
+To create an event dispatcher with custom events, you need to register
+the name of the event in a class derived from
+:class:`~kivy.event.EventDispatcher`, and then create a method of the
+same name.  Registration has to be done for each class instance.
 
 See the following example::
 
@@ -190,6 +192,19 @@ See the following example::
 
         def on_test(self, *args):
             print("I am dispatched", args)
+
+As an alternative, it is often more comfortable to declare a
+:attr:`__events__` class attribute, which
+:meth:`kivy.event.EventDispatcher.__init__` will use to call
+:meth:`kivy.event.EventDispatcher.register_event_type` for you.
+
+The previous example could also be written as::
+
+    class MyEventDispatcher(EventDispatcher):
+        __events__ = ('on_test',)
+
+        def do_something(self, value):
+            ...
 
 
 Attaching callbacks
