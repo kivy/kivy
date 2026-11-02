@@ -126,10 +126,6 @@ This also installs the minimum dependencies of Kivy. To additionally install Kiv
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
 On Python 3.14, the ``base`` and ``full`` selectors install Pillow 12.x.
-On Linux and macOS with Python 3.14, ``media`` and ``full`` do not automatically
-install ``ffpyplayer``. These selectors alone therefore do not provide
-ffpyplayer-based audio/video support on those platforms. Windows continues to
-use the GStreamer dependency selected by these extras.
 
 .. note::
 
