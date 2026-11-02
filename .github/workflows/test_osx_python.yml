@@ -19,7 +19,7 @@ jobs:
         # macos-latest runs on Apple Silicon,
         # macos-15-intel runs on Intel
         runs_on: ['macos-latest', 'macos-15-intel']
-        python: ['3.13']
+        python: ['3.13', '3.14']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
