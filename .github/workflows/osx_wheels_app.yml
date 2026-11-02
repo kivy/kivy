@@ -136,9 +136,9 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
         python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
     env:
       KIVY_GL_BACKEND: 'mock'
@@ -233,6 +233,7 @@ jobs:
           source .ci/osx_ci.sh
           rename_osx_app "$py_version"
       - name: Upload app to server
+        if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         run: |

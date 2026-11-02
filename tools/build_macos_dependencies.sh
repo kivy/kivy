@@ -21,7 +21,7 @@ MACOS__SDL2_TTF__URL="https://github.com/libsdl-org/SDL_ttf/releases/download/re
 MACOS__SDL2_TTF__FOLDER="SDL2_ttf-${MACOS__SDL2_TTF__VERSION}"
 
 # macOS libpng
-MACOS__LIBPNG__VERSION="1.6.40"
+MACOS__LIBPNG__VERSION="1.6.41"
 MACOS__LIBPNG__URL="https://download.sourceforge.net/libpng/libpng16/${MACOS__LIBPNG__VERSION}/libpng-${MACOS__LIBPNG__VERSION}.tar.gz"
 MACOS__LIBPNG__FOLDER="libpng-${MACOS__LIBPNG__VERSION}"
 
@@ -73,7 +73,7 @@ pushd $MACOS__LIBPNG__FOLDER
           -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
           -DPNG_TESTS=OFF \
-          -DPNG_EXECUTABLES=OFF \
+          -DPNG_TOOLS=OFF \
           -DPNG_SHARED=OFF \
           -DPNG_STATIC=OFF \
           -DPNG_FRAMEWORK=ON \

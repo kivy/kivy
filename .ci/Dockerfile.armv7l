@@ -8,6 +8,12 @@ WORKDIR /kivy
 
 RUN [ "cross-build-start" ]
 
+# Bullseye security packages are served from the Debian archive.
+RUN /bin/bash -c 'source /etc/os-release && \
+    if [ "$VERSION_CODENAME" = "bullseye" ]; then \
+        sed -i "s|http://deb\.debian\.org/debian-security|https://archive.debian.org/debian-security|g" /etc/apt/sources.list; \
+    fi'
+
 # Install dependencies.
 RUN /bin/bash -c 'source .ci/ubuntu_ci.sh && \
     export PIP_EXTRA_INDEX_URL="https://www.piwheels.org/simple" && \

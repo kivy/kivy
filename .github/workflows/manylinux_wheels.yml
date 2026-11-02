@@ -39,6 +39,8 @@ jobs:
       CIBW_BUILD_VERBOSITY_LINUX: 3
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
+      CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+      CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
         install_manylinux_build_deps
@@ -191,10 +193,11 @@ jobs:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.x
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          # Last Python version with wheels for the pinned dependencies.
+          python-version: '3.13'
       - name: Install CI/CD Python requirements
         run: |
           python -m pip install -r .ci/cicd-requirements.txt
