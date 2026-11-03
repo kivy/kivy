@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
         arch: ['x64']
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel win]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel win]')
     steps:
@@ -103,7 +103,7 @@ jobs:
     needs: windows_wheels_create
     strategy:
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
         arch: [ 'x64' ]
     steps:
       - uses: actions/checkout@v4
@@ -124,6 +124,8 @@ jobs:
         run: |
           . .\.ci\windows_ci.ps1
           Install-kivy-wheel
+      - name: Check installed dependencies
+        run: python -m pip check
       - name: Test Kivy Wheel
         run: |
           . .\.ci\windows_ci.ps1
@@ -141,13 +143,16 @@ jobs:
   windows_sdist_test:
     runs-on: windows-latest
     needs: windows_wheels_create
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
-          # Last Python version with wheels for the pinned dependencies.
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
       - uses: actions/download-artifact@v4
         with:
           # Only one windows_wheels-*-* artifact contains the sdist
@@ -162,6 +167,8 @@ jobs:
         run: |
           . .\.ci\windows_ci.ps1
           Install-kivy-sdist
+      - name: Check installed dependencies
+        run: python -m pip check
       - name: Test Kivy sdist
         run: |
           . .\.ci\windows_ci.ps1

@@ -8,6 +8,9 @@ For other Kivy versions, select the documentation from the dropdown on the top l
 
 Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
 
+Python 3.14 wheels target the standard CPython build with the GIL enabled.
+Free-threaded Python 3.14 builds are not supported.
+
 ==========  ==================  ==================================================  =======================================================================
 ‎           Platform            Installation                                        Packaging
 ==========  ==================  ==================================================  =======================================================================
@@ -121,6 +124,12 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
+
+On Python 3.14, the ``base`` and ``full`` selectors install Pillow 12.x.
+On Linux and macOS with Python 3.14, ``media`` and ``full`` do not automatically
+install ``ffpyplayer``. These selectors alone therefore do not provide
+ffpyplayer-based audio/video support on those platforms. Windows continues to
+use the GStreamer dependency selected by these extras.
 
 .. note::
 
