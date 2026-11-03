@@ -3072,12 +3072,14 @@ class ScrollView(StencilView):
         if not self.parent:
             return
 
-        # if _viewport is layout and has pending operation, reschedule
-        # (a RecycleLayout replaces `_trigger_layout` with a plain method,
-        # which has no `is_triggered`)
+        # Wait for pending layout or RecycleView refresh work. RecycleLayout
+        # replaces `_trigger_layout` with a plain method; the RecycleView's
+        # `_refresh_trigger` owns its scheduled work instead.
         if hasattr(self._viewport, "do_layout"):
             trigger = self._viewport._trigger_layout
-            if getattr(trigger, "is_triggered", False):
+            refresh = getattr(self, "_refresh_trigger", None)
+            if (getattr(trigger, "is_triggered", False) or
+                    getattr(refresh, "is_triggered", False)):
                 Clock.schedule_once(
                     lambda *dt: self.scroll_to(widget, padding, animate)
                 )

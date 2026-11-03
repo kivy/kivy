@@ -353,36 +353,88 @@ class ScrollViewTestCase(GraphicUnitTest):
         assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
 
 
-if __name__ == '__main__':
-    import unittest
-    unittest.main()
-
-
-def test_scroll_to_in_recycleview():
-    # RecycleLayout replaces `_trigger_layout` with a plain method, so
-    # scroll_to() must not expect a Clock trigger on it.
-    from kivy.core.window import Window
+def test_scroll_to_in_recycleview(kivy_clock):
     from kivy.lang import Builder
+    from kivy.uix.floatlayout import FloatLayout
 
-    # RecycleView is built from kv, as in the other recycleview tests
     rv = Builder.load_string('''
 RecycleView:
     viewclass: 'Widget'
-    size: 100, 100
+    size_hint: None, None
+    size: 100, 150
     data: ({} for __ in range(30))
     RecycleBoxLayout:
         orientation: 'vertical'
         default_size_hint: 1, None
         default_size: 100, 100
-        size_hint: None, None
-        size: self.minimum_size
+        size_hint: 1, None
+        height: self.minimum_height
 ''')
-    Window.add_widget(rv)
+    parent = FloatLayout()
+    parent.add_widget(rv)
     try:
-        Clock.tick()
+        for _ in range(3):
+            kivy_clock.tick()
+            kivy_clock.tick_draw()
         layout = rv.layout_manager
-        assert layout.children
+        child = min(layout.children, key=lambda view: view.y)
+        before = rv.scroll_y
+        bottom = parent.to_widget(*child.to_window(*child.pos))[1]
+        assert bottom < rv.y < bottom + child.height
 
-        rv.scroll_to(layout.children[-1], animate=False)
+        rv.refresh_from_viewport()
+        assert rv._refresh_trigger.is_triggered
+        rv.scroll_to(child, padding=0, animate=False)
+        assert rv.scroll_y == before
+        for _ in range(3):
+            kivy_clock.tick()
+            kivy_clock.tick_draw()
+        assert rv.scroll_y != before
+        bottom = parent.to_widget(*child.to_window(*child.pos))[1]
+        top = parent.to_widget(*child.to_window(child.right, child.top))[1]
+        assert rv.y - 1e-6 <= bottom
+        assert top <= rv.top + 1e-6
     finally:
-        Window.remove_widget(rv)
+        parent.remove_widget(rv)
+
+
+def test_scroll_to_defers_pending_regular_layout(kivy_clock):
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.widget import Widget
+
+    parent = FloatLayout()
+    scroll = ScrollView(size_hint=(None, None), size=(100, 150))
+    layout = BoxLayout(orientation='vertical', size_hint=(1, None),
+                       height=300)
+    for _ in range(3):
+        layout.add_widget(Widget(size_hint_y=None, height=100))
+    scroll.add_widget(layout)
+    parent.add_widget(scroll)
+    try:
+        for _ in range(3):
+            kivy_clock.tick()
+            kivy_clock.tick_draw()
+        child = sorted(layout.children, key=lambda view: view.y)[1]
+        before = scroll.scroll_y
+        bottom = parent.to_widget(*child.to_window(*child.pos))[1]
+        assert bottom < scroll.y < bottom + child.height
+        layout._trigger_layout()
+        assert layout._trigger_layout.is_triggered
+        scroll.scroll_to(child, padding=0, animate=False)
+        assert scroll.scroll_y == before
+        for _ in range(3):
+            kivy_clock.tick()
+            kivy_clock.tick_draw()
+        assert scroll.scroll_y != before
+        bottom = parent.to_widget(*child.to_window(*child.pos))[1]
+        top = parent.to_widget(*child.to_window(child.right, child.top))[1]
+        assert scroll.y - 1e-6 <= bottom
+        assert top <= scroll.top + 1e-6
+    finally:
+        parent.remove_widget(scroll)
+
+
+if __name__ == '__main__':
+    import unittest
+    unittest.main()
