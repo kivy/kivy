@@ -138,9 +138,11 @@ jobs:
         twine upload dist/*
 
   manylinux_wheel_test:
-    runs-on: ubuntu-latest
+    # setup-python has no Python 3.8/3.9 builds for Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
     env:
