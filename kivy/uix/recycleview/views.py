@@ -367,15 +367,12 @@ class RecycleDataAdapter(EventDispatcher):
         This is typically called when the data changes.
         '''
         global _cache_count
-        # Views are taken back from the end of the cache, so store them in
-        # reverse order. This way, when the same data is shown again, each
-        # index gets the view it had before.
-        for view in reversed(list(self.views.values())):
+        for view in self.views.values():
             _cached_views[view.__class__].append(view)
             _cache_count += 1
 
         for cls, views in self.dirty_views.items():
-            _cached_views[cls].extend(reversed(list(views.values())))
+            _cached_views[cls].extend(views.values())
             _cache_count += len(views)
 
         if _cache_count >= _max_cache_size:
@@ -401,6 +398,19 @@ class RecycleDataAdapter(EventDispatcher):
         ret_remain = []
         get_view = self.get_view
 
+        # Reserve same-index dirty views before allocating any new views.
+        # Otherwise an earlier index can recycle a dirty view that is still
+        # needed by a later index in this viewport.
+        indices = list(indices)
+        reserved = {}
+        for index in indices:
+            if index in previous_views:
+                continue
+            viewclass = viewclasses[index]['viewclass']
+            dirty = self.dirty_views.get(viewclass)
+            if dirty and index in dirty:
+                reserved[index] = get_view(index, data[index], viewclass)
+
         # iterate though the visible view
         # add them into the container if not already done
         for index in indices:
@@ -409,8 +419,11 @@ class RecycleDataAdapter(EventDispatcher):
                 visible_views[index] = view
                 ret_remain.append((index, view))
             else:
-                view = get_view(index, data[index],
-                                viewclasses[index]['viewclass'])
+                if index in reserved:
+                    view = reserved.pop(index)
+                else:
+                    view = get_view(index, data[index],
+                                    viewclasses[index]['viewclass'])
                 if view is None:
                     continue
                 visible_views[index] = view
