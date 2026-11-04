@@ -18,6 +18,7 @@ these tutorials:
 
 * `The Official Python Tutorial <https://docs.python.org/tutorial/>`_
 * `Learn Python in 10 minutes <https://www.stavros.io/tutorials/python/>`_
+* `CS50's Introduction to Programming with Python <https://cs50.harvard.edu/python/>`_
 
 With Kivy, you can create apps that run on:
 
