@@ -1386,3 +1386,31 @@ follows the keyboard only while it is docked (``followsUndockedKeyboard`` is
 This is **not a breaking change**, and no code changes are needed: apps that
 use ``softinput_mode`` handle the floating keyboard automatically. A floating
 keyboard can cover the focused widget; the user can drag it out of the way.
+
+========
+Graphics
+========
+
+*Chained Matrix transformations apply in call order*
+
+**Behavior Changes**
+
+:meth:`Matrix.rotate() <kivy.graphics.transformation.Matrix.rotate>` now also
+rotates the translation of the matrix, and
+:meth:`Matrix.scale() <kivy.graphics.transformation.Matrix.scale>` scales the
+whole matrix instead of only its diagonal. Like
+:meth:`Matrix.translate() <kivy.graphics.transformation.Matrix.translate>`,
+each call is applied after the transformation already in the matrix, so
+``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` now translates, then
+rotates. Results for a new :class:`~kivy.graphics.transformation.Matrix` are
+the same as before.
+
+**Migration Impact**
+
+Code that calls ``rotate()`` on a matrix with a translation, or ``scale()`` on
+a matrix that is not diagonal, now gets a different result. To get the old
+result, build each transformation from a new
+:class:`~kivy.graphics.transformation.Matrix` and combine them with
+:meth:`~kivy.graphics.transformation.Matrix.multiply`. For example, the old
+result of ``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` is
+``Matrix().translate(x, y, 0).multiply(Matrix().rotate(angle, 0, 0, 1))``.
