@@ -6,10 +6,9 @@ Installing Kivy
 Installation for Kivy version |kivy_version_bold|. Read the :ref:`changelog here <changelog>`.
 For other Kivy versions, select the documentation from the dropdown on the top left.
 
-Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
-
-Python 3.14 wheels target the standard CPython build with the GIL enabled.
-Free-threaded Python 3.14 builds are not supported.
+Kivy |kivy_version| officially supports Python versions |python_versions_bold|
+using standard CPython builds with the GIL enabled. Free-threaded Python builds
+are not supported.
 
 ==========  ==================  ==================================================  =======================================================================
 ‎           Platform            Installation                                        Packaging
