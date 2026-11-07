@@ -174,7 +174,7 @@ jobs:
       - name: Install kivy-examples wheel
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_examples_wheel dev
+          install_kivy_examples_wheel
       - name: Test Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
@@ -244,6 +244,7 @@ jobs:
           source .ci/osx_ci.sh
           rename_osx_app "$py_version"
       - name: Upload app to server
+        if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         run: |
@@ -268,7 +269,8 @@ jobs:
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
-          install_kivy_examples_wheel dev
+          install_osx_app_test_dependencies
+          install_kivy_examples_wheel
       - name: Test Kivy app
         run: |
           source .ci/osx_ci.sh

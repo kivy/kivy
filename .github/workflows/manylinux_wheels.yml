@@ -166,7 +166,7 @@ jobs:
     - name: Install kivy-examples wheel
       run: |
         source .ci/ubuntu_ci.sh
-        install_kivy_examples_wheel dev
+        install_kivy_examples_wheel
     - name: Test Kivy
       run: |
         source .ci/ubuntu_ci.sh
