@@ -293,8 +293,6 @@ class LabelBase(object):
 
     '''
 
-    __slots__ = ('options', 'texture', '_label', '_text_size')
-
     _cached_lines = []
 
     _fonts = {}
