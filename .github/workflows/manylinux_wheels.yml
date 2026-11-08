@@ -27,6 +27,8 @@ jobs:
       - name: Create wheel
         run: |
           python3 -m build --wheel --outdir dist packaging/kivy_examples
+      - name: Check distributions
+        run: python -m twine check --strict dist/*
       - name: Upload kivy-examples wheel as artifact
         uses: actions/upload-artifact@v7
         with:
@@ -83,6 +85,8 @@ jobs:
     - name: Make wheels
       run: |
         python -m cibuildwheel --output-dir wheelhouse
+    - name: Check distributions
+      run: python -m twine check --strict wheelhouse/*.whl
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v7
       with:
@@ -107,6 +111,8 @@ jobs:
         pattern: manylinux_wheels-*
         merge-multiple: true
         path: dist
+    - name: Check distributions
+      run: python -m twine check --strict dist/*
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |

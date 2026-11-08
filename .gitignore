@@ -1,6 +1,6 @@
 .coverage
-Kivy.egg-info
-Kivy-*.dist-info
+*.egg-info
+*.dist-info
 *.so
 *.pyd
 *.pyc

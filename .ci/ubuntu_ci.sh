@@ -151,7 +151,7 @@ install_kivy_wheel() {
   root="$(pwd)"
   cd ~
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
-  kivy_fname=$(ls "$root"/dist/*ivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
+  kivy_fname=$(ls "$root"/dist/kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
   python3 -m pip install "${kivy_fname}[$options]"
 }
 
@@ -160,7 +160,7 @@ install_kivy_sdist() {
   root="$(pwd)"
   cd ~
 
-  kivy_fname=$(ls $root/dist/kivy-*.tar.gz)
+  kivy_fname=$(ls "$root"/dist/kivy-*.tar.gz)
   python3 -m pip install "$kivy_fname[$options]"
 }
 
@@ -267,7 +267,7 @@ generate_rpi_wheels() {
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
-  cp kivy-delocated-wheel/*ivy-* dist/
+  cp kivy-delocated-wheel/kivy-*.whl dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do
