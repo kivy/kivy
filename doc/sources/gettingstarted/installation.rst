@@ -6,7 +6,9 @@ Installing Kivy
 Installation for Kivy version |kivy_version_bold|. Read the :ref:`changelog here <changelog>`.
 For other Kivy versions, select the documentation from the dropdown on the top left.
 
-Kivy |kivy_version| officially supports Python versions |python_versions_bold|.
+Kivy |kivy_version| officially supports Python versions |python_versions_bold|
+using standard CPython builds with the GIL enabled. Free-threaded Python builds
+are not supported.
 
 ==========  ==================  ==================================================  =======================================================================
 ‎           Platform            Installation                                        Packaging
@@ -121,6 +123,8 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
+
+On Python 3.14, the ``base`` and ``full`` selectors install Pillow 12.x.
 
 .. note::
 

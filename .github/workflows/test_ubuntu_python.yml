@@ -23,14 +23,20 @@ jobs:
 
   unit_test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.14']
     env:
       DISPLAY: ':99.0'
+      # Keep audio tests enabled without requiring a physical sound device.
+      SDL_AUDIODRIVER: dummy
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3
+    - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v5
       with:
-        python-version: 3.13
+        python-version: ${{ matrix.python }}
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -62,7 +68,7 @@ jobs:
     - name: Upload benchmarks as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: benchmarks-ubuntu-unittests-python-3.x
+        name: benchmarks-ubuntu-unittests-python-${{ matrix.python }}
         path: .benchmarks-kivy
 
   gen_docs:

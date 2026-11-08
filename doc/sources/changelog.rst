@@ -4,6 +4,82 @@ Changelog
 =========
 
 
+2.3.2
+=====
+
+Highlights
+----------
+
+- [:repo:`9480`]: Add support for Python 3.14. Kivy supports Python 3.8–3.14
+  using standard CPython builds with the GIL enabled. Free-threaded Python
+  builds are not supported.
+
+Core-providers
+--------------
+
+- [:repo:`9029`]: Preserve SDL2 window DPI defaults when `GetDpiForWindow`
+  returns zero on Windows.
+
+Distribution
+------------
+
+- [:repo:`8965`]: Bump the development version to `2.3.2.dev0`.
+- [:repo:`9463`]: Use `kivy_deps.angle~=0.5.0` on Python 3.14 while retaining
+  `~=0.4.0` on older Python versions.
+- [:repo:`9465`]: Use Pillow 12.x on Python 3.14 while retaining the existing
+  Pillow requirements on older Python versions.
+- [:repo:`9480`]: Extend wheel builds, source tests, and sdist validation to
+  Python 3.14, and update the supported Python version metadata.
+- [:repo:`9482`]: Restore automatic installation of ffpyplayer on Python 3.14
+  for the `media` and `full` selectors on Linux and macOS, requiring
+  `ffpyplayer>=4.5.4`.
+
+Documentation
+-------------
+
+- [:repo:`9468`]: Use `asyncio.run()` in the asyncio examples and application
+  documentation so they work on Python 3.14.
+
+Graphics
+--------
+
+- [:repo:`9458`]: Remove obsolete Python 2 `long` usage from Cython sources.
+
+Kv-lang
+-------
+
+- [:repo:`9445`]: Remove an obsolete AST workaround from KV f-string dependency
+  parsing for compatibility with Python 3.14.
+- [:repo:`9446`]: Correctly resolve nested attribute names in KV f-string
+  bindings.
+
+Tests/ci
+--------
+
+- [:repo:`9449`]: Fix Windows Python setup in maintenance CI.
+- [:repo:`9452`]: Replace external httpbin requests with local HTTP/HTTPS
+  servers in UrlRequest tests.
+- [:repo:`9457`]: Fix async test collection and fixture declarations.
+- [:repo:`9459`]: Cap pytest below 9.2 for compatibility with pytest-benchmark.
+- [:repo:`9461`]: Repair macOS dependency builds and update Intel runner
+  selection.
+- [:repo:`9462`]: Use an explicitly selected Python version for maintenance
+  sdist validation.
+- [:repo:`9466`]: Upgrade cibuildwheel to 3.2.1 while retaining manylinux2014
+  wheel compatibility, and repair Linux and Raspberry Pi dependency builds.
+- [:repo:`9475`]: Fix macOS app upload guards and installed-test discovery.
+- [:repo:`9487`]: Unload sounds after each audio test to release native
+  resources before interpreter shutdown.
+- [:repo:`9488`]: Pin Linux installed-wheel tests to Ubuntu 24.04 for Python
+  3.8/3.9 availability and disable fail-fast for that matrix.
+
+Widgets
+-------
+
+- [:repo:`9481`]: Move the `CodeInput` cursor-offset return outside its `finally`
+  block to avoid a SyntaxWarning on Python 3.14.
+
+
 2.3.1
 =====
 

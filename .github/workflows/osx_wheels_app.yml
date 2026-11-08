@@ -41,7 +41,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
       CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15"
-      CIBW_BUILD: "cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2"
+      CIBW_BUILD: "cp38-macosx_universal2 cp39-macosx_universal2 cp310-macosx_universal2 cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2 cp314-macosx_universal2"
       CIBW_ARCHS_MACOS: "x86_64 universal2"
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
         DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
@@ -136,10 +136,10 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        # macos-latest runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
     env:
       KIVY_GL_BACKEND: 'mock'
     steps:
@@ -156,6 +156,8 @@ jobs:
         run: |
           source .ci/ubuntu_ci.sh
           install_kivy_wheel dev
+      - name: Check installed dependencies
+        run: python -m pip check
       - uses: actions/download-artifact@v4
         with:
           name: osx_examples_wheel
@@ -233,6 +235,7 @@ jobs:
           source .ci/osx_ci.sh
           rename_osx_app "$py_version"
       - name: Upload app to server
+        if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         run: |

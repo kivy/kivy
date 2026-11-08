@@ -39,6 +39,8 @@ jobs:
       CIBW_BUILD_VERBOSITY_LINUX: 3
       CIBW_BUILD:  ${{ matrix.cibw_build }}
       CIBW_ARCHS: ${{ matrix.cibw_archs }}
+      CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+      CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
       CIBW_BEFORE_ALL_LINUX: >
         source .ci/ubuntu_ci.sh &&
         install_manylinux_build_deps
@@ -48,10 +50,10 @@ jobs:
         include:
           - os: ubuntu-latest
             cibw_archs: x86_64
-            cibw_build: 'cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64'
+            cibw_build: 'cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp314-manylinux_x86_64'
           - os: ubuntu-latest
             cibw_archs: aarch64
-            cibw_build: 'cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64 cp313-manylinux_aarch64'
+            cibw_build: 'cp38-manylinux_aarch64 cp39-manylinux_aarch64 cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64 cp313-manylinux_aarch64 cp314-manylinux_aarch64'
     if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel linux]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel linux]')
     steps:
     - uses: actions/checkout@v4
@@ -136,11 +138,13 @@ jobs:
         twine upload dist/*
 
   manylinux_wheel_test:
-    runs-on: ubuntu-latest
+    # setup-python has no Python 3.8/3.9 builds for Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     needs: [manylinux_wheel_create, kivy_examples_create]
     strategy:
+      fail-fast: false
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
     env:
       DISPLAY: ':99.0'
     steps:
@@ -162,6 +166,8 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         install_kivy_wheel dev
+    - name: Check installed dependencies
+      run: python -m pip check
     - uses: actions/download-artifact@v4
       with:
         name: linux_examples_wheel
@@ -186,21 +192,27 @@ jobs:
 
   sdist_test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.14']
     env:
       DISPLAY: ':99.0'
       KIVY_SPLIT_EXAMPLES: 0
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.x
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
-          python-version: 3.x
-      - name: Install CI/CD Python requirements
+          python-version: ${{ matrix.python }}
+      - name: Install isolated CI/CD Python requirements
         run: |
-          python -m pip install -r .ci/cicd-requirements.txt
+          # Twine's Docutils requirement conflicts with Kivy's dev extra.
+          python -m venv "$RUNNER_TEMP/kivy-sdist-build"
+          "$RUNNER_TEMP/kivy-sdist-build/bin/python" -m pip install -r .ci/cicd-requirements.txt
       - name: Generate sdist
         run: |
-          python -m build --sdist .
+          "$RUNNER_TEMP/kivy-sdist-build/bin/python" -m build --sdist .
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
@@ -215,6 +227,8 @@ jobs:
           source .ci/ubuntu_ci.sh
           export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
           install_kivy_sdist
+      - name: Check installed dependencies
+        run: python -m pip check
       - name: Test Kivy
         run: |
           source .ci/ubuntu_ci.sh
