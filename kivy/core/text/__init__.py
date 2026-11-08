@@ -942,7 +942,7 @@ class LabelBase(object):
                 middle = int(len(text) // 2)
                 l, r = text.rfind('\n', 0, middle), text.find('\n', middle)
                 if l != -1 and r != -1:
-                    center = l if center - l <= r - center else r
+                    center = l if middle - l <= r - middle else r
                 elif l != -1:
                     center = l
                 elif r != -1:
