@@ -100,39 +100,74 @@ class ImageTestCase(unittest.TestCase):
 
 class PILAnimatedGifTestCase(unittest.TestCase):
 
-    def _load_gif(self, frames):
+    RED = (255, 0, 0, 255)
+    GREEN = (0, 255, 0, 255)
+    BLUE = (0, 0, 255, 255)
+    CLEAR = (0, 0, 0, 0)
+
+    def _load_gif(self, frames, **save_kwargs):
         from kivy.core.image.img_pil import ImageLoaderPIL
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filename = os.path.join(tmpdir, 'frames.gif')
-            frames[0].save(
-                filename, save_all=True, append_images=frames[1:],
-                duration=100, loop=0)
-            return ImageLoaderPIL(filename)._data
+        bio = io.BytesIO()
+        frames[0].save(
+            bio, format='gif', save_all=True, append_images=frames[1:],
+            duration=100, loop=0, **save_kwargs)
+        bio.seek(0)
+        return ImageLoaderPIL('frames.gif', inline=True, rawdata=bio)._data
+
+    @staticmethod
+    def _pixel(frame, x, y):
+        bpp = len(frame.fmt)
+        offset = (y * frame.width + x) * bpp
+        pixel = tuple(frame.data[offset:offset + bpp])
+        return pixel if bpp == 4 else pixel + (255, )
+
+    def _frame(self, color, clear_at=None):
+        from PIL import Image as PILImage
+
+        frame = PILImage.new('RGBA', (4, 4), color)
+        if clear_at is not None:
+            frame.putpixel(clear_at, self.CLEAR)
+        return frame
 
     def test_gif_frames_without_transparency(self):
         from PIL import Image as PILImage
 
-        colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
-        frames = [PILImage.new('RGB', (4, 4), c) for c in colors]
+        colors = [self.RED, self.GREEN, self.BLUE]
+        frames = [PILImage.new('RGB', (4, 4), c[:3]) for c in colors]
         data = self._load_gif(frames)
 
         self.assertEqual(len(data), len(colors))
         for frame, color in zip(data, colors):
-            self.assertEqual(frame.fmt, 'rgba')
-            self.assertEqual(tuple(frame.data[:4]), color + (255, ))
+            self.assertEqual(self._pixel(frame, 0, 0), color)
 
-    def test_gif_frames_with_transparency(self):
+    def test_gif_partial_frames(self):
         from PIL import Image as PILImage
 
-        frames = []
-        for color in [(255, 0, 0, 255), (0, 0, 255, 255)]:
-            frame = PILImage.new('RGBA', (4, 4), color)
-            frame.putpixel((0, 0), (0, 0, 0, 0))
-            frames.append(frame)
-        data = self._load_gif(frames)
+        base = PILImage.new('RGB', (4, 4), self.RED[:3])
+        changed = base.copy()
+        changed.putpixel((0, 0), self.GREEN[:3])
+        data = self._load_gif([base, changed, base])
 
-        self.assertEqual(len(data), len(frames))
-        for frame, color in zip(data, [(255, 0, 0, 255), (0, 0, 255, 255)]):
-            self.assertEqual(tuple(frame.data[:4]), (0, 0, 0, 0))
-            self.assertEqual(tuple(frame.data[4:8]), color)
+        self.assertEqual(len(data), 3)
+        self.assertEqual(self._pixel(data[1], 0, 0), self.GREEN)
+        self.assertEqual(self._pixel(data[1], 1, 0), self.RED)
+        self.assertEqual(self._pixel(data[2], 0, 0), self.RED)
+
+    def test_gif_transparency_keeps_previous_frame(self):
+        frames = [self._frame(self.RED, clear_at=(1, 0)),
+                  self._frame(self.BLUE, clear_at=(0, 0))]
+        data = self._load_gif(frames, disposal=1)
+
+        self.assertEqual(self._pixel(data[0], 0, 0), self.RED)
+        self.assertEqual(self._pixel(data[0], 1, 0), self.CLEAR)
+        self.assertEqual(self._pixel(data[1], 0, 0), self.RED)
+        self.assertEqual(self._pixel(data[1], 1, 0), self.BLUE)
+
+    def test_gif_transparency_restores_background(self):
+        frames = [self._frame(self.RED, clear_at=(1, 0)),
+                  self._frame(self.BLUE, clear_at=(0, 0))]
+        data = self._load_gif(frames, disposal=2)
+
+        self.assertEqual(self._pixel(data[1], 0, 0), self.CLEAR)
+        self.assertEqual(self._pixel(data[1], 1, 0), self.BLUE)

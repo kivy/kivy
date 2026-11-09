@@ -36,9 +36,10 @@ class ImageLoaderPIL(ImageLoaderBase):
     In order to keep it simple, what is implemented here is what is
     natively supported by the PIL library.
 
-    As a general rule, try to use gifs that have no transparency.
-    Gif's with transparency will work but be prepared for some
-    artifacts until transparency support is improved.
+    .. versionchanged:: 3.0.0
+        Pillow composites the frames of a GIF animation itself, applying
+        the disposal method, so the loader no longer pastes frames over
+        each other.
 
     '''
     _provider_name = 'pil'
@@ -80,20 +81,11 @@ class ImageLoaderPIL(ImageLoaderBase):
         '''
         im.seek(0)
 
-        # Read all images inside
+        # Read all images inside. Pillow composites each animation frame
+        # onto the previous one, applying the disposal method.
         try:
-            img_ol = None
             while True:
-                img_tmp = im
-                img_tmp = self._img_correct(img_tmp)
-                if img_ol and (hasattr(im, 'dispose') and not im.dispose):
-                    # paste new frame over old so as to handle
-                    # transparency properly. An RGB frame has no alpha
-                    # channel to use as a mask
-                    mask = img_tmp if img_tmp.mode == 'RGBA' else None
-                    img_ol.paste(img_tmp, (0, 0), mask)
-                    img_tmp = img_ol
-                img_ol = img_tmp
+                img_tmp = self._img_correct(im)
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tobytes())
                 im.seek(im.tell() + 1)
