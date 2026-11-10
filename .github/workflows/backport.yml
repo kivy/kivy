@@ -5,6 +5,9 @@ on:
       - closed
       - labeled
 
+permissions:
+  contents: read
+
 jobs:
   backport:
     name: Backport
@@ -14,13 +17,30 @@ jobs:
     if: >
       github.event.pull_request.merged
       && (
-        github.event.action == 'closed'
+        (
+          github.event.action == 'closed'
+          && contains(toJSON(github.event.pull_request.labels.*.name), '"backport ')
+        )
         || (
           github.event.action == 'labeled'
-          && contains(github.event.label.name, 'backport')
+          && startsWith(github.event.label.name, 'backport ')
         )
       )
     steps:
-      - uses: tibdex/backport@v2
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.BACKPORT_TOKEN }}
+      - uses: korthout/backport-action@0ebd44f9c79a4a0a171200dcdcceec3ed9ca732f # v4.7.1
+        id: backport
         with:
           github_token: ${{ secrets.BACKPORT_TOKEN }}
+          # Reject merges within the PR rather than dropping their resolutions.
+          merge_commits: fail
+          pull_description: >-
+            Backport ${{ github.event.pull_request.merge_commit_sha }} from #${pull_number}.
+      # Handled failures can leave the action green, sometimes without outputs.
+      - name: Check backport result
+        if: steps.backport.outputs.was_successful != 'true'
+        run: |
+          echo "::error::Backport did not report success. Check the action log and the original pull request for details."
+          exit 1
