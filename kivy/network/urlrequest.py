@@ -336,7 +336,7 @@ class UrlRequestBase(Thread):
         else:
             result = self.get_response(resp)
             try:
-                if isinstance(result, bytes):
+                if self.decode and isinstance(result, bytes):
                     result = result.decode('utf-8')
             except UnicodeDecodeError:
                 # if it's an image? decoding would not work
