@@ -618,6 +618,12 @@ class Carousel(StencilView):
         return self._get_uid() in touch.ud
 
     def _do_touch_up(self, touch, *largs):
+        # This runs from the Clock, after the parents have already restored
+        # the touch to window coordinates. Convert it back to the coordinates
+        # of our parent, which is what on_touch_up normally receives.
+        touch.push()
+        if self.parent:
+            touch.apply_transform_2d(self.parent.to_widget)
         super(Carousel, self).on_touch_up(touch)
         # don't forget about grab event!
         for x in touch.grab_list[:]:
@@ -628,6 +634,7 @@ class Carousel(StencilView):
             touch.grab_current = x
             super(Carousel, self).on_touch_up(touch)
         touch.grab_current = None
+        touch.pop()
 
     def _change_touch_mode(self, *largs):
         if not self._touch:
