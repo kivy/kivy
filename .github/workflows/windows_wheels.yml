@@ -68,6 +68,10 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
+    - name: Check distributions
+      run: |
+        python -m pip install -c .ci/cicd-requirements.txt twine
+        python -m twine check --strict dist/*
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v7
       with:
@@ -91,6 +95,8 @@ jobs:
           pattern: windows_wheels-*-*
           merge-multiple: true
           path: dist
+      - name: Check distributions
+        run: python -m twine check --strict dist/*
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
         run: |

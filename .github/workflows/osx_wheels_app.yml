@@ -31,6 +31,8 @@ jobs:
     - name: Create wheel
       run: |
         python3 -m build --wheel --outdir dist packaging/kivy_examples
+    - name: Check distributions
+      run: python -m twine check --strict dist/*
     - name: Upload kivy-examples wheel as artifact
       uses: actions/upload-artifact@v7
       with:
@@ -92,6 +94,8 @@ jobs:
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
+    - name: Check distributions
+      run: python -m twine check --strict wheelhouse/*.whl
     - uses: actions/upload-artifact@v7
       with:
         name: osx_wheels
@@ -116,6 +120,8 @@ jobs:
       with:
         name: osx_wheels
         path: dist
+    - name: Check distributions
+      run: python -m twine check --strict dist/*
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
