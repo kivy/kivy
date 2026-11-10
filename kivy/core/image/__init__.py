@@ -985,6 +985,7 @@ class Image(EventDispatcher):
             self._anim_ev = None
 
         if allow_anim and self._anim_available and self._anim_delay >= 0:
+            self._anim_index = 0
             self._anim_ev = Clock.schedule_interval(self._anim,
                                                     self.anim_delay)
             self._anim()
