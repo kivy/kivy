@@ -54,7 +54,7 @@ class SoundAndroidPlayer(Sound):
         else:
             self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         if str(self.source).startswith("content://"):
-            self._mediaplayer.setDataSource(get_app_context(), Uri.parse(source))
+            self._mediaplayer.setDataSource(get_app_context(), Uri.parse(self.source))
         else:
             self._mediaplayer.setDataSource(self.source)
         self._completion_listener = OnCompletionListener(
