@@ -270,6 +270,12 @@ Available configuration tokens
     `verify_gl_main_thread`: int, 1 or 0, defaults to 1
         Whether to check if code that changes any gl instructions is
         running outside the main thread and then raise an error.
+    `alpha_size`: int, defaults to ``KIVY_SDL_GL_ALPHA_SIZE``
+        Specifies the minimum number of bits for the alpha channel of the color
+        buffer. Set this to ``0`` to run without X11 (e.g. KMSDRM).
+        If unset, the ``KIVY_SDL_GL_ALPHA_SIZE`` value used when building Kivy
+        is used (``0`` on the Raspberry Pi and ``8`` on all other platforms).
+        Only applicable for the SDL2 window provider.
 
 :input:
 
@@ -340,6 +346,9 @@ Available configuration tokens
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted
     arguments.
+
+.. versionadded:: 2.3.3
+    `alpha_size` has been added to the `graphics` section.
 
 .. versionadded:: 2.2.0
     `always_on_top` have been added to the `graphics` section.
