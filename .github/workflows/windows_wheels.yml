@@ -177,7 +177,7 @@ jobs:
           # Not 3.x: the sdist build needs kivy_deps.* wheels, which only
           # exist up to cp314. 3.x now resolves to 3.15, so pip finds no
           # matching kivy_deps.gstreamer_dev and the job fails.
-          python-version: '3.14'
+          python-version: '3.15'
       - uses: actions/download-artifact@v8
         with:
           # Only one windows_wheels-*-* artifact contains the sdist
