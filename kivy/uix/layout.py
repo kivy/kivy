@@ -57,6 +57,7 @@ __all__ = ('Layout', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.core.accessibility import Role
 from math import isclose
 
 
@@ -73,6 +74,7 @@ class Layout(Widget):
                 cannot be used directly.')
         if self._trigger_layout is None:
             self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
+        kwargs.setdefault('accessible_role', Role.GENERIC_CONTAINER)
         super(Layout, self).__init__(**kwargs)
 
     def do_layout(self, *largs):
