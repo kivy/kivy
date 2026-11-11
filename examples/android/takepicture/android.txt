@@ -1,3 +1,0 @@
-title=TakePicture
-author=Mathieu Virbel
-orientation=portrait
