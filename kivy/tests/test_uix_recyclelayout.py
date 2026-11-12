@@ -51,6 +51,30 @@ def test_resize_along_non_layout_axis_keeps_view_mapping(
         assert view_map(layout) == before
 
 
+@pytest.mark.parametrize(
+    'params, axis, dimension', [(VERTICAL, 'width', 'cols'),
+                                (HORIZONTAL, 'height', 'rows')])
+def test_grid_resize_along_non_layout_axis_keeps_view_mapping(
+        kivy_clock, params, axis, dimension):
+    from kivy.lang import Builder
+    grid_kv = KV.replace(
+        'RecycleBoxLayout:', 'RecycleGridLayout:\n        ' + dimension + ': 1')
+    rv = Builder.load_string(grid_kv.format(**dict(params, orientation='lr-tb')))
+    kivy_clock.tick()
+    layout = rv.ids.layout
+    before = view_map(layout)
+    assert before
+
+    for i in range(4):
+        size = 300 + 20 * (i + 1)
+        setattr(rv, axis, size)
+        kivy_clock.tick()
+        # Grid extent changes schedule another layout pass.
+        kivy_clock.tick()
+        assert view_map(layout) == before
+        assert all(getattr(view, axis) == size for view in before)
+
+
 def test_invalidate_keeps_view_to_index_assignment(kivy_clock):
     '''After the layout is recomputed, each index must get back the view it
     showed before, not the view of the mirrored index.

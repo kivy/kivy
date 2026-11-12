@@ -140,7 +140,7 @@ class RecycleGridLayout(RecycleLayout, GridLayout):
                 changed and not self._update_rows_cols_sizes(changed)):
             return
 
-        self.clear_layout()
+        self.remove_views()
         if not self._init_rows_cols_sizes(n):
             self._cols_pos = None
             l, t, r, b = self.padding
