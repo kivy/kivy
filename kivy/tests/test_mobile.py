@@ -318,6 +318,53 @@ def _without_jnius():
             sys.modules["jnius"] = saved
 
 
+class _FakeObjcRuntime:
+    """Mimics the typed objc_msgSend wrappers returned by ``_objc_runtime``.
+
+    Like Objective-C itself, any message the fake has no answer for returns
+    ``nil`` (``None``) or ``0.0`` instead of raising, which is exactly how an
+    unanswered UIKit query looks from ctypes.  *replies* maps
+    ``(receiver, selector)`` to the value that message returns.
+    """
+
+    def __init__(self, replies):
+        self.replies = replies
+
+    def get_class(self, name):
+        return f"class:{name.decode()}"
+
+    def sel(self, name):
+        return name.decode()
+
+    def send_id(self, receiver, selector):
+        if receiver is None:
+            return None
+        return self.replies.get((receiver, selector))
+
+    def send_f64(self, receiver, selector):
+        if receiver is None:
+            return 0.0
+        return self.replies.get((receiver, selector), 0.0)
+
+
+def _uikit_replies(key_window_scale=None, main_screen_scale=None):
+    """Replies for a UIKit with the given screens; ``None`` means absent."""
+    replies = {("class:UIApplication", "sharedApplication"): "app"}
+    if key_window_scale is not None:
+        replies.update({
+            ("app", "keyWindow"): "window",
+            ("window", "windowScene"): "scene",
+            ("scene", "screen"): "window-screen",
+            ("window-screen", "nativeScale"): key_window_scale,
+        })
+    if main_screen_scale is not None:
+        replies.update({
+            ("class:UIScreen", "mainScreen"): "main-screen",
+            ("main-screen", "nativeScale"): main_screen_scale,
+        })
+    return replies
+
+
 def _default_insets():
     cutout = _FakeCutout([_FakeRect(0, 0, 100, 120)])
     mapping = {
@@ -349,6 +396,34 @@ class TestIosPlatform:
         ios = _load("ios")
         assert ios.get_fontscale() == 1.0
 
+    def test_get_scale_from_the_key_window_screen(self, monkeypatch):
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(
+            _uikit_replies(key_window_scale=2.608, main_screen_scale=3.0))
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 2.608
+
+    def test_get_scale_before_any_window(self, monkeypatch):
+        # dp()/sp() evaluated at import time (KivyMD does this) reach
+        # get_scale() before SDL has created a UIWindow.  Every message on the
+        # key-window path then goes to nil and returns 0 instead of raising;
+        # Metrics caches that first density, so a 0 here leaves every dp/sp
+        # size at 0 for the life of the app.
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(_uikit_replies(main_screen_scale=3.0))
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 3.0
+        assert ios.get_density() == 3.0
+        assert ios.get_dpi() == 163.0 * 3.0
+
+    def test_get_scale_never_returns_zero(self, monkeypatch):
+        # With no screen to ask at all, fall back rather than report 0.
+        ios = _load("ios")
+        rt = _FakeObjcRuntime(_uikit_replies())
+        monkeypatch.setattr(ios, "_objc_runtime", lambda: rt)
+        assert ios.get_scale() == 2.0
+        assert ios.get_dpi() > 0
+
     def test_get_display_cutout_is_none(self):
         ios = _load("ios")
         assert ios.get_display_cutout() is None
@@ -356,6 +431,99 @@ class TestIosPlatform:
     def test_get_system_bar_insets_is_none(self):
         ios = _load("ios")
         assert ios.get_system_bar_insets() is None
+
+    def test_keyboard_height_in_layout_pixels(self, monkeypatch):
+        # UIKit reports the keyboard frame in points; Kivy lays out in pixels.
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        seen = []
+        ios.subscribe_keyboard_height(seen.append)
+
+        ios._on_keyboard_frame(347.0, is_hide=False)
+        assert ios.get_keyboard_height() == 1041.0
+        assert seen == [1041.0]
+
+        # The hide notification still carries the old frame; it must read 0.
+        ios._on_keyboard_frame(347.0, is_hide=True)
+        assert ios.get_keyboard_height() == 0.0
+        assert seen == [1041.0, 0.0]
+
+    def test_keyboard_subscribers_isolated(self, monkeypatch):
+        # A subscriber raising must not stop later subscribers.
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        seen = []
+
+        def boom(_h):
+            raise RuntimeError("subscriber error")
+
+        ios.subscribe_keyboard_height(boom)
+        ios.subscribe_keyboard_height(seen.append)
+        ios._on_keyboard_frame(347.0, is_hide=False)
+        assert seen == [1041.0]
+
+    # Rects in points; the window is an iPhone 18 Pro Max's unless noted.
+    @pytest.mark.parametrize("keyboard, window, expected", [
+        # Docked text keyboard and number pad: the whole frame is on screen.
+        ((0, 609, 440, 347), (0, 0, 440, 956), 347.0),
+        ((0, 635, 440, 321), (0, 0, 440, 956), 321.0),
+        # Connecting a hardware keyboard moves the frame below the window.
+        ((0, 956, 440, 289), (0, 0, 440, 956), 0.0),
+        # Only the part inside the window counts.
+        ((0, 900, 440, 347), (0, 0, 440, 956), 56.0),
+        # iPad shortcut bar with a hardware keyboard: docked, so it counts.
+        ((0, 1141.5, 834, 68.5), (0, 0, 834, 1210), 68.5),
+        # iPad floating keyboard: moving it sends this frame with no
+        # WillHide after it, and 333.5pt used to stick.
+        ((253, 713, 334, 333.5), (0, 0, 834, 1210), 0.0),
+        # iPad window smaller than the screen: the docked keyboard, converted
+        # to window coordinates, overhangs it at the bottom and sides.
+        ((-200, 700, 1032, 400), (0, 0, 700, 800), 100.0),
+        # Beside the window, and the empty frame.
+        ((700, 600, 300, 400), (0, 0, 700, 800), 0.0),
+        ((0, 0, 0, 0), (0, 0, 440, 956), 0.0),
+    ])
+    def test_keyboard_overlap(self, keyboard, window, expected):
+        ios = _load("ios")
+        assert ios._keyboard_overlap(keyboard, window) == expected
+
+    def test_safe_area_in_layout_pixels(self, monkeypatch):
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "_layout_scale", lambda: 3.0)
+        monkeypatch.setattr(ios, "_safe_area_points", lambda: {
+            "top": 68.0, "left": 44.0, "bottom": 34.0, "right": 21.0,
+        })
+        assert ios.get_safe_area() == {
+            "top": 204.0, "left": 132.0, "bottom": 102.0, "right": 63.0,
+        }
+
+    def test_safe_area_degrades_without_uikit(self, monkeypatch):
+        ios = _load("ios")
+
+        def no_uikit():
+            raise OSError("no UIKit")
+
+        monkeypatch.setattr(ios, "_safe_area_points", no_uikit)
+        assert ios.get_safe_area() == {
+            "top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0,
+        }
+
+    def test_layout_scale_is_the_window_pixel_density(self, monkeypatch):
+        # The factor must be SDL's pixel density as used by Kivy's Window, not
+        # the screen scale, which differs on some devices (iPhone 8 Plus).
+        from kivy.base import EventLoop
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "get_scale", lambda: 3.0)
+        monkeypatch.setattr(
+            EventLoop, "window", types.SimpleNamespace(_density=2.608))
+        assert ios._layout_scale() == 2.608
+
+    def test_layout_scale_before_window_uses_native_scale(self, monkeypatch):
+        from kivy.base import EventLoop
+        ios = _load("ios")
+        monkeypatch.setattr(ios, "get_scale", lambda: 3.0)
+        monkeypatch.setattr(EventLoop, "window", None)
+        assert ios._layout_scale() == 3.0
 
 
 class TestAndroidPlatform:

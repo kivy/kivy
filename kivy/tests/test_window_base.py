@@ -1,7 +1,12 @@
+import os
+import tempfile
 from itertools import product
+
+import pytest
 
 from kivy import setupconfig
 from kivy.tests import GraphicUnitTest
+from kivy.tests.common import requires_graphics
 from kivy.logger import LoggerHistory
 
 
@@ -20,6 +25,46 @@ class WindowBaseTest(GraphicUnitTest):
                 assert result_sy == expected_sy
         finally:
             win.system_size = old_system_size
+
+
+class WindowScreenshotTest(GraphicUnitTest):
+
+    @requires_graphics
+    def test_screenshot_saves_png(self):
+        Image = pytest.importorskip('PIL.Image')
+        from kivy.graphics import Color, Rectangle
+        from kivy.uix.widget import Widget
+
+        win = self.Window
+        if type(win).__name__ != 'WindowSDL':
+            pytest.skip('Window.screenshot() is only implemented for SDL3')
+
+        # A blue top-left quadrant on red catches flipped or garbled rows.
+        win.clearcolor = (1, 0, 0, 1)
+        widget = Widget()
+        with widget.canvas:
+            Color(0, 0, 1, 1)
+            Rectangle(pos=(0, win.height / 2),
+                      size=(win.width / 2, win.height / 2))
+        win.add_widget(widget)
+        try:
+            # Take the screenshot after the frame was presented, when the
+            # back buffer may be undefined (e.g. ANGLE/Metal).
+            self.advance_frames(2)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                path = win.screenshot(name=os.path.join(tmpdir, 'shot.png'))
+                assert os.path.exists(path)
+                with Image.open(path) as img:
+                    img = img.convert('RGB')
+                    w, h = img.size
+                    assert (w, h) == tuple(win.size)
+                    assert img.getpixel((w // 4, h // 4)) == (0, 0, 255)
+                    assert img.getpixel((3 * w // 4, h // 4)) == (255, 0, 0)
+                    assert img.getpixel((w // 4, 3 * h // 4)) == (255, 0, 0)
+                    assert img.getpixel((3 * w // 4, 3 * h // 4)) == (
+                        255, 0, 0)
+        finally:
+            win.remove_widget(widget)
 
 
 class WindowRotationTest(GraphicUnitTest):

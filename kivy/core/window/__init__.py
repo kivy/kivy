@@ -651,6 +651,9 @@ class WindowBase(EventDispatcher):
 
     .. note:: The `resize` option does not currently work with SDL3 on Android.
 
+    .. note:: On iPad a floating or undocked keyboard does not move the
+        window: :attr:`keyboard_height` is 0 while the keyboard floats.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
@@ -719,13 +722,25 @@ class WindowBase(EventDispatcher):
     Will return 0 if not on mobile platform or if IME is not active.
 
     On iOS and Android the value is read from :mod:`kivy.mobile`
-    (``get_keyboard_height``), which reports the live IME inset height.
+    (``get_keyboard_height``), which reports the live IME inset height in
+    the units of :attr:`size`.
+
+    .. note::
+        On iOS the value is how far the keyboard covers the window from its
+        bottom edge, not the keyboard's own height. On iPad a floating or
+        undocked keyboard does not reach the bottom edge, so
+        :attr:`keyboard_height` is 0 while it is floating and
+        :attr:`softinput_mode` leaves the window as is. A floating keyboard
+        can therefore cover the focused widget; the user can drag it out of
+        the way. This matches the default behavior of UIKit's
+        ``UIKeyboardLayoutGuide`` (``followsUndockedKeyboard`` is ``NO``).
 
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 3.0.0
         The Android/iOS height is now sourced from :mod:`kivy.mobile` instead of
-        the legacy ``android`` module.
+        the legacy ``android`` module. On iPad a floating or undocked keyboard
+        reports 0.
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.properties.AliasProperty` and defaults to 0.
@@ -755,7 +770,7 @@ class WindowBase(EventDispatcher):
     safe_area = DictProperty(
         {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
     )
-    '''Safe-area insets in layout points for the current device and orientation.
+    '''Safe-area insets for the current device and orientation.
 
     Covers areas of the screen that should not be obscured by app content:
     the status bar / Dynamic Island (top), the home indicator (bottom), and
@@ -763,7 +778,8 @@ class WindowBase(EventDispatcher):
 
     The dictionary always contains the keys ``"top"``, ``"left"``,
     ``"bottom"``, and ``"right"``.  All values are in the same coordinate
-    system as Kivy layout (UIKit points on iOS).
+    system as Kivy layout (the units of :attr:`size`: pixels on iOS and
+    Android).
 
     The property is refreshed automatically whenever the window size or
     rotation changes.  On desktop platforms it remains

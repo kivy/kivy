@@ -183,11 +183,12 @@ class Recorder(EventDispatcher):
             # manually set the current window
             from kivy.core.window import Window
             self.window = Window
-        self.window.bind(
+        self._window_bindings = dict(
             on_motion=self.on_motion,
             on_key_up=partial(self.on_keyboard, 'keyup'),
             on_key_down=partial(self.on_keyboard, 'keydown'),
             on_keyboard=partial(self.on_keyboard, 'keyboard'))
+        self.window.bind(**self._window_bindings)
 
     def on_motion(self, window, etype, motionevent):
         if not self.record:
@@ -215,10 +216,8 @@ class Recorder(EventDispatcher):
         self.counter += 1
 
     def release(self):
-        self.window.unbind(
-            on_motion=self.on_motion,
-            on_key_up=self.on_keyboard,
-            on_key_down=self.on_keyboard)
+        self.window.unbind(**self._window_bindings)
+        self._window_bindings.clear()
 
     def on_record(self, instance, value):
         if value:

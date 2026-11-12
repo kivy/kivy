@@ -1,9 +1,13 @@
 """iOS implementation of the kivy.mobile platform API.
 
 Uses ctypes and the Objective-C runtime to read UIKit geometry without
-adding any compiled extension dependency.  All values are returned in UIKit
-*points*, which equal Kivy layout coordinates on iOS (``nativeScale`` applies
-only to rasterization, not layout).
+adding any compiled extension dependency.
+
+UIKit reports geometry in *points*, but Kivy's iOS window is created with
+``SDL_WINDOW_HIGH_PIXEL_DENSITY`` and lays out in *pixels* (``Window.size`` is
+the window's point size times SDL's pixel density, 3.0 on current iPhones).
+:func:`get_keyboard_height` and :func:`get_safe_area` therefore convert points
+to Kivy layout pixels before returning them, matching the Android backend.
 
 This module is imported automatically by ``kivy.mobile`` when
 ``kivy.utils.platform == 'ios'``.  Do not import it directly.
@@ -84,6 +88,11 @@ def _objc_runtime():
         ctypes.c_double, ctypes.c_void_p, ctypes.c_void_p)(addr)
     send_insets = ctypes.CFUNCTYPE(
         _UIEdgeInsets, ctypes.c_void_p, ctypes.c_void_p)(addr)
+    send_rect = ctypes.CFUNCTYPE(
+        _CGRect, ctypes.c_void_p, ctypes.c_void_p)(addr)
+    send_rect_rect_id = ctypes.CFUNCTYPE(
+        _CGRect, ctypes.c_void_p, ctypes.c_void_p, _CGRect,
+        ctypes.c_void_p)(addr)
 
     class _RT:
         pass
@@ -99,6 +108,8 @@ def _objc_runtime():
     rt.send_id2 = send_id2
     rt.send_f64 = send_f64
     rt.send_insets = send_insets
+    rt.send_rect = send_rect
+    rt.send_rect_rect_id = send_rect_rect_id
     return rt
 
 
@@ -127,15 +138,40 @@ def _key_window(rt) -> ctypes.c_void_p:
 
 
 def get_scale() -> float:
-    """UIKit nativeScale of the main screen (e.g. 3.0 on iPhone Pro)."""
+    """UIKit nativeScale of the app's screen (e.g. 3.0 on iPhone Pro).
+
+    Read from the key window's screen.  Before SDL has created a window --
+    ``dp()``/``sp()`` evaluated at import time, as KivyMD does -- there is no
+    key window, and Objective-C messages to ``nil`` return 0 rather than
+    raising.  :attr:`kivy.metrics.Metrics.density` caches the first value it
+    sees, so a 0 here would leave every ``dp``/``sp`` size at 0 for the life
+    of the app.  Fall back to ``UIScreen.mainScreen`` (deprecated since iOS 16
+    but still available, and what Kivy used before ``kivy.mobile``), and
+    never return a non-positive scale.
+    """
     try:
         rt = _objc_runtime()
         win = _key_window(rt)
+        if win:
+            screen = rt.send_id(
+                rt.send_id(win, rt.sel(b"windowScene")), rt.sel(b"screen"))
+            scale = _native_scale(rt, screen)
+            if scale > 0:
+                return scale
         screen = rt.send_id(
-            rt.send_id(win, rt.sel(b"windowScene")), rt.sel(b"screen"))
-        return float(rt.send_f64(screen, rt.sel(b"nativeScale")))
+            rt.get_class(b"UIScreen"), rt.sel(b"mainScreen"))
+        scale = _native_scale(rt, screen)
+        if scale > 0:
+            return scale
     except Exception:
-        return 2.0
+        pass
+    return 2.0
+
+
+def _native_scale(rt, screen) -> float:
+    if not screen:
+        return 0.0
+    return float(rt.send_f64(screen, rt.sel(b"nativeScale")))
 
 
 def get_dpi() -> float:
@@ -181,35 +217,111 @@ def get_fontscale() -> float:
     return 1.0
 
 
+def _layout_scale() -> float:
+    """Kivy layout pixels per UIKit point.
+
+    This is SDL's window pixel density (``SDL_GetWindowPixelDensity``), which
+    the SDL3 window provider stores as ``Window._density`` and uses to scale
+    the window size and touch positions from points to pixels.  Reading the
+    same value keeps these conversions identical to Kivy's layout.
+
+    Before Kivy's window exists, fall back to the screen's ``nativeScale``:
+    SDL's UIKit backend sizes a high-pixel-density window in pixels as
+    ``view.bounds.size * uiwindow.screen.nativeScale``.  Note that
+    ``UIScreen.scale`` and ``UIView.contentScaleFactor`` are not that factor
+    (for example 3.0 against a ``nativeScale`` of ~2.61 on an iPhone 8 Plus).
+    """
+    try:
+        from kivy.base import EventLoop
+        window = EventLoop.window
+        if window is not None:
+            return float(window._density)
+    except Exception:
+        pass
+    return get_scale()
+
+
+def _safe_area_points() -> dict[str, float]:
+    """The key window's ``safeAreaInsets`` in UIKit points."""
+    rt = _objc_runtime()
+    win = _key_window(rt)
+    insets = rt.send_insets(win, rt.sel(b"safeAreaInsets"))
+    return {
+        "top":    float(insets.top),
+        "left":   float(insets.left),
+        "bottom": float(insets.bottom),
+        "right":  float(insets.right),
+    }
+
+
 def get_safe_area() -> dict[str, float]:
-    """Safe-area insets in UIKit points (== Kivy layout coordinates).
+    """Safe-area insets in Kivy layout pixels.
 
     Returns ``{"top", "left", "bottom", "right"}``.
     """
     try:
-        rt = _objc_runtime()
-        win = _key_window(rt)
-        insets = rt.send_insets(win, rt.sel(b"safeAreaInsets"))
-        return {
-            "top":    float(insets.top),
-            "left":   float(insets.left),
-            "bottom": float(insets.bottom),
-            "right":  float(insets.right),
-        }
+        insets = _safe_area_points()
     except Exception:
         return {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
+    scale = _layout_scale()
+    return {side: value * scale for side, value in insets.items()}
 
 
 # ---------------------------------------------------------------------------
 # Keyboard height — ObjC NSNotificationCenter observer
 # ---------------------------------------------------------------------------
 
-_keyboard_height: float = 0.0
+# In UIKit points; converted to layout pixels on every read.
+_keyboard_height_pt: float = 0.0
 _kb_subscribers: list = []
 
 # Strong Python references — must outlive the app.
 _kb_imp_ref = None
 _kb_observer_ref = None
+
+
+def _keyboard_overlap(keyboard, window) -> float:
+    """How far the keyboard covers the window from its bottom edge, in points.
+
+    *keyboard* and *window* are ``(x, y, width, height)`` rects in the
+    window's coordinate space.  ``UIKeyboardWillChangeFrameNotification``
+    also reports frames that do not cover the window from the bottom: the
+    keyboard moving off screen when a hardware keyboard connects, and on iPad
+    a floating or undocked keyboard.  The frame's height is wrong for all of
+    these, so only a keyboard that reaches the window's bottom edge counts,
+    and only the part of it inside the window.
+
+    This follows Apple's guidance for a floating keyboard: UIKit's own
+    ``UIKeyboardLayoutGuide`` by default (``followsUndockedKeyboard`` is
+    ``NO``) tracks the keyboard only while it is docked, and drops to the
+    bottom of the safe area when the keyboard is off screen, undocked or
+    floating.  See
+    https://developer.apple.com/documentation/uikit/uikeyboardlayoutguide/followsundockedkeyboard
+    """
+    kx, ky, kw, kh = keyboard
+    wx, wy, ww, wh = window
+    if kw <= 0 or kh <= 0 or kx >= wx + ww or kx + kw <= wx:
+        return 0.0
+    # 1pt of slack for rounding in the coordinate-space conversion.
+    if ky + kh < wy + wh - 1.0:
+        return 0.0
+    return max(0.0, min(wh, wy + wh - ky))
+
+
+def _rect_tuple(rect) -> tuple[float, float, float, float]:
+    return (rect.origin.x, rect.origin.y, rect.size.width, rect.size.height)
+
+
+def _on_keyboard_frame(height_pt: float, is_hide: bool) -> None:
+    """Record a keyboard frame change and notify subscribers."""
+    global _keyboard_height_pt
+    _keyboard_height_pt = 0.0 if is_hide else height_pt
+    height = get_keyboard_height()
+    for cb in list(_kb_subscribers):
+        try:
+            cb(height)
+        except Exception:
+            pass
 
 
 def _install_keyboard_observer() -> None:
@@ -237,7 +349,6 @@ def _install_keyboard_observer() -> None:
         )
 
         def _kb_imp(self_ptr, cmd_ptr, notif_ptr):
-            global _keyboard_height
             try:
                 user_info = rt.send_id(notif_ptr, rt.sel(b"userInfo"))
                 key = _ns_string(rt, b"UIKeyboardFrameEndUserInfoKey")
@@ -245,12 +356,19 @@ def _install_keyboard_observer() -> None:
                     user_info, rt.sel(b"objectForKey:"), key)
 
                 if ns_value:
-                    rect_fn = ctypes.CFUNCTYPE(
-                        _CGRect, ctypes.c_void_p, ctypes.c_void_p,
-                    )(ctypes.cast(rt.lib.objc_msgSend,
-                                  ctypes.c_void_p).value)
-                    rect = rect_fn(ns_value, rt.sel(b"CGRectValue"))
-                    height = float(rect.size.height)
+                    # The end frame is in screen coordinates; measure it
+                    # against the window, which on iPad need not fill the
+                    # screen.
+                    rect = rt.send_rect(ns_value, rt.sel(b"CGRectValue"))
+                    win = _key_window(rt)
+                    screen = rt.send_id(win, rt.sel(b"screen"))
+                    space = rt.send_id(screen, rt.sel(b"coordinateSpace"))
+                    rect = rt.send_rect_rect_id(
+                        win, rt.sel(b"convertRect:fromCoordinateSpace:"),
+                        rect, space)
+                    bounds = rt.send_rect(win, rt.sel(b"bounds"))
+                    height = _keyboard_overlap(
+                        _rect_tuple(rect), _rect_tuple(bounds))
                 else:
                     height = 0.0
 
@@ -258,13 +376,7 @@ def _install_keyboard_observer() -> None:
                 hide_name = _ns_string(rt, b"UIKeyboardWillHideNotification")
                 is_hide = bool(rt.send_id2(
                     notif_name, rt.sel(b"isEqualToString:"), hide_name))
-                _keyboard_height = 0.0 if is_hide else height
-
-                for cb in list(_kb_subscribers):
-                    try:
-                        cb(_keyboard_height)
-                    except Exception:
-                        pass
+                _on_keyboard_frame(height, is_hide)
             except Exception:
                 pass
 
@@ -324,15 +436,20 @@ def _install_keyboard_observer() -> None:
 
 
 def get_keyboard_height() -> float:
-    """Current software keyboard height in UIKit points (0 when hidden)."""
-    return _keyboard_height
+    """Height of the window the software keyboard covers, in layout pixels.
+
+    0 when the keyboard is hidden, off screen (a hardware keyboard is
+    connected), or floating or undocked on iPad.
+    """
+    return _keyboard_height_pt * _layout_scale()
 
 
 def subscribe_keyboard_height(callback) -> None:
     """Register *callback(height: float)* for keyboard height changes.
 
     The callback is invoked on the UIKit / Kivy main thread each time the
-    keyboard frame changes.  It is safe to update Kivy properties directly
+    keyboard frame changes, with the height in Kivy layout pixels (0.0 when
+    the keyboard hides).  It is safe to update Kivy properties directly
     or via ``kivy.clock.Clock.schedule_once``.
     """
     _kb_subscribers.append(callback)

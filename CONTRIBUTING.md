@@ -128,9 +128,14 @@ details.
 ## Reporting an Issue
 
 If you found anything wrong - a bug in Kivy, missing documentation, incorrect
-spelling or just unclear examples -  please take two minutes to report the
+spelling or just unclear examples - please take two minutes to report the
 issue. If you are unsure, please try our support channels first; see
 [Contact Us](CONTACT.md) for details.
+
+If you used an LLM (AI) to write or help with your issue ticket, please include
+real logs from where the code is crashing. We can't do much without them. If
+the same author keeps posting new tickets without providing the details we ask
+for, we will have to ban them from the organization.
 
 If you can produce a small example of a program that fails, it helps immensely:
 

@@ -1224,6 +1224,7 @@ removed. ``SvgWidget`` and ``AsyncSvgWidget`` are registered in the Factory
 under their own names and can be used directly from KV.
 
 
+================================
 Application Storage Directories
 ================================
 
@@ -1340,4 +1341,48 @@ If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a
 location. You may need to migrate existing data (see Linux migration example above).
 
 For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
-```
+
+========
+Gestures
+========
+
+*Gesture matching is now rotation-invariant by default*
+
+**Behavior Changes**
+
+``GestureDatabase.find()`` and gesture equality (``==``) default to
+``rotation_invariant=True``, and that flag now works as documented. Gestures
+that differ only by rotation, such as a swipe right and a swipe left, now
+match at the default ``minscore`` of 0.9 where they previously did not.
+
+**Migration Impact**
+
+Apps that relied on the old, uncompensated behavior should pass
+``rotation_invariant=False`` to keep it.
+
+=================
+Software Keyboard
+=================
+
+*New: iPad floating keyboard support*
+
+Kivy 3.x.x supports the iPad's floating and undocked keyboard. On iOS,
+:attr:`Window.keyboard_height <kivy.core.window.WindowBase.keyboard_height>`
+is how far the software keyboard covers the window from its bottom edge:
+
+- A docked keyboard reports its height, as before.
+- A floating or undocked keyboard covers none of the bottom edge, so
+  ``keyboard_height`` is 0 and
+  :attr:`~kivy.core.window.WindowBase.softinput_mode` leaves the window in
+  place. Moving the floating keyboard around the screen does not move the
+  window.
+
+This matches the default behavior of UIKit's ``UIKeyboardLayoutGuide``, which
+follows the keyboard only while it is docked (``followsUndockedKeyboard`` is
+``NO``).
+
+**Migration Impact**
+
+This is **not a breaking change**, and no code changes are needed: apps that
+use ``softinput_mode`` handle the floating keyboard automatically. A floating
+keyboard can cover the focused widget; the user can drag it out of the way.

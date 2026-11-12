@@ -68,6 +68,10 @@ jobs:
       run: |
         . .\.ci\windows_ci.ps1
         Generate-windows-wheels
+    - name: Check distributions
+      run: |
+        python -m pip install -c .ci/cicd-requirements.txt twine
+        python -m twine check --strict dist/*
     - name: Upload wheels as artifact
       uses: actions/upload-artifact@v7
       with:
@@ -91,6 +95,8 @@ jobs:
           pattern: windows_wheels-*-*
           merge-multiple: true
           path: dist
+      - name: Check distributions
+        run: python -m twine check --strict dist/*
       - name: Fix wheel names
         if: github.event.ref_type != 'tag'
         run: |
@@ -168,7 +174,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.x
+          # Not 3.x: the sdist build needs kivy_deps.* wheels, which only
+          # exist up to cp314. 3.x now resolves to 3.15, so pip finds no
+          # matching kivy_deps.gstreamer_dev and the job fails.
+          python-version: '3.14'
       - uses: actions/download-artifact@v8
         with:
           # Only one windows_wheels-*-* artifact contains the sdist
