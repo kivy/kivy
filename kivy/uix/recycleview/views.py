@@ -398,6 +398,19 @@ class RecycleDataAdapter(EventDispatcher):
         ret_remain = []
         get_view = self.get_view
 
+        # Reserve same-index dirty views before allocating any new views.
+        # Otherwise an earlier index can recycle a dirty view that is still
+        # needed by a later index in this viewport.
+        indices = list(indices)
+        reserved = {}
+        for index in indices:
+            if index in previous_views:
+                continue
+            viewclass = viewclasses[index]['viewclass']
+            dirty = self.dirty_views.get(viewclass)
+            if dirty and index in dirty:
+                reserved[index] = get_view(index, data[index], viewclass)
+
         # iterate though the visible view
         # add them into the container if not already done
         for index in indices:
@@ -406,8 +419,11 @@ class RecycleDataAdapter(EventDispatcher):
                 visible_views[index] = view
                 ret_remain.append((index, view))
             else:
-                view = get_view(index, data[index],
-                                viewclasses[index]['viewclass'])
+                if index in reserved:
+                    view = reserved.pop(index)
+                else:
+                    view = get_view(index, data[index],
+                                    viewclasses[index]['viewclass'])
                 if view is None:
                     continue
                 visible_views[index] = view
