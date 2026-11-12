@@ -819,11 +819,9 @@ class ScrollView(StencilView):
             'dy': 0,
             'user_stopped': in_bar,
             'frames': Clock.frames,
-            'time': touch.time_start,
         }
 
-        if (self.do_scroll_x and self.effect_x and not ud['in_bar_x']
-                and not ud['in_bar_y']):
+        if self.do_scroll_x and self.effect_x and not in_bar:
             # make sure the effect's value is synced to scroll value
             self._update_effect_bounds()
 
@@ -831,8 +829,7 @@ class ScrollView(StencilView):
             self.effect_x.start(touch.x)
             self._scroll_x_mouse = self.scroll_x
 
-        if (self.do_scroll_y and self.effect_y and not ud['in_bar_x']
-                and not ud['in_bar_y']):
+        if self.do_scroll_y and self.effect_y and not in_bar:
             # make sure the effect's value is synced to scroll value
             self._update_effect_bounds()
 
@@ -950,8 +947,6 @@ class ScrollView(StencilView):
                     touch.ud['sv.handled']['y'] = True
                 # Touch resulted in scroll should not defocus focused widget
                 touch.ud['sv.can_defocus'] = False
-            ud['dt'] = touch.time_update - ud['time']
-            ud['time'] = touch.time_update
             ud['user_stopped'] = True
         return rv
 
