@@ -164,6 +164,22 @@ etc.
 at can cause formatting chaos.
 5. Submit it and you're done!
 
+## Policy on External Tutorials and Links
+
+We welcome links to high-quality, external educational resources that help
+users learn Python and Kivy. However, to maintain the integrity of our
+documentation, we strictly enforce the following rules:
+
+1. **No Paywalled or Gated Content:** We do not accept links to interactive
+   learning applications, platforms, or articles that require a paid
+   subscription, account registration, or use artificial "energy limits" to
+   restrict learning.
+2. **Preference for Open Source:** Priority is given to community-driven,
+   100% free, and open-source documentation.
+3. **No Commercial Backlink Placement:** Pull requests submitted solely to
+   generate search engine optimization (SEO) backlinks for companies or
+   bootcamps will be closed.
+
 ## Code Contributions
 
 Code contributions (patches, new features) are the most obvious way to help with
