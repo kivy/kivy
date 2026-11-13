@@ -148,15 +148,24 @@ cdef class Matrix:
         '''Rotate the matrix through the angle around the axis (x, y, z)
         (inplace).
 
+        The rotation is applied after the transformation already in the
+        matrix: ``m.rotate(...)`` gives the same result as
+        ``Matrix().rotate(...).multiply(m)``, so
+        ``Matrix().translate(...).rotate(...)`` translates, then rotates.
+
         :Parameters:
             `angle`: float
-                The angle through which to rotate the matrix
+                The angle through which to rotate the matrix, in radians
             `x`: float
-                X position of the point
+                X component of the rotation axis
             `y`: float
-                Y position of the point
+                Y component of the rotation axis
             `z`: float
-                Z position of the point
+                Z component of the rotation axis
+
+        .. versionchanged:: 3.0.0
+            The translation of the matrix is rotated too. Before, the result
+            was only right for a matrix without a translation.
         '''
         cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
         with nogil:
@@ -201,11 +210,22 @@ cdef class Matrix:
             self.mat[ 8] = ox * f1 + oy * f2 + oz * f3
             self.mat[ 9] = ox * f4 + oy * f5 + oz * f6
             self.mat[10] = ox * f7 + oy * f8 + oz * f9
+            ox = self.mat[12]
+            oy = self.mat[13]
+            oz = self.mat[14]
+            self.mat[12] = ox * f1 + oy * f2 + oz * f3
+            self.mat[13] = ox * f4 + oy * f5 + oz * f6
+            self.mat[14] = ox * f7 + oy * f8 + oz * f9
         return self
 
     cpdef Matrix scale(Matrix self, double x, double y, double z):
         '''Scale the current matrix by the specified factors over
         each dimension (inplace).
+
+        The scaling is applied after the transformation already in the
+        matrix: ``m.scale(...)`` gives the same result as
+        ``Matrix().scale(...).multiply(m)``, so
+        ``Matrix().translate(...).scale(...)`` translates, then scales.
 
         :Parameters:
             `x`: float
@@ -214,15 +234,33 @@ cdef class Matrix:
                 The scale factor along the Y axis
             `z`: float
                 The scale factor along the Z axis
+
+        .. versionchanged:: 3.0.0
+            The whole matrix is scaled, translation included. Before, only
+            the diagonal was, which was only right for a diagonal matrix.
         '''
         with nogil:
-            self.mat[ 0] *= x;
-            self.mat[ 5] *= y;
-            self.mat[10] *= z;
+            self.mat[ 0] *= x
+            self.mat[ 4] *= x
+            self.mat[ 8] *= x
+            self.mat[12] *= x
+            self.mat[ 1] *= y
+            self.mat[ 5] *= y
+            self.mat[ 9] *= y
+            self.mat[13] *= y
+            self.mat[ 2] *= z
+            self.mat[ 6] *= z
+            self.mat[10] *= z
+            self.mat[14] *= z
         return self
 
     cpdef Matrix translate(Matrix self, double x, double y, double z):
         '''Translate the matrix.
+
+        The translation is applied after the transformation already in the
+        matrix: ``m.translate(...)`` gives the same result as
+        ``Matrix().translate(...).multiply(m)``, so
+        ``Matrix().rotate(...).translate(...)`` rotates, then translates.
 
         :Parameters:
             `x`: float
