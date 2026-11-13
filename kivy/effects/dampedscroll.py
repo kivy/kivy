@@ -93,7 +93,9 @@ class DampedScrollEffect(ScrollEffect):
         # logarithmically, as you pull further, creating natural
         # rubber band behavior.
         # Formula from WebKit: (1.0 - (1.0 / ((x * coeff / dim) + 1.0))) * dim
-        if abs(overscroll) < 0.001:
+        # The result tends to 0 as dim tends to 0, so return 0 for empty
+        # content (dim == 0) instead of dividing by zero.
+        if abs(overscroll) < 0.001 or dimension <= 0:
             return 0
 
         sign = 1 if overscroll > 0 else -1

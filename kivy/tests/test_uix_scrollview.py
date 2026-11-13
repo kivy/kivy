@@ -3,6 +3,7 @@ from kivy.tests.common import GraphicUnitTest
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
+from kivy.uix.widget import Widget
 from kivy.base import EventLoop
 from kivy.clock import Clock
 from kivy.tests.common import UTMotionEvent
@@ -351,6 +352,41 @@ class ScrollViewTestCase(GraphicUnitTest):
         EventLoop.post_dispatch_input("end", touch)
         EventLoop.idle()
         assert 0 > e.velocity > -10 * scroll.scroll_wheel_distance
+
+    def test_drag_empty_content(self):
+        # Overscrolling content of height 0 (e.g. an empty RecycleView)
+        # must not divide by zero in DampedScrollEffect.
+        EventLoop.ensure_window()
+        win = EventLoop.window
+        scroll = ScrollView()
+        scroll.add_widget(Widget(size_hint_y=None, height=0))
+
+        while win.children:
+            win.remove_widget(win.children[0])
+
+        win.add_widget(scroll)
+        EventLoop.idle()
+
+        touch = UTMotionEvent("unittest", next(touch_id), {
+            "x": scroll.center_x / float(win.width),
+            "y": scroll.center_y / float(win.height),
+        })
+        EventLoop.post_dispatch_input("begin", touch)
+        for step in range(1, 5):
+            touch.move({
+                "x": scroll.center_x / float(win.width),
+                "y": (scroll.center_y - step * 20) / float(win.height),
+            })
+            EventLoop.post_dispatch_input("update", touch)
+        assert scroll.effect_y.overscroll != 0
+        EventLoop.post_dispatch_input("end", touch)
+
+        # the effect springs back to the content edge
+        start = Clock.get_time()
+        while scroll.effect_y.overscroll and Clock.get_time() - start < 5:
+            EventLoop.idle()
+        assert scroll.effect_y.overscroll == 0
+        self.assertAlmostEqual(scroll.scroll_y, 1.0, delta=0.01)
 
 
 if __name__ == '__main__':
