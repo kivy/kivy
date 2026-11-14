@@ -6,11 +6,13 @@ __all__ = ("SoundAndroidPlayer", )
 
 from jnius import autoclass, java_method, PythonJavaClass
 from kivy.core.audio_output import Sound, SoundLoader
+from kivy.mobile._platform.android import get_app_context
 
 api_version = autoclass("android.os.Build$VERSION").SDK_INT
 
 MediaPlayer = autoclass("android.media.MediaPlayer")
 AudioManager = autoclass("android.media.AudioManager")
+Uri = autoclass("android.net.Uri")
 if api_version >= 21:
     AudioAttributesBuilder = autoclass("android.media.AudioAttributes$Builder")
 
@@ -51,7 +53,10 @@ class SoundAndroidPlayer(Sound):
                 .build())
         else:
             self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-        self._mediaplayer.setDataSource(self.source)
+        if str(self.source).startswith("content://"):
+            self._mediaplayer.setDataSource(get_app_context(), Uri.parse(self.source))
+        else:
+            self._mediaplayer.setDataSource(self.source)
         self._completion_listener = OnCompletionListener(
             self._completion_callback
         )
