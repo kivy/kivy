@@ -372,13 +372,17 @@ class ScrollViewTestCase(GraphicUnitTest):
             "y": scroll.center_y / float(win.height),
         })
         EventLoop.post_dispatch_input("begin", touch)
+        overscrolls = []
         for step in range(1, 5):
             touch.move({
                 "x": scroll.center_x / float(win.width),
                 "y": (scroll.center_y - step * 20) / float(win.height),
             })
             EventLoop.post_dispatch_input("update", touch)
+            overscrolls.append(scroll.effect_y.overscroll)
         assert scroll.effect_y.overscroll != 0
+        # the overscroll keeps following the finger instead of freezing
+        assert abs(overscrolls[-1]) > abs(overscrolls[1])
         EventLoop.post_dispatch_input("end", touch)
 
         # the effect springs back to the content edge
