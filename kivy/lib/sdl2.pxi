@@ -528,7 +528,7 @@ cdef extern from "SDL.h":
     cdef SDL_Surface* SDL_ConvertSurfaceFormat(SDL_Surface* src, Uint32 pixel_format, Uint32 flags) nogil
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
     cdef int SDL_GetColorKey(SDL_Surface *surface, Uint32 *key)
-    cdef int SDL_Init(Uint32 flags)
+    cdef int SDL_Init(Uint32 flags) nogil
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
@@ -964,7 +964,7 @@ cdef extern from "SDL_mixer.h":
 
     cdef int Mix_Init(int flags)
     cdef void Mix_Quit()
-    cdef int Mix_OpenAudio(int frequency, Uint16 format, int channels, int chunksize)
+    cdef int Mix_OpenAudio(int frequency, Uint16 format, int channels, int chunksize) nogil
     cdef  int  Mix_AllocateChannels(int numchans)
     cdef  int  Mix_QuerySpec(int *frequency,Uint16 *format,int *channels)
     cdef  Mix_Chunk *  Mix_LoadWAV_RW(SDL_RWops *src, int freesrc)
