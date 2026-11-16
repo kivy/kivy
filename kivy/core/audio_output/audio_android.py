@@ -6,6 +6,7 @@ __all__ = ("SoundAndroidPlayer", )
 
 from jnius import autoclass, java_method, PythonJavaClass
 from kivy.core.audio_output import Sound, SoundLoader
+from kivy.logger import Logger
 from kivy.mobile._platform.android import get_app_context
 
 api_version = autoclass("android.os.Build$VERSION").SDK_INT
@@ -53,8 +54,17 @@ class SoundAndroidPlayer(Sound):
                 .build())
         else:
             self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-        if str(self.source).startswith("content://"):
-            self._mediaplayer.setDataSource(get_app_context(), Uri.parse(self.source))
+        if self.source.startswith("content://"):
+            context = get_app_context()
+            if context is None:
+                message = (
+                    "AudioAndroid: cannot load <%s>: content:// URIs need an "
+                    "Android Context, and none is available (no Activity and "
+                    "the bootstrap exposes no get_context())." % self.source
+                )
+                Logger.error(message)
+                raise RuntimeError(message)
+            self._mediaplayer.setDataSource(context, Uri.parse(self.source))
         else:
             self._mediaplayer.setDataSource(self.source)
         self._completion_listener = OnCompletionListener(
