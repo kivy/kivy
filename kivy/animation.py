@@ -336,13 +336,16 @@ class Animation(EventDispatcher):
             anim = widgets[uid]
             widget = anim['widget']
 
-            if isinstance(widget, WeakProxy) and not len(dir(widget)):
-                # empty proxy, widget is gone. ref: #2458
-                self._widgets.pop(uid, None)
-                self._clock_uninstall()
-                if not self._widgets:
-                    self._unregister()
-                continue
+            if isinstance(widget, WeakProxy):
+                try:
+                    widget.__ref__()
+                except ReferenceError:
+                    # empty proxy, widget is gone. ref: #2458
+                    self._widgets.pop(uid, None)
+                    self._clock_uninstall()
+                    if not self._widgets:
+                        self._unregister()
+                    continue
 
             if anim['time'] is None:
                 anim['time'] = 0.
@@ -370,7 +373,7 @@ class Animation(EventDispatcher):
 
     def _calculate(self, a, b, t):
         _calculate = self._calculate
-        if isinstance(a, list) or isinstance(a, tuple):
+        if isinstance(a, (list, tuple)):
             if isinstance(a, list):
                 tp = list
             else:
