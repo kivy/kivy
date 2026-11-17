@@ -57,7 +57,10 @@ class _FakeAudioAttributesBuilder:
 class _FakeMediaPlayer:
     """Records the calls ``SoundAndroidPlayer.load`` makes."""
 
+    created = 0
+
     def __init__(self):
+        type(self).created += 1
         self.data_source = None
         self.calls = []
 
@@ -144,6 +147,7 @@ def _fake_environment(get_app_context):
     saved_classes = list(SoundLoader._classes)
     saved_by_name = dict(SoundLoader._loaders_by_name)
     _FakeUri.parsed = []
+    _FakeMediaPlayer.created = 0
 
     try:
         spec = importlib.util.spec_from_file_location(
@@ -187,3 +191,4 @@ class TestSoundAndroidPlayerDataSource:
         with _fake_environment(lambda: None) as module:
             with pytest.raises(RuntimeError, match="content://"):
                 module.SoundAndroidPlayer(source=self.URI)
+            assert _FakeMediaPlayer.created == 0

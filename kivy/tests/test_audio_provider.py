@@ -279,9 +279,11 @@ class TestContentUriRouting:
 
         monkeypatch.setenv("KIVY_PROVIDER_STRICT", "1")
 
-        with pytest.raises(ValueError):
-            SoundLoader.load("content://media/external/audio/media/42",
-                             audio_output_provider="sdl3")
+        with pytest.raises(ValueError, match="'content://'"):
+            SoundLoader.load(
+                "content://com.android.providers.downloads.documents/"
+                "document/msf%3A42.mp3",
+                audio_output_provider="sdl3")
 
     def test_resource_find_is_skipped_for_content_uris(
             self, registry, monkeypatch):

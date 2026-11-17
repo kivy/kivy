@@ -46,14 +46,7 @@ class SoundAndroidPlayer(Sound):
 
     def load(self):
         self.unload()
-        self._mediaplayer = MediaPlayer()
-        if api_version >= 21:
-            self._mediaplayer.setAudioAttributes(
-                AudioAttributesBuilder()
-                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
-                .build())
-        else:
-            self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        context = None
         if self.source.startswith("content://"):
             context = get_app_context()
             if context is None:
@@ -64,6 +57,17 @@ class SoundAndroidPlayer(Sound):
                 )
                 Logger.error(message)
                 raise RuntimeError(message)
+
+        self._mediaplayer = MediaPlayer()
+        if api_version >= 21:
+            self._mediaplayer.setAudioAttributes(
+                AudioAttributesBuilder()
+                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                .build())
+        else:
+            self._mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+
+        if context is not None:
             self._mediaplayer.setDataSource(context, Uri.parse(self.source))
         else:
             self._mediaplayer.setDataSource(self.source)

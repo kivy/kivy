@@ -171,21 +171,26 @@ class SoundLoader:
         filename = path_to_str(filename)
 
         # A content:// source is resolved by the Android ContentResolver
-        is_content_uri = filename.startswith('content://')
-        if not is_content_uri:
+        is_content_uri = filename.startswith("content://")
+        if is_content_uri:
+            # Content URIs have no reliable extension; the scheme stands in
+            # for it in provider-selection messages.
+            ext = "content://"
+        else:
             rfn = resource_find(filename)
             if rfn is not None:
                 filename = rfn
-        ext = filename.split('.')[-1].lower()
-        if '?' in ext:
-            ext = ext.split('?')[0]
+            ext = filename.split('.')[-1].lower()
+            if '?' in ext:
+                ext = ext.split('?')[0]
 
         def check_compatibility(provider_class, extension):
             """Check if provider supports the given extension."""
             if is_content_uri:
-                # A content:// URI is resolved through the platform's ContentResolver
-                # Routing it there explicitly instead of relying on provider priority: SDL3 
-                # its audio device is suspended whenever the activity pauses.
+                # content:// URIs are resolved by Android's ContentResolver,
+                # so route them to the android provider by scheme rather than
+                # by extension. SDL3 can open them too, but its audio device
+                # pauses with the activity, which stops playback.
                 return provider_class._provider_name.lower() == 'android'
             return extension in provider_class.extensions()
 
