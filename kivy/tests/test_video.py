@@ -69,3 +69,77 @@ class VideoBaseAPITestCase(unittest.TestCase):
         from kivy.core.video import VideoBase
         result = VideoBase.generate_thumbnail('does-not-matter.mp4', 0.0)
         self.assertIsNone(result)
+
+    def test_on_error_event_registered(self):
+        from kivy.core.video import VideoBase
+        self.assertIn('on_error', VideoBase.__events__)
+
+    def test_do_error_stops_then_dispatches_once(self):
+        from kivy.core.video import VideoBase
+        vb = VideoBase(filename=None)
+        events = []
+        try:
+            vb.bind(on_buffering=lambda inst, val: events.append(
+                ('buffering', val)))
+            vb.bind(on_error=lambda inst, err: events.append(
+                ('error', err, inst.state, inst.buffering)))
+            vb.play()
+            vb._buffering = True
+            vb._do_error('boom')
+        finally:
+            vb.unload()
+        # Buffering is cleared first, then on_error fires once with
+        # playback already stopped.
+        self.assertEqual(
+            events, [('buffering', False), ('error', 'boom', '', False)])
+
+    def test_do_error_without_handler_does_not_raise(self):
+        from kivy.core.video import VideoBase
+        vb = VideoBase(filename=None)
+        try:
+            vb.play()
+            vb._do_error('boom')
+            self.assertEqual(vb.state, '')
+        finally:
+            vb.unload()
+
+
+class VideoWidgetErrorTestCase(unittest.TestCase):
+    '''on_error on the Video and VideoPlayer widgets, without depending
+    on any particular video provider.
+    '''
+
+    def test_missing_file_stops_and_dispatches_on_error(self):
+        from kivy.uix.video import Video
+        video = Video(source='does-not-exist-kivy-test.mp4', state='play')
+        errors = []
+        video.bind(on_error=lambda inst, err: errors.append(
+            (err, inst.state)))
+        video._do_video_load()
+        self.assertEqual(video.state, 'stop')
+        self.assertFalse(video.loaded)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('does-not-exist-kivy-test.mp4', errors[0][0])
+        self.assertEqual(errors[0][1], 'stop')
+
+    def test_core_error_stops_widget(self):
+        from kivy.uix.video import Video
+        video = Video(state='play')
+        errors = []
+        video.bind(on_error=lambda inst, err: errors.append(
+            (err, inst.state)))
+        video._on_error(None, 'decoder missing')
+        self.assertEqual(errors, [('decoder missing', 'stop')])
+
+    def test_video_player_forwards_on_error(self):
+        from kivy.uix.videoplayer import VideoPlayer
+        player = VideoPlayer(source='does-not-exist-kivy-test.mp4',
+                             state='play')
+        errors = []
+        player.bind(on_error=lambda inst, err: errors.append(
+            (err, inst.state)))
+        player._do_video_load()
+        player._video._do_video_load()
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0][1], 'stop')
+        self.assertEqual(player.state, 'stop')

@@ -56,6 +56,16 @@ One can display the placeholder image when the video stops by reacting on eos::
 
     video.bind(eos=on_eos_change)
 
+If the video can't be loaded or played, for example because its format
+has no installed decoder, :attr:`Video.state` changes to ``'stop'`` and
+the ``on_error`` event fires with a message. Nothing is raised, so an
+app that doesn't handle it keeps running::
+
+    def on_video_error(instance, error):
+        print('Video failed:', error)
+
+    video.bind(on_error=on_video_error)
+
 .. versionadded:: 3.0.0
 
 An observable :attr:`buffering` boolean for loading-overlay UX and a
@@ -99,7 +109,17 @@ from kivy.properties import (BooleanProperty, DictProperty, NumericProperty,
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+
+    :Events:
+        `on_error`: error
+            Fired when the video can't be loaded or played. `error` is a
+            message describing the failure. :attr:`state` is already
+            ``'stop'`` when it fires.
+
+            .. versionadded:: 3.0.0
     '''
+
+    __events__ = ('on_error', )
 
     preview = StringProperty(None, allownone=True)
     '''Filename / source of a preview image displayed before video starts.
@@ -310,6 +330,14 @@ class Video(Image):
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
+                if filename is None:
+                    # No provider ever sees a missing local file, so
+                    # report the failed load here, as providers do.
+                    self._video = None
+                    self.state = 'stop'
+                    self.dispatch(
+                        'on_error', 'file not found: {}'.format(self.source))
+                    return
             # Forward both the dict (for providers that introspect
             # self._options) and the unpacked kwargs (back-compat with
             # apps that put well-known kwargs like 'eos' in options).
@@ -325,7 +353,8 @@ class Video(Image):
             self._video.bind(on_load=self._on_load,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos,
-                             on_buffering=self._on_buffering)
+                             on_buffering=self._on_buffering,
+                             on_error=self._on_error)
             if self.state == 'play':
                 self._video.play()
             self.duration = 1.
@@ -366,6 +395,13 @@ class Video(Image):
 
     def _on_buffering(self, instance, value):
         self.buffering = bool(value)
+
+    def _on_error(self, instance, error):
+        self.state = 'stop'
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
 
     def on_volume(self, instance, value):
         if self._video:
