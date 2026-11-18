@@ -142,6 +142,14 @@ We will again modify the previous example to include bundled data files. PyInsta
 Packaging a video app with gstreamer
 ------------------------------------
 
+.. note::
+
+    Since Kivy 3.0.0, video on Windows plays through Windows' own Media
+    Foundation by default, which needs no extra binaries in the package.
+    This section only applies if your app selects the GStreamer provider
+    (``KIVY_VIDEO=gstplayer``), for example to play a format Windows has
+    no decoder for.
+
 Following we'll slightly modify the example above to package a app that uses
 gstreamer for video. We'll use the ``videoplayer`` example found at
 ``examples-path\widgets\videoplayer.py``. Create a folder somewhere called

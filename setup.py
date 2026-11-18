@@ -329,6 +329,7 @@ c_options['use_wayland'] = None
 c_options['use_gstreamer'] = None
 c_options['use_thorvg'] = None
 c_options['use_avfoundation'] = platform in {'darwin', 'ios'}
+c_options['use_mediafoundation'] = platform == 'win32'
 c_options['use_osx_frameworks'] = platform == 'darwin'
 c_options['use_angle_gl_backend'] = platform in {'darwin', 'ios'}
 c_options['debug_gl'] = False
@@ -1548,6 +1549,28 @@ if c_options['use_avfoundation']:
         }, gl_flags)
         sources['core/video/video_avfoundation.pyx'] = merge(
             base_flags, video_avf_flags)
+
+if c_options['use_mediafoundation']:
+    # Unlike video_avfoundation_implem.mm (textually #include'd via
+    # cdef extern from, safe on macOS because EGL/GLES headers don't
+    # pollute the translation unit with macros), the Media Foundation
+    # implementation needs <windows.h>/<d3d11.h>/<mfapi.h>, whose macros
+    # (interface, IN, OUT, small, ...) could corrupt Cython-generated
+    # C++ code sharing the same translation unit. So
+    # video_mediafoundation_implem.cpp is a genuinely separate
+    # compiled/linked source file -- it must keep the literal .cpp
+    # extension for get_extensions_from_sources()'s f_depends filter to
+    # pick it up as such, rather than just a tracked dependency.
+    mf_flags = merge({
+        'libraries': ['d3d11', 'dxgi', 'mfplat', 'mf', 'mfuuid',
+                      'ole32', 'oleaut32', 'user32'],
+        'depends': [
+            'core/video/video_mediafoundation_implem.h',
+            'core/video/video_mediafoundation_implem.cpp',
+        ],
+    }, gl_flags)
+    sources['core/video/video_mediafoundation.pyx'] = merge(
+        base_flags, mf_flags)
 
 
 if c_options["use_angle_gl_backend"]:

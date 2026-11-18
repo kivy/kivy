@@ -210,7 +210,7 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstplayer, ffpyplayer, ffmpeg, android , null
+    Values: avfoundation, mediafoundation, gstplayer, ffpyplayer, ffmpeg, android, null
 
 KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio

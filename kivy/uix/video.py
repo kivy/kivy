@@ -10,6 +10,21 @@ OGV, AVI, MOV, FLV (if the correct gstreamer plugins are installed). Our
 :class:`~kivy.core.video.VideoBase` implementation is used under the
 hood.
 
+On macOS and iOS, the default AVFoundation provider plays whatever
+AVFoundation can open, such as MP4 and MOV files with H.264 or HEVC
+video. See :class:`~kivy.core.video.video_avfoundation.VideoAVFoundation`
+for details.
+
+On Windows, the default Media Foundation provider plays whatever the
+system's installed decoders support. Standard MP4 (H.264 video, AAC
+audio) works out of the box; HEVC, AV1, VP9 and MPEG-2 become playable
+once Microsoft's matching video extensions are installed from the
+Microsoft Store. Windows "N" and "KN" editions ship without Media
+Foundation, so Kivy uses the next installed provider there unless the
+Media Feature Pack is installed. See
+:class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`
+for details.
+
 Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
 
@@ -180,10 +195,11 @@ class Video(Image):
         first decodable frame is available rather than buffering
         ahead).
 
-    Other providers (GStreamer, FFmpeg / ffpyplayer) currently expose no
-    documented ``options`` keys: unknown kwargs in ``options`` are also
-    unpacked as keyword arguments to the core video for back-compat with
-    apps that put well-known kwargs (e.g. ``eos='loop'``) in this dict.
+    Other providers (Media Foundation, GStreamer, FFmpeg / ffpyplayer)
+    currently expose no documented ``options`` keys: unknown kwargs in
+    ``options`` are also unpacked as keyword arguments to the core video
+    for back-compat with apps that put well-known kwargs (e.g.
+    ``eos='loop'``) in this dict.
 
     Example::
 
