@@ -161,19 +161,37 @@ class SoundLoader:
         .. versionchanged:: 3.0.0
             `filename` may be a :class:`os.PathLike` (e.g. :class:`pathlib.Path`)
             in addition to a ``str``.
+
+        .. versionchanged:: 3.0.0
+            A ``content://`` source is routed to the ``android`` provider by
+            scheme instead of being matched against the provider extensions.
         '''
         # Coerce os.PathLike -> str so extension parsing below is safe even
         # when resource_find does not resolve the file.
         filename = path_to_str(filename)
-        rfn = resource_find(filename)
-        if rfn is not None:
-            filename = rfn
-        ext = filename.split('.')[-1].lower()
-        if '?' in ext:
-            ext = ext.split('?')[0]
+
+        # A content:// source is resolved by the Android ContentResolver
+        is_content_uri = filename.startswith("content://")
+        if is_content_uri:
+            # Content URIs have no reliable extension; the scheme stands in
+            # for it in provider-selection messages.
+            ext = "content://"
+        else:
+            rfn = resource_find(filename)
+            if rfn is not None:
+                filename = rfn
+            ext = filename.split('.')[-1].lower()
+            if '?' in ext:
+                ext = ext.split('?')[0]
 
         def check_compatibility(provider_class, extension):
             """Check if provider supports the given extension."""
+            if is_content_uri:
+                # content:// URIs are resolved by Android's ContentResolver,
+                # so route them to the android provider by scheme rather than
+                # by extension. SDL3 can open them too, but its audio device
+                # pauses with the activity, which stops playback.
+                return provider_class._provider_name.lower() == 'android'
             return extension in provider_class.extensions()
 
         def try_load(provider_class, fname):
@@ -186,7 +204,7 @@ class SoundLoader:
         def fallback_load():
             """Load using default provider priority."""
             for classobj in SoundLoader._classes:
-                if ext in classobj.extensions():
+                if check_compatibility(classobj, ext):
                     try:
                         return classobj(source=filename)
                     except Exception:
@@ -229,6 +247,11 @@ class Sound(EventDispatcher):
     '''Filename / source of your audio file.
 
     .. versionadded:: 1.3.0
+
+    .. versionchanged:: 3.0.0
+        On Android, ``content://`` URIs from a ContentProvider (MediaStore,
+        the Storage Access Framework, a share intent) are supported by the
+        ``android`` provider.
 
     :attr:`source` is a :class:`~kivy.properties.StringProperty` that defaults
     to None and is read-only. Use the :meth:`SoundLoader.load` for loading
