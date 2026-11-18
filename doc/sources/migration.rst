@@ -1414,3 +1414,97 @@ result, build each transformation from a new
 :meth:`~kivy.graphics.transformation.Matrix.multiply`. For example, the old
 result of ``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` is
 ``Matrix().translate(x, y, 0).multiply(Matrix().rotate(angle, 0, 0, 1))``.
+
+=====
+Video
+=====
+
+*New default video provider on macOS and iOS: AVFoundation*
+
+Kivy 3.x.x adds an ``avfoundation`` video provider, built on Apple's own
+AVFoundation framework, and makes it the first choice on macOS and iOS. In
+Kivy 2.x.x, playing video on macOS needed ffpyplayer (installed by the
+``media`` or ``full`` selector) or GStreamer.
+
+**Behavior Changes**
+
+- Video plays with a plain ``pip install kivy``. No extra package is needed.
+- Decoded frames are shared with OpenGL through ANGLE, with no copy through
+  the CPU. ANGLE is the only GL backend on macOS and iOS in Kivy 3.x.x, so
+  this needs no setup.
+- Which formats play depends on AVFoundation, not on Kivy. MP4 and MOV files
+  with H.264 or HEVC video play. Formats that ffpyplayer or GStreamer decoded
+  with their own codecs and that AVFoundation can't open no longer play by
+  default.
+- If a video can't be shown without a CPU copy, typically because macOS
+  decoded it in software, playback stops with a single log message and the
+  ``on_eos`` event, rather than showing a black picture.
+- The provider has one option, ``automatically_waits_to_minimize_stalling``,
+  passed through :attr:`~kivy.uix.video.Video.options`. See that property
+  for details.
+
+**Migration Impact**
+
+Most apps need no changes. Apps that installed ffpyplayer or GStreamer only
+to play video on macOS can remove them. Keep them if the app also uses them
+for audio.
+
+To keep the Kivy 2.x.x behavior, for example to play a format AVFoundation
+can't open, select the previous provider before importing Kivy:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_VIDEO'] = 'ffpyplayer'  # or 'gstplayer'
+    import kivy
+
+
+*New default video provider on Windows: Media Foundation*
+
+Kivy 3.x.x adds a ``mediafoundation`` video provider, built on Windows' own
+Media Foundation framework, and makes it the first choice on Windows. In
+Kivy 2.x.x, playing video on Windows needed GStreamer (``kivy_deps.gstreamer``,
+installed by the ``media`` or ``full`` selector) or ffpyplayer.
+
+**Behavior Changes**
+
+- Video plays with a plain ``pip install kivy``. No extra package is needed.
+- Decoded frames go straight from the GPU decoder into an OpenGL texture,
+  with no copy through the CPU, on every Windows GL backend (``glew``,
+  ``sdl3`` and ``angle_sdl3``). If the graphics driver can't share textures
+  that way, the provider copies each frame through the CPU instead, and
+  playback still works.
+- Which formats play depends on the decoders installed in Windows, not on
+  Kivy. Standard MP4 files (H.264 video with AAC audio) play on any Windows
+  PC. HEVC (H.265), AV1, VP9 and MPEG-2 play once Microsoft's matching video
+  extension is installed from the Microsoft Store. The HEVC extension is not
+  free on every PC. Formats that GStreamer or ffpyplayer decoded with their
+  own codecs, and that Windows has no decoder for, no longer play by default.
+- Windows "N" and "KN" editions ship without Media Foundation. There, Kivy
+  skips this provider and uses the next one installed (``gstplayer`` or
+  ``ffpyplayer``), or plays no video if neither is. Installing the Media
+  Feature Pack (Settings > Apps > Optional features) makes Media Foundation
+  available.
+
+**Migration Impact**
+
+Most apps need no changes. Apps that installed ``kivy_deps.gstreamer`` or
+ffpyplayer only to play video on Windows can remove them. Keep them if the
+app also uses them for audio. PyInstaller builds no longer need
+``gstreamer.dep_bins`` for video either: Media Foundation is part of Windows,
+and :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` and
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all` include the
+``mediafoundation`` provider like any other.
+
+To keep the Kivy 2.x.x behavior, for example to play a format Windows can't
+decode, select the previous provider before importing Kivy:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_VIDEO'] = 'gstplayer'  # or 'ffpyplayer'
+    import kivy
+
+See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.

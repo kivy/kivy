@@ -6,7 +6,7 @@ set -e -x
 _REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # iOS SDL3
-IOS__SDL3__VERSION="3.4.2"
+IOS__SDL3__VERSION="3.4.20"
 IOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$IOS__SDL3__VERSION/SDL3-$IOS__SDL3__VERSION.tar.gz"
 IOS__SDL3__FOLDER="SDL3-$IOS__SDL3__VERSION"
 

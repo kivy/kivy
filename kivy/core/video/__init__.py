@@ -19,6 +19,13 @@ Core class for reading video files and managing the video
         can pass opaque configuration through to the backend
         implementation. Each provider documents the keys it honors.
 
+    Added two providers that play video through the operating system's
+    own media framework, so no extra package is needed: ``avfoundation``
+    (:class:`~kivy.core.video.video_avfoundation.VideoAVFoundation`), the
+    default on macOS and iOS, and ``mediafoundation``
+    (:class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`),
+    the default on Windows.
+
 .. versionchanged:: 1.10.0
     The pyglet, pygst and gi providers have been removed.
 
@@ -325,6 +332,14 @@ video_providers = []
 # core_select_lib falls through to a different provider.
 video_providers.append(make_provider_tuple(
     'avfoundation', all_providers, 'VideoAVFoundation'
+))
+
+# mediafoundation is the default video provider on Windows. It is
+# compiled only when c_options['use_mediafoundation'] is True in
+# setup.py, so the import naturally fails on non-Windows platforms and
+# core_select_lib falls through to a different provider.
+video_providers.append(make_provider_tuple(
+    'mediafoundation', all_providers, 'VideoMediaFoundation'
 ))
 
 try:

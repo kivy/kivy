@@ -24,6 +24,47 @@ def kivy_window():
     yield Window
 
 
+class TestVerticalCentering:
+    """Constrained-height layout should split at the nearest newline."""
+
+    @pytest.mark.parametrize("valign", ["middle", "center"])
+    @pytest.mark.parametrize(
+        "text, height, expected",
+        [
+            ("a\nb\ncccccccccc\nd\ne\nf", 60,
+             ["a", "b", "cccccccccc", "d", "e", "f"]),
+            ("a\nb\ncccccccccc\nd\ne\nf", 40,
+             ["b", "cccccccccc", "d", "e"]),
+            ("aaa\nbbb\nc", 20, ["aaa", "bbb"]),
+            ("aa\nbbb\nc", 20, ["aa", "bbb"]),
+            ("a\nbbbbbbb", 20, ["a", "bbbbbbb"]),
+            ("aaaaaaa\nb", 20, ["aaaaaaa", "b"]),
+            ("single", 10, ["single"]),
+        ],
+        ids=["fits", "overflows", "left-closer", "tie",
+             "left-only", "right-only", "no-newline"],
+    )
+    def test_constrained_height(self, valign, text, height, expected):
+        from kivy.core.text import LabelBase
+
+        class FixedMetricsLabel(LabelBase):
+            def get_extents(self, text):
+                return len(text), 10
+
+            def get_cached_extents(self):
+                return self.get_extents
+
+        # Use the real layout routine with fixed metrics, without a texture or
+        # provider-specific font sizes. Every line fits the available width.
+        label = FixedMetricsLabel(
+            text=text, text_size=(100, height), valign=valign)
+        assert label.render() == (100, height)
+        lines = ["".join(word.text for word in line.words)
+                 for line in label._cached_lines]
+        assert lines == expected
+        assert label._internal_size[1] <= height
+
+
 class TestAvailableProviders:
     """Tests for LabelBase.available_providers() method."""
 
@@ -424,4 +465,3 @@ class TestRegisterProvider:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

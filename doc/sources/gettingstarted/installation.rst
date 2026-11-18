@@ -121,6 +121,8 @@ from the kivy-team provided PyPi wheels. Simply do::
 This also installs the minimum dependencies of Kivy. To additionally install Kivy with
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
+On Windows and macOS, video plays without these, through the operating system's own
+media framework (Media Foundation on Windows, AVFoundation on macOS).
 
 .. note::
 
@@ -383,6 +385,9 @@ Following are the ``kivy_deps`` dependency wheels:
   ``kivy_deps.gstreamer`` is an optional dependency which is only needed for audio/video support.
   We only provide it on Windows, for other platforms it must be installed independently.
   Alternatively, use `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_  instead.
+  Since Kivy 3.0.0, Windows plays video through its own Media Foundation by default, so
+  GStreamer is only needed there to play formats Windows has no decoder for (selected with
+  ``KIVY_VIDEO=gstplayer``), or for audio.
 
 * `glew <https://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_

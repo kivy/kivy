@@ -49,6 +49,8 @@ jobs:
         run: |
           export KIVY_DEPS_ROOT=$(pwd)/ios-kivy-dependencies
           python ./tools/add-ios-frameworks.py ./wheelhouse
+      - name: Check distributions
+        run: python -m twine check --strict wheelhouse/*.whl
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v7
         with:
@@ -71,6 +73,8 @@ jobs:
         with:
           name: ios_wheels
           path: dist
+      - name: Check distributions
+        run: python -m twine check --strict dist/*
       - name: Rename wheels
         if: github.event.ref_type != 'tag'
         run: |

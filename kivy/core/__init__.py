@@ -64,6 +64,7 @@ PROVIDER_CONFIGS = {
     ],
     'video': [
         ('avfoundation', 'video_avfoundation'),
+        ('mediafoundation', 'video_mediafoundation'),
         ('gstplayer', 'video_gstplayer'),
         ('ffmpeg', 'video_ffmpeg'),
         ('ffpyplayer', 'video_ffpyplayer'),

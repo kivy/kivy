@@ -186,6 +186,134 @@ class TestInvalidProviderHandling:
             SoundLoader.load(fake_file, audio_output_provider=provider)
 
 
+def _fake_provider(name, extensions=("mp3", "ogg")):
+    """A provider that records construction instead of loading audio."""
+
+    class _FakeProvider:
+        _provider_name = name
+        calls = []
+
+        def __init__(self, **kwargs):
+            self.source = kwargs.get("source")
+            self.calls.append(self.source)
+
+        @classmethod
+        def extensions(cls):
+            return extensions
+
+    _FakeProvider.__name__ = "FakeProvider_" + name
+    return _FakeProvider
+
+
+class TestContentUriRouting:
+    """A content:// source must reach the android provider by scheme."""
+
+    @pytest.fixture
+    def registry(self, monkeypatch):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3 = _fake_provider("sdl3")
+        android = _fake_provider("android")
+        saved_classes = list(SoundLoader._classes)
+        saved_by_name = dict(SoundLoader._loaders_by_name)
+        # `android` registers last (PROVIDER_CONFIGS order), which is exactly
+        # the ordering a loosened extension check would get wrong.
+        SoundLoader._classes = [sdl3, android]
+        SoundLoader._loaders_by_name = {"sdl3": sdl3, "android": android}
+        monkeypatch.delenv("KIVY_PROVIDER_STRICT", raising=False)
+        try:
+            yield sdl3, android
+        finally:
+            SoundLoader._classes = saved_classes
+            SoundLoader._loaders_by_name = saved_by_name
+
+    def test_mediastore_uri_goes_to_android(self, registry):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3, android = registry
+        uri = "content://media/external/audio/media/42"
+
+        sound = SoundLoader.load(uri)
+
+        assert android.calls == [uri]
+        assert sdl3.calls == []
+        assert sound.source == uri
+
+    def test_dotted_content_uri_does_not_go_to_sdl3(self, registry):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3, android = registry
+        uri = ("content://com.android.providers.downloads.documents/"
+               "document/msf%3A42.mp3")
+
+        SoundLoader.load(uri)
+
+        assert android.calls == [uri]
+        assert sdl3.calls == []
+
+    def test_plain_path_still_prefers_the_first_match(self, registry):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3, android = registry
+
+        SoundLoader.load("/music/song.mp3")
+
+        assert sdl3.calls == ["/music/song.mp3"]
+        assert android.calls == []
+
+    def test_explicit_sdl3_on_a_content_uri_falls_back_to_android(
+            self, registry):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3, android = registry
+        uri = "content://media/external/audio/media/42"
+
+        SoundLoader.load(uri, audio_output_provider="sdl3")
+
+        assert android.calls == [uri]
+        assert sdl3.calls == []
+
+    def test_strict_mode_rejects_sdl3_for_a_content_uri(
+            self, registry, monkeypatch):
+        from kivy.core.audio_output import SoundLoader
+
+        monkeypatch.setenv("KIVY_PROVIDER_STRICT", "1")
+
+        with pytest.raises(ValueError, match="'content://'"):
+            SoundLoader.load(
+                "content://com.android.providers.downloads.documents/"
+                "document/msf%3A42.mp3",
+                audio_output_provider="sdl3")
+
+    def test_resource_find_is_skipped_for_content_uris(
+            self, registry, monkeypatch):
+        import kivy.core.audio_output as audio_output
+
+        def _unexpected(*_args, **_kwargs):
+            pytest.fail("resource_find() should not be called for content://")
+
+        monkeypatch.setattr(audio_output, "resource_find", _unexpected)
+        audio_output.SoundLoader.load(
+            "content://media/external/audio/media/42")
+
+    def test_no_android_provider_still_returns_none(self, monkeypatch):
+        from kivy.core.audio_output import SoundLoader
+
+        sdl3 = _fake_provider("sdl3")
+        saved_classes = list(SoundLoader._classes)
+        saved_by_name = dict(SoundLoader._loaders_by_name)
+        SoundLoader._classes = [sdl3]
+        SoundLoader._loaders_by_name = {"sdl3": sdl3}
+        monkeypatch.delenv("KIVY_PROVIDER_STRICT", raising=False)
+        try:
+            assert SoundLoader.load(
+                "content://media/external/audio/media/42") is None
+            assert sdl3.calls == []
+        finally:
+            SoundLoader._classes = saved_classes
+            SoundLoader._loaders_by_name = saved_by_name
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
 

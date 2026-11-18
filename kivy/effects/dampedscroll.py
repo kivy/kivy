@@ -93,7 +93,9 @@ class DampedScrollEffect(ScrollEffect):
         # logarithmically, as you pull further, creating natural
         # rubber band behavior.
         # Formula from WebKit: (1.0 - (1.0 / ((x * coeff / dim) + 1.0))) * dim
-        if abs(overscroll) < 0.001:
+        # Safety net: return 0 when the dimension is unknown (None) or not
+        # positive instead of raising or dividing by zero.
+        if abs(overscroll) < 0.001 or not dimension or dimension <= 0:
             return 0
 
         sign = 1 if overscroll > 0 else -1
@@ -109,16 +111,17 @@ class DampedScrollEffect(ScrollEffect):
         # Detects whether this effect is used for X or Y scrolling by checking
         # which effect instance (effect_x or effect_y) this is in the parent
         # ScrollView.
-        # Returns the appropriate dimension.
-        target_widget = self.target_widget
-        sv = target_widget.parent
+        # Returns the size of the visible area, i.e. the ScrollView itself.
+        # target_widget is the ScrollView's content widget (its _viewport),
+        # whose size can be 0 (e.g. an empty RecycleView).
+        sv = self.target_widget.parent
 
         if sv.effect_x is self:
             # This is the X effect - use width for horizontal scrolling
-            return target_widget.width
+            return sv.width
         elif sv.effect_y is self:
             # This is the Y effect - use height for vertical scrolling
-            return self.target_widget.height
+            return sv.height
 
     def update_velocity(self, dt):
         # Update velocity with critically damped spring physics.
