@@ -58,8 +58,10 @@ One can display the placeholder image when the video stops by reacting on eos::
 
 If the video can't be loaded or played, for example because its format
 has no installed decoder, :attr:`Video.state` changes to ``'stop'`` and
-the ``on_error`` event fires with a message. Nothing is raised, so an
-app that doesn't handle it keeps running::
+the ``on_error`` event fires with a message. A missing local file is
+reported with any provider; other failures are reported by the Media
+Foundation (Windows) and AVFoundation (macOS, iOS) providers. Nothing is
+raised, so an app that doesn't handle it keeps running::
 
     def on_video_error(instance, error):
         print('Video failed:', error)

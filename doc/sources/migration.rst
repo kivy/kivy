@@ -1453,7 +1453,8 @@ Kivy 2.x.x, playing video on macOS needed ffpyplayer (installed by the
   default.
 - If a video can't be shown without a CPU copy, typically because macOS
   decoded it in software, playback stops with a single log message and the
-  ``on_eos`` event, rather than showing a black picture.
+  ``on_error`` event (see *New on_error event for videos that can't play*
+  below), rather than showing a black picture.
 - The provider has one option, ``automatically_waits_to_minimize_stalling``,
   passed through :attr:`~kivy.uix.video.Video.options`. See that property
   for details.
@@ -1523,3 +1524,47 @@ decode, select the previous provider before importing Kivy:
     import kivy
 
 See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.
+
+
+*New on_error event for videos that can't play*
+
+Kivy 3.x.x adds an ``on_error`` event to :class:`~kivy.core.video.VideoBase`,
+:class:`~kivy.uix.video.Video` and :class:`~kivy.uix.videoplayer.VideoPlayer`.
+It fires when a video can't be loaded or played: a missing file, a format with
+no installed decoder, a corrupt file, an invalid URL, or a stream that fails
+during playback. In Kivy 2.x.x such a video logged an error at most, and
+:attr:`~kivy.uix.video.Video.loaded` stayed ``False`` with no event, so an app
+couldn't tell a failed video from one that was still loading.
+
+**Behavior Changes**
+
+- When a video fails, playback stops: :attr:`~kivy.uix.video.Video.state`
+  becomes ``'stop'``, :attr:`~kivy.uix.video.Video.buffering` becomes
+  ``False``, and then ``on_error`` fires once, with a message describing the
+  failure. :attr:`~kivy.uix.video.Video.loaded` stays ``False``.
+- Nothing is raised. An app that doesn't bind ``on_error`` keeps running; the
+  only visible difference is that ``state`` changes to ``'stop'``.
+- A missing local file is now reported too. In Kivy 2.x.x
+  :class:`~kivy.uix.video.Video` passed no filename to the provider when the
+  file couldn't be found, and nothing reported it.
+- The Media Foundation (Windows) and AVFoundation (macOS, iOS) providers fire
+  ``on_error``. The ``gstplayer`` and ``ffpyplayer`` providers don't yet: with
+  them, only a missing local file is reported.
+
+**Migration Impact**
+
+Apps that waited for :attr:`~kivy.uix.video.Video.loaded` with a timeout to
+detect a failed video can bind ``on_error`` instead. Code that sets ``state``
+back to ``'play'`` whenever it changes to ``'stop'``, for example to replay a
+video, should check for an error first, so it doesn't keep restarting a video
+that can't play.
+
+.. code-block:: python
+
+    from kivy.uix.video import Video
+
+    def on_video_error(video, error):
+        print('Video failed:', error)  # for example, show a message instead
+
+    video = Video(source='movie.mp4', state='play')
+    video.bind(on_error=on_video_error)
