@@ -31,6 +31,8 @@
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfmediaengine.h>
+#include <mferror.h>
+#include <wincodec.h>
 #include <GL/gl.h>
 
 #include <atomic>
@@ -188,6 +190,12 @@ public:
     // True from WAITING until the next PLAYING/CANPLAYTHROUGH --
     // matches VideoBase.buffering's documented semantics.
     std::atomic<bool> buffering{false};
+    // MF_MEDIA_ENGINE_EVENT_ERROR: the MF_MEDIA_ENGINE_ERR code and the
+    // HRESULT behind it. errCode is written before `errored` is set, so
+    // a reader that sees `errored` also sees both values.
+    std::atomic<DWORD> errCode{0};
+    std::atomic<HRESULT> errHr{S_OK};
+    std::atomic<bool> errored{false};
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
         if (riid == __uuidof(IMFMediaEngineNotify) || riid == IID_IUnknown) {
@@ -204,8 +212,13 @@ public:
         if (r == 0) delete this;
         return r;
     }
-    STDMETHODIMP EventNotify(DWORD event, DWORD_PTR, DWORD) override {
+    STDMETHODIMP EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) override {
         switch (event) {
+            case MF_MEDIA_ENGINE_EVENT_ERROR:
+                errCode = (DWORD)param1;
+                errHr = (HRESULT)param2;
+                errored = true;
+                break;
             case MF_MEDIA_ENGINE_EVENT_ENDED:
                 ended = true;
                 break;
@@ -220,6 +233,213 @@ public:
         return S_OK;
     }
 };
+
+// ---------------------------------------------------------------------
+// Source creation through the system source resolver.
+//
+// By default IMFMediaEngine only opens the formats an HTML5 <video>
+// element would (CanPlayType answers "not supported" for MPEG-PS .mpg,
+// WMV and AVI, among others), even when Windows has a source and decoder
+// installed for them. Registering this IMFMediaEngineExtension makes the
+// engine ask the system IMFSourceResolver for its media source instead,
+// so any format with an installed Media Foundation source and decoder
+// plays -- the same set Windows' own media apps can open. Resolution is
+// asynchronous (the resolver's Begin/End pair), so a slow network URL
+// never blocks the thread that called SetSource.
+// ---------------------------------------------------------------------
+
+// Completes one resolver request by invoking the engine's callback with
+// the media source (or the resolver's failure) as the result object.
+class ResolveCallback : public IMFAsyncCallback {
+public:
+    std::atomic<ULONG> ref{1};
+    IMFSourceResolver *resolver;
+    bool fromByteStream;
+    IMFAsyncCallback *engineCb;
+    IUnknown *engineState;
+
+    ResolveCallback(IMFSourceResolver *r, bool bs, IMFAsyncCallback *cb, IUnknown *st)
+        : resolver(r), fromByteStream(bs), engineCb(cb), engineState(st) {
+        resolver->AddRef();
+        engineCb->AddRef();
+        if (engineState) engineState->AddRef();
+    }
+    virtual ~ResolveCallback() {
+        resolver->Release();
+        engineCb->Release();
+        if (engineState) engineState->Release();
+    }
+
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
+        if (riid == __uuidof(IMFAsyncCallback) || riid == IID_IUnknown) {
+            *ppv = static_cast<IMFAsyncCallback*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override { return ++ref; }
+    STDMETHODIMP_(ULONG) Release() override {
+        ULONG r = --ref;
+        if (r == 0) delete this;
+        return r;
+    }
+    STDMETHODIMP GetParameters(DWORD *, DWORD *) override { return E_NOTIMPL; }
+    STDMETHODIMP Invoke(IMFAsyncResult *result) override {
+        MF_OBJECT_TYPE type = MF_OBJECT_INVALID;
+        IUnknown *source = nullptr;
+        HRESULT hr = fromByteStream
+            ? resolver->EndCreateObjectFromByteStream(result, &type, &source)
+            : resolver->EndCreateObjectFromURL(result, &type, &source);
+        IMFAsyncResult *out = nullptr;
+        if (SUCCEEDED(MFCreateAsyncResult(source, engineCb, engineState, &out))) {
+            out->SetStatus(hr);
+            MFInvokeCallback(out);
+            out->Release();
+        }
+        if (source) source->Release();
+        Release();  // the reference taken for this request
+        return S_OK;
+    }
+};
+
+class SourceExtension : public IMFMediaEngineExtension {
+public:
+    std::atomic<ULONG> ref{1};
+
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
+        if (riid == __uuidof(IMFMediaEngineExtension) || riid == IID_IUnknown) {
+            *ppv = static_cast<IMFMediaEngineExtension*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override { return ++ref; }
+    STDMETHODIMP_(ULONG) Release() override {
+        ULONG r = --ref;
+        if (r == 0) delete this;
+        return r;
+    }
+
+    STDMETHODIMP CanPlayType(BOOL, BSTR, MF_MEDIA_ENGINE_CANPLAY *answer) override {
+        // Whether it really plays depends on the installed sources and
+        // decoders, which only resolving the actual file can tell.
+        *answer = MF_MEDIA_ENGINE_CANPLAY_MAYBE;
+        return S_OK;
+    }
+
+    STDMETHODIMP BeginCreateObject(BSTR url, IMFByteStream *byteStream,
+                                   MF_OBJECT_TYPE type, IUnknown **cancelCookie,
+                                   IMFAsyncCallback *callback, IUnknown *state) override {
+        if (cancelCookie) *cancelCookie = nullptr;
+        // Only the media source is ours to create; the engine opens the
+        // byte stream itself and passes it back in here.
+        if (type != MF_OBJECT_MEDIASOURCE) return MF_E_UNSUPPORTED_BYTESTREAM_TYPE;
+
+        IMFSourceResolver *resolver = nullptr;
+        HRESULT hr = MFCreateSourceResolver(&resolver);
+        if (FAILED(hr)) return hr;
+        const DWORD flags = MF_RESOLUTION_MEDIASOURCE |
+            MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE;
+        ResolveCallback *cb = new ResolveCallback(resolver, byteStream != nullptr,
+                                                  callback, state);
+        hr = byteStream
+            ? resolver->BeginCreateObjectFromByteStream(byteStream, url, flags, nullptr,
+                                                        nullptr, cb, nullptr)
+            : resolver->BeginCreateObjectFromURL(url, flags, nullptr, nullptr, cb, nullptr);
+        resolver->Release();
+        // On success cb's own reference is released in Invoke().
+        if (FAILED(hr)) cb->Release();
+        return hr;
+    }
+
+    STDMETHODIMP CancelObjectCreation(IUnknown *) override { return E_NOTIMPL; }
+
+    STDMETHODIMP EndCreateObject(IMFAsyncResult *result, IUnknown **object) override {
+        *object = nullptr;
+        HRESULT hr = result->GetStatus();
+        if (FAILED(hr)) return hr;
+        return result->GetObject(object);
+    }
+};
+
+// Creates a media engine for playback or thumbnails. With a DXGI device
+// manager the engine decodes into D3D11 textures (the normal path).
+// Without one (dxgiMgr == nullptr) it decodes in software and can only
+// hand frames to a WIC bitmap -- the fallback for formats whose decoder
+// has no Direct3D 11 support (see MFVideoPlayerImpl::hasError()).
+static HRESULT create_engine(IMFDXGIDeviceManager *dxgiMgr, IMFMediaEngineNotify *notify,
+                             IMFMediaEngine **engine) {
+    *engine = nullptr;
+    IMFAttributes *attrs = nullptr;
+    HRESULT hr = MFCreateAttributes(&attrs, 4);
+    if (FAILED(hr)) return hr;
+    SourceExtension *ext = new SourceExtension();
+    if (dxgiMgr) attrs->SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, dxgiMgr);
+    attrs->SetUnknown(MF_MEDIA_ENGINE_CALLBACK, notify);
+    attrs->SetUnknown(MF_MEDIA_ENGINE_EXTENSION, ext);
+    attrs->SetUINT32(MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, DXGI_FORMAT_B8G8R8A8_UNORM);
+    ext->Release();  // the attribute store holds its own reference
+
+    IMFMediaEngineClassFactory *factory = nullptr;
+    hr = CoCreateInstance(CLSID_MFMediaEngineClassFactory, nullptr, CLSCTX_INPROC_SERVER,
+                          __uuidof(IMFMediaEngineClassFactory), (void**)&factory);
+    if (SUCCEEDED(hr)) {
+        hr = factory->CreateInstance(0, attrs, engine);
+        factory->Release();
+    }
+    attrs->Release();
+    return hr;
+}
+
+static void set_engine_source(IMFMediaEngine *engine, const std::wstring &url) {
+    std::wstring uri = to_source_uri(url);
+    BSTR bstr = SysAllocString(uri.c_str());
+    engine->SetSource(bstr);
+    SysFreeString(bstr);
+}
+
+// Copies BGRA rows into a tightly packed RGBA buffer. Swizzled here
+// rather than uploaded as colorfmt='bgra': not every GL backend this
+// runs under accepts GL_BGRA uploads.
+static void bgra_to_rgba(const uint8_t *src, size_t pitch, int w, int h, char *dst) {
+    for (int y = 0; y < h; y++) {
+        const uint8_t *s = src + (size_t)y * pitch;
+        uint8_t *d = (uint8_t*)dst + (size_t)y * w * 4;
+        for (int x = 0; x < w; x++) {
+            d[x*4+0] = s[x*4+2];
+            d[x*4+1] = s[x*4+1];
+            d[x*4+2] = s[x*4+0];
+            d[x*4+3] = s[x*4+3];
+        }
+    }
+}
+
+// Software-engine frame delivery: TransferVideoFrame into a w x h WIC
+// bitmap (created on first use in *bmp), then copy it out as RGBA into
+// dst, which must hold w * h * 4 bytes.
+static bool transfer_to_wic(IMFMediaEngine *engine, IWICImagingFactory *wic,
+                            IWICBitmap **bmp, int w, int h, char *dst) {
+    if (!*bmp && FAILED(wic->CreateBitmap(w, h, GUID_WICPixelFormat32bppBGRA,
+                                          WICBitmapCacheOnDemand, bmp)))
+        return false;
+    RECT destRect = {0, 0, w, h};
+    MFARGB border = {0, 0, 0, 255};
+    if (FAILED(engine->TransferVideoFrame(*bmp, nullptr, &destRect, &border))) return false;
+    WICRect rc = {0, 0, w, h};
+    IWICBitmapLock *lock = nullptr;
+    if (FAILED((*bmp)->Lock(&rc, WICBitmapLockRead, &lock))) return false;
+    UINT stride = 0, size = 0;
+    BYTE *pixels = nullptr;
+    bool ok = SUCCEEDED(lock->GetStride(&stride)) &&
+              SUCCEEDED(lock->GetDataPointer(&size, &pixels));
+    if (ok) bgra_to_rgba(pixels, stride, w, h, dst);
+    lock->Release();
+    return ok;
+}
 
 enum Bridge { BRIDGE_WGL, BRIDGE_EGL };
 
@@ -296,6 +516,16 @@ struct MFVideoPlayerImpl {
     // CPU-copy fallback
     ID3D11Texture2D *stagingTex = nullptr;
     std::vector<char> cpuBuf;
+
+    // Software decode: set when the D3D11 engine rejected the source and
+    // it was reopened on an engine without a DXGI device manager (see
+    // hasError()). Frames then arrive through a WIC bitmap.
+    bool softwareDecode = false;
+    IWICImagingFactory *wic = nullptr;
+    IWICBitmap *wicBmp = nullptr;
+    // Replayed onto the software engine, which starts from scratch.
+    bool wantPlay = false;
+    double volume = 1.0;
 
     VideoFrame outFrame;
     // lastErrorBuf: hard failures (no playback). interopNoteBuf: why
@@ -566,21 +796,7 @@ struct MFVideoPlayerImpl {
 
     bool setupEngine() {
         notify = new EngineNotify();
-        IMFAttributes *attrs = nullptr;
-        HRESULT hr = MFCreateAttributes(&attrs, 3);
-        if (FAILED(hr)) { setError("MFCreateAttributes failed: 0x%08lX", hr); return false; }
-        attrs->SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, dxgiMgr);
-        attrs->SetUnknown(MF_MEDIA_ENGINE_CALLBACK, static_cast<IMFMediaEngineNotify*>(notify));
-        attrs->SetUINT32(MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, DXGI_FORMAT_B8G8R8A8_UNORM);
-
-        IMFMediaEngineClassFactory *factory = nullptr;
-        hr = CoCreateInstance(CLSID_MFMediaEngineClassFactory, nullptr, CLSCTX_INPROC_SERVER,
-                               __uuidof(IMFMediaEngineClassFactory), (void**)&factory);
-        if (SUCCEEDED(hr)) {
-            hr = factory->CreateInstance(0, attrs, &engine);
-            factory->Release();
-        }
-        attrs->Release();
+        HRESULT hr = create_engine(softwareDecode ? nullptr : dxgiMgr, notify, &engine);
         if (FAILED(hr)) { setError("IMFMediaEngine creation failed: 0x%08lX", hr); return false; }
         return true;
     }
@@ -592,19 +808,46 @@ struct MFVideoPlayerImpl {
         if (!ok) return;  // lastErrorBuf already set; engine stays NULL,
                            // every subsequent call below is then a no-op.
 
-        std::wstring uri = to_source_uri(url);
-        BSTR bstr = SysAllocString(uri.c_str());
-        engine->SetSource(bstr);
-        SysFreeString(bstr);
+        set_engine_source(engine, url);
         // Non-blocking: readiness, native size, and frame availability
         // are all discovered later via hasNewFrame()/retrieveFrame(),
         // polled from the caller's own Clock-driven tick.
     }
 
+    // Reopens the source on a software-decoding engine. Called once, when
+    // the D3D11 engine reports MF_MEDIA_ENGINE_ERR_SRC_NOT_SUPPORTED:
+    // with a DXGI device manager the engine only builds a pipeline from
+    // decoders that support Direct3D 11, so a format whose only decoder
+    // is software-only (MPEG-1, for example) is rejected there even
+    // though Windows can play it. Every frame is then a CPU copy.
+    void retryInSoftware() {
+        if (engine) { engine->Shutdown(); engine->Release(); engine = nullptr; }
+        if (notify) { notify->Release(); notify = nullptr; }
+        softwareDecode = true;
+        HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
+                                      IID_PPV_ARGS(&wic));
+        if (FAILED(hr)) { setError("WIC imaging factory creation failed: 0x%08lX", hr); return; }
+        if (!setupEngine()) return;
+        // No GL bridge applies to WIC frames; mark it settled so
+        // usingCpuFallback() reports the CPU copy with this reason.
+        interopProbed = true;
+        interopOk = false;
+        setInteropNote("this format has no Direct3D 11 decoder, so it is decoded in software");
+        engine->SetVolume(volume);
+        set_engine_source(engine, url);
+        if (wantPlay) engine->Play();
+    }
+
     bool ensureDestTexture() {
-        if (destTex) return true;
+        if (destTex || (softwareDecode && texWidth)) return true;
         DWORD cx = 0, cy = 0;
         if (FAILED(engine->GetNativeVideoSize(&cx, &cy)) || cx == 0 || cy == 0) return false;
+        if (softwareDecode) {
+            // Frames go through a WIC bitmap; only the size is needed.
+            texWidth = (int)cx;
+            texHeight = (int)cy;
+            return true;
+        }
         D3D11_TEXTURE2D_DESC td = {};
         td.Width = cx; td.Height = cy; td.MipLevels = 1; td.ArraySize = 1;
         td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -711,22 +954,9 @@ struct MFVideoPlayerImpl {
             setError("Map(staging) failed");
             return;
         }
-        size_t rowBytes = (size_t)texWidth * 4;
-        cpuBuf.resize(rowBytes * texHeight);
-        // Swizzle BGRA -> RGBA here (not upload as colorfmt='bgra'):
-        // same reasoning as video_avfoundation.pyx's CPU-copy path --
-        // not every GL backend this runs under is guaranteed to accept
-        // GL_BGRA uploads, so match the already-proven-safe convention.
-        for (int y = 0; y < texHeight; y++) {
-            const uint8_t *src = (const uint8_t*)mapped.pData + (size_t)y * mapped.RowPitch;
-            uint8_t *dst = (uint8_t*)cpuBuf.data() + (size_t)y * rowBytes;
-            for (int x = 0; x < texWidth; x++) {
-                dst[x*4+0] = src[x*4+2];
-                dst[x*4+1] = src[x*4+1];
-                dst[x*4+2] = src[x*4+0];
-                dst[x*4+3] = src[x*4+3];
-            }
-        }
+        cpuBuf.resize((size_t)texWidth * 4 * texHeight);
+        bgra_to_rgba((const uint8_t*)mapped.pData, mapped.RowPitch, texWidth, texHeight,
+                     cpuBuf.data());
         deviceCtx->Unmap(stagingTex, 0);
     }
 
@@ -745,6 +975,21 @@ struct MFVideoPlayerImpl {
         framePending = false;
 
         if (!ensureDestTexture()) return nullptr;
+
+        if (softwareDecode) {
+            cpuBuf.resize((size_t)texWidth * 4 * texHeight);
+            if (!transfer_to_wic(engine, wic, &wicBmp, texWidth, texHeight, cpuBuf.data()))
+                return nullptr;
+            outFrame.pts = pendingPts / 1.0e7;
+            outFrame.width = texWidth;
+            outFrame.height = texHeight;
+            outFrame.gl_texture_id = 0;
+            outFrame.gl_target = 0;
+            outFrame.data = cpuBuf.data();
+            outFrame.datasize = (unsigned int)cpuBuf.size();
+            outFrame.rowsize = (unsigned int)texWidth * 4;
+            return &outFrame;
+        }
 
         releaseZeroCopy();
 
@@ -800,6 +1045,9 @@ struct MFVideoPlayerImpl {
 
         if (stagingTex) { stagingTex->Release(); stagingTex = nullptr; }
         if (destTex) { destTex->Release(); destTex = nullptr; }
+        if (wicBmp) { wicBmp->Release(); wicBmp = nullptr; }
+        if (wic) { wic->Release(); wic = nullptr; }
+        softwareDecode = false;
         texWidth = texHeight = 0;
         framePending = false;
 
@@ -811,17 +1059,46 @@ struct MFVideoPlayerImpl {
         device = nullptr;
     }
 
-    void play()   { if (engine) engine->Play(); }
-    void pause()  { if (engine) engine->Pause(); }
-    void stop()   { if (engine) { engine->Pause(); engine->SetCurrentTime(0.0); } }
+    void play()   { wantPlay = true; if (engine) engine->Play(); }
+    void pause()  { wantPlay = false; if (engine) engine->Pause(); }
+    void stop()   { wantPlay = false; if (engine) { engine->Pause(); engine->SetCurrentTime(0.0); } }
     void seek(double seconds, bool /*precise -- see header note*/) {
         if (engine) engine->SetCurrentTime(seconds);
     }
     double position() { return engine ? engine->GetCurrentTime() : 0.0; }
     double duration() { return engine ? engine->GetDuration() : 0.0; }
-    void setVolume(double v) { if (engine) engine->SetVolume(v); }
+    void setVolume(double v) { volume = v; if (engine) engine->SetVolume(v); }
     bool isEOS() { return notify && notify->ended.load(); }
     bool isBuffering() { return notify && notify->buffering.load(); }
+
+    // True once setup failed or the engine reported an error (for
+    // example a format with no installed decoder). Copies the engine's
+    // error into lastErrorBuf the first time it is seen. A source the
+    // D3D11 engine rejects is first retried in software (see
+    // retryInSoftware()); only a failure there is reported.
+    bool hasError() {
+        if (lastErrorBuf[0]) return true;
+        if (!notify || !notify->errored.load()) return false;
+        if (!softwareDecode &&
+            notify->errCode.load() == MF_MEDIA_ENGINE_ERR_SRC_NOT_SUPPORTED) {
+            retryInSoftware();
+            return lastErrorBuf[0] != 0;
+        }
+        const char *what = "unknown error";
+        switch (notify->errCode.load()) {
+            case MF_MEDIA_ENGINE_ERR_ABORTED: what = "aborted"; break;
+            case MF_MEDIA_ENGINE_ERR_NETWORK: what = "network error"; break;
+            case MF_MEDIA_ENGINE_ERR_DECODE: what = "decode error"; break;
+            case MF_MEDIA_ENGINE_ERR_SRC_NOT_SUPPORTED:
+                what = "format not supported (no Media Foundation source or "
+                       "decoder installed for it)";
+                break;
+            case MF_MEDIA_ENGINE_ERR_ENCRYPTED: what = "encrypted media"; break;
+        }
+        setError("playback failed: %s (HRESULT 0x%08lX)", what,
+                 (unsigned long)notify->errHr.load());
+        return true;
+    }
 };
 
 // ---------------------------------------------------------------------
@@ -853,6 +1130,7 @@ bool VideoPlayer::hasNewFrame() { return impl->hasNewFrame(); }
 VideoFrame *VideoPlayer::retrieveFrame() { return impl->retrieveFrame(); }
 bool VideoPlayer::isEOS() { return impl->isEOS(); }
 bool VideoPlayer::isBuffering() { return impl->isBuffering(); }
+bool VideoPlayer::hasError() { return impl->hasError(); }
 const char *VideoPlayer::lastError() { return impl->lastErrorBuf; }
 const char *VideoPlayer::interopNote() { return impl->interopNoteBuf; }
 bool VideoPlayer::usingCpuFallback() { return impl->interopProbed && !impl->interopOk; }
@@ -879,24 +1157,138 @@ static void PumpAndSleep(DWORD ms) {
 // live playback this is explicitly allowed to block the calling thread
 // briefly (same contract as the other providers' thumbnail paths).
 // ---------------------------------------------------------------------
+
+// Polls `done` while pumping messages, for at most ms milliseconds.
+// Returns false on timeout or as soon as the engine reports an error.
+template <typename Pred>
+static bool wait_for(EngineNotify *notify, DWORD ms, Pred done) {
+    ULONGLONG start = GetTickCount64();
+    while (!done()) {
+        if (notify->errored.load() || GetTickCount64() - start > ms) return false;
+        PumpAndSleep(10);
+    }
+    return true;
+}
+
+// One thumbnail attempt. With a DXGI device manager the frame is
+// decoded into a D3D11 texture on `device` and read back through a
+// staging copy; without one (software decode) it comes out through a
+// WIC bitmap. *unsupported is set when the engine rejected the source,
+// which is the case the software retry covers.
+static VideoFrame *thumbnail_attempt(const std::wstring &url, double t, int w, int h,
+                                     IMFDXGIDeviceManager *dxgiMgr, ID3D11Device *device,
+                                     ID3D11DeviceContext *ctx, bool *unsupported) {
+    *unsupported = false;
+    VideoFrame *result = nullptr;
+    EngineNotify *notify = new EngineNotify();
+    IMFMediaEngine *engine = nullptr;
+    IWICImagingFactory *wic = nullptr;
+    IWICBitmap *bmp = nullptr;
+    ID3D11Texture2D *tex = nullptr;
+    ID3D11Texture2D *staging = nullptr;
+    DWORD cx = 0, cy = 0;
+    int dstW = 0, dstH = 0;
+
+    if (FAILED(create_engine(dxgiMgr, notify, &engine))) goto cleanup;
+    set_engine_source(engine, url);
+
+    if (!wait_for(notify, 8000, [&] {
+            return engine->GetReadyState() >= MF_MEDIA_ENGINE_READY_HAVE_CURRENT_DATA; })) {
+        *unsupported = notify->errored.load() &&
+            notify->errCode.load() == MF_MEDIA_ENGINE_ERR_SRC_NOT_SUPPORTED;
+        goto cleanup;
+    }
+
+    if (t > 0.0) {
+        engine->SetCurrentTime(t);
+        // No dedicated "seeked" flag on this short-lived EngineNotify;
+        // GetCurrentTime converging near the target is a sufficient,
+        // simple readiness signal for a one-shot thumbnail. A seek that
+        // doesn't converge still yields the nearest frame below.
+        wait_for(notify, 8000, [&] { return engine->GetCurrentTime() >= t - 0.25; });
+    }
+
+    {
+        LONGLONG pts = 0;
+        if (!wait_for(notify, 8000, [&] { return engine->OnVideoStreamTick(&pts) == S_OK; }))
+            goto cleanup;
+    }
+
+    if (FAILED(engine->GetNativeVideoSize(&cx, &cy)) || cx == 0 || cy == 0) goto cleanup;
+    dstW = (w > 0) ? w : (int)cx;
+    dstH = (h > 0) ? h : (int)cy;
+
+    result = new VideoFrame();
+    result->width = dstW;
+    result->height = dstH;
+    result->rowsize = dstW * 4;
+    result->datasize = result->rowsize * dstH;
+    result->data = (char*)malloc(result->datasize);
+
+    if (!dxgiMgr) {
+        if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
+                                    IID_PPV_ARGS(&wic))) ||
+            !transfer_to_wic(engine, wic, &bmp, dstW, dstH, result->data)) {
+            free(result->data);
+            delete result;
+            result = nullptr;
+        }
+        goto cleanup;
+    }
+
+    {
+        D3D11_TEXTURE2D_DESC td = {};
+        td.Width = dstW; td.Height = dstH; td.MipLevels = 1; td.ArraySize = 1;
+        td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        td.SampleDesc.Count = 1;
+        td.Usage = D3D11_USAGE_DEFAULT;
+        td.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        bool ok = SUCCEEDED(device->CreateTexture2D(&td, nullptr, &tex));
+        RECT destRect = {0, 0, dstW, dstH};
+        ok = ok && SUCCEEDED(engine->TransferVideoFrame(tex, nullptr, &destRect, nullptr));
+        td.Usage = D3D11_USAGE_STAGING;
+        td.BindFlags = 0;
+        td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        ok = ok && SUCCEEDED(device->CreateTexture2D(&td, nullptr, &staging));
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        if (ok) {
+            ctx->CopyResource(staging, tex);
+            ok = SUCCEEDED(ctx->Map(staging, 0, D3D11_MAP_READ, 0, &mapped));
+        }
+        if (ok) {
+            bgra_to_rgba((const uint8_t*)mapped.pData, mapped.RowPitch, dstW, dstH,
+                         result->data);
+            ctx->Unmap(staging, 0);
+        } else {
+            free(result->data);
+            delete result;
+            result = nullptr;
+        }
+    }
+
+cleanup:
+    if (staging) staging->Release();
+    if (tex) tex->Release();
+    if (bmp) bmp->Release();
+    if (wic) wic->Release();
+    if (engine) { engine->Shutdown(); engine->Release(); }
+    notify->Release();
+    return result;
+}
+
 VideoFrame *VideoPlayer::generateThumbnail(const char *url, double t, int w, int h) {
     mf_runtime_acquire();
     VideoFrame *result = nullptr;
+    std::wstring wurl = utf8_to_wide(url);
 
     IDXGIFactory1 *factory = nullptr;
     IDXGIAdapter1 *adapter = nullptr;
     ID3D11Device *device = nullptr;
     ID3D11DeviceContext *ctx = nullptr;
     IMFDXGIDeviceManager *dxgiMgr = nullptr;
-    EngineNotify *notify = nullptr;
-    IMFAttributes *attrs = nullptr;
-    IMFMediaEngineClassFactory *mef = nullptr;
-    IMFMediaEngine *engine = nullptr;
-    ID3D11Texture2D *tex = nullptr;
-    ID3D11Texture2D *staging = nullptr;
-
     D3D_FEATURE_LEVEL fl;
     UINT resetToken = 0;
+    bool unsupported = false;
 
     if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory))) goto cleanup;
     if (FAILED(factory->EnumAdapters1(0, &adapter))) goto cleanup;
@@ -918,106 +1310,13 @@ VideoFrame *VideoPlayer::generateThumbnail(const char *url, double t, int w, int
     if (FAILED(MFCreateDXGIDeviceManager(&resetToken, &dxgiMgr))) goto cleanup;
     if (FAILED(dxgiMgr->ResetDevice(device, resetToken))) goto cleanup;
 
-    notify = new EngineNotify();
-    if (FAILED(MFCreateAttributes(&attrs, 3))) goto cleanup;
-    attrs->SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, dxgiMgr);
-    attrs->SetUnknown(MF_MEDIA_ENGINE_CALLBACK, static_cast<IMFMediaEngineNotify*>(notify));
-    attrs->SetUINT32(MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, DXGI_FORMAT_B8G8R8A8_UNORM);
-    if (FAILED(CoCreateInstance(CLSID_MFMediaEngineClassFactory, nullptr, CLSCTX_INPROC_SERVER,
-            __uuidof(IMFMediaEngineClassFactory), (void**)&mef))) goto cleanup;
-    if (FAILED(mef->CreateInstance(0, attrs, &engine))) goto cleanup;
-
-    {
-        std::wstring uri = to_source_uri(utf8_to_wide(url));
-        BSTR bstr = SysAllocString(uri.c_str());
-        engine->SetSource(bstr);
-        SysFreeString(bstr);
-    }
-
-    {
-        ULONGLONG start = GetTickCount64();
-        while (engine->GetReadyState() < MF_MEDIA_ENGINE_READY_HAVE_CURRENT_DATA) {
-            if (GetTickCount64() - start > 8000) goto cleanup;
-            PumpAndSleep(10);
-        }
-    }
-
-    if (t > 0.0) {
-        engine->SetCurrentTime(t);
-        ULONGLONG start = GetTickCount64();
-        // No dedicated "seeked" flag on this short-lived EngineNotify;
-        // GetCurrentTime converging near the target is a sufficient,
-        // simple readiness signal for a one-shot thumbnail.
-        while (GetTickCount64() - start < 8000) {
-            if (engine->GetCurrentTime() >= t - 0.25) break;
-            PumpAndSleep(10);
-        }
-    }
-
-    {
-        ULONGLONG start = GetTickCount64();
-        LONGLONG pts = 0;
-        bool haveFrame = false;
-        while (GetTickCount64() - start < 8000) {
-            if (engine->OnVideoStreamTick(&pts) == S_OK) { haveFrame = true; break; }
-            PumpAndSleep(10);
-        }
-        if (!haveFrame) goto cleanup;
-    }
-
-    {
-        DWORD cx = 0, cy = 0;
-        if (FAILED(engine->GetNativeVideoSize(&cx, &cy)) || cx == 0 || cy == 0) goto cleanup;
-        int srcW = (int)cx, srcH = (int)cy;
-        int dstW = (w > 0) ? w : srcW;
-        int dstH = (h > 0) ? h : srcH;
-
-        D3D11_TEXTURE2D_DESC td = {};
-        td.Width = dstW; td.Height = dstH; td.MipLevels = 1; td.ArraySize = 1;
-        td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-        td.SampleDesc.Count = 1;
-        td.Usage = D3D11_USAGE_DEFAULT;
-        td.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-        if (FAILED(device->CreateTexture2D(&td, nullptr, &tex))) goto cleanup;
-
-        RECT destRect = {0, 0, dstW, dstH};
-        if (FAILED(engine->TransferVideoFrame(tex, nullptr, &destRect, nullptr))) goto cleanup;
-
-        td.Usage = D3D11_USAGE_STAGING;
-        td.BindFlags = 0;
-        td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-        if (FAILED(device->CreateTexture2D(&td, nullptr, &staging))) goto cleanup;
-        ctx->CopyResource(staging, tex);
-
-        D3D11_MAPPED_SUBRESOURCE mapped;
-        if (FAILED(ctx->Map(staging, 0, D3D11_MAP_READ, 0, &mapped))) goto cleanup;
-
-        result = new VideoFrame();
-        result->width = dstW;
-        result->height = dstH;
-        result->rowsize = dstW * 4;
-        result->datasize = result->rowsize * dstH;
-        result->data = (char*)malloc(result->datasize);
-        for (int y = 0; y < dstH; y++) {
-            const uint8_t *src = (const uint8_t*)mapped.pData + (size_t)y * mapped.RowPitch;
-            uint8_t *dst = (uint8_t*)result->data + (size_t)y * result->rowsize;
-            for (int x = 0; x < dstW; x++) {
-                dst[x*4+0] = src[x*4+2];
-                dst[x*4+1] = src[x*4+1];
-                dst[x*4+2] = src[x*4+0];
-                dst[x*4+3] = src[x*4+3];
-            }
-        }
-        ctx->Unmap(staging, 0);
-    }
+    result = thumbnail_attempt(wurl, t, w, h, dxgiMgr, device, ctx, &unsupported);
+    // Same fallback as playback (MFVideoPlayerImpl::retryInSoftware()):
+    // a source the D3D11 engine rejects is retried in software.
+    if (!result && unsupported)
+        result = thumbnail_attempt(wurl, t, w, h, nullptr, nullptr, nullptr, &unsupported);
 
 cleanup:
-    if (staging) staging->Release();
-    if (tex) tex->Release();
-    if (engine) { engine->Shutdown(); engine->Release(); }
-    if (mef) mef->Release();
-    if (attrs) attrs->Release();
-    if (notify) notify->Release();
     if (dxgiMgr) dxgiMgr->Release();
     if (ctx) ctx->Release();
     if (device) device->Release();

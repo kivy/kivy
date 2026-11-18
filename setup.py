@@ -1563,7 +1563,7 @@ if c_options['use_mediafoundation']:
     # pick it up as such, rather than just a tracked dependency.
     mf_flags = merge({
         'libraries': ['d3d11', 'dxgi', 'mfplat', 'mf', 'mfuuid',
-                      'ole32', 'oleaut32', 'user32'],
+                      'ole32', 'oleaut32', 'user32', 'windowscodecs'],
         'depends': [
             'core/video/video_mediafoundation_implem.h',
             'core/video/video_mediafoundation_implem.cpp',

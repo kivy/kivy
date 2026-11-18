@@ -12,12 +12,16 @@ directly into GL (via ``WGL_NV_DX_interop2`` for a WGL context, or
 ``EGL_ANGLE_d3d_texture_client_buffer`` for an ANGLE context) and wrapped into a :class:`~kivy.graphics.texture.Texture` with
 ``nofree=True`` -- no per-frame ``memcpy``. If that one-time registration
 fails (e.g. a GPU/driver gap), the provider falls back to a CPU copy for
-every frame instead of failing outright.
+every frame instead of failing outright. A format whose only decoder has
+no Direct3D 11 support (MPEG-1, for example) is decoded in software,
+also with a CPU copy for every frame.
 
 .. versionadded:: 3.0.0
 '''
 
 __all__ = ('VideoMediaFoundation',)
+
+from libc.stdlib cimport free
 
 
 cdef extern from "video_mediafoundation_implem.h":
@@ -50,6 +54,7 @@ cdef extern from "video_mediafoundation_implem.h":
 
         bint isEOS()
         bint isBuffering()
+        bint hasError()
 
         const char *lastError()
         const char *interopNote()
@@ -210,6 +215,7 @@ class VideoMediaFoundation(VideoBase):
         self._storage = _MFVideoStorage()
         self._update_ev = None
         self._logged_fallback = False
+        self._logged_error = False
         super(VideoMediaFoundation, self).__init__(**kwargs)
         unknown = sorted(set(self._options) - _KNOWN_OPTIONS)
         if unknown:
@@ -251,6 +257,7 @@ class VideoMediaFoundation(VideoBase):
         try:
             texture = _frame_to_texture(frame, None)
         finally:
+            free(frame.data)
             del frame
         return texture
 
@@ -259,6 +266,7 @@ class VideoMediaFoundation(VideoBase):
     def load(self):
         cdef _MFVideoStorage storage
         cdef bytes url_b
+        cdef bytes err
         Logger.debug(
             'VideoMediaFoundation: Load <{}>'.format(self._filename))
         self._release_player()
@@ -270,7 +278,8 @@ class VideoMediaFoundation(VideoBase):
         storage.player = new VideoPlayer(<const char *>url_b)
         storage.player.load()
         err = storage.player.lastError()
-        if err and len(err) > 0:
+        self._logged_error = bool(err)
+        if err:
             Logger.error(
                 'VideoMediaFoundation: setup failed: {}'.format(
                     err.decode('utf-8', 'replace')))
@@ -359,6 +368,17 @@ class VideoMediaFoundation(VideoBase):
         cdef bint new_buffering
 
         if storage.player == NULL:
+            return
+
+        # Media Foundation reports a file it can't play (for example one
+        # whose codec has no installed decoder) asynchronously, as an
+        # error event; without this the video would just never load.
+        if storage.player.hasError():
+            if not self._logged_error:
+                self._logged_error = True
+                Logger.error('VideoMediaFoundation: <{}>: {}'.format(
+                    self._filename,
+                    storage.player.lastError().decode('utf-8', 'replace')))
             return
 
         new_buffering = storage.player.isBuffering()

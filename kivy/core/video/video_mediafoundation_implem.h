@@ -23,6 +23,13 @@
  * upload) rather than failing outright -- matching Kivy 3.0's video
  * provider goal that secondary/fallback paths may copy through the CPU.
  *
+ * Sources are opened through the system IMFSourceResolver, so any format
+ * with an installed Media Foundation source plays, not only the web
+ * formats IMFMediaEngine accepts by default. A source whose only decoder
+ * lacks Direct3D 11 support (MPEG-1, for example) is rejected by the
+ * D3D11 engine; it is then reopened on a software-decoding engine, whose
+ * frames arrive through a WIC bitmap and are always a CPU copy.
+ *
  * This header is deliberately free of <windows.h>, <d3d11.h>,
  * <mfapi.h> and friends: those pull in macros (interface, IN, OUT,
  * small, ...) that can silently corrupt Cython-generated C++ if this
@@ -101,11 +108,17 @@ public:
     // data, the same semantics as VideoBase.buffering.
     bool isBuffering();
 
+    // True once setup failed or Media Foundation reported a playback
+    // error (MF_MEDIA_ENGINE_EVENT_ERROR, e.g. a format with no
+    // installed decoder); lastError() then says what went wrong. Cheap
+    // to poll every tick.
+    bool hasError();
+
     // Thumbnails are a synchronous, one-shot API (unlike playback) --
     // this is allowed to block the calling thread briefly waiting for
     // the seek + first frame, same as the other providers' thumbnail
-    // paths. Caller owns the returned frame and must delete it. Returns
-    // NULL on error/timeout. Always CPU-copy.
+    // paths. Caller owns the returned frame: free() its data (malloc'd),
+    // then delete it. Returns NULL on error/timeout. Always CPU-copy.
     static VideoFrame *generateThumbnail(const char *url, double t,
                                          int w, int h);
 
