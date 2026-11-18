@@ -13,6 +13,10 @@ from kivy.core.image import ImageData
 # used for fetching extends before creature image surface
 default_font = ImageFont.load_default()
 
+# libraqm 0.11+ (bundled with Pillow 13) raises on line and paragraph
+# separators, so they are removed before a line is measured or drawn.
+_LINE_BREAKS = dict.fromkeys(map(ord, '\n\r\x1c\x1d\x1e\x85\u2029'))
+
 
 class LabelPIL(LabelBase):
     _provider_name = 'pil'
@@ -40,6 +44,7 @@ class LabelPIL(LabelBase):
         if not font:
             return 0, 0
 
+        text = text.translate(_LINE_BREAKS)
         left, top, right, bottom = font.getbbox(text)
         ascent, descent = font.getmetrics()
 
@@ -64,6 +69,7 @@ class LabelPIL(LabelBase):
         if not font:
             return
 
+        text = text.translate(_LINE_BREAKS)
         color = tuple([int(c * 255) for c in self.options['color']])
 
         # Adjust x and y position to avoid text cutoff
