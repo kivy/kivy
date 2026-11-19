@@ -68,8 +68,18 @@ class AudioSDL3TestCase(unittest.TestCase):
         from kivy.core import audio_output
         if 'sdl3' not in audio_output.SoundLoader.available_providers():
             self.skipTest('sdl3 audio provider is not available')
-        return audio_output.SoundLoader.load(
+        sound = audio_output.SoundLoader.load(
             SAMPLE_FILE, audio_output_provider='sdl3')
+        if sound is None or sound._provider_name != 'sdl3':
+            self.skipTest('sdl3 audio provider cannot load the sample')
+        return sound
+
+    def play(self, sound):
+        # CI runners often have no audio device, so SDL3 can't play there.
+        sound.play()
+        if sound.state != 'play':
+            sound.unload()
+            self.skipTest('no audio device to play on')
 
     def record_events(self, sound):
         events = []
@@ -81,7 +91,7 @@ class AudioSDL3TestCase(unittest.TestCase):
         sound = self.get_sound()
         events = self.record_events(sound)
         try:
-            sound.play()
+            self.play(sound)
             assert events == ['on_play']
             sound.stop()
             sound.stop()
@@ -95,7 +105,7 @@ class AudioSDL3TestCase(unittest.TestCase):
         sound.loop = True
         events = self.record_events(sound)
         try:
-            sound.play()
+            self.play(sound)
             # No Clock ticks here, so only SDL_mixer itself can loop.
             time.sleep(SAMPLE_LENGTH + 0.3)
             assert sound._audiotrack.is_playing()
@@ -109,7 +119,7 @@ class AudioSDL3TestCase(unittest.TestCase):
         sound = self.get_sound()
         sound.loop = True
         try:
-            sound.play()
+            self.play(sound)
             time.sleep(0.2)
             sound.loop = False
             time.sleep(SAMPLE_LENGTH)
