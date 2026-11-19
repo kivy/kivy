@@ -98,18 +98,21 @@ class TestVideoWidget(PyinstallerBase):
 
     pinstall_path = os.path.join(os.path.dirname(__file__), 'video_widget')
 
-    @classmethod
-    def get_env(cls):
-        env = super(TestVideoWidget, cls).get_env()
+    @staticmethod
+    def add_video_env(env):
         import kivy
         env['__KIVY_VIDEO_TEST_FNAME'] = os.path.abspath(os.path.join(
             kivy.kivy_examples_dir, "widgets", "cityCC0.mpg"))
+        # The clip is MPEG-1. The default Windows provider (Media
+        # Foundation) relies on the OS decoder, which Windows Server CI
+        # runners don't license, so use gstplayer as before Kivy 3.0.
+        env['KIVY_VIDEO'] = 'gstplayer'
         return env
 
     @classmethod
+    def get_env(cls):
+        return cls.add_video_env(super(TestVideoWidget, cls).get_env())
+
+    @classmethod
     def get_run_env(cls):
-        env = super(TestVideoWidget, cls).get_run_env()
-        import kivy
-        env['__KIVY_VIDEO_TEST_FNAME'] = os.path.abspath(os.path.join(
-            kivy.kivy_examples_dir, "widgets", "cityCC0.mpg"))
-        return env
+        return cls.add_video_env(super(TestVideoWidget, cls).get_run_env())

@@ -14,7 +14,7 @@ env:
 jobs:
   ios_wheels_create:
     name: Build iOS wheels
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]')
+    if: (github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel ios]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel ios]')
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -49,6 +49,8 @@ jobs:
         run: |
           export KIVY_DEPS_ROOT=$(pwd)/ios-kivy-dependencies
           python ./tools/add-ios-frameworks.py ./wheelhouse
+      - name: Check distributions
+        run: python -m twine check --strict wheelhouse/*.whl
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v7
         with:
@@ -58,7 +60,7 @@ jobs:
   ios_wheel_upload:
     runs-on: macos-26
     needs: ios_wheels_create
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python
@@ -71,6 +73,8 @@ jobs:
         with:
           name: ios_wheels
           path: dist
+      - name: Check distributions
+        run: python -m twine check --strict dist/*
       - name: Rename wheels
         if: github.event.ref_type != 'tag'
         run: |

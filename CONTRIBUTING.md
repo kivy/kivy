@@ -128,9 +128,14 @@ details.
 ## Reporting an Issue
 
 If you found anything wrong - a bug in Kivy, missing documentation, incorrect
-spelling or just unclear examples -  please take two minutes to report the
+spelling or just unclear examples - please take two minutes to report the
 issue. If you are unsure, please try our support channels first; see
 [Contact Us](CONTACT.md) for details.
+
+If you used an LLM (AI) to write or help with your issue ticket, please include
+real logs from where the code is crashing. We can't do much without them. If
+the same author keeps posting new tickets without providing the details we ask
+for, we will have to ban them from the organization.
 
 If you can produce a small example of a program that fails, it helps immensely:
 
@@ -158,6 +163,22 @@ etc.
 4. Use the Preview tab to check how it looks - if you've pasted logs straight in
 at can cause formatting chaos.
 5. Submit it and you're done!
+
+## Policy on External Tutorials and Links
+
+We welcome links to high-quality, external educational resources that help
+users learn Python and Kivy. However, to maintain the integrity of our
+documentation, we strictly enforce the following rules:
+
+1. **No Paywalled or Gated Content:** We do not accept links to interactive
+   learning applications, platforms, or articles that require a paid
+   subscription, account registration, or use artificial "energy limits" to
+   restrict learning.
+2. **Preference for Open Source:** Priority is given to community-driven,
+   100% free, and open-source documentation.
+3. **No Commercial Backlink Placement:** Pull requests submitted solely to
+   generate search engine optimization (SEO) backlinks for companies or
+   bootcamps will be closed.
 
 ## Code Contributions
 

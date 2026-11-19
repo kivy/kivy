@@ -46,9 +46,9 @@ function Generate-windows-wheels {
 
 function Rename-windows-wheels {
     # Set new wheel name, keep default if release (tag)
-    # release: Kivy-X.Y.Z-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z-py2.py3-none-any.whl)
-    # nightly: Kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0-py2.py3-none-any.whl)
-    # archive: Kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (Kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
+    # release: kivy-X.Y.Z-cpAB-cpABm-ARCH.whl (kivy_examples-X.Y.Z-py2.py3-none-any.whl)
+    # nightly: kivy-X.Y.Z.dev0-cpAB-cpABm-ARCH.whl (kivy_examples-X.Y.Z.dev0-py2.py3-none-any.whl)
+    # archive: kivy-X.Y.Z.dev0.YYYYMMDD.githash-cpAB-cpABm-ARCH.whl (kivy_examples-X.Y.Z.dev0.YYYYMMDD.githash-py2.py3-none-any.whl)
 
     $WHEEL_DATE = python -c "from datetime import datetime;print(datetime.utcnow().strftime('%Y%m%d'))"
     echo "Wheel date is: $WHEEL_DATE"
@@ -71,9 +71,9 @@ function Rename-windows-wheels {
 }
 
 function Upload-windows-wheels-to-server($ip) {
-    echo "Uploading Kivy*:"
+    echo "Uploading kivy*.whl:"
     dir dist
-    C:\tools\msys64\usr\bin\bash --login -c ".ci/windows-server-upload.sh $ip dist 'Kivy*' ci/win/kivy/"
+    C:\tools\msys64\usr\bin\bash --login -c ".ci/windows-server-upload.sh $ip dist 'kivy*.whl' ci/win/kivy/"
 }
 
 function Install-kivy {
@@ -88,8 +88,8 @@ function Install-kivy-wheel {
 
     $version=python -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))"
     $bitness=python -c "import sys; print('win_amd64' if sys.maxsize > 2**32 else 'win32')"
-    $kivy_fname=(ls $root/dist/Kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
-    $kivy_examples_fname=(ls $root/dist/Kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    $kivy_fname=(ls $root/dist/kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
+    $kivy_examples_fname=(ls $root/dist/kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
     python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
 }

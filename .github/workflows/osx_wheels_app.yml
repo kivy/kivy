@@ -31,6 +31,8 @@ jobs:
     - name: Create wheel
       run: |
         python3 -m build --wheel --outdir dist packaging/kivy_examples
+    - name: Check distributions
+      run: python -m twine check --strict dist/*
     - name: Upload kivy-examples wheel as artifact
       uses: actions/upload-artifact@v7
       with:
@@ -38,7 +40,7 @@ jobs:
         path: dist
 
   osx_wheels_create:
-    if: github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
+    if: (github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.head_commit.message, '[build wheel osx]') || contains(github.event.pull_request.title, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel osx]')
     env:
       CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=10.15"
       CIBW_BUILD: "cp311-macosx_universal2 cp312-macosx_universal2 cp313-macosx_universal2 cp314-macosx_universal2"
@@ -92,6 +94,8 @@ jobs:
         export KIVY_DEPS_ROOT=$(pwd)/kivy-dependencies
         export REPAIR_LIBRARY_PATH=$KIVY_DEPS_ROOT/dist/Frameworks
         python -m cibuildwheel --output-dir wheelhouse
+    - name: Check distributions
+      run: python -m twine check --strict wheelhouse/*.whl
     - uses: actions/upload-artifact@v7
       with:
         name: osx_wheels
@@ -116,6 +120,8 @@ jobs:
       with:
         name: osx_wheels
         path: dist
+    - name: Check distributions
+      run: python -m twine check --strict dist/*
     - name: Rename wheels
       if: github.event.ref_type != 'tag'
       run: |
@@ -174,7 +180,7 @@ jobs:
       - name: Install kivy-examples wheel
         run: |
           source .ci/ubuntu_ci.sh
-          install_kivy_examples_wheel dev
+          install_kivy_examples_wheel
       - name: Test Kivy wheel
         run: |
           source .ci/ubuntu_ci.sh
@@ -182,7 +188,7 @@ jobs:
 
   osx_app_create:
     runs-on: macos-latest
-    if: github.event_name != 'pull_request' && (github.event_name == 'schedule' || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
+    if: github.event_name != 'pull_request' && ((github.repository == 'kivy/kivy' && github.event_name == 'schedule') || (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build app osx]')) || contains(github.event.pull_request.title, '[build app osx]')
     env:
       KIVY_SPLIT_EXAMPLES: 0
     steps:
@@ -202,7 +208,7 @@ jobs:
           update_version_metadata
       - name: Install build dependencies
         run: |
-          brew install pkg-config cmake ninja
+          brew install pkg-config cmake ninja meson
       - name: Install dependencies
         run: |
           source .ci/ubuntu_ci.sh
@@ -244,6 +250,7 @@ jobs:
           source .ci/osx_ci.sh
           rename_osx_app "$py_version"
       - name: Upload app to server
+        if: github.repository == 'kivy/kivy' && github.event_name != 'pull_request'
         env:
           UBUNTU_UPLOAD_KEY: ${{ secrets.UBUNTU_UPLOAD_KEY }}
         run: |
@@ -268,7 +275,8 @@ jobs:
           source .ci/osx_ci.sh
           source .ci/ubuntu_ci.sh
           activate_osx_app_venv
-          install_kivy_examples_wheel dev
+          install_osx_app_test_dependencies
+          install_kivy_examples_wheel
       - name: Test Kivy app
         run: |
           source .ci/osx_ci.sh

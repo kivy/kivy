@@ -10,6 +10,21 @@ OGV, AVI, MOV, FLV (if the correct gstreamer plugins are installed). Our
 :class:`~kivy.core.video.VideoBase` implementation is used under the
 hood.
 
+On macOS and iOS, the default AVFoundation provider plays whatever
+AVFoundation can open, such as MP4 and MOV files with H.264 or HEVC
+video. See :class:`~kivy.core.video.video_avfoundation.VideoAVFoundation`
+for details.
+
+On Windows, the default Media Foundation provider plays whatever the
+system's installed decoders support. Standard MP4 (H.264 video, AAC
+audio) works out of the box; HEVC, AV1, VP9 and MPEG-2 become playable
+once Microsoft's matching video extensions are installed from the
+Microsoft Store. Windows "N" and "KN" editions ship without Media
+Foundation, so Kivy uses the next installed provider there unless the
+Media Feature Pack is installed. See
+:class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`
+for details.
+
 Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
 
@@ -40,6 +55,18 @@ One can display the placeholder image when the video stops by reacting on eos::
             self.set_texture_from_resource(self.preview)
 
     video.bind(eos=on_eos_change)
+
+If the video can't be loaded or played, for example because its format
+has no installed decoder, :attr:`Video.state` changes to ``'stop'`` and
+the ``on_error`` event fires with a message. A missing local file is
+reported with any provider; other failures are reported by the Media
+Foundation (Windows) and AVFoundation (macOS, iOS) providers. Nothing is
+raised, so an app that doesn't handle it keeps running::
+
+    def on_video_error(instance, error):
+        print('Video failed:', error)
+
+    video.bind(on_error=on_video_error)
 
 .. versionadded:: 3.0.0
 
@@ -84,7 +111,17 @@ from kivy.properties import (BooleanProperty, DictProperty, NumericProperty,
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+
+    :Events:
+        `on_error`: error
+            Fired when the video can't be loaded or played. `error` is a
+            message describing the failure. :attr:`state` is already
+            ``'stop'`` when it fires.
+
+            .. versionadded:: 3.0.0
     '''
+
+    __events__ = ('on_error', )
 
     preview = StringProperty(None, allownone=True)
     '''Filename / source of a preview image displayed before video starts.
@@ -180,10 +217,11 @@ class Video(Image):
         first decodable frame is available rather than buffering
         ahead).
 
-    Other providers (GStreamer, FFmpeg / ffpyplayer) currently expose no
-    documented ``options`` keys: unknown kwargs in ``options`` are also
-    unpacked as keyword arguments to the core video for back-compat with
-    apps that put well-known kwargs (e.g. ``eos='loop'``) in this dict.
+    Other providers (Media Foundation, GStreamer, FFmpeg / ffpyplayer)
+    currently expose no documented ``options`` keys: unknown kwargs in
+    ``options`` are also unpacked as keyword arguments to the core video
+    for back-compat with apps that put well-known kwargs (e.g.
+    ``eos='loop'``) in this dict.
 
     Example::
 
@@ -294,6 +332,14 @@ class Video(Image):
             # Check if filename is not url
             if '://' not in filename:
                 filename = resource_find(filename)
+                if filename is None:
+                    # No provider ever sees a missing local file, so
+                    # report the failed load here, as providers do.
+                    self._video = None
+                    self.state = 'stop'
+                    self.dispatch(
+                        'on_error', 'file not found: {}'.format(self.source))
+                    return
             # Forward both the dict (for providers that introspect
             # self._options) and the unpacked kwargs (back-compat with
             # apps that put well-known kwargs like 'eos' in options).
@@ -309,7 +355,8 @@ class Video(Image):
             self._video.bind(on_load=self._on_load,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos,
-                             on_buffering=self._on_buffering)
+                             on_buffering=self._on_buffering,
+                             on_error=self._on_error)
             if self.state == 'play':
                 self._video.play()
             self.duration = 1.
@@ -350,6 +397,13 @@ class Video(Image):
 
     def _on_buffering(self, instance, value):
         self.buffering = bool(value)
+
+    def _on_error(self, instance, error):
+        self.state = 'stop'
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
 
     def on_volume(self, instance, value):
         if self._video:

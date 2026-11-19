@@ -153,6 +153,10 @@ class WindowSDL(WindowBase):
 
     managed_textinput = True
 
+    # show_keyboard() gives SDL the text input area, and Android pans the
+    # window (adjustPan) to keep it above the keyboard
+    _system_pans_softinput = platform == 'android'
+
     def __init__(self, **kwargs):
         self._pause_loop = False
         self._cursor_entered = False
@@ -424,9 +428,13 @@ class WindowSDL(WindowBase):
         if filename is None:
             return
 
-        from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        from kivy.graphics.opengl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
         width, height = self.size
-        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        # The back buffer is undefined after a buffer swap on some backends
+        # (e.g. ANGLE/Metal), so redraw the current frame before reading it.
+        # GL_RGBA is the only read format that OpenGL ES guarantees.
+        self.on_draw()
+        data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
         self._win.save_bytes_in_png(filename, data, width, height)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename

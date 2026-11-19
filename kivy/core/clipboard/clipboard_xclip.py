@@ -24,6 +24,9 @@ except Exception:
 class ClipboardXclip(ClipboardExternalBase):
     @staticmethod
     def _clip(inout, selection):
-        pipe = {'std' + inout: subprocess.PIPE}
+        pipe = {'stdin': subprocess.DEVNULL,
+                'stdout': subprocess.DEVNULL,
+                'stderr': subprocess.DEVNULL}
+        pipe['std' + inout] = subprocess.PIPE
         return subprocess.Popen(
             ['xclip', '-' + inout, '-selection', selection], **pipe)

@@ -983,6 +983,21 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 
 
+=========
+Clipboard
+=========
+
+*The macOS nspaste clipboard provider is removed*
+
+The ``nspaste`` provider, which needed pyobjus, is removed. The ``sdl3``
+clipboard uses the same macOS pasteboard and is used instead. It handles
+text the same way, including Unicode, large text and copying to and from
+other apps.
+
+**Migration Impact**
+
+Replace ``KIVY_CLIPBOARD=nspaste`` with ``KIVY_CLIPBOARD=sdl3``.
+
 =====
 Clock
 =====
@@ -1224,6 +1239,7 @@ removed. ``SvgWidget`` and ``AsyncSvgWidget`` are registered in the Factory
 under their own names and can be used directly from KV.
 
 
+================================
 Application Storage Directories
 ================================
 
@@ -1340,4 +1356,215 @@ If you set ``KIVY_DESKTOP_PATH_ID`` in an existing app, your data will move to a
 location. You may need to migrate existing data (see Linux migration example above).
 
 For complete documentation, see :ref:`environment` and ``examples/desktop_path_id/``.
-```
+
+========
+Gestures
+========
+
+*Gesture matching is now rotation-invariant by default*
+
+**Behavior Changes**
+
+``GestureDatabase.find()`` and gesture equality (``==``) default to
+``rotation_invariant=True``, and that flag now works as documented. Gestures
+that differ only by rotation, such as a swipe right and a swipe left, now
+match at the default ``minscore`` of 0.9 where they previously did not.
+
+**Migration Impact**
+
+Apps that relied on the old, uncompensated behavior should pass
+``rotation_invariant=False`` to keep it.
+
+=================
+Software Keyboard
+=================
+
+*New: iPad floating keyboard support*
+
+Kivy 3.x.x supports the iPad's floating and undocked keyboard. On iOS,
+:attr:`Window.keyboard_height <kivy.core.window.WindowBase.keyboard_height>`
+is how far the software keyboard covers the window from its bottom edge:
+
+- A docked keyboard reports its height, as before.
+- A floating or undocked keyboard covers none of the bottom edge, so
+  ``keyboard_height`` is 0 and
+  :attr:`~kivy.core.window.WindowBase.softinput_mode` leaves the window in
+  place. Moving the floating keyboard around the screen does not move the
+  window.
+
+This matches the default behavior of UIKit's ``UIKeyboardLayoutGuide``, which
+follows the keyboard only while it is docked (``followsUndockedKeyboard`` is
+``NO``).
+
+**Migration Impact**
+
+This is **not a breaking change**, and no code changes are needed: apps that
+use ``softinput_mode`` handle the floating keyboard automatically. A floating
+keyboard can cover the focused widget; the user can drag it out of the way.
+
+========
+Graphics
+========
+
+*Chained Matrix transformations apply in call order*
+
+**Behavior Changes**
+
+:meth:`Matrix.rotate() <kivy.graphics.transformation.Matrix.rotate>` now also
+rotates the translation of the matrix, and
+:meth:`Matrix.scale() <kivy.graphics.transformation.Matrix.scale>` scales the
+whole matrix instead of only its diagonal. Like
+:meth:`Matrix.translate() <kivy.graphics.transformation.Matrix.translate>`,
+each call is applied after the transformation already in the matrix, so
+``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` now translates, then
+rotates. Results for a new :class:`~kivy.graphics.transformation.Matrix` are
+the same as before.
+
+**Migration Impact**
+
+Code that calls ``rotate()`` on a matrix with a translation, or ``scale()`` on
+a matrix that is not diagonal, now gets a different result. To get the old
+result, build each transformation from a new
+:class:`~kivy.graphics.transformation.Matrix` and combine them with
+:meth:`~kivy.graphics.transformation.Matrix.multiply`. For example, the old
+result of ``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` is
+``Matrix().translate(x, y, 0).multiply(Matrix().rotate(angle, 0, 0, 1))``.
+
+=====
+Video
+=====
+
+*New default video provider on macOS and iOS: AVFoundation*
+
+Kivy 3.x.x adds an ``avfoundation`` video provider, built on Apple's own
+AVFoundation framework, and makes it the first choice on macOS and iOS. In
+Kivy 2.x.x, playing video on macOS needed ffpyplayer (installed by the
+``media`` or ``full`` selector) or GStreamer.
+
+**Behavior Changes**
+
+- Video plays with a plain ``pip install kivy``. No extra package is needed.
+- Decoded frames are shared with OpenGL through ANGLE, with no copy through
+  the CPU. ANGLE is the only GL backend on macOS and iOS in Kivy 3.x.x, so
+  this needs no setup.
+- Which formats play depends on AVFoundation, not on Kivy. MP4 and MOV files
+  with H.264 or HEVC video play. Formats that ffpyplayer or GStreamer decoded
+  with their own codecs and that AVFoundation can't open no longer play by
+  default.
+- If a video can't be shown without a CPU copy, typically because macOS
+  decoded it in software, playback stops with a single log message and the
+  ``on_error`` event (see *New on_error event for videos that can't play*
+  below), rather than showing a black picture.
+- The provider has one option, ``automatically_waits_to_minimize_stalling``,
+  passed through :attr:`~kivy.uix.video.Video.options`. See that property
+  for details.
+
+**Migration Impact**
+
+Most apps need no changes. Apps that installed ffpyplayer or GStreamer only
+to play video on macOS can remove them. Keep them if the app also uses them
+for audio.
+
+To keep the Kivy 2.x.x behavior, for example to play a format AVFoundation
+can't open, select the previous provider before importing Kivy:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_VIDEO'] = 'ffpyplayer'  # or 'gstplayer'
+    import kivy
+
+
+*New default video provider on Windows: Media Foundation*
+
+Kivy 3.x.x adds a ``mediafoundation`` video provider, built on Windows' own
+Media Foundation framework, and makes it the first choice on Windows. In
+Kivy 2.x.x, playing video on Windows needed GStreamer (``kivy_deps.gstreamer``,
+installed by the ``media`` or ``full`` selector) or ffpyplayer.
+
+**Behavior Changes**
+
+- Video plays with a plain ``pip install kivy``. No extra package is needed.
+- Decoded frames go straight from the GPU decoder into an OpenGL texture,
+  with no copy through the CPU, on every Windows GL backend (``glew``,
+  ``sdl3`` and ``angle_sdl3``). If the graphics driver can't share textures
+  that way, the provider copies each frame through the CPU instead, and
+  playback still works.
+- Which formats play depends on the decoders installed in Windows, not on
+  Kivy. Standard MP4 files (H.264 video with AAC audio) play on any Windows
+  PC. HEVC (H.265), AV1, VP9 and MPEG-2 play once Microsoft's matching video
+  extension is installed from the Microsoft Store. The HEVC extension is not
+  free on every PC. Formats that GStreamer or ffpyplayer decoded with their
+  own codecs, and that Windows has no decoder for, no longer play by default.
+- Windows "N" and "KN" editions ship without Media Foundation. There, Kivy
+  skips this provider and uses the next one installed (``gstplayer`` or
+  ``ffpyplayer``), or plays no video if neither is. Installing the Media
+  Feature Pack (Settings > Apps > Optional features) makes Media Foundation
+  available.
+
+**Migration Impact**
+
+Most apps need no changes. Apps that installed ``kivy_deps.gstreamer`` or
+ffpyplayer only to play video on Windows can remove them. Keep them if the
+app also uses them for audio. PyInstaller builds no longer need
+``gstreamer.dep_bins`` for video either: Media Foundation is part of Windows,
+and :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` and
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all` include the
+``mediafoundation`` provider like any other.
+
+To keep the Kivy 2.x.x behavior, for example to play a format Windows can't
+decode, select the previous provider before importing Kivy:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_VIDEO'] = 'gstplayer'  # or 'ffpyplayer'
+    import kivy
+
+See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.
+
+
+*New on_error event for videos that can't play*
+
+Kivy 3.x.x adds an ``on_error`` event to :class:`~kivy.core.video.VideoBase`,
+:class:`~kivy.uix.video.Video` and :class:`~kivy.uix.videoplayer.VideoPlayer`.
+It fires when a video can't be loaded or played: a missing file, a format with
+no installed decoder, a corrupt file, an invalid URL, or a stream that fails
+during playback. In Kivy 2.x.x such a video logged an error at most, and
+:attr:`~kivy.uix.video.Video.loaded` stayed ``False`` with no event, so an app
+couldn't tell a failed video from one that was still loading.
+
+**Behavior Changes**
+
+- When a video fails, playback stops: :attr:`~kivy.uix.video.Video.state`
+  becomes ``'stop'``, :attr:`~kivy.uix.video.Video.buffering` becomes
+  ``False``, and then ``on_error`` fires once, with a message describing the
+  failure. :attr:`~kivy.uix.video.Video.loaded` stays ``False``.
+- Nothing is raised. An app that doesn't bind ``on_error`` keeps running; the
+  only visible difference is that ``state`` changes to ``'stop'``.
+- A missing local file is now reported too. In Kivy 2.x.x
+  :class:`~kivy.uix.video.Video` passed no filename to the provider when the
+  file couldn't be found, and nothing reported it.
+- The Media Foundation (Windows) and AVFoundation (macOS, iOS) providers fire
+  ``on_error``. The ``gstplayer`` and ``ffpyplayer`` providers don't yet: with
+  them, only a missing local file is reported.
+
+**Migration Impact**
+
+Apps that waited for :attr:`~kivy.uix.video.Video.loaded` with a timeout to
+detect a failed video can bind ``on_error`` instead. Code that sets ``state``
+back to ``'play'`` whenever it changes to ``'stop'``, for example to replay a
+video, should check for an error first, so it doesn't keep restarting a video
+that can't play.
+
+.. code-block:: python
+
+    from kivy.uix.video import Video
+
+    def on_video_error(video, error):
+        print('Video failed:', error)  # for example, show a message instead
+
+    video = Video(source='movie.mp4', state='play')
+    video.bind(on_error=on_video_error)

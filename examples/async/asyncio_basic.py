@@ -46,14 +46,12 @@ async def waste_time_freely():
         print('Done wasting time')
 
 if __name__ == '__main__':
-    def root_func():
+    async def root_func():
         '''This will run both methods asynchronously and then block until they
         are finished
         '''
         root = Builder.load_string(kv)  # root widget
         other_task = asyncio.ensure_future(waste_time_freely())
-        return asyncio.gather(run_app_happily(root, other_task), other_task)
+        await asyncio.gather(run_app_happily(root, other_task), other_task)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(root_func())
-    loop.close()
+    asyncio.run(root_func())

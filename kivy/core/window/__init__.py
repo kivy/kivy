@@ -651,15 +651,25 @@ class WindowBase(EventDispatcher):
 
     .. note:: The `resize` option does not currently work with SDL3 on Android.
 
+    .. note:: On iPad a floating or undocked keyboard does not move the
+        window: :attr:`keyboard_height` is 0 while the keyboard floats.
+
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 1.9.1
         The 'below_target' option was added.
+
+    .. versionchanged:: 3.0.0
+        On Android, 'pan' and 'below_target' are applied by the system, which
+        pans the whole window; Kivy does not move the content as well, and
+        :attr:`keyboard_padding` has no effect for these modes.
     '''
 
     _keyboard_changed = BooleanProperty(False)
     _kheight = NumericProperty(0)
     _kanimation = None
+    _softinput_offset = 0
+    _system_pans_softinput = False
 
     def _free_kanimation(self, *largs):
         WindowBase._kanimation = None
@@ -719,13 +729,25 @@ class WindowBase(EventDispatcher):
     Will return 0 if not on mobile platform or if IME is not active.
 
     On iOS and Android the value is read from :mod:`kivy.mobile`
-    (``get_keyboard_height``), which reports the live IME inset height.
+    (``get_keyboard_height``), which reports the live IME inset height in
+    the units of :attr:`size`.
+
+    .. note::
+        On iOS the value is how far the keyboard covers the window from its
+        bottom edge, not the keyboard's own height. On iPad a floating or
+        undocked keyboard does not reach the bottom edge, so
+        :attr:`keyboard_height` is 0 while it is floating and
+        :attr:`softinput_mode` leaves the window as is. A floating keyboard
+        can therefore cover the focused widget; the user can drag it out of
+        the way. This matches the default behavior of UIKit's
+        ``UIKeyboardLayoutGuide`` (``followsUndockedKeyboard`` is ``NO``).
 
     .. versionadded:: 1.9.0
 
     .. versionchanged:: 3.0.0
         The Android/iOS height is now sourced from :mod:`kivy.mobile` instead of
-        the legacy ``android`` module.
+        the legacy ``android`` module. On iPad a floating or undocked keyboard
+        reports 0.
 
     :attr:`keyboard_height` is a read-only
     :class:`~kivy.properties.AliasProperty` and defaults to 0.
@@ -755,7 +777,7 @@ class WindowBase(EventDispatcher):
     safe_area = DictProperty(
         {"top": 0.0, "left": 0.0, "bottom": 0.0, "right": 0.0}
     )
-    '''Safe-area insets in layout points for the current device and orientation.
+    '''Safe-area insets for the current device and orientation.
 
     Covers areas of the screen that should not be obscured by app content:
     the status bar / Dynamic Island (top), the home indicator (bottom), and
@@ -763,7 +785,8 @@ class WindowBase(EventDispatcher):
 
     The dictionary always contains the keys ``"top"``, ``"left"``,
     ``"bottom"``, and ``"right"``.  All values are in the same coordinate
-    system as Kivy layout (UIKit points on iOS).
+    system as Kivy layout (the units of :attr:`size`: pixels on iOS and
+    Android).
 
     The property is refreshed automatically whenever the window size or
     rotation changes.  On desktop platforms it remains
@@ -1679,11 +1702,17 @@ class WindowBase(EventDispatcher):
         .. versionadded:: 2.1.0
         '''
         width, height = self.unrotated_size
+        smode = self.softinput_mode
+        if smode in {'pan', 'below_target'}:
+            # touches must follow the content as update_viewport drew it
+            kheight = self._softinput_offset
+        else:
+            kheight = self.keyboard_height
         me.scale_for_screen(
             width, height,
             rotation=self.rotation,
-            smode=self.softinput_mode,
-            kheight=self.keyboard_height
+            smode=smode,
+            kheight=kheight
         )
         if widget is not None:
             parent = widget.parent
@@ -1831,12 +1860,22 @@ class WindowBase(EventDispatcher):
 
         y = 0
         _h = h
-        if smode == 'pan':
+        system_pan = (
+            smode in {'pan', 'below_target'}
+            and self._system_pans_softinput
+            and not self.allow_vkeyboard
+        )
+        if smode == 'pan' and not system_pan:
             y = kheight
-        elif smode == 'below_target':
-            y = 0 if kheight < targettop else (kheight - targettop)
+        elif smode == 'below_target' and not system_pan:
+            if self.allow_vkeyboard:
+                # _get_kivy_vkheight already measures from the target
+                y = kheight
+            elif target:
+                y = max(0, kheight - targettop)
         if smode == 'scale':
             _h -= kheight
+        self._softinput_offset = y
 
         # prepare the viewport
         glViewport(0, 0, w, _h)

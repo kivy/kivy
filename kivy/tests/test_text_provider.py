@@ -24,6 +24,47 @@ def kivy_window():
     yield Window
 
 
+class TestVerticalCentering:
+    """Constrained-height layout should split at the nearest newline."""
+
+    @pytest.mark.parametrize("valign", ["middle", "center"])
+    @pytest.mark.parametrize(
+        "text, height, expected",
+        [
+            ("a\nb\ncccccccccc\nd\ne\nf", 60,
+             ["a", "b", "cccccccccc", "d", "e", "f"]),
+            ("a\nb\ncccccccccc\nd\ne\nf", 40,
+             ["b", "cccccccccc", "d", "e"]),
+            ("aaa\nbbb\nc", 20, ["aaa", "bbb"]),
+            ("aa\nbbb\nc", 20, ["aa", "bbb"]),
+            ("a\nbbbbbbb", 20, ["a", "bbbbbbb"]),
+            ("aaaaaaa\nb", 20, ["aaaaaaa", "b"]),
+            ("single", 10, ["single"]),
+        ],
+        ids=["fits", "overflows", "left-closer", "tie",
+             "left-only", "right-only", "no-newline"],
+    )
+    def test_constrained_height(self, valign, text, height, expected):
+        from kivy.core.text import LabelBase
+
+        class FixedMetricsLabel(LabelBase):
+            def get_extents(self, text):
+                return len(text), 10
+
+            def get_cached_extents(self):
+                return self.get_extents
+
+        # Use the real layout routine with fixed metrics, without a texture or
+        # provider-specific font sizes. Every line fits the available width.
+        label = FixedMetricsLabel(
+            text=text, text_size=(100, height), valign=valign)
+        assert label.render() == (100, height)
+        lines = ["".join(word.text for word in line.words)
+                 for line in label._cached_lines]
+        assert lines == expected
+        assert label._internal_size[1] <= height
+
+
 class TestAvailableProviders:
     """Tests for LabelBase.available_providers() method."""
 
@@ -212,6 +253,38 @@ class TestSmallFontSize:
         label = sdl3_label_class(font_size=1000000)
         with pytest.raises(ValueError, match="font_size 1000000"):
             label.get_extents("x")
+
+
+class TestPILLineBreaks:
+    """The PIL provider must not pass line or paragraph separators to Pillow.
+
+    libraqm 0.11, bundled with Pillow 13, rejects them, so measuring the
+    ``'\\n'`` tokens that ``TextInput`` produces raised
+    ``RuntimeError: raqm_layout() failed.``
+    """
+
+    LINE_BREAKS = ["\n", "\r", "\x1c", "\x1d", "\x1e", "\x85", "\u2029"]
+
+    @pytest.fixture
+    def pil_label_class(self, kivy_window):
+        from kivy.core.text import LabelBase
+
+        cls = LabelBase.get_provider_class("pil")
+        if cls is None:
+            pytest.skip("pil text provider is not available")
+        return cls
+
+    @pytest.mark.parametrize("char", LINE_BREAKS, ids=repr)
+    def test_line_break_is_not_measured(self, pil_label_class, char):
+        label = pil_label_class(font_size=20)
+        assert label.get_extents("a" + char + "b") == label.get_extents("ab")
+        assert label.get_extents(char)[0] == 0
+
+    @pytest.mark.parametrize("char", LINE_BREAKS, ids=repr)
+    def test_text_with_line_break_renders(self, pil_label_class, char):
+        label = pil_label_class(text="a" + char + "b", font_size=20)
+        label.refresh()
+        assert label.texture is not None
 
 
 class TestLabelWidgetProvider:
@@ -424,4 +497,3 @@ class TestRegisterProvider:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

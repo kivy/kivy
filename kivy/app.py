@@ -370,10 +370,8 @@ Asyncio example
     from kivy.uix.label import Label
 
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
+    asyncio.run(
         async_runTouchApp(Label(text='Hello, World!'), async_lib='asyncio'))
-    loop.close()
 
 Trio example
 ~~~~~~~~~~--

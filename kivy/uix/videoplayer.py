@@ -284,7 +284,18 @@ class VideoPlayerAnnotation(Label):
 
 class VideoPlayer(GridLayout):
     '''VideoPlayer class. See module documentation for more information.
+
+    :Events:
+        `on_error`: error
+            Fired when the video can't be loaded or played, forwarded from
+            :class:`~kivy.uix.video.Video`. `error` is a message
+            describing the failure. :attr:`state` is already ``'stop'``
+            when it fires.
+
+            .. versionadded:: 3.0.0
     '''
+
+    __events__ = ('on_error', )
 
     source = StringProperty('')
     '''Source of the video to read.
@@ -548,6 +559,12 @@ class VideoPlayer(GridLayout):
     def _set_state(self, instance, value):
         self.state = value
 
+    def _on_video_error(self, instance, error):
+        self.dispatch('on_error', error)
+
+    def on_error(self, error):
+        pass
+
     def _do_video_load(self, *largs):
         self._video = Video(source=self.source, state=self.state,
                             volume=self.volume, pos_hint={'x': 0, 'y': 0},
@@ -556,7 +573,8 @@ class VideoPlayer(GridLayout):
                          duration=self.setter('duration'),
                          position=self.setter('position'),
                          volume=self.setter('volume'),
-                         state=self._set_state)
+                         state=self._set_state,
+                         on_error=self._on_video_error)
 
     def on_volume(self, instance, value):
         if not self._video:

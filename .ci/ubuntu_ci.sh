@@ -141,11 +141,9 @@ install_kivy() {
 }
 
 install_kivy_examples_wheel() {
-  options=${1:-full,dev}
   root="$(pwd)"
   cd ~
   python3 -m pip install --pre --no-index --no-deps -f "$root/dist" "kivy_examples"
-  python3 -m pip install --pre -f "$root/dist" "kivy_examples[$options]"
 }
 
 install_kivy_wheel() {
@@ -153,7 +151,7 @@ install_kivy_wheel() {
   root="$(pwd)"
   cd ~
   version=$(python3 -c "import sys; print('{}{}'.format(sys.version_info.major, sys.version_info.minor))")
-  kivy_fname=$(ls "$root"/dist/*ivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
+  kivy_fname=$(ls "$root"/dist/kivy-*$version*.whl | awk '{ print length, $0 }' | sort -n -s | cut -d" " -f2- | head -n1)
   python3 -m pip install "${kivy_fname}[$options]"
 }
 
@@ -162,7 +160,7 @@ install_kivy_sdist() {
   root="$(pwd)"
   cd ~
 
-  kivy_fname=$(ls $root/dist/kivy-*.tar.gz)
+  kivy_fname=$(ls "$root"/dist/kivy-*.tar.gz)
   python3 -m pip install "$kivy_fname[$options]"
 }
 
@@ -183,7 +181,10 @@ test_kivy_benchmark() {
 test_kivy_install() {
   cd ~
   python3 -c 'import kivy'
-  test_path=$(KIVY_NO_CONSOLELOG=1 python3 -c 'import kivy.tests as tests; print(tests.__path__[0])' --config "kivy:log_level:error")
+  # Preserve discovery tracebacks without changing the test suite's log mode.
+  test_path=$(KIVY_NO_CONSOLELOG=1 KIVY_LOG_MODE=PYTHON python3 -c \
+    'import kivy.tests as tests; print(tests.__path__[0])' \
+    --config "kivy:log_level:error")
   cd "$test_path"
 
   cat >.coveragerc <<'EOF'
@@ -257,7 +258,7 @@ install_ubuntu_build_deps() {
           libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev fcitx-libs-dev \
           libayatana-appindicator3-dev \
-          sway wl-clipboard
+          sway wl-clipboard xclip
 }
 
 generate_rpi_wheels() {
@@ -266,7 +267,7 @@ generate_rpi_wheels() {
   mkdir dist
   docker build -f .ci/Dockerfile.armv7l -t kivy/kivy-armv7l --build-arg image="$image" .
   docker cp "$(docker create kivy/kivy-armv7l)":/kivy-delocated-wheel .
-  cp kivy-delocated-wheel/*ivy-* dist/
+  cp kivy-delocated-wheel/kivy-*.whl dist/
 
   # Create a copy with the armv6l suffix
   for name in dist/*.whl; do

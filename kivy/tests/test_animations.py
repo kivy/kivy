@@ -183,10 +183,33 @@ class TestAnimation:
         a.start(w.proxy_ref)
         del w
         gc.collect()
-        try:
-            sleep(1.)
-        except ReferenceError:
-            pass
+        sleep(1.)
+        assert no_animations_being_played()
+
+    def test_weakref_alive(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        a = Animation(x=100, d=1)
+        a.start(w.proxy_ref)
+        sleep(1.5)
+        assert w.x == pytest.approx(100)
+        assert no_animations_being_played()
+
+    def test_shared_animation_staggered_start(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w1 = Widget()
+        w2 = Widget()
+        a = Animation(x=100, d=1)
+        a.start(w1)
+        sleep(.5)
+        a.start(w2)
+        sleep(.6)
+        assert w1.x == pytest.approx(100)
+        assert 0 < w2.x < 100
+        sleep(.5)
+        assert w2.x == pytest.approx(100)
         assert no_animations_being_played()
 
 

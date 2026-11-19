@@ -13,7 +13,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v7
       with:
-        python-version: 3.14
+        python-version: 3.15
     - name: Install CI/CD Python requirements
       run: |
         python -m pip install -r .ci/cicd-requirements.txt
@@ -77,7 +77,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v7
       with:
-        python-version: 3.14
+        python-version: 3.15
     - name: Install dependencies
       run: |
         source .ci/ubuntu_ci.sh

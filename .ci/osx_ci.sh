@@ -78,3 +78,57 @@ activate_osx_app_venv() {
   source kivy_activate
   popd
 }
+
+install_osx_app_test_dependencies() (
+  root="$(pwd -P)"
+  app="$root/app/Kivy.app"
+  app_python="$app/Contents/Resources/venv/bin/python3"
+  requirements=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kivy-app-test-deps.XXXXXX")
+  trap 'rm -f "$requirements"' EXIT
+
+  # Keep source imports out of app probes; app activation's PYTHONHOME is needed.
+  unset PYTHONPATH
+  cd "$HOME"
+
+  app_identity() {
+    "$app_python" - "$app" <<'PY'
+from importlib import metadata, util
+from pathlib import Path
+import sys
+import sysconfig
+
+venv = (Path(sys.argv[1]) / "Contents/Resources/venv").resolve()
+if (Path(sys.prefix).resolve() != venv
+        or not Path(sysconfig.get_path("purelib")).resolve().is_relative_to(venv)):
+    sys.exit("App Python must install into the copied venv")
+spec = util.find_spec("kivy")
+if spec is None or spec.origin is None:
+    sys.exit("Kivy is missing from the copied app")
+origin = Path(spec.origin).resolve()
+if not origin.is_relative_to(venv):
+    sys.exit(f"Kivy imports from outside the copied venv: {origin}")
+print(origin, metadata.version("Kivy"))
+PY
+  }
+
+  before=$(app_identity)
+  printf 'App Python: %s\nBundled Kivy: %s\n' "$app_python" "$before"
+  "$app_python" - "$root/pyproject.toml" > "$requirements" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as stream:
+    print("\n".join(tomllib.load(stream)["project"]["optional-dependencies"]["dev"]))
+PY
+
+  # These wheels only serve the current runner's disposable test app.
+  PIP_CONFIG_FILE=/dev/null "$app_python" -m pip --isolated install \
+    --only-binary=:all: -r "$requirements"
+  after=$(app_identity)
+  if [ "$before" != "$after" ]; then
+    printf 'Bundled Kivy changed: %s -> %s\n' "$before" "$after" >&2
+    exit 1
+  fi
+  PIP_CONFIG_FILE=/dev/null "$app_python" -m pip --isolated check
+  PIP_CONFIG_FILE=/dev/null "$app_python" -m pip --isolated list --format=freeze
+)

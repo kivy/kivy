@@ -4,7 +4,7 @@ set -e -x
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
 
 # macOS SDL3
-MACOS__SDL3__VERSION="3.4.2"
+MACOS__SDL3__VERSION="3.4.20"
 MACOS__SDL3__URL="https://github.com/libsdl-org/SDL/releases/download/release-$MACOS__SDL3__VERSION/SDL3-$MACOS__SDL3__VERSION.tar.gz"
 MACOS__SDL3__FOLDER="SDL3-$MACOS__SDL3__VERSION"
 
@@ -185,7 +185,10 @@ echo "-- Build ThorVG (Universal, dynamic -> KivyThorVG.framework)"
 # ``tools/build_thorvg.sh`` pins the ThorVG version and the meson
 # options (loaders, engines, static-vs-shared) in a single place
 # shared by Linux, macOS and Windows CI.
-THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
+# CIBW_ENVIRONMENT does not set the target for this earlier native build.
+# Default to the wheel baseline while preserving the app builder's 11.0 override.
+MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}" \
+  THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
 
 bash "$(dirname "$0")/macos_framework_wrapper.sh" \
   "$(pwd)/kivy-dependencies/dist/lib/libthorvg-1.dylib" \

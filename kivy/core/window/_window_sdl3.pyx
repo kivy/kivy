@@ -1005,20 +1005,34 @@ cdef class _WindowSDL3Storage:
                 App.get_running_app()._trigger_ready_once()
 
     def save_bytes_in_png(self, filename, data, int width, int height):
+        # ``data`` holds RGBA pixels from glReadPixels. The alpha byte is
+        # ignored so the saved image is opaque, like the window itself.
         cdef SDL_Surface *surface = SDL_CreateSurfaceFrom(
             width,
             height,
-            SDL_GetPixelFormatForMasks(width * 3, 0x0000ff, 0x00ff00, 0xff0000, 0),
+            SDL_GetPixelFormatForMasks(32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0),
             <char *>data,
-            24
+            width * 4
         )
+        if surface == NULL:
+            raise RuntimeError(
+                'Unable to create screenshot surface: '
+                + (<bytes>SDL_GetError()).decode('utf-8', 'replace'))
         cdef bytes bytes_filename = <bytes>filename.encode('utf-8')
         cdef char *real_filename = <char *>bytes_filename
 
         cdef SDL_Surface *flipped_surface = flipVert(surface)
-        IMG_SavePNG(flipped_surface, real_filename)
         SDL_DestroySurface(surface)
+        if flipped_surface == NULL:
+            raise RuntimeError(
+                'Unable to create flipped screenshot surface: '
+                + (<bytes>SDL_GetError()).decode('utf-8', 'replace'))
+        saved = IMG_SavePNG(flipped_surface, real_filename)
         SDL_DestroySurface(flipped_surface)
+        if not saved:
+            raise RuntimeError(
+                'Unable to save screenshot: '
+                + (<bytes>SDL_GetError()).decode('utf-8', 'replace'))
 
     def grab_mouse(self, grab):
         SDL_SetWindowMouseGrab(self.win, grab)
@@ -1126,6 +1140,8 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
                 sfc_fmt.Amask
             )
     )
+    if result == NULL:
+        return NULL
 
     cdef Uint8* pixels = <Uint8*>sfc.pixels
     cdef Uint8* rpixels = <Uint8*>result.pixels
@@ -1135,7 +1151,7 @@ cdef SDL_Surface* flipVert(SDL_Surface* sfc):
         <int>sfc_fmt.bytes_per_pixel,
         <int>sfc.pitch
     )
-    Logger.debug("Window: Screenshot output dimensions {output}")
+    Logger.debug(f"Window: Screenshot output dimensions {output}")
 
     cdef Uint32 pitch = sfc.pitch
     cdef Uint32 pxlength = pitch * sfc.h

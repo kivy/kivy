@@ -18,6 +18,16 @@ Core class for reading video files and managing the video
       - :attr:`VideoBase.options` provider-specific options dict so apps
         can pass opaque configuration through to the backend
         implementation. Each provider documents the keys it honors.
+      - :attr:`VideoBase.on_error` event, fired when the video can't be
+        loaded or played (for example, a format with no installed
+        decoder). Playback is stopped first.
+
+    Added two providers that play video through the operating system's
+    own media framework, so no extra package is needed: ``avfoundation``
+    (:class:`~kivy.core.video.video_avfoundation.VideoAVFoundation`), the
+    default on macOS and iOS, and ``mediafoundation``
+    (:class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`),
+    the default on Windows.
 
 .. versionchanged:: 1.10.0
     The pyglet, pygst and gi providers have been removed.
@@ -82,13 +92,19 @@ class VideoBase(EventDispatcher):
             event; the boolean is also readable as a property.
 
             .. versionadded:: 3.0.0
+        `on_error`
+            Fired when the video can't be loaded or played. See
+            :meth:`on_error`.
+
+            .. versionadded:: 3.0.0
     '''
 
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
                  '_volume', 'eos', '_state', '_async', '_autoplay',
                  '_fps', '_options', '_buffering')
 
-    __events__ = ('on_eos', 'on_load', 'on_frame', 'on_buffering')
+    __events__ = ('on_eos', 'on_load', 'on_frame', 'on_buffering',
+                  'on_error')
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
@@ -139,6 +155,23 @@ class VideoBase(EventDispatcher):
         '''Fired when :attr:`buffering` transitions.
 
         `value` is the new buffering state (``True`` or ``False``).
+
+        .. versionadded:: 3.0.0
+        '''
+        pass
+
+    def on_error(self, error):
+        '''Fired when the video can't be loaded or played, for example
+        because the file is missing, the format has no installed
+        decoder, or a stream fails mid-playback.
+
+        `error` is a message describing the failure. By the time this
+        fires, playback has been stopped (:attr:`state` is ``''``) and
+        :attr:`buffering` is ``False``. Nothing is raised: with no
+        handler bound, a video that can't play is only logged.
+
+        Providers report failures through :meth:`_do_error`, which
+        stops playback before dispatching this event.
 
         .. versionadded:: 3.0.0
         '''
@@ -277,6 +310,19 @@ class VideoBase(EventDispatcher):
 
         self.dispatch('on_eos')
 
+    def _do_error(self, error):
+        '''Report that the video can't be loaded or played: stop
+        playback, clear :attr:`buffering`, then dispatch `on_error`.
+        Providers call this once per failure, from the main thread.
+
+        .. versionadded:: 3.0.0
+        '''
+        self.stop()
+        if self._buffering:
+            self._buffering = False
+            self.dispatch('on_buffering', False)
+        self.dispatch('on_error', error)
+
     def _update(self, dt):
         '''Update the video content to texture.
         '''
@@ -325,6 +371,14 @@ video_providers = []
 # core_select_lib falls through to a different provider.
 video_providers.append(make_provider_tuple(
     'avfoundation', all_providers, 'VideoAVFoundation'
+))
+
+# mediafoundation is the default video provider on Windows. It is
+# compiled only when c_options['use_mediafoundation'] is True in
+# setup.py, so the import naturally fails on non-Windows platforms and
+# core_select_lib falls through to a different provider.
+video_providers.append(make_provider_tuple(
+    'mediafoundation', all_providers, 'VideoMediaFoundation'
 ))
 
 try:

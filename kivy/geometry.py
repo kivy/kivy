@@ -40,6 +40,9 @@ def circumcircle(a, b, c):
     denom = (-Q.x * R.y + P.x * R.y - P.x * Q.y +
              Q.y * R.x - P.y * R.x + P.y * Q.x)
 
+    if denom == 0:
+        raise ValueError("circumcircle is undefined for collinear or coincident points")
+
     t = numer / denom
 
     cx = -t * (Q.y - P.y) + mPQ.x

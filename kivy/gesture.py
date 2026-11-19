@@ -54,7 +54,14 @@ class GestureDatabase(object):
         self.db.append(gesture)
 
     def find(self, gesture, minscore=0.9, rotation_invariant=True):
-        '''Find a matching gesture in the database.'''
+        '''Find a matching gesture in the database.
+
+        .. versionchanged:: 3.0.0
+            `rotation_invariant` now works as documented: matching is
+            rotation-invariant by default. Pass ``rotation_invariant=False``
+            to keep the previous behavior, where the rotation of the drawn
+            gesture was never compensated.
+        '''
         if not gesture:
             return
 
@@ -339,9 +346,10 @@ class Gesture:
             return 0
         if len(dstpts.strokes) < 1 or len(dstpts.strokes[0].points) < 1:
             return 0
-        p = dstpts.strokes[0].points[0]
-        target = Vector([p.x, p.y])
-        source = Vector([p.x, p.y])
+        dst = dstpts.strokes[0].points[0]
+        target = Vector([dst.x, dst.y])
+        src = self.strokes[0].points[0]
+        source = Vector([src.x, src.y])
         return source.angle(target)
 
     def dot_product(self, comparison_gesture):

@@ -210,7 +210,7 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstplayer, ffpyplayer, ffmpeg, android , null
+    Values: avfoundation, mediafoundation, gstplayer, ffpyplayer, ffmpeg, android, null
 
 KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio
@@ -239,6 +239,9 @@ KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
     Values: sdl3, dummy, wayland, android
+
+    .. versionchanged:: 3.0.0
+        Removed the macOS `nspaste` implementation. `sdl3` is used instead.
 
 Metrics
 -------

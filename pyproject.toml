@@ -76,7 +76,8 @@ Documentation = "https://kivy.org/doc/stable/"
 [project.optional-dependencies]
 tuio = ["oscpy"]
 dev = [
-    "pytest>=3.6",
+    # Temporary cap until https://github.com/ionelmc/pytest-benchmark/issues/321
+    "pytest>=3.6,<9.2",
     "pytest-cov",
     "pytest_asyncio!=0.11.0",
     "pytest-timeout",
@@ -95,14 +96,14 @@ dev = [
 docs = [
     "sphinx==9.1.0"
 ]
-base = ["pillow>=9.5.0,<12"]
+base = ["pillow>=13,<14"]
 media = [
     'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
     # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
 full = [
-    "pillow>=12.3,<13",
+    "pillow>=13,<14",
     'kivy_deps.gstreamer~=0.3.3; sys_platform == "win32"',
     # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
