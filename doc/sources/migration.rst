@@ -983,6 +983,21 @@ You no longer need to manually clean up groups:
 +---------------------------+---------------------------+----------------------------------------+
 
 
+=========
+Clipboard
+=========
+
+*The macOS nspaste clipboard provider is removed*
+
+The ``nspaste`` provider, which needed pyobjus, is removed. The ``sdl3``
+clipboard uses the same macOS pasteboard and is used instead. It handles
+text the same way, including Unicode, large text and copying to and from
+other apps.
+
+**Migration Impact**
+
+Replace ``KIVY_CLIPBOARD=nspaste`` with ``KIVY_CLIPBOARD=sdl3``.
+
 =====
 Clock
 =====
