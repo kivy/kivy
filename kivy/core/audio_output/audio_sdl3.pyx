@@ -9,32 +9,96 @@ ffmpeg-android.
 Supported formats depend on the decoders that SDL_mixer is compiled with,
 but usually include at least WAV, OGG, FLAC and MP3.
 
+The audio device opens when the first SDL3 sound is created, not when Kivy
+checks which formats SDL3 supports.
+
+iOS audio session
+-----------------
+
+On iOS, opening the audio device sets the app's audio session category. By
+default SDL uses ``AVAudioSessionCategoryPlayback`` with the options to mix
+with and duck other apps' audio, so Kivy sounds play even when the silent
+switch is on. Set the ``KIVY_AUDIO_CATEGORY`` environment variable before
+the first sound is loaded to choose another category:
+
+- ``ambient``: silenced by the silent switch, mixes with other apps' audio.
+- ``soloambient``: silenced by the silent switch, stops other apps' audio.
+- ``playback``: ignores the silent switch, stops other apps' audio.
+- ``playandrecord``: for apps that also record audio.
+
+.. versionchanged:: 3.0.0
+    Looping is gapless and no longer dispatches ``on_stop`` and ``on_play``
+    on every pass. :meth:`~kivy.core.audio_output.Sound.play` no longer
+    dispatches ``on_stop`` when the sound wasn't playing. Added
+    ``KIVY_AUDIO_CATEGORY``.
 '''
 
 __all__ = ('SoundSDL3')
 
 include "../../../kivy/lib/sdl3.pxi"
 
+from os import environ
+
 from kivy.core.audio_output import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 
 cdef MIX_Mixer *mixer_instance = NULL
+cdef bint mix_library_ready = False
 
-cdef mix_init():
-    cdef SDL_AudioSpec desired_spec
-    global mixer_instance
+_AUDIO_CATEGORIES = {
+    'ambient': b'AVAudioSessionCategoryAmbient',
+    'soloambient': b'AVAudioSessionCategorySoloAmbient',
+    'playback': b'AVAudioSessionCategoryPlayback',
+    'playandrecord': b'AVAudioSessionCategoryPlayAndRecord',
+}
 
-    # Skip initialization if mixer is already initialized.
-    if mixer_instance != NULL:
-        return False
+
+cdef bint mix_init_library():
+    global mix_library_ready
+
+    if mix_library_ready:
+        return True
 
     if not SDL_Init(SDL_INIT_AUDIO):
         Logger.critical('AudioSDL3: Unable to initialize SDL: {}'.format(
                         SDL_GetError()))
         return False
 
-    MIX_Init()
+    if not MIX_Init():
+        Logger.critical('AudioSDL3: Unable to initialize SDL_mixer: {}'.format(
+                        SDL_GetError()))
+        return False
+
+    mix_library_ready = True
+    return True
+
+
+cdef set_audio_category_hint():
+    category = environ.get('KIVY_AUDIO_CATEGORY')
+    if not category:
+        return
+    value = _AUDIO_CATEGORIES.get(category.lower())
+    if value is None:
+        Logger.warning(
+            'AudioSDL3: Ignoring unknown KIVY_AUDIO_CATEGORY {!r}, expected '
+            'one of {}'.format(category, ', '.join(_AUDIO_CATEGORIES)))
+        return
+    SDL_SetHint(b'SDL_AUDIO_CATEGORY', <bytes>value)
+
+
+cdef bint mix_open_device():
+    cdef SDL_AudioSpec desired_spec
+    global mixer_instance
+
+    if mixer_instance != NULL:
+        return True
+
+    if not mix_init_library():
+        return False
+
+    # SDL reads the hint when it opens the device.
+    set_audio_category_hint()
 
     desired_spec.freq = 44100
     desired_spec.format = SDL_AUDIO_S16
@@ -115,10 +179,22 @@ cdef class _SDL3AudioTrack:
         if not MIX_SetTrackFrequencyRatio(self.track, pitch):
             Logger.warning("SoundSDL3: Error setting pitch: %s" % SDL_GetError())
     
-    def play(self):
+    def play(self, int loops=0):
+        cdef SDL_PropertiesID options
+        cdef bint result
         if not self.is_audio_set():
             return
-        return MIX_PlayTrack(self.track, 0)
+        options = SDL_CreateProperties()
+        SDL_SetNumberProperty(options, b'SDL_mixer.play.loops', loops)
+        result = MIX_PlayTrack(self.track, options)
+        SDL_DestroyProperties(options)
+        return result
+
+    def set_loops(self, int loops):
+        if not self.is_audio_set():
+            return
+        if not MIX_SetTrackLoops(self.track, loops):
+            Logger.warning("SoundSDL3: Error setting loops: %s" % SDL_GetError())
 
     def stop(self):
         if not self.is_audio_set():
@@ -147,7 +223,11 @@ cdef class _SDL3AudioTrack:
         if not self.is_audio_set():
             return 0
         audio_length_frames = self._get_audio_length_frames()
-        return  MIX_AudioFramesToMS(self.audio, MIX_GetAudioDuration(self.audio)) / 1000.0
+        # MIX_DURATION_UNKNOWN (-1) or MIX_DURATION_INFINITE (-2), e.g. the
+        # AIFF decoder never reports a duration.
+        if audio_length_frames < 0:
+            return 0
+        return MIX_AudioFramesToMS(self.audio, audio_length_frames) / 1000.0
 
 
 class SoundSDL3(Sound):
@@ -155,7 +235,8 @@ class SoundSDL3(Sound):
 
     @staticmethod
     def extensions():
-        mix_init()
+        if not mix_init_library():
+            return []
         cdef int decoders_num = MIX_GetNumAudioDecoders()
         cdef char* decoder
         extensions = set()
@@ -194,7 +275,7 @@ class SoundSDL3(Sound):
 
     def __init__(self, **kwargs):
         self._check_play_ev = None
-        mix_init()
+        mix_open_device()
         self._audiotrack = _SDL3AudioTrack()
         super(SoundSDL3, self).__init__(**kwargs)
 
@@ -205,13 +286,7 @@ class SoundSDL3(Sound):
         if self._audiotrack.is_playing():
             return
 
-        if self.loop:
-            def do_loop(dt):
-                self.play()
-            Clock.schedule_once(do_loop)
-        else:
-            self.stop()
-
+        self.stop()
         return False
 
     def _get_length(self):
@@ -220,6 +295,9 @@ class SoundSDL3(Sound):
     def on_pitch(self, instance, value):
         self._audiotrack.set_pitch(value)
 
+    def on_loop(self, instance, value):
+        self._audiotrack.set_loops(-1 if value else 0)
+
     def play(self):
         self.stop()
         if not self._audiotrack.is_audio_set():
@@ -227,7 +305,7 @@ class SoundSDL3(Sound):
         
         self._audiotrack.set_volume(self.volume)
 
-        if not self._audiotrack.play():
+        if not self._audiotrack.play(-1 if self.loop else 0):
             Logger.warning('AudioSDL3: Unable to play {}: {}'.format(
                            self.source, SDL_GetError()))
             return
@@ -240,7 +318,8 @@ class SoundSDL3(Sound):
         if self._check_play_ev is not None:
             self._check_play_ev.cancel()
             self._check_play_ev = None
-        super(SoundSDL3, self).stop()
+        if self.state == 'play':
+            super(SoundSDL3, self).stop()
 
     def load(self):
         self.unload()
