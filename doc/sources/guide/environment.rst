@@ -240,6 +240,9 @@ KIVY_CLIPBOARD
 
     Values: sdl3, dummy, wayland, android
 
+    .. versionchanged:: 3.0.0
+        Removed the macOS `nspaste` implementation. `sdl3` is used instead.
+
 Metrics
 -------
 

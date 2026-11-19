@@ -108,7 +108,6 @@ PROVIDER_CONFIGS = {
         ('xsel', 'clipboard_xsel'),
         ('xclip', 'clipboard_xclip'),
         ('dbusklipper', 'clipboard_dbusklipper'),
-        ('nspaste', 'clipboard_nspaste'),
         ('sdl3', 'clipboard_sdl3'),
         ('dummy', 'clipboard_dummy'),
         ('gtk3', 'clipboard_gtk3'),

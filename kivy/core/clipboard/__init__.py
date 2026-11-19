@@ -116,10 +116,6 @@ if platform == 'android':
     _clipboards.append(make_provider_tuple(
         'android', all_providers, 'ClipboardAndroid'
     ))
-elif platform == 'macosx':
-    _clipboards.append(make_provider_tuple(
-        'nspaste', all_providers, 'ClipboardNSPaste'
-    ))
 elif platform == 'win':
     _clipboards.append(make_provider_tuple(
         'winctypes', all_providers, 'ClipboardWindows'
