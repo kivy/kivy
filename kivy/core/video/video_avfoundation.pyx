@@ -42,6 +42,8 @@ cdef extern from "video_avfoundation_implem.mm":
 
         bint isEOS()
         bint isBuffering()
+        bint hasError()
+        const char *lastError()
 
         void setAutomaticallyWaitsToMinimizeStalling(bint wait)
 
@@ -184,9 +186,19 @@ class VideoAVFoundation(VideoBase):
     ``EGL_ANGLE_iosurface_client_buffer`` extension, or a decoded
     ``CVPixelBuffer`` arrives without an ``IOSurface`` (typically an
     unsupported codec using a software decoder) -- the player drops
-    the pixel buffer, logs a single diagnostic message, and dispatches
-    EOS through the standard ``on_eos`` event. The widget surfaces a
-    clean failure rather than a stuck black screen.
+    the pixel buffer, logs a single diagnostic message, stops, and
+    dispatches ``on_error``. The widget surfaces a clean failure rather
+    than a stuck black screen.
+
+    A file AVFoundation can't play (a missing file, an unsupported
+    format, or a stream that fails mid-playback) is reported the same
+    way: logged, playback stops, and ``on_error`` fires with
+    AVFoundation's description of the error (see
+    :meth:`~kivy.core.video.VideoBase.on_error`).
+
+    .. versionchanged:: 3.0.0
+        A zero-copy failure is reported through ``on_error`` instead
+        of ``on_eos``.
 
     Provider-specific options (read from :attr:`VideoBase.options`):
 
@@ -215,6 +227,7 @@ class VideoAVFoundation(VideoBase):
         self._update_ev = None
         self._duration = 0.0
         self._position = 0.0
+        self._error_reported = False
         super(VideoAVFoundation, self).__init__(**kwargs)
         # Warn (once, eagerly) about any options keys this provider
         # doesn't recognize. Construction-time so the user sees it
@@ -285,6 +298,10 @@ class VideoAVFoundation(VideoBase):
             <bint>bool(self._options.get(
                 'automatically_waits_to_minimize_stalling', True)))
         storage.player.load()
+        # A load failure is reported by _update() on the first tick, not
+        # here: load() runs while the Video widget is still constructing
+        # this object, before it has bound on_error.
+        self._error_reported = False
         storage.player.setVolume(<double>self._volume)
 
         # Drive frame polling from the Kivy Clock.
@@ -373,6 +390,18 @@ class VideoAVFoundation(VideoBase):
         cdef bint new_buffering
 
         if storage.player == NULL:
+            return
+
+        # Load and playback failures (see VideoPlayer::hasError) are
+        # reported here once: logged, then stop + on_error through
+        # VideoBase._do_error().
+        if storage.player.hasError():
+            if not self._error_reported:
+                self._error_reported = True
+                error = storage.player.lastError().decode('utf-8', 'replace')
+                Logger.error('VideoAVFoundation: <{}>: {}'.format(
+                    self._filename, error))
+                self._do_error(error)
             return
 
         # Sync the buffering signal on every tick and dispatch
