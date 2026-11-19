@@ -111,6 +111,19 @@ class VideoAVFoundationOptionsTestCase(unittest.TestCase):
         finally:
             v.unload()
 
+    def test_eos_in_options_is_not_unknown(self):
+        '''The Video widget copies ``eos`` into ``options`` when an app
+        sets it, so it must not be reported as an unknown option.
+        '''
+        from unittest import mock
+        from kivy.core.video import video_avfoundation
+        with mock.patch.object(video_avfoundation, 'Logger') as logger:
+            v = self.provider(filename=None, options={'eos': 'loop'})
+        try:
+            logger.warning.assert_not_called()
+        finally:
+            v.unload()
+
 
 class VideoAVFoundationThumbnailTestCase(unittest.TestCase):
 

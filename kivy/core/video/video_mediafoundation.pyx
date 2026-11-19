@@ -76,6 +76,9 @@ from kivy.logger import Logger
 # empty whitelist (rather than skipping the check) so the warning below
 # starts working for free the moment a real option is added.
 _KNOWN_OPTIONS = frozenset()
+# VideoBase's own keyword arguments. The Video widget also passes them in
+# options, for apps that set ``eos`` there, so they aren't unknown.
+_BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
 
 
 cdef _frame_to_texture(VideoFrame *frame, existing_texture):
@@ -200,6 +203,11 @@ class VideoMediaFoundation(VideoBase):
     video provider, unless the user installs the Media Feature Pack
     (Settings > Apps > Optional features).
 
+    A file Media Foundation can't play (a missing file, or a format with
+    no installed decoder, even after the software-decode retry) is
+    logged, playback stops, and ``on_error`` fires with the reason (see
+    :meth:`~kivy.core.video.VideoBase.on_error`).
+
     Unknown keys in ``options`` are logged as a warning at construction
     time and otherwise ignored.
 
@@ -215,9 +223,9 @@ class VideoMediaFoundation(VideoBase):
         self._storage = _MFVideoStorage()
         self._update_ev = None
         self._logged_fallback = False
-        self._logged_error = False
+        self._error_reported = False
         super(VideoMediaFoundation, self).__init__(**kwargs)
-        unknown = sorted(set(self._options) - _KNOWN_OPTIONS)
+        unknown = sorted(set(self._options) - _KNOWN_OPTIONS - _BASE_KWARGS)
         if unknown:
             Logger.warning(
                 f'VideoMediaFoundation: ignoring unknown options keys '
@@ -266,7 +274,6 @@ class VideoMediaFoundation(VideoBase):
     def load(self):
         cdef _MFVideoStorage storage
         cdef bytes url_b
-        cdef bytes err
         Logger.debug(
             'VideoMediaFoundation: Load <{}>'.format(self._filename))
         self._release_player()
@@ -277,12 +284,10 @@ class VideoMediaFoundation(VideoBase):
             if isinstance(self._filename, str) else bytes(self._filename)
         storage.player = new VideoPlayer(<const char *>url_b)
         storage.player.load()
-        err = storage.player.lastError()
-        self._logged_error = bool(err)
-        if err:
-            Logger.error(
-                'VideoMediaFoundation: setup failed: {}'.format(
-                    err.decode('utf-8', 'replace')))
+        # A setup failure is reported by _update() on the first tick, not
+        # here: load() runs while the Video widget is still constructing
+        # this object, before it has bound on_error.
+        self._error_reported = False
         storage.player.setVolume(<double>self._volume)
 
         # Drive frame polling from the Kivy Clock. load() itself is
@@ -370,15 +375,17 @@ class VideoMediaFoundation(VideoBase):
         if storage.player == NULL:
             return
 
-        # Media Foundation reports a file it can't play (for example one
-        # whose codec has no installed decoder) asynchronously, as an
-        # error event; without this the video would just never load.
+        # Setup failures, and files Media Foundation can't play (for
+        # example a codec with no installed decoder, reported
+        # asynchronously as an error event), are reported here once:
+        # logged, then stop + on_error through VideoBase._do_error().
         if storage.player.hasError():
-            if not self._logged_error:
-                self._logged_error = True
+            if not self._error_reported:
+                self._error_reported = True
+                error = storage.player.lastError().decode('utf-8', 'replace')
                 Logger.error('VideoMediaFoundation: <{}>: {}'.format(
-                    self._filename,
-                    storage.player.lastError().decode('utf-8', 'replace')))
+                    self._filename, error))
+                self._do_error(error)
             return
 
         new_buffering = storage.player.isBuffering()

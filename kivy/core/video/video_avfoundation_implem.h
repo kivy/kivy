@@ -31,6 +31,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <string>
 
 class VideoFrame {
 public:
@@ -66,6 +67,7 @@ class VideoPlayer;
                         change:(NSDictionary<NSKeyValueChangeKey, id> *)change
                        context:(void *)context;
 - (void)playbackEnded:(NSNotification *)notification;
+- (void)playbackFailed:(NSNotification *)notification;
 - (void)detachOwner;
 @end
 
@@ -95,6 +97,15 @@ public:
     // .waitingToPlayAtSpecifiedRate.
     bool isBuffering();
 
+    // True once the video can't be loaded or played: an invalid URL,
+    // AVPlayerItem.status == AVPlayerItemStatusFailed (a missing file or
+    // an unsupported format), a failure mid-playback
+    // (AVPlayerItemFailedToPlayToEndTimeNotification), or zero-copy
+    // delivery failing. lastError() then describes the first failure;
+    // the string stays valid until unload(). Cheap to poll every tick.
+    bool hasError();
+    const char *lastError();
+
     // Forwarded from VideoBase.options. Both must be set before load()
     // to take effect at AVPlayer / AVPlayerItem construction time.
     //
@@ -114,6 +125,8 @@ public:
     // Called by KivyAVDelegate from KVO / notification callbacks.
     void _onTimeControlStatusChanged();
     void _onPlaybackEnded();
+    void _onItemStatusChanged();
+    void _onPlaybackFailed(NSError *error);
 
 private:
     NSString *mUrl;
@@ -137,10 +150,17 @@ private:
     bool mItemPrepared;
     bool mObserversInstalled;
     // Set true once we have decided this player can't produce frames
-    // (probe failed, or the first zero-copy bind didn't take). Triggers
-    // a one-shot EOS dispatch so the widget surfaces a clean failure
-    // instead of a stuck black screen.
+    // (probe failed, or the first zero-copy bind didn't take). Reported
+    // once through hasError()/lastError(), so the widget surfaces a
+    // clean failure instead of a stuck black screen.
     std::atomic<bool> mZeroCopyFailed;
+
+    // First failure wins: _setError() writes mError under mErrorLock,
+    // then sets mHasError. Cleared by unload().
+    std::atomic<bool> mHasError;
+    std::mutex mErrorLock;
+    std::string mError;
+    void _setError(NSString *message);
 
     // Zero-copy state. EGL handles are held as void* so this header
     // doesn't pull in EGL/egl.h into Cython-generated translation units.

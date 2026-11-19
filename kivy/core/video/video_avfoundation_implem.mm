@@ -14,8 +14,14 @@
  * something is fundamentally wrong (no ANGLE display, IOSurface
  * extension missing, eglChooseConfig fails, eglCreatePbufferFromClient-
  * Buffer fails on a known-good frame) -- the player gives up cleanly
- * and dispatches an EOS so the widget surfaces a clear failure instead
- * of a stuck black screen.
+ * and reports an error (hasError()/lastError()), which the Cython layer
+ * turns into VideoBase.on_error, so the widget surfaces a clear failure
+ * instead of a stuck black screen.
+ *
+ * Load and playback failures are reported the same way: an invalid URL,
+ * AVPlayerItem.status reaching AVPlayerItemStatusFailed (a missing file
+ * or an unsupported format), and
+ * AVPlayerItemFailedToPlayToEndTimeNotification (a failure mid-stream).
  *
  * Thumbnails (generateThumbnail) still use a CPU-copy CGImage -> BGRA
  * path; that's a one-shot read, not the per-frame hot path.
@@ -129,8 +135,10 @@ static bool _kivyResolveANGLEGL(void) {
 #endif  /* TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR */
 
 
-// KVO context tag for the single observer we install (timeControlStatus).
+// KVO context tags for the observers we install: AVPlayer's
+// timeControlStatus (buffering) and AVPlayerItem's status (load failure).
 static char kTimeControlStatusContext;
+static char kItemStatusContext;
 
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
@@ -235,6 +243,8 @@ VideoFrame::~VideoFrame() {
     }
     if (context == &kTimeControlStatusContext) {
         mOwner->_onTimeControlStatusChanged();
+    } else if (context == &kItemStatusContext) {
+        mOwner->_onItemStatusChanged();
     } else {
         [super observeValueForKeyPath:keyPath
                              ofObject:object
@@ -246,6 +256,13 @@ VideoFrame::~VideoFrame() {
 - (void)playbackEnded:(NSNotification *)notification {
     if (mOwner != NULL) {
         mOwner->_onPlaybackEnded();
+    }
+}
+
+- (void)playbackFailed:(NSNotification *)notification {
+    if (mOwner != NULL) {
+        mOwner->_onPlaybackFailed(
+            notification.userInfo[AVPlayerItemFailedToPlayToEndTimeErrorKey]);
     }
 }
 
@@ -265,6 +282,7 @@ VideoPlayer::VideoPlayer(const char *url)
       mCurrentFrame(NULL), mHasFrame(false),
       mItemPrepared(false), mObserversInstalled(false),
       mZeroCopyFailed(false),
+      mHasError(false),
       mZeroCopyProbed(false), mZeroCopyAvailable(false),
       mEGLDisplay(NULL), mEGLConfig(NULL), mEGLPbuffer(NULL),
       mBoundPixelBuffer(NULL),
@@ -331,7 +349,7 @@ void VideoPlayer::load() {
             nsurl = [NSURL URLWithString:mUrl];
         }
         if (nsurl == nil) {
-            NSLog(@"VideoAVFoundation: invalid URL %@", mUrl);
+            _setError([NSString stringWithFormat:@"invalid URL: %@", mUrl]);
             return;
         }
 
@@ -376,10 +394,24 @@ void VideoPlayer::_installObservers() {
               forKeyPath:@"timeControlStatus"
                  options:NSKeyValueObservingOptionNew
                  context:&kTimeControlStatusContext];
+    // AVPlayerItem.status reaches AVPlayerItemStatusFailed when the
+    // asset can't be opened or decoded (missing file, unsupported
+    // format). Initial: also check the status as it is right now, in
+    // case the item failed before the observer was attached.
+    [mPlayerItem addObserver:mDelegate
+                  forKeyPath:@"status"
+                     options:(NSKeyValueObservingOptionInitial |
+                              NSKeyValueObservingOptionNew)
+                     context:&kItemStatusContext];
     [[NSNotificationCenter defaultCenter]
         addObserver:mDelegate
            selector:@selector(playbackEnded:)
                name:AVPlayerItemDidPlayToEndTimeNotification
+             object:mPlayerItem];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:mDelegate
+           selector:@selector(playbackFailed:)
+               name:AVPlayerItemFailedToPlayToEndTimeNotification
              object:mPlayerItem];
     mObserversInstalled = true;
 }
@@ -396,9 +428,17 @@ void VideoPlayer::_removeObservers() {
         @catch (NSException *) { /* ignore double-remove */ }
     }
     if (mPlayerItem != nil && mDelegate != nil) {
+        @try {
+            [mPlayerItem removeObserver:mDelegate forKeyPath:@"status"];
+        }
+        @catch (NSException *) { /* ignore double-remove */ }
         [[NSNotificationCenter defaultCenter]
             removeObserver:mDelegate
                       name:AVPlayerItemDidPlayToEndTimeNotification
+                    object:mPlayerItem];
+        [[NSNotificationCenter defaultCenter]
+            removeObserver:mDelegate
+                      name:AVPlayerItemFailedToPlayToEndTimeNotification
                     object:mPlayerItem];
     }
     mObserversInstalled = false;
@@ -441,6 +481,11 @@ void VideoPlayer::unload() {
         mIsEOS = false;
         mWantPlay = false;
         mBuffering = false;
+        {
+            std::lock_guard<std::mutex> lock(mErrorLock);
+            mHasError = false;
+            mError.clear();
+        }
     }
 }
 
@@ -583,21 +628,16 @@ void VideoPlayer::_stageFrameFromBuffer(CVPixelBufferRef pb, double pts) {
     //
     // All of these are unrecoverable for this player: every subsequent
     // frame will hit the same failure. Drop the pixel buffer, latch a
-    // one-shot failure flag, log a clear diagnostic, and dispatch EOS
-    // so the widget surfaces a clean failure rather than a stuck
-    // black screen.
+    // one-shot failure flag, and report an error, so the widget
+    // surfaces a clean failure (on_error, state 'stop') rather than a
+    // stuck black screen. This used to be reported as an EOS, which an
+    // app can't tell apart from a video that finished, and which
+    // eos='loop' would try to replay.
     CVPixelBufferRelease(pb);
     if (!mZeroCopyFailed.exchange(true)) {
-        NSLog(@"VideoAVFoundation: zero-copy delivery failed; this "
-              @"build requires the ANGLE GL backend with the "
-              @"EGL_ANGLE_iosurface_client_buffer extension. "
-              @"Dispatching EOS.");
-        mIsEOS = true;
-        if (mDelegate != nil) {
-            [mDelegate performSelectorOnMainThread:@selector(playbackEnded:)
-                                        withObject:nil
-                                     waitUntilDone:NO];
-        }
+        _setError(@"zero-copy delivery failed; this build requires the "
+                  @"ANGLE GL backend with the "
+                  @"EGL_ANGLE_iosurface_client_buffer extension");
     }
 }
 
@@ -644,6 +684,51 @@ void VideoPlayer::_onPlaybackEnded() {
     mIsEOS = true;
     mWantPlay = false;
     mBuffering = false;
+}
+
+bool VideoPlayer::hasError() {
+    return mHasError.load();
+}
+
+const char *VideoPlayer::lastError() {
+    std::lock_guard<std::mutex> lock(mErrorLock);
+    return mError.c_str();
+}
+
+// Records the first failure only; later ones are usually consequences
+// of it. Not logged here: the Cython layer logs it through Kivy's
+// Logger when it reports the error.
+void VideoPlayer::_setError(NSString *message) {
+    std::lock_guard<std::mutex> lock(mErrorLock);
+    if (mHasError.load()) {
+        return;
+    }
+    const char *utf8 = [message UTF8String];
+    mError = (utf8 != NULL) ? utf8 : "unknown error";
+    mWantPlay = false;
+    mBuffering = false;
+    mHasError = true;
+}
+
+static NSString *_kivyDescribeError(NSError *error, NSString *fallback) {
+    if (error == nil) {
+        return fallback;
+    }
+    return [NSString stringWithFormat:@"%@ (%@ %ld)",
+            error.localizedDescription, error.domain, (long)error.code];
+}
+
+void VideoPlayer::_onItemStatusChanged() {
+    if (mPlayerItem == nil ||
+            mPlayerItem.status != AVPlayerItemStatusFailed) {
+        return;
+    }
+    _setError(_kivyDescribeError(mPlayerItem.error,
+                                 @"the video could not be loaded"));
+}
+
+void VideoPlayer::_onPlaybackFailed(NSError *error) {
+    _setError(_kivyDescribeError(error, @"playback failed"));
 }
 
 
