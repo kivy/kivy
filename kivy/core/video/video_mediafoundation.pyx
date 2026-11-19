@@ -76,6 +76,9 @@ from kivy.logger import Logger
 # empty whitelist (rather than skipping the check) so the warning below
 # starts working for free the moment a real option is added.
 _KNOWN_OPTIONS = frozenset()
+# VideoBase's own keyword arguments. The Video widget also passes them in
+# options, for apps that set ``eos`` there, so they aren't unknown.
+_BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
 
 
 cdef _frame_to_texture(VideoFrame *frame, existing_texture):
@@ -217,7 +220,7 @@ class VideoMediaFoundation(VideoBase):
         self._logged_fallback = False
         self._logged_error = False
         super(VideoMediaFoundation, self).__init__(**kwargs)
-        unknown = sorted(set(self._options) - _KNOWN_OPTIONS)
+        unknown = sorted(set(self._options) - _KNOWN_OPTIONS - _BASE_KWARGS)
         if unknown:
             Logger.warning(
                 f'VideoMediaFoundation: ignoring unknown options keys '

@@ -64,6 +64,9 @@ from kivy.logger import Logger
 _KNOWN_OPTIONS = frozenset({
     'automatically_waits_to_minimize_stalling',
 })
+# VideoBase's own keyword arguments. The Video widget also passes them in
+# options, for apps that set ``eos`` there, so they aren't unknown.
+_BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
 
 
 cdef _frame_to_texture(VideoFrame *frame, existing_texture):
@@ -216,7 +219,7 @@ class VideoAVFoundation(VideoBase):
         # Warn (once, eagerly) about any options keys this provider
         # doesn't recognize. Construction-time so the user sees it
         # immediately, not on first play.
-        unknown = sorted(set(self._options) - _KNOWN_OPTIONS)
+        unknown = sorted(set(self._options) - _KNOWN_OPTIONS - _BASE_KWARGS)
         if unknown:
             Logger.warning(
                 f'VideoAVFoundation: ignoring unknown options keys '
