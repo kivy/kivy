@@ -540,7 +540,7 @@ cdef extern from "SDL.h":
     cdef const char* SDL_GetPixelFormatName(Uint32 format)
     cdef int SDL_GetSurfaceColorKey(SDL_Surface *surface, Uint32 *key)
     cdef SDL_Palette * SDL_GetSurfacePalette(SDL_Surface *surface)
-    cdef int SDL_Init(Uint32 flags)
+    cdef bint SDL_Init(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
