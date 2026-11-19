@@ -124,7 +124,7 @@ This also installs the minimum dependencies of Kivy. To additionally install Kiv
 **audio/video** support, install either ``kivy[base,media]`` or ``kivy[full]``.
 See :ref:`Kivy's dependencies<kivy-dependencies>` for the list of selectors.
 
-On Python 3.14, the ``base`` and ``full`` selectors install Pillow 12.x.
+On Python 3.11 and later, the ``base`` and ``full`` selectors install Pillow 13.x. Earlier Python versions keep ``pillow>=9.5.0,<11``, because Pillow 13 requires Python 3.11.
 
 .. note::
 
