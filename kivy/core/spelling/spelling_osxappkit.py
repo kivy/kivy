@@ -1,64 +1,61 @@
 '''
-AppKit Spelling: Implements spelling backend based on OSX's spellchecking
-                 features provided by the ApplicationKit.
-
-                 NOTE:
-                    Requires pyobjc and setuptools to be installed!
-                    `sudo easy_install pyobjc setuptools`
+AppKit Spelling: Implements spelling backend based on macOS's spellchecking
+                 features provided by AppKit's NSSpellChecker, through
+                 rubicon-objc.
 
                  Developers should read:
-                    http://developer.apple.com/mac/library/documentation/
-                        Cocoa/Conceptual/SpellCheck/SpellCheck.html
-                    http://developer.apple.com/cocoa/pyobjc.html
+                    https://developer.apple.com/documentation/appkit/nsspellchecker
+
+.. versionchanged:: 3.0.0
+    Uses rubicon-objc instead of PyObjC, and implements
+    :meth:`~kivy.core.spelling.SpellingBase.check`.
 '''
 
+import sys
 
-from AppKit import NSSpellChecker, NSMakeRange
+from rubicon.objc import ObjCClass
+from rubicon.objc.runtime import load_library
+from rubicon.objc.types import NSRange
 
 from kivy.core.spelling import SpellingBase, NoSuchLangError
+
+load_library('AppKit')
+NSSpellChecker = ObjCClass('NSSpellChecker')
+
+# NSNotFound is NSIntegerMax
+NS_NOT_FOUND = sys.maxsize
 
 
 class SpellingOSXAppKit(SpellingBase):
     '''
-    Spelling backend based on OSX's spelling features provided by AppKit.
+    Spelling backend based on macOS's spelling features provided by AppKit.
     '''
 
     def __init__(self, language=None):
-        self._language = NSSpellChecker.alloc().init()
+        self._checker = NSSpellChecker.sharedSpellChecker
         super(SpellingOSXAppKit, self).__init__(language)
 
     def select_language(self, language):
-        success = self._language.setLanguage_(language)
-        if not success:
+        if not self._checker.setLanguage(language):
             err = 'AppKit Backend: No language "%s" ' % (language, )
             raise NoSuchLangError(err)
 
     def list_languages(self):
-        return list(self._language.availableLanguages())
+        return [str(lang) for lang in self._checker.availableLanguages]
 
     def check(self, word):
-        # TODO Implement this!
-        #      NSSpellChecker provides several functions that look like what we
-        #      need, but they're a) slooow and b) return a strange result.
-        #      Might be a snow leopard bug. Have to test further.
-        #      See: http://paste.pocoo.org/show/217968/
         if not word:
             return None
-        err = 'check() not currently supported by the OSX AppKit backend'
-        raise NotImplementedError(err)
+        misspelled = self._checker.checkSpellingOfString(
+            word, startingAt=0, language=self._checker.language,
+            wrap=False, inSpellDocumentWithTag=0, wordCount=None)
+        return misspelled.location == NS_NOT_FOUND
 
     def suggest(self, fragment):
-        l = self._language
-        # XXX Both ways below work on OSX 10.6. It has not been tested on any
-        #     other version, but it should work.
-        try:
-            # This is deprecated as of OSX 10.6, hence the try-except
-            return list(l.guessesForWord_(fragment))
-        except AttributeError:
-            # From 10.6 onwards you're supposed to do it like this:
-            checkrange = NSMakeRange(0, len(fragment))
-            g = l.\
-                guessesForWordRange_inString_language_inSpellDocumentWithTag_(
-                    checkrange, fragment, l.language(), 0)
-            # Right, this was much easier, Apple! :-)
-            return list(g)
+        checker = self._checker
+        guesses = checker.guessesForWordRange(
+            NSRange(0, len(fragment)), inString=fragment,
+            language=checker.language, inSpellDocumentWithTag=0)
+        if guesses is None:
+            return []
+        return [str(g) for g in guesses]
