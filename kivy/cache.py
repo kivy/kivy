@@ -200,7 +200,7 @@ class Cache(object):
             heapq.heappush(heap_list, (obj['lastaccess'], key))
             Logger.trace('Cache: <<< %f' % obj['lastaccess'])
         n = 0
-        while n <= maxpurge:
+        while n < maxpurge:
             try:
                 n += 1
                 lastaccess, key = heapq.heappop(heap_list)
