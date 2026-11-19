@@ -23,7 +23,9 @@ the first sound is loaded to choose another category:
 
 - ``ambient``: silenced by the silent switch, mixes with other apps' audio.
 - ``soloambient``: silenced by the silent switch, stops other apps' audio.
-- ``playback``: ignores the silent switch, stops other apps' audio.
+- ``playback``: the same as the default. SDL removes the option to mix with
+  other apps' audio but adds the one to duck it, and iOS sets mixing again
+  whenever ducking is set.
 - ``playandrecord``: for apps that also record audio.
 
 .. versionchanged:: 3.0.0

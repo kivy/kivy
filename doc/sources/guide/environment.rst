@@ -270,7 +270,8 @@ KIVY_AUDIO_CATEGORY
 
     - `ambient`: silenced by the silent switch, mixes with other apps' audio.
     - `soloambient`: silenced by the silent switch, stops other apps' audio.
-    - `playback`: ignores the silent switch, stops other apps' audio.
+    - `playback`: the same as unset (below). SDL asks iOS to lower other
+      apps' audio, and iOS then also mixes with it.
     - `playandrecord`: for apps that also record audio.
 
     If unset, SDL uses `playback` but mixes with other apps' audio and lowers
