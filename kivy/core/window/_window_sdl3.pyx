@@ -44,6 +44,7 @@ cdef class _WindowSDL3Storage:
     cdef EGLANGLE egl_angle_storage
     cdef bint _is_shapable
     cdef bint _first_swap_done
+    cdef bint _linux_egl_failed
 
     def __cinit__(self):
         self.win = NULL
@@ -57,6 +58,7 @@ cdef class _WindowSDL3Storage:
         self.egl_angle_storage = None
         self._is_shapable = False
         self._first_swap_done = False
+        self._linux_egl_failed = False
 
     def set_event_filter(self, event_filter):
         self.event_filter = event_filter
@@ -115,18 +117,64 @@ cdef class _WindowSDL3Storage:
 
         return win
 
-    cdef _create_egl_context(self):
+    cdef bint _create_window_and_context(
+            self, width, height, window_configs) except *:
+        # Try each (multisamples, shaped) combination in order, then create
+        # the GL context. Returns False, with no window left behind, if
+        # either step fails; SDL_GetError() has the reason.
+        cdef SDL_Window *win
+        cdef int requested_flags = self.win_flags
+
+        self.win = NULL
+        for multisamples, shaped in window_configs:
+            win = self._setup_sdl_window(width, height, multisamples, shaped)
+            if win:
+                self.win = win
+
+                # Get win flags after creation, as may be different
+                # from the initially requested ones.
+                self.win_flags = SDL_GetWindowFlags(win)
+                break
+
+        if not self.win:
+            return False
+
+        if not self._create_egl_context():
+            SDL_DestroyWindow(self.win)
+            self.win = NULL
+            self.win_flags = requested_flags
+            return False
+        return True
+
+    cdef bint _request_egl_on_linux(self):
+        # On X11, SDL creates a GLX context unless SDL_VIDEO_FORCE_EGL is
+        # set. Ask for EGL instead: other libraries can only share GPU
+        # buffers (DMABuf) with Kivy's context under EGL, e.g. GStreamer
+        # imports hardware-decoded video frames without a CPU copy.
+        # SDL 3.4 also uses X11 (Xwayland) under Wayland compositors that
+        # lack the fifo-v1 protocol, so this covers those desktops too.
+        # Wayland and KMSDRM always use EGL; there the hint changes nothing.
+        #
+        # Returns True if Kivy set the hint, so a failure can fall back to
+        # GLX. A SDL_VIDEO_FORCE_EGL environment variable is the user's
+        # choice and is left alone (SDL_VIDEO_FORCE_EGL=0 keeps GLX).
+        if platform != 'linux' or not self.sdl_manages_egl_context:
+            return False
+        if self._linux_egl_failed or 'SDL_VIDEO_FORCE_EGL' in environ:
+            return False
+        SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, b'1')
+        return True
+
+    cdef bint _create_egl_context(self) except *:
 
         cdef void *native_layer
 
         if self.gl_backend_name == "mock":
-            return
+            return True
 
         if self.sdl_manages_egl_context:
             self.ctx = SDL_GL_CreateContext(self.win)
-            if not self.ctx:
-                self.die()
-            return
+            return self.ctx != NULL
 
         if self.gl_backend_name == "angle":
 
@@ -139,6 +187,8 @@ cdef class _WindowSDL3Storage:
             self.egl_angle_storage = EGLANGLE()
             self.egl_angle_storage.set_native_layer(native_layer)
             self.egl_angle_storage.create_context()
+
+        return True
 
     cdef _destroy_egl_context(self):
 
@@ -226,6 +276,8 @@ cdef class _WindowSDL3Storage:
         SDL_SetHintWithPriority(b'SDL_ANDROID_TRAP_BACK_BUTTON', b'1',
                                 SDL_HINT_OVERRIDE)
 
+        cdef bint egl_requested = self._request_egl_on_linux()
+
         if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
             self.die()
 
@@ -276,18 +328,35 @@ cdef class _WindowSDL3Storage:
             sdl_window_configs.append((config_multisamples, 0))
         sdl_window_configs.append((0, 0))
 
-        for multisamples, shaped in sdl_window_configs:
-            win = self._setup_sdl_window(width, height, multisamples, shaped)
-            if win:
-                self.win = win
+        if not self._create_window_and_context(
+                width, height, sdl_window_configs):
+            if not egl_requested:
+                self.die()
+            # Some drivers have no EGL for X11 (e.g. NVIDIA's proprietary
+            # driver before the 560 series under Xwayland, or without its
+            # egl-x11 library), so restart the video subsystem without the
+            # hint and let SDL use GLX.
+            Logger.warning(
+                'WindowSDL: Could not create an EGL window/context (%s), '
+                'falling back to GLX' % (<bytes>SDL_GetError()).decode(
+                    'utf-8', 'replace'))
+            self._linux_egl_failed = True
+            SDL_QuitSubSystem(SDL_INIT_VIDEO)
+            SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, b'0')
+            if not SDL_InitSubSystem(SDL_INIT_VIDEO):
+                self.die()
+            # The GL attributes belong to the video device that was just
+            # destroyed.
+            self._set_sdl_gl_common_attributes()
+            if not self._create_window_and_context(
+                    width, height, sdl_window_configs):
+                self.die()
 
-                # Get win flags after creation, as may be different
-                # from the initially requested ones.
-                self.win_flags = SDL_GetWindowFlags(win)
-                break
-
-        if not self.win:
-            self.die()
+        if platform == 'linux':
+            Logger.info(
+                'WindowSDL: SDL video driver: %s, EGL requested: %s' % (
+                    (<bytes>SDL_GetCurrentVideoDriver()).decode('utf-8'),
+                    bool(SDL_GetHintBoolean(SDL_HINT_VIDEO_FORCE_EGL, False))))
 
         # Set shape in case the user requested a shaped window and the window
         # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
@@ -295,8 +364,6 @@ cdef class _WindowSDL3Storage:
             self._is_shapable = True
 
         self.set_window_pos(x, y)
-
-        self._create_egl_context()
 
         # vsync
         vsync = Config.get('graphics', 'vsync')
