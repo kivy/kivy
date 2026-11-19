@@ -25,6 +25,14 @@ Media Feature Pack is installed. See
 :class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`
 for details.
 
+On Android, the ``android`` provider plays video through androidx.media3
+ExoPlayer, which the app has to add to its build as a Maven dependency
+(see "Playing video" in the Android packaging guide). It plays what the
+device's decoders support: H.264 everywhere, HEVC, VP9 and AV1 on most
+recent devices, and HLS or DASH streams when the matching Media3 module is
+added too. See :class:`~kivy.core.video.video_android.VideoAndroid` for
+details.
+
 Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
 
@@ -60,8 +68,8 @@ If the video can't be loaded or played, for example because its format
 has no installed decoder, :attr:`Video.state` changes to ``'stop'`` and
 the ``on_error`` event fires with a message. A missing local file is
 reported with any provider; other failures are reported by the Media
-Foundation (Windows) and AVFoundation (macOS, iOS) providers. Nothing is
-raised, so an app that doesn't handle it keeps running::
+Foundation (Windows), AVFoundation (macOS, iOS) and Android providers.
+Nothing is raised, so an app that doesn't handle it keeps running::
 
     def on_video_error(instance, error):
         print('Video failed:', error)
@@ -217,8 +225,8 @@ class Video(Image):
         first decodable frame is available rather than buffering
         ahead).
 
-    Other providers (Media Foundation, GStreamer, FFmpeg / ffpyplayer)
-    currently expose no documented ``options`` keys: unknown kwargs in
+    Other providers (Media Foundation, Android, GStreamer, FFmpeg /
+    ffpyplayer) currently expose no documented ``options`` keys: unknown kwargs in
     ``options`` are also unpacked as keyword arguments to the core video
     for back-compat with apps that put well-known kwargs (e.g.
     ``eos='loop'``) in this dict.
