@@ -406,12 +406,6 @@ class TestRegistryDiscovery:
         registry_modules = {module for name, module in PROVIDER_CONFIGS['video']}
 
         for file in provider_files:
-            # video_android exists but is NOT in kivy_options/registry
-            # It's only used directly by platform-specific code, not through
-            # the env var filtering system
-            if file == 'video_android':
-                continue
-
             assert file in registry_modules, (
                 f"Video provider file {file!r} exists but not in PROVIDER_CONFIGS"
             )

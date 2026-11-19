@@ -29,6 +29,11 @@ Core class for reading video files and managing the video
     (:class:`~kivy.core.video.video_mediafoundation.VideoMediaFoundation`),
     the default on Windows.
 
+    Rewrote the ``android`` provider
+    (:class:`~kivy.core.video.video_android.VideoAndroid`) on androidx.media3
+    ExoPlayer and made it the video provider on Android. The app has to add
+    ExoPlayer's Maven dependency to its build.
+
 .. versionchanged:: 1.10.0
     The pyglet, pygst and gi providers have been removed.
 
@@ -48,7 +53,7 @@ from kivy.clock import Clock
 from kivy.core import core_select_lib, get_provider_modules, make_provider_tuple
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
-from kivy.utils import path_to_str
+from kivy.utils import path_to_str, platform
 
 
 class VideoBase(EventDispatcher):
@@ -364,6 +369,13 @@ class VideoBase(EventDispatcher):
 # Build platform-specific list from registry
 all_providers = get_provider_modules('video')
 video_providers = []
+
+# android plays through androidx.media3 ExoPlayer, the only video
+# provider on Android. Its module imports jnius, so it is only tried there.
+if platform == 'android':
+    video_providers.append(make_provider_tuple(
+        'android', all_providers, 'VideoAndroid'
+    ))
 
 # avfoundation is the default video provider on Darwin (macOS / iOS).
 # It is compiled only when c_options['use_avfoundation'] is True in
