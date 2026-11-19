@@ -528,6 +528,7 @@ class TestErrors:
 
         assert len(log) == 1
         assert "androidx.media3:media3-exoplayer" in log[0][1]
+        assert "-keep class androidx.media3.** { *; }" in log[0][1]
         assert video.state == ""
         assert _Builder.built == []
 

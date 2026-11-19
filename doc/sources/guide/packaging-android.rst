@@ -177,9 +177,22 @@ Depending on what the app plays, it may need more:
   permission.
 - **Release builds with R8** (code shrinking): Python reaches ExoPlayer through
   pyjnius, which R8 can't see, so R8 would remove the classes the provider
-  needs. Leave R8 off, or add this keep rule::
+  needs. Debug builds still play, but in the release build every video fires
+  ``on_error`` with the missing-dependency message. Leave R8 off, or keep
+  Media3 with this rule::
 
       -keep class androidx.media3.** { *; }
+
+  With kivyforge (after 0.1.2), turn R8 on and add the rule in
+  ``pyproject.toml``:
+
+  .. code-block:: toml
+
+      [tool.kivy.android.build_settings]
+      minify = true
+
+      [tool.kivy.android.proguard]
+      keep = ["-keep class androidx.media3.** { *; }"]
 
 
 .. _release_on_the_market:

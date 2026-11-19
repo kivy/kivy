@@ -57,7 +57,9 @@ _BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
 
 _MISSING_MEDIA3 = (
     'androidx.media3 ExoPlayer is not in this app. Add the Maven dependency '
-    'androidx.media3:media3-exoplayer to the Android build; see "Playing '
+    'androidx.media3:media3-exoplayer to the Android build. If it is '
+    'already there and this is a release build, R8 removed it: add the '
+    'keep rule "-keep class androidx.media3.** { *; }". See "Playing '
     'video" in the Android packaging guide.')
 
 _FS_EXTERNAL = '''
