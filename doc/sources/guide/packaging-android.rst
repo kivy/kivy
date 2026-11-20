@@ -133,6 +133,68 @@ trying the Kivy launcher. You can run them as below::
 #. Run the launcher and select one of the Pictures, Showcase, Touchtracer, Cymunk or other demos...
 
 
+.. _packaging_android_video:
+
+Playing video
+-------------
+
+Kivy's video provider on Android,
+:class:`~kivy.core.video.video_android.VideoAndroid`, plays video through
+androidx.media3 ExoPlayer. ExoPlayer is a library, not part of Android, so the
+app has to add it to its build as a Maven dependency. Without it, every
+:class:`~kivy.uix.video.Video` fires ``on_error`` with a message that names the
+missing dependency.
+
+Media3 1.11 requires compiling against Android API 36.
+
+With Buildozer, in ``buildozer.spec``:
+
+.. code-block:: ini
+
+    android.api = 36
+    android.gradle_dependencies = androidx.media3:media3-exoplayer:1.11.1
+
+Buildozer compiles against the API level the app targets, so this also makes
+the app target API 36.
+
+With kivyforge, in ``pyproject.toml``:
+
+.. code-block:: toml
+
+    [tool.kivy.android]
+    compile_sdk = 36
+
+    [tool.kivy.android.gradle]
+    dependencies = ["androidx.media3:media3-exoplayer:1.11.1"]
+
+Depending on what the app plays, it may need more:
+
+- **HLS or DASH streams** (``.m3u8``, ``.mpd``): add
+  ``androidx.media3:media3-exoplayer-hls`` or
+  ``androidx.media3:media3-exoplayer-dash``, at the same version. ExoPlayer
+  picks them up by the stream's file extension.
+- **Network sources** (``http://``, ``https://``): declare the ``INTERNET``
+  permission.
+- **Release builds with R8** (code shrinking): Python reaches ExoPlayer through
+  pyjnius, which R8 can't see, so R8 would remove the classes the provider
+  needs. Debug builds still play, but in the release build every video fires
+  ``on_error`` with the missing-dependency message. Leave R8 off, or keep
+  Media3 with this rule::
+
+      -keep class androidx.media3.** { *; }
+
+  With kivyforge (after 0.1.2), turn R8 on and add the rule in
+  ``pyproject.toml``:
+
+  .. code-block:: toml
+
+      [tool.kivy.android.build_settings]
+      minify = true
+
+      [tool.kivy.android.proguard]
+      keep = ["-keep class androidx.media3.** { *; }"]
+
+
 .. _release_on_the_market:
 
 Release on the market
