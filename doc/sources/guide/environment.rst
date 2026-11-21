@@ -268,6 +268,16 @@ Graphics
 KIVY_GL_BACKEND
     The OpenGL backend to use. See :mod:`~kivy.graphics.cgl`.
 
+SDL_VIDEO_FORCE_EGL
+    An SDL variable. On Linux, the `sdl3` window asks SDL for an EGL context
+    on X11 (and Xwayland) instead of GLX, so libraries such as GStreamer can
+    share GPU buffers (DMABuf) with Kivy's context. If EGL is unavailable,
+    Kivy logs a warning and uses GLX. Set it to ``0`` to always use GLX, or
+    to ``1`` to require EGL (the `sdl3` window then fails instead of falling
+    back to GLX). Wayland and KMSDRM always use EGL.
+
+    .. versionadded:: 3.0.0
+
 KIVY_GL_DEBUG
     Whether to log OpenGL calls. See :mod:`~kivy.graphics.cgl`.
 
