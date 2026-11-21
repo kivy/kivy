@@ -490,6 +490,7 @@ cdef extern from "SDL.h":
 
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
+    cdef char *SDL_HINT_VIDEO_FORCE_EGL
     cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
     cdef char *SDL_HINT_WINDOWS_DPI_AWARENESS
 
@@ -541,6 +542,8 @@ cdef extern from "SDL.h":
     cdef int SDL_GetSurfaceColorKey(SDL_Surface *surface, Uint32 *key)
     cdef SDL_Palette * SDL_GetSurfacePalette(SDL_Surface *surface)
     cdef bint SDL_Init(Uint32 flags)
+    cdef bint SDL_InitSubSystem(Uint32 flags)
+    cdef void SDL_QuitSubSystem(Uint32 flags)
     cdef void SDL_Quit()
     cdef int SDL_EnableUNICODE(int enable)
     cdef Uint32 SDL_GetTicks()
@@ -560,6 +563,7 @@ cdef extern from "SDL.h":
     cdef char * SDL_GetError()
     cdef bint SDL_SetHint(char *name, char *value)
     cdef bint SDL_SetHintWithPriority(char *name, char *value, SDL_HintPriority priority)
+    cdef bint SDL_GetHintBoolean(const char *name, bint default_value)
     cdef Uint32 SDL_GetMouseState(int* x,int* y)
     cdef SDL_MouseButtonFlags SDL_GetGlobalMouseState(float *x, float *y)
     cdef SDL_GLContext SDL_GL_CreateContext(SDL_Window* window)
