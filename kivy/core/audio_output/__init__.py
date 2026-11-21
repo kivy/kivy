@@ -361,15 +361,19 @@ if platform == 'android':
 elif platform in ('macosx', 'ios'):
     audio_libs.append(make_provider_tuple('avplayer', all_providers))
 
+audio_libs.append(make_provider_tuple('ffpyplayer', all_providers))
+
+if USE_SDL3:
+    audio_libs.append(make_provider_tuple('sdl3', all_providers))
+
+# After sdl3: since 3.0 the GStreamer core is built into every Linux and
+# Windows wheel, and putting it first would change which provider plays a
+# sound on any machine that has GStreamer. It still plays the formats SDL3
+# doesn't claim.
 try:
     from kivy.lib.gstplayer import GstPlayer  # NOQA
     audio_libs.append(make_provider_tuple('gstplayer', all_providers))
 except ImportError:
     pass
-
-audio_libs.append(make_provider_tuple('ffpyplayer', all_providers))
-
-if USE_SDL3:
-    audio_libs.append(make_provider_tuple('sdl3', all_providers))
 
 libs_loaded = core_register_libs('audio_output', audio_libs)
