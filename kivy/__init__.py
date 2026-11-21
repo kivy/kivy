@@ -31,7 +31,6 @@ __all__ = (
 import sys
 import shutil
 from getopt import getopt, GetoptError
-import os
 from os import environ, makedirs
 from os.path import dirname, join, basename, exists, expanduser
 import pkgutil
@@ -269,48 +268,31 @@ for examples_dir in (
         break
 
 
-def _patch_mod_deps_win(dep_mod, mod_name):
-    import site
-    dep_bins = []
-
-    for d in [sys.prefix, site.USER_BASE]:
-        p = join(d, 'share', mod_name, 'bin')
-        if os.path.isdir(p):
-            os.environ["PATH"] = p + os.pathsep + os.environ["PATH"]
-            if hasattr(os, 'add_dll_directory'):
-                os.add_dll_directory(p)
-            dep_bins.append(p)
-
-    dep_mod.dep_bins = dep_bins
-
+# Kivy 2's GStreamer packages (GStreamer 1.18), no longer used. Importing one
+# would put its libraries on PATH and set GST_PLUGIN_PATH and GST_REGISTRY,
+# which a newer GStreamer found another way (the official installer,
+# KIVY_GSTREAMER_ROOT) also reads: its 1.18 plugins would load into it.
+_OBSOLETE_DEPS = ('gstreamer', 'gstreamer_dev')
 
 # if there are deps, import them so they can do their magic.
 _packages = []
-try:
-    from kivy import deps as old_deps
-    for importer, modname, ispkg in pkgutil.iter_modules(old_deps.__path__):
-        if not ispkg:
-            continue
-        if modname.startswith('gst'):
-            _packages.insert(0, (importer, modname, 'kivy.deps'))
-        else:
-            _packages.append((importer, modname, 'kivy.deps'))
-except ImportError:
-    pass
-
-try:
-    import kivy_deps
-    for importer, modname, ispkg in pkgutil.iter_modules(kivy_deps.__path__):
-        if not ispkg:
-            continue
-        if modname.startswith('gst'):
-            _packages.insert(0, (importer, modname, 'kivy_deps'))
-        else:
-            _packages.append((importer, modname, 'kivy_deps'))
-except ImportError:
-    pass
-
 _logging_msgs = []
+for _package in ('kivy.deps', 'kivy_deps'):
+    try:
+        _deps_mod = importlib.import_module(_package)
+    except ImportError:
+        continue
+    for importer, modname, ispkg in pkgutil.iter_modules(_deps_mod.__path__):
+        if not ispkg:
+            continue
+        if modname in _OBSOLETE_DEPS:
+            Logger.warning(
+                'deps: Not importing "{}.{}": Kivy 3 no longer uses it. '
+                'Uninstall it (see the migration guide).'.format(
+                    _package, modname))
+            continue
+        _packages.append((importer, modname, _package))
+
 for importer, modname, package in _packages:
     try:
         module_spec = importer.find_spec(modname)
@@ -323,9 +305,6 @@ for importer, modname, package in _packages:
         _logging_msgs.append(
             'deps: Successfully imported "{}.{}"{}'.
             format(package, modname, version))
-
-        if modname.startswith('gst') and version == '0.3.3':
-            _patch_mod_deps_win(mod, modname)
 
     except ImportError as e:
         Logger.warning(
