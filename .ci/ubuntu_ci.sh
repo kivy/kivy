@@ -261,6 +261,14 @@ install_ubuntu_build_deps() {
           sway wl-clipboard xclip
 }
 
+install_ubuntu_gstreamer_runtime() {
+  # Runtime only: kivy.lib.gstplayer opens GStreamer at run time, so no
+  # -dev packages. -good brings vp8enc/webmmux, which the tests use to
+  # generate their clips.
+  sudo apt-get -y install gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+          gstreamer1.0-plugins-bad gstreamer1.0-libav
+}
+
 generate_rpi_wheels() {
   image=$1
 
