@@ -1187,6 +1187,26 @@ most applications, and mainly benefits applications using
 ``disable_multitouch`` that need to respond to more than one mouse button
 at a time (e.g. left + right held together).
 
+========
+Spelling
+========
+
+*The osxappkit spelling provider uses rubicon-objc*
+
+**Behavior Changes**
+
+- The macOS ``osxappkit`` provider uses
+  `rubicon-objc <https://github.com/beeware/rubicon-objc>`_, which is
+  installed with Kivy on macOS, instead of PyObjC, which wasn't. It no
+  longer needs any extra package.
+- It implements :meth:`~kivy.core.spelling.SpellingBase.check`, which
+  raised ``NotImplementedError`` in Kivy 2.x.x.
+
+**Migration Impact**
+
+No code changes are needed. Apps that installed PyObjC only for spelling
+can remove it.
+
 ===
 SVG
 ===
