@@ -268,10 +268,14 @@ class Sound(EventDispatcher):
     '''
 
     pitch = BoundedNumericProperty(1., min=float_info.epsilon)
-    '''Pitch of a sound. 2 is an octave higher, .5 one below. This is only
-    implemented for SDL3 audio provider yet.
+    '''Pitch of a sound. 2 is an octave higher, .5 one below. Implemented by
+    the ``sdl3`` and ``avplayer`` providers. ``avplayer`` changes the speed
+    but keeps the pitch, and is limited to 0.5-2.
 
     .. versionadded:: 1.10.0
+
+    .. versionchanged:: 3.0.0
+        Implemented by the ``avplayer`` provider.
 
     :attr:`pitch` is a :class:`~kivy.properties.NumericProperty` and defaults
     to 1.

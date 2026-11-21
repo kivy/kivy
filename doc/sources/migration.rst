@@ -1430,6 +1430,38 @@ result, build each transformation from a new
 result of ``Matrix().translate(x, y, 0).rotate(angle, 0, 0, 1)`` is
 ``Matrix().translate(x, y, 0).multiply(Matrix().rotate(angle, 0, 0, 1))``.
 
+======================
+Audio on macOS and iOS
+======================
+
+*The avplayer audio provider uses rubicon-objc*
+
+The ``avplayer`` provider plays sound with Apple's AVFoundation. It plays
+the formats the ``sdl3`` provider can't, such as m4a, aac and caf. In
+Kivy 3.x.x it uses `rubicon-objc <https://github.com/beeware/rubicon-objc>`_,
+which is installed with Kivy on macOS and iOS, instead of pyobjus, which
+wasn't.
+
+**Behavior Changes**
+
+- On macOS, m4a, aac, caf and aiff files play with a plain
+  ``pip install kivy``. In Kivy 2.x.x they needed pyobjus, ffpyplayer or
+  GStreamer. The ``sdl3`` provider still plays wav, mp3, flac and ogg.
+- :attr:`~kivy.core.audio_output.Sound.loop` and
+  :attr:`~kivy.core.audio_output.Sound.pitch` work. ``pitch`` changes the
+  speed but keeps the pitch, and is limited to 0.5-2.
+- :meth:`~kivy.core.audio_output.Sound.stop` rewinds to the start. In
+  Kivy 2.x.x the next ``play()`` continued from where the sound stopped.
+- If AVFoundation can't play a file (for example Ogg on iOS), ``play()``
+  logs a warning and the sound stays stopped.
+
+**Migration Impact**
+
+Most apps need no changes. Apps that relied on ``play()`` resuming after
+``stop()`` should save :meth:`~kivy.core.audio_output.Sound.get_pos` before
+stopping and :meth:`~kivy.core.audio_output.Sound.seek` back to it after
+``play()``.
+
 =====
 Video
 =====
