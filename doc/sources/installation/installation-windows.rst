@@ -63,7 +63,8 @@ doesn't handle, selected with ``KIVY_VIDEO=gstplayer``. Install it with::
     python -m pip install "kivy[gstreamer]"
 
 which installs GStreamer's official wheels at one pinned version. HLS streams
-packaged as MPEG-TS (most of them) also need upstream's restricted plugins::
+packaged as MPEG-TS (most of them) and MPEG-1 or MPEG-2 program streams
+(``.mpg`` files) also need upstream's restricted plugins::
 
     python -m pip install "kivy[gstreamer-restricted]"
 

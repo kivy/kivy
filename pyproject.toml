@@ -98,7 +98,8 @@ base = ["pillow>=13,<14"]
 # otherwise mixes patch releases, and some were published without a full
 # Windows set). Elsewhere these are no-ops: GStreamer comes from the system.
 # "restricted" is upstream's name for the patent-encumbered plugins (MPEG-TS,
-# needed by most HLS streams, among them); it is only installed on request.
+# needed by most HLS streams, and MPEG-PS, for .mpg files, among them); it is
+# only installed on request.
 gstreamer = [
     'gstreamer-libs==1.28.7; sys_platform == "win32"',
     'gstreamer-plugins==1.28.7; sys_platform == "win32"',

@@ -1552,7 +1552,10 @@ no longer built for macOS.
 - On Windows, ``kivy_deps.gstreamer`` (GStreamer 1.18) is replaced by
   GStreamer's official wheels. The ``gstreamer``, ``media`` and ``full``
   selectors install them; the new ``gstreamer-restricted`` selector adds the
-  restricted plugins, which include the MPEG-TS demuxer most HLS streams need.
+  restricted plugins, which include the MPEG-TS demuxer most HLS streams need
+  and the MPEG-PS demuxer for ``.mpg`` files. ``kivy_deps.gstreamer`` had
+  both, so an app that plays either with ``gstplayer`` on Windows needs
+  ``kivy[gstreamer-restricted]``.
   GStreamer's official installer, or any build through
   ``KIVY_GSTREAMER_ROOT``, works too.
 - Playback uses ``playbin3``: local files, HTTP, HLS and DASH.

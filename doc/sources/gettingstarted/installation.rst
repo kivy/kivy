@@ -377,8 +377,9 @@ version).
         the ``gstplayer`` video and audio providers. Windows only: on Linux GStreamer
         comes from the system.
     `gstreamer-restricted`: ``gstreamer`` plus upstream's ``gstreamer-plugins-restricted``
-        wheel, the plugins GStreamer considers patent-encumbered. Among them is the
-        MPEG-TS demuxer that most HLS streams need. Never installed by another selector.
+        wheel, the plugins GStreamer considers patent-encumbered. Among them are the
+        MPEG-TS demuxer that most HLS streams need and the MPEG-PS demuxer for ``.mpg``
+        files. Never installed by another selector.
         Windows only.
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
