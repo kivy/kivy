@@ -4,11 +4,17 @@ Video
 
 The :class:`Video` widget is used to display video files and streams.
 Depending on your Video core provider, platform, and plugins, you will
-be able to play different formats. For example, gstreamer is more
-versatile, and can read many video containers and codecs such as MKV,
-OGV, AVI, MOV, FLV (if the correct gstreamer plugins are installed). Our
+be able to play different formats. Our
 :class:`~kivy.core.video.VideoBase` implementation is used under the
 hood.
+
+On Linux, including the Raspberry Pi, the ``gstplayer`` provider plays
+through the system's GStreamer: local files, HTTP, HLS and DASH, in every
+format the installed GStreamer plugins support. Kivy's wheels include it;
+only GStreamer's runtime packages are needed. See
+:class:`~kivy.core.video.video_gstplayer.VideoGstplayer` for details. On
+Windows it is available as an alternative to Media Foundation with
+``pip install "kivy[gstreamer]"``.
 
 On macOS and iOS, the default AVFoundation provider plays whatever
 AVFoundation can open, such as MP4 and MOV files with H.264 or HEVC
@@ -225,7 +231,17 @@ class Video(Image):
         first decodable frame is available rather than buffering
         ahead).
 
-    Other providers (Media Foundation, Android, GStreamer, FFmpeg /
+    * GStreamer (Linux, Windows) -- see
+      :class:`~kivy.core.video.video_gstplayer.VideoGstplayer`:
+
+      - ``render`` (``'auto'``, ``'nv12'`` or ``'rgba'``, default
+        ``'auto'``) -- how frames reach Kivy. ``'auto'`` and ``'nv12'``
+        upload the two NV12 planes and convert them with a shader;
+        ``'rgba'`` converts on the CPU, for debugging.
+      - ``force_sw_decoders`` (``bool``, default ``False``) -- never use
+        a hardware decoder.
+
+    Other providers (Media Foundation, Android, FFmpeg /
     ffpyplayer) currently expose no documented ``options`` keys: unknown kwargs in
     ``options`` are also unpacked as keyword arguments to the core video
     for back-compat with apps that put well-known kwargs (e.g.

@@ -4,131 +4,563 @@ Video Gstplayer
 
 .. versionadded:: 1.8.0
 
-Implementation of a VideoBase with Kivy :class:`~kivy.lib.gstplayer.GstPlayer`
-This player is the preferred player, using Gstreamer 1.0, working with python 3.
+.. versionchanged:: 3.0.0
+    Rewritten on a new GStreamer core. GStreamer is loaded at run time, so
+    every Linux and Windows build of Kivy includes this provider and uses
+    the GStreamer the machine has. It plays through ``playbin3`` (local
+    files, HTTP, HLS and DASH) and reports failures through
+    :meth:`~kivy.core.video.VideoBase.on_error`.
+
+Implementation of :class:`~kivy.core.video.VideoBase` with GStreamer 1.x,
+through :mod:`kivy.lib.gstplayer`. It is the video provider on Linux,
+including the Raspberry Pi, and an optional one on Windows (after
+``mediafoundation``).
+
+**Where GStreamer comes from.** On Linux, from the distribution: install
+the playback plugins (on Debian, Ubuntu and Raspberry Pi OS:
+``gstreamer1.0-plugins-base``, ``-good``, ``-bad`` and
+``gstreamer1.0-libav``). On Windows, from the official ``gstreamer-*``
+wheels (``pip install "kivy[gstreamer]"``) or the official installer. The
+``KIVY_GSTREAMER_ROOT`` environment variable points Kivy at another
+GStreamer build. GStreamer 1.22 or newer is needed on Linux and 1.24 on
+Windows; older versions make the provider unavailable, logged once.
+
+**Rendering.** Frames reach Kivy in one of two ways, logged once per
+video:
+
+* ``nv12``: frames are uploaded as two planes (luma and interleaved
+  chroma) and converted to RGB by a shader, with the stream's
+  colorimetry (BT.601, BT.709 or BT.2020, limited or full range).
+* ``rgba``: GStreamer converts to RGBA on the CPU. Only for debugging.
+
+Videos recorded on a phone held upright (an ``image-orientation`` tag) are
+shown turned the right way, and videos with non-square pixels at their
+display size: the texture's size is the size to show the video at.
+
+**Options** (:attr:`kivy.uix.video.Video.options`):
+
+* ``render``: ``'auto'`` (default, the ``nv12`` path), ``'nv12'`` or
+  ``'rgba'``.
+* ``force_sw_decoders``: ``True`` to never use hardware decoders.
+
+Unknown keys are logged once and ignored.
+
+**Errors.** A file or stream GStreamer can't play stops playback and fires
+``on_error`` once, with GStreamer's reason, or ``missing GStreamer plugin:
+<name>`` when a decoder or demuxer isn't installed. ``GST_DEBUG=3`` shows
+GStreamer's own warnings.
 '''
 
+import time
+
 try:
-    from kivy.lib.gstplayer import GstPlayer, get_gst_version
+    from kivy.lib.gstplayer import (
+        GstPlayer, get_runtime_info, init_start, init_status, init_wait,
+        filename_to_uri, STATE_PAUSED, STATE_PLAYING,
+        STATE_CHANGE_NO_PREROLL, STATE_CHANGE_FAILURE)
 except ImportError:
     from kivy.core import handle_win_lib_import_error
     handle_win_lib_import_error(
         'VideoGstplayer', 'gst', 'kivy.lib.gstplayer._gstplayer')
     raise
-from kivy.graphics.texture import Texture
-from kivy.core.video import VideoBase
-from kivy.logger import Logger
+from kivy.lib.gstplayer._policy import (
+    BusError, RENDER_PATHS, SeekQueue, display_size, error_text,
+    orientation_corners, reorient_tex_coords, yuv_conversion)
 from kivy.clock import Clock
-from threading import Lock
-from functools import partial
-from os.path import realpath
-from weakref import ref
-from urllib.request import pathname2url
+from kivy.core.video import VideoBase
+from kivy.graphics import BindTexture, Fbo, Rectangle
+from kivy.graphics.texture import Texture
+from kivy.logger import Logger
 
-Logger.info('VideoGstplayer: Using Gstreamer {}'.format(
-    '.'.join(map(str, get_gst_version()))))
+_version, _library, _source = get_runtime_info()
+Logger.info('VideoGstplayer: GStreamer {} from {} ({})'.format(
+    '.'.join(map(str, _version[:3])), _source, _library))
+
+# Initialize now, in the background, rather than on the first load(): this
+# module is imported when the app selects its video provider, so the
+# first-run plugin scan (seconds, the first time an app runs) overlaps the
+# app's own start-up.
+init_start()
+
+_KNOWN_OPTIONS = frozenset({'render', 'force_sw_decoders'})
+_BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
+
+NV12_FS = '''
+$HEADER$
+uniform sampler2D tex_uv;
+uniform vec4 yuv_coeffs;
+uniform vec3 yuv_range;
+void main(void) {
+    float y = (texture2D(texture0, tex_coord0).r - yuv_range.x) * yuv_range.y;
+    // Chroma is centred on 128, which samples as 128/255, not 0.5.
+    vec2 uv = (texture2D(tex_uv, tex_coord0).ra - vec2(0.501961)) * yuv_range.z;
+    gl_FragColor = vec4(y + yuv_coeffs.x * uv.y,
+                        y - yuv_coeffs.y * uv.x - yuv_coeffs.z * uv.y,
+                        y + yuv_coeffs.w * uv.x, 1.0);
+}
+'''
 
 
-def _on_gstplayer_buffer(video, width, height, data):
-    video = video()
-    # if we still receive the video but no more player, remove it.
-    if not video:
-        return
-    with video._buffer_lock:
-        video._buffer = (width, height, data)
-
-
-def _on_gstplayer_message(mtype, message):
-    if mtype == 'error':
-        Logger.error('VideoGstplayer: {}'.format(message))
-    elif mtype == 'warning':
-        Logger.warning('VideoGstplayer: {}'.format(message))
-    elif mtype == 'info':
-        Logger.info('VideoGstplayer: {}'.format(message))
+def _to_uri(filename):
+    if '://' in filename:
+        return filename
+    return filename_to_uri(filename)
 
 
 class VideoGstplayer(VideoBase):
+    '''Implementation of :class:`~kivy.core.video.VideoBase` with GStreamer
+    (``playbin3``). See the module documentation for platforms, options
+    and rendering.
+
+    .. versionchanged:: 3.0.0
+        Rewritten; see the module documentation.
+    '''
 
     def __init__(self, **kwargs):
-        self.player = None
-        self._buffer = None
-        self._buffer_lock = Lock()
+        self._player = None
+        self._path = None
+        self._uri = None
+        self._tick = None
+        self._seeks = SeekQueue()
+        self._reset_stream_state()
         super(VideoGstplayer, self).__init__(**kwargs)
+        # VideoBase polls at 1/fps (30 Hz by default), which drops frames of
+        # 60 fps video. This provider runs its own every-frame tick while a
+        # video is loaded.
+        Clock.unschedule(self._update)
+        options = self._options or {}
+        unknown = sorted(set(options) - _KNOWN_OPTIONS - _BASE_KWARGS)
+        if unknown:
+            Logger.warning(
+                'VideoGstplayer: ignoring unknown options keys {!r}; known '
+                'keys: {!r}'.format(unknown, sorted(_KNOWN_OPTIONS)))
 
-    def _on_gst_eos_sync(self):
-        Clock.schedule_once(self._do_eos, 0)
+    def _reset_stream_state(self):
+        self._error_reported = False
+        self._pending_error = None
+        self._prerolled = False
+        self._preroll_pull = False
+        self._live = False
+        self._buffer_percent = 100
+        self._gst_target = None
+        self._duration = -1.0
+        self._missing = []
+        self._ytex = self._uvtex = self._fbo = None
+        self._nv12_key = None
+        self._rgba_tex = None
+        self._present_fbo = self._present_rect = self._present_key = None
+        self._orientation = None
+        self._logged = False
+        self._seeks.clear()
+
+    # ---------- options ----------
+
+    def _render_option(self):
+        render = (self._options or {}).get('render', 'auto')
+        if render not in RENDER_PATHS:
+            Logger.warning(
+                'VideoGstplayer: unknown render {!r}; using auto'.format(
+                    render))
+            render = 'auto'
+        return render
+
+    # ---------- VideoBase API ----------
 
     def load(self):
         Logger.debug('VideoGstplayer: Load <{}>'.format(self._filename))
-        uri = self._get_uri()
-        wk_self = ref(self)
-        self.player_callback = partial(_on_gstplayer_buffer, wk_self)
-        self.player = GstPlayer(uri, self.player_callback,
-                                self._on_gst_eos_sync, _on_gstplayer_message)
-        self.player.load()
+        self._release()
+        self._reset_stream_state()
+        if not self._filename:
+            return
+        self._uri = _to_uri(self._filename)
+        if self._uri is None:
+            self._pending_error = 'invalid file name'
+        init_start()
+        if self._tick is None:
+            self._tick = Clock.schedule_interval(self._on_tick, 0)
+        # A setup failure is reported by _update() on the next tick, not
+        # here: load() runs while the Video widget is still constructing
+        # this object, before it has bound on_error.
+        if self._pending_error is None and init_status()[0] == 'ok':
+            self._build()
 
     def unload(self):
-        if self.player:
-            self.player.unload()
-            self.player = None
-        with self._buffer_lock:
-            self._buffer = None
+        self._release()
+        if self._tick is not None:
+            self._tick.cancel()
+            self._tick = None
+        self._uri = None
+        super(VideoGstplayer, self).unload()
+
+    def _release(self):
+        if self._player is not None:
+            self._player.teardown()
+            self._player = None
+        self._ytex = self._uvtex = self._fbo = None
+        self._rgba_tex = None
+        self._present_fbo = self._present_rect = self._present_key = None
         self._texture = None
-
-    def stop(self):
-        super(VideoGstplayer, self).stop()
-        self.player.stop()
-
-    def pause(self):
-        super(VideoGstplayer, self).pause()
-        self.player.pause()
 
     def play(self):
         super(VideoGstplayer, self).play()
-        self.player.set_volume(self.volume)
-        self.player.play()
+        self._apply_state()
+
+    def pause(self):
+        super(VideoGstplayer, self).pause()
+        self._apply_state()
+
+    def stop(self):
+        super(VideoGstplayer, self).stop()
+        if self._player is not None:
+            self._apply_state()
+            self._request_seek(0.0, False)
 
     def seek(self, percent, precise=True):
-        self.player.seek(percent)
+        if self._player is None:
+            return
+        duration = self._get_duration()
+        if duration <= 0:
+            return
+        self._request_seek(max(0.0, min(1.0, float(percent))) * duration,
+                           bool(precise))
 
     def _get_position(self):
-        return self.player.get_position()
+        if self._player is None:
+            return 0
+        pending = self._seeks.pending
+        if pending is not None:
+            return pending
+        pos = self._player.position()
+        return pos if pos >= 0 else 0
 
     def _get_duration(self):
-        return self.player.get_duration()
+        if self._player is None:
+            return 0
+        if self._duration < 0:
+            self._duration = self._player.duration()
+        return self._duration if self._duration > 0 else 0
 
     def _set_volume(self, value):
         self._volume = value
-        if self.player:
-            self.player.set_volume(self._volume)
+        if self._player is not None:
+            self._player.set_volume(value)
+
+    # ---------- pipeline ----------
+
+    def _build(self):
+        render = self._render_option()
+        force_sw = bool((self._options or {}).get('force_sw_decoders'))
+        self._path = path = 'rgba' if render == 'rgba' else 'nv12'
+        player = GstPlayer(self._uri, sink=path, force_sw_decoders=force_sw)
+        try:
+            player.build()
+        except RuntimeError as e:
+            self._pending_error = str(e)
+            return
+        self._player = player
+        player.set_volume(self._volume)
+        self._gst_target = None
+        self._apply_state()
+
+    def _holding(self):
+        '''Held in PAUSED while the buffer refills (not for live streams).'''
+        return not self._live and self._buffer_percent < 100
+
+    def _apply_state(self):
+        if self._player is None:
+            return
+        want = STATE_PLAYING if (self._state == 'playing' and
+                                 not self._holding()) else STATE_PAUSED
+        if want == self._gst_target:
+            return
+        self._gst_target = want
+        ret = self._player.set_state(want)
+        if ret == STATE_CHANGE_NO_PREROLL:
+            self._live = True
+        # A FAILURE is not reported by itself: the element's own error is
+        # already on the bus and _update() reports it.
+
+    def _request_seek(self, seconds, accurate):
+        target = self._seeks.request((seconds, accurate), time.monotonic(),
+                                     ready=self._prerolled)
+        if target is not None:
+            self._issue_seek(target)
+
+    def _issue_seek(self, target):
+        # The pipeline re-prerolls; ASYNC_DONE completes the seek.
+        if not self._player.seek(*target):
+            self._seeks.failed()
+
+    # ---------- the tick ----------
+
+    def _report(self, text):
+        self._error_reported = True
+        Logger.error('VideoGstplayer: <{}>: {}'.format(self._filename, text))
+        self._release()
+        self._do_error(text)
 
     def _update(self, dt):
-        buf = None
-        with self._buffer_lock:
-            buf = self._buffer
-            self._buffer = None
-        if buf is not None:
-            self._update_texture(buf)
-            self.dispatch('on_frame')
+        # VideoBase's 1/fps event; unscheduled in __init__. The work is in
+        # _on_tick, which runs every frame.
+        pass
 
-    def _update_texture(self, buf):
-        width, height, data = buf
-
-        # texture is not allocated yet, create it first
-        if not self._texture:
-            self._texture = Texture.create(size=(width, height),
-                                           colorfmt='rgb')
-            self._texture.flip_vertical()
-            self.dispatch('on_load')
-
-        if self._texture:
-            self._texture.blit_buffer(
-                data, size=(width, height), colorfmt='rgb')
-
-    def _get_uri(self):
-        uri = self.filename
-        if not uri:
+    def _on_tick(self, dt):
+        if self._error_reported or self._uri is None:
             return
-        if '://' not in uri:
-            uri = 'file:' + pathname2url(realpath(uri))
-        return uri
+        if self._pending_error is not None:
+            self._report(self._pending_error)
+            return
+        if self._player is None:
+            state, error = init_status()
+            if state == 'error':
+                self._report(error)
+                return
+            if state != 'ok':
+                self._set_buffering(self._state == 'playing')
+                return
+            self._build()
+            if self._pending_error is not None:
+                self._report(self._pending_error)
+                return
+
+        player = self._player
+        errors = []
+        for m in player.pop_messages():
+            kind = m[0]
+            if kind == 'error':
+                errors.append(BusError(*m[1:]))
+            elif kind == 'eos':
+                if self._state != '':
+                    self._do_eos()
+                    if self._player is None:
+                        return
+            elif kind == 'buffering':
+                self._on_buffering_message(m[1])
+            elif kind == 'async-done':
+                self._on_async_done()
+            elif kind == 'duration-changed':
+                self._duration = -1.0
+            elif kind == 'clock-lost':
+                if self._gst_target == STATE_PLAYING:
+                    player.set_state(STATE_PAUSED)
+                    player.set_state(STATE_PLAYING)
+            elif kind == 'missing-plugin':
+                self._missing.append(m[1])
+            elif kind == 'orientation':
+                if m[1] != self._orientation:
+                    Logger.info('VideoGstplayer: <{}>: orientation {}'.format(
+                        self._filename, m[1]))
+                    self._orientation = m[1]
+            elif kind == 'warning':
+                Logger.warning('VideoGstplayer: {} ({})'.format(m[1], m[2]))
+        if errors:
+            # The whole bus is drained first: the most specific error can
+            # arrive after playbin's generic one.
+            self._report(error_text(errors, self._missing))
+            return
+
+        got = False
+        if self._preroll_pull:
+            got = player.pull(preroll=True)
+            if got:
+                self._preroll_pull = False
+        if not got and self._gst_target == STATE_PLAYING:
+            got = player.pull()
+        if got:
+            self._show_frame()
+
+        self._set_buffering(self._state == 'playing' and (
+            not self._prerolled or self._holding()))
+
+    def _on_buffering_message(self, percent):
+        self._buffer_percent = percent
+        if not self._live:
+            self._apply_state()
+
+    def _on_async_done(self):
+        self._prerolled = True
+        nxt = self._seeks.done(time.monotonic())
+        if nxt is not None:
+            self._issue_seek(nxt)
+            return
+        if self._gst_target != STATE_PLAYING:
+            # Paused (after load() or a seek): show the preroll frame.
+            self._preroll_pull = True
+
+    def _set_buffering(self, value):
+        if value != self._buffering:
+            self._buffering = value
+            self.dispatch('on_buffering', value)
+
+    # ---------- frames ----------
+
+    def _show_frame(self):
+        player = self._player
+        first = self._texture is None
+        if self._path == 'nv12':
+            self._show_nv12(player)
+        else:
+            self._show_rgba(player)
+        if self._texture is None:
+            return
+        if not self._logged:
+            self._logged = True
+            self._log_path()
+        if first:
+            self.dispatch('on_load')
+        self.dispatch('on_frame')
+
+    def _geometry(self, player):
+        '''``(display size, corner permutation or None)`` for the held
+        frame: the pixel aspect ratio and the orientation tag applied.'''
+        size = display_size(player.width, player.height, player.par_n,
+                            player.par_d, self._orientation)
+        return size, orientation_corners(self._orientation)
+
+    def _present(self, tex, player):
+        '''Show `tex` (upright, at the decoded size). Rotated streams and
+        non-square pixels are drawn once more into an Fbo at the display
+        size; everything else is shown as is.'''
+        size, corners = self._geometry(player)
+        if corners is None and size == tuple(tex.size):
+            self._present_fbo = None
+            self._texture = tex
+            return
+        key = (size, corners)
+        if self._present_fbo is None or self._present_key != key:
+            fbo = Fbo(size=size)
+            with fbo:
+                self._present_rect = Rectangle(size=size, texture=tex)
+            self._present_fbo, self._present_key = fbo, key
+        coords = tex.tex_coords
+        if corners is not None:
+            coords = reorient_tex_coords(coords, corners)
+        rect = self._present_rect
+        rect.texture = tex
+        rect.tex_coords = coords
+        self._present_fbo.ask_update()
+        self._present_fbo.draw()
+        self._texture = self._present_fbo.texture
+
+    def _show_nv12(self, player):
+        w, h = player.width, player.height
+        if w <= 0 or h <= 0:
+            return
+        # The NV12 path draws through an Fbo anyway, so rotation and pixel
+        # aspect ratio cost nothing extra here.
+        size, corners = self._geometry(player)
+        key = ((w, h), size, corners, player.colorimetry)
+        if self._fbo is None or self._nv12_key != key:
+            self._ytex = Texture.create(size=(w, h), colorfmt='luminance')
+            self._uvtex = Texture.create(size=((w + 1) // 2, (h + 1) // 2),
+                                         colorfmt='luminance_alpha')
+            fbo = Fbo(size=size)
+            fbo.shader.fs = NV12_FS
+            coeffs, rng = yuv_conversion(player.colorimetry, h)
+            fbo['tex_uv'] = 1
+            fbo['yuv_coeffs'] = [float(c) for c in coeffs]
+            fbo['yuv_range'] = [float(r) for r in rng]
+            # GStreamer's rows start at the top: flip while drawing.
+            coords = (0, 1, 1, 1, 1, 0, 0, 0)
+            if corners is not None:
+                coords = reorient_tex_coords(coords, corners)
+            with fbo:
+                BindTexture(texture=self._uvtex, index=1)
+                Rectangle(size=size, texture=self._ytex, tex_coords=coords)
+            self._fbo, self._nv12_key = fbo, key
+            self._texture = fbo.texture
+        if player.upload_nv12(self._ytex, self._uvtex):
+            self._fbo.ask_update()
+            self._fbo.draw()
+
+    def _show_rgba(self, player):
+        size = (player.width, player.height)
+        if size[0] <= 0 or size[1] <= 0:
+            return
+        if self._rgba_tex is None or self._rgba_tex.size != size:
+            self._rgba_tex = Texture.create(size=size, colorfmt='rgba')
+            self._rgba_tex.flip_vertical()
+        player.upload_rgba(self._rgba_tex)
+        self._present(self._rgba_tex, player)
+
+    def _log_path(self):
+        info = self._player.describe()
+        Logger.info(
+            'VideoGstplayer: <{}>: render path {}, decoder {}, decoder '
+            'output {}'.format(self._filename, self._path, info['decoder'],
+                               info['decoder_caps']))
+
+    # ---------- thumbnails ----------
+
+    @classmethod
+    def generate_thumbnail(cls, filename, time, size=None):
+        '''Generate a thumbnail Texture with GStreamer.
+
+        See :meth:`kivy.core.video.VideoBase.generate_thumbnail`. Blocks
+        for at most about 10 seconds (plus GStreamer's first-run plugin
+        scan); returns None on any failure.
+
+        .. versionadded:: 3.0.0
+        '''
+        from kivy.utils import path_to_str
+        import time as _time
+        filename = path_to_str(filename)
+        if not filename:
+            return None
+        state, _error = init_wait(60)
+        if state != 'ok':
+            return None
+        uri = _to_uri(filename)
+        if uri is None:
+            return None
+        # videoflip applies the orientation tag; its cost doesn't matter for
+        # one frame.
+        player = GstPlayer(uri, sink='rgba', audio=False, flip=True)
+        try:
+            player.build()
+            if player.set_state(STATE_PAUSED) == STATE_CHANGE_FAILURE:
+                return None
+            deadline = _time.monotonic() + 10.0
+
+            def wait_preroll():
+                while _time.monotonic() < deadline:
+                    for m in player.pop_messages():
+                        if m[0] == 'error':
+                            return False
+                        if m[0] == 'async-done':
+                            return True
+                    _time.sleep(0.005)
+                return False
+
+            if not wait_preroll():
+                return None
+            if time and time > 0:
+                # Past the end: the last frame rather than nothing.
+                duration = player.duration()
+                if duration > 0:
+                    time = min(float(time), max(0.0, duration - 0.1))
+                if not player.seek(float(time), True) or not wait_preroll():
+                    return None
+            if not player.pull(preroll=True):
+                return None
+            w, h = player.width, player.height
+            if w <= 0 or h <= 0:
+                return None
+            tex = Texture.create(size=(w, h), colorfmt='rgba')
+            tex.flip_vertical()
+            player.upload_rgba(tex)
+            shown = display_size(w, h, player.par_n, player.par_d)
+        except RuntimeError:
+            return None
+        finally:
+            player.teardown()
+        if size is None:
+            size = shown
+        size = (int(size[0]), int(size[1]))
+        if size == (w, h):
+            return tex
+        fbo = Fbo(size=size)
+        with fbo:
+            Rectangle(size=size, texture=tex)
+        fbo.draw()
+        return fbo.texture
