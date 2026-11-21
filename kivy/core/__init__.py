@@ -65,6 +65,7 @@ PROVIDER_CONFIGS = {
     'video': [
         ('avfoundation', 'video_avfoundation'),
         ('mediafoundation', 'video_mediafoundation'),
+        ('android', 'video_android'),
         ('gstplayer', 'video_gstplayer'),
         ('ffmpeg', 'video_ffmpeg'),
         ('ffpyplayer', 'video_ffpyplayer'),

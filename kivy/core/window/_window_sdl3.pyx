@@ -278,8 +278,14 @@ cdef class _WindowSDL3Storage:
 
         cdef bint egl_requested = self._request_egl_on_linux()
 
-        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0:
+        # SDL_Init returns false on failure (SDL3 returns bool, not int).
+        if not SDL_Init(SDL_INIT_VIDEO):
             self.die()
+        # Joysticks are optional, so a failure here doesn't stop the window.
+        if not SDL_Init(SDL_INIT_JOYSTICK):
+            Logger.warning(
+                'WindowSDL: Could not initialize joysticks: %s'
+                % (<bytes>SDL_GetError()).decode('utf-8', 'replace'))
 
         # Set default orientation (force landscape for now)
         orientations = 'LandscapeLeft LandscapeRight'

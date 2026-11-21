@@ -1526,6 +1526,56 @@ decode, select the previous provider before importing Kivy:
 See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.
 
 
+*Android video provider rebuilt on Media3 ExoPlayer*
+
+Kivy 3.x.x replaces the ``android`` video provider, which was built on
+``android.media.MediaPlayer``, with one built on androidx.media3 ExoPlayer, and
+makes it the video provider on Android.
+
+**Behavior Changes**
+
+- The app has to add ExoPlayer to its Android build as a Maven dependency,
+  ``androidx.media3:media3-exoplayer``, and compile against API 36, which
+  Media3 1.11 requires. Without the dependency, every video fires ``on_error``
+  with a message that names it. See :ref:`packaging_android_video`.
+- Frames are drawn from the decoder into an OpenGL texture without a copy
+  through the CPU, as before. The crop and rotation the decoder reports are now
+  applied, so portrait videos recorded on a phone play upright.
+- HLS (``.m3u8``) and DASH (``.mpd``) streams play when the app also adds
+  ``androidx.media3:media3-exoplayer-hls`` or ``media3-exoplayer-dash``.
+- ``content://`` URIs (MediaStore, the Storage Access Framework, a share intent)
+  play, in addition to paths and ``http(s)://`` URLs.
+- A video that can't be played fires ``on_error`` (see *New on_error event for
+  videos that can't play* below).
+- Playback pauses when the app is paused and resumes with it. The player
+  requests audio focus, so it pauses for a phone call.
+- :meth:`~kivy.core.video.VideoBase.generate_thumbnail` is supported.
+
+**Migration Impact**
+
+Add the dependency, and raise the compile SDK, in the app's build. With
+Buildozer, in ``buildozer.spec``:
+
+.. code-block:: ini
+
+    android.api = 36
+    android.gradle_dependencies = androidx.media3:media3-exoplayer:1.11.1
+
+With kivyforge, in ``pyproject.toml``:
+
+.. code-block:: toml
+
+    [tool.kivy.android]
+    compile_sdk = 36
+
+    [tool.kivy.android.gradle]
+    dependencies = ["androidx.media3:media3-exoplayer:1.11.1"]
+
+Apps that play network sources also need the ``INTERNET`` permission. Apps whose
+release builds run R8 need a keep rule for Media3; see
+:ref:`packaging_android_video`.
+
+
 *New on_error event for videos that can't play*
 
 Kivy 3.x.x adds an ``on_error`` event to :class:`~kivy.core.video.VideoBase`,
@@ -1547,8 +1597,9 @@ couldn't tell a failed video from one that was still loading.
 - A missing local file is now reported too. In Kivy 2.x.x
   :class:`~kivy.uix.video.Video` passed no filename to the provider when the
   file couldn't be found, and nothing reported it.
-- The Media Foundation (Windows) and AVFoundation (macOS, iOS) providers fire
-  ``on_error``. The ``gstplayer`` and ``ffpyplayer`` providers don't yet: with
+- The Media Foundation (Windows), AVFoundation (macOS, iOS) and Android
+  providers fire ``on_error``. The ``gstplayer`` and ``ffpyplayer`` providers
+  don't yet: with
   them, only a missing local file is reported.
 
 **Migration Impact**
