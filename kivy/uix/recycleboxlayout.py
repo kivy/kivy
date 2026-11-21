@@ -101,7 +101,9 @@ class RecycleBoxLayout(RecycleLayout, BoxLayout):
                 changed and not self._update_sizes(changed)):
             return
 
-        self.clear_layout()
+        # Only layout information changed. Keep the data/index associations;
+        # compute_sizes_from_data invalidates them when the data changes.
+        self.remove_views()
         self._rv_positions = None
         if not data:
             l, t, r, b = self.padding
