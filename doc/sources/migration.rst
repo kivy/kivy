@@ -1506,8 +1506,13 @@ installed by the ``media`` or ``full`` selector) or ffpyplayer.
 **Migration Impact**
 
 Most apps need no changes. Apps that installed ``kivy_deps.gstreamer`` or
-ffpyplayer only to play video on Windows can remove them. Keep them if the
-app also uses them for audio. PyInstaller builds no longer need
+ffpyplayer only to play video on Windows can remove them. ``kivy_deps.gstreamer``
+is no longer used at all: apps that still want GStreamer install
+``kivy[gstreamer]`` instead (see *GStreamer provider rewritten* below).
+Kivy no longer imports it either; if it is still installed, Kivy logs a
+warning at startup. Remove it with
+``python -m pip uninstall kivy_deps.gstreamer kivy_deps.gstreamer_dev``.
+PyInstaller builds no longer need
 ``gstreamer.dep_bins`` for video either: Media Foundation is part of Windows,
 and :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_minimal` and
 :func:`~kivy.tools.packaging.pyinstaller_hooks.get_deps_all` include the
@@ -1524,6 +1529,60 @@ decode, select the previous provider before importing Kivy:
     import kivy
 
 See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.
+
+
+*GStreamer provider rewritten (Linux, Raspberry Pi, Windows)*
+
+Kivy 3.x.x rewrites the ``gstplayer`` video and audio providers. GStreamer is
+now loaded when Kivy runs instead of being linked when Kivy is built, so the
+provider is part of every Linux, Raspberry Pi and Windows wheel. In Kivy 2.x.x
+the Linux and Raspberry Pi wheels were built without it, and Windows needed
+``kivy_deps.gstreamer``. ``gstplayer`` is the video provider on Linux and the
+Raspberry Pi, and an optional one on Windows, after ``mediafoundation``. It is
+no longer built for macOS.
+
+**Behavior Changes**
+
+- On Linux and the Raspberry Pi, video plays with ``pip install kivy`` plus
+  the distribution's GStreamer runtime packages (see
+  :ref:`install-gstreamer-linux`). No ``-dev`` packages are needed to build
+  Kivy from source either.
+- GStreamer 1.22 or newer is needed on Linux and 1.24 or newer on Windows.
+  With an older one the provider is unavailable, and the log says why.
+- On Windows, ``kivy_deps.gstreamer`` (GStreamer 1.18) is replaced by
+  GStreamer's official wheels. The ``gstreamer``, ``media`` and ``full``
+  selectors install them; the new ``gstreamer-restricted`` selector adds the
+  restricted plugins, which include the MPEG-TS demuxer most HLS streams need.
+  GStreamer's official installer, or any build through
+  ``KIVY_GSTREAMER_ROOT``, works too.
+- Playback uses ``playbin3``: local files, HTTP, HLS and DASH.
+- Frames are uploaded as two NV12 planes and converted to RGB by a shader,
+  instead of converted to RGB on the CPU. The ``render`` option (see
+  :attr:`~kivy.uix.video.Video.options`) selects the old CPU conversion,
+  for debugging.
+- The first frame is shown when the video is loaded, before ``play()``, and
+  appears again after a seek while paused. Video at more than 30 fps is no
+  longer capped by the provider's polling.
+- A video that can't play fires ``on_error`` with GStreamer's reason, or
+  ``missing GStreamer plugin: <name>`` when a decoder or demuxer isn't
+  installed.
+- For audio, ``gstplayer`` is now tried after ``sdl3``, so on a machine with
+  GStreamer installed sounds keep playing through SDL3 as before.
+- ``kivy.lib.gstplayer`` is internal and has changed completely;
+  ``glib_iteration`` and the callback-based ``GstPlayer`` are gone.
+
+**Migration Impact**
+
+On Linux, install GStreamer's runtime packages if video doesn't play: the log
+names the missing plugin. On Windows, replace ``kivy_deps.gstreamer`` with
+``kivy[gstreamer]``. To keep using GStreamer for audio:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_AUDIO_OUTPUT'] = 'gstplayer'
+    import kivy
 
 
 *Android video provider rebuilt on Media3 ExoPlayer*
@@ -1597,10 +1656,9 @@ couldn't tell a failed video from one that was still loading.
 - A missing local file is now reported too. In Kivy 2.x.x
   :class:`~kivy.uix.video.Video` passed no filename to the provider when the
   file couldn't be found, and nothing reported it.
-- The Media Foundation (Windows), AVFoundation (macOS, iOS) and Android
-  providers fire ``on_error``. The ``gstplayer`` and ``ffpyplayer`` providers
-  don't yet: with
-  them, only a missing local file is reported.
+- The Media Foundation (Windows), AVFoundation (macOS, iOS), Android and
+  GStreamer providers fire ``on_error``. The ``ffpyplayer`` provider doesn't
+  yet: with it, only a missing local file is reported.
 
 **Migration Impact**
 

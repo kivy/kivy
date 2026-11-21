@@ -150,38 +150,20 @@ Packaging a video app with gstreamer
     (``KIVY_VIDEO=gstplayer``), for example to play a format Windows has
     no decoder for.
 
-Following we'll slightly modify the example above to package a app that uses
-gstreamer for video. We'll use the ``videoplayer`` example found at
-``examples-path\widgets\videoplayer.py``. Create a folder somewhere called
-``VideoPlayer`` and on the command line change your current directory to that
-folder and do::
+.. versionchanged:: 3.0.0
+    ``kivy_deps.gstreamer`` and its ``gstreamer.dep_bins`` are gone. The
+    ``gstplayer`` provider now loads GStreamer when the app runs, from the
+    official ``gstreamer-*`` wheels (``kivy[gstreamer]``) or installer.
 
-    python -m PyInstaller --name gstvideo examples-path\widgets\videoplayer.py
-
-to create the ``gstvideo.spec`` file. Edit as above and this time include the
-gstreamer dependency as well::
-
-    from kivy_deps import sdl3, glew, gstreamer
-
-and add the ``Tree()`` to include the video files, e.g.
-``Tree('examples-path\\widgets')`` as well as the gstreamer dependencies so it
-should look something like::
-
-    coll = COLLECT(exe, Tree('examples-path\\widgets'),
-                   a.binaries,
-                   a.zipfiles,
-                   a.datas,
-                   *[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins + gstreamer.dep_bins)],
-                   strip=False,
-                   upx=True,
-                   name='gstvideo')
-
-Then build the spec file in ``VideoPlayer`` with::
-
-    python -m PyInstaller gstvideo.spec
-
-and you should find gstvideo.exe in ``VideoPlayer\dist\gstvideo``,
-which when run will play a video.
+Kivy's hook adds GStreamer's plugins, and the libraries they use, when the
+``gstplayer`` provider is included: it finds them through ``GST_PLUGIN_PATH``,
+or ``gst-inspect-1.0`` when that variable isn't set. The runtime hook then
+points the provider at the bundled libraries (``KIVY_GSTREAMER_ROOT``). With
+the official wheels, set ``GST_PLUGIN_PATH`` to their plugin directories
+before running PyInstaller. HTTPS streams also need GLib's TLS module
+(``gioopenssl.dll``, under ``gstreamer_plugins_libs\lib\gio\modules``) in the
+bundle, with ``GIO_EXTRA_MODULES`` pointing at it at run time; the hook
+doesn't add it.
 
 .. _overwrite-win-hook:
 
@@ -192,9 +174,7 @@ Including/excluding video and audio and reducing app size
 ---------------------------------------------------------
 
 PyInstaller includes a hook for kivy that by default adds **all** the core
-modules used by kivy, e.g. audio, video, spelling etc (you still need to
-package the gstreamer dlls manually with ``Tree()`` - see the example above)
-and their dependencies. If the hook is not installed or to reduce app size some
+modules used by kivy, e.g. audio, video, spelling etc and their dependencies. If the hook is not installed or to reduce app size some
 of these modules may be excluded, e.g. if no audio/video is used, with
 an alternative hook.
 
@@ -262,7 +242,7 @@ Alternate installations
 -----------------------
 
 The previous examples used e.g.
-``*[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins + gstreamer.dep_bins)],``
+``*[Tree(p) for p in (sdl3.dep_bins + glew.dep_bins)],``
 to make PyInstaller add all the dlls used by these dependencies. If kivy
 was not installed using the wheels method these commands will not work and e.g.
 ``kivy_deps.sdl3`` will fail to import. Instead, one must find the location

@@ -103,6 +103,33 @@ Using dnf::
     # This has been resolved in later updates after the on-disk release of Fedora 28, so upgrade your packages:
     #  sudo dnf -y upgrade
 
+.. _install-gstreamer-linux:
+
+Video and audio with GStreamer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Kivy plays video through the system's GStreamer (the ``gstplayer`` provider,
+:class:`~kivy.core.video.video_gstplayer.VideoGstplayer`). The provider is part
+of Kivy's Linux wheels and is also built from source without GStreamer's
+``-dev`` packages: only the runtime is needed, at version 1.22 or newer. Many
+desktops already have most of it; for local files, HTTP, HLS and DASH install:
+
+Ubuntu, Debian and Raspberry Pi OS::
+
+    sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-bad gstreamer1.0-libav
+
+Fedora (H.264 and some other formats need the RPM Fusion repository above)::
+
+    sudo dnf install -y gstreamer1-plugins-base gstreamer1-plugins-good \
+        gstreamer1-plugins-bad-free gstreamer1-plugin-libav
+
+Hardware decoding uses GStreamer's ``va`` plugin (in ``-bad``) with the GPU's
+VA-API driver, or NVIDIA's ``nvcodec``; the provider logs which decoder it
+uses. A format with no installed decoder fires
+:meth:`~kivy.core.video.VideoBase.on_error` with ``missing GStreamer plugin:``
+and the plugin's name.
+
 .. _linux-ppa:
 
 Using software packages (PPA etc.)

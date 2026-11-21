@@ -51,6 +51,35 @@ ThorVG vector graphics library. Both are available on PyPI::
 
 Now that the compiler and build tools are installed, continue to :ref:`install Kivy<kivy-source-install>`.
 
+.. _install-gstreamer-win:
+
+Video with GStreamer (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Windows plays video through Media Foundation by default; nothing needs to be
+installed. GStreamer is an alternative, for formats or streams Media Foundation
+doesn't handle, selected with ``KIVY_VIDEO=gstplayer``. Install it with::
+
+    python -m pip install "kivy[gstreamer]"
+
+which installs GStreamer's official wheels at one pinned version. HLS streams
+packaged as MPEG-TS (most of them) also need upstream's restricted plugins::
+
+    python -m pip install "kivy[gstreamer-restricted]"
+
+Alternatively, install GStreamer with its official installer (1.24 or newer):
+Kivy finds it through the installer's ``GSTREAMER_1_0_ROOT_*`` variable, or
+``KIVY_GSTREAMER_ROOT`` points at any GStreamer build. The first video played
+after installing makes GStreamer scan its plugins, which can take several
+seconds; it happens in the background and only once.
+
+.. note::
+
+    With the 1.28.7 wheels, an HLS stream whose MPEG-TS demuxer is missing
+    (``gstreamer-restricted`` not installed) can abort the process when the
+    pipeline is shut down after the error. Install ``gstreamer-restricted``
+    if your app plays HLS.
+
 Making Python available anywhere
 --------------------------------
 
