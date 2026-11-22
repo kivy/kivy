@@ -7,11 +7,6 @@ from kivy.tools.packaging.pyinstaller_hooks import (
 import os
 
 deps = list(sdl3.dep_bins + glew.dep_bins)
-try:
-    import ffpyplayer
-    deps.extend(ffpyplayer.dep_bins)
-except ImportError:
-    pass
 print('deps are: ', deps)
 # GStreamer's official wheels (kivy[gstreamer]), for the gstplayer provider.
 gst_datas = get_gstreamer_datas()

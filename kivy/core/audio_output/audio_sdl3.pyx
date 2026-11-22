@@ -3,8 +3,7 @@ SDL3 audio provider
 ===================
 
 This core audio implementation require SDL_mixer library.
-It might conflict with any other library that are using SDL_mixer, such as
-ffmpeg-android.
+It might conflict with any other library that are using SDL_mixer.
 
 Supported formats depend on the decoders that SDL_mixer is compiled with,
 but usually include at least WAV, OGG, FLAC and MP3.

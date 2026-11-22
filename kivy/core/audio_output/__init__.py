@@ -57,7 +57,7 @@ Querying available providers
 To see which providers are available on your system::
 
     from kivy.core.audio_output import SoundLoader
-    print(SoundLoader.available_providers())  # e.g., ['sdl3', 'ffpyplayer']
+    print(SoundLoader.available_providers())  # e.g., ['sdl3', 'gstplayer']
 
 Using ``audio_output_provider`` parameter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,8 +69,8 @@ Specify a provider when loading a sound::
     # Load with SDL3 provider
     sound = SoundLoader.load('music.mp3', audio_output_provider='sdl3')
 
-    # Load with ffpyplayer provider
-    sound = SoundLoader.load('music.mp3', audio_output_provider='ffpyplayer')
+    # Load with GStreamer provider
+    sound = SoundLoader.load('music.mp3', audio_output_provider='gstplayer')
 
 Strict mode
 ~~~~~~~~~~~
@@ -139,7 +139,7 @@ class SoundLoader:
 
         .. versionadded:: 3.0.0
 
-        :returns: List of provider name strings (e.g., ['sdl3', 'ffpyplayer'])
+        :returns: List of provider name strings (e.g., ['sdl3', 'gstplayer'])
         '''
         return list(SoundLoader._loaders_by_name.keys())
 
@@ -149,7 +149,7 @@ class SoundLoader:
 
         :param filename: Path to the audio file to load.
         :param audio_output_provider: Optional provider name (e.g., 'sdl3',
-            'ffpyplayer'). If specified, only that provider will be used. Use
+            'gstplayer'). If specified, only that provider will be used. Use
             :meth:`available_providers` to get a list of available providers.
 
             .. versionadded:: 3.0.0
@@ -360,8 +360,6 @@ if platform == 'android':
     audio_libs.append(make_provider_tuple('android', all_providers))
 elif platform in ('macosx', 'ios'):
     audio_libs.append(make_provider_tuple('avplayer', all_providers))
-
-audio_libs.append(make_provider_tuple('ffpyplayer', all_providers))
 
 if USE_SDL3:
     audio_libs.append(make_provider_tuple('sdl3', all_providers))

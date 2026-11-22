@@ -369,7 +369,7 @@ class TestRegistryDiscovery:
                 continue
 
             # Provider modules typically start with category name prefix
-            # e.g., window_sdl3.py, audio_ffpyplayer.py, img_pil.py
+            # e.g., window_sdl3.py, audio_sdl3.pyx, img_pil.py
             provider_files.append(file.stem)  # stem = filename without extension
 
         return provider_files

@@ -401,8 +401,6 @@ try:
 except ImportError:
     pass
 
-video_providers.append(make_provider_tuple('ffmpeg', all_providers, 'VideoFFMpeg'))
-video_providers.append(make_provider_tuple('ffpyplayer', all_providers, 'VideoFFPy'))
 video_providers.append(make_provider_tuple('null', all_providers, 'VideoNull'))
 
 Video: VideoBase = core_select_lib('video', video_providers)

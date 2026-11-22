@@ -225,6 +225,14 @@ for option, value in kivy_options.items():
         try:
             if type(value) in {list, tuple}:
                 kivy_options[option] = environ[key].split(',')
+                unknown = [name for name in kivy_options[option]
+                           if name not in value]
+                if unknown:
+                    Logger.warning(
+                        'Core: {} names unknown providers {}; known: {}. '
+                        'Providers removed in Kivy 3 are listed in the '
+                        'migration guide.'.format(
+                            key, unknown, list(value)))
             else:
                 kivy_options[option] = environ[key].lower() in \
                     {'true', '1', 'yes'}
