@@ -279,7 +279,12 @@ class WindowSDL(WindowBase):
             self._size = largs
             self._win.resize_window(*self._size)
             # Force kivy to render the frame now, so that the canvas is drawn.
-            EventLoop.idle()
+            # SDL can send resize events while the window is still being
+            # created inside setup_window() (seen on Wayland and Xwayland),
+            # before the GL symbols are loaded. Running the event loop then
+            # would let Clock callbacks make GL calls through null pointers.
+            if self.initialized:
+                EventLoop.idle()
 
         return 0
 
