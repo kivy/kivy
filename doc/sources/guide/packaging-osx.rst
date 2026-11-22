@@ -92,7 +92,7 @@ Complete guide
     $ brew reinstall --build-from-source sdl3 sdl3_image sdl3_ttf sdl3_mixer
 
    .. note::
-       If your project depends on GStreamer or other additional libraries
+       If your project depends on other additional libraries
        (re)install them with ``--build-from-source`` as described
        `below <additional libraries_>`_.
 
@@ -165,19 +165,10 @@ Additional Libraries
 ~~~~~~~~~~~~~~~~~~~~
 GStreamer
 ^^^^^^^^^
-If your project depends on GStreamer::
-
-    $ brew reinstall --build-from-source gstreamer gst-plugins-{base,good,bad,ugly}
-
-.. note::
-    If your Project needs Ogg Vorbis support be sure to add the
-    ``--with-libvorbis`` option to the command above.
-
-If you are using Python from Homebrew you will also need the following step
-until `this pull request <https://github.com/Homebrew/homebrew/pull/46097>`_
-gets merged::
-
-    $ brew reinstall --with-python --build-from-source https://github.com/cbenhagen/homebrew/raw/patch-3/Library/Formula/gst-python.rb
+Since Kivy 3.0.0 the ``gstplayer`` provider is not built on macOS: video plays
+through AVFoundation (``avfoundation``), which needs nothing bundled. Apps that
+use GStreamer directly, through their own bindings, still need its libraries in
+the bundle.
 
 
 Using PyInstaller without Homebrew

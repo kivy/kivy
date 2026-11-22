@@ -358,7 +358,9 @@ We offer the following selectors:
     `media`: Only the video/audio dependencies required for Kivy to
         be able to play media.
     `full`: All the typical dependencies required for Kivy to run, including video/audio and
-        most optional dependencies.
+        most optional dependencies. On Windows that includes the official GStreamer wheels
+        (the ``gstreamer`` selector below), but not ``gstreamer-restricted``; to get
+        everything, use ``pip install "kivy[full,gstreamer-restricted]"``.
     `dev`: All the additional dependencies required to run Kivy in development mode
         (i.e. it doesn't include the base/media/full dependencies). E.g. any headers required for
         compilation, and all dependencies required to run the tests and creating the docs.
@@ -370,24 +372,33 @@ to facilitate installation (i.e. instead of having to do ``pip install kivy kivy
 you can now do ``pip install "kivy[sdl3]"`` to automatically install the correct sdl3 for the Kivy
 version).
 
-    `gstreamer`: The gstreamer video/audio backend, if it's available
-        (currently only on Windows)
+    `gstreamer`: GStreamer's official wheels (``gstreamer-libs``, ``gstreamer-plugins``,
+        ``gstreamer-plugins-libs``, ``gstreamer-ext-runtime``), all at one pinned version, for
+        the ``gstplayer`` video and audio providers. Windows only: on Linux GStreamer
+        comes from the system.
+    `gstreamer-restricted`: ``gstreamer`` plus upstream's ``gstreamer-plugins-restricted``
+        wheel, the plugins GStreamer considers patent-encumbered. Among them are the
+        MPEG-TS demuxer that most HLS streams need and the MPEG-PS demuxer for ``.mpg``
+        files. Never installed by another selector.
+        Windows only.
     `angle`: A alternate OpenGL backend, if it's available
         (currently only on Windows)
     `sdl3`: The window/image/audio backend, if it's available (currently only on Windows,
         on macOS, Linux and *BSD Unix is already included in the main Kivy wheel).
     `glew`: A alternate OpenGL backend, if it's available (currently only on Windows)
 
-Following are the ``kivy_deps`` dependency wheels:
+Following are the ``kivy_deps`` dependency wheels and GStreamer:
 
-* `gstreamer <https://gstreamer.freedesktop.org>`_ (optional)
+* `GStreamer <https://gstreamer.freedesktop.org>`_ (optional)
 
-  ``kivy_deps.gstreamer`` is an optional dependency which is only needed for audio/video support.
-  We only provide it on Windows, for other platforms it must be installed independently.
-  Alternatively, use `ffpyplayer <https://pypi.org/project/ffpyplayer/>`_  instead.
-  Since Kivy 3.0.0, Windows plays video through its own Media Foundation by default, so
-  GStreamer is only needed there to play formats Windows has no decoder for (selected with
-  ``KIVY_VIDEO=gstplayer``), or for audio.
+  Since Kivy 3.0.0 the ``gstplayer`` providers are part of every Linux and Windows
+  wheel and load GStreamer when Kivy runs, so no GStreamer is needed to install Kivy.
+  On Linux, including the Raspberry Pi, they use the system's GStreamer (see the
+  installation page for your distribution). On Windows, Media Foundation plays video
+  by default; GStreamer is an alternative there, from the ``gstreamer`` selector or
+  GStreamer's official installer, selected with ``KIVY_VIDEO=gstplayer``. The old
+  ``kivy_deps.gstreamer`` wheels are no longer used. GStreamer 1.22 or newer is needed
+  on Linux and 1.24 or newer on Windows.
 
 * `glew <https://glew.sourceforge.net/>`_ and/or
   `angle <https://github.com/Microsoft/angle>`_

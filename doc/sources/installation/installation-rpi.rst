@@ -98,6 +98,22 @@ platform that still  supports it.
 
 Please note that the `egl_rpi` window handler is not supported on Raspberry Pi 4 and higher.
 
+Video on Raspberry Pi
+---------------------
+
+Kivy plays video through Raspberry Pi OS's own GStreamer (the ``gstplayer``
+provider). The Raspberry Pi OS desktop image already has everything it needs;
+on the Lite image, install the runtime (no ``-dev`` packages are needed)::
+
+    sudo apt install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-bad gstreamer1.0-libav
+
+GStreamer 1.22 (Bookworm) is the minimum; Trixie ships 1.26.
+
+The Raspberry Pi 5 decodes HEVC in hardware; H.264 is decoded in software
+there. Every frame is copied into a Kivy texture, which 1080p video keeps up
+with; 4K video plays at a few frames per second.
+
 Headless support on Raspberry Pi
 --------------------------------
 

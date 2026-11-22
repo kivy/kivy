@@ -64,6 +64,7 @@ import pkgutil
 import logging
 from os.path import dirname, join
 import importlib
+import importlib.util
 import subprocess
 import re
 import glob
@@ -278,6 +279,43 @@ def get_deps_all():
         'hiddenimports': sorted(set(kivy_modules +
                                     collect_submodules('kivy.core'))),
         'excludes': []}
+
+
+GSTREAMER_WHEEL_PACKAGES = (
+    'gstreamer_libs', 'gstreamer_plugins', 'gstreamer_plugins_libs',
+    'gstreamer_ext_runtime', 'gstreamer_plugins_restricted',
+    'gstreamer_plugins_gpl', 'gstreamer_plugins_gpl_restricted')
+'''The packages of GStreamer's official Windows wheels that
+:func:`get_gstreamer_datas` bundles when they are installed.
+'''
+
+
+def get_gstreamer_datas():
+    '''Returns GStreamer's official wheels, installed with
+    ``kivy[gstreamer]`` on Windows, as ``datas`` for ``Analysis``::
+
+        a = Analysis(['main.py'],
+                     ...
+                     datas=get_gstreamer_datas())
+
+    Each installed package (:attr:`GSTREAMER_WHEEL_PACKAGES`) is bundled
+    whole, under its own name: the libraries, the plugins, the plugin scanner
+    and GLib's TLS module. That is where the ``gstplayer`` providers look for
+    GStreamer at run time, as in a virtual environment. Returns an empty list
+    when the wheels aren't installed.
+
+    .. versionadded:: 3.0.0
+    '''
+    datas = []
+    for name in GSTREAMER_WHEEL_PACKAGES:
+        try:
+            spec = importlib.util.find_spec(name)
+        except (ImportError, ValueError):
+            spec = None
+        if spec is None or not spec.submodule_search_locations:
+            continue
+        datas.append((list(spec.submodule_search_locations)[0], name))
+    return datas
 
 
 def get_factory_modules():

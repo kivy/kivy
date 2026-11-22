@@ -77,7 +77,7 @@ function Upload-windows-wheels-to-server($ip) {
 }
 
 function Install-kivy {
-    python -m pip install -e .[dev,full]
+    python -m pip install -e .[dev,full,gstreamer-restricted]
 }
 
 function Install-kivy-wheel {
@@ -91,7 +91,7 @@ function Install-kivy-wheel {
     $kivy_fname=(ls $root/dist/kivy-*$version*$bitness*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     $kivy_examples_fname=(ls $root/dist/kivy_examples-*.whl | Sort-Object -property @{Expression={$_.name.tostring().Length}} | Select-Object -First 1).name
     echo "kivy_fname = $kivy_fname, kivy_examples_fname = $kivy_examples_fname"
-    python -m pip install "$root/dist/$kivy_fname[full,dev]" "$root/dist/$kivy_examples_fname"
+    python -m pip install "$root/dist/$kivy_fname[full,dev,gstreamer-restricted]" "$root/dist/$kivy_examples_fname"
 }
 
 function Install-kivy-sdist {
@@ -99,7 +99,7 @@ function Install-kivy-sdist {
     cd "$HOME"
 
     $kivy_fname=(ls $root/dist/kivy-*.tar.gz).name
-    python -m pip install "$root/dist/$kivy_fname[full,dev]"
+    python -m pip install "$root/dist/$kivy_fname[full,dev,gstreamer-restricted]"
 }
 
 function Test-kivy {

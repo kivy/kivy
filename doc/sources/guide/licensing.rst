@@ -73,6 +73,32 @@ requirements.
 
 * |redist|_
 
+GStreamer
+~~~~~~~~~
+
+GStreamer is LGPL. If your app bundles GStreamer's official wheels
+(``kivy[gstreamer]``), it ships GStreamer's libraries and plugins and their
+dependencies, each under its own licence. The ``gstreamer-plugins`` wheel
+already contains FFmpeg's decoders (gst-libav). The
+``gstreamer-plugins-restricted`` wheel (``kivy[gstreamer-restricted]``)
+contains plugins upstream considers patent-encumbered in some countries, such
+as MPEG-TS; Kivy never installs it unless asked.
+
+The notices are yours to provide; neither Kivy nor the packaging tools
+collect them:
+
+* The wheels contain no licence texts. Their metadata lists the licences of
+  everything inside them, GPL ones included, without saying which component
+  each belongs to. The licence of each component is in the recipe that
+  builds it, in GStreamer's `cerbero <https://gitlab.freedesktop.org/gstreamer/cerbero>`_
+  build system; take the texts from those projects.
+* Check which of those components your app actually ships, in particular
+  whether any of them is GPL, and what each licence and the restricted
+  plugins mean for where you distribute your app.
+
+On Linux and the Raspberry Pi, Kivy uses the system's GStreamer, so an app
+that doesn't bundle it has no GStreamer notices to ship.
+
 Other libraries
 ~~~~~~~~~~~~~~~
 

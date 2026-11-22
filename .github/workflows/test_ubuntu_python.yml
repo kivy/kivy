@@ -43,6 +43,7 @@ jobs:
       run: |
         source .ci/ubuntu_ci.sh
         install_ubuntu_build_deps
+        install_ubuntu_gstreamer_runtime
         ./tools/build_linux_dependencies.sh
     - name: Setup env
       run: |

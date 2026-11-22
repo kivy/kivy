@@ -2,7 +2,8 @@
 
 block_cipher = None
 from kivy_deps import sdl3, glew
-from kivy.tools.packaging.pyinstaller_hooks import runtime_hooks, hookspath
+from kivy.tools.packaging.pyinstaller_hooks import (
+    runtime_hooks, hookspath, get_gstreamer_datas)
 import os
 
 deps = list(sdl3.dep_bins + glew.dep_bins)
@@ -11,18 +12,16 @@ try:
     deps.extend(ffpyplayer.dep_bins)
 except ImportError:
     pass
-try:
-    from kivy_deps import gstreamer
-    deps.extend(gstreamer.dep_bins)
-except ImportError:
-    pass
 print('deps are: ', deps)
+# GStreamer's official wheels (kivy[gstreamer]), for the gstplayer provider.
+gst_datas = get_gstreamer_datas()
+print('gstreamer wheels are: ', gst_datas)
 
 
 a = Analysis(['main.py'],
              pathex=[os.environ['__KIVY_PYINSTALLER_DIR']],
              binaries=[],
-             datas=[],
+             datas=gst_datas,
              hiddenimports=[],
              hookspath=[os.environ['__KIVY_PYINSTALLER_DIR']],
              runtime_hooks=runtime_hooks(),

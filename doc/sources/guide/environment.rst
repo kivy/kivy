@@ -118,6 +118,21 @@ KIVY_DEPS_ROOT
         This path is required for the compilation of Kivy. It is not
         required for program execution.
 
+KIVY_GSTREAMER_ROOT
+    If set, the ``gstplayer`` video and audio providers load GStreamer from
+    this prefix (the directory holding ``bin`` on Windows or ``lib`` on
+    Linux, or the directory holding the libraries themselves) instead of
+    looking for it. Without it, Linux uses the system's GStreamer, and
+    Windows looks for the official ``gstreamer-libs`` wheel, then the
+    official installer (its ``GSTREAMER_1_0_ROOT_*`` variable), then
+    ``PATH``. The provider logs which GStreamer it loaded. GStreamer's own
+    variables (``GST_DEBUG``, ``GST_PLUGIN_PATH``, ``GST_REGISTRY_1_0``...)
+    work as usual.
+
+    Only read at run time: Kivy is built without GStreamer.
+
+    .. versionadded:: 3.0.0
+
 
 Configuration
 -------------
@@ -216,6 +231,9 @@ KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio
 
     Values: sdl3, gstplayer, ffpyplayer, avplayer
+
+    .. versionchanged:: 3.0.0
+        ``gstplayer`` is tried after ``sdl3``.
 
 KIVY_IMAGE
     Implementation to use for reading image

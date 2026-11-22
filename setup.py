@@ -521,57 +521,17 @@ if c_options['use_sdl3'] is None and environ.get('KIVY_SDL3_PATH'):
     c_options['use_sdl3'] = True
     c_options['use_osx_frameworks'] = False
 
-# detect gstreamer, only on desktop
-# works if we forced the options or in autodetection
-if platform not in ('ios', 'android') and (c_options['use_gstreamer']
-                                           in (None, True)):
-    gstreamer_valid = False
-    if c_options['use_osx_frameworks'] and platform == 'darwin':
-        # check the existence of frameworks
-        f_path = '/Library/Frameworks/GStreamer.framework'
-        if not exists(f_path):
-            c_options['use_gstreamer'] = False
-            print('GStreamer framework not found, fallback on pkg-config')
-        else:
-            print('GStreamer framework found')
-            gstreamer_valid = True
-            c_options['use_gstreamer'] = True
-            gst_flags = {
-                'extra_link_args': [
-                    '-F/Library/Frameworks',
-                    '-Xlinker', '-rpath',
-                    '-Xlinker', '/Library/Frameworks',
-                    '-Xlinker', '-headerpad',
-                    '-Xlinker', '190',
-                    '-framework', 'GStreamer'],
-                'include_dirs': [join(f_path, 'Headers')]}
-    elif platform == 'win32':
-        gst_flags = pkgconfig('gstreamer-1.0')
-        if 'libraries' in gst_flags:
-            print('GStreamer found via pkg-config')
-            gstreamer_valid = True
-            c_options['use_gstreamer'] = True
-        else:
-            _includes = get_isolated_env_paths()[0] + [
-                sysconfig.get_path("include")
-            ]
-            for include_dir in _includes:
-                if exists(join(include_dir, 'gst', 'gst.h')):
-                    print('GStreamer found via gst.h')
-                    gstreamer_valid = True
-                    c_options['use_gstreamer'] = True
-                    gst_flags = {
-                        'libraries':
-                            ['gstreamer-1.0', 'glib-2.0', 'gobject-2.0']}
-                    break
-
-    if not gstreamer_valid:
-        # use pkg-config approach instead
-        gst_flags = pkgconfig('gstreamer-1.0')
-        if 'libraries' in gst_flags:
-            print('GStreamer found via pkg-config')
-            c_options['use_gstreamer'] = True
-
+# GStreamer is opened at run time (kivy/lib/gstplayer/_gst_loader.h), so
+# nothing from it is needed at build time. The module is built on Linux
+# (including the Raspberry Pi platforms) and Windows; macOS, iOS and Android
+# use their own media frameworks. USE_GSTREAMER=0 opts out.
+if c_options['use_gstreamer'] is None:
+    c_options['use_gstreamer'] = (
+        platform == 'win32' or platform.startswith('linux') or
+        platform in ('rpi', 'vc', 'mali'))
+gst_flags = {}
+if c_options['use_gstreamer'] and platform != 'win32':
+    gst_flags = {'libraries': ['dl']}
 
 # detect SDL3, only on desktop and iOS, or android if explicitly enabled
 # works if we forced the options or in autodetection
@@ -1640,7 +1600,7 @@ if c_options['use_x11']:
 if c_options['use_gstreamer']:
     sources['lib/gstplayer/_gstplayer.pyx'] = merge(
         base_flags, gst_flags, {
-            'depends': ['lib/gstplayer/_gstplayer.h']})
+            'depends': ['lib/gstplayer/_gst_loader.h']})
 
 # ThorVG wrapper (kivy.lib.thorvg._thorvg). Version is pinned in
 # tools/build_thorvg.sh.
