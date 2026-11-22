@@ -8,8 +8,8 @@ Video Gstplayer
     Rewritten on a new GStreamer core. GStreamer is loaded at run time, so
     every Linux and Windows build of Kivy includes this provider and uses
     the GStreamer the machine has. It plays through ``playbin3`` (local
-    files, HTTP, HLS and DASH) and reports failures through
-    :meth:`~kivy.core.video.VideoBase.on_error`.
+    files, HTTP, HLS and DASH), shares GL textures with Kivy where it can,
+    and reports failures through :meth:`~kivy.core.video.VideoBase.on_error`.
 
 Implementation of :class:`~kivy.core.video.VideoBase` with GStreamer 1.x,
 through :mod:`kivy.lib.gstplayer`. It is the video provider on Linux,
@@ -18,19 +18,24 @@ including the Raspberry Pi, and an optional one on Windows (after
 
 **Where GStreamer comes from.** On Linux, from the distribution: install
 the playback plugins (on Debian, Ubuntu and Raspberry Pi OS:
-``gstreamer1.0-plugins-base``, ``-good``, ``-bad`` and
-``gstreamer1.0-libav``). On Windows, from the official ``gstreamer-*``
+``gstreamer1.0-plugins-base``, ``-good``, ``-bad``, ``gstreamer1.0-libav``
+and ``gstreamer1.0-gl``). On Windows, from the official ``gstreamer-*``
 wheels (``pip install "kivy[gstreamer]"``) or the official installer. The
 ``KIVY_GSTREAMER_ROOT`` environment variable points Kivy at another
 GStreamer build. GStreamer 1.22 or newer is needed on Linux and 1.24 on
 Windows; older versions make the provider unavailable, logged once.
 
-**Rendering.** Frames reach Kivy in one of two ways, logged once per
+**Rendering.** Frames reach Kivy in one of three ways, logged once per
 video:
 
-* ``nv12``: frames are uploaded as two planes (luma and interleaved
-  chroma) and converted to RGB by a shader, with the stream's
-  colorimetry (BT.601, BT.709 or BT.2020, limited or full range).
+* ``gl``: GStreamer converts frames on the GPU and Kivy draws GStreamer's
+  texture directly. Needs GStreamer 1.24 and a desktop GL (WGL) context on
+  Windows, or an EGL or GLX context on Linux. With EGL, frames from a
+  hardware decoder never leave the GPU (DMABuf import): on the
+  Raspberry Pi 5 this is what makes 4K HEVC play at full rate. With GLX
+  they are copied, and a warning says so.
+* ``nv12``: frames are uploaded as two planes and converted by a shader.
+  Used when sharing isn't possible (ANGLE on Windows, older GStreamer).
 * ``rgba``: GStreamer converts to RGBA on the CPU. Only for debugging.
 
 Videos recorded on a phone held upright (an ``image-orientation`` tag) are
@@ -39,8 +44,8 @@ display size: the texture's size is the size to show the video at.
 
 **Options** (:attr:`kivy.uix.video.Video.options`):
 
-* ``render``: ``'auto'`` (default, the ``nv12`` path), ``'nv12'`` or
-  ``'rgba'``.
+* ``render``: ``'auto'`` (default), ``'gl'``, ``'nv12'`` or ``'rgba'``.
+  ``'gl'`` falls back to ``'nv12'`` when sharing fails.
 * ``force_sw_decoders``: ``True`` to never use hardware decoders.
 
 Unknown keys are logged once and ignored.
@@ -51,20 +56,23 @@ Unknown keys are logged once and ignored.
 GStreamer's own warnings.
 '''
 
+import sys
 import time
 
 try:
     from kivy.lib.gstplayer import (
-        GstPlayer, get_runtime_info, init_start, init_status, init_wait,
-        filename_to_uri, STATE_PAUSED, STATE_PLAYING,
-        STATE_CHANGE_NO_PREROLL, STATE_CHANGE_FAILURE)
+        GstPlayer, GLShare, get_runtime_info, has_gl, init_start,
+        init_status, init_wait, filename_to_uri, STATE_NULL, STATE_PAUSED,
+        STATE_PLAYING, STATE_CHANGE_NO_PREROLL, STATE_CHANGE_FAILURE)
 except ImportError:
     from kivy.core import handle_win_lib_import_error
     handle_win_lib_import_error(
         'VideoGstplayer', 'gst', 'kivy.lib.gstplayer._gstplayer')
     raise
 from kivy.lib.gstplayer._policy import (
-    BusError, RENDER_PATHS, SeekQueue, display_size, error_text,
+    BusError, HARDWARE_DECODER_PREFIXES, RENDER_PATHS, SeekQueue,
+    cpu_frames_cheaper_on_nv12,
+    display_size, error_text,
     orientation_corners, reorient_tex_coords, yuv_conversion)
 from kivy.clock import Clock
 from kivy.core.video import VideoBase
@@ -85,6 +93,8 @@ init_start()
 _KNOWN_OPTIONS = frozenset({'render', 'force_sw_decoders'})
 _BASE_KWARGS = frozenset({'filename', 'eos', 'async', 'autoplay', 'fps'})
 
+GL_TEXTURE_2D = 0x0DE1
+
 NV12_FS = '''
 $HEADER$
 uniform sampler2D tex_uv;
@@ -101,10 +111,18 @@ void main(void) {
 '''
 
 
+
 def _to_uri(filename):
     if '://' in filename:
         return filename
     return filename_to_uri(filename)
+
+
+def _gl_is_es():
+    from kivy.graphics.opengl import glGetString, GL_VERSION
+    v = glGetString(GL_VERSION)
+    v = v.decode('utf-8', 'replace') if isinstance(v, bytes) else str(v)
+    return 'OpenGL ES' in v
 
 
 class VideoGstplayer(VideoBase):
@@ -118,6 +136,7 @@ class VideoGstplayer(VideoBase):
 
     def __init__(self, **kwargs):
         self._player = None
+        self._gl = None
         self._path = None
         self._uri = None
         self._tick = None
@@ -145,11 +164,13 @@ class VideoGstplayer(VideoBase):
         self._gst_target = None
         self._duration = -1.0
         self._missing = []
+        self._gl_textures = {}
         self._ytex = self._uvtex = self._fbo = None
         self._nv12_key = None
         self._rgba_tex = None
         self._present_fbo = self._present_rect = self._present_key = None
         self._orientation = None
+        self._replan = False
         self._logged = False
         self._seeks.clear()
 
@@ -196,6 +217,8 @@ class VideoGstplayer(VideoBase):
         if self._player is not None:
             self._player.teardown()
             self._player = None
+        self._gl = None
+        self._gl_textures = {}
         self._ytex = self._uvtex = self._fbo = None
         self._rgba_tex = None
         self._present_fbo = self._present_rect = self._present_key = None
@@ -247,20 +270,63 @@ class VideoGstplayer(VideoBase):
 
     # ---------- pipeline ----------
 
-    def _build(self):
-        render = self._render_option()
+    def _build(self, path=None):
+        render = self._render_option() if path is None else path
         force_sw = bool((self._options or {}).get('force_sw_decoders'))
-        self._path = path = 'rgba' if render == 'rgba' else 'nv12'
-        player = GstPlayer(self._uri, sink=path, force_sw_decoders=force_sw)
+        path, gl = render, None
+        if render in ('auto', 'gl'):
+            path = 'nv12'
+            if not has_gl():
+                reason = ('GStreamer has no usable GL library or is older '
+                          'than 1.24')
+            else:
+                try:
+                    gl = GLShare(_gl_is_es())
+                    path, reason = 'gl', None
+                except RuntimeError as e:
+                    reason = str(e)
+            if reason is not None:
+                log = Logger.warning if render == 'gl' else Logger.info
+                log('VideoGstplayer: GPU texture sharing unavailable ({}); '
+                    'using the nv12 path'.format(reason))
+        self._path, self._gl = path, gl
+        player = GstPlayer(self._uri, sink=path, force_sw_decoders=force_sw,
+                           gl=gl)
         try:
             player.build()
         except RuntimeError as e:
             self._pending_error = str(e)
             return
         self._player = player
+        # 'auto' on Linux: look at the decoder after the first preroll and
+        # move a software-decoded stream to the nv12 path (D6, spike 4).
+        self._replan = (render == 'auto' and path == 'gl' and
+                        sys.platform.startswith('linux'))
         player.set_volume(self._volume)
         self._gst_target = None
         self._apply_state()
+
+    def _replan_path(self):
+        '''After the first preroll in 'auto': True when the pipeline was
+        rebuilt on the nv12 path.'''
+        self._replan = False
+        info = self._player.describe()
+        if not cpu_frames_cheaper_on_nv12(info['decoder_caps'],
+                                          info['decoder']):
+            return False
+        Logger.info(
+            'VideoGstplayer: <{}>: {} decodes in software; using the nv12 '
+            'path, cheaper than a GL upload for system-memory frames'.format(
+                self._filename, info['decoder']))
+        self._player.teardown()
+        self._player = None
+        self._gl = None
+        self._gl_textures = {}
+        self._present_fbo = self._present_rect = self._present_key = None
+        self._logged = False
+        self._prerolled = False
+        self._build('nv12')
+        return True
 
     def _holding(self):
         '''Held in PAUSED while the buffer refills (not for live streams).'''
@@ -378,6 +444,9 @@ class VideoGstplayer(VideoBase):
             self._apply_state()
 
     def _on_async_done(self):
+        if self._replan and self._replan_path():
+            # The new pipeline prerolls again; a queued seek waits for it.
+            return
         self._prerolled = True
         nxt = self._seeks.done(time.monotonic())
         if nxt is not None:
@@ -397,7 +466,9 @@ class VideoGstplayer(VideoBase):
     def _show_frame(self):
         player = self._player
         first = self._texture is None
-        if self._path == 'nv12':
+        if self._path == 'gl':
+            self._show_gl(player)
+        elif self._path == 'nv12':
             self._show_nv12(player)
         else:
             self._show_rgba(player)
@@ -442,6 +513,25 @@ class VideoGstplayer(VideoBase):
         self._present_fbo.draw()
         self._texture = self._present_fbo.texture
 
+    def _show_gl(self, player):
+        tex_id = player.gl_texture_id()
+        if not tex_id:
+            return
+        size = (player.width, player.height)
+        tex = self._gl_textures.get(tex_id)
+        if tex is None or tex.size != size:
+            if tex is not None:
+                self._gl_textures = {}
+            # GStreamer owns the texture (nofree); its pool reuses a few,
+            # so the wrappers are kept by id. The held sample keeps the
+            # texture out of the pool until the next frame replaces it.
+            tex = Texture(width=size[0], height=size[1],
+                          target=GL_TEXTURE_2D, texid=tex_id,
+                          colorfmt='rgba', mipmap=False, nofree=True)
+            tex.flip_vertical()
+            self._gl_textures[tex_id] = tex
+        self._present(tex, player)
+
     def _show_nv12(self, player):
         w, h = player.width, player.height
         if w <= 0 or h <= 0:
@@ -482,13 +572,27 @@ class VideoGstplayer(VideoBase):
             self._rgba_tex.flip_vertical()
         player.upload_rgba(self._rgba_tex)
         self._present(self._rgba_tex, player)
-
     def _log_path(self):
         info = self._player.describe()
+        detail = ''
+        if self._path == 'gl':
+            detail = ' ({}, {})'.format(self._gl.platform.upper(),
+                                        self._gl.api)
         Logger.info(
-            'VideoGstplayer: <{}>: render path {}, decoder {}, decoder '
-            'output {}'.format(self._filename, self._path, info['decoder'],
-                               info['decoder_caps']))
+            'VideoGstplayer: <{}>: render path {}{}, decoder {}, '
+            'decoder output {}{}'.format(
+                self._filename, self._path, detail, info['decoder'],
+                info['decoder_caps'],
+                ', glupload input {}'.format(info['glupload_caps'])
+                if self._path == 'gl' else ''))
+        decoder = info['decoder'] or ''
+        if self._path == 'gl' and self._gl.platform == 'glx' and \
+                decoder.startswith(HARDWARE_DECODER_PREFIXES):
+            Logger.warning(
+                'VideoGstplayer: the hardware decoder {} is used with a GLX '
+                'context, so every frame is copied. An EGL context avoids '
+                'the copy; Kivy asks for one unless SDL_VIDEO_FORCE_EGL=0, '
+                'so EGL was unavailable or turned off.'.format(decoder))
 
     # ---------- thumbnails ----------
 

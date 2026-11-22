@@ -117,7 +117,7 @@ desktops already have most of it; for local files, HTTP, HLS and DASH install:
 Ubuntu, Debian and Raspberry Pi OS::
 
     sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-bad gstreamer1.0-libav
+        gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl
 
 Fedora (H.264 and some other formats need the RPM Fusion repository above)::
 
@@ -125,8 +125,10 @@ Fedora (H.264 and some other formats need the RPM Fusion repository above)::
         gstreamer1-plugins-bad-free gstreamer1-plugin-libav
 
 Hardware decoding uses GStreamer's ``va`` plugin (in ``-bad``) with the GPU's
-VA-API driver, or NVIDIA's ``nvcodec``; the provider logs which decoder it
-uses. A format with no installed decoder fires
+VA-API driver, or NVIDIA's ``nvcodec``. Decoded frames reach Kivy without a copy
+when Kivy's GL context is EGL, which it is by default (see
+``SDL_VIDEO_FORCE_EGL`` in :ref:`environment`); the provider logs which path
+and decoder it uses. A format with no installed decoder fires
 :meth:`~kivy.core.video.VideoBase.on_error` with ``missing GStreamer plugin:``
 and the plugin's name.
 

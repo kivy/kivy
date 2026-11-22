@@ -52,9 +52,12 @@ typedef struct _kGstStructure kGstStructure;
 typedef struct _kGstSample kGstSample;
 typedef struct _kGstBuffer kGstBuffer;
 typedef struct _kGstMemory kGstMemory;
+typedef struct _kGstContext kGstContext;
 typedef struct _kGstPad kGstPad;
 typedef struct _kGstIterator kGstIterator;
 typedef struct _kGstElementFactory kGstElementFactory;
+typedef struct _kGstGLDisplay kGstGLDisplay;
+typedef struct _kGstGLContext kGstGLContext;
 
 /* GValue: a GType followed by two 64-bit data words. Only used as an
  * out-parameter for gst_iterator_next() and read with g_value_get_object. */
@@ -125,6 +128,7 @@ enum {
     KGST_LIB_GSTAPP,
     KGST_LIB_GSTVIDEO,
     KGST_LIB_GSTPBUTILS,
+    KGST_LIB_GSTGL,
     KGST_LIB_COUNT
 };
 
@@ -155,6 +159,7 @@ enum {
     X(KGST_LIB_GST, 1, kgboolean, gst_element_query_position, (kGstElement *element, int format, int64_t *cur)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_element_query_duration, (kGstElement *element, int format, int64_t *duration)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_element_seek_simple, (kGstElement *element, int format, int seek_flags, int64_t seek_pos)) \
+    X(KGST_LIB_GST, 1, void, gst_element_set_context, (kGstElement *element, kGstContext *context)) \
     X(KGST_LIB_GST, 1, kGstPad *, gst_element_get_static_pad, (kGstElement *element, const char *name)) \
     X(KGST_LIB_GST, 1, kGstCaps *, gst_pad_get_current_caps, (kGstPad *pad)) \
     X(KGST_LIB_GST, 1, kGstElement *, gst_bin_get_by_name, (kGstElement *bin, const char *name)) \
@@ -179,6 +184,7 @@ enum {
     X(KGST_LIB_GST, 1, kgboolean, gst_structure_get_int, (const kGstStructure *structure, const char *fieldname, int *value)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_structure_get_uint, (const kGstStructure *structure, const char *fieldname, kguint *value)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_structure_get_fraction, (const kGstStructure *structure, const char *fieldname, int *num, int *den)) \
+    X(KGST_LIB_GST, 1, void, gst_structure_set, (kGstStructure *structure, const char *fieldname, ...)) \
     X(KGST_LIB_GST, 1, void, gst_mini_object_unref, (void *mini_object)) \
     X(KGST_LIB_GST, 1, void *, gst_object_ref_sink, (void *object)) \
     X(KGST_LIB_GST, 1, void, gst_object_unref, (void *object)) \
@@ -189,17 +195,37 @@ enum {
     X(KGST_LIB_GST, 1, kGstCaps *, gst_sample_get_caps, (kGstSample *sample)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_buffer_map, (kGstBuffer *buffer, kGstMapInfo *info, int flags)) \
     X(KGST_LIB_GST, 1, void, gst_buffer_unmap, (kGstBuffer *buffer, kGstMapInfo *info)) \
+    X(KGST_LIB_GST, 1, kguint, gst_buffer_n_memory, (kGstBuffer *buffer)) \
+    X(KGST_LIB_GST, 1, kGstMemory *, gst_buffer_peek_memory, (kGstBuffer *buffer, kguint idx)) \
     X(KGST_LIB_GST, 1, void *, gst_buffer_get_meta, (kGstBuffer *buffer, kGType api)) \
+    X(KGST_LIB_GST, 1, kgboolean, gst_memory_map, (kGstMemory *mem, kGstMapInfo *info, int flags)) \
+    X(KGST_LIB_GST, 1, void, gst_memory_unmap, (kGstMemory *mem, kGstMapInfo *info)) \
     X(KGST_LIB_GST, 1, char *, gst_filename_to_uri, (const char *filename, kGError **error)) \
     X(KGST_LIB_GST, 1, kGQuark, gst_core_error_quark, (void)) \
     X(KGST_LIB_GST, 1, kGQuark, gst_stream_error_quark, (void)) \
     X(KGST_LIB_GST, 1, kGQuark, gst_resource_error_quark, (void)) \
+    X(KGST_LIB_GST, 1, kGstContext *, gst_context_new, (const char *context_type, kgboolean persistent)) \
+    X(KGST_LIB_GST, 1, kGstStructure *, gst_context_writable_structure, (kGstContext *context)) \
     X(KGST_LIB_GSTAPP, 1, kGstSample *, gst_app_sink_try_pull_sample, (kGstElement *appsink, uint64_t timeout)) \
     X(KGST_LIB_GSTAPP, 1, kGstSample *, gst_app_sink_try_pull_preroll, (kGstElement *appsink, uint64_t timeout)) \
     X(KGST_LIB_GSTVIDEO, 1, kGType, gst_video_meta_api_get_type, (void)) \
     X(KGST_LIB_GSTPBUTILS, 0, void, gst_pb_utils_init, (void)) \
     X(KGST_LIB_GSTPBUTILS, 0, kgboolean, gst_is_missing_plugin_message, (kGstMessage *msg)) \
-    X(KGST_LIB_GSTPBUTILS, 0, char *, gst_missing_plugin_message_get_description, (kGstMessage *msg))
+    X(KGST_LIB_GSTPBUTILS, 0, char *, gst_missing_plugin_message_get_description, (kGstMessage *msg)) \
+    X(KGST_LIB_GSTGL, 0, kGstGLDisplay *, gst_gl_display_new, (void)) \
+    X(KGST_LIB_GSTGL, 0, kGstGLDisplay *, gst_gl_display_egl_new_with_egl_display, (void *display)) \
+    X(KGST_LIB_GSTGL, 0, kGstGLDisplay *, gst_gl_display_x11_new_with_display, (void *display)) \
+    X(KGST_LIB_GSTGL, 0, kgboolean, gst_gl_display_ensure_context, (kGstGLDisplay *display, kGstGLContext *other_context, kGstGLContext **context, kGError **error)) \
+    X(KGST_LIB_GSTGL, 0, kGstGLContext *, gst_gl_context_new_wrapped, (kGstGLDisplay *display, uintptr_t handle, int context_type, int available_apis)) \
+    X(KGST_LIB_GSTGL, 0, kgboolean, gst_gl_context_activate, (kGstGLContext *context, kgboolean activate)) \
+    X(KGST_LIB_GSTGL, 0, kgboolean, gst_gl_context_fill_info, (kGstGLContext *context, kGError **error)) \
+    X(KGST_LIB_GSTGL, 0, kGType, gst_gl_context_get_type, (void)) \
+    X(KGST_LIB_GSTGL, 0, void, gst_context_set_gl_display, (kGstContext *context, kGstGLDisplay *display)) \
+    X(KGST_LIB_GSTGL, 0, int, gst_gl_platform_from_string, (const char *platform_s)) \
+    X(KGST_LIB_GSTGL, 0, int, gst_gl_api_from_string, (const char *api_s)) \
+    X(KGST_LIB_GSTGL, 0, kGType, gst_gl_sync_meta_api_get_type, (void)) \
+    X(KGST_LIB_GSTGL, 0, void, gst_gl_sync_meta_wait, (void *sync_meta, kGstGLContext *context)) \
+    X(KGST_LIB_GSTGL, 0, kgboolean, gst_is_gl_memory, (kGstMemory *mem))
 
 #define KGST_MEMBER(lib, req, ret, name, args) ret (*name) args;
 typedef struct {
@@ -219,6 +245,7 @@ static const char *kgst_lib_names[KGST_LIB_COUNT][2] = {
     {"gstapp-1.0-0.dll", "libgstapp-1.0-0.dll"},
     {"gstvideo-1.0-0.dll", "libgstvideo-1.0-0.dll"},
     {"gstpbutils-1.0-0.dll", "libgstpbutils-1.0-0.dll"},
+    {"gstgl-1.0-0.dll", "libgstgl-1.0-0.dll"},
 };
 #else
 static const char *kgst_lib_names[KGST_LIB_COUNT][2] = {
@@ -228,12 +255,13 @@ static const char *kgst_lib_names[KGST_LIB_COUNT][2] = {
     {"libgstapp-1.0.so.0", NULL},
     {"libgstvideo-1.0.so.0", NULL},
     {"libgstpbutils-1.0.so.0", NULL},
+    {"libgstgl-1.0.so.0", NULL},
 };
 #endif
 
 /* Libraries that may be missing: no pbutils means generic missing-plugin
- * text. */
-static const int kgst_lib_optional[KGST_LIB_COUNT] = {0, 0, 0, 0, 0, 1};
+ * text, no GL means no shared-texture path. */
+static const int kgst_lib_optional[KGST_LIB_COUNT] = {0, 0, 0, 0, 0, 1, 1};
 
 /* The path each library was opened from, for the log line. */
 static char kgst_gst_path[1024];
@@ -354,6 +382,102 @@ static int kgst_have_lib(int lib)
 static const char *kgst_loaded_path(void)
 {
     return kgst_gst_path;
+}
+
+/* ---- Kivy's current GL context, read from the GL platform itself ---- */
+
+enum {
+    KGST_GLP_NONE = 0,
+    KGST_GLP_EGL = 1,
+    KGST_GLP_GLX = 2,
+    KGST_GLP_WGL = 3
+};
+
+typedef void *(*kgst_noarg_ptr_fn)(void);
+
+#ifdef _WIN32
+typedef BOOL (WINAPI *kgst_wglMakeCurrent_fn)(HDC, HGLRC);
+#endif
+
+/* Returns the platform of the GL context current on the calling thread and
+ * fills `ctx` and `dpy` (EGLDisplay, X11 Display* or the WGL HDC). Only
+ * libraries the process has already loaded are looked at. */
+static int kgst_gl_current(void **ctx, void **dpy)
+{
+    kgst_noarg_ptr_fn get_ctx, get_dpy;
+    *ctx = NULL;
+    *dpy = NULL;
+#ifdef _WIN32
+    HMODULE h = GetModuleHandleA("opengl32.dll");
+    if (h) {
+        get_ctx = (kgst_noarg_ptr_fn)GetProcAddress(h, "wglGetCurrentContext");
+        get_dpy = (kgst_noarg_ptr_fn)GetProcAddress(h, "wglGetCurrentDC");
+        if (get_ctx && get_dpy && (*ctx = get_ctx()) != NULL) {
+            *dpy = get_dpy();
+            return KGST_GLP_WGL;
+        }
+    }
+    h = GetModuleHandleA("libEGL.dll");
+    if (h) {
+        get_ctx = (kgst_noarg_ptr_fn)GetProcAddress(h, "eglGetCurrentContext");
+        get_dpy = (kgst_noarg_ptr_fn)GetProcAddress(h, "eglGetCurrentDisplay");
+        if (get_ctx && get_dpy && (*ctx = get_ctx()) != NULL) {
+            *dpy = get_dpy();
+            return KGST_GLP_EGL;
+        }
+    }
+    return KGST_GLP_NONE;
+#else
+    static const char *egl_names[] = {"libEGL.so.1", "libEGL.so", NULL};
+    static const char *glx_names[] = {"libGLX.so.0", "libGL.so.1", "libGL.so", NULL};
+    void *h;
+    int i;
+    for (i = 0; egl_names[i]; i++) {
+        h = dlopen(egl_names[i], RTLD_LAZY | RTLD_NOLOAD);
+        if (!h)
+            continue;
+        get_ctx = (kgst_noarg_ptr_fn)dlsym(h, "eglGetCurrentContext");
+        get_dpy = (kgst_noarg_ptr_fn)dlsym(h, "eglGetCurrentDisplay");
+        if (get_ctx && get_dpy && (*ctx = get_ctx()) != NULL) {
+            *dpy = get_dpy();
+            dlclose(h);
+            return KGST_GLP_EGL;
+        }
+        dlclose(h);
+    }
+    for (i = 0; glx_names[i]; i++) {
+        h = dlopen(glx_names[i], RTLD_LAZY | RTLD_NOLOAD);
+        if (!h)
+            continue;
+        get_ctx = (kgst_noarg_ptr_fn)dlsym(h, "glXGetCurrentContext");
+        get_dpy = (kgst_noarg_ptr_fn)dlsym(h, "glXGetCurrentDisplay");
+        if (get_ctx && get_dpy && (*ctx = get_ctx()) != NULL) {
+            *dpy = get_dpy();
+            dlclose(h);
+            return KGST_GLP_GLX;
+        }
+        dlclose(h);
+    }
+    return KGST_GLP_NONE;
+#endif
+}
+
+/* WGL only: make `ctx` current on `dc` (both NULL releases the current
+ * context). Returns 1 on success. Elsewhere it does nothing. */
+static int kgst_wgl_make_current(void *dc, void *ctx)
+{
+#ifdef _WIN32
+    HMODULE h = GetModuleHandleA("opengl32.dll");
+    kgst_wglMakeCurrent_fn fn;
+    if (!h)
+        return 0;
+    fn = (kgst_wglMakeCurrent_fn)GetProcAddress(h, "wglMakeCurrent");
+    return fn ? (int)fn((HDC)dc, (HGLRC)ctx) : 0;
+#else
+    (void)dc;
+    (void)ctx;
+    return 0;
+#endif
 }
 
 #endif /* KIVY_GST_LOADER_H */

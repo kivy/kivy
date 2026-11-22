@@ -189,7 +189,8 @@ class GstPlayerCoreTestCase(unittest.TestCase):
 
 
 class VideoGstplayerTestCase(GraphicUnitTest):
-    '''The provider, with a window (nv12 and rgba paths).'''
+    '''The provider, with a window (nv12 and rgba paths; gl where the
+    platform allows).'''
 
     def make(self, path, **options):
         from kivy.core.video.video_gstplayer import VideoGstplayer
@@ -237,7 +238,7 @@ class VideoGstplayerTestCase(GraphicUnitTest):
 
     def test_first_frame_auto(self):
         v = self.check_first_frame('auto')
-        self.assertEqual(v._path, 'nv12')
+        self.assertIn(v._path, ('gl', 'nv12'))
 
     def test_play_eos_stop(self):
         v = self.make(clip('smpte'), render='nv12')

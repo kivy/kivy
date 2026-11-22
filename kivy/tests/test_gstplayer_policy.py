@@ -157,6 +157,31 @@ class TestOrientation:
         assert _policy.display_size(*args) == expected
 
 
+class TestPathReplan:
+
+    @pytest.mark.parametrize('caps,expected', [
+        ('video/x-raw, format=(string)I420, width=(int)1920', True),
+        ('video/x-raw,format=NV12', True),
+        ('video/x-raw(memory:DMABuf), format=(string)DMA_DRM', False),
+        ('video/x-raw(memory:GLMemory), format=(string)RGBA', False),
+        ('video/x-raw(memory:D3D11Memory), format=(string)NV12', False),
+        ('', False),
+        (None, False),
+    ])
+    def test_cpu_frames(self, caps, expected):
+        assert _policy.cpu_frames_cheaper_on_nv12(caps) is expected
+
+    @pytest.mark.parametrize('decoder,expected', [
+        ('avdec_h264', True), ('vp9dec', True), ('dav1ddec', True),
+        ('vah264dec', False), ('vavp9dec', False), ('v4l2slh265dec', False),
+        ('nvh264dec', False), ('d3d12h264dec', False), (None, True),
+    ])
+    def test_hardware_decoder_copied_to_system_memory_stays(self, decoder,
+                                                           expected):
+        caps = 'video/x-raw, format=(string)NV12, width=(int)3840'
+        assert _policy.cpu_frames_cheaper_on_nv12(caps, decoder) is expected
+
+
 class TestSeekQueue:
 
     def test_first_request_issued(self):

@@ -266,7 +266,7 @@ install_ubuntu_gstreamer_runtime() {
   # -dev packages. -good brings vp8enc/webmmux, which the tests use to
   # generate their clips.
   sudo apt-get -y install gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-          gstreamer1.0-plugins-bad gstreamer1.0-libav
+          gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl
 }
 
 generate_rpi_wheels() {

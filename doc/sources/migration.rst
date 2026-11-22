@@ -1559,10 +1559,13 @@ no longer built for macOS.
   GStreamer's official installer, or any build through
   ``KIVY_GSTREAMER_ROOT``, works too.
 - Playback uses ``playbin3``: local files, HTTP, HLS and DASH.
-- Frames are uploaded as two NV12 planes and converted to RGB by a shader,
-  instead of converted to RGB on the CPU. The ``render`` option (see
-  :attr:`~kivy.uix.video.Video.options`) selects the old CPU conversion,
-  for debugging.
+- Frames are drawn from GStreamer's own GL texture when Kivy's GL context can
+  share it (desktop GL on Windows; EGL or GLX on Linux). With EGL, Kivy's
+  default on Linux, hardware decoders' frames are not copied at all: on the
+  Raspberry Pi 5, 4K HEVC plays at full rate. Otherwise frames are uploaded as
+  two NV12 planes and converted to RGB by a shader, instead of converted on
+  the CPU. The ``render`` option (see :attr:`~kivy.uix.video.Video.options`)
+  chooses.
 - The first frame is shown when the video is loaded, before ``play()``, and
   appears again after a seek while paused. Video at more than 30 fps is no
   longer capped by the provider's polling.
