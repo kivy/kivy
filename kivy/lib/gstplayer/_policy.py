@@ -12,7 +12,7 @@ from collections import namedtuple
 __all__ = ('BusError', 'error_text', 'yuv_conversion', 'SeekQueue',
            'RENDER_PATHS')
 
-RENDER_PATHS = ('auto', 'nv12', 'rgba')
+RENDER_PATHS = ('auto', 'gl', 'nv12', 'rgba')
 
 BusError = namedtuple(
     'BusError', 'kind domain code message debug http_status source')
@@ -186,6 +186,31 @@ def display_size(width, height, par_n, par_d, orientation=None):
     if orientation_swaps_size(orientation):
         w, h = h, w
     return w, h
+
+
+# Hardware decoder factories (Linux V4L2 and VA-API, NVIDIA, Windows D3D,
+# Intel Quick Sync). Software decoders (avdec_*, vp9dec, dav1d...) don't
+# start with these.
+HARDWARE_DECODER_PREFIXES = ('v4l2', 'va', 'nv', 'd3d11', 'd3d12', 'qsv',
+                             'msdk')
+
+
+def cpu_frames_cheaper_on_nv12(decoder_caps, decoder=None):
+    '''Whether a stream should leave the GL path for the nv12 one: a
+    software decoder whose frames are in plain system memory. Those cost
+    less as two plane uploads and a shader than through glupload and
+    glcolorconvert (Raspberry Pi 5: 40% vs 66% of a core for 1080p H.264).
+
+    Frames in DMABuf, GL or other GPU memory stay on GL, and so do a
+    hardware decoder's frames copied to system memory (a GLX context): on
+    Intel Iris Xe nv12 was no cheaper there, and dearer for VP9 (21% vs
+    16%).'''
+    if not decoder_caps:
+        return False
+    if decoder and decoder.startswith(HARDWARE_DECODER_PREFIXES):
+        return False
+    head = decoder_caps.split(',', 1)[0]
+    return head.strip() == 'video/x-raw'
 
 
 class SeekQueue:

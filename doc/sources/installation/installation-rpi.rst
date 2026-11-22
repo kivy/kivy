@@ -106,13 +106,15 @@ provider). The Raspberry Pi OS desktop image already has everything it needs;
 on the Lite image, install the runtime (no ``-dev`` packages are needed)::
 
     sudo apt install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-bad gstreamer1.0-libav
+        gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl
 
 GStreamer 1.22 (Bookworm) is the minimum; Trixie ships 1.26.
 
 The Raspberry Pi 5 decodes HEVC in hardware; H.264 is decoded in software
-there. Every frame is copied into a Kivy texture, which 1080p video keeps up
-with; 4K video plays at a few frames per second.
+there. Hardware-decoded frames reach Kivy without a copy when Kivy's GL
+context is EGL, which it is by default, so 4K HEVC plays at full rate. With
+GLX (``SDL_VIDEO_FORCE_EGL=0``) every frame is copied, 4K HEVC plays at a few
+frames per second, and the provider logs a warning saying so.
 
 Headless support on Raspberry Pi
 --------------------------------

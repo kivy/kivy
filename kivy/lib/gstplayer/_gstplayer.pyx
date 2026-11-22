@@ -53,11 +53,17 @@ cdef extern from "_gst_loader.h" nogil:
         pass
     ctypedef struct kGstMemory:
         pass
+    ctypedef struct kGstContext:
+        pass
     ctypedef struct kGstPad:
         pass
     ctypedef struct kGstIterator:
         pass
     ctypedef struct kGstElementFactory:
+        pass
+    ctypedef struct kGstGLDisplay:
+        pass
+    ctypedef struct kGstGLContext:
         pass
 
     ctypedef struct kGValue:
@@ -87,11 +93,23 @@ cdef extern from "_gst_loader.h" nogil:
     int kgst_load(const char *dir, char *err, size_t errlen)
     int kgst_have_lib(int lib)
     const char *kgst_loaded_path()
+    int kgst_gl_current(void **ctx, void **dpy)
+    int kgst_wgl_make_current(void *dc, void *ctx)
     int KGST_LIB_GSTPBUTILS
+    int KGST_LIB_GSTGL
+    int KGST_GLP_NONE
+    int KGST_GLP_EGL
+    int KGST_GLP_GLX
+    int KGST_GLP_WGL
 
     # Optional entry points, tested before use.
     bint HAVE_PB_UTILS_INIT "(kgst_api.gst_pb_utils_init != NULL)"
     bint HAVE_MISSING_PLUGIN "(kgst_api.gst_is_missing_plugin_message != NULL && kgst_api.gst_missing_plugin_message_get_description != NULL)"
+    bint HAVE_GL "(kgst_api.gst_gl_context_new_wrapped != NULL && kgst_api.gst_gl_context_activate != NULL && kgst_api.gst_gl_context_fill_info != NULL && kgst_api.gst_gl_context_get_type != NULL && kgst_api.gst_context_set_gl_display != NULL && kgst_api.gst_gl_platform_from_string != NULL && kgst_api.gst_gl_api_from_string != NULL && kgst_api.gst_gl_sync_meta_api_get_type != NULL && kgst_api.gst_gl_sync_meta_wait != NULL && kgst_api.gst_is_gl_memory != NULL)"
+    bint HAVE_GL_ENSURE_CONTEXT "(kgst_api.gst_gl_display_ensure_context != NULL)"
+    bint HAVE_GL_DISPLAY_NEW "(kgst_api.gst_gl_display_new != NULL)"
+    bint HAVE_GL_DISPLAY_EGL "(kgst_api.gst_gl_display_egl_new_with_egl_display != NULL)"
+    bint HAVE_GL_DISPLAY_X11 "(kgst_api.gst_gl_display_x11_new_with_display != NULL)"
 
     void g_free "kgst_api.g_free"(void *mem)
     void g_error_free "kgst_api.g_error_free"(kGError *error)
@@ -112,6 +130,7 @@ cdef extern from "_gst_loader.h" nogil:
     kgboolean gst_element_query_position "kgst_api.gst_element_query_position"(kGstElement *element, int format, int64_t *cur)
     kgboolean gst_element_query_duration "kgst_api.gst_element_query_duration"(kGstElement *element, int format, int64_t *duration)
     kgboolean gst_element_seek_simple "kgst_api.gst_element_seek_simple"(kGstElement *element, int format, int flags, int64_t pos)
+    void gst_element_set_context "kgst_api.gst_element_set_context"(kGstElement *element, kGstContext *context)
     kGstPad *gst_element_get_static_pad "kgst_api.gst_element_get_static_pad"(kGstElement *element, const char *name)
     kGstCaps *gst_pad_get_current_caps "kgst_api.gst_pad_get_current_caps"(kGstPad *pad)
     kGstElement *gst_bin_get_by_name "kgst_api.gst_bin_get_by_name"(kGstElement *bin, const char *name)
@@ -136,6 +155,7 @@ cdef extern from "_gst_loader.h" nogil:
     kgboolean gst_structure_get_int "kgst_api.gst_structure_get_int"(const kGstStructure *structure, const char *fieldname, int *value)
     kgboolean gst_structure_get_uint "kgst_api.gst_structure_get_uint"(const kGstStructure *structure, const char *fieldname, kguint *value)
     kgboolean gst_structure_get_fraction "kgst_api.gst_structure_get_fraction"(const kGstStructure *structure, const char *fieldname, int *num, int *den)
+    void gst_structure_set "kgst_api.gst_structure_set"(kGstStructure *structure, const char *fieldname, ...)
     void gst_mini_object_unref "kgst_api.gst_mini_object_unref"(void *mini_object)
     void *gst_object_ref_sink "kgst_api.gst_object_ref_sink"(void *obj)
     void gst_object_unref "kgst_api.gst_object_unref"(void *obj)
@@ -146,17 +166,37 @@ cdef extern from "_gst_loader.h" nogil:
     kGstCaps *gst_sample_get_caps "kgst_api.gst_sample_get_caps"(kGstSample *sample)
     kgboolean gst_buffer_map "kgst_api.gst_buffer_map"(kGstBuffer *buffer, kGstMapInfo *info, int flags)
     void gst_buffer_unmap "kgst_api.gst_buffer_unmap"(kGstBuffer *buffer, kGstMapInfo *info)
+    kguint gst_buffer_n_memory "kgst_api.gst_buffer_n_memory"(kGstBuffer *buffer)
+    kGstMemory *gst_buffer_peek_memory "kgst_api.gst_buffer_peek_memory"(kGstBuffer *buffer, kguint idx)
     void *gst_buffer_get_meta "kgst_api.gst_buffer_get_meta"(kGstBuffer *buffer, kGType api)
+    kgboolean gst_memory_map "kgst_api.gst_memory_map"(kGstMemory *mem, kGstMapInfo *info, int flags)
+    void gst_memory_unmap "kgst_api.gst_memory_unmap"(kGstMemory *mem, kGstMapInfo *info)
     char *gst_filename_to_uri "kgst_api.gst_filename_to_uri"(const char *filename, kGError **error)
     kGQuark gst_core_error_quark "kgst_api.gst_core_error_quark"()
     kGQuark gst_stream_error_quark "kgst_api.gst_stream_error_quark"()
     kGQuark gst_resource_error_quark "kgst_api.gst_resource_error_quark"()
+    kGstContext *gst_context_new "kgst_api.gst_context_new"(const char *context_type, kgboolean persistent)
+    kGstStructure *gst_context_writable_structure "kgst_api.gst_context_writable_structure"(kGstContext *context)
     kGstSample *gst_app_sink_try_pull_sample "kgst_api.gst_app_sink_try_pull_sample"(kGstElement *appsink, uint64_t timeout)
     kGstSample *gst_app_sink_try_pull_preroll "kgst_api.gst_app_sink_try_pull_preroll"(kGstElement *appsink, uint64_t timeout)
     kGType gst_video_meta_api_get_type "kgst_api.gst_video_meta_api_get_type"()
     void gst_pb_utils_init "kgst_api.gst_pb_utils_init"()
     kgboolean gst_is_missing_plugin_message "kgst_api.gst_is_missing_plugin_message"(kGstMessage *msg)
     char *gst_missing_plugin_message_get_description "kgst_api.gst_missing_plugin_message_get_description"(kGstMessage *msg)
+    kGstGLDisplay *gst_gl_display_new "kgst_api.gst_gl_display_new"()
+    kGstGLDisplay *gst_gl_display_egl_new_with_egl_display "kgst_api.gst_gl_display_egl_new_with_egl_display"(void *display)
+    kGstGLDisplay *gst_gl_display_x11_new_with_display "kgst_api.gst_gl_display_x11_new_with_display"(void *display)
+    kgboolean gst_gl_display_ensure_context "kgst_api.gst_gl_display_ensure_context"(kGstGLDisplay *display, kGstGLContext *other_context, kGstGLContext **context, kGError **error)
+    kGstGLContext *gst_gl_context_new_wrapped "kgst_api.gst_gl_context_new_wrapped"(kGstGLDisplay *display, uintptr_t handle, int context_type, int available_apis)
+    kgboolean gst_gl_context_activate "kgst_api.gst_gl_context_activate"(kGstGLContext *context, kgboolean activate)
+    kgboolean gst_gl_context_fill_info "kgst_api.gst_gl_context_fill_info"(kGstGLContext *context, kGError **error)
+    kGType gst_gl_context_get_type "kgst_api.gst_gl_context_get_type"()
+    void gst_context_set_gl_display "kgst_api.gst_context_set_gl_display"(kGstContext *context, kGstGLDisplay *display)
+    int gst_gl_platform_from_string "kgst_api.gst_gl_platform_from_string"(const char *s)
+    int gst_gl_api_from_string "kgst_api.gst_gl_api_from_string"(const char *s)
+    kGType gst_gl_sync_meta_api_get_type "kgst_api.gst_gl_sync_meta_api_get_type"()
+    void gst_gl_sync_meta_wait "kgst_api.gst_gl_sync_meta_wait"(void *sync_meta, kGstGLContext *context)
+    kgboolean gst_is_gl_memory "kgst_api.gst_is_gl_memory"(kGstMemory *mem)
 
 
 # ---- GStreamer constants (stable across 1.x) ----
@@ -187,6 +227,7 @@ cdef unsigned int MSG_LATENCY = 1 << 19
 cdef unsigned int MSG_ASYNC_DONE = 1 << 21
 
 cdef int MAP_READ = 1
+cdef int MAP_GL = (1 << 16) << 1
 
 cdef int SEEK_FLUSH = 1 << 0
 cdef int SEEK_ACCURATE = 1 << 1
@@ -206,8 +247,9 @@ cdef int STREAM_ERROR_FAILED = 1
 cdef int ITERATOR_OK = 1
 
 # Lowest GStreamer accepted. Linux 1.22 brings adaptivedemux2 and a
-# non-experimental playbin3. Windows has no distro holding it back, so it
-# starts at 1.24 (playbin3 stable).
+# non-experimental playbin3; the GL path checks for 1.24's
+# gst_gl_display_ensure_context() separately. Windows has no distro holding
+# it back, so it starts at 1.24 (playbin3 stable).
 if sys.platform == 'win32':
     MIN_VERSION = (1, 24)
 else:
@@ -271,6 +313,13 @@ def get_gst_version():
 def get_runtime_info():
     '''``(version, library path, source)`` of the loaded GStreamer.'''
     return _runtime
+
+
+def has_gl():
+    '''Whether the GL library and every GL entry point the shared-texture
+    path needs were found. Doesn't say a share will succeed.'''
+    return bool(kgst_have_lib(KGST_LIB_GSTGL) and HAVE_GL and
+                HAVE_GL_ENSURE_CONTEXT)
 
 
 # ---- Initialization on a worker thread ----
@@ -421,6 +470,113 @@ def run_pipeline(description, double timeout=30.0):
     return result
 
 
+# ---- Sharing Kivy's GL context with GstGL ----
+
+cdef class GLShare:
+    '''GstGL's view of Kivy's current GL context: a ``GstGLDisplay`` for
+    Kivy's display, Kivy's context wrapped as a ``GstGLContext``, and a
+    GStreamer-owned context created to share textures with it.
+
+    Construct it on Kivy's thread with Kivy's context current. It raises
+    ``RuntimeError`` with the reason when sharing isn't possible.
+    '''
+    cdef kGstGLDisplay *display
+    cdef kGstGLContext *wrapped
+    cdef kGstGLContext *gst_context
+    cdef readonly str platform
+    cdef readonly str api
+
+    def __cinit__(self):
+        self.display = NULL
+        self.wrapped = NULL
+        self.gst_context = NULL
+
+    def __init__(self, bint gles):
+        cdef void *ctx = NULL
+        cdef void *dpy = NULL
+        cdef int glp
+        cdef int platform_bits, api_bits
+        cdef kGError *err = NULL
+        cdef kgboolean ok
+        if not kgst_have_lib(KGST_LIB_GSTGL) or not HAVE_GL:
+            raise RuntimeError('GStreamer has no usable GL library')
+        if not HAVE_GL_ENSURE_CONTEXT:
+            raise RuntimeError('the GL path needs GStreamer 1.24 or newer')
+        glp = kgst_gl_current(&ctx, &dpy)
+        if glp == KGST_GLP_NONE:
+            raise RuntimeError('no current EGL, GLX or WGL context')
+        if glp == KGST_GLP_EGL:
+            if sys.platform == 'win32':
+                raise RuntimeError(
+                    "Kivy's context is EGL (ANGLE); GStreamer's Windows GL "
+                    'library only shares with WGL')
+            if not HAVE_GL_DISPLAY_EGL:
+                raise RuntimeError('GStreamer was built without EGL')
+            self.platform = 'egl'
+            self.display = gst_gl_display_egl_new_with_egl_display(dpy)
+        elif glp == KGST_GLP_GLX:
+            if not HAVE_GL_DISPLAY_X11:
+                raise RuntimeError('GStreamer was built without GLX')
+            self.platform = 'glx'
+            self.display = gst_gl_display_x11_new_with_display(dpy)
+        else:
+            if not HAVE_GL_DISPLAY_NEW:
+                raise RuntimeError('GStreamer has no gst_gl_display_new')
+            self.platform = 'wgl'
+            self.display = gst_gl_display_new()
+        if self.display == NULL:
+            raise RuntimeError('could not create a GstGLDisplay for ' +
+                               self.platform)
+
+        self.api = 'gles2' if gles else 'opengl,opengl3'
+        platform_bits = gst_gl_platform_from_string(self.platform.encode())
+        api_bits = gst_gl_api_from_string(self.api.encode())
+        self.wrapped = gst_gl_context_new_wrapped(
+            self.display, <uintptr_t>ctx, platform_bits, api_bits)
+        if self.wrapped == NULL:
+            raise RuntimeError('gst_gl_context_new_wrapped failed')
+        gst_gl_context_activate(self.wrapped, 1)
+        if not gst_gl_context_fill_info(self.wrapped, &err):
+            raise RuntimeError('gst_gl_context_fill_info: ' + _gerror(err))
+
+        # GStreamer's own context, sharing with Kivy's. WGL can't create a
+        # context sharing with one that is current on another thread, so
+        # Kivy's context is released for the call and restored after.
+        if glp == KGST_GLP_WGL:
+            kgst_wgl_make_current(NULL, NULL)
+        try:
+            ok = gst_gl_display_ensure_context(
+                self.display, self.wrapped, &self.gst_context, &err)
+        finally:
+            if glp == KGST_GLP_WGL:
+                kgst_wgl_make_current(dpy, ctx)
+        if not ok or self.gst_context == NULL:
+            raise RuntimeError('could not create a GL context shared with '
+                               "Kivy's: " + _gerror(err))
+
+    def __dealloc__(self):
+        if self.gst_context != NULL:
+            gst_object_unref(self.gst_context)
+        if self.wrapped != NULL:
+            gst_object_unref(self.wrapped)
+        if self.display != NULL:
+            gst_object_unref(self.display)
+
+    cdef void apply(self, kGstElement *pipeline):
+        '''Put the display and Kivy's context on the pipeline. A bin hands
+        its contexts to the children it gets later and answers their
+        NEED_CONTEXT messages from them, so no bus handler is needed.'''
+        cdef kGstContext *c = gst_context_new(b'gst.gl.GLDisplay', 1)
+        gst_context_set_gl_display(c, self.display)
+        gst_element_set_context(pipeline, c)
+        gst_mini_object_unref(c)
+        c = gst_context_new(b'gst.gl.app_context', 1)
+        gst_structure_set(gst_context_writable_structure(c), b'context',
+                          gst_gl_context_get_type(), self.wrapped, NULL)
+        gst_element_set_context(pipeline, c)
+        gst_mini_object_unref(c)
+
+
 cdef str _gerror(kGError *err):
     cdef str text
     if err == NULL:
@@ -444,6 +600,9 @@ _SINKS = {
     'rgba': ('videoflip video-direction=auto ! '
              'appsink name=kivysink caps="video/x-raw,format=RGBA" '
              + _SINK_PROPS),
+    'gl': ('glupload ! glcolorconvert ! appsink name=kivysink '
+           'caps="video/x-raw(memory:GLMemory),format=RGBA,'
+           'texture-target=2D" ' + _SINK_PROPS),
 }
 
 
@@ -454,12 +613,14 @@ cdef class GstPlayer:
         `uri`: str
             A URI (use :func:`filename_to_uri` for files).
         `sink`: str or None
-            ``'nv12'`` or ``'rgba'`` for video; None for audio only (no
-            video decoding).
+            ``'nv12'``, ``'rgba'`` or ``'gl'`` for video; None for audio
+            only (no video decoding).
         `audio`: bool
             Decode and play audio.
         `force_sw_decoders`: bool
             Set ``playbin3``'s ``force-sw-decoders`` flag.
+        `gl`: :class:`GLShare`
+            Required for the ``'gl'`` sink.
         `flip`: bool
             Apply the stream's orientation tag with ``videoflip`` in the
             CPU sinks. Off by default: even with no tag to apply,
@@ -471,6 +632,7 @@ cdef class GstPlayer:
     cdef kGstElement *appsink
     cdef kGstBus *bus
     cdef kGstSample *sample
+    cdef GLShare gl
     cdef readonly object uri
     cdef readonly object sink
     cdef readonly bint audio
@@ -493,13 +655,16 @@ cdef class GstPlayer:
         self.par_n = self.par_d = 1
 
     def __init__(self, uri, sink='nv12', audio=True,
-                 force_sw_decoders=False, flip=False):
-        if sink not in (None, 'nv12', 'rgba'):
+                 force_sw_decoders=False, GLShare gl=None, flip=False):
+        if sink not in (None, 'nv12', 'rgba', 'gl'):
             raise ValueError('unknown sink {!r}'.format(sink))
+        if sink == 'gl' and gl is None:
+            raise ValueError("the 'gl' sink needs a GLShare")
         self.uri = uri
         self.sink = sink
         self.audio = audio
         self.force_sw_decoders = force_sw_decoders
+        self.gl = gl
         self.flip = flip
         _players.add(self)
 
@@ -543,7 +708,7 @@ cdef class GstPlayer:
 
         # Not 'soft-colorbalance', which makes playsink add a software
         # converter chain. Not 'text' on Linux: a subtitle overlay would be
-        # blended into every frame on the CPU. On Windows 'text' stays on:
+        # blended on the CPU, breaking zero-copy. On Windows 'text' stays on:
         # without it, a stream with a subtitle track (Apple's fMP4 HLS
         # example) never started with the 1.28.7 wheels' default audio sink
         # (wasapi2sink); playbin3 selects the text stream either way.
@@ -571,6 +736,8 @@ cdef class GstPlayer:
             gst_object_ref_sink(self.sinkbin)
             self.appsink = gst_bin_get_by_name(self.sinkbin, b'kivysink')
             g_object_set(self.pipeline, b'video-sink', self.sinkbin, NULL)
+            if self.gl is not None:
+                self.gl.apply(self.pipeline)
         buri = self.uri.encode('utf-8')
         g_object_set(self.pipeline, b'uri', <char *>buri, NULL)
         self.bus = gst_element_get_bus(self.pipeline)
@@ -838,6 +1005,31 @@ cdef class GstPlayer:
             gst_buffer_unmap(buf, &info)
         return True
 
+    def gl_texture_id(self):
+        '''For the 'gl' sink: wait for GstGL's sync point in Kivy's context
+        and return the GL texture id of the held frame, or 0.'''
+        cdef kGstBuffer *buf
+        cdef kGstMemory *mem
+        cdef kGstMapInfo info
+        cdef void *sync
+        cdef unsigned int tex = 0
+        if self.sample == NULL or self.gl is None:
+            return 0
+        buf = gst_sample_get_buffer(self.sample)
+        if gst_buffer_n_memory(buf) < 1:
+            return 0
+        sync = gst_buffer_get_meta(buf, gst_gl_sync_meta_api_get_type())
+        if sync != NULL:
+            gst_gl_sync_meta_wait(sync, self.gl.wrapped)
+        mem = gst_buffer_peek_memory(buf, 0)
+        if not gst_is_gl_memory(mem):
+            return 0
+        if not gst_memory_map(mem, &info, MAP_READ | MAP_GL):
+            return 0
+        tex = (<unsigned int *>info.data)[0]
+        gst_memory_unmap(mem, &info)
+        return tex
+
     def position(self):
         '''Position in seconds, or -1 when unknown.'''
         cdef int64_t pos = 0
@@ -870,8 +1062,8 @@ cdef class GstPlayer:
             g_object_set(self.pipeline, b'volume', volume, NULL)
 
     def describe(self):
-        '''What GStreamer chose: ``{'decoder', 'decoder_caps'}`` (None
-        where not found). For logs.'''
+        '''What GStreamer chose: ``{'decoder', 'decoder_caps',
+        'glupload_caps'}`` (None where not found). For logs.'''
         cdef kGstIterator *it
         cdef kGValue v
         cdef kGstElement *el
@@ -879,7 +1071,7 @@ cdef class GstPlayer:
         cdef const char *klass
         cdef kGstPad *pad
         cdef kGstCaps *caps
-        info = {'decoder': None, 'decoder_caps': None}
+        info = {'decoder': None, 'decoder_caps': None, 'glupload_caps': None}
         if self.pipeline == NULL:
             return info
         it = gst_bin_iterate_recurse(self.pipeline)
@@ -898,6 +1090,8 @@ cdef class GstPlayer:
                 if b'Decoder' in kl and b'Video' in kl:
                     info['decoder'] = name
                     info['decoder_caps'] = _pad_caps(el, b'src')
+                elif name == 'glupload':
+                    info['glupload_caps'] = _pad_caps(el, b'sink')
             g_value_unset(&v)
         gst_iterator_free(it)
         return info

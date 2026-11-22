@@ -234,10 +234,11 @@ class Video(Image):
     * GStreamer (Linux, Windows) -- see
       :class:`~kivy.core.video.video_gstplayer.VideoGstplayer`:
 
-      - ``render`` (``'auto'``, ``'nv12'`` or ``'rgba'``, default
-        ``'auto'``) -- how frames reach Kivy. ``'auto'`` and ``'nv12'``
-        upload the two NV12 planes and convert them with a shader;
-        ``'rgba'`` converts on the CPU, for debugging.
+      - ``render`` (``'auto'``, ``'gl'``, ``'nv12'`` or ``'rgba'``,
+        default ``'auto'``) -- how frames reach Kivy. ``'auto'`` draws
+        GStreamer's own GL texture when Kivy's GL context allows sharing
+        and otherwise uploads the two NV12 planes; ``'rgba'`` is for
+        debugging.
       - ``force_sw_decoders`` (``bool``, default ``False``) -- never use
         a hardware decoder.
 
