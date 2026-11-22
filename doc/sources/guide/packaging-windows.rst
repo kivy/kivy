@@ -155,15 +155,23 @@ Packaging a video app with gstreamer
     ``gstplayer`` provider now loads GStreamer when the app runs, from the
     official ``gstreamer-*`` wheels (``kivy[gstreamer]``) or installer.
 
-Kivy's hook adds GStreamer's plugins, and the libraries they use, when the
-``gstplayer`` provider is included: it finds them through ``GST_PLUGIN_PATH``,
-or ``gst-inspect-1.0`` when that variable isn't set. The runtime hook then
-points the provider at the bundled libraries (``KIVY_GSTREAMER_ROOT``). With
-the official wheels, set ``GST_PLUGIN_PATH`` to their plugin directories
-before running PyInstaller. HTTPS streams also need GLib's TLS module
-(``gioopenssl.dll``, under ``gstreamer_plugins_libs\lib\gio\modules``) in the
-bundle, with ``GIO_EXTRA_MODULES`` pointing at it at run time; the hook
-doesn't add it.
+To bundle GStreamer's official wheels, pass them to ``Analysis`` with
+:func:`~kivy.tools.packaging.pyinstaller_hooks.get_gstreamer_datas`::
+
+    from kivy.tools.packaging.pyinstaller_hooks import get_gstreamer_datas
+
+    a = Analysis(['main.py'],
+                 ...
+                 datas=get_gstreamer_datas(),
+                 ...)
+
+Each installed ``gstreamer-*`` wheel is bundled whole, under its own package
+name. That covers GStreamer's libraries and plugins, the plugin scanner, and
+GLib's TLS module for HTTPS. The provider finds them at run time just as it
+does in a virtual environment. The wheels add about 260 MB, more with
+``kivy[gstreamer-restricted]``. The first video an app plays on a machine
+waits for GStreamer to scan its plugins in the background, which can take
+10 seconds or more; later launches don't scan again.
 
 .. _overwrite-win-hook:
 

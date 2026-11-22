@@ -46,5 +46,7 @@ def __getattr__(name):
     # GStreamer.
     if name not in _PUBLIC:
         raise AttributeError(name)
-    from kivy.lib.gstplayer import _gstplayer
+    # _runtime is imported by the compiled _gstplayer, where PyInstaller's
+    # import scan can't see it; naming it here gets it bundled.
+    from kivy.lib.gstplayer import _gstplayer, _runtime  # noqa: F401
     return getattr(_gstplayer, name)
