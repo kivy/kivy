@@ -616,6 +616,7 @@ class ClockBaseBehavior(object):
         self.init_async_lib(async_lib)
         super(ClockBaseBehavior, self).__init__(**kwargs)
         self._duration_ts0 = self._start_tick = self._last_tick = self.time()
+        self._frame_deadline = self._last_tick
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
     def init_async_lib(self, lib):
@@ -681,15 +682,12 @@ class ClockBaseBehavior(object):
         '''
         fps = self._max_fps
         if fps > 0:
-            min_sleep = self.get_resolution()
-            undershoot = 4 / 5. * min_sleep
             usleep = self.usleep
-            ready = self._check_ready
-
-            done, sleeptime = ready(fps, min_sleep, undershoot)
-            while not done:
+            deadline = self._next_frame_deadline(fps)
+            sleeptime = deadline - self.time()
+            while sleeptime > 0:
                 usleep(1000000 * sleeptime)
-                done, sleeptime = ready(fps, min_sleep, undershoot)
+                sleeptime = deadline - self.time()
 
         current = self.time()
         self._dt = current - self._last_tick
@@ -701,19 +699,13 @@ class ClockBaseBehavior(object):
         '''
         fps = self._max_fps
         if fps > 0:
-            min_sleep = self.get_resolution()
-            undershoot = 4 / 5. * min_sleep
-            ready = self._check_ready
-
-            slept = False
-            done, sleeptime = ready(fps, min_sleep, undershoot)
-            while not done:
-                slept = True
-                await self._async_lib.sleep(sleeptime)
-                done, sleeptime = ready(fps, min_sleep, undershoot)
-
-            if not slept:
+            deadline = self._next_frame_deadline(fps)
+            sleeptime = deadline - self.time()
+            if sleeptime <= 0:
                 await self._async_lib.sleep(0)
+            while sleeptime > 0:
+                await self._async_lib.sleep(sleeptime)
+                sleeptime = deadline - self.time()
         else:
             await self._async_lib.sleep(0)
 
@@ -722,9 +714,17 @@ class ClockBaseBehavior(object):
         self._last_tick = current
         return current
 
-    def _check_ready(self, fps, min_sleep, undershoot):
-        sleeptime = 1 / fps - (self.time() - self._last_tick)
-        return sleeptime - undershoot <= min_sleep, sleeptime - undershoot
+    def _next_frame_deadline(self, fps):
+        # Deadlines advance by whole frames, so oversleeping in one frame
+        # doesn't delay the following ones. When the loop falls further
+        # behind (slow frames, a pause, or a maxfps change), start over.
+        period = 1 / fps
+        now = self.time()
+        deadline = self._frame_deadline + period
+        if not now - period / 3 <= deadline <= now + period:
+            deadline = now
+        self._frame_deadline = deadline
+        return deadline
 
     def tick(self):
         '''Advance the clock to the next step. Must be called every frame.

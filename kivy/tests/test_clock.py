@@ -303,3 +303,75 @@ def test_clock_event_trigger_ref(kivy_clock):
     event()
     kivy_clock.tick()
     assert value == 42
+
+
+@pytest.fixture()
+def fake_time_clock():
+    from kivy.clock import ClockBase
+
+    clock = ClockBase()
+    now = 0.
+
+    def time():
+        return now
+
+    def advance(seconds):
+        nonlocal now
+        now += seconds
+
+    async def async_sleep(seconds):
+        advance(seconds)
+
+    clock.time = time
+    clock.usleep = lambda microseconds: advance(microseconds / 1000000.)
+    clock._async_lib = type('FakeAsyncLib', (), {'sleep': async_sleep})
+    clock._last_tick = clock._frame_deadline = now
+    return clock, advance
+
+
+@pytest.mark.parametrize('fps', [30, 60, 120])
+@pytest.mark.parametrize('work', [0, .002])
+def test_idle_honors_maxfps(fake_time_clock, fps, work):
+    clock, advance = fake_time_clock
+    clock._max_fps = fps
+    for _ in range(10):
+        advance(work)
+        clock.idle()
+    assert clock._last_tick == pytest.approx(10 / fps)
+
+
+@pytest.mark.parametrize('fps', [60, 120])
+def test_idle_oversleep_does_not_accumulate(fake_time_clock, fps):
+    clock, advance = fake_time_clock
+    clock.usleep = lambda microseconds: advance(microseconds / 1000000. + .001)
+    clock._max_fps = fps
+    for _ in range(100):
+        clock.idle()
+    assert clock._last_tick == pytest.approx(100 / fps + .001)
+
+
+@pytest.mark.parametrize('fps', [30, 60, 120])
+@pytest.mark.parametrize('work', [0, .002])
+def test_async_idle_honors_maxfps(fake_time_clock, fps, work):
+    import asyncio
+    clock, advance = fake_time_clock
+    clock._max_fps = fps
+
+    async def run():
+        for _ in range(10):
+            advance(work)
+            await clock.async_idle()
+
+    asyncio.run(run())
+    assert clock._last_tick == pytest.approx(10 / fps)
+
+
+def test_idle_after_slow_frame(fake_time_clock):
+    clock, advance = fake_time_clock
+    clock._max_fps = 60
+    advance(.05)
+    clock.idle()
+    assert clock._last_tick == pytest.approx(.05)
+    # no burst of frames to catch up
+    clock.idle()
+    assert clock._last_tick == pytest.approx(.05 + 1 / 60)
