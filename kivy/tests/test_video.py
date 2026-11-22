@@ -12,7 +12,7 @@ class VideoTestCase(unittest.TestCase):
         from kivy.base import runTouchApp, stopTouchApp
         from kivy import kivy_examples_dir
         from os.path import join, abspath
-        source = abspath(join(kivy_examples_dir, "widgets", "cityCC0.mpg"))
+        source = abspath(join(kivy_examples_dir, "widgets", "cityCC0.mp4"))
         video = Video(source=source, state='play')
         Clock.schedule_once(lambda x: stopTouchApp(), 1)
 

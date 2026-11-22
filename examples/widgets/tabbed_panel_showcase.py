@@ -200,7 +200,7 @@ Builder.load_string('''
             source: 'data/images/defaulttheme-0.png'
         VideoPlayer:
             id: tab_3_content
-            source: 'cityCC0.mpg'
+            source: 'cityCC0.mp4'
     TabbedPanelHeader:
         id: def_tab
         content:default_content.__self__
