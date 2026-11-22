@@ -27,8 +27,8 @@ with open(join(ROOT, 'kivy', '_version.py'), encoding='utf-8') as f:
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
-                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mpg',
-                        'glsl', 'zip')
+                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv', 'mp4',
+                        'jsa', 'glsl', 'zip')
 for root, sub_folders, files in os.walk(join(ROOT, 'examples')):
     for fn in files:
         ext = fn.split('.')[-1].lower()

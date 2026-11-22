@@ -41,7 +41,7 @@ def _try_import_provider():
 
 def _example_video_path():
     from kivy import kivy_examples_dir
-    return abspath(join(kivy_examples_dir, 'widgets', 'cityCC0.mpg'))
+    return abspath(join(kivy_examples_dir, 'widgets', 'cityCC0.mp4'))
 
 
 class VideoAVFoundationImportTestCase(unittest.TestCase):
