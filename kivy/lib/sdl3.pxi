@@ -491,6 +491,7 @@ cdef extern from "SDL.h":
     cdef char *SDL_HINT_ORIENTATIONS
     cdef char *SDL_HINT_VIDEO_WIN_D3DCOMPILER
     cdef char *SDL_HINT_VIDEO_FORCE_EGL
+    cdef char *SDL_HINT_OPENGL_ES_DRIVER
     cdef char *SDL_HINT_ANDROID_TRAP_BACK_BUTTON
     cdef char *SDL_HINT_WINDOWS_DPI_AWARENESS
 
