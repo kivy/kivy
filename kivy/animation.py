@@ -301,8 +301,9 @@ class Animation(EventDispatcher):
             'properties': {},
             'time': None,
             # the first update advances by at most one regular frame, so a
-            # slow frame right after start() doesn't skip into the animation
-            'first_step': max(self._step, Clock.frametime)}
+            # slow frame right after start() doesn't skip into the animation;
+            # 1 / 60 covers start() being called in an unusually short frame
+            'first_step': max(self._step, Clock.frametime, 1 / 60.)}
 
         # get current values
         p = d['properties']

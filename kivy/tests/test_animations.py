@@ -229,6 +229,16 @@ class TestAnimation:
         sleep(.05)
         Animation(x=100, d=1).start(w)
         sleep(.5, tick_interval=.5)
+        assert w.x == pytest.approx(100 / 60)
+
+    def test_first_update_after_short_frame(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        sleep(.05)
+        sleep(1e-9)
+        Animation(x=100, d=1).start(w)
+        sleep(.01)
         assert w.x == pytest.approx(1)
 
 
