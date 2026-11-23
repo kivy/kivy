@@ -212,8 +212,55 @@ class TestAnimation:
         assert w2.x == pytest.approx(100)
         assert no_animations_being_played()
 
+    @pytest.mark.parametrize('step', [0, .05])
+    def test_first_update_moves(self, sleep, step):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        sleep(.05)
+        Animation(x=100, d=1, s=step).start(w)
+        sleep(max(step, .01))
+        assert w.x == pytest.approx(100 * max(step, .01))
+
+    def test_slow_frame_after_start(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        sleep(.05)
+        Animation(x=100, d=1).start(w)
+        sleep(.5, tick_interval=.5)
+        assert w.x == pytest.approx(100 / 60)
+
+    def test_first_update_after_short_frame(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        sleep(.05)
+        sleep(1e-9)
+        Animation(x=100, d=1).start(w)
+        sleep(.01)
+        assert w.x == pytest.approx(1)
+
 
 class TestSequence:
+
+    def test_every_tick_moves(self, sleep):
+        from kivy.animation import Animation
+        from kivy.uix.widget import Widget
+        w = Widget()
+        sleep(.05)
+        positions = []
+        w.bind(x=lambda w, x: positions.append(x))
+        (Animation(x=100, d=.1) + Animation(x=0, d=.1)).start(w)
+        for _ in range(50):
+            sleep(.01)
+            assert positions, 'x did not change in this tick'
+            del positions[:]
+            if no_animations_being_played():
+                break
+        assert no_animations_being_played()
+        assert w.x == pytest.approx(0)
+
 
     def test_cancel_all(self, sleep):
         from kivy.animation import Animation

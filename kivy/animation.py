@@ -299,7 +299,11 @@ class Animation(EventDispatcher):
         d = self._widgets[widget.uid] = {
             'widget': widget,
             'properties': {},
-            'time': None}
+            'time': None,
+            # the first update advances by at most one regular frame, so a
+            # slow frame right after start() doesn't skip into the animation;
+            # 1 / 60 covers start() being called in an unusually short frame
+            'first_step': max(self._step, Clock.frametime, 1 / 60.)}
 
         # get current values
         p = d['properties']
@@ -348,7 +352,7 @@ class Animation(EventDispatcher):
                     continue
 
             if anim['time'] is None:
-                anim['time'] = 0.
+                anim['time'] = min(dt, anim['first_step'])
             else:
                 anim['time'] += dt
 
