@@ -56,6 +56,7 @@ typedef struct _kGstContext kGstContext;
 typedef struct _kGstPad kGstPad;
 typedef struct _kGstIterator kGstIterator;
 typedef struct _kGstElementFactory kGstElementFactory;
+typedef struct _kGstQuery kGstQuery;
 typedef struct _kGstGLDisplay kGstGLDisplay;
 typedef struct _kGstGLContext kGstGLContext;
 
@@ -146,6 +147,7 @@ enum {
     X(KGST_LIB_GOBJECT, 1, void, g_object_get, (void *object, const char *first_property_name, ...)) \
     X(KGST_LIB_GOBJECT, 1, void *, g_value_get_object, (const kGValue *value)) \
     X(KGST_LIB_GOBJECT, 1, void, g_value_unset, (kGValue *value)) \
+    X(KGST_LIB_GOBJECT, 1, unsigned long, g_signal_connect_data, (void *instance, const char *detailed_signal, void (*c_handler)(void), void *data, void *destroy_data, int connect_flags)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_init_check, (int *argc, char ***argv, kGError **error)) \
     X(KGST_LIB_GST, 1, void, gst_version, (kguint *major, kguint *minor, kguint *micro, kguint *nano)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_is_initialized, (void)) \
@@ -162,6 +164,10 @@ enum {
     X(KGST_LIB_GST, 1, void, gst_element_set_context, (kGstElement *element, kGstContext *context)) \
     X(KGST_LIB_GST, 1, kGstPad *, gst_element_get_static_pad, (kGstElement *element, const char *name)) \
     X(KGST_LIB_GST, 1, kGstCaps *, gst_pad_get_current_caps, (kGstPad *pad)) \
+    X(KGST_LIB_GST, 1, unsigned long, gst_pad_add_probe, (kGstPad *pad, int mask, void *callback, void *user_data, void *destroy_data)) \
+    X(KGST_LIB_GST, 1, kGstQuery *, gst_pad_probe_info_get_query, (void *info)) \
+    X(KGST_LIB_GST, 1, const kGstStructure *, gst_query_get_structure, (kGstQuery *query)) \
+    X(KGST_LIB_GST, 1, void, gst_query_set_accept_caps_result, (kGstQuery *query, kgboolean result)) \
     X(KGST_LIB_GST, 1, kGstElement *, gst_bin_get_by_name, (kGstElement *bin, const char *name)) \
     X(KGST_LIB_GST, 1, kgboolean, gst_bin_recalculate_latency, (kGstElement *bin)) \
     X(KGST_LIB_GST, 1, kGstIterator *, gst_bin_iterate_recurse, (kGstElement *bin)) \
@@ -382,6 +388,78 @@ static int kgst_have_lib(int lib)
 static const char *kgst_loaded_path(void)
 {
     return kgst_gst_path;
+}
+
+/* ---- force_sw_decoders ----
+ *
+ * playbin3 accepts the force-sw-decoders flag but never reads it: in
+ * GStreamer 1.22 to 1.28 only playbin (playbin2) filters hardware decoders
+ * out, and decodebin3 has no signal to filter its factory list. What
+ * decodebin3 does do, since 1.22, is try the next decoder factory when one
+ * refuses the stream's caps. So every hardware decoder added to the
+ * pipeline gets a probe that answers its sink pad's ACCEPT_CAPS query with
+ * FALSE; decodebin3 then removes it and moves on, as if the decoder could
+ * not handle the stream. "Hardware" in the element class is what playbin2
+ * tests too (GST_ELEMENT_FACTORY_TYPE_HARDWARE).
+ *
+ * Both callbacks run on GStreamer's threads and touch no Python object. */
+
+#define KGST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM (1 << 9)
+#define KGST_PAD_PROBE_OK 1
+#define KGST_PAD_PROBE_HANDLED 4
+
+static int kgst_refuse_caps_probe(kGstPad *pad, void *info, void *user_data)
+{
+    kGstQuery *q = kgst_api.gst_pad_probe_info_get_query(info);
+    const kGstStructure *s;
+    (void)pad;
+    (void)user_data;
+    if (!q)
+        return KGST_PAD_PROBE_OK;
+    s = kgst_api.gst_query_get_structure(q);
+    if (!s || !kgst_api.gst_structure_has_name(s, "GstQueryAcceptCaps"))
+        return KGST_PAD_PROBE_OK;
+    kgst_api.gst_query_set_accept_caps_result(q, 0);
+    return KGST_PAD_PROBE_HANDLED;
+}
+
+/* 1 when `element` is a hardware decoder (also used by describe()). */
+static int kgst_is_hw_decoder(kGstElement *element)
+{
+    kGstElementFactory *f;
+    const char *klass;
+    if (!element)
+        return 0;
+    f = kgst_api.gst_element_get_factory(element);
+    if (!f)
+        return 0;
+    klass = kgst_api.gst_element_factory_get_metadata(f, "klass");
+    return klass && strstr(klass, "Decoder") && strstr(klass, "Hardware");
+}
+
+/* playbin3's "element-setup" handler. */
+static void kgst_on_element_setup(kGstElement *playbin, kGstElement *element,
+                                  void *user_data)
+{
+    kGstPad *pad;
+    (void)playbin;
+    (void)user_data;
+    if (!kgst_is_hw_decoder(element))
+        return;
+    pad = kgst_api.gst_element_get_static_pad(element, "sink");
+    if (!pad)
+        return;
+    kgst_api.gst_pad_add_probe(pad, KGST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM,
+                               (void *)kgst_refuse_caps_probe, NULL, NULL);
+    kgst_api.gst_object_unref(pad);
+}
+
+/* Keep hardware decoders out of a playbin3 pipeline. */
+static void kgst_refuse_hw_decoders(kGstElement *playbin)
+{
+    kgst_api.g_signal_connect_data(playbin, "element-setup",
+                                   (void (*)(void))kgst_on_element_setup,
+                                   NULL, NULL, 0);
 }
 
 /* ---- Kivy's current GL context, read from the GL platform itself ---- */

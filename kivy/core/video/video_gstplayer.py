@@ -46,7 +46,11 @@ display size: the texture's size is the size to show the video at.
 
 * ``render``: ``'auto'`` (default), ``'gl'``, ``'nv12'`` or ``'rgba'``.
   ``'gl'`` falls back to ``'nv12'`` when sharing fails.
-* ``force_sw_decoders``: ``True`` to never use hardware decoders.
+* ``force_sw_decoders``: ``True`` to never use hardware decoders, for
+  example to work around a driver bug. A format with no software decoder
+  installed then fails with ``missing GStreamer plugin``. ``playbin3``
+  ignores its own ``force-sw-decoders`` flag, so Kivy makes each hardware
+  decoder refuse the stream instead.
 
 Unknown keys are logged once and ignored.
 
