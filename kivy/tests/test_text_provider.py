@@ -28,6 +28,40 @@ class TestVerticalCentering:
     """Constrained-height layout should split at the nearest newline."""
 
     @pytest.mark.parametrize("valign", ["middle", "center"])
+    @pytest.mark.parametrize("height", [120, 150, 240, 72])
+    def test_pil_wrapped_text(self, valign, height):
+        from kivy.core.text.text_pil import LabelPIL
+
+        text = "Title\n" + "words that wrap onto several lines " * 4
+        expected = LabelPIL(
+            text=text, text_size=(400, None), font_name="Roboto",
+            font_size=20, valign="top")
+        expected.render()
+        label = LabelPIL(
+            text=text, text_size=(400, height), font_name="Roboto",
+            font_size=20, valign=valign)
+        label.render()
+        lines = ["".join(word.text for word in line.words)
+                 for line in label._cached_lines]
+        full_lines = ["".join(word.text for word in line.words)
+                      for line in expected._cached_lines]
+        assert expected._internal_size[1] == 120
+        assert len(full_lines) == 5
+        if height >= expected._internal_size[1]:
+            assert lines == full_lines
+        else:
+            assert lines == full_lines[:2]
+            assert label._internal_size[1] <= height
+
+    @pytest.mark.parametrize("valign", ["middle", "center"])
+    def test_pil_empty_text(self, valign):
+        from kivy.core.text.text_pil import LabelPIL
+
+        label = LabelPIL(text="", text_size=(400, 150), valign=valign)
+        assert label.render() == (0, 0)
+        assert label._cached_lines == []
+
+    @pytest.mark.parametrize("valign", ["middle", "center"])
     @pytest.mark.parametrize(
         "text, height, expected",
         [

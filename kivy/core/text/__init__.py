@@ -937,6 +937,8 @@ class LabelBase(object):
 
         if uh is not None and (options['valign'] == 'middle' or
                                options['valign'] == 'center'):
+            w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
+                options, self.get_cached_extents(), True, True)
             center = -1  # pos of newline
             if len(text) > 1:
                 middle = int(len(text) // 2)
@@ -948,16 +950,14 @@ class LabelBase(object):
                 elif r != -1:
                     center = r
             # if a newline split text, render from center down and up til uh
-            if center != -1:
+            if center != -1 and h > uh:
+                del lines[:]
                 # layout from center down until half uh
                 w, h, clipped = layout_text(text[center + 1:], lines, (0, 0),
                 (uw, uh / 2), options, self.get_cached_extents(), True, True)
                 # now layout from center upwards until uh is reached
                 w, h, clipped = layout_text(text[:center + 1], lines, (w, h),
                 (uw, uh), options, self.get_cached_extents(), False, True)
-            else:  # if there's no new line, layout everything
-                w, h, clipped = layout_text(text, lines, (0, 0), (uw, None),
-                options, self.get_cached_extents(), True, True)
         else:  # top or bottom
             w, h, clipped = layout_text(text, lines, (0, 0), (uw, uh), options,
                 self.get_cached_extents(), options['valign'] == 'top', True)
