@@ -361,7 +361,7 @@ class VideoGstplayer(VideoBase):
             # can't survive: it crashes when the first frame's references
             # are missing (raspberrypi/linux#7612, gstreamer!10421).
             return
-        target =self._seeks.request((seconds, accurate), time.monotonic(),
+        target = self._seeks.request((seconds, accurate), time.monotonic(),
                                      ready=self._prerolled)
         if target is not None:
             self._issue_seek(target)
