@@ -299,7 +299,7 @@ class ImageLoaderTestCase(unittest.TestCase):
         w, h, pixels, pitch = imgdata._data[0].get_mipmap(0)
         fmt = imgdata._data[0].fmt
 
-        # required for FFPy memview
+        # some loaders hand back a memoryview
         # FIXME: bytearray() for py2 compat, I can't be bothered to research
         if not isinstance(pixels, bytes):
             pixels = bytearray(pixels)
@@ -363,10 +363,6 @@ class ImageLoaderTestCase(unittest.TestCase):
 
     def test_ImageLoaderPIL(self):
         loadercls = LOADERS.get('ImageLoaderPIL')
-        ctx = self._test_imageloader(loadercls)
-
-    def test_ImageLoaderFFPy(self):
-        loadercls = LOADERS.get('ImageLoaderFFPy')
         ctx = self._test_imageloader(loadercls)
 
     def test_ImageLoaderGIF(self):

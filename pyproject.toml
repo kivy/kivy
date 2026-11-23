@@ -118,8 +118,6 @@ media = [
     'gstreamer-plugins==1.28.7; sys_platform == "win32"',
     'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
     'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
-    # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
-    'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
 full = [
     "pillow>=13,<14",
@@ -127,8 +125,6 @@ full = [
     'gstreamer-plugins==1.28.7; sys_platform == "win32"',
     'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
     'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
-    # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
-    'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
 angle = ['kivy_deps.angle~=0.5.0; sys_platform == "win32"']
 glew = ['kivy_deps.glew~=0.3.1; sys_platform == "win32"']

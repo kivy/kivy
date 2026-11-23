@@ -242,8 +242,8 @@ class Video(Image):
       - ``force_sw_decoders`` (``bool``, default ``False``) -- never use
         a hardware decoder.
 
-    Other providers (Media Foundation, Android, FFmpeg /
-    ffpyplayer) currently expose no documented ``options`` keys: unknown kwargs in
+    Other providers (Media Foundation, Android) currently expose no
+    documented ``options`` keys: unknown kwargs in
     ``options`` are also unpacked as keyword arguments to the core video
     for back-compat with apps that put well-known kwargs (e.g.
     ``eos='loop'``) in this dict.

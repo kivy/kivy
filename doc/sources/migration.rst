@@ -1461,19 +1461,14 @@ Kivy 2.x.x, playing video on macOS needed ffpyplayer (installed by the
 
 **Migration Impact**
 
-Most apps need no changes. Apps that installed ffpyplayer or GStreamer only
-to play video on macOS can remove them. Keep them if the app also uses them
-for audio.
+Most apps need no changes. Apps that installed ffpyplayer or GStreamer to
+play video on macOS can remove them: Kivy 3.x.x has no ffpyplayer providers
+(see *ffpyplayer and ffmpeg providers removed* below), and the ``gstplayer``
+provider is no longer built for macOS.
 
-To keep the Kivy 2.x.x behavior, for example to play a format AVFoundation
-can't open, select the previous provider before importing Kivy:
-
-.. code-block:: python
-
-    import os
-
-    os.environ['KIVY_VIDEO'] = 'ffpyplayer'  # or 'gstplayer'
-    import kivy
+There is no other video provider on macOS. Formats AVFoundation can't open,
+such as WebM, MKV, VP9 and MPEG-2, need converting, for example to MP4 with
+H.264 or HEVC video.
 
 
 *New default video provider on Windows: Media Foundation*
@@ -1498,8 +1493,8 @@ installed by the ``media`` or ``full`` selector) or ffpyplayer.
   free on every PC. Formats that GStreamer or ffpyplayer decoded with their
   own codecs, and that Windows has no decoder for, no longer play by default.
 - Windows "N" and "KN" editions ship without Media Foundation. There, Kivy
-  skips this provider and uses the next one installed (``gstplayer`` or
-  ``ffpyplayer``), or plays no video if neither is. Installing the Media
+  skips this provider and uses ``gstplayer`` if GStreamer is installed, or
+  plays no video. Installing the Media
   Feature Pack (Settings > Apps > Optional features) makes Media Foundation
   available.
 
@@ -1525,7 +1520,7 @@ decode, select the previous provider before importing Kivy:
 
     import os
 
-    os.environ['KIVY_VIDEO'] = 'gstplayer'  # or 'ffpyplayer'
+    os.environ['KIVY_VIDEO'] = 'gstplayer'
     import kivy
 
 See :ref:`environment` for the full list of ``KIVY_VIDEO`` values.
@@ -1641,6 +1636,45 @@ release builds run R8 need a keep rule for Media3; see
 :ref:`packaging_android_video`.
 
 
+*ffpyplayer and ffmpeg providers removed*
+
+Kivy 3.x.x removes the ``ffpyplayer`` video, audio and image providers, and
+the ``ffmpeg`` video provider. The ``media`` and ``full`` selectors no longer
+install ffpyplayer. ffpyplayer bundles its own FFmpeg, which Kivy's providers
+now avoid in favour of each platform's own media framework, and it is no
+longer actively developed. The ``ffmpeg`` provider needed an FFmpeg extension
+for Android that no longer exists, so it couldn't work.
+
+**Behavior Changes**
+
+- ``ffpyplayer`` and ``ffmpeg`` are no longer values of ``KIVY_VIDEO``;
+  ``ffpyplayer`` is no longer a value of ``KIVY_AUDIO_OUTPUT``, nor ``ffpy``
+  of ``KIVY_IMAGE``. Kivy logs a warning for a provider name it doesn't know.
+- Video plays through the providers described above: Media Foundation on
+  Windows, AVFoundation on macOS and iOS, ExoPlayer on Android, and GStreamer
+  on Linux, the Raspberry Pi and, optionally, Windows.
+- Sounds that ffpyplayer played, where it was installed, now play through the
+  platform's provider (``avplayer`` on macOS and iOS, ``android`` on
+  Android), ``sdl3`` (WAV, OGG, FLAC and MP3), or ``gstplayer`` (AAC, M4A
+  and Opus among others) on Linux and Windows.
+- Images that ffpyplayer loaded load through PIL, SDL3_image or, on macOS and
+  iOS, ImageIO.
+- On macOS and iOS, RTSP streams and the formats AVFoundation can't open
+  (WebM, MKV, VP9, MPEG-2) no longer play. On Android, ExoPlayer plays WebM,
+  MKV and VP9, but MPEG-2 plays only on devices that have an MPEG-2 decoder.
+  On Linux and Windows, GStreamer plays them all.
+
+**Migration Impact**
+
+Remove ffpyplayer from the app's requirements, along with any
+``KIVY_VIDEO=ffpyplayer``, ``KIVY_AUDIO_OUTPUT=ffpyplayer`` or
+``audio_output_provider='ffpyplayer'``. On Linux, install GStreamer's runtime
+packages (see :ref:`install-gstreamer-linux`); on Windows, install
+``kivy[gstreamer]`` if the app needs formats Media Foundation can't decode.
+Android and iOS builds that added the ``ffpyplayer`` and ``ffmpeg`` recipes
+only for Kivy's providers can drop them.
+
+
 *New on_error event for videos that can't play*
 
 Kivy 3.x.x adds an ``on_error`` event to :class:`~kivy.core.video.VideoBase`,
@@ -1662,9 +1696,8 @@ couldn't tell a failed video from one that was still loading.
 - A missing local file is now reported too. In Kivy 2.x.x
   :class:`~kivy.uix.video.Video` passed no filename to the provider when the
   file couldn't be found, and nothing reported it.
-- The Media Foundation (Windows), AVFoundation (macOS, iOS), Android and
-  GStreamer providers fire ``on_error``. The ``ffpyplayer`` provider doesn't
-  yet: with it, only a missing local file is reported.
+- Every video provider fires ``on_error``: Media Foundation (Windows),
+  AVFoundation (macOS, iOS), Android and GStreamer.
 
 **Migration Impact**
 

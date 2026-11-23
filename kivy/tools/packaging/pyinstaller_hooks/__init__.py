@@ -169,8 +169,8 @@ def get_deps_minimal(exclude_ignored=True, **kwargs):
             included.
 
     For example, ``get_deps_minimal(video=None, window=True,
-    audio=['gstplayer', 'ffpyplayer'], spelling='enchant')`` will exclude all
-    the video providers, will include the gstreamer and ffpyplayer providers
+    audio=['gstplayer', 'sdl3'], spelling='enchant')`` will exclude all
+    the video providers, will include the gstreamer and sdl3 providers
     for audio, will include the enchant provider for spelling, and will use the
     current default provider for ``window``.
 

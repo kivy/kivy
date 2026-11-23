@@ -1378,7 +1378,6 @@ image_libs.append(make_provider_tuple('dds', all_providers))
 if USE_SDL3:
     image_libs.append(make_provider_tuple('sdl3', all_providers))
 
-image_libs.append(make_provider_tuple('ffpy', all_providers))
 image_libs.append(make_provider_tuple('pil', all_providers))
 image_libs.append(make_provider_tuple('thorvg_svg', all_providers))
 

@@ -225,15 +225,18 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: avfoundation, mediafoundation, gstplayer, ffpyplayer, ffmpeg, android, null
+    Values: avfoundation, mediafoundation, android, gstplayer, null
+
+    .. versionchanged:: 3.0.0
+        ``ffpyplayer`` and ``ffmpeg`` were removed.
 
 KIVY_AUDIO_OUTPUT
     Implementation to use for playing audio
 
-    Values: sdl3, gstplayer, ffpyplayer, avplayer
+    Values: sdl3, gstplayer, avplayer, android
 
     .. versionchanged:: 3.0.0
-        ``gstplayer`` is tried after ``sdl3``.
+        ``gstplayer`` is tried after ``sdl3``. ``ffpyplayer`` was removed.
 
 KIVY_IMAGE
     Implementation to use for reading image

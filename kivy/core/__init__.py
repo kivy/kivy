@@ -67,13 +67,10 @@ PROVIDER_CONFIGS = {
         ('mediafoundation', 'video_mediafoundation'),
         ('android', 'video_android'),
         ('gstplayer', 'video_gstplayer'),
-        ('ffmpeg', 'video_ffmpeg'),
-        ('ffpyplayer', 'video_ffpyplayer'),
         ('null', 'video_null'),
     ],
     'audio_output': [
         ('gstplayer', 'audio_gstplayer'),
-        ('ffpyplayer', 'audio_ffpyplayer'),
         ('sdl3', 'audio_sdl3'),
         ('avplayer', 'audio_avplayer'),
         ('android', 'audio_android'),
@@ -84,7 +81,6 @@ PROVIDER_CONFIGS = {
         ('dds', 'img_dds'),
         ('sdl3', 'img_sdl3'),
         ('pil', 'img_pil'),
-        ('ffpy', 'img_ffpyplayer'),
         ('thorvg_svg', 'img_thorvg_svg'),
     ],
     'camera': [
