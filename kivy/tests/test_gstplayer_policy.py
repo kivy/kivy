@@ -293,6 +293,19 @@ class TestRuntime:
     def test_wheel_variables_include_tls_modules(self):
         assert 'GIO_EXTRA_MODULES' in _runtime.WHEEL_VARIABLES
 
+    @pytest.mark.parametrize('version', [(1, 28, 7, 0), (1, 28, 7)])
+    def test_known_issue_1_28_7(self, version):
+        # adaptivedemux2 aborts in libsoup when an HLS/DASH pipeline stops
+        # (upstream work item 5296).
+        text = _policy.runtime_known_issue(version)
+        assert '1.28.9' in text and '5296' in text
+
+    @pytest.mark.parametrize('version', [
+        (1, 24, 12, 0), (1, 26, 2, 0), (1, 28, 6, 0), (1, 28, 8, 0),
+        (1, 28, 9, 0), (1, 29, 2, 0)])
+    def test_no_known_issue(self, version):
+        assert _policy.runtime_known_issue(version) is None
+
 
 class TestKivy2GstreamerDeps:
     '''Kivy 2's kivy_deps.gstreamer (GStreamer 1.18) is skipped on import:

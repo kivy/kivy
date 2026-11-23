@@ -73,7 +73,8 @@ from kivy.lib.gstplayer._policy import (
     BusError, HARDWARE_DECODER_PREFIXES, RENDER_PATHS, SeekQueue,
     cpu_frames_cheaper_on_nv12,
     display_size, error_text,
-    orientation_corners, reorient_tex_coords, yuv_conversion)
+    orientation_corners, reorient_tex_coords, runtime_known_issue,
+    yuv_conversion)
 from kivy.clock import Clock
 from kivy.core.video import VideoBase
 from kivy.graphics import BindTexture, Fbo, Rectangle
@@ -83,6 +84,9 @@ from kivy.logger import Logger
 _version, _library, _source = get_runtime_info()
 Logger.info('VideoGstplayer: GStreamer {} from {} ({})'.format(
     '.'.join(map(str, _version[:3])), _source, _library))
+_known_issue = runtime_known_issue(_version)
+if _known_issue:
+    Logger.warning('VideoGstplayer: ' + _known_issue)
 
 # Initialize now, in the background, rather than on the first load(): this
 # module is imported when the app selects its video provider, so the

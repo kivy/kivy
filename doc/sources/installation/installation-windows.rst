@@ -76,10 +76,11 @@ seconds; it happens in the background and only once.
 
 .. note::
 
-    With the 1.28.7 wheels, an HLS stream whose MPEG-TS demuxer is missing
-    (``gstreamer-restricted`` not installed) can abort the process when the
-    pipeline is shut down after the error. Install ``gstreamer-restricted``
-    if your app plays HLS.
+    Avoid GStreamer 1.28.7 (wheels or installer): it can abort the process
+    when an HLS or DASH stream stops, and always does after an HLS stream
+    fails for want of the MPEG-TS demuxer (``gstreamer-restricted`` not
+    installed). Kivy's extras install 1.28.9, which has the fix, and Kivy
+    logs a warning when it loads 1.28.7.
 
 Making Python available anywhere
 --------------------------------

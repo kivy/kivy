@@ -10,9 +10,33 @@ This is an internal module.
 from collections import namedtuple
 
 __all__ = ('BusError', 'error_text', 'yuv_conversion', 'SeekQueue',
-           'RENDER_PATHS')
+           'RENDER_PATHS', 'runtime_known_issue')
 
 RENDER_PATHS = ('auto', 'gl', 'nv12', 'rgba')
+
+
+def runtime_known_issue(version):
+    '''A warning for a GStreamer release with a known bug that can take
+    the app down, or None.
+
+    1.28.7 (wheels and installer): when an HLS or DASH pipeline stops
+    with a download in flight, adaptivedemux2's download helper drains
+    its libsoup context without making it the thread default, and libsoup
+    aborts the process (``soup-session.c: message_completed: assertion
+    failed``). The error after a missing MPEG-TS demuxer triggers it
+    every time. Fixed in 1.28.8 (upstream work item 5296; 1.28.8 has no
+    wheels for regular CPython on Windows, so Kivy pins 1.28.9). Nothing
+    on Kivy's side avoids it: the drain runs in whichever thread sets the
+    pipeline's state, and the context it needs is private to the element.
+    '''
+    if tuple(version[:3]) == (1, 28, 7):
+        return (
+            'GStreamer 1.28.7 can abort the process when an HLS or DASH '
+            'stream stops (always after a missing MPEG-TS demuxer); use '
+            '1.28.9 or newer. See https://gitlab.freedesktop.org/'
+            'gstreamer/gstreamer/-/work_items/5296')
+    return None
+
 
 BusError = namedtuple(
     'BusError', 'kind domain code message debug http_status source')

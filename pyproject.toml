@@ -101,32 +101,32 @@ base = ["pillow>=13,<14"]
 # needed by most HLS streams, and MPEG-PS, for .mpg files, among them); it is
 # only installed on request.
 gstreamer = [
-    'gstreamer-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
+    'gstreamer-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-ext-runtime==1.28.9; sys_platform == "win32"',
 ]
 gstreamer-restricted = [
-    'gstreamer-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins-restricted==1.28.7; sys_platform == "win32"',
+    'gstreamer-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-ext-runtime==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins-restricted==1.28.9; sys_platform == "win32"',
 ]
 media = [
-    'gstreamer-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
+    'gstreamer-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-ext-runtime==1.28.9; sys_platform == "win32"',
     # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
 full = [
     "pillow>=13,<14",
-    'gstreamer-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins==1.28.7; sys_platform == "win32"',
-    'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
-    'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
+    'gstreamer-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins==1.28.9; sys_platform == "win32"',
+    'gstreamer-plugins-libs==1.28.9; sys_platform == "win32"',
+    'gstreamer-ext-runtime==1.28.9; sys_platform == "win32"',
     # todo(cclauss): modify when python3.14 -m pip install ffpyplayer works
     'ffpyplayer; (sys_platform == "linux" or sys_platform == "darwin") and python_version < "3.14"',
 ]
