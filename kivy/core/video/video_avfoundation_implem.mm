@@ -710,12 +710,48 @@ void VideoPlayer::_setError(NSString *message) {
     mHasError = true;
 }
 
+// AVFoundation often reports a generic error, such as "The operation
+// could not be completed" (-11800), and keeps the cause in
+// NSUnderlyingErrorKey. Add each cause's code, and its description when
+// it says more than the generic "couldn't be completed" text. An App
+// Transport Security block of a file (not a stream) arrives as a bare
+// OSStatus -1022, so name it.
 static NSString *_kivyDescribeError(NSError *error, NSString *fallback) {
     if (error == nil) {
         return fallback;
     }
-    return [NSString stringWithFormat:@"%@ (%@ %ld)",
-            error.localizedDescription, error.domain, (long)error.code];
+    NSMutableString *codes = [NSMutableString stringWithFormat:@"%@ %ld",
+        error.domain, (long)error.code];
+    NSMutableString *details = [NSMutableString string];
+    NSMutableSet *seen = [NSMutableSet setWithObject:@(error.code)];
+    id cause = error.userInfo[NSUnderlyingErrorKey];
+    for (int depth = 0; depth < 4 && [cause isKindOfClass:[NSError class]];
+            depth++) {
+        NSError *e = (NSError *)cause;
+        cause = e.userInfo[NSUnderlyingErrorKey];
+        if ([seen containsObject:@(e.code)]) {
+            continue;
+        }
+        [seen addObject:@(e.code)];
+        [codes appendFormat:@", %@ %ld", e.domain, (long)e.code];
+        NSString *text = nil;
+        if ([e.domain isEqualToString:NSOSStatusErrorDomain] &&
+                e.code == NSURLErrorAppTransportSecurityRequiresSecureConnection) {
+            text = @"the App Transport Security policy requires the use "
+                   @"of a secure connection";
+        } else {
+            NSString *generic = [NSError errorWithDomain:e.domain code:e.code
+                                                userInfo:nil].localizedDescription;
+            if (![e.localizedDescription isEqualToString:generic]) {
+                text = e.localizedDescription;
+            }
+        }
+        if (text != nil) {
+            [details appendFormat:@": %@", text];
+        }
+    }
+    return [NSString stringWithFormat:@"%@ (%@)%@",
+            error.localizedDescription, codes, details];
 }
 
 void VideoPlayer::_onItemStatusChanged() {
