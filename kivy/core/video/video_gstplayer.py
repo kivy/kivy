@@ -84,8 +84,7 @@ from kivy.logger import Logger
 _version, _library, _source = get_runtime_info()
 Logger.info('VideoGstplayer: GStreamer {} from {} ({})'.format(
     '.'.join(map(str, _version[:3])), _source, _library))
-_known_issue = runtime_known_issue(_version)
-if _known_issue:
+if _known_issue := runtime_known_issue(_version):
     Logger.warning('VideoGstplayer: ' + _known_issue)
 
 # Initialize now, in the background, rather than on the first load(): this
