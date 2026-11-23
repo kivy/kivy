@@ -58,6 +58,7 @@ cdef mix_init():
     cdef int audio_channels = 2
     cdef int audio_buffers = 4096
     cdef int want_flags = 0
+    cdef int ret
     global mix_is_init
     global mix_flags
 
@@ -65,7 +66,13 @@ cdef mix_init():
     if mix_is_init != 0:
         return
 
-    if SDL_Init(SDL_INIT_AUDIO) < 0:
+    # SDL_Init and Mix_OpenAudio must run without the GIL: audio backends
+    # such as PulseAudio push SDL_AUDIODEVICEADDED from their own thread,
+    # which runs the window's `with gil` event filter on that thread and
+    # deadlocks if this thread is still holding the GIL.
+    with nogil:
+        ret = SDL_Init(SDL_INIT_AUDIO)
+    if ret < 0:
         Logger.critical('AudioSDL2: Unable to initialize SDL: {}'.format(
                         SDL_GetError()))
         mix_is_init = -1
@@ -81,7 +88,10 @@ cdef mix_init():
 
     mix_flags = Mix_Init(want_flags)
 
-    if Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers):
+    with nogil:
+        ret = Mix_OpenAudio(
+            audio_rate, audio_format, audio_channels, audio_buffers)
+    if ret:
         Logger.critical('AudioSDL2: Unable to open mixer: {}'.format(
                         Mix_GetError()))
         mix_is_init = -1
