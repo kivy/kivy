@@ -181,8 +181,11 @@ cdef class _WindowSDL3Storage:
             if platform in ("macosx", "ios"):
                 native_layer = SDL_Metal_GetLayer(SDL_Metal_CreateView(self.win))
             else:
-                Logger.error("WindowSDL: ANGLE is only supported on iOS and macOS")
-                self.die()
+                msg = ('WindowSDL: KIVY_GL_BACKEND=angle is only supported '
+                       'on iOS and macOS')
+                if platform == 'win':
+                    msg += '; on Windows, use KIVY_GL_BACKEND=angle_sdl3'
+                raise RuntimeError(msg)
 
             self.egl_angle_storage = EGLANGLE()
             self.egl_angle_storage.set_native_layer(native_layer)
@@ -225,6 +228,15 @@ cdef class _WindowSDL3Storage:
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
+            # On Windows, SDL serves an OpenGL ES context from the driver's
+            # own ES profile over WGL when the driver has one (NVIDIA does),
+            # and only loads EGL (ANGLE, from kivy_deps.angle) otherwise.
+            # Ask for EGL so angle_sdl3 runs on ANGLE with every driver.
+            # A SDL_OPENGL_ES_DRIVER environment variable is the user's
+            # choice and is left alone (SDL_OPENGL_ES_DRIVER=0 keeps the
+            # driver's ES profile).
+            if 'SDL_OPENGL_ES_DRIVER' not in environ:
+                SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, b'1')
 
     def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
         self.gl_backend_name = gl_backend

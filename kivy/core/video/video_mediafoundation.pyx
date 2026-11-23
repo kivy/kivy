@@ -175,10 +175,9 @@ class VideoMediaFoundation(VideoBase):
 
     The bridge follows the kind of GL context that is actually current,
     not the ``KIVY_GL_BACKEND`` name. ``glew`` and ``sdl3`` always run
-    on WGL. ``angle_sdl3`` asks SDL for an OpenGL ES context, which SDL
-    serves from the driver's own ES profile over WGL when it has one
-    (NVIDIA does), and from ANGLE otherwise or when the
-    ``SDL_OPENGL_ES_DRIVER=1`` environment variable forces ANGLE. Both
+    on WGL. ``angle_sdl3`` runs on ANGLE's EGL, unless the
+    ``SDL_OPENGL_ES_DRIVER=0`` environment variable asks SDL for the
+    driver's own OpenGL ES profile over WGL (NVIDIA has one). Both
     kinds of context get zero-copy. If that one-time registration fails -- a GPU/driver
     gap, most commonly a laptop where the active GL context and Media
     Foundation's decode device land on different GPUs -- the provider
