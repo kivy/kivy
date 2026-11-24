@@ -667,9 +667,14 @@ class Widget(WidgetBase):
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
 
+        # The canvas is added before the widget goes into `children`, so
+        # that observers of `children` see it drawn. An observer may remove
+        # and re-add the widget; adding the canvas after the insert would
+        # then add it a second time, and the extra copy could never be
+        # removed.
         if index == 0 or len(self.children) == 0:
-            self.children.insert(0, widget)
             canvas.add(widget.canvas)
+            self.children.insert(0, widget)
         else:
             canvas = self.canvas
             children = self.children
@@ -684,13 +689,20 @@ class Widget(WidgetBase):
                 else:
                     next_index += 1
 
-            children.insert(index, widget)
             # We never want to insert widget _before_ canvas.before.
             if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
+            children.insert(index, widget)
+        if widget.parent is not self:
+            # An observer of `children` removed the widget again.
+            return
+        # Motion events are registered in `children` order, so this comes
+        # after the insert. Registering is repeat-safe, but if an observer
+        # re-added the widget, it is already bound: bind it only once.
         for type_id in widget.motion_filter:
             self.register_for_motion_event(type_id, widget)
+        widget.funbind('motion_filter', self._update_motion_filter)
         widget.fbind('motion_filter', self._update_motion_filter)
 
     def remove_widget(self, widget):

@@ -29,6 +29,35 @@ class WindowBaseTest(GraphicUnitTest):
         finally:
             win.system_size = old_system_size
 
+    def test_children_observer_readding_widget_adds_canvas_once(self):
+        # The Inspector keeps itself on top by removing and re-adding itself
+        # from a `children` observer, while add_widget() is still running.
+        from kivy.uix.widget import Widget
+
+        win = self.Window
+        widget = Widget()
+        state = {'busy': False}
+
+        def bring_to_top(instance, children):
+            if state['busy'] or widget not in children:
+                return
+            state['busy'] = True
+            win.remove_widget(widget)
+            win.add_widget(widget)
+            state['busy'] = False
+
+        win.bind(children=bring_to_top)
+        try:
+            win.add_widget(widget)
+            assert win.children.count(widget) == 1
+            assert win.canvas.children.count(widget.canvas) == 1
+            win.remove_widget(widget)
+            assert widget not in win.children
+            assert widget.canvas not in win.canvas.children
+        finally:
+            win.unbind(children=bring_to_top)
+            win.remove_widget(widget)
+
 
 class WindowSoftinputTest(GraphicUnitTest):
     """softinput_mode with a mobile system keyboard (kivy/kivy#9363)."""

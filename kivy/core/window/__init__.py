@@ -1608,7 +1608,6 @@ class WindowBase(EventDispatcher):
             )
 
         widget.parent = self
-        self.children.insert(0, widget)
         canvas = self.canvas.before if canvas == 'before' else \
             self.canvas.after if canvas == 'after' else self.canvas
         canvas.add(widget.canvas)
@@ -1620,6 +1619,11 @@ class WindowBase(EventDispatcher):
             size_hint_min=self._update_childsize,
             size=self._update_childsize,
             pos=self._update_childsize)
+        # Last, so that observers of `children` see a fully added widget. An
+        # observer may remove and re-add it (the Inspector keeps itself on
+        # top that way); adding the canvas after this call would then add
+        # it a second time, and the extra copy could never be removed.
+        self.children.insert(0, widget)
 
     def remove_widget(self, widget):
         '''Remove a widget from a window
