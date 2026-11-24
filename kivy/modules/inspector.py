@@ -15,6 +15,12 @@ Some keyboard shortcuts are activated:
     * "Ctrl + e": activate / deactivate the inspector view
     * "Escape": cancel widget lookup first, then hide the inspector view
 
+.. note::
+
+    The :mod:`~kivy.modules.console` and :mod:`~kivy.modules.joycursor`
+    modules also use "Ctrl + e". If more than one of them is enabled, only
+    the module started last reacts to it.
+
 Available inspector interactions:
 
     * tap once on a widget to select it without leaving inspect mode
@@ -325,6 +331,9 @@ class Inspector(Factory.FloatLayout):
 
     _update_widget_tree_ev = None
 
+    # kept above the other Window children while activated
+    _keep_on_top = True
+
     def __init__(self, **kwargs):
         self.win = kwargs.pop('win', None)
         super(Inspector, self).__init__(**kwargs)
@@ -335,7 +344,9 @@ class Inspector(Factory.FloatLayout):
             self.gtransform = Factory.Transform(Matrix())
             self.grect = Factory.Rectangle(size=(0, 0))
             Factory.PopMatrix()
-        Clock.schedule_interval(self.update_widget_graphics, 0)
+        # runs every frame, but only while the Inspector is activated
+        self._update_widget_graphics_ev = Clock.create_trigger(
+            self.update_widget_graphics, 0, interval=True)
 
     def on_touch_down(self, touch):
         ret = super(Inspector, self).on_touch_down(touch)
@@ -364,10 +375,24 @@ class Inspector(Factory.FloatLayout):
     def on_window_children(self, win, children):
         if self.avoid_bring_to_top or not self.activated:
             return
+        self._bring_to_top()
+
+    def _bring_to_top(self):
+        win = self.win
+        # only the other keep-on-top modules (Inspector, Console, JoyCursor)
+        # may be above it, otherwise they would keep swapping places
+        for child in win.children:
+            if child is self:
+                return
+            if not getattr(child, '_keep_on_top', False):
+                break
         self.avoid_bring_to_top = True
-        win.remove_widget(self)
-        win.add_widget(self)
-        self.avoid_bring_to_top = False
+        try:
+            if self.parent is win:
+                win.remove_widget(self)
+            win.add_widget(self)
+        finally:
+            self.avoid_bring_to_top = False
 
     def highlight_at(self, x, y):
         widget = None
@@ -449,7 +474,11 @@ class Inspector(Factory.FloatLayout):
         return ret
 
     def on_activated(self, instance, activated):
+        # stop any slide-in/slide-out still running; a cancelled close
+        # animation doesn't call animation_close
+        Animation.cancel_all(self.layout)
         if not activated:
+            self._update_widget_graphics_ev.cancel()
             self.grect.size = 0, 0
             if self.at_bottom:
                 anim = Animation(top=0, t='out_quad', d=.3)
@@ -460,7 +489,10 @@ class Inspector(Factory.FloatLayout):
             self.widget = None
             self.widget_info = False
         else:
-            self.win.add_widget(self)
+            # during the close animation the Inspector is still a child of
+            # the Window, so only move it to the top instead of adding it
+            self._bring_to_top()
+            self._update_widget_graphics_ev()
             Logger.info('Inspector: inspector activated')
             if self.at_bottom:
                 Animation(top=60, t='out_quad', d=.3).start(self.layout)
@@ -749,7 +781,12 @@ def stop(win, ctx):
         ctx.ev_late_create.cancel()
         del ctx.ev_late_create
     if hasattr(ctx, 'inspector'):
-        win.unbind(children=ctx.inspector.on_window_children,
-                   on_keyboard=ctx.inspector.keyboard_shortcut)
-        win.remove_widget(ctx.inspector)
+        ins = ctx.inspector
+        win.unbind(children=ins.on_window_children,
+                   on_keyboard=ins.keyboard_shortcut)
+        # close without the slide-out animation: animation_close removes the
+        # Inspector from the Window and cancels its scheduled updates
+        ins.activated = False
+        Animation.cancel_all(ins.layout)
+        ins.animation_close(None, None)
         del ctx.inspector
