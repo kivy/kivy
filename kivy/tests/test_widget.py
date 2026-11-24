@@ -19,6 +19,60 @@ class WidgetTestCase(unittest.TestCase):
         root.remove_widget(c1)
         self.assertEqual(root.children, [])
 
+    def _bind_children_observer(self, widget, readd):
+        # Like the Inspector, which keeps itself on top by removing and
+        # re-adding itself from a `children` observer, while add_widget()
+        # is still running.
+        root = self.root
+        state = {'busy': False, 'canvas_seen': None}
+
+        def observer(instance, children):
+            if state['busy'] or widget not in children:
+                return
+            state['canvas_seen'] = widget.canvas in root.canvas.children
+            state['busy'] = True
+            root.remove_widget(widget)
+            if readd:
+                root.add_widget(widget)
+            state['busy'] = False
+
+        root.bind(children=observer)
+        return state, observer
+
+    def test_children_observer_readding_widget_adds_canvas_once(self):
+        root = self.root
+        for index in (0, 1):
+            root.clear_widgets()
+            root.add_widget(self.cls())
+            root.add_widget(self.cls())
+            widget = self.cls()
+            state, observer = self._bind_children_observer(
+                widget, readd=True)
+            root.add_widget(widget, index=index)
+            root.unbind(children=observer)
+            self.assertTrue(state['canvas_seen'], index)
+            self.assertEqual(root.children.count(widget), 1, index)
+            self.assertEqual(
+                root.canvas.children.count(widget.canvas), 1, index)
+
+            root.remove_widget(widget)
+            self.assertNotIn(widget.canvas, root.canvas.children, index)
+            # remove_widget() unbinds the motion filter observer once; a
+            # second binding would still register the widget.
+            widget.register_for_motion_event('hover')
+            self.assertNotIn('hover', root.motion_filter, index)
+
+    def test_children_observer_removing_widget_leaves_no_canvas(self):
+        root = self.root
+        widget = self.cls()
+        widget.register_for_motion_event('hover')
+        self._bind_children_observer(widget, readd=False)
+        root.add_widget(widget)
+        self.assertEqual(root.children, [])
+        self.assertIsNone(widget.parent)
+        self.assertNotIn(widget.canvas, root.canvas.children)
+        self.assertNotIn('hover', root.motion_filter)
+
     def test_invalid_add_widget(self):
         from kivy.uix.widget import WidgetException
         try:
