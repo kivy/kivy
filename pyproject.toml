@@ -80,7 +80,7 @@ dev = [
     "pytest_asyncio!=0.11.0",
     "pytest-timeout",
     "pytest-benchmark",
-    "pytest-httpserver==1.1.5",
+    "pytest-httpserver==1.2.1",
     "trustme==1.2.1",
     "pyinstaller",
     'kivy_deps.sdl3_dev~=0.1.0; sys_platform == "win32"',
