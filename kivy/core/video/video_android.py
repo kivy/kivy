@@ -167,9 +167,18 @@ def _read_player(player):
         'state': player.getPlaybackState(),
         'position': player.getCurrentPosition(),
         'duration': player.getDuration(),
+        'live': player.isCurrentMediaItemLive(),
         'size': (width, height),
         'error': None if error is None else _describe_error(error),
     }
+
+
+def _reconnect(player):
+    '''Start a stopped live stream again, at the live edge. Must run on the
+    player's application thread, the Android UI thread.
+    '''
+    player.seekToDefaultPosition()
+    player.prepare()
 
 
 def _java_bytes(array):
@@ -277,6 +286,9 @@ class VideoAndroid(VideoBase):
         self._last_timestamp = 0
         self._loaded = False
         self._resume_play = False
+        # The player a live stop() disconnected, so play() reconnects it.
+        # Only read and written on the Android UI thread.
+        self._disconnected = None
         self._app = None
         self._app_callbacks = None
         super().__init__(**kwargs)
@@ -575,8 +587,15 @@ class VideoAndroid(VideoBase):
         super().play()
 
         def start(player):
-            if player.getPlaybackState() == _media3.STATE_ENDED:
-                player.seekTo(0)
+            if self._disconnected is player:
+                self._disconnected = None
+                _reconnect(player)
+            elif player.getPlaybackState() == _media3.STATE_ENDED:
+                if player.isCurrentMediaItemLive():
+                    player.stop()
+                    _reconnect(player)
+                else:
+                    player.seekTo(0)
             player.play()
 
         self._post(start)
@@ -590,11 +609,29 @@ class VideoAndroid(VideoBase):
 
         def rewind(player):
             player.pause()
-            player.seekTo(0)
+            if (player.isCurrentMediaItemLive()
+                    and player.getPlayerError() is None):
+                # Seeking doesn't rewind a live stream: position 0 is
+                # outside an HLS live window, and an RTSP session delivers
+                # nothing after a seek, both without an error. Disconnect
+                # instead; play() reconnects at the live edge.
+                player.stop()
+                self._disconnected = player
+            else:
+                player.seekTo(0)
 
         self._post(rewind)
-        if self._player is not None:
+        if self._player is None:
+            return
+        with self._lock:
+            snapshot = self._snapshot
+        # A live stream restarts at the live edge, whose position isn't known
+        # here, so it keeps reporting the last position until the next
+        # snapshot instead of 0.
+        if snapshot is None or not snapshot['live']:
             self._seek_override = (self._cmd_seq, 0.0)
+        else:
+            self._seek_override = None
 
     def seek(self, percent, precise=True):
         duration = self._get_duration()

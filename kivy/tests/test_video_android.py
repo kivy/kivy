@@ -164,6 +164,8 @@ class _FakePlayer:
         self.state = STATE_IDLE
         self.position = 0
         self.duration = TIME_UNSET
+        self.live = False
+        self.live_edge = 0
         self.size = _VideoSize(0, 0)
         self.video_format = None
         self.error = None
@@ -206,6 +208,16 @@ class _FakePlayer:
         if self.state == STATE_ENDED:
             self.state = STATE_READY
 
+    def stop(self):
+        self._call("stop")
+        self.state = STATE_IDLE
+
+    def seekToDefaultPosition(self):
+        self._call("seekToDefaultPosition")
+        self.position = self.live_edge
+        if self.state == STATE_ENDED:
+            self.state = STATE_READY
+
     def release(self):
         self._call("release")
         _events.append(("player.release",))
@@ -218,6 +230,9 @@ class _FakePlayer:
 
     def getDuration(self):
         return self._get(self.duration)
+
+    def isCurrentMediaItemLive(self):
+        return self._get(self.live)
 
     def getVideoSize(self):
         return self._get(self.size)
@@ -652,6 +667,62 @@ class TestPlayback:
         env.ui.run_all()
 
         assert env.player.calls == [("seekTo", 0), ("play",)]
+
+    def test_stop_then_play_reconnects_a_live_stream_at_the_live_edge(
+            self, env):
+        # Seeking stalls a live stream: position 0 is outside an HLS live
+        # window, and RTSP delivers nothing after a seek.
+        video = env.make()
+        env.player.live = True
+        env.player.position = env.player.live_edge = 40000
+        video.play()
+        env.settle(video)
+        env.player.calls.clear()
+
+        video.stop()
+        # Not 0: the live edge's position isn't known until the next poll.
+        assert video.position == 40.0
+        env.ui.run_all()
+        assert env.player.calls == [("pause",), ("stop",)]
+
+        env.player.calls.clear()
+        video.play()
+        env.ui.run_all()
+        assert env.player.calls == [
+            ("seekToDefaultPosition",), ("prepare",), ("play",)]
+
+        # Only once: a later play() after a pause just plays.
+        env.player.calls.clear()
+        video.pause()
+        video.play()
+        env.ui.run_all()
+        assert env.player.calls == [("pause",), ("play",)]
+
+    def test_stop_after_an_error_does_not_reconnect_a_live_stream(self, env):
+        video = env.make()
+        env.player.live = True
+        env.player.error = _PlaybackException("ERROR_CODE_IO", "lost")
+        env.settle(video)
+        env.player.calls.clear()
+
+        video.stop()
+        video.play()
+        env.ui.run_all()
+
+        assert env.player.calls == [("pause",), ("seekTo", 0), ("play",)]
+
+    def test_play_after_the_end_of_a_live_stream_reconnects(self, env):
+        video = env.make()
+        env.settle(video)
+        env.player.live = True
+        env.player.state = STATE_ENDED
+        env.player.calls.clear()
+
+        video.play()
+        env.ui.run_all()
+
+        assert env.player.calls == [
+            ("stop",), ("seekToDefaultPosition",), ("prepare",), ("play",)]
 
     def test_volume(self, env):
         video = env.make()
