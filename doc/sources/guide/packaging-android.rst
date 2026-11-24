@@ -169,12 +169,26 @@ With kivyforge, in ``pyproject.toml``:
 
 Depending on what the app plays, it may need more:
 
-- **HLS or DASH streams** (``.m3u8``, ``.mpd``): add
-  ``androidx.media3:media3-exoplayer-hls`` or
-  ``androidx.media3:media3-exoplayer-dash``, at the same version. ExoPlayer
-  picks them up by the stream's file extension.
+- **HLS, DASH or RTSP streams** (``.m3u8``, ``.mpd``, ``rtsp://``): add
+  ``androidx.media3:media3-exoplayer-hls``,
+  ``androidx.media3:media3-exoplayer-dash`` or
+  ``androidx.media3:media3-exoplayer-rtsp``, at the same version. ExoPlayer
+  picks them up by the stream's file extension or URL scheme. ``rtspt://``
+  (RTSP over TCP) uses the RTSP module too. See "Network streams" in
+  :mod:`kivy.uix.video` for what each provider plays.
 - **Network sources** (``http://``, ``https://``): declare the ``INTERNET``
   permission.
+- **Unencrypted HTTP** (``http://``, not ``https://``): Android blocks
+  cleartext traffic by default, so the stream fails with ``on_error``. Set
+  ``android:usesCleartextTraffic="true"`` on the ``<application>`` element.
+  With kivyforge, in ``pyproject.toml``:
+
+  .. code-block:: toml
+
+      [tool.kivy.android.manifest.application]
+      "android:usesCleartextTraffic" = true
+
+  RTSP isn't HTTP, so it doesn't need this.
 - **Release builds with R8** (code shrinking): Python reaches ExoPlayer through
   pyjnius, which R8 can't see, so R8 would remove the classes the provider
   needs. Debug builds still play, but in the release build every video fires
