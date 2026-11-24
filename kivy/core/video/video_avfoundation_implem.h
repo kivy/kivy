@@ -149,6 +149,11 @@ private:
 
     bool mItemPrepared;
     bool mObserversInstalled;
+    // Set by stop() on a live stream, so the next play() joins it at
+    // the live edge instead of resuming from the oldest segment the
+    // playlist still lists. Cleared by play() and unload().
+    bool mRejoinLive;
+    bool _isLive();
     // Set true once we have decided this player can't produce frames
     // (probe failed, or the first zero-copy bind didn't take). Reported
     // once through hasError()/lastError(), so the widget surfaces a

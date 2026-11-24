@@ -281,6 +281,7 @@ VideoPlayer::VideoPlayer(const char *url)
       mAutomaticallyWaitsToMinimizeStalling(true),
       mCurrentFrame(NULL), mHasFrame(false),
       mItemPrepared(false), mObserversInstalled(false),
+      mRejoinLive(false),
       mZeroCopyFailed(false),
       mHasError(false),
       mZeroCopyProbed(false), mZeroCopyAvailable(false),
@@ -478,6 +479,7 @@ void VideoPlayer::unload() {
         }
 
         mItemPrepared = false;
+        mRejoinLive = false;
         mIsEOS = false;
         mWantPlay = false;
         mBuffering = false;
@@ -491,9 +493,18 @@ void VideoPlayer::unload() {
 
 void VideoPlayer::play() {
     mWantPlay = true;
-    if (mPlayer != nil) {
-        [mPlayer play];
+    if (mPlayer == nil) {
+        return;
     }
+    if (mRejoinLive) {
+        mRejoinLive = false;
+        CMTimeRange last =
+            [[mPlayerItem.seekableTimeRanges lastObject] CMTimeRangeValue];
+        if (CMTIMERANGE_IS_VALID(last) && !CMTIMERANGE_IS_EMPTY(last)) {
+            [mPlayer seekToTime:CMTimeRangeGetEnd(last)];
+        }
+    }
+    [mPlayer play];
 }
 
 void VideoPlayer::pause() {
@@ -505,13 +516,27 @@ void VideoPlayer::pause() {
 
 void VideoPlayer::stop() {
     pause();
-    if (mPlayer != nil) {
+    if (mPlayer == nil) {
+        return;
+    }
+    if (_isLive()) {
+        mRejoinLive = true;
+    } else {
         [mPlayer seekToTime:kCMTimeZero];
     }
 }
 
+// A live HLS stream: the item is ready but has no duration.
+bool VideoPlayer::_isLive() {
+    return mPlayerItem != nil &&
+        mPlayerItem.status == AVPlayerItemStatusReadyToPlay &&
+        CMTIME_IS_INDEFINITE(mPlayerItem.duration);
+}
+
 void VideoPlayer::seek(double seconds, bool precise) {
-    if (mPlayer == nil) {
+    // The widget rewinds to 0 after every stop(); a stopped live stream
+    // rejoins at the live edge on play() instead.
+    if (mPlayer == nil || mRejoinLive) {
         return;
     }
     if (seconds < 0.0) {
