@@ -50,6 +50,9 @@ display size: the texture's size is the size to show the video at.
 
 Unknown keys are logged once and ignored.
 
+**Live streams** (RTSP, UDP) can't be seeked: ``seek()`` does nothing,
+``stop()`` pauses them, and ``play()`` resumes at the live edge.
+
 **Errors.** A file or stream GStreamer can't play stops playback and fires
 ``on_error`` once, with GStreamer's reason, or ``missing GStreamer plugin:
 <name>`` when a decoder or demuxer isn't installed. ``GST_DEBUG=3`` shows
@@ -350,6 +353,14 @@ class VideoGstplayer(VideoBase):
         # already on the bus and _update() reports it.
 
     def _request_seek(self, seconds, accurate):
+        if self._live:
+            # A live source (RTSP, UDP) has no earlier position to go to:
+            # stop() just pauses it and play() resumes at the live edge.
+            # A flushing seek would also restart decoding mid-GOP, which
+            # v4l2slh265dec before GStreamer 1.26.10 (Raspberry Pi OS)
+            # can't survive: it crashes when the first frame's references
+            # are missing (raspberrypi/linux#7612, gstreamer!10421).
+            return
         target = self._seeks.request((seconds, accurate), time.monotonic(),
                                      ready=self._prerolled)
         if target is not None:

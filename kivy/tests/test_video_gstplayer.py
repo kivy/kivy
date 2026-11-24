@@ -264,6 +264,21 @@ class VideoGstplayerTestCase(GraphicUnitTest):
         self.assertTrue(self.pump(lambda: v._seeks.pending is None))
         self.assertAlmostEqual(v.position, 1.0, delta=0.15)
 
+    def test_live_stream_stop_and_seek_do_not_seek(self):
+        # A flushing seek on a live hardware-decoded H.265 stream crashed
+        # v4l2slh265dec (Raspberry Pi 5, GStreamer 1.26.2).
+        from unittest import mock
+        v = self.make(clip('smpte'), render='nv12')
+        self.assertTrue(self.pump(lambda: v.texture is not None))
+        v.play()
+        v._live = True   # as when set_state() returns NO_PREROLL (rtspsrc)
+        with mock.patch.object(v, '_issue_seek') as issue:
+            v.seek(0.5)
+            v.stop()
+        issue.assert_not_called()
+        self.assertIsNone(v._seeks.pending)
+        self.assertEqual(v.state, '')
+
     def test_missing_file_on_error_once(self):
         v = self.make(os.path.join(os.path.dirname(clip('smpte')),
                                    'nope.webm'))
