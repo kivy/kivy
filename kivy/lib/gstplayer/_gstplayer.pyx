@@ -95,6 +95,8 @@ cdef extern from "_gst_loader.h" nogil:
     const char *kgst_loaded_path()
     int kgst_gl_current(void **ctx, void **dpy)
     int kgst_wgl_make_current(void *dc, void *ctx)
+    void kgst_refuse_hw_decoders(kGstElement *playbin)
+    int kgst_is_hw_decoder(kGstElement *element)
     int KGST_LIB_GSTPBUTILS
     int KGST_LIB_GSTGL
     int KGST_GLP_NONE
@@ -618,7 +620,12 @@ cdef class GstPlayer:
         `audio`: bool
             Decode and play audio.
         `force_sw_decoders`: bool
-            Set ``playbin3``'s ``force-sw-decoders`` flag.
+            Never use a hardware decoder. ``playbin3`` ignores its own
+            ``force-sw-decoders`` flag (GStreamer 1.22 to 1.28), so each
+            hardware decoder decodebin3 tries is made to refuse the
+            stream and the next decoder is tried (see
+            ``_gst_loader.h``). With no software decoder for the format,
+            the stream fails with a missing-plugin error.
         `gl`: :class:`GLShare`
             Required for the ``'gl'`` sink.
         `flip`: bool
@@ -720,7 +727,10 @@ cdef class GstPlayer:
         if self.audio:
             flags |= PLAY_AUDIO
         if self.force_sw_decoders:
+            # Set for a GStreamer that one day honours it; the probe does
+            # the work today.
             flags |= PLAY_FORCE_SW_DECODERS
+            kgst_refuse_hw_decoders(self.pipeline)
         g_object_set(self.pipeline, b'flags', flags, NULL)
 
         if self.sink is not None:
@@ -1063,7 +1073,8 @@ cdef class GstPlayer:
 
     def describe(self):
         '''What GStreamer chose: ``{'decoder', 'decoder_caps',
-        'glupload_caps'}`` (None where not found). For logs.'''
+        'decoder_hardware', 'glupload_caps'}`` (None where not found).
+        For logs.'''
         cdef kGstIterator *it
         cdef kGValue v
         cdef kGstElement *el
@@ -1071,7 +1082,8 @@ cdef class GstPlayer:
         cdef const char *klass
         cdef kGstPad *pad
         cdef kGstCaps *caps
-        info = {'decoder': None, 'decoder_caps': None, 'glupload_caps': None}
+        info = {'decoder': None, 'decoder_caps': None,
+                'decoder_hardware': None, 'glupload_caps': None}
         if self.pipeline == NULL:
             return info
         it = gst_bin_iterate_recurse(self.pipeline)
@@ -1090,6 +1102,7 @@ cdef class GstPlayer:
                 if b'Decoder' in kl and b'Video' in kl:
                     info['decoder'] = name
                     info['decoder_caps'] = _pad_caps(el, b'src')
+                    info['decoder_hardware'] = bool(kgst_is_hw_decoder(el))
                 elif name == 'glupload':
                     info['glupload_caps'] = _pad_caps(el, b'sink')
             g_value_unset(&v)

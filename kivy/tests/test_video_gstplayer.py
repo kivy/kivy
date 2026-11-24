@@ -39,27 +39,41 @@ def _gst():
 
 g = _gst()
 
-# 60 frames at 30 fps (2 s), 320x240.
+# 60 frames at 30 fps (2 s), at the codec's size (_CODECS).
 _CLIPS = {
     'smpte': 'videotestsrc num-buffers=60 pattern=smpte',
     'red': 'videotestsrc num-buffers=60 pattern=red',
 }
 _clip_dir = None
 
+# codec: (encoder and muxer, extension, size, elements needed beyond the
+# module's own). The H.265 clip is larger so that hardware decoders with a
+# minimum size still take it.
+_CODECS = {
+    'vp8': ('vp8enc deadline=1 ! webmmux', '.webm', (320, 240), ()),
+    'h265': ('x265enc speed-preset=ultrafast ! h265parse ! matroskamux',
+             '.mkv', (640, 360),
+             ('x265enc', 'h265parse', 'matroskamux', 'avdec_h265')),
+}
 
-def clip(name):
+
+def clip(name, codec='vp8'):
     '''Path of a generated test clip.'''
     global _clip_dir
     import tempfile
+    encode, ext, (w, h), needed = _CODECS[codec]
+    for element in needed:
+        if not g.element_available(element):
+            pytest.skip('GStreamer element {} missing'.format(element))
     if _clip_dir is None:
         _clip_dir = tempfile.mkdtemp(prefix='kivy-gst-test-')
-    path = os.path.join(_clip_dir, name + '.webm')
+    path = os.path.join(_clip_dir, name + ext)
     if not os.path.exists(path):
         location = path.replace('\\', '/')
         err = g.run_pipeline(
-            '{} ! video/x-raw,width=320,height=240,framerate=30/1 ! '
-            'videoconvert ! vp8enc deadline=1 ! webmmux ! '
-            'filesink location="{}"'.format(_CLIPS[name], location))
+            '{} ! video/x-raw,width={},height={},framerate=30/1 ! '
+            'videoconvert ! {} ! filesink location="{}"'.format(
+                _CLIPS[name], w, h, encode, location))
         if err is not None:
             pytest.skip('cannot generate a test clip: {}'.format(err))
     return path
@@ -150,6 +164,25 @@ class GstPlayerCoreTestCase(unittest.TestCase):
         for p in (a, b):
             drive(p, lambda m: 'async-done' in kinds(m))
             self.assertTrue(p.pull(preroll=True))
+
+    def check_force_sw_decoders(self, path):
+        p = self.make(path, force_sw_decoders=True)
+        p.set_state(g.STATE_PAUSED)
+        drive(p, lambda m: 'async-done' in kinds(m))
+        self.assertTrue(p.pull(preroll=True))
+        info = p.describe()
+        self.assertTrue(info['decoder'])
+        self.assertIs(info['decoder_hardware'], False, info['decoder'])
+
+    # playbin3 ignores its force-sw-decoders flag, so GstPlayer makes
+    # hardware decoders refuse the stream. These only test something where
+    # the machine has a hardware decoder for the codec: D3D11/D3D12 or VA
+    # for VP8, v4l2slh265dec on the Raspberry Pi 5 for H.265.
+    def test_force_sw_decoders_vp8(self):
+        self.check_force_sw_decoders(clip('smpte'))
+
+    def test_force_sw_decoders_h265(self):
+        self.check_force_sw_decoders(clip('smpte', 'h265'))
 
     def test_missing_file_error(self):
         from kivy.lib.gstplayer._policy import BusError, error_text
