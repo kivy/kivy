@@ -47,6 +47,14 @@ and these bindings:
 | joycursor on/off | Button 7           |
 +------------------+--------------------+
 
+On the keyboard, "Ctrl + e" toggles the JoyCursor and "Escape" turns it off.
+
+.. note::
+
+    The :mod:`~kivy.modules.inspector` and :mod:`~kivy.modules.console`
+    modules also use "Ctrl + e". If more than one of them is enabled, only
+    the module started last reacts to it.
+
 The JoyCursor, like Inspector, can also be imported and used as a normal
 python module. This has the added advantage of being able to activate and
 deactivate the module programmatically::
@@ -88,6 +96,9 @@ class JoyCursor(Widget):
     offset_x = NumericProperty(0)
     offset_y = NumericProperty(0)
 
+    # kept above the other Window children while activated
+    _keep_on_top = True
+
     def __init__(self, **kwargs):
         super(JoyCursor, self).__init__(**kwargs)
         self.avoid_bring_to_top = False
@@ -122,15 +133,29 @@ class JoyCursor(Widget):
         # as a child directly to the window.
         if self.avoid_bring_to_top or not self.activated:
             return
+        self._bring_to_top()
+
+    def _bring_to_top(self):
+        win = self.win
+        # only the other keep-on-top modules (Inspector, Console, JoyCursor)
+        # may be above it, otherwise they would keep swapping places
+        for child in win.children:
+            if child is self:
+                return
+            if not getattr(child, '_keep_on_top', False):
+                break
         self.avoid_bring_to_top = True
-        win.remove_widget(self)
-        win.add_widget(self)
-        self.avoid_bring_to_top = False
+        try:
+            if self.parent is win:
+                win.remove_widget(self)
+            win.add_widget(self)
+        finally:
+            self.avoid_bring_to_top = False
 
     def on_activated(self, instance, activated):
         # bind/unbind when JoyCursor's state is changed
         if activated:
-            self.win.add_widget(self)
+            self._bring_to_top()
             self.move = Clock.schedule_interval(self.move_cursor, 0)
             self.win.fbind('on_joy_axis', self.check_cursor)
             self.win.fbind('on_joy_button_down', self.set_intensity)
@@ -144,7 +169,7 @@ class JoyCursor(Widget):
             Logger.info('JoyCursor: joycursor activated')
         else:
             self.pos = [-i for i in self.size]
-            Clock.unschedule(self.move)
+            self.move.cancel()
             self.win.funbind('on_joy_axis', self.check_cursor)
             self.win.funbind('on_joy_button_down', self.set_intensity)
             self.win.funbind('on_joy_button_down', self.check_dispatch)
@@ -247,8 +272,9 @@ class JoyCursor(Widget):
         self.cursor_oy.points = self.cursor_pts[4:]
 
     def keyboard_shortcuts(self, win, scancode, *args):
-        modifiers = args[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        modifiers = set(args[-1])
+        if scancode == 101 and 'ctrl' in modifiers and not modifiers & {
+                'shift', 'alt', 'meta'}:
             self.activated = not self.activated
             return True
         elif scancode == 27:
@@ -284,12 +310,16 @@ def create_joycursor(win, ctx, *args):
 
 
 def start(win, ctx):
-    Clock.schedule_once(lambda *t: create_joycursor(win, ctx))
+    ctx.ev_late_create_joycursor = Clock.schedule_once(
+        lambda *t: create_joycursor(win, ctx))
 
 
 def stop(win, ctx):
     '''Stop and unload any active JoyCursors for the given *ctx*.
     '''
+    if hasattr(ctx, 'ev_late_create_joycursor'):
+        ctx.ev_late_create_joycursor.cancel()
+        del ctx.ev_late_create_joycursor
     if hasattr(ctx, 'joycursor'):
         ctx.joycursor.activated = False
         win.unbind(children=ctx.joycursor.on_window_children,
