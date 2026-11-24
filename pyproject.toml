@@ -123,7 +123,7 @@ media = [
 ]
 full = [
     "pillow>=13,<14",
-    'gstreamer-libs==1.28.7; sys_platform == "win32"',
+    'gstreamer-libs==1.28.9; sys_platform == "win32"',
     'gstreamer-plugins==1.28.7; sys_platform == "win32"',
     'gstreamer-plugins-libs==1.28.7; sys_platform == "win32"',
     'gstreamer-ext-runtime==1.28.7; sys_platform == "win32"',
