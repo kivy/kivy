@@ -9,7 +9,7 @@ class MeshData(object):
         self.indices = []
 
     def calculate_normals(self):
-        for i in range(len(self.indices) / (3)):
+        for i in range(len(self.indices) // 3):
             fi = i * 3
             v1i = self.indices[fi]
             v2i = self.indices[fi + 1]
@@ -132,7 +132,7 @@ class ObjFile:
 def MTL(filename):
     contents = {}
     mtl = None
-    return
+
     for line in open(filename, "r"):
         if line.startswith('#'):
             continue
