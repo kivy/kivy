@@ -280,6 +280,26 @@ KIVY_METRICS_FONTSCALE
 
     .. versionadded:: 1.5.0
 
+Audio
+-----
+
+KIVY_AUDIO_CATEGORY
+    iOS only. The audio session category the `sdl3` audio provider sets when
+    it opens the audio device. Set it before the first sound is loaded.
+
+    Values: ambient, soloambient, playback, playandrecord
+
+    - `ambient`: silenced by the silent switch, mixes with other apps' audio.
+    - `soloambient`: silenced by the silent switch, stops other apps' audio.
+    - `playback`: the same as unset (below). SDL asks iOS to lower other
+      apps' audio, and iOS then also mixes with it.
+    - `playandrecord`: for apps that also record audio.
+
+    If unset, SDL uses `playback` but mixes with other apps' audio and lowers
+    its volume while Kivy plays.
+
+    .. versionadded:: 3.0.0
+
 Graphics
 --------
 

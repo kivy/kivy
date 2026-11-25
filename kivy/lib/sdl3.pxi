@@ -983,6 +983,7 @@ cdef extern from "SDL_mixer.h":
     cdef void MIX_DestroyAudio(MIX_Audio *audio)
     cdef bint MIX_SetTrackAudio(MIX_Track *track, MIX_Audio *audio)
     cdef bint MIX_PlayTrack(MIX_Track *track, SDL_PropertiesID options)
+    cdef bint MIX_SetTrackLoops(MIX_Track *track, int num_loops)
     cdef bint MIX_SetTrackGain(MIX_Track *track, float gain)
     cdef bint MIX_SetTrackFrequencyRatio(MIX_Track *track, float ratio)
     cdef bint MIX_StopTrack(MIX_Track *track, Sint64 fade_out_frames)

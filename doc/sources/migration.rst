@@ -1683,3 +1683,55 @@ that can't play.
 
     video = Video(source='movie.mp4', state='play')
     video.bind(on_error=on_video_error)
+
+=====
+Audio
+=====
+
+*Looping and events with the sdl3 audio provider*
+
+**Behavior Changes**
+
+- Looping sounds (``loop = True``) are looped by SDL_mixer itself, with no
+  gap between passes. In Kivy 2.x.x, Kivy restarted the sound after it
+  ended, which left a gap of up to about 100 ms and dispatched ``on_stop``
+  and ``on_play`` on every pass. Now ``on_play`` is dispatched once, and
+  ``on_stop`` only when the sound is stopped or ``loop`` is turned off and
+  the sound reaches its end.
+- :meth:`~kivy.core.audio_output.Sound.play` and
+  :meth:`~kivy.core.audio_output.Sound.stop` dispatch ``on_stop`` only if
+  the sound was playing, as in Kivy 2.x.x.
+- :meth:`~kivy.core.audio_output.Sound.seek` and
+  :meth:`~kivy.core.audio_output.Sound.get_pos` work. Kivy 2.x.x's ``sdl2``
+  provider didn't implement them.
+- MIDI and tracker formats (``.mid``, ``.mod``, ``.xm``, ``.s3m``, ``.it``
+  and others), which Kivy 2.x.x could play through SDL2_mixer's music API
+  depending on how SDL2_mixer was built, are not supported.
+
+**Migration Impact**
+
+Code that counted ``on_stop`` or ``on_play`` events to track loop passes
+needs another approach, such as checking
+:meth:`~kivy.core.audio_output.Sound.get_pos`. Apps that play MIDI or
+tracker files need to convert them, for example to Ogg or MP3.
+
+*Choosing the iOS audio session category*
+
+On iOS, the ``sdl3`` provider sets the app's audio session category when it
+opens the audio device. As in Kivy 2.x.x, SDL's default plays sound even
+when the silent switch is on, and lowers other apps' audio while Kivy plays.
+The new ``KIVY_AUDIO_CATEGORY`` environment variable selects another
+category, for example ``ambient`` for games and UI sounds that should
+respect the silent switch and mix with music from other apps:
+
+.. code-block:: python
+
+    import os
+
+    os.environ['KIVY_AUDIO_CATEGORY'] = 'ambient'
+    import kivy
+
+The device now opens when the first ``sdl3`` sound is created, rather than
+when Kivy checks which formats ``sdl3`` supports, so an app that only plays
+files handled by ``avplayer`` keeps iOS's default category. See
+:ref:`environment` for all values.
