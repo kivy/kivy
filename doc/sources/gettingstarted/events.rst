@@ -46,9 +46,9 @@ Our base class :class:`~kivy.event.EventDispatcher`, used by
 changes its position or size, the corresponding event is automatically fired.
 
 In addition, you have the ability to create your own events using
-:meth:`~kivy.event.EventDispatcher.register_event_type`, as the
-`on_press` and `on_release` events in the :class:`~kivy.uix.button.Button`
-widget demonstrate.
+:meth:`~kivy.event.EventDispatcher.register_event_type`, or the
+:attr:`__events__` class attribute, as the `on_press` and `on_release`
+events in the :class:`~kivy.uix.button.Button` widget demonstrate.
 
 Another thing to note is that if you override an event, you become responsible
 for implementing all its behaviour previously handled by the base class. The
