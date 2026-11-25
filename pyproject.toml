@@ -63,6 +63,7 @@ dependencies = [
     'kivy_deps.sdl3~=0.1.0; sys_platform == "win32"',
     'kivy_deps.glew~=0.3.1; sys_platform == "win32"',
     'pypiwin32; sys_platform == "win32"',
+    'rubicon-objc>=0.5; sys_platform == "darwin" or sys_platform == "ios"',
 ]
 
 [project.urls]

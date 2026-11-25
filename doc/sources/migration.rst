@@ -1402,6 +1402,24 @@ This is **not a breaking change**, and no code changes are needed: apps that
 use ``softinput_mode`` handle the floating keyboard automatically. A floating
 keyboard can cover the focused widget; the user can drag it out of the way.
 
+=============================
+macOS and iOS native services
+=============================
+
+*rubicon-objc replaces pyobjus and PyObjC*
+
+Kivy 2.x.x reached Apple APIs through pyobjus (the ``avplayer`` audio and
+``nspaste`` clipboard providers) and PyObjC (the ``osxappkit`` spelling
+provider). Neither was installed with Kivy, so on macOS those providers were
+usually skipped. Kivy 3.x.x uses
+`rubicon-objc <https://github.com/beeware/rubicon-objc>`_, a pure-Python
+package installed with Kivy on macOS and iOS.
+
+**Migration Impact**
+
+Apps that installed pyobjus or PyObjC only for Kivy can remove them. Apps
+that use them directly can keep them; they don't conflict with rubicon-objc.
+
 ========
 Graphics
 ========
