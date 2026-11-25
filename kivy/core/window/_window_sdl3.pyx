@@ -1,5 +1,7 @@
 import ctypes
 
+from .. import accessibility
+
 include "../../../kivy/lib/sdl3.pxi"
 include "../../include/config.pxi"
 
@@ -39,6 +41,7 @@ cdef class _WindowSDL3Storage:
     cdef char * _shape_image_pixels
     cdef int win_flags
     cdef object event_filter
+    cdef object accessibility
     cdef str gl_backend_name
     cdef int sdl_manages_egl_context
     cdef EGLANGLE egl_angle_storage
@@ -238,7 +241,7 @@ cdef class _WindowSDL3Storage:
             if 'SDL_OPENGL_ES_DRIVER' not in environ:
                 SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, b'1')
 
-    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend):
+    def setup_window(self, x, y, width, height, borderless, fullscreen, resizable, state, gl_backend, accessibility):
         self.gl_backend_name = gl_backend
         self.sdl_manages_egl_context = gl_backend not in ("mock", "angle")
 
@@ -376,6 +379,18 @@ cdef class _WindowSDL3Storage:
                     (<bytes>SDL_GetCurrentVideoDriver()).decode('utf-8'),
                     bool(SDL_GetHintBoolean(SDL_HINT_VIDEO_FORCE_EGL, False))))
 
+        cdef int w, h
+        SDL_GetWindowSize(self.win, &w, &h)
+
+        # Install the accessibility provider and show the window if necessary
+        # TODO: There is currently no way to retrieve the handle of an NSWindow.
+        window_info = self.get_window_info()
+        if accessibility is not None:
+            accessibility.install(window_info, w, h)
+
+        if PLATFORM == 'Windows':
+            self.show_window()
+
         # Set shape in case the user requested a shaped window and the window
         # have the capability to be shaped (SDL_WINDOW_TRANSPARENT flag is set)
         if config_shaped and self.win_flags & SDL_WINDOW_TRANSPARENT:
@@ -412,8 +427,6 @@ cdef class _WindowSDL3Storage:
         SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, True)
         SDL_SetEventEnabled(SDL_EVENT_DROP_BEGIN, True)
         SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, True)
-        cdef int w, h
-        SDL_GetWindowSize(self.win, &w, &h)
 
         # At this point, the window is fully initialized, so we can show it.
         SDL_ShowWindow(self.win)
