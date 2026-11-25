@@ -39,6 +39,12 @@ Keyboard navigation
 - "Left": select the previous sibling
 - "Right": select the next sibling
 
+.. note::
+
+    The :mod:`~kivy.modules.inspector` and :mod:`~kivy.modules.joycursor`
+    modules also use "Ctrl + e". If more than one of them is enabled, only
+    the module started last reacts to it.
+
 Additional information
 ----------------------
 
@@ -81,7 +87,7 @@ of the Console::
         def activate(self):
             self.event = Clock.schedule_interval(self.update_fps, 1 / 2.)
 
-        def deactivated(self):
+        def deactivate(self):
             self.event.cancel()
 
         def update_fps(self, *args):
@@ -391,7 +397,7 @@ class ConsoleAddonFps(ConsoleAddon):
         else:
             ev()
 
-    def deactivated(self):
+    def deactivate(self):
         if self._update_ev is not None:
             self._update_ev.cancel()
 
@@ -778,6 +784,9 @@ class Console(RelativeLayout):
     #: True if the Console is activated (showed)
     activated = BooleanProperty(False)
 
+    # kept above the other Window children while activated
+    _keep_on_top = True
+
     def __init__(self, **kwargs):
         self.win = kwargs.pop('win', None)
         super(Console, self).__init__(**kwargs)
@@ -788,7 +797,9 @@ class Console(RelativeLayout):
             self.gtransform = Transform(Matrix())
             self.grect = Rectangle(size=(0, 0))
             PopMatrix()
-        Clock.schedule_interval(self.update_widget_graphics, 0)
+        # runs every frame, but only while the Console is activated
+        self._update_widget_graphics_ev = Clock.create_trigger(
+            self.update_widget_graphics, 0, interval=True)
 
         self._toolbar = {"left": [], "panels": [], "right": []}
         self._addons = []
@@ -896,10 +907,24 @@ class Console(RelativeLayout):
     def on_window_children(self, win, children):
         if self.avoid_bring_to_top or not self.activated:
             return
+        self._bring_to_top()
+
+    def _bring_to_top(self):
+        win = self.win
+        # only the other keep-on-top modules (Inspector, Console, JoyCursor)
+        # may be above it, otherwise they would keep swapping places
+        for child in win.children:
+            if child is self:
+                return
+            if not getattr(child, '_keep_on_top', False):
+                break
         self.avoid_bring_to_top = True
-        win.remove_widget(self)
-        win.add_widget(self)
-        self.avoid_bring_to_top = False
+        try:
+            if self.parent is win:
+                win.remove_widget(self)
+            win.add_widget(self)
+        finally:
+            self.avoid_bring_to_top = False
 
     def highlight_at(self, x, y):
         """Select a widget from a x/y window coordinate.
@@ -960,27 +985,31 @@ class Console(RelativeLayout):
             self._deactivate_console()
 
     def _activate_console(self):
-        if self not in self.win.children:
-            self.win.add_widget(self)
+        self._bring_to_top()
         self.y = 0
         for addon in self._addons:
             addon.activate()
+        # deactivating the addons also deactivated the current panel
+        self._panel.cb_activate()
+        self._update_widget_graphics_ev()
         Logger.info('Console: console activated')
 
     def _deactivate_console(self):
+        self._update_widget_graphics_ev.cancel()
         for addon in self._addons:
             addon.deactivate()
         self.grect.size = 0, 0
         self.y = -self.height
         self.widget = None
         self.inspect_enabled = False
-        # self.win.remove_widget(self)
+        self.win.remove_widget(self)
         self._window_node = None
         Logger.info('Console: console deactivated')
 
     def keyboard_shortcut(self, win, scancode, *largs):
-        modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        modifiers = set(largs[-1])
+        if scancode == 101 and 'ctrl' in modifiers and not modifiers & {
+                'shift', 'alt', 'meta'}:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
@@ -1041,13 +1070,20 @@ def start(win, ctx):
                 The Widget to be inspected.
 
     """
-    Clock.schedule_once(partial(create_console, win, ctx))
+    ctx.ev_late_create_console = Clock.schedule_once(
+        partial(create_console, win, ctx))
 
 
 def stop(win, ctx):
-    """Stop and unload any active Inspectors for the given *ctx*."""
+    """Stop and unload any active Consoles for the given *ctx*."""
+    if hasattr(ctx, "ev_late_create_console"):
+        ctx.ev_late_create_console.cancel()
+        del ctx.ev_late_create_console
     if hasattr(ctx, "console"):
-        win.unbind(children=ctx.console.on_window_children,
-                   on_keyboard=ctx.console.keyboard_shortcut)
-        win.remove_widget(ctx.console)
+        console = ctx.console
+        win.unbind(children=console.on_window_children,
+                   on_keyboard=console.keyboard_shortcut)
+        # deactivates the addons and removes the Console from the Window
+        console.activated = False
+        win.remove_widget(console)
         del ctx.console

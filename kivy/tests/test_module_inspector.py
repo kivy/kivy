@@ -376,6 +376,134 @@ class InspectorTestCase(GraphicUnitTest):
         self.assertLess(len(self._win.children), 2)
         self.render(self.root)
 
+    def _start_inspector(self):
+        EventLoop.ensure_window()
+        self._win = EventLoop.window
+        self.clean_garbage()
+        self.root = self.builder.Builder.load_string(
+            KV, filename="InspectorTestCase.KV")
+        self.render(self.root)
+        inspector.start(self._win, self.root)
+        self.advance_frames(2)
+        return self.root.inspector
+
+    def _advance_until(self, condition, timeout=2.0):
+        from time import monotonic
+        end = monotonic() + timeout
+        while not condition() and monotonic() < end:
+            self.advance_frames(1)
+        return condition()
+
+    def _clock_events_of(self, obj):
+        # repeating callbacks of obj that are still scheduled
+        from kivy.clock import Clock
+        return [
+            ev for ev in Clock.get_events()
+            if ev.loop and getattr(ev.get_callback(), '__self__', None) is obj]
+
+    def test_reactivate_during_close_animation(self):
+        ins = self._start_inspector()
+        win = self._win
+        ins.activated = True
+        self.advance_frames(2)
+
+        # the slide-out keeps the Inspector in the Window until it ends
+        ins.activated = False
+        self.advance_frames(1)
+        self.assertIn(ins, win.children)
+
+        # e.g. Ctrl+E pressed twice quickly
+        ins.activated = True
+        self.assertIs(win.children[0], ins)
+        self.assertEqual(win.children.count(ins), 1)
+        self.assertEqual(win.canvas.children.count(ins.canvas), 1)
+
+        # the cancelled close animation must not close the Inspector later
+        self.assertTrue(self._advance_until(
+            lambda: abs(ins.layout.top - 60) < 1e-3))
+        self.advance_frames(2)
+        self.assertTrue(ins.activated)
+        self.assertIs(win.children[0], ins)
+
+        inspector.stop(win, self.root)
+        self.assertNotIn(ins, win.children)
+
+    def test_stop_while_activated_cleans_up(self):
+        ins = self._start_inspector()
+        win = self._win
+        ins.activated = True
+        self.advance_frames(2)
+        self.assertTrue(self._clock_events_of(ins))
+
+        inspector.stop(win, self.root)
+        self.assertFalse(ins.activated)
+        self.assertNotIn(ins, win.children)
+        self.assertEqual(self._clock_events_of(ins), [])
+        self.assertFalse(hasattr(self.root, 'inspector'))
+
+        # nothing is left to run, the slide-out included
+        self.advance_frames(5)
+        self.assertNotIn(ins, win.children)
+
+    def test_stop_during_close_animation(self):
+        ins = self._start_inspector()
+        win = self._win
+        ins.activated = True
+        self.advance_frames(2)
+        ins.activated = False
+        self.advance_frames(1)
+
+        inspector.stop(win, self.root)
+        self.assertNotIn(ins, win.children)
+        self.assertEqual(self._clock_events_of(ins), [])
+
+    def test_no_clock_events_while_deactivated(self):
+        ins = self._start_inspector()
+        self.assertEqual(self._clock_events_of(ins), [])
+        inspector.stop(self._win, self.root)
+
+    def test_activation_adds_itself_once(self):
+        ins = self._start_inspector()
+        win = self._win
+        dispatches = []
+        uid = win.fbind('children', lambda *args: dispatches.append(1))
+        try:
+            ins.activated = True
+        finally:
+            win.unbind_uid('children', uid)
+
+        # no remove/re-add from its own children observer
+        self.assertEqual(len(dispatches), 1)
+        self.assertIs(win.children[0], ins)
+        self.assertEqual(win.canvas.children.count(ins.canvas), 1)
+        inspector.stop(win, self.root)
+
+    def test_stays_on_top(self):
+        ins = self._start_inspector()
+        win = self._win
+        ins.activated = True
+        self.advance_frames(1)
+
+        widget = Factory.Widget()
+        win.add_widget(widget)
+        self.assertIs(win.children[0], ins)
+        self.assertIs(win.children[1], widget)
+        self.assertEqual(win.canvas.children.count(ins.canvas), 1)
+        win.remove_widget(widget)
+        inspector.stop(win, self.root)
+
+    def test_ctrl_e_with_numlock(self):
+        ins = self._start_inspector()
+        win = self._win
+        win.dispatch('on_keyboard', 101, 0, 'e', ['ctrl', 'numlock'])
+        self.assertTrue(ins.activated)
+        # Ctrl+Shift+E is not the shortcut
+        win.dispatch('on_keyboard', 101, 0, 'e', ['ctrl', 'shift'])
+        self.assertTrue(ins.activated)
+        win.dispatch('on_keyboard', 101, 0, 'e', ['ctrl'])
+        self.assertFalse(ins.activated)
+        inspector.stop(win, self.root)
+
 
 if __name__ == '__main__':
     import unittest
