@@ -15,6 +15,7 @@ doc/build
 doc/autobuild.py-done*
 doc/sources/_code_snippets_slides.html
 doc/sources/api-*.rst
+!doc/sources/api-kivy.uix.selectable_html.rst
 doc/sources/examples/gen__*.rst
 doc/sources/examples/gallery.rst
 doc/sources/examples/index.rst
