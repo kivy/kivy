@@ -86,9 +86,11 @@ def start(win, ctx):
 
     from kivy.input.recorder import Recorder
     ctx.recorder = Recorder(window=win, **keys)
-    win.bind(on_key_down=partial(on_recorder_key, ctx.recorder))
+    ctx.key_handler = partial(on_recorder_key, ctx.recorder)
+    win.bind(on_key_down=ctx.key_handler)
 
 
 def stop(win, ctx):
     if hasattr(ctx, 'recorder'):
+        win.unbind(on_key_down=ctx.key_handler)
         ctx.recorder.release()
