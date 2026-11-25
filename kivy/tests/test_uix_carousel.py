@@ -91,3 +91,55 @@ if __name__ == "__main__":
     pytest.main(args=[
         __file__,
     ])
+
+
+def _make_touch(x, y):
+    from kivy.input.motionevent import MotionEvent
+
+    class _Touch(MotionEvent):
+        def depack(self, args):
+            self.is_touch = True
+            self.sx, self.sy = args['x'], args['y']
+            super().depack(args)
+
+    touch = _Touch('test', 1, {'x': 0, 'y': 0})
+    touch.sx = touch.sy = 0.
+    touch.x, touch.y = x, y
+    touch.ox, touch.oy = x, y
+    touch.px, touch.py = x, y
+    touch.profile = ['pos']
+    return touch
+
+
+def test_tap_on_slide_inside_offset_parent_releases_button():
+    # A quick tap on a widget in a slide is released after a short delay.
+    # The delayed touch up has to use the same coordinate space as the
+    # touch down, otherwise the button never sees the release (#8075).
+    import time
+    from kivy.clock import Clock
+    from kivy.uix.button import Button
+    from kivy.uix.carousel import Carousel
+    from kivy.uix.relativelayout import RelativeLayout
+
+    parent = RelativeLayout(pos=(100, 100), size=(200, 200))
+    carousel = Carousel(size_hint=(None, None), size=(200, 200))
+    button = Button(text='tap')
+    carousel.add_widget(button)
+    parent.add_widget(carousel)
+    Clock.tick()
+    Clock.tick()
+
+    released = []
+    pressed = []
+    button.bind(on_press=lambda *a: pressed.append(1))
+    button.bind(on_release=lambda *a: released.append(1))
+
+    touch = _make_touch(250, 250)
+    touch.grab_state = False
+    parent.on_touch_down(touch)
+    parent.on_touch_up(touch)
+    assert pressed == [1]
+
+    time.sleep(.15)
+    Clock.tick()
+    assert released == [1]
