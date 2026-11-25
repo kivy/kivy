@@ -1908,6 +1908,11 @@ cdef class VariableListProperty(Property):
         return dpi2px(value, ext)
 
 
+_BOOLEAN_STATES = {
+    '1': True, 'yes': True, 'true': True, 'on': True,
+    '0': False, 'no': False, 'false': False, 'off': False, '': False}
+
+
 cdef class ConfigParserProperty(Property):
     ''' Property that allows one to bind to changes in the configuration values
     of a :class:`~kivy.config.ConfigParser` as well as to bind the ConfigParser
@@ -2018,6 +2023,12 @@ cdef class ConfigParserProperty(Property):
                 or `errorhandler` will be used if provided. Tip: the
                 `getboolean` function of the ConfigParser might also be useful
                 here to convert to a boolean type.
+
+                .. versionchanged:: 3.0.0
+                    With `val_type=bool`, a string value is now read like
+                    :meth:`~kivy.config.ConfigParser.getboolean` does
+                    (``'False'`` and ``'0'`` give ``False``), instead of
+                    ``bool(str)``, which is ``True`` for any non-empty string.
             `verify`: a callable object
                 Can be used to restrict the allowable values of the property.
                 For every value assigned to the property, if this is specified,
@@ -2113,7 +2124,16 @@ cdef class ConfigParserProperty(Property):
 
         if self.val_type is not None:
             try:
-                val = self.val_type(value)
+                if self.val_type is bool and isinstance(value, str):
+                    # bool('False') is True, so read the string the same way
+                    # ConfigParser.getboolean() does.
+                    try:
+                        val = _BOOLEAN_STATES[value.strip().lower()]
+                    except KeyError:
+                        raise ValueError(
+                            'Not a boolean: {!r}'.format(value))
+                else:
+                    val = self.val_type(value)
                 if self.verify is not None and not self.verify(val):
                     raise ValueError('{} is not allowed for {}.{}'. format(
                         val, name, self.name))
