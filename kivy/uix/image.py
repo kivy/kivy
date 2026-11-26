@@ -2,7 +2,7 @@
 Image
 =====
 
-The :class:`Image` widget is used to display an image::
+The :class:`Image` widget is used to display an image.
 
 Example in python::
 
@@ -44,7 +44,7 @@ options include:
 - ``"fill"``: stretches to fill widget, may cause distortion.
 - ``"contain"``: maintains aspect ratio and resizes to fit inside widget.
 - ``"cover"``: maintains aspect ratio and stretches to fill widget, may clip
-image.
+  image.
 
 For more details, refer to the :attr:`~kivy.uix.image.Image.fit_mode`.
 
