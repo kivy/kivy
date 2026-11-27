@@ -667,7 +667,7 @@ class VKeyboard(Scatter):
         # XXX reloading the texture each time
 
         # first draw keys without the font
-        key_normal = resource_find(self.key_background_disabled_normal
+        key_normal = resource_find(self.key_disabled_background_normal
                                    if self.disabled else
                                    self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
