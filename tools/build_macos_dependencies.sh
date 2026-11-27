@@ -1,7 +1,41 @@
+#!/bin/bash
 set -e -x
 
 # If USE_LEGACY_OPENGL is not set, default to "0"
 USE_LEGACY_OPENGL="${USE_LEGACY_OPENGL:-0}"
+
+# Wheel baseline is macOS 10.15. Override with MACOSX_DEPLOYMENT_TARGET
+# (e.g. 12.0) when the active Xcode SDK rejects older targets.
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}"
+
+# Warn (do not auto-raise) if the chosen target is below this SDK's floor.
+# Read SDKSettings.json rather than mapping Xcode version numbers: the SDK
+# is what xcodebuild/cmake enforce, and Xcode 26 vs 27 already diverged
+# from Apple's documented table.
+_macos_warn_if_target_below_sdk() {
+        local sdk_path sdk_min lowest
+        sdk_path="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+        if [ ! -f "${sdk_path}/SDKSettings.json" ]; then
+                return 0
+        fi
+        sdk_min="$(python3 -c '
+import json, sys
+try:
+    with open(sys.argv[1]) as fh:
+        data = json.load(fh)
+    print(data["SupportedTargets"]["macosx"]["MinimumDeploymentTarget"])
+except Exception:
+    pass
+' "${sdk_path}/SDKSettings.json" || true)"
+        if [ -z "$sdk_min" ]; then
+                return 0
+        fi
+        lowest="$(printf '%s\n%s\n' "$MACOSX_DEPLOYMENT_TARGET" "$sdk_min" | sort -V | head -n1)"
+        if [ "$lowest" = "$MACOSX_DEPLOYMENT_TARGET" ] && [ "$MACOSX_DEPLOYMENT_TARGET" != "$sdk_min" ]; then
+                echo "WARNING: MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} is below this SDK's minimum (${sdk_min}). The build may fail. Override with e.g. MACOSX_DEPLOYMENT_TARGET=${sdk_min} $0" >&2
+        fi
+}
+_macos_warn_if_target_below_sdk
 
 # macOS SDL3
 MACOS__SDL3__VERSION="3.4.20"
@@ -96,7 +130,7 @@ pushd $MACOS__LIBPNG__FOLDER
           -DCMAKE_INSTALL_PREFIX=../../dist \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
           -DPNG_TESTS=OFF \
           -DPNG_EXECUTABLES=OFF \
           -DPNG_SHARED=OFF \
@@ -115,10 +149,10 @@ popd
 echo "-- Build SDL3 (Universal)"
 pushd $MACOS__SDL3__FOLDER
 if [ "$USE_LEGACY_OPENGL" = "1" ]; then
-        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
                 -project Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release
 else
-        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+        xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
                 -project Xcode/SDL/SDL.xcodeproj -target SDL3 -configuration Release \
                 GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) SDL_VIDEO_OPENGL=0'
 fi
@@ -127,7 +161,7 @@ popd
 
 echo "-- Build SDL3_mixer (Universal)"
 pushd $MACOS__SDL3_MIXER__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
         FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
         -project Xcode/SDL_mixer.xcodeproj -target SDL3_mixer -configuration Release
 cp -a Xcode/build/Release/SDL3_mixer.framework ../../dist/Frameworks
@@ -135,7 +169,7 @@ popd
 
 echo "-- Build SDL3_image (Universal)"
 pushd $MACOS__SDL3_IMAGE__FOLDER
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
         FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
         -project Xcode/SDL_image.xcodeproj -target SDL3_image -configuration Release
 cp -a Xcode/build/Release/SDL3_image.framework ../../dist/Frameworks
@@ -145,7 +179,7 @@ echo "-- Build SDL3_ttf (Universal)"
 pushd $MACOS__SDL3_TTF__FOLDER
 sh ./external/download.sh
 
-xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET=10.15 \
+xcodebuild ONLY_ACTIVE_ARCH=NO MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
         -project Xcode/SDL_ttf.xcodeproj -target SDL3_ttf -configuration Release \
         GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS) FT_CONFIG_OPTION_USE_PNG=1' \
         FRAMEWORK_SEARCH_PATHS='$(FRAMEWORK_SEARCH_PATHS) '"$FRAMEWORK_SEARCH_PATHS" \
@@ -185,10 +219,10 @@ echo "-- Build ThorVG (Universal, dynamic -> KivyThorVG.framework)"
 # ``tools/build_thorvg.sh`` pins the ThorVG version and the meson
 # options (loaders, engines, static-vs-shared) in a single place
 # shared by Linux, macOS and Windows CI.
-# CIBW_ENVIRONMENT does not set the target for this earlier native build.
-# Default to the wheel baseline while preserving the app builder's 11.0 override.
-MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}" \
-  THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
+# CIBW_ENVIRONMENT does not set the target for this earlier native build;
+# the exported MACOSX_DEPLOYMENT_TARGET above is the wheel baseline, and
+# still honors an explicit override (e.g. the app builder's 11.0).
+THORVG_SHARED=1 bash "$(dirname "$0")/build_thorvg.sh"
 
 bash "$(dirname "$0")/macos_framework_wrapper.sh" \
   "$(pwd)/kivy-dependencies/dist/lib/libthorvg-1.dylib" \

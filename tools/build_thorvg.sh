@@ -36,6 +36,12 @@
 #                               is *always* passed as ``true`` below so the
 #                               bundled LodePNG / JPGd codecs are linked into
 #                               libthorvg directly on every platform.
+#   MACOSX_DEPLOYMENT_TARGET    macOS min version passed as
+#                               ``-mmacosx-version-min`` (and exported for
+#                               Apple Clang). Ignored off macOS and when
+#                               THORVG_IOS / THORVG_ANDROID is set.
+#                               Default: "10.15" (matches the wheel baseline
+#                               in tools/build_macos_dependencies.sh).
 #   THORVG_MACOS_UNIVERSAL      "1" to build a universal2 (x86_64 + arm64)
 #                               archive/dylib on macOS by passing both
 #                               ``-arch`` flags to Apple Clang in a single
@@ -173,6 +179,15 @@ elif [ "$IS_MACOS" = "1" ]; then
   THORVG_MACOS_UNIVERSAL="${THORVG_MACOS_UNIVERSAL:-1}"
 else
   THORVG_MACOS_UNIVERSAL=0
+fi
+
+# Apple Clang reads MACOSX_DEPLOYMENT_TARGET from the environment, but
+# meson -Dc_args replaces the default flags (including -mmacosx-version-min).
+# Honor the same env var the SDL/libpng xcodebuild/cmake paths use.
+_MACOS_MINVER=""
+if [ "$IS_MACOS" = "1" ] && [ -z "$THORVG_IOS" ] && [ -z "$THORVG_ANDROID" ]; then
+  export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}"
+  _MACOS_MINVER="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
 fi
 
 mkdir -p "$THORVG_BUILD_ROOT"
@@ -475,10 +490,10 @@ elif [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
   # For the static archive path (``ar`` just bundles .o files, no link
   # resolution) the flag is harmless - ``ar`` ignores ``-l*``.
   _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX" \
-    -Dc_args="-arch x86_64 -arch arm64" \
-    -Dcpp_args="-arch x86_64 -arch arm64" \
-    -Dc_link_args="-arch x86_64 -arch arm64" \
-    -Dcpp_link_args="-arch x86_64 -arch arm64 -lc++"
+    -Dc_args="-arch x86_64 -arch arm64 $_MACOS_MINVER" \
+    -Dcpp_args="-arch x86_64 -arch arm64 $_MACOS_MINVER" \
+    -Dc_link_args="-arch x86_64 -arch arm64 $_MACOS_MINVER" \
+    -Dcpp_link_args="-arch x86_64 -arch arm64 $_MACOS_MINVER -lc++"
 
   # Verify the produced archive / dylib is actually fat. ``lipo -info``
   # covers both ``libthorvg-1.a`` (static path) and
@@ -491,7 +506,15 @@ elif [ "$THORVG_MACOS_UNIVERSAL" = "1" ]; then
     lipo -info "$_fat_bin" || true
   fi
 else
-  _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX"
+  if [ -n "$_MACOS_MINVER" ]; then
+    _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX" \
+      -Dc_args="$_MACOS_MINVER" \
+      -Dcpp_args="$_MACOS_MINVER" \
+      -Dc_link_args="$_MACOS_MINVER" \
+      -Dcpp_link_args="$_MACOS_MINVER"
+  else
+    _thorvg_configure_and_install "build" "$THORVG_INSTALL_PREFIX"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
