@@ -25,6 +25,38 @@ def self():
     return unittest.TestCase()
 
 
+@pytest.mark.parametrize('watch_before_use', [True, False])
+def test_alias_rejects_none_dependency(watch_before_use):
+    import subprocess
+    import sys
+
+    # A missing property used to dereference a null Cython pointer. Isolate
+    # the reproduction so that a regression cannot kill the test runner.
+    code = '''
+from kivy.event import EventDispatcher
+from kivy.properties import AliasProperty
+
+class Product(EventDispatcher):
+    name = None
+    upper_name = AliasProperty(
+        lambda self: 'unused', bind=['name'], watch_before_use=WATCH,
+    )
+
+try:
+    product = Product()
+    product.upper_name
+except TypeError as error:
+    assert 'upper_name' in str(error)
+    assert 'Product.name' in str(error)
+else:
+    raise AssertionError('a None dependency must raise TypeError')
+'''.replace('WATCH', repr(watch_before_use))
+    result = subprocess.run(
+        [sys.executable, '-c', code], capture_output=True, text=True, timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+
+
 @pytest.mark.parametrize('set_name', [True, False])
 def test_base(self, set_name):
     from kivy.properties import Property
